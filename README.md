@@ -191,6 +191,17 @@ Then update the file *Resources/Server/BeamJoyData/db/bjc.json* to remove any in
 - Server.Broadcasts
 - Server.WelcomeMessage
 
+If you want to add your langage:
+- In the BeamNG main menu, open the console and type `dump(Lua:getSelectedLanguage())`
+- You should get a result as *en_EN*
+- Your JSON file will be named with the part before the underscore and you have to lowercase it (for instance, *Tr_UI* will get you a file named *tr.json*)
+- Your can copy the file *Resources/Server/BeamJoyCore/lang/en.json* with the name you determined in the previous step, in the same folder
+- You can translate your freshly created file but remember only to change the values but not the keys, and also not to change variables between braces (**{** and **}**) in values
+
+If you want to update some labels:
+- Find your langage file in *Resources/Server/BeamJoyCore/lang*
+- As warned in the previous part, do not change the keys or variables between braces (**{** and **}**) in values
+
 ## Video tutorials
 
 Coming soon ..
