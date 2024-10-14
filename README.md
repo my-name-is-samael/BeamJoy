@@ -4,6 +4,18 @@ All-in-One mod for BeamMP
 This mod purpose is to give an easy access to moderation tools and activities for your BeamMP server's players.
 In addition, this mod has a built-in framework to make it modular and to allow developers to easily create new features for it.
 
+## Summary
+1. [Features](#features)
+2. [How To Install](#how-to-install)
+3. [How To Add A Modded Map](#how-to-add-a-modded-map-to-your-server)
+4. [How To Install Basegame Data (Gas Stations, Garages, Delivery points, Races, ...)](#how-to-install-basegame-maps-data)
+5. [How To Set Or Add Langage](#how-to-set-or-add-langage-to-your-server)
+6. [Video Tutorials](#video-tutorials)
+7. [Participating](#participating)
+8. [Known Issues](#known-issues)
+9. [Roadmap](#roadmap)
+10. [Credits](#credits)
+
 ## Features
 
 ### Global and Sync
@@ -143,7 +155,7 @@ In addition, this mod has a built-in framework to make it modular and to allow d
 
 - Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*)
 - Launch your server once to initialize files
-- Download the last version of the mod (<future_link>)
+- Download the last version of the mod ([Mod Releases](https://github.com/my-name-is-samael/beamjoy/releases/tag/Full))
 - Unzip the mod archive in your server's *Resources* folder
 - Connect your game to your server
 - Type in the server console `bj setgroup <your_playername> owner` to gain permissions
@@ -162,9 +174,9 @@ The purpose of the optimized map switcher is to only have the current modded map
 
 **Caution** : When switching from or to a modded map, the server will restart itself, so please take your precautions to have an active reboot system for your server
 
-## How to install basegame maps data (Gas Stations, Garages, Delivery points, Races, ...)
+## How to install basegame maps data
 
-- Download the data archive (<future_link>)
+- Download the data archive (Coming Soon...)
 - Extract it in the folder *Resources/Server/BeamJoyData/db/scenarii/*
 - Restart the server
 - Now you have all basegame maps scenarii and facilities available for your players
