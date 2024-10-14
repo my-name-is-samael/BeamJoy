@@ -1,0 +1,61 @@
+local M = {
+    _dbPath = nil,
+    _fields = {
+        label = "string",
+        custom = "boolean",
+        dropSizeRatio = "number",
+        archive = "string",
+    }
+}
+
+local function init(dbPath)
+    M._dbPath = svar("{1}/maps.json", { dbPath })
+
+    if not FS.Exists(M._dbPath) then
+        BJCDao._saveFile(M._dbPath, BJCDefaults.maps())
+    end
+end
+
+local function findAll()
+    local file, error = io.open(M._dbPath, "r")
+    if file and not error then
+        local data = file:read("*a")
+        file:close()
+        return JSON.parse(data)
+    end
+    return {}
+end
+
+local function saveMap(mapName, mapData)
+    if mapData.custom and not mapData.archive then
+        return
+    end
+    local data = {}
+    for k,v in pairs(M._fields) do
+        if type(mapData[k]) == v then
+            data[k] = mapData[k]
+        end
+    end
+    if not data.label or data.custom == nil then
+        return
+    end
+
+    local maps = findAll()
+    maps[mapName] = data
+
+    BJCDao._saveFile(M._dbPath, maps)
+end
+
+local function remove(mapName)
+    local maps = findAll()
+    maps[mapName] = nil
+    BJCDao._saveFile(M._dbPath, maps)
+end
+
+M.init = init
+
+M.findAll = findAll
+M.saveMap = saveMap
+M.remove = remove
+
+return M

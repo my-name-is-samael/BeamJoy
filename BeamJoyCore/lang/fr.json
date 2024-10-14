@@ -1,0 +1,1116 @@
+{
+  "console": {
+    "common": {
+      "time": {
+        "month": "mois",
+        "months": "mois",
+        "day": "jour",
+        "days": "jours",
+        "hour": "heure",
+        "hours": "heures",
+        "minute": "minute",
+        "minutes": "minutes",
+        "second": "seconde",
+        "seconds": "secondes",
+        "and": "et"
+      },
+      "enabled": "Active",
+      "disabled": "Désactive"
+    },
+    "messages": {
+      "missing": "Erreur lors de la recherche du message {key}",
+      "invalidMessage": "Le message {key} n'est pas une chaine de caracteres"
+    },
+    "command": {
+      "errors": {
+        "usage": "Utilisation : {command}",
+        "invalidFunctionName": "ERREUR Nom de fonction invalide \"{functionName}\"",
+        "invalidCommandData": "ERREUR Donnees invalides",
+        "invalidEnvKey": "ERREUR Cle env_key invalide \"{key}\"",
+        "invalidValue": "ERREUR Valeur invalide \"{value}\"",
+        "invalidPlayer": "ERREUR Joueur invalide {playerName}",
+        "invalidGroup": "ERREUR Groupe invalide {groupName}",
+        "errorUpdatePlayer": "ERREUR Impossible de mettre a jour le joueur {playerName}",
+        "playerAmbiguity": "ERREUR Ambiguite avec le joueur {playerName} : {playerList}"
+      },
+      "help": {
+        "setgroup": "Ajouter un joueur à un groupe",
+        "setenv": "Definir ou reinitialiser une valeur d'environnement",
+        "whitelist": "afficher l'etat de la whitelist ou definir la valeur"
+      },
+      "envValueSetTo": "Valeur d'environnement \"{key}\" definie à \"{value}\"",
+      "groupAssigned": "Joueur {playerName} assigne au groupe {group}",
+      "showWhitelistState": "L'etat de la whitelist est {state}e",
+      "newWhitelistState": "La whitelist est maintenant {state}e"
+    },
+    "db": {
+      "dbFileChanged": "Fichier \"{dbName}\" modifie",
+      "dbLoadingError": "Erreur lors du chargement de la base de donnees \"{dbName}\"",
+      "dbSaveError": "Erreur lors de la sauvegarde de la base de donnees \"{dbName}\"",
+      "dbFileLoadingError": "Erreur lors du chargement du fichier {file}",
+      "dbSaved": "Base de donnees \"{dbName}\" sauvegardee"
+    },
+    "players": {
+      "dbSaveError": "Erreur lors de la sauvegarde de la base de donnees du joueur \"{playerName}\"",
+      "dbSaved": "Base de donnees du joueur \"{playerName}\" sauvegardee",
+      "dbFileChanged": "Fichier \"{playerName}\" modifie",
+      "dbLoadingError": "Erreur lors du chargement de la base de donnees \"{playerName}\"",
+      "authPlayerNotFound": "Joueur AuthPlayer \"{playerName}\" non trouve",
+      "invalidPlayer": "Joueur invalide {playerID}",
+      "invalidGroup": "Groupe invalide {group}",
+      "invalidPermission": "Permission invalide pour le joueur {playerID}",
+      "invalidVehicleData": "Données de vehicule invalides pour le joueur {playerID}"
+    },
+    "rx": {
+      "eventReceived": "Evenement recu {eventName}.{endpoint} par {playerName}"
+    },
+    "tx": {
+      "invalidEventDataType": "Type de donnees d'evenement invalide ({dataType})",
+      "invalidPlayerIDType": "Type d'identifiant joueur invalide ({playerIDType})"
+    }
+  },
+  "server": {
+    "common": {
+      "loading": "Chargement ..."
+    },
+    "players": {
+      "joinError": "Données invalides de votre client",
+      "kicked": "Tu as été kick",
+      "tempBanWillEndIn": "Votre ban se terminera dans {time}",
+      "tempBanned": "Tu as été banni pour {time}",
+      "banned": "Tu as été banni",
+      "banReason": "{base}, la raison est : {reason}",
+      "notWhitelisted": "Tu n'es pas whitelisté",
+      "muted": "Tu as été mute !",
+      "mutedReason": "Tu as été mute parce que : {reason}",
+      "cantSendMessage": "Tu es mute",
+      "vehicleSpawningDisabled": "L'apparition des véhicules est désactivée",
+      "cannotSpawnVehicle": "Tu n'es pas autorisé à faire apparaître un véhicule",
+      "blacklistedVehicle": "Ce véhicule n'est pas autorisé",
+      "walkNotAllowed": "Il n'est pas permis de marcher pour le moment"
+    },
+    "rx": {
+      "invalidTime": "Temps invalide \"{time}\"",
+      "errors": {
+        "serverError": "Erreur du serveur",
+        "invalidData": "Données invalides",
+        "invalidEvent": "Événement invalide \"{eventName}\"",
+        "invalidEndpoint": "Point de terminaison invalide \"{endpoint}\"",
+        "insufficientPermissions": "Autorisations insuffisantes",
+        "senderIDInvalid": "Impossible de trouver votre ID ({senderID})",
+        "invalidCache": "Cache invalide \"{cache}\"",
+        "invalidKey": "Clé invalide \"{key}\"",
+        "invalidValue": "Valeur invalide \"{value}\"",
+        "invalidDefaultValue": "Valeur par défaut invalide pour \"{key}\"",
+        "invalidGroup": "Groupe invalide \"{group}\"",
+        "invalidPlayer": "Joueur invalide ({playerName})",
+        "invalidPlayerID": "ID du joueur invalide ({playerID})",
+        "invalidVehicle": "Véhicule invalide",
+        "invalidVehicleID": "ID du véhicule invalide ({vehicleID})",
+        "invalidLang": "Langue invalide \"{lang}\"",
+        "insufficientPlayers": "Pas assez de joueurs",
+        "guestCannotBeWhitelisted": "Les invités ne peuvent pas être sur la whitelist"
+      },
+      "vehicleRemoveOneOf": "Un de vos véhicules",
+      "vehicleRemoveMain": "Votre véhicule",
+      "vehicleRemoveSuffix": "{typeVehicleRemove} a été retiré par un membre du personnel !",
+      "vehicleRemoveAll": "Tous vos véhicules ont été retirés par un membre du personnel !"
+    },
+    "voteKick": {
+      "beenVoteKick": "Tu as été kick par {votersAmount} joueurs",
+      "playerKicked": "{playerName} a été kick"
+    },
+    "mapSwitch": {
+      "missingArchive": "L'archive est manquante",
+      "kickIn": "La carte est sur le point de changer, tu seras kick dans {delay}",
+      "kick": "La carte a changé, reconnecte-toi"
+    },
+    "broadcast": {
+      "serverStopsIn": "Le serveur redémarrera dans {delay}",
+      "serverStopped": "Le serveur a été redémarré !",
+      "bigDrift": "{playerName} a fait un drift de {score} points !",
+      "newRaceRecord": "{playerName} a établi un nouveau record sur {raceName} : {time}"
+    },
+    "hunter": {
+      "invalidHunted": "Pas de fugitif ou le fugitif n'a pas de véhicule",
+      "huntedWinner": "Le fugitif a gagné !",
+      "huntersWinners": "Les chasseurs ont gagné !",
+      "draw": "Égalité"
+    },
+    "derby": {
+      "winner": "{playerName} a gagné la partie !",
+      "draw": "Égalité"
+    }
+  },
+  "client": {
+    "common": {
+      "loading": "Chargement ...",
+      "vSeparator": "|",
+      "time": {
+        "month": "mois",
+        "months": "mois",
+        "day": "jour",
+        "days": "jours",
+        "hour": "heure",
+        "hours": "heures",
+        "minute": "minute",
+        "minutes": "minutes",
+        "second": "seconde",
+        "seconds": "secondes",
+        "and": "et"
+      },
+      "buttons": {
+        "reset": "Réinitialiser",
+        "resetAll": "Tout réinitialiser",
+        "delete": "Supprimer",
+        "play": "Jouer",
+        "stop": "Arrêter",
+        "allowed": "Autorisé",
+        "blocked": "Bloqué",
+        "add": "Ajouter",
+        "remove": "Retirer",
+        "save": "Sauvegarder",
+        "cancel": "Annuler",
+        "close": "Fermer",
+        "vote": "Voter",
+        "set": "Définir",
+        "create": "Créer",
+        "edit": "Modifier",
+        "duplicate": "Dupliquer",
+        "confirm": "Confirmer",
+        "start": "Commencer",
+        "explode": "Exploser",
+        "leave": "Quitter"
+      },
+      "durationModifiers": {
+        "minute": "m",
+        "hour": "h",
+        "day": "j",
+        "month": "M"
+      },
+      "types": {
+        "string": "Chaîne",
+        "number": "Nombre",
+        "boolean": "Booléen"
+      },
+      "enabled": "Activé",
+      "disabled": "Désactivé",
+      "yes": "Oui",
+      "no": "Non",
+      "state": "État",
+      "unknown": "Inconnu",
+      "tooBigData": "Les données sont trop volumineuses pour être sauvegardées !",
+      "and": "&"
+    },
+    "errors": {
+      "invalid": "Invalide",
+      "invalidData": "Données invalides",
+      "missing": "Manquant",
+      "modManagementDisabled": "La gestion des mods est désactivée sur ce serveur !",
+      "cannotSpawnVeh": "Tu ne peux pas faire apparaître de véhicule",
+      "cannotSpawnAnyMoreVeh": "Tu ne peux plus faire apparaître de véhicule",
+      "unavailableDuringScenario": "Indisponible pendant le scénario",
+      "scenarioUnavailable": "Scénario indisponible",
+      "toastModelBlacklisted": "Ce véhicule est blacklisté"
+    },
+    "chat": {
+      "staffTag": "STAFF",
+      "reputationTag": "RP",
+      "playerJoined": "{playerName} a rejoint",
+      "playerLeft": "{playerName} a quitté",
+      "directMessage": "{playerName} t'a envoyé : {message}"
+    },
+    "nametags": {
+      "staffTag": "STAFF",
+      "reputationTag": "RP",
+      "self": "Toi",
+      "trailer": "Remorque de {playerName}",
+      "selfTrailer": "Ta remorque"
+    },
+    "windows": {
+      "BJI": "BeamJoyInterface",
+      "BJIUserSettings": "Mes Paramètres",
+      "BJIEvents": "Événements",
+      "BJIRaceSettings": "Paramètres de Course",
+      "BJIRace": "Course",
+      "BJIDeliveryMulti": "Livraison en Groupe",
+      "BJIVehicleSelector": "Sélecteur de Véhicule",
+      "BJIStation": "Station",
+      "BJIBusMissionPreparation": "Préparation d'Itinéraire Bus",
+      "BJIScenarioEditor": "Éditeur de Scénario",
+      "BJIFreeroamSettings": "Paramètres du Freeroam",
+      "BJIEnvironment": "Éditeur d'Environnement",
+      "BJIServer": "Paramètres du Serveur",
+      "BJISpeed": "Jeu de Speed",
+      "BJIDatabase": "Base de Données",
+      "BJIHunterSettings": "Paramètres du Hunter",
+      "BJIHunter": "Jeu du Hunter",
+      "BJITheme": "Éditeur de Thème",
+      "BJIDerby": "Destruction Derby"
+    },
+    "menu": {
+      "me": {
+        "title": "Moi",
+        "settings": "Paramètres",
+        "vehicleSelector": "Sélecteur de Véhicule",
+        "clearGPS": "Effacer le GPS"
+      },
+      "vote": {
+        "title": "Vote",
+        "map": "Carte",
+        "mapCustom": "custom",
+        "race": "Course",
+        "voteSpeed": "Speed"
+      },
+      "scenario": {
+        "title": "Scénario",
+        "startSoloRace": "Commencer une Course Solo",
+        "stopSoloRace": "Arrêter la Course",
+        "startVehicleDelivery": "Commencer une Livraison de Véhicule",
+        "startPackageDelivery": "Commencer une Livraison de Colis",
+        "stopDelivery": "Arrêter la Livraison",
+        "joinDeliveryMulti": "Rejoindre la Livraison en Groupe",
+        "leaveDeliveryMulti": "Quitter la Livraison en Groupe",
+        "startBusMission": "Commencer un Itinéraire de Bus",
+        "stopBusMission": "Arrêter l'Itinéraire de Bus",
+        "startSpeed": "Commencer un Speed",
+        "stopSpeed": "Arrêter le Speed",
+        "raceStop": "Arrêter la Course",
+        "startHunter": "Commencer un Hunter",
+        "stopHunter": "Arrêter le Hunter",
+        "startDerby": "Commencer un Destruction Derby",
+        "stopDerby": "Arrêter le Destruction Derby"
+      },
+      "edit": {
+        "title": "Editer",
+        "freeroamSettings": "Paramètres du Freeroam",
+        "time": "Heure",
+        "weather": "Temps",
+        "map": "Changer de Carte",
+        "mapCustom": "custom",
+        "energyStations": "Stations-Services ({amount})",
+        "garages": "Garages ({amount})",
+        "deliveries": "Livraisons ({amount})",
+        "buslines": "Lignes de Bus ({amount})",
+        "races": "Courses ({amount})",
+        "raceCreate": "Créer une Course",
+        "raceDeleteModal": "Es-tu sûr de vouloir supprimer la course \"{raceName}\"",
+        "hunter": "Hunter ({visibility}, {amount} points de passage)",
+        "derby": "Arènes de Derby ({amount})"
+      },
+      "config": {
+        "title": "Configuration",
+        "server": "Serveur",
+        "environment": "Environnement",
+        "theme": "Thème des Fenêtres",
+        "database": "Base de Données",
+        "stop": "Redémarrer le Serveur",
+        "stopModal": "Es-tu sûr de vouloir redémarrer le serveur ?"
+      },
+      "about": {
+        "title": "À propos",
+        "createdBy": "Créé par {author}",
+        "computerTime": "Temps d'ordinateur"
+      }
+    },
+    "groups": {
+      "none": "Aucun",
+      "player": "Joueur",
+      "mod": "Modérateur",
+      "admin": "Administrateur",
+      "owner": "Propriétaire"
+    },
+    "presets": {
+      "gravity": {
+        "zero": "Zéro",
+        "pluto": "Pluton",
+        "moon": "Lune",
+        "mars": "Mars",
+        "mercury": "Mercure",
+        "uranus": "Uranus",
+        "earth": "Terre",
+        "saturn": "Saturne",
+        "neptune": "Neptune",
+        "jupiter": "Jupiter",
+        "sun": "Soleil"
+      },
+      "speed": {
+        "slowextreme": "Séchage de Peinture",
+        "slowest": "Cinématique",
+        "slower": "Plus lent",
+        "slow": "Légèrement plus lent",
+        "normal": "Temps réel",
+        "fast": "Légèrement plus rapide",
+        "faster": "Plus rapide",
+        "fastest": "Rapide",
+        "fastextreme": "Vitesse de la lumière"
+      },
+      "time": {
+        "currentTime": "Heure actuelle",
+        "dawn": "Aube",
+        "midday": "Midi",
+        "dusk": "Crépuscule",
+        "midnight": "Minuit"
+      },
+      "precipType": {
+        "rain_medium": "Pluie légère",
+        "rain_drop": "Pluie",
+        "Snow_menu": "Neige"
+      },
+      "weather": {
+        "currentWeather": "Météo actuelle",
+        "clear": "Clair",
+        "cloud": "Nuageux",
+        "lightrain": "Pluie légère",
+        "rain": "Pluvieux",
+        "lightsnow": "Neige légère",
+        "snow": "Neigeux"
+      }
+    },
+    "environment": {
+      "sun": "Soleil",
+      "controlSun": "Synchroniser Soleil/Heure",
+      "timePlay": "Défilement du temps",
+      "ToD": "Heure de la Journée",
+      "realtime": "Temps Réel",
+      "dayLength": "Durée d'une journée",
+      "dayScale": "Échelle du Jour",
+      "nightScale": "Échelle de la Nuit",
+      "sunAzimuthOverride": "Azimut du Soleil",
+      "sunSize": "Taille du Soleil",
+      "skyBrightness": "Luminosité du Ciel",
+      "sunLightBrightness": "Luminosité du Soleil",
+      "rayleighScattering": "Diffusion Rayleigh",
+      "flareScale": "Échelle de l'Éblouissement",
+      "occlusionScale": "Échelle de l'Occlusion",
+      "exposure": "Exposition",
+      "shadowDistance": "Distance des Ombres",
+      "shadowSoftness": "Douceur des Ombres",
+      "shadowSplits": "Fractionnement des Ombres",
+      "shadowTexSize": "Taille de la Texture des Ombres",
+      "shadowLogWeight": "Poids Logarithmique des Ombres",
+      "visibleDistance": "Distance Visible",
+      "moonAzimuth": "Azimut de la Lune",
+      "moonElevation": "Élévation de la Lune",
+      "moonScale": "Échelle de la Lune",
+      "weather": "Météo",
+      "controlWeather": "Synchroniser la Météo",
+      "fogDensity": "Densité du Brouillard",
+      "fogDensityOffset": "Distance du Brouillard",
+      "fogAtmosphereHeight": "Hauteur du Brouillard",
+      "cloudHeight": "Hauteur des Nuages 1",
+      "cloudHeightOne": "Hauteur des Nuages 2",
+      "cloudCover": "Couverture des Nuages 1",
+      "cloudCoverOne": "Couverture des Nuages 2",
+      "cloudSpeed": "Vitesse des Nuages 1",
+      "cloudSpeedOne": "Vitesse des Nuages 2",
+      "cloudExposure": "Exposition des Nuages 1",
+      "cloudExposureOne": "Exposition des Nuages 2",
+      "rainDrops": "Gouttes de Pluie",
+      "dropSize": "Taille des Gouttes",
+      "dropSizeRatio": "Rapport de Taille des Gouttes",
+      "dropMinSpeed": "Vitesse Min des Gouttes",
+      "dropMaxSpeed": "Vitesse Max des Gouttes",
+      "precipType": "Type de Précipitation",
+      "gravity": "Gravité",
+      "controlGravity": "Synchroniser la Gravité",
+      "gravityRate": "Taux de Gravité",
+      "temperature": "Température",
+      "controlTemperature": "Synchroniser la Température",
+      "tempCurveNoon": "Midi",
+      "tempCurveDusk": "Crépuscule",
+      "tempCurveMidnight": "Minuit",
+      "tempCurveDawn": "Aube",
+      "speed": "Vitesse de Simulation",
+      "controlSpeed": "Synchroniser la Vitesse",
+      "simSpeed": "Vitesse de Simulation"
+    },
+    "themeEditor": {
+      "cancelModal": "Les modifications ne seront pas enregistrées. Es-tu sûr de vouloir annuler ?",
+      "Fields": {
+        "title": "Champs",
+        "WINDOW_BG": "Fond de Fenêtre",
+        "CHILD_BG": "Fond des Enfants",
+        "POPUP_BG": "Fond des Fenêtres Pop-up",
+        "MENUBAR_BG": "Fond du Menu",
+        "BORDER_COLOR": "Couleur de la Bordure",
+        "RESIZE_GRIP": "Couleur du Redimensionnement",
+        "RESIZE_GRIP_HOVERED": "Couleur du Redimensionnement survolé",
+        "RESIZE_GRIP_ACTIVE": "Couleur du Redimensionnement actif",
+        "SCROLLBAR": "Couleur de la Barre de Défilement",
+        "SCROLLBAR_HOVERED": "Couleur de la Barre de Défilement survolée",
+        "SCROLLBAR_ACTIVE": "Couleur de la Barre de Défilement active",
+        "TITLE_BG": "Fond du Titre de la Fenêtre",
+        "TITLE_BG_ACTIVE": "Fond du Titre actif de la Fenêtre",
+        "TITLE_BG_COLLAPSED": "Fond du Titre Replié de la Fenêtre",
+        "TAB": "Couleur de l'Onglet",
+        "TAB_HOVERED": "Couleur de l'Onglet survolé",
+        "TAB_ACTIVE": "Couleur de l'Onglet actif",
+        "TAB_UNFOCUSED": "Couleur de l'Onglet Non Focalisé",
+        "TAB_UNFOCUSED_ACTIVE": "Couleur de l'Onglet Non Focalisé actif",
+        "TEXT_COLOR": "Couleur de Base du Texte",
+        "HELPMARKER": "Couleur du Marqueur d'Aide",
+        "FRAME_BG": "Fond du Cadre",
+        "FRAME_BG_HOVERED": "Fond du Cadre survolé",
+        "FRAME_BG_ACTIVE": "Fond du Cadre actif",
+        "HEADER": "Couleur de l'En-tête",
+        "HEADER_HOVERED": "Couleur de l'En-tête survolée",
+        "HEADER_ACTIVE": "Couleur de l'En-tête active",
+        "SEPARATOR": "Couleur du Séparateur",
+        "SEPARATOR_HOVERED": "Couleur du Séparateur survolé",
+        "SEPARATOR_ACTIVE": "Couleur du Séparateur actif",
+        "BUTTON": "Fond de Base du Bouton",
+        "BUTTON_HOVERED": "Fond de Base du Bouton survolé",
+        "BUTTON_ACTIVE": "Fond de Base du Bouton actif",
+        "TABLE_ROW_BG": "Fond de la Ligne de Tableau",
+        "TABLE_ROW_BG_ALT": "Fond Alternatif de la Ligne de Tableau",
+        "DOCKING_PREVIEW": "Fond de Prévisualisation de Docking",
+        "PROGRESSBAR": "Couleur de la Barre de Progression"
+      },
+      "Text": {
+        "title": "Préréglages de Textes",
+        "DEFAULT": "Couleur de Texte par Défaut",
+        "HIGHLIGHT": "Couleur de Texte Important",
+        "ERROR": "Couleur de Texte Erreur",
+        "SUCCESS": "Couleur de Texte Succès",
+        "DISABLED": "Couleur de Texte Inactif"
+      },
+      "Button": {
+        "title": "Préréglages de Boutons",
+        "baseColor": "Couleur de Base",
+        "hoveredColor": "Couleur survolée",
+        "activeColor": "Couleur Active",
+        "INFO": "Bouton Info",
+        "SUCCESS": "Bouton Succès",
+        "ERROR": "Bouton Erreur",
+        "WARNING": "Bouton Avertissement",
+        "DISABLED": "Bouton Inactif",
+        "TRANSPARENT": "Bouton Transparent"
+      },
+      "Input": {
+        "title": "Préréglages de Champs de Saisie",
+        "baseColor": "Couleur de Base",
+        "textColor": "Couleur du Texte",
+        "overrideTextColor": "Surcharger la Couleur du Texte",
+        "DEFAULT": "Champs de Saisie par Défaut",
+        "ERROR": "Champs de Saisie Erreur",
+        "DISABLED": "Champs de Saisie Inactif",
+        "TRANSPARENT": "Champs de Saisie Transparent"
+      }
+    },
+    "header": {
+      "gamemode": "Mode de Jeu",
+      "reputation": "Niveau de Réputation",
+      "gravity": "Gravité",
+      "speed": "Vitesse",
+      "resetDisabled": "Reset désactivée",
+      "nextReset": "Prochaine reset",
+      "resetAvailable": "Reset disponible",
+      "nextTeleport": "Prochaine téléportation",
+      "teleportAvailable": "Téléportation disponible"
+    },
+    "userSettings": {
+      "uiScale": "Échelle de l'Interface",
+      "vehicles": {
+        "automaticLights": "Feux Automatiques",
+        "automaticLightsTooltip": "Activer les phares automatiquement en fonction de l'heure de la journée.",
+        "driftFlashes": "Indicateur de Drift",
+        "nametags": "Nametags des Joueurs"
+      },
+      "freecam": {
+        "smoothed": "Caméra Adoucie",
+        "fov": "Champ de Vision"
+      },
+      "stats": {
+        "delivery": "Livraisons effectuées",
+        "race": "Courses participées",
+        "bus": "Itinéraires de Bus effectuées"
+      }
+    },
+    "playersBlock": {
+      "waitingPlayers": "Joueurs en attente",
+      "players": "Joueurs"
+    },
+    "moderationBlock": {
+      "waitingPlayers": "Joueurs en attente",
+      "players": "Joueurs",
+      "tempBanDuration": "Durée du Ban Temporaire",
+      "vehicles": "Véhicules",
+      "buttons": {
+        "kick": "Kick",
+        "tempBan": "Ban Temporaire",
+        "ban": "Ban",
+        "demoteTo": "Rétrograder à {groupName}",
+        "promoteTo": "Promouvoir à {groupName}",
+        "promote": "Promouvoir"
+      },
+      "muteReason": "Raison du Mute",
+      "kickReason": "Raison du Kick",
+      "banReason": "Raison du Ban",
+      "kickModal": "Es-tu sûr de vouloir kicker \"{playerName}\" ?",
+      "tempBanModal": "Es-tu sûr de vouloir bannir temporairement \"{playerName}\" ?",
+      "banModal": "Es-tu sûr de vouloir bannir \"{playerName}\" ?"
+    },
+    "serverConfig": {
+      "bjc": {
+        "title": "BeamJoy",
+        "whitelist": {
+          "title": "Whitelist",
+          "players": "Joueurs",
+          "offlinePlayers": "Joueurs Hors Ligne",
+          "addOfflinePlayer": "Ajouter un Joueur Hors Ligne",
+          "addOfflinePlayerPlaceholder": "Nom du Joueur"
+        },
+        "voteKick": {
+          "title": "Paramètres de Vote de Kick",
+          "timeout": "Délai de Vote",
+          "thresholdRatio": "Seuil de votes requis"
+        },
+        "mapVote": {
+          "title": "Paramètres de Vote de Carte",
+          "timeout": "Délai de Vote",
+          "thresholdRatio": "Seuil de votes requis"
+        },
+        "tempban": {
+          "title": "Paramètres de Ban Temporaire",
+          "minTime": "Durée minimale du ban",
+          "maxTime": "Durée maximale du ban",
+          "zeroTooltip": "Mettre à \"0\" pour désactiver"
+        },
+        "race": {
+          "title": "Paramètres de Course",
+          "PreparationTimeout": "Durée de Préparation",
+          "PreparationTimeoutTooltip": "Temps en secondes avant le début de la course",
+          "VoteTimeout": "Durée de Vote",
+          "VoteTimeoutTooltip": "Durée du vote en secondes",
+          "VoteThresholdRatio": "Seuil de Vote pour la Course",
+          "VoteThresholdRatioTooltip": "Entre 0.01 et 1, seuil des votants sur l'ensemble des joueurs du serveur requis pour démarrer la course",
+          "GridReadyTimeout": "Délai Prêt sur la Grille",
+          "GridReadyTimeoutTooltip": "Temps en secondes avant que les joueurs puissent se marquer comme prêt dans l'étape de la grille (pour empêcher les joueurs de commencer avant l'arrivée des adversaires, doit être inférieur à la \"Durée de l'Étape Grille\")",
+          "GridTimeout": "Durée de l'Étape Grille",
+          "GridTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre, choisir un véhicule et se marquer comme prêt. À expiration, la course commence ou s'annule.",
+          "RaceCountdown": "Compte à Rebours du Début de la Course",
+          "RaceCountdownTooltip": "Durée du compte à rebours avant le début réel de la course",
+          "FinishTimeout": "Durée du finish pour les Joueurs",
+          "FinishTimeoutTooltip": "Temps en secondes entre la fin de course d'un joueur et le passage au mode spectateur",
+          "RaceEndTimeout": "Durée de Fin de Course",
+          "RaceEndTimeoutTooltip": "Temps en secondes entre la fin de course du dernier joueur et le retour au freeroam"
+        },
+        "server": {
+          "title": "Paramètres du Serveur",
+          "lang": "Langue de la Console du Serveur",
+          "driftBigBroadcast": "Annonce des gros drifts",
+          "broadcasts": {
+            "title": "Annonces",
+            "tooltip": "Messages annoncés régulièrement à tous les joueurs dans la langue correspondante.",
+            "delay": "Délai entre les messages",
+            "lang": "Langue",
+            "broadcast": "Annonce"
+          },
+          "welcomeMessage": {
+            "title": "Message de Bienvenue",
+            "tooltip": "Message affiché aux joueurs rejoignant le serveur. Si vide, la langue par défaut est utilisée.",
+            "message": "Message en {lang}"
+          }
+        },
+        "speed": {
+          "title": "Paramètres du Jeu de Speed",
+          "PreparationTimeout": "Durée de Préparation",
+          "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent changer de véhicule avant le début du mode",
+          "VoteTimeout": "Durée de Vote",
+          "VoteTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre ou quitter avant le début du mode",
+          "BaseSpeed": "Vitesse de Départ (km/h)",
+          "StepSpeed": "Incrément de Vitesse (km/h)",
+          "StepDelay": "Délai entre les Incréments (sec)",
+          "EndTimeout": "Durée de Fin",
+          "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
+        },
+        "vehicleDelivery": {
+          "title": "Paramètres de Livraison de Véhicule",
+          "modelBlacklist": "Blacklist de Véhicules"
+        }
+      },
+      "reputation": {
+        "title": "Réputation",
+        "KmDriveReward": "Récompense par Km conduit",
+        "DeliveryVehicleReward": "Récompense de Livraison de Véhicule",
+        "DeliveryVehiclePristineReward": "Récompense pour Véhicule Livré Intact",
+        "DeliveryPackageReward": "Récompense de Livraison de Colis",
+        "DeliveryPackageStreakReward": "Récompense de Livraison de Colis à la suite",
+        "DeliveryPackageStreakRewardTooltip": "Multiplié par la série en cours et ajouté à la récompense de base",
+        "RaceParticipationReward": "Récompense de Participation à la Course",
+        "RaceWinnerReward": "Récompense pour le Gagnant de la Course",
+        "RaceWinnerRewardTooltip": "Applicable uniquement aux courses multijoueurs, divisé par la position du joueur dans la course",
+        "DriftGoodReward": "Récompense pour un Bon Drift",
+        "DriftBigReward": "Récompense pour un Gros Drift",
+        "BusMissionReward": "Récompense par Km en Itinéraire de Bus",
+        "BusMissionRewardTooltip": "Gagnée après chaque boucle",
+        "RaceSoloReward": "Récompense de Course Solo",
+        "RaceRecordReward": "Récompense pour un Nouveau Record",
+        "RaceRecordRewardTooltip": "Non applicable si aucun record n'a été établi auparavant",
+        "SpeedReward": "Récompense du Jeu de Speed",
+        "HunterParticipationReward": "Récompense de Participation au Hunter",
+        "HunterWinnerReward": "Récompense de Victoire du Hunter",
+        "HunterWinnerRewardTooltip": "S'applique à tous les joueurs de l'équipe gagnante (chasseurs ou fugitif)"
+      },
+      "permissions": {
+        "title": "Groupes & Permissions",
+        "groups": "Groupes",
+        "permissions": "Permissions",
+        "groupKeys": {
+          "level": "Niveau",
+          "vehicleCap": "Limite de Véhicules",
+          "staff": "Staff",
+          "banned": "Banni",
+          "muted": "Muet",
+          "whitelisted": "Whitelisté",
+          "permissions": "Permissions"
+        },
+        "newGroup": {
+          "title": "Nouveau Groupe",
+          "label": "Nom",
+          "level": "Niveau"
+        },
+        "newPermission": "Ajouter une Permission"
+      },
+      "core": {
+        "title": "Paramètres Noyau",
+        "Name": "Nom",
+        "Description": "Description",
+        "Tags": "Tags",
+        "MaxCars": "Nombre Max de Voitures",
+        "MaxPlayers": "Nombre Max de Joueurs",
+        "Private": "Privé",
+        "Debug": "Debug"
+      },
+      "maps": {
+        "title": "Libellés des Cartes",
+        "label": "Libellé de la Carte",
+        "archive": "Nom Complet de l'Archive",
+        "new": {
+          "title": "Nouvelle Carte",
+          "name": "Nom Technique",
+          "nameTooltip": "Correspondant au nom du dossier de la carte, dans l'archive"
+        }
+      },
+      "cen": {
+        "title": "Console/Éditeur/NodeGrabber",
+        "tooltip": "Les CEN sont toujours accessibles pour les Admins+",
+        "Console": "Console",
+        "Editor": "Éditeur",
+        "NodeGrabber": "Node Grabber"
+      },
+      "icons": {
+        "title": "Icônes"
+      }
+    },
+    "votekick": {
+      "hasStarted": "a démarré un vote pour kicker",
+      "voteTimeout": "Le vote se terminera dans {delay}",
+      "voteAboutToEnd": "Le vote est sur le point de se terminer"
+    },
+    "votemap": {
+      "startVote": "Lancer un vote",
+      "switch": "Changer",
+      "hasStarted": "a démarré un vote pour changer de carte",
+      "targetMapCustom": "custom",
+      "voteTimeout": "Le vote se terminera dans {delay}",
+      "voteAboutToEnd": "Le vote est sur le point de se terminer"
+    },
+    "freeroamSettings": {
+      "resetDelay": "Temps de recharge du reset",
+      "teleportDelay": "Temps de recharge de la téléportation",
+      "vehicleSpawning": "Spawn de véhicules",
+      "quickTravel": "Voyage rapide",
+      "nametags": "Nametags des joueurs",
+      "preserveEnergy": "Conserver le carburant après reset",
+      "driftGood": "Score minimum pour de bons dérapages",
+      "driftBig": "Score minimum pour des gros dérapages",
+      "allowUnicycle": "Autoriser la marche à pied (monocycle)"
+    },
+    "drift": {
+      "indicator": "Drift",
+      "goodFlash": "Bravo !",
+      "bigFlash": "Incroyable !!!"
+    },
+    "races": {
+      "races": "Courses",
+      "names": {},
+      "tools": {
+        "title": "Outils",
+        "rotation": "Rotation"
+      },
+      "edit": {
+        "title": "Éditeur de course",
+        "invalidRace": "Course invalide",
+        "name": "Nom",
+        "author": "Auteur",
+        "enabled": "Afficher la course dans les votes",
+        "nameTooltip": "Définir un nom d'affichage ou une clé à créer dans la langue \"client.races.names\"",
+        "previewPosition": "Position d'aperçu",
+        "previewPositionTooltip": "Position de la caméra libre lorsque la course commence",
+        "loopable": "Bouclable",
+        "laps": "Tours",
+        "lapsTooltip": "Pour tester la course, ne sera pas enregistré",
+        "startPositions": "Positions de départ",
+        "startPositionsNameTooltip": "Pour l'affichage, ne sera pas sauvegardé",
+        "startPositionLabel": "Départ {index}",
+        "stepsFinishWarning": "L'ARRIVÉE / LE TOUR EST LA DERNIÈRE ÉTAPE",
+        "steps": "Étapes de la course",
+        "step": "Étape",
+        "branch": "Branche",
+        "wpName": "Nom",
+        "radius": "Rayon",
+        "parent": "Parent(s)",
+        "parentStartTooltip": "Tu peux utiliser \"start\" dans les étapes suivantes pour créer une branche depuis le début de la course",
+        "addParent": "Ajouter un parent",
+        "addBranch": "Ajouter une branche ici",
+        "addStep": "Ajouter une étape ici",
+        "errors": {
+          "invalidName": "Nom invalide",
+          "noChild": "Aucun enfant"
+        },
+        "hasRecordConfirm": "Un record a été établi sur cette course et l'enregistrement le supprimera. Es-tu sûr ?",
+        "saveErrorToast": "Échec de l'enregistrement de la course, veuillez réessayer ou contacter l'administrateur"
+      },
+      "settings": {
+        "title": "Paramètres de course",
+        "lap": "{lap} tour",
+        "laps": "{laps} tours",
+        "manyLapsWarning": "Un grand nombre de tours peut causer des problèmes de performance",
+        "respawnStrategies": {
+          "title": "Stratégie de réapparition",
+          "respawns": "Réapparitions",
+          "all": "Toutes autorisées",
+          "norespawn": "Pas de réapparition",
+          "lastcheckpoint": "Dernier checkpoint",
+          "lastroad": "Dernière route",
+          "stand": "Dernier stand",
+          "standpenalty": "Dernier stand avec pénalité",
+          "delay": "Délai"
+        },
+        "vehicles": {
+          "playerVehicle": "Véhicule du joueur",
+          "all": "Tous les véhicules autorisés",
+          "currentModel": "Modèle actuel",
+          "currentConfig": "Configuration actuelle",
+          "specific": "{model} spécifique"
+        },
+        "time": "Heure",
+        "weather": "Météo"
+      },
+      "preparation": {
+        "singleplayer": "Course Solo",
+        "multiplayer": "Course Multijoueur",
+        "defaultPlayerName": "Un joueur",
+        "hasStarted": "{creatorName} a démarré la course \"{raceName}\" ({places} places)",
+        "startTimeout": "La course commencera dans {delay}",
+        "raceAboutToStart": "La course est sur le point de commencer",
+        "hasStartedVote": "{creatorName} a démarré un vote pour la course \"{raceName}\" ({places} places)",
+        "currentVotes": "Votes actuels",
+        "voteTimeout": "Le vote se terminera dans {delay}",
+        "voteAboutToEnd": "Le vote est sur le point de se terminer",
+        "startVote": "Lancer un vote",
+        "places": "{places} places"
+      },
+      "play": {
+        "race": "Course",
+        "by": "par {author}",
+        "record": "Record établi par {playerName} avec {model} : {time}",
+        "timeout": "La course expirera dans {delay}",
+        "join": "Rejoindre la course",
+        "joinFlash": "Choisissez votre véhicule",
+        "placesRemaining": "{places} places restantes",
+        "canMarkReadyIn": "Disponible dans {delay}",
+        "gameStartsIn": "La course commence dans {delay}",
+        "playerReady": "PRÊT",
+        "playerNotReady": "PAS PRÊT",
+        "players": "Joueurs",
+        "waitingForOtherPlayers": "En attente des autres joueurs...",
+        "flashCountdownZero": "GO !!!",
+        "eliminatedIn": "Tu seras éliminé dans {delay}",
+        "WP": "CP {wp}",
+        "Lap": "Tour {lap}",
+        "wpDifference": "+{wpDifference}CP",
+        "finalLapFlash": "Dernier tour",
+        "finishFlashSolo": "Tu as terminé !",
+        "finishFlashMulti": "Tu as terminé #{place} !",
+        "eliminatedTime": "ÉLIMINÉ",
+        "flashWinner": "{playerName} a gagné la course !",
+        "flashDnfOut": "ÉLIMINÉ"
+      },
+      "leaderboard": {
+        "title": "Classement des courses"
+      }
+    },
+    "energy": {
+      "energyTypes": {
+        "gasoline": "Essence",
+        "diesel": "Diesel",
+        "kerosine": "Kérosène",
+        "n2o": "NOS",
+        "electricEnergy": "Électrique"
+      },
+      "tankNames": {
+        "gasoline": "Réservoir d'essence",
+        "diesel": "Réservoir de diesel",
+        "kerosine": "Réservoir de kérosène",
+        "n2o": "Bouteille de NOS",
+        "electricEnergy": "Batteries électriques"
+      },
+      "energyUnits": {
+        "gasoline": "L",
+        "diesel": "L",
+        "kerosine": "L",
+        "n2o": "kg",
+        "electricEnergy": "kWh"
+      },
+      "stationNames": {
+        "gasoline": "Station-Service",
+        "diesel": "Station-Service",
+        "kerosine": "Station d'Aéroport",
+        "n2o": "Garage",
+        "electricEnergy": "Station de Recharge"
+      }
+    },
+    "energyStations": {
+      "noStationAvailable": "Aucune {stationName} à proximité...",
+      "flashBatteryFilled": "Batteries chargées",
+      "flashTankFilled": "Réservoir rempli",
+      "noRefuelScenario": "Tu ne peux pas faire le plein dans ce scénario",
+      "edit": {
+        "title": "Éditeur de stations-services",
+        "name": "Nom de la station",
+        "types": "Type(s)",
+        "radius": "Rayon",
+        "saveErrorToast": "Échec de l'enregistrement des stations-services, veuillez réessayer ou contacter l'administrateur"
+      }
+    },
+    "garages": {
+      "damagedWarning": "Votre véhicule est endommagé",
+      "noGarageAvailable": "Aucun garage à proximité...",
+      "garage": "Garage",
+      "repairBtn": "Réparer le véhicule",
+      "flashVehicleRepaired": "Véhicule réparé",
+      "vehiclePristine": "Votre véhicule est en bon état",
+      "noRepairScenario": "Tu ne peux pas réparer ton véhicule dans ce scénario",
+      "edit": {
+        "title": "Éditeur de garages",
+        "name": "Nom du garage",
+        "radius": "Rayon",
+        "saveErrorToast": "Échec de l'enregistrement des garages, veuillez réessayer ou contacter l'administrateur"
+      }
+    },
+    "delivery": {
+      "title": "Livraison de véhicules",
+      "leaderboard": {
+        "title": "Classement des livreurs",
+        "delivered": "véhicules et colis livrés"
+      },
+      "currentDelivery": "Livraison actuelle",
+      "distanceLeft": "{distance} restant",
+      "edit": {
+        "title": "Éditeur des livraisons",
+        "position": "Position {index}",
+        "radius": "Rayon",
+        "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur"
+      }
+    },
+    "vehicleDelivery": {
+      "vehicle": "Véhicule",
+      "damagedWarning": "Le véhicule est endommagé, votre récompense sera réduite.",
+      "flashStart": "Livre le véhicule",
+      "flashFail": "Échec de la livraison",
+      "flashSuccess": "Bien joué !"
+    },
+    "packageDelivery": {
+      "currentStreak": "Colis livrés : {streak}",
+      "streakTooltip": "Continue à livrer des colis à la suite, tu obtiendras des points supplémentaires",
+      "flashStart": "Livre le colis",
+      "flashFirstPackage": "Colis livré !",
+      "flashPackageStreak": "{streak} colis livrés !",
+      "flashEnd": "Livraison terminée"
+    },
+    "deliveryTogether": {
+      "streak": "Série",
+      "distance": "Distance",
+      "resetted": "Reset",
+      "arrived": "Arrivé",
+      "onTheWay": "En chemin",
+      "flashPackage": "Colis livré !",
+      "waitingForOtherPlayers": "En attente des autres joueurs...",
+      "waitingForTarget": "En attente de la destination..."
+    },
+    "buslines": {
+      "edit": {
+        "title": "Éditeur de lignes de bus",
+        "line": "Ligne {index}",
+        "lineName": "Nom",
+        "loopable": "Bouclable",
+        "stop": "Arrêt {index}",
+        "stopsMinimumError": "Au moins 2 arrêts sont requis",
+        "stopName": "Nom",
+        "stopRadius": "Rayon",
+        "goTo": "Aller à",
+        "moveHere": "Déplacer ici",
+        "addStopHere": "Ajouter un arrêt ici",
+        "createLineHere": "Créer une ligne ici",
+        "saveErrorToast": "Échec de l'enregistrement des lignes de bus, veuillez réessayer ou contacter l'administrateur"
+      },
+      "preparation": {
+        "title": "Préparation de mission de bus",
+        "line": "Ligne de bus",
+        "config": "Véhicule",
+        "customConfig": "personnalisé"
+      },
+      "play": {
+        "title": "Itinéraire de bus",
+        "line": "Ligne de bus {name}",
+        "stopCount": "Arrêt {current}/{total}",
+        "continueLoop": "Prolonger le service",
+        "stopMissionBtn": "Arrêter la mission",
+        "flashStopped": "Itinéraire de bus arrêté !",
+        "flashDriveNext": "Conduisez jusqu'au prochain arrêt",
+        "flashFinish": "Bien joué !"
+      }
+    },
+    "ai": {
+      "toastCantSpawn": "Tu ne peux pas faire apparaître le traffic"
+    },
+    "speed": {
+      "vote": {
+        "hasStarted": "{creatorName} a lancé un Speed",
+        "timeout": "Le jeu commencera dans {delay}",
+        "speedAboutToStart": "Le jeu est sur le point de commencer",
+        "voteTimeout": "Le vote se terminera dans {delay}",
+        "voteAboutToEnd": "Le vote est sur le point de se terminer",
+        "hasStartedVote": "{creatorName} a lancé un vote pour commencer un Speed",
+        "participants": "Participants",
+        "join": "Rejoindre",
+        "leave": "Quitter"
+      },
+      "title": "Jeu de Vitesse",
+      "startsIn": "La partie commence dans {time}",
+      "aboutToStart": "La partie est sur le point de commencer",
+      "minimumSpeed": "Vitesse min.: {speed}",
+      "counterWarning": "Tu as {seconds} secondes pour atteindre la vitesse indiquée",
+      "leaderboard": "Classement",
+      "speedUnit": "km/h",
+      "flashStartCancelled": "Pas assez de joueurs !",
+      "flashStart": "Restez au-dessus de la limite de vitesse !",
+      "realtimeMinSpeed": "Vitesse min.: {speed}",
+      "flashFailed": "Échoué !",
+      "flashWinner": "{playerName} a gagné le Speed !"
+    },
+    "vehicleSelector": {
+      "deleteCurrent": "Supprimer mon véhicule",
+      "deleteOtherPlayerVehicle": "Enlever ce véhicule",
+      "deleteOthers": "Supprimer mes autres véhicules",
+      "previousVeh": "Mon véhicule précédent",
+      "defaultVeh": "Mon véhicule par défaut",
+      "noVeh": "Aucun véhicule correspondant",
+      "paints": "Peintures",
+      "applyPaint": "Peindre {position}"
+    },
+    "database": {
+      "players": {
+        "title": "Joueurs",
+        "playerName": "Joueur",
+        "group": "Groupe",
+        "banned": "Banni",
+        "tempBanEndsIn": "Se termine dans {secs}",
+        "banReason": "Raison du ban",
+        "muted": "Muet",
+        "muteReason": "Raison mute"
+      },
+      "vehicles": {
+        "title": "Véhicules",
+        "blacklistedModels": "Modèles blacklistés"
+      }
+    },
+    "hunter": {
+      "edit": {
+        "title": "Éditeur du Hunter",
+        "targetName": "Cible {index}",
+        "hunterPositionName": "Chasseur {index}",
+        "huntedPositionName": "Chassé {index}",
+        "waypoints": "Points de passage",
+        "hunters": "Chasseurs",
+        "hunted": "Chassé",
+        "enabled": "Activé",
+        "radius": "Rayon",
+        "missingPoints": "{amount} points manquant",
+        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur"
+      },
+      "settings": {
+        "title": "Paramètres du Hunter",
+        "huntedWaypoints": "Points de passage du fugitif",
+        "huntedWaypointsTooltip": "Nombre de points de passage que le fugitif doit collecter pour gagner",
+        "huntedConfig": "Configuration du fugitif",
+        "huntedConfigTooltip": "Configuration de véhicule que le fugitif peut choisir (si aucune, n'importe quelle configuration du jeu peut être choisie)",
+        "hunterConfigs": "Configurations des chasseurs",
+        "hunterConfigsTooltip": "Configurations de véhicule que les chasseurs peuvent choisir (si aucune, n'importe quelle configuration du jeu peut être choisie)",
+        "toastConfigAlreadySaved": "Configuration déjà enregistrée",
+        "specificConfig": "{model} spécifique"
+      },
+      "play": {
+        "flashChooseVehicle": "Choisissez votre véhicule",
+        "flashHunterResume": "Arrêtez le fugitif !",
+        "flashHuntedStart": "Survivez et atteignez toutes les cibles",
+        "preparationTimeoutIn": "Fin de la préparation dans {delay}",
+        "preparationTimeoutAboutToEnd": "La préparation est sur le point de se terminer",
+        "startIn": "Tu commenceras dans {delay}",
+        "aboutToStart": "Tu es sur le point de commencer",
+        "huntedLooseIn": "Tu perdras dans {delay}",
+        "huntedAboutToLoose": "Tu es sur le point de perdre",
+        "configChoose": "Choisissez votre véhicule",
+        "readyMark": "PRÊT",
+        "notReadyMark": "PAS PRÊT",
+        "hunted": "Fugitif",
+        "hunters": "Chasseurs",
+        "waypoints": "points de passage"
+      }
+    },
+    "derby": {
+      "edit": {
+        "title": "Éditeur de Derby",
+        "arena": "Arène {index}",
+        "name": "Nom",
+        "enabled": "Activée",
+        "enabledTooltip": "Cette arène peut-elle être utilisée ?",
+        "previewPosition": "Position de prévisualisation",
+        "previewPositionTooltip": "Position de la caméra libre lorsque le derby commence",
+        "startPositions": "Positions de départ",
+        "startPositionName": "Départ {index}",
+        "amountStartPositionsNeeded": "{amount} points de départ manquant",
+        "saveErrorToast": "Échec de l'enregistrement des données de derby, veuillez réessayer ou contacter l'administrateur"
+      },
+      "settings": {
+        "title": "Paramètres de Destruction Derby",
+        "places": "{places} places",
+        "lives": "Vies",
+        "configs": "Configurations de véhicule",
+        "configsTooltip": "Configurations de véhicule que les joueurs peuvent choisir (si aucune, n'importe quelle configuration de jeu peut être choisie)",
+        "toastConfigAlreadySaved": "Configuration déjà enregistrée",
+        "specificConfig": "Spécifique {model}"
+      },
+      "play": {
+        "flashNoLifeRemaining": "Dernière vie",
+        "flashLifeRemaining": "{lives} vie restante",
+        "flashLivesRemaining": "{lives} vies restantes",
+        "flashStart": "GO !!!",
+        "flashElimination": "ÉLIMINÉ",
+        "preparationTimeoutIn": "La préparation se termine dans {delay}",
+        "preparationTimeoutAboutToEnd": "La préparation est sur le point de se terminer",
+        "gameStartsIn": "Le jeu commence dans {delay}",
+        "resetIn": "Tu seras reset dans {delay}",
+        "eliminatedIn": "Tu seras éliminé dans {delay}",
+        "arenaName": "Arène {name}",
+        "readyMark": "PRÊT",
+        "notReadyMark": "PAS PRÊT",
+        "amountLife": "{amount} vie",
+        "amountLives": "{amount} vies"
+      }
+    }
+  }
+}

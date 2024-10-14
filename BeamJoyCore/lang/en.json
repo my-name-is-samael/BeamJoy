@@ -1,0 +1,1116 @@
+{
+  "console": {
+    "common": {
+      "time": {
+        "month": "month",
+        "months": "months",
+        "day": "day",
+        "days": "days",
+        "hour": "hour",
+        "hours": "hours",
+        "minute": "minute",
+        "minutes": "minutes",
+        "second": "second",
+        "seconds": "seconds",
+        "and": "and"
+      },
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "messages": {
+      "missing": "Error finding message {key}",
+      "invalidMessage": "Message {key} is not a string"
+    },
+    "command": {
+      "errors": {
+        "usage": "Usage : {command}",
+        "invalidFunctionName": "ERROR Invalid function name \"{functionName}\"",
+        "invalidCommandData": "ERROR Invalid command data",
+        "invalidEnvKey": "ERROR Invalid env_key \"{key}\"",
+        "invalidValue": "ERROR Invalid value \"{value}\"",
+        "invalidPlayer": "ERROR Invalid player {playerName}",
+        "invalidGroup": "ERROR Invalid group {groupName}",
+        "errorUpdatePlayer": "ERROR Can't update player {playerName}",
+        "playerAmbiguity": "ERROR Ambiguity with player {playerName} : {playerList}"
+      },
+      "help": {
+        "setgroup": "Add a player to a group",
+        "setenv": "Set or reset an environment value",
+        "whitelist": "show whitelist state or set value"
+      },
+      "envValueSetTo": "Environment value \"{key}\" set to \"{value}\"",
+      "groupAssigned": "Player {playerName} assigned to group {group}",
+      "showWhitelistState": "Whitelist state is {state}",
+      "newWhitelistState": "Whitelist is now {state}"
+    },
+    "db": {
+      "dbFileChanged": "File \"{dbName}\" changed",
+      "dbLoadingError": "Error loading DB \"{dbName}\"",
+      "dbSaveError": "Error saving DB \"{dbName}\"",
+      "dbFileLoadingError": "Error loading {file} file",
+      "dbSaved": "DB \"{dbName}\" saved"
+    },
+    "players": {
+      "dbSaveError": "Error saving player DB \"{playerName}\"",
+      "dbSaved": "Player DB \"{playerName}\" saved",
+      "dbFileChanged": "File \"{playerName}\" changed",
+      "dbLoadingError": "Error loading DB \"{playerName}\"",
+      "authPlayerNotFound": "AuthPlayer \"{playerName}\" not found",
+      "invalidPlayer": "Invalid player {playerID}",
+      "invalidGroup": "Invalid group {group}",
+      "invalidPermission": "Invalid permission for player {playerID}",
+      "invalidVehicleData": "Invalid vehicle data for player {playerID}"
+    },
+    "rx": {
+      "eventReceived": "Received event {eventName}.{endpoint} by {playerName}"
+    },
+    "tx": {
+      "invalidEventDataType": "Invalid event data type ({dataType})",
+      "invalidPlayerIDType": "Invalid player ID type ({playerIDType})"
+    }
+  },
+  "server": {
+    "common": {
+      "loading": "Loading ..."
+    },
+    "players": {
+      "joinError": "Invalid data from your client",
+      "kicked": "You have been kicked",
+      "tempBanWillEndIn": "Your ban will end in {time}",
+      "tempBanned": "You have been banned for {time}",
+      "banned": "You have been banned",
+      "banReason": "{base}, the reason is: {reason}",
+      "notWhitelisted": "You are not whitelisted",
+      "muted": "You have been muted !",
+      "mutedReason": "You have been muted because: {reason}",
+      "cantSendMessage": "You are muted",
+      "vehicleSpawningDisabled": "Vehicle spawning is disabled",
+      "cannotSpawnVehicle": "You are not allowed to spawn vehicle",
+      "blacklistedVehicle": "This vehicle is not allowed",
+      "walkNotAllowed": "Walking is not allowed right now"
+    },
+    "rx": {
+      "invalidTime": "Invalid time \"{time}\"",
+      "errors": {
+        "serverError": "Server error",
+        "invalidData": "Invalid data",
+        "invalidEvent": "Invalid event \"{eventName}\"",
+        "invalidEndpoint": "Invalid endpoint \"{endpoint}\"",
+        "insufficientPermissions": "Insufficient permissions",
+        "senderIDInvalid": "Unable to find your ID ({senderID})",
+        "invalidCache": "Invalid cache \"{cache}\"",
+        "invalidKey": "Invalid key \"{key}\"",
+        "invalidValue": "Invalid value \"{value}\"",
+        "invalidDefaultValue": "Invalid default value for \"{key}\"",
+        "invalidGroup": "Invalid group \"{group}\"",
+        "invalidPlayer": "Invalid player ({playerName})",
+        "invalidPlayerID": "Invalid player ({playerID})",
+        "invalidVehicle": "Invalid vehicle",
+        "invalidVehicleID": "Invalid vehicle ({vehicleID})",
+        "invalidLang": "Invalid language \"{lang}\"",
+        "insufficientPlayers": "Not enough players",
+        "guestCannotBeWhitelisted": "Guests cannot be whitelisted"
+      },
+      "vehicleRemoveOneOf": "One of your vehicles",
+      "vehicleRemoveMain": "Your vehicle",
+      "vehicleRemoveSuffix": "{typeVehicleRemove} has been removed by a staff member !",
+      "vehicleRemoveAll": "All your vehicles have been removed by a staff member !"
+    },
+    "voteKick": {
+      "beenVoteKick": "You have been voteKicked by {votersAmount} players",
+      "playerKicked": "{playerName} has been kicked"
+    },
+    "mapSwitch": {
+      "missingArchive": "The archive is missing",
+      "kickIn": "The map is about to change, you will be kick in {delay}",
+      "kick": "The map has changed, please reconnect"
+    },
+    "broadcast": {
+      "serverStopsIn": "The server will restart in {delay}",
+      "serverStopped": "The server has been restarted !",
+      "bigDrift": "{playerName} did a {score} points drift !",
+      "newRaceRecord": "{playerName} set a new record on {raceName} : {time}"
+    },
+    "hunter": {
+      "invalidHunted": "No fugitive or the fugitive has no vehicle",
+      "huntedWinner": "The fugitive won !",
+      "huntersWinners": "Hunters won !",
+      "draw": "Draw"
+    },
+    "derby": {
+      "winner": "{playerName} won the game !",
+      "draw": "Draw"
+    }
+  },
+  "client": {
+    "common": {
+      "loading": "Loading ...",
+      "vSeparator": "|",
+      "time": {
+        "month": "month",
+        "months": "months",
+        "day": "day",
+        "days": "days",
+        "hour": "hour",
+        "hours": "hours",
+        "minute": "minute",
+        "minutes": "minutes",
+        "second": "second",
+        "seconds": "seconds",
+        "and": "and"
+      },
+      "buttons": {
+        "reset": "Reset",
+        "resetAll": "Reset All",
+        "delete": "Delete",
+        "play": "Play",
+        "stop": "Stop",
+        "allowed": "Allowed",
+        "blocked": "Blocked",
+        "add": "Add",
+        "remove": "Remove",
+        "save": "Save",
+        "cancel": "Cancel",
+        "close": "Close",
+        "vote": "Vote",
+        "set": "Set",
+        "create": "Create",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "confirm": "Confirm",
+        "start": "Start",
+        "explode": "Explode",
+        "leave": "Leave"
+      },
+      "durationModifiers": {
+        "minute": "m",
+        "hour": "h",
+        "day": "d",
+        "month": "M"
+      },
+      "types": {
+        "string": "String",
+        "number": "Number",
+        "boolean": "Boolean"
+      },
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "yes": "Yes",
+      "no": "No",
+      "state": "State",
+      "unknown": "Unknown",
+      "tooBigData": "Data are too big to be saved !",
+      "and": "&"
+    },
+    "errors": {
+      "invalid": "Invalid",
+      "invalidData": "Invalid data",
+      "missing": "Missing",
+      "modManagementDisabled": "Mod management is disabled on this server !",
+      "cannotSpawnVeh": "You cannot spawn vehicle",
+      "cannotSpawnAnyMoreVeh": "You cannot spawn any more vehicle",
+      "unavailableDuringScenario": "Unavailable during scenario",
+      "scenarioUnavailable": "Scenario unavailable",
+      "toastModelBlacklisted": "This vehicle is blacklisted"
+    },
+    "chat": {
+      "staffTag": "STAFF",
+      "reputationTag": "RP",
+      "playerJoined": "{playerName} joined",
+      "playerLeft": "{playerName} left",
+      "directMessage": "{playerName} sends you"
+    },
+    "nametags": {
+      "staffTag": "STAFF",
+      "reputationTag": "RP",
+      "self": "You",
+      "trailer": "{playerName}'s trailer",
+      "selfTrailer": "Your trailer"
+    },
+    "windows": {
+      "BJI": "BeamJoyInterface",
+      "BJIUserSettings": "My Settings",
+      "BJIEvents": "Events",
+      "BJIRaceSettings": "Race Settings",
+      "BJIRace": "Race",
+      "BJIDeliveryMulti": "Delivery Together",
+      "BJIVehicleSelector": "Vehicle Selector",
+      "BJIStation": "Station",
+      "BJIBusMissionPreparation": "Bus Mission Preparation",
+      "BJIScenarioEditor": "Scenario Editor",
+      "BJIFreeroamSettings": "Freeroam Settings",
+      "BJIEnvironment": "Environment Editor",
+      "BJIServer": "Server Settings",
+      "BJISpeed": "Speed Game",
+      "BJIDatabase": "Database",
+      "BJIHunterSettings": "Hunter Game Settings",
+      "BJIHunter": "Hunter Game",
+      "BJITheme": "Theme Editor",
+      "BJIDerby": "Destruction Derby"
+    },
+    "menu": {
+      "me": {
+        "title": "Me",
+        "settings": "Settings",
+        "vehicleSelector": "Vehicle Selector",
+        "clearGPS": "Clear GPS"
+      },
+      "vote": {
+        "title": "Vote",
+        "map": "Map",
+        "mapCustom": "custom",
+        "race": "Race",
+        "voteSpeed": "Speed Game"
+      },
+      "scenario": {
+        "title": "Scenario",
+        "startSoloRace": "Start Solo Race",
+        "stopSoloRace": "Stop Race",
+        "startVehicleDelivery": "Start Vehicle Delivery",
+        "startPackageDelivery": "Start Package Delivery",
+        "stopDelivery": "Stop Delivery",
+        "joinDeliveryMulti": "Join Delivery Together",
+        "leaveDeliveryMulti": "Leave Delivery Together",
+        "startBusMission": "Start Bus Mission",
+        "stopBusMission": "Stop Bus Mission",
+        "startSpeed": "Start Speed Game",
+        "stopSpeed": "Stop Speed Game",
+        "raceStop": "Stop Race",
+        "startHunter": "Start Hunter",
+        "stopHunter": "Stop Hunter",
+        "startDerby": "Start Destruction Derby",
+        "stopDerby": "Stop Destruction Derby"
+      },
+      "edit": {
+        "title": "Edit",
+        "freeroamSettings": "Freeroam Settings",
+        "time": "Time of day",
+        "weather": "Weather",
+        "map": "Switch Map",
+        "mapCustom": "custom",
+        "energyStations": "Energy stations ({amount})",
+        "garages": "Garages ({amount})",
+        "deliveries": "Deliveries ({amount})",
+        "buslines": "Bus lines ({amount})",
+        "races": "Races ({amount})",
+        "raceCreate": "Create Race",
+        "raceDeleteModal": "Are you sure you want to delete the race \"{raceName}\"",
+        "hunter": "Hunter ({visibility}, {amount} waypoints)",
+        "derby": "Derby Arenas ({amount})"
+      },
+      "config": {
+        "title": "Config",
+        "server": "Server",
+        "environment": "Environment",
+        "theme": "Windows Theme",
+        "database": "Database",
+        "stop": "Restart Server",
+        "stopModal": "Are you sure you want to restart the server ?"
+      },
+      "about": {
+        "title": "About",
+        "createdBy": "Created by {author}",
+        "computerTime": "Computer Time"
+      }
+    },
+    "groups": {
+      "none": "None",
+      "player": "Player",
+      "mod": "Moderator",
+      "admin": "Administrator",
+      "owner": "Owner"
+    },
+    "presets": {
+      "gravity": {
+        "zero": "Zero",
+        "pluto": "Pluto",
+        "moon": "Moon",
+        "mars": "Mars",
+        "mercury": "Mercury",
+        "uranus": "Uranus",
+        "earth": "Earth",
+        "saturn": "Saturn",
+        "neptune": "Neptune",
+        "jupiter": "Jupiter",
+        "sun": "Sun"
+      },
+      "speed": {
+        "slowextreme": "Planet growing",
+        "slowest": "Cinematic",
+        "slower": "Slower",
+        "slow": "Slightly slower",
+        "normal": "Realtime",
+        "fast": "Slightly faster",
+        "faster": "Faster",
+        "fastest": "Quick",
+        "fastextreme": "Fast as light"
+      },
+      "time": {
+        "currentTime": "Current time",
+        "dawn": "Dawn",
+        "midday": "Midday",
+        "dusk": "Dusk",
+        "midnight": "Midnight"
+      },
+      "precipType": {
+        "rain_medium": "Light Rain",
+        "rain_drop": "Rain",
+        "Snow_menu": "Snow"
+      },
+      "weather": {
+        "currentWeather": "Current Weather",
+        "clear": "Clear",
+        "cloud": "Cloudy",
+        "lightrain": "Light Rain",
+        "rain": "Rainy",
+        "lightsnow": "Light Snow",
+        "snow": "Snowy"
+      }
+    },
+    "environment": {
+      "sun": "Sun",
+      "controlSun": "Sync Sun/Time",
+      "timePlay": "Play Time",
+      "ToD": "Time of Day",
+      "realtime": "Realtime",
+      "dayLength": "Day Length",
+      "dayScale": "Day Scale",
+      "nightScale": "Night Scale",
+      "sunAzimuthOverride": "Sun Azimuth",
+      "sunSize": "Sun Size",
+      "skyBrightness": "Sky Brightness",
+      "sunLightBrightness": "Sun Light Brightness",
+      "rayleighScattering": "Rayleigh Scattering",
+      "flareScale": "Flare Scale",
+      "occlusionScale": "Occlusion Scale",
+      "exposure": "Exposure",
+      "shadowDistance": "Shadow Distance",
+      "shadowSoftness": "Shadow Softness",
+      "shadowSplits": "Shadow Splits",
+      "shadowTexSize": "Shadow Texture Size",
+      "shadowLogWeight": "Shadow Log Weight",
+      "visibleDistance": "Visible Distance",
+      "moonAzimuth": "Moon Azimuth",
+      "moonElevation": "Moon Elevation",
+      "moonScale": "Moon Scale",
+      "weather": "Weather",
+      "controlWeather": "Sync Weather",
+      "fogDensity": "Fog Density",
+      "fogDensityOffset": "Fog Distance",
+      "fogAtmosphereHeight": "Fog Height",
+      "cloudHeight": "Cloud 1 Height",
+      "cloudHeightOne": "Cloud 2 Height",
+      "cloudCover": "Cloud 1 Cover",
+      "cloudCoverOne": "Cloud 2 Cover",
+      "cloudSpeed": "Cloud 1 Speed",
+      "cloudSpeedOne": "Cloud 2 Speed",
+      "cloudExposure": "Cloud 1 Exposure",
+      "cloudExposureOne": "Cloud 2 Exposure",
+      "rainDrops": "Rain Drops",
+      "dropSize": "Drop Size",
+      "dropSizeRatio": "Map DropSize Ratio",
+      "dropMinSpeed": "Drop Min Speed",
+      "dropMaxSpeed": "Drop Max Speed",
+      "precipType": "Precipitation Type",
+      "gravity": "Gravity",
+      "controlGravity": "Sync Gravity",
+      "gravityRate": "Gravity Rate",
+      "temperature": "Temperature",
+      "controlTemperature": "Sync Temperature",
+      "tempCurveNoon": "Midday",
+      "tempCurveDusk": "Dusk",
+      "tempCurveMidnight": "Midnight",
+      "tempCurveDawn": "Dawn",
+      "speed": "Simulation Speed",
+      "controlSpeed": "Sync Speed",
+      "simSpeed": "Simulation Speed"
+    },
+    "themeEditor": {
+      "cancelModal": "Changes will not be saved. Are you sure you want to cancel ?",
+      "Fields": {
+        "title": "Fields",
+        "WINDOW_BG": "Window Background",
+        "CHILD_BG": "Children Background",
+        "POPUP_BG": "Popup Background",
+        "MENUBAR_BG": "Menu Background",
+        "BORDER_COLOR": "Border Color",
+        "RESIZE_GRIP": "Resize Corner Color",
+        "RESIZE_GRIP_HOVERED": "Resize Corner Hovered Color",
+        "RESIZE_GRIP_ACTIVE": "Resize Corner Active Color",
+        "SCROLLBAR": "Scrollbar Color",
+        "SCROLLBAR_HOVERED": "Scrollbar Hovered Color",
+        "SCROLLBAR_ACTIVE": "Scrollbar Active Color",
+        "TITLE_BG": "Window Title Background",
+        "TITLE_BG_ACTIVE": "Window Title Active Background",
+        "TITLE_BG_COLLAPSED": "Window Title Collapsed Background",
+        "TAB": "Tab Color",
+        "TAB_HOVERED": "Tab Hovered Color",
+        "TAB_ACTIVE": "Tab Active Color",
+        "TAB_UNFOCUSED": "Tab Unfocused Color",
+        "TAB_UNFOCUSED_ACTIVE": "Tab Unfocused Active Color",
+        "TEXT_COLOR": "Base Text Color",
+        "HELPMARKER": "Helpmarker Color",
+        "FRAME_BG": "Frame Background",
+        "FRAME_BG_HOVERED": "Frame Background Hovered",
+        "FRAME_BG_ACTIVE": "Frame Background Active",
+        "HEADER": "Header Color",
+        "HEADER_HOVERED": "Header Hovered Color",
+        "HEADER_ACTIVE": "Header Active Color",
+        "SEPARATOR": "Separator Color",
+        "SEPARATOR_HOVERED": "Separator Hovered Color",
+        "SEPARATOR_ACTIVE": "Separator Active Color",
+        "BUTTON": "Base Button Background",
+        "BUTTON_HOVERED": "Base Button Hovered Background",
+        "BUTTON_ACTIVE": "Base Button Active Background",
+        "TABLE_ROW_BG": "Table Row Background",
+        "TABLE_ROW_BG_ALT": "Table Row Alternate Background",
+        "DOCKING_PREVIEW": "Docking Preview Background",
+        "PROGRESSBAR": "Progress Bar Color"
+      },
+      "Text": {
+        "title": "Texts Presets",
+        "DEFAULT": "Default Text Color",
+        "HIGHLIGHT": "Highlighted Text Color",
+        "ERROR": "Error Text Color",
+        "SUCCESS": "Success Text Color",
+        "DISABLED": "Disabled Text Color"
+      },
+      "Button": {
+        "title": "Buttons Presets",
+        "baseColor": "Base Color",
+        "hoveredColor": "Hovered Color",
+        "activeColor": "Active Color",
+        "INFO": "Info Button",
+        "SUCCESS": "Success Button",
+        "ERROR": "Error Button",
+        "WARNING": "Warning Button",
+        "DISABLED": "Disabled Button",
+        "TRANSPARENT": "Transparent Button"
+      },
+      "Input": {
+        "title": "Inputs Presets",
+        "baseColor": "Base Color",
+        "textColor": "Text Color",
+        "overrideTextColor": "Override Text Color",
+        "DEFAULT": "Default Input",
+        "ERROR": "Error Input",
+        "DISABLED": "Disabled Input",
+        "TRANSPARENT": "Transparent Input"
+      }
+    },
+    "header": {
+      "gamemode": "Gamemode",
+      "reputation": "Reputation Level",
+      "gravity": "Gravity",
+      "speed": "Speed",
+      "resetDisabled": "Reset is disabled",
+      "nextReset": "Next reset",
+      "resetAvailable": "Reset available",
+      "nextTeleport": "Next teleportation",
+      "teleportAvailable": "Teleportation available"
+    },
+    "userSettings": {
+      "uiScale": "UI scale",
+      "vehicles": {
+        "automaticLights": "Automatic lights",
+        "automaticLightsTooltip": "Toggle headlights automatically based on the time of day.",
+        "driftFlashes": "Drift Indicator",
+        "nametags": "Players nametags"
+      },
+      "freecam": {
+        "smoothed": "Smoothed Camera",
+        "fov": "Field of View"
+      },
+      "stats": {
+        "delivery": "Deliveries done",
+        "race": "Races participated",
+        "bus": "Bus missions done"
+      }
+    },
+    "playersBlock": {
+      "waitingPlayers": "Waiting players",
+      "players": "Players"
+    },
+    "moderationBlock": {
+      "waitingPlayers": "Waiting players",
+      "players": "Players",
+      "tempBanDuration": "TempBan duration",
+      "vehicles": "Vehicles",
+      "buttons": {
+        "kick": "Kick",
+        "tempBan": "Temp Ban",
+        "ban": "Ban",
+        "demoteTo": "Demote To {groupName}",
+        "promoteTo": "Promote To {groupName}",
+        "promote": "Promote"
+      },
+      "muteReason": "Mute reason",
+      "kickReason": "Kick reason",
+      "banReason": "Ban reason",
+      "kickModal": "Are you sure you want to kick \"{playerName}\" ?",
+      "tempBanModal": "Are you sure you want to temp ban \"{playerName}\" ?",
+      "banModal": "Are you sure you want to ban \"{playerName}\" ?"
+    },
+    "serverConfig": {
+      "bjc": {
+        "title": "BeamJoy",
+        "whitelist": {
+          "title": "Whitelist",
+          "players": "Players",
+          "offlinePlayers": "Offline players",
+          "addOfflinePlayer": "Add offline player",
+          "addOfflinePlayerPlaceholder": "Player Name"
+        },
+        "voteKick": {
+          "title": "Vote Kick Settings",
+          "timeout": "Vote Timeout",
+          "thresholdRatio": "Required votes ratio"
+        },
+        "mapVote": {
+          "title": "Map Vote Settings",
+          "timeout": "Vote Timeout",
+          "thresholdRatio": "Required votes ratio"
+        },
+        "tempban": {
+          "title": "TempBan Settings",
+          "minTime": "Minimum ban time",
+          "maxTime": "Maximum ban time",
+          "zeroTooltip": "Set to \"0\" to disable"
+        },
+        "race": {
+          "title": "Race Settings",
+          "PreparationTimeout": "Preparation Duration",
+          "PreparationTimeoutTooltip": "Time in seconds before the race starts",
+          "VoteTimeout": "Vote Duration",
+          "VoteTimeoutTooltip": "Duration of the vote in seconds",
+          "VoteThresholdRatio": "Race Vote Threshold",
+          "VoteThresholdRatioTooltip": "Between 0.01 and 1, ratio of voters of all server players required to start the race",
+          "GridReadyTimeout": "Ready Delay",
+          "GridReadyTimeoutTooltip": "Time in seconds before players can mark as ready within grid step (to prevent players from starting the race before opponents can join, must be lower than \"Grid Stage Duration\")",
+          "GridTimeout": "Grid Stage Duration",
+          "GridTimeoutTooltip": "Time in seconds while players can join, select a vehicle and mark ready. When timed out, the race starts or cancels itself.",
+          "RaceCountdown": "Race Start Countdown",
+          "RaceCountdownTooltip": "Delay between all race participants marked ready and the actual race starts",
+          "FinishTimeout": "Player Finish Duration",
+          "FinishTimeoutTooltip": "Time in seconds between a player finishes and becomes a spectator",
+          "RaceEndTimeout": "Race End Duration",
+          "RaceEndTimeoutTooltip": "Time in seconds between the last race player finishes and the race ends"
+        },
+        "server": {
+          "title": "Server Settings",
+          "lang": "Server Console Language",
+          "driftBigBroadcast": "Brodcast big drifts",
+          "broadcasts": {
+            "title": "Broadcasts",
+            "tooltip": "Messages broadcasted regularly to all players having the corresponding language.",
+            "delay": "Delay between messages",
+            "lang": "Language",
+            "broadcast": "Broadcast"
+          },
+          "welcomeMessage": {
+            "title": "Welcome Message",
+            "tooltip": "Message displayed to joining players. If empty, fallback language is used.",
+            "message": "{lang} message"
+          }
+        },
+        "speed": {
+          "title": "Speed Gamemode Settings",
+          "PreparationTimeout": "Preparation Duration",
+          "PreparationTimeoutTooltip": "Time in seconds while players can switch to their vehicle before the mode starts",
+          "VoteTimeout": "Vote Duration",
+          "VoteTimeoutTooltip": "Time in seconds while players can join and leave before the mode starts",
+          "BaseSpeed": "Starting Minimum Speed (km/h)",
+          "StepSpeed": "Incremented Speed Step (km/h)",
+          "StepDelay": "Delay between Steps (sec)",
+          "EndTimeout": "End Duration",
+          "EndTimeoutTooltip": "Time in seconds between last players finish and the mode ends"
+        },
+        "vehicleDelivery": {
+          "title": "Vehicle Delivery Settings",
+          "modelBlacklist": "Vehicles Blacklist"
+        }
+      },
+      "reputation": {
+        "title": "Reputation",
+        "KmDriveReward": "Drive Reward /km",
+        "DeliveryVehicleReward": "Vehicle Delivery Reward",
+        "DeliveryVehiclePristineReward": "Vehicle Delivery Reward for intact vehicle",
+        "DeliveryPackageReward": "Package Delivery Reward",
+        "DeliveryPackageStreakReward": "Package Delivery Streak Reward",
+        "DeliveryPackageStreakRewardTooltip": "Will be multiply by current streak and added to base reward",
+        "RaceParticipationReward": "Race Participation Reward",
+        "RaceWinnerReward": "Race Winner Reward",
+        "RaceWinnerRewardTooltip": "Apply only to multiplayer races, divided by the player position in race",
+        "DriftGoodReward": "Good Drift Reward",
+        "DriftBigReward": "Big Drift Reward",
+        "BusMissionReward": "Bus Mission Reward per Km",
+        "BusMissionRewardTooltip": "Gained after each loop",
+        "RaceSoloReward": "Solo Race Reward",
+        "RaceRecordReward": "Race New Record Reward",
+        "RaceRecordRewardTooltip": "Not applicable if no record has been previously set",
+        "SpeedReward": "Speed Gamemode Reward",
+        "HunterParticipationReward": "Hunter Participation Reward",
+        "HunterWinnerReward": "Hunter Winner Reward",
+        "HunterWinnerRewardTooltip": "Applies to every players in the winning team (hunters or fugitive)"
+      },
+      "permissions": {
+        "title": "Groups & Permissions",
+        "groups": "Groups",
+        "permissions": "Permissions",
+        "groupKeys": {
+          "level": "Level",
+          "vehicleCap": "Vehicle Cap",
+          "staff": "Staff",
+          "banned": "Banned",
+          "muted": "Muted",
+          "whitelisted": "Whitelisted",
+          "permissions": "Permissions"
+        },
+        "newGroup": {
+          "title": "New Group",
+          "label": "Name",
+          "level": "Level"
+        },
+        "newPermission": "Add Permission"
+      },
+      "core": {
+        "title": "Core",
+        "Name": "Name",
+        "Description": "Description",
+        "Tags": "Tags",
+        "MaxCars": "Max Cars",
+        "MaxPlayers": "Max Players",
+        "Private": "Private",
+        "Debug": "Debug"
+      },
+      "maps": {
+        "title": "Maps Labels",
+        "label": "Map Label",
+        "archive": "Archive Full Name",
+        "new": {
+          "title": "New Map",
+          "name": "Tech Name",
+          "nameTooltip": "Corresponding to the map's folder name, inside the archive"
+        }
+      },
+      "cen": {
+        "title": "Console/Editor/NodeGrabber",
+        "tooltip": "CEN are always accessibles for Admin+",
+        "Console": "Console",
+        "Editor": "Editor",
+        "NodeGrabber": "Node Grabber"
+      },
+      "icons": {
+        "title": "Icons"
+      }
+    },
+    "votekick": {
+      "hasStarted": "has started a vote to kick",
+      "voteTimeout": "The vote will end in {delay}",
+      "voteAboutToEnd": "The vote is about to end"
+    },
+    "votemap": {
+      "startVote": "Start Vote",
+      "switch": "Switch",
+      "hasStarted": "has started a vote to switch to map",
+      "targetMapCustom": "custom",
+      "voteTimeout": "The vote will end in {delay}",
+      "voteAboutToEnd": "The vote is about to end"
+    },
+    "freeroamSettings": {
+      "resetDelay": "Reset cooldown",
+      "teleportDelay": "Teleportation cooldown",
+      "vehicleSpawning": "Global vehicle spawning",
+      "quickTravel": "Quick travel",
+      "nametags": "Players nametags",
+      "preserveEnergy": "Preserve fuel between resets",
+      "driftGood": "Good drifts minimum score",
+      "driftBig": "Big drifts minimum score",
+      "allowUnicycle": "Allow walking"
+    },
+    "drift": {
+      "indicator": "Drift",
+      "goodFlash": "Nice !",
+      "bigFlash": "Awesome !!!"
+    },
+    "races": {
+      "races": "Races",
+      "names": {},
+      "tools": {
+        "title": "Tools",
+        "rotation": "Rotation"
+      },
+      "edit": {
+        "title": "Race Editor",
+        "invalidRace": "Invalid Race",
+        "name": "Name",
+        "author": "Author",
+        "enabled": "Display race in votes",
+        "nameTooltip": "Set a display name or set a key and create it in lang \"client.races.names\"",
+        "previewPosition": "Preview Position",
+        "previewPositionTooltip": "Freecam position seen when the race begins",
+        "loopable": "Loopable",
+        "laps": "Laps",
+        "lapsTooltip": "For testing purpose, will not be saved",
+        "startPositions": "Start Positions",
+        "startPositionsNameTooltip": "For display purpose, will not be saved",
+        "startPositionLabel": "Start {index}",
+        "stepsFinishWarning": "THE FINISH / LAP IS THE LAST STEP",
+        "steps": "Race Steps",
+        "step": "Step",
+        "branch": "Branch",
+        "wpName": "Name",
+        "radius": "Radius",
+        "parent": "Parent(s)",
+        "parentStartTooltip": "You can use \"start\" in next steps to branch from the start too",
+        "addParent": "Add Parent",
+        "addBranch": "Add Branch Here",
+        "addStep": "Add Step Here",
+        "errors": {
+          "invalidName": "Invalid Name",
+          "noChild": "No child"
+        },
+        "hasRecordConfirm": "A record has been set on this race and saving will delete it. Are you sure ?",
+        "saveErrorToast": "Race save failed, please try again or contact the administrator"
+      },
+      "settings": {
+        "title": "Race Settings",
+        "lap": "{lap} lap",
+        "laps": "{laps} laps",
+        "manyLapsWarning": "A large amount of laps can cause performance issues",
+        "respawnStrategies": {
+          "title": "Respawn Strategy",
+          "respawns": "Respawns",
+          "all": "All allowed",
+          "norespawn": "No Respawn",
+          "lastcheckpoint": "Last Checkpoint",
+          "lastroad": "Last Road",
+          "stand": "Last Stand",
+          "standpenalty": "Last Stand with Penalty",
+          "delay": "Delay"
+        },
+        "vehicles": {
+          "playerVehicle": "Player Vehicle",
+          "all": "All vehicles allowed",
+          "currentModel": "Current model",
+          "currentConfig": "Current config",
+          "specific": "Specific {model}"
+        },
+        "time": "Time of day",
+        "weather": "Weather"
+      },
+      "preparation": {
+        "singleplayer": "Singleplayer Race",
+        "multiplayer": "Multiplayer Race",
+        "defaultPlayerName": "A player",
+        "hasStarted": "{creatorName} has started the race \"{raceName}\" ({places} places)",
+        "startTimeout": "The race will start in {delay}",
+        "raceAboutToStart": "The race is about to start",
+        "hasStartedVote": "{creatorName} has started a vote for the race \"{raceName}\" ({places} places)",
+        "currentVotes": "Current votes",
+        "voteTimeout": "The vote will end in {delay}",
+        "voteAboutToEnd": "The vote is about to end",
+        "startVote": "Start Vote",
+        "places": "{places} places"
+      },
+      "play": {
+        "race": "Race",
+        "by": "by {author}",
+        "record": "Record by {playerName} with {model} : {time}",
+        "timeout": "Race will time out in {delay}",
+        "join": "Join Race",
+        "joinFlash": "Choose your vehicle",
+        "placesRemaining": "{places} places remaining",
+        "canMarkReadyIn": "Available in {delay}",
+        "gameStartsIn": "The race starts in {delay}",
+        "playerReady": "READY",
+        "playerNotReady": "NOT READY",
+        "players": "Players",
+        "waitingForOtherPlayers": "Waiting for other players...",
+        "flashCountdownZero": "GO !!!",
+        "eliminatedIn": "You will be eliminated in {delay}",
+        "WP": "CP {wp}",
+        "Lap": "Lap {lap}",
+        "wpDifference": "+{wpDifference}CP",
+        "finalLapFlash": "Final Lap",
+        "finishFlashSolo": "You finished !",
+        "finishFlashMulti": "You finished #{place} !",
+        "eliminatedTime": "ELIMINATED",
+        "flashWinner": "{playerName} won the race !",
+        "flashDnfOut": "ELIMINATED"
+      },
+      "leaderboard": {
+        "title": "Races Leaderboard"
+      }
+    },
+    "energy": {
+      "energyTypes": {
+        "gasoline": "Gasoline",
+        "diesel": "Diesel",
+        "kerosine": "Kerosine",
+        "n2o": "NOS",
+        "electricEnergy": "Electric"
+      },
+      "tankNames": {
+        "gasoline": "Gasoline tank",
+        "diesel": "Diesel tank",
+        "kerosine": "Kerosine tank",
+        "n2o": "NOS bottle",
+        "electricEnergy": "Electric batteries"
+      },
+      "energyUnits": {
+        "gasoline": "L",
+        "diesel": "L",
+        "kerosine": "L",
+        "n2o": "kg",
+        "electricEnergy": "kWh"
+      },
+      "stationNames": {
+        "gasoline": "Gas station",
+        "diesel": "Gas station",
+        "kerosine": "Airport station",
+        "n2o": "Garage",
+        "electricEnergy": "Charging station"
+      }
+    },
+    "energyStations": {
+      "noStationAvailable": "No {stationName} around...",
+      "flashBatteryFilled": "Batteries charged",
+      "flashTankFilled": "Tank filled",
+      "noRefuelScenario": "You cannot refuel your vehicle in this scenario",
+      "edit": {
+        "title": "Energy Stations Editor",
+        "name": "Station name",
+        "types": "Type(s)",
+        "radius": "Radius",
+        "saveErrorToast": "Energy stations save failed, please try again or contact the administrator"
+      }
+    },
+    "garages": {
+      "damagedWarning": "Your vehicle is damaged",
+      "noGarageAvailable": "No Garage around...",
+      "garage": "Garage",
+      "repairBtn": "Repair Vehicle",
+      "flashVehicleRepaired": "Vehicle repaired",
+      "vehiclePristine": "Your vehicle is in good shape",
+      "noRepairScenario": "You cannot repair your vehicle in this scenario",
+      "edit": {
+        "title": "Garages Editor",
+        "name": "Garage name",
+        "radius": "Radius",
+        "saveErrorToast": "Garages save failed, please try again or contact the administrator"
+      }
+    },
+    "delivery": {
+      "title": "Vehicle delivery",
+      "leaderboard": {
+        "title": "Delivery Leaderboard",
+        "delivered": "vehicles & packages delivered"
+      },
+      "currentDelivery": "Current delivery",
+      "distanceLeft": "{distance} left",
+      "edit": {
+        "title": "Delivery Editor",
+        "position": "Position {index}",
+        "radius": "Radius",
+        "saveErrorToast": "Deliveries save failed, please try again or contact the administrator"
+      }
+    },
+    "vehicleDelivery": {
+      "vehicle": "Vehicle",
+      "damagedWarning": "The vehicle is damaged, your reward will be diminished.",
+      "flashStart": "Deliver the vehicle",
+      "flashFail": "Delivery failed",
+      "flashSuccess": "Well done !"
+    },
+    "packageDelivery": {
+      "currentStreak": "Package(s) delivered: {streak}",
+      "streakTooltip": "Continue delivering packages in a row, then you will gain extra rewards",
+      "flashStart": "Deliver the package",
+      "flashFirstPackage": "Package delivered !",
+      "flashPackageStreak": "{streak} packages delivered !",
+      "flashEnd": "Delivery ended"
+    },
+    "deliveryTogether": {
+      "streak": "Streak",
+      "distance": "Distance",
+      "resetted": "Resetted",
+      "arrived": "Arrived",
+      "onTheWay": "On the way",
+      "flashPackage": "Package delivered !",
+      "waitingForOtherPlayers": "Waiting for other players...",
+      "waitingForTarget": "Waiting for target..."
+    },
+    "buslines": {
+      "edit": {
+        "title": "Bus Lines Editor",
+        "line": "Line {index}",
+        "lineName": "Name",
+        "loopable": "Loopable",
+        "stop": "Stop {index}",
+        "stopsMinimumError": "At least 2 stops are required",
+        "stopName": "Name",
+        "stopRadius": "Radius",
+        "goTo": "Go To",
+        "moveHere": "Move Here",
+        "addStopHere": "Add Stop Here",
+        "createLineHere": "Create Line Here",
+        "saveErrorToast": "Bus lines save failed, please try again or contact the administrator"
+      },
+      "preparation": {
+        "title": "Bus Mission Preparation",
+        "line": "Bus Line",
+        "config": "Vehicle",
+        "customConfig": "custom"
+      },
+      "play": {
+        "title": "Bus Mission",
+        "line": "Bus Line {name}",
+        "stopCount": "Stop {current}/{total}",
+        "continueLoop": "Extend duty",
+        "stopMissionBtn": "Stop mission",
+        "flashStopped": "Bus Mission stopped !",
+        "flashDriveNext": "Drive to next bus stop",
+        "flashFinish": "Well done !"
+      }
+    },
+    "ai": {
+      "toastCantSpawn": "You cannot spawn AI vehicles"
+    },
+    "speed": {
+      "vote": {
+        "hasStarted": "{creatorName} has started a speed game",
+        "timeout": "The game will start in {delay}",
+        "speedAboutToStart": "The game is about to start",
+        "voteTimeout": "The vote will end in {delay}",
+        "voteAboutToEnd": "The vote is about to end",
+        "hasStartedVote": "{creatorName} has started a vote to start a speed game",
+        "participants": "Participants",
+        "join": "Join",
+        "leave": "Leave"
+      },
+      "title": "Speed Game",
+      "startsIn": "The game starts in {time}",
+      "aboutToStart": "The game is about to start",
+      "minimumSpeed": "Minimum Speed: {speed}",
+      "counterWarning": "You have {seconds} seconds left to reach the min speed",
+      "leaderboard": "Leaderboard",
+      "speedUnit": "km/h",
+      "flashStartCancelled": "Not Enough players !",
+      "flashStart": "Stay above the speed limit !",
+      "realtimeMinSpeed": "Min speed: {speed}",
+      "flashFailed": "Failed !",
+      "flashWinner": "{playerName} won the speed game!"
+    },
+    "vehicleSelector": {
+      "deleteCurrent": "Delete Vehicle",
+      "deleteOtherPlayerVehicle": "Delete this player Vehicle",
+      "deleteOthers": "Delete Other Vehicles",
+      "previousVeh": "My Previous Vehicle",
+      "defaultVeh": "My Default Vehicle",
+      "noVeh": "No vehicle found",
+      "paints": "Paints",
+      "applyPaint": "Paint {position}"
+    },
+    "database": {
+      "players": {
+        "title": "Players",
+        "playerName": "Player",
+        "group": "Group",
+        "banned": "Banned",
+        "tempBanEndsIn": "Ends in {secs}",
+        "banReason": "Ban Reason",
+        "muted": "Muted",
+        "muteReason": "Mute Reason"
+      },
+      "vehicles": {
+        "title": "Vehicles",
+        "blacklistedModels": "Blacklisted Models"
+      }
+    },
+    "hunter": {
+      "edit": {
+        "title": "Hunter Editor",
+        "targetName": "Target {index}",
+        "hunterPositionName": "Hunter {index}",
+        "huntedPositionName": "Hunted {index}",
+        "waypoints": "Waypoints",
+        "hunters": "Hunters",
+        "hunted": "Hunted",
+        "enabled": "Voteable mode",
+        "radius": "Radius",
+        "missingPoints": "Missing {amount} point(s)",
+        "saveErrorToast": "Hunter data save failed, please try again or contact the administrator"
+      },
+      "settings": {
+        "title": "Hunter Settings",
+        "huntedWaypoints": "Fugitive Waypoints",
+        "huntedWaypointsTooltip": "Amount of waypoints the fugitive must collect to win",
+        "huntedConfig": "Fugitive Config",
+        "huntedConfigTooltip": "Vehicle config the fugitive can choose from (if none, any game config can be picked)",
+        "hunterConfigs": "Hunter Configs",
+        "hunterConfigsTooltip": "Vehicle configs hunters can choose from (if none, any game config can be picked)",
+        "toastConfigAlreadySaved": "Config already saved",
+        "specificConfig": "Specific {model}"
+      },
+      "play": {
+        "flashChooseVehicle": "Choose your vehicle",
+        "flashHunterResume": "Stop the fugitive !",
+        "flashHuntedStart": "Survive and reach all waypoints",
+        "preparationTimeoutIn": "Preparation timeout in {delay}",
+        "preparationTimeoutAboutToEnd": "Preparation timeout is about to end",
+        "startIn": "You will start in {delay}",
+        "aboutToStart": "You are about to start",
+        "huntedLooseIn": "You will loose in {delay}",
+        "huntedAboutToLoose": "You are about to loose",
+        "configChoose": "Choose your vehicle",
+        "readyMark": "READY",
+        "notReadyMark": "NOT READY",
+        "hunted": "Fugitive",
+        "hunters": "Hunters",
+        "waypoints": "waypoints"
+      }
+    },
+    "derby": {
+      "edit": {
+        "title": "Derby Editor",
+        "arena": "Arena {index}",
+        "name": "Name",
+        "enabled": "Enabled",
+        "enabledTooltip": "Can this arena can be launched ?",
+        "previewPosition": "Preview Position",
+        "previewPositionTooltip": "Freecam position when the derby starts",
+        "startPositions": "Start Positions",
+        "startPositionName": "Start {index}",
+        "amountStartPositionsNeeded": "{amount} more points missing",
+        "saveErrorToast": "Derby data save failed, please try again or contact the administrator"
+      },
+      "settings": {
+        "title": "Destruction Derby Settings",
+        "places": "{places} places",
+        "lives": "Lives",
+        "configs": "Vehicle configs",
+        "configsTooltip": "Vehicle configs players can choose from (if none, any game config can be picked)",
+        "toastConfigAlreadySaved": "Config already saved",
+        "specificConfig": "Specific {model}"
+      },
+      "play": {
+        "flashNoLifeRemaining": "Last life",
+        "flashLifeRemaining": "{lives} life remaining",
+        "flashLivesRemaining": "{lives} lives remaining",
+        "flashStart": "GO !!!",
+        "flashElimination": "ELIMINATED",
+        "preparationTimeoutIn": "Preparation ends in {delay}",
+        "preparationTimeoutAboutToEnd": "Preparation is about to end",
+        "gameStartsIn": "Game starts in {delay}",
+        "resetIn": "You will reset in {delay}",
+        "eliminatedIn": "You will be eliminated in {delay}",
+        "arenaName": "Arena {name}",
+        "readyMark": "READY",
+        "notReadyMark": "NOT READY",
+        "amountLife": "{amount} life",
+        "amountLives": "{amount} lives"
+      }
+    }
+  }
+}
