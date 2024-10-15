@@ -94,7 +94,6 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Solo races with leaderboards and time delta.
 - Race editor for admins and selected players.
 - Multiplayer races can be forced by staff or voted for by players.
-- Working stands.
 - Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint.
 - Working pit stands.
 - Players can use any vehicle, a specific model, or a specified configuration set at race launch.
