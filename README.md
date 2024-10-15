@@ -1,15 +1,15 @@
 # BeamJoy
 All-in-One mod for BeamMP
 
-This mod purpose is to give an easy access to moderation tools and activities for your BeamMP server's players.
-In addition, this mod has a built-in framework to make it modular and to allow developers to easily create new features for it.
+The purpose of this mod is to provide easy access to moderation tools and activities for the players on your BeamMP server.
+In addition, it includes a built-in framework to make it modular, allowing developers to easily add new features.
 
 ## Summary
 1. [Features](#features)
-2. [How To Install](#how-to-install)
-3. [How To Add A Modded Map](#how-to-add-a-modded-map-to-your-server)
-4. [How To Install Basegame Data (Gas Stations, Garages, Delivery points, Races, ...)](#how-to-install-basegame-maps-data)
-5. [How To Set Or Add Langage](#how-to-set-or-add-langage-to-your-server)
+2. [How to Install](#how-to-install)
+3. [How to Add a Modded Map](#how-to-add-a-modded-map-to-your-server)
+4. [How to Install Basegame Data (Gas Stations, Garages, Delivery points, Races, ...)](#how-to-install-basegame-maps-data)
+5. [How to Set Or Add a Language](#how-to-set-or-add-a-language-to-your-server)
 6. [Video Tutorials](#video-tutorials)
 7. [Participating](#participating)
 8. [Known Issues](#known-issues)
@@ -20,187 +20,188 @@ In addition, this mod has a built-in framework to make it modular and to allow d
 
 ### Global and Sync
 
-- Toggle sync on Sun, Weather, Gravity, Simulation speed and Atmosphere temperature per hour.
-- Configure each settings for Sun, Weather, Gravity, Simulation speed and Atmosphere temperature per hour.
-- Can play time in sync between all players
-- Prevent players to pause the simulation.
-- Optimized map switcher (none of your modded map needs to be served to joining players and have them waiting before play).
-- Vote for map switch by players.
-- Reputation Level system (XP-like). Each player gain points driving and doing activities, highly customizable. The reputation level is not linked to any progression system but is only here to attribute rank to players.
-- Complete internationalization (I have only validated EN and FR, so feel free to issue modifications on other langages).
-- Modular permission system, allowing you to add groups and adjusting them.
-- Customizable welcome message per langage.
-- Chat entries when player join and left.
-- Broadcast system to have messages shouted every specified delay by lang, highly customizable.
-- Every server configuration can be changed in-game with the sufficient permissions, no configuration has to be made within files.
-- Toggleable Console, WorldEditor and NodeGrabber for your players (certain scenario are disabling some to avoid cheat)
+- Toggle sync for Sun, Weather, Gravity, Simulation speed, and Atmosphere temperature per hour.
+- Configure settings for Sun, Weather, Gravity, Simulation speed, and Atmosphere temperature per hour.
+- Play time can be synced between all players.
+- Prevent players from pausing the simulation.
+- Optimized map switcher (none of your modded maps need to be sent to joining players, avoiding delays before they can play).
+- Players can vote to switch maps.
+- Reputation Level system (XP-like). Players gain points for driving and completing activities. This is highly customizable and serves as a ranking system.
+- Complete internationalization (validated only for EN and FR; feel free to submit modifications for other languages).
+- Modular permission system allowing you to create groups and adjust permissions.
+- Customizable welcome messages per language.
+- Chat entries for player joins and leaves.
+- A broadcast system for customizable messages sent at specified intervals, by language.
+- All server configurations can be changed in-game with sufficient permissions; no need for file-based configuration changes.
+- Toggleable Console, WorldEditor, and NodeGrabber for your players (some scenarios disable these to prevent cheating).
 
 ### QoL
 
-- Reworked and toggleable player nametags, showing who's spectating, who's playing and idle vehicles. Props do not show Nametags and neither trailers if their owner is tracting them.
-- Reworked in-game chat with Rank or Reputation level.
-- Toggleable automatic headlights of night and day cycle.
+- Reworked and toggleable player nametags, showing who is spectating, who is playing, and idle vehicles. Props do not display nametags, and trailers do not if their owner is towing them.
+- Reworked in-game chat with Rank or Reputation level indicators.
+- Toggleable automatic headlights based on the day-night cycle.
 - Toggleable smooth free camera.
 - Precise FoV selector.
-- Ghost mode to avoid speeding player to crash into freshly (re)spawned players.
-- Toggleable drift indicator on-screen.
-- Toggleable broadcast on big drifts.
-- Reputation rewards by drift length.
-- Almost all base game UI applications are working for each scenario.
+- Ghost mode to prevent speeding players from crashing into newly spawned players.
+- Toggleable on-screen drift indicator.
+- Toggleable broadcast for big drifts.
+- Reputation rewards based on drift length.
+- Almost all base game UI applications work for each scenario.
 - BigMap missions are removed since they are unavailable on BeamMP.
-- Traffic spawning managed with per-group VehicleCap permission and preventing game softlock when missing permission.
-- Preventing user activating their own mods and ruining your server experience.
-- Second highly reactive vehicle selector, having all the base functionnalities but the preview images. Working with modded vehicles.
-- Complete theme editor for the windows for admins+ and selected players.
+- Traffic spawning is managed with a per-group VehicleCap permission to prevent game softlock when permission is missing.
+- Prevent users from activating their own mods and disrupting the server experience.
+- A secondary, highly responsive vehicle selector with all the base functionalities but without preview images (works with modded vehicles).
+- Complete theme editor for windows for admins and selected players.
 - Vehicle model blacklist to prevent their usage on your server (only staff can see and spawn them).
-- Specific permission to spawn trailer, and another to spawn props. Vehicles in a category you don't have the permission for will be hided in both vehicle selectors.
-- Built-in presets for game time (dusk noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow and snowy).
-- Toggleable preservation of fuel/energy when a vehicle is resetted, making gas stations and charging stations mandatory.
+- Specific permissions for spawning trailers and props. Vehicles in categories for which you lack permissions will be hidden in both vehicle selectors.
+- Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
+- Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
 
 ### Facilities
 
-- Gas Stations and Charging Stations, with independant fuel types.
-- Complete stations editor for admin+ and selected players.
+- Gas Stations and Charging Stations, with independent fuel types.
+- Complete station editor for admins and selected players.
 - Garages to repair vehicles and refill NOS.
-- Complete garages editor for admin+ and selected players.
-- Working GPS to find gas stations, garages and players (and more within scenarii).
+- Complete garage editor for admins and selected players.
+- Working GPS to find gas stations, garages, and players (and more within scenarios).
 
 ### Moderation
 
 - Mute players.
-- Kick Players.
+- Kick players.
 - TempBan players.
-- Ban Players.
-- Players can vote to kick annoying griefers.
-- Freeze specific player vehicle (all or specific vehicle).
-- Turn off and on specific player engine (all or specific vehicle).
-- Explode specific player vehicle (only specific vehicle).
-- Teleport Vehicle
-- Toggleable Nametags.
-- Toggleable quicktravel points in BigMap.
-- Toggleable allowing players to create unicycles (walking)
-- Toggleable whitelist (overrideable by staff)
-- By default, the default player group does not have the permission to spawn any vehicle, they are placed in a different list so moderators+ can promote them easily (to change that, change the **VehicleCap** of the *none* group)
-- Anti idle unicycles system and anti unicycle spam system
+- Ban players.
+- Players can vote to kick griefers.
+- Freeze specific player vehicles (all or specific ones).
+- Turn specific player engines on or off (all or specific vehicles).
+- Explode specific player vehicles.
+- Teleport vehicles.
+- Toggleable nametags.
+- Toggleable quick travel points in BigMap.
+- Toggleable player unicycles (walking mode).
+- Toggleable whitelist (overridable by staff).
+- By default, players in the "none" group do not have permission to spawn vehicles, allowing moderators to promote them easily (to change this, adjust the VehicleCap of the none group).
+- Anti-idle unicycle and anti-unicycle spam systems.
 
-### Scenarii
+### Scenarios
 
 #### Races
 
-- Multiplayer races with leaderboard and time delta.
-- Solo races with leaderboard and time delta.
-- Race editor for admins+ and selected players.
-- Multiplayer race can be forced by staff or voted by players.
+- Multiplayer races with leaderboards and time delta.
+- Solo races with leaderboards and time delta.
+- Race editor for admins and selected players.
+- Multiplayer races can be forced by staff or voted for by players.
 - Working stands.
-- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn to the last checkpoint.
-- Working stand pit.
-- Players can use any vehicle, a specified model or a specified configuration, setted at the race launch
-- Dynamic branching race mapping allowing shortcut or reroutes.
-- Persistent record by race.
-- Reputation rewards for participating, winning races and beating records, highly customizable.
-- Own race time counter in realtime and flashing time when reaching a checkpoint with UI applications
+- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint.
+- Working pit stands.
+- Players can use any vehicle, a specific model, or a specified configuration set at race launch.
+- Dynamic branching race mapping allows shortcuts or reroutes.
+- Persistent race records.
+- Reputation rewards for participation, winning races, and breaking records, highly customizable.
+- Real-time race time counter with flashing time when reaching a checkpoint (UI applications).
 
 #### Hunter / CarHunt
 
-- Working hunter system where the fugitive and hunters cannot see other team's nametags.
-- The fugitive have to take the specified amount of checkpoint around the map without being taken down by hunters or it's own driving skills.
-- Each hunters can reset it's own vehicle but will have a 10 seconds penalty before it can resume the chase.
+- Working hunter system where the fugitive and hunters cannot see each other's nametags.
+- The fugitive must pass the specified checkpoints without being taken down by hunters or crashing.
+- Hunters can reset their vehicles but with a 10-second penalty before resuming the chase.
 - Vehicle configurations can be forced at launch.
-- Complete editor for starting positions (Hunters and Fugitive) and checkpoints for admins+ and selected players.
-- Reputation rewards for participating and winners, highly customizable.
+- Complete editor for starting positions (Hunters and Fugitive) and checkpoints for admins and selected players.
+- Reputation rewards for participation and winning, highly customizable.
 
 #### Deliveries
 
-- Vehicle deliveries (as present in the solo game).
+- Vehicle deliveries (as in the single-player game).
 - Package deliveries.
-- Package deliveries Together (all participant are delivering to the same destination at the same time).
-- Delivery points editor for admins+ and selected players.
+- Package deliveries together (all participants deliver to the same destination simultaneously).
+- Delivery points editor for admins and selected players.
 - Reputation rewards, highly customizable.
-- Customizable vehicle models blacklist for this scenario (by default *atv* and *citybus*)
+- Customizable vehicle blacklist for vehicle deliveries (by default *atv* and *citybus*).
 
 #### Bus Mission
 
-- Bus routes (as present in the solo game).
+- Bus routes (as in the single-player game).
 - Working UI applications.
-- Dynamic bus informations.
-- Bus route editor for admins+ and selected players.
-- Reputation rewards by-kilometer driven, highly customizable.
+- Dynamic bus information.
+- Bus route editor for admins and selected players.
+- Reputation rewards per kilometer driven, highly customizable.
 
 #### Speed Game
 
-- BattleRoyal-like game where players have to stay above the increasing minimum speed. Stay below for too long and you will explode.
-- Can be forced by staff or voted by players.
+- Battle Royale-like game where players must stay above an increasing minimum speed or risk exploding.
+- Can be forced by staff or voted for by players.
 - Reputation rewards, highly customizable.
 
 #### Destruction Derby
 
-- Battleroyal-like game where the last moving vehicle wins.
+- Battle Royale-like game where the last moving vehicle wins.
 - Can be launched with a lives amount setting.
-- Specific(s) vehicles model(s) can be set at launch to have a thematic game.
-- Can have multiple arenas per map.
-- Complete arenas and starting positions editor for admins+ and selected players.
-- Reputation rewards for participating and winning, highly customizable.
+- Specific vehicle models can be set at launch for thematic games.
+- Multiple arenas per map.
+- Complete arena and starting positions editor for admins and selected players.
+- Reputation rewards for participation and winning, highly customizable.
 
 ### Tech
 
-- Built-in developer-friendly framework for scenarii amd events
-- Improved communication limits between server and clients
-- Per-feature managers
-- Built-in developer-friendly window drawing system (builders)
-- Per-model cache system with auto-requesting on change feature
-- Internationalization system for clients, server and from-server-communications
-- File-system DAO layer easily replaceable to migrate onto (No)SQL Database systems
+- Built-in developer-friendly framework for scenarios and events.
+- Improved communication limits between server and clients.
+- Per-feature managers.
+- Built-in developer-friendly window drawing system (builders).
+- Per-model cache system with auto-requesting on changes.
+- Internationalization system for clients, server, and server-client communications.
+- File-system DAO layer easily replaceable to migrate to (No)SQL database systems.
 
 ## How to install
 
-- Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*)
-- Launch your server once to initialize files
-- Download the last version of the mod ([Mod Releases](https://github.com/my-name-is-samael/beamjoy/releases/tag/Full))
-- Unzip the mod archive in your server's *Resources* folder
-- Connect your game to your server
+- Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*).
+- Launch your server once to initialize files.
+- Download the last version of the mod ([Mod Releases](https://github.com/my-name-is-samael/beamjoy/releases/tag/Full)).
+- Unzip the mod archive in your server's *Resources* folder.
+- Connect your game to your server.
 - Type in the server console `bj setgroup <your_playername> owner` to gain permissions
-(*your_playername* is not case-sensitive and can be a subpart of your actual playername)
+
+(*your_playername* is not case-sensitive and can be a subpart of your actual playername).
 
 ## How to add a modded map to your server
 
-- Be sure to have the permission *SetMaps*
-- Place the map archive in your server's *Resources* folder (not in *Client* nor *Server* folders)
-- In game, navigate to *Config* Menu > *Server* > *Maps Labels*
-- At the bottom, fill the *Tech Name* (name of the folder inside the archive), the *Map Label* (the label you want your players to see) and the *Archive Full Name* (including the extension) : ie. "ks_spa", "SPA Francorchamps", "ks_spa_v20230929.zip"
-- Click on the green *Save* button
-- Now your map will be present in the map switcher area and the map vote area
+- Ensure to have the permission *SetMaps*.
+- Place the map archive in your server's *Resources* folder (not in *Client* or *Server* folders).
+- In-game, navigate to *Config* Menu > *Server* > *Maps Labels*.
+- At the bottom, fill in the *Tech Name* (name of the folder inside the archive), the *Map Label* (the label you want players to see) and the *Archive Full Name* (including the extension), e.g., "ks_spa", "SPA Francorchamps", "ks_spa_v20230929.zip".
+- Click the green *Save* button.
+- Your map will no appear in the map switcher and map vote areas.
 
-The purpose of the optimized map switcher is to only have the current modded map sended to joining players and not having all your idle modded maps sended.
+The optimized map switcher only sends the current modded map to joining players, not all idle modded maps.
 
-**Caution** : When switching from or to a modded map, the server will restart itself, so please take your precautions to have an active reboot system for your server
+**Caution** : When switching to or from a modded map, the server will restart. Ensure you have an active reboot system for your server.
 
 ## How to install basegame maps data
 
-- Download the data archive (Coming Soon...)
-- Extract it in the folder *Resources/Server/BeamJoyData/db/scenarii/*
-- Restart the server
-- Now you have all basegame maps scenarii and facilities available for your players
+- Download the data archive (Coming Soon...).
+- Extract it to the *Resources/Server/BeamJoyData/db/scenarii/* folder.
+- Restart the server.
+- All basegame maps, scenarios, and facilities will now be available for players.
 
-## How to set or add langage to your server
+## How to set or add a language to your server
 
-The mod is packed with EN, FR, DE, IT, ES, PT and RU langages.
+The mod is packed with EN, FR, DE, IT, ES, PT and RU languages.
 
-If you want to remove some, go to the folder *Resources/Server/BeamJoyCore/lang* and remove the files you dont want.
-Then update the file *Resources/Server/BeamJoyData/db/bjc.json* to remove any instance of those removed langages in:
-- Server.Lang
-- Server.Broadcasts
-- Server.WelcomeMessage
+To remove languages:
+- Go to the folder *Resources/Server/BeamJoyCore/lang* and delete the files you dont want.
+- Update the *Resources/Server/BeamJoyData/db/bjc.json* file to remove any instances of those languages in:
+    - Server.Lang
+    - Server.Broadcasts
+    - Server.WelcomeMessage
 
-If you want to add your langage:
-- In the BeamNG main menu, open the console and type `dump(Lua:getSelectedLanguage())`
-- You should get a result as *en_EN*
-- Your JSON file will be named with the part before the underscore and you have to lowercase it (for instance, *Tr_UI* will get you a file named *tr.json*)
-- Your can copy the file *Resources/Server/BeamJoyCore/lang/en.json* with the name you determined in the previous step, in the same folder
-- You can translate your freshly created file but remember only to change the values but not the keys, and also not to change variables between braces (**{** and **}**) in values
+To add new language:
+- In the BeamNG main menu, open the console and type `dump(Lua:getSelectedLanguage())`.
+- You should get a result like *"en_EN"*. Name your future JSON file using the part before the underscore, converted to lowercase (e.g., *"Tr_UI"* becomes *tr.json*).
+- Copy *Resources/Server/BeamJoyCore/lang/en.json* and rename it with the new name from the previous step.
+- Translate the newly created file, but only change the values, not the keys, and do not modify variables between braces (**{** and **}**) in values.
 
-If you want to update some labels:
-- Find your langage file in *Resources/Server/BeamJoyCore/lang*
-- As warned in the previous part, do not change the keys or variables between braces (**{** and **}**) in values
+To update labels:
+- Find your language file in *Resources/Server/BeamJoyCore/lang*.
+- As mentioned earlier, do not change keys or variables between braces (**{** and **}**) in values.
 
 ## Video tutorials
 
@@ -208,9 +209,9 @@ Coming soon ..
 
 ## Participating
 
-Feel free to create pull-requests, as long as you keep the coding scheme.
+Feel free to create pull requests, as long as you follow the coding scheme.
 
-Also feel free to create issues for bugs and improvements on any feature, I will do my best to answer you in short time, but keep in mind I do not longer work full-time on this project.
+Also, feel free to report bugs or suggest improvements. I'll do my best to respond quickly, but note that I no longer work full-time on this project.
 
 ## Known issues
 
@@ -220,15 +221,16 @@ Also feel free to create issues for bugs and improvements on any feature, I will
 
 - [ ] Direct messages
 - [ ] Configurable Hunter respawn stuck delay
-- [ ] Fork with only races features
-- [ ] Toggleable automatic random weather presets (maybe with smooth transition, waiting for basegame changes on - temperature and weather)
-- [ ] Synced world objects, and within scenarii (may never be possible)
-- [ ] Looking for a client-side cache system (cookie-like; useful for personal records on races, for instance)
+- [ ] Fork with only race features
+- [ ] Toggleable automatic random weather presets (maybe with smooth transitions, waiting for base game changes for temperature and weather)
+- [ ] Synced world objects, including in scenarios (may not be possible)
+- [ ] Client-side cache system (cookie-like; useful for personal records in races, for example).
 
 ## Credits
 
-Thanks to all BETA-testers who helped me test and debug the features:
+Thanks to all BETA testers who helped me test and debug the features:
 dvergar, Trina, Baliverne0, Rodjiii, Lotax, Nath_YT, korrigan_91, and countless others.
 
-A huge thanks to prestonelam2003 for his work on [CobaltEssentials](https://github.com/prestonelam2003/CobaltEssentials) which inspired me to create BeamJoy, even though I did'nt copy any line of his code.
-Another huge thank to StanleyDudek for his work on [CobaltEssentialsInterface](https://github.com/StanleyDudek/CobaltEssentialsInterface) which taught me how to create front-end BeamMP mods, communicate with server and the basic use of imgui.
+A huge thanks to prestonelam2003 for his work on [CobaltEssentials](https://github.com/prestonelam2003/CobaltEssentials) which inspired me to create BeamJoy, although I didn't copy any lines of his code.
+
+Another huge thank to StanleyDudek for his work on [CobaltEssentialsInterface](https://github.com/StanleyDudek/CobaltEssentialsInterface) which taught me how to create front-end BeamMP mods, communicate with the server, and the basic use of imgui.
