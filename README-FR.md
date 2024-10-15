@@ -8,7 +8,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 1. [Fonctionnalités](#fonctionnalités)
 2. [Comment Installer](#comment-installer)
 3. [Comment Ajouter une Carte Moddée](#comment-ajouter-une-carte-moddée-à-votre-serveur)
-4. [Comment Installer les Données du Jeu de Base (Stations-service, Garages, Points de Livraison, Courses, etc.)](#comment-installer-les-données-du-jeu-de-base)
+4. [Comment Installer les Données du Jeu de Base (Stations-service, Garages, Points de Livraison, Courses, etc.)](#comment-installer-les-données-des-cartes-du-jeu-de-base)
 5. [Comment Configurer ou Ajouter une Langue](#comment-configurer-ou-ajouter-une-langue-à-votre-serveur)
 6. [Tutoriels Vidéo](#tutoriels-vidéo)
 7. [Participation](#participation)
