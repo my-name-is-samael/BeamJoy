@@ -18,6 +18,9 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 ## Features
 
+<details>
+  <summary>Show</summary>
+    
 ### Global and Sync
 
 - Toggle sync for Sun, Weather, Gravity, Simulation speed, and Atmosphere temperature per hour.
@@ -150,6 +153,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Per-model cache system with auto-requesting on changes.
 - Internationalization system for clients, server, and server-client communications.
 - File-system DAO layer easily replaceable to migrate to (No)SQL database systems.
+
+</details>
 
 ## How to install
 
