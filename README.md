@@ -159,7 +159,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 - Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*).
 - Launch your server once to initialize files.
-- Download the last version of the mod ([Mod Releases](https://github.com/my-name-is-samael/beamjoy/releases/tag/Full)).
+- Download the last version of the mod ([Mod Releases](https://github.com/my-name-is-samael/BeamJoy/releases)).
 - Unzip the mod archive in your server's *Resources* folder.
 - Connect your game to your server.
 - Type in the server console `bj setgroup <your_playername> owner` to gain permissions
