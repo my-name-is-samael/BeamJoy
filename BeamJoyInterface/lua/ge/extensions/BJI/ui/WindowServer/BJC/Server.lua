@@ -69,7 +69,7 @@ local function drawServerBroadcasts()
             id = "addServerBroadcastsMessage",
             label = BJILang.get("common.buttons.add"),
             style = BTN_PRESETS.SUCCESS,
-            disabled = #lastMessage == 0,
+            disabled = lastMessage and #lastMessage == 0,
             onClick = function()
                 table.insert(BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang], "")
             end
