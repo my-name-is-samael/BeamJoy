@@ -487,9 +487,13 @@ local function onStandStop(delayMs, wp, callback)
         if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(previousCam)
         end
-        BJIAsync.delayTask(function()
+        BJIAsync.delayTask(function(ctxt3)
             BJIVeh.freeze(true)
-        end, 100)
+            if ctxt3.camera == BJICam.CAMERAS.EXTERNAL then
+                ctxt3.camera = BJICam.CAMERAS.ORBIT
+                BJICam.setCamera(ctxt3.camera)
+            end
+        end, 100, "BJIRaceCameraCheckAndFreeze")
     end, delayMs - 3000)
 
     BJIAsync.delayTask(function()
@@ -686,9 +690,12 @@ local function initRace(data)
                         BJICam.setCamera(M.preRaceCam)
                     end
                 end
-                if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
-                    BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-                end
+                BJIAsync.delayTask(function(ctxt3)
+                    if ctxt3.camera == BJICam.CAMERAS.EXTERNAL then
+                        ctxt3.camera = BJICam.CAMERAS.ORBIT
+                        BJICam.setCamera(ctxt3.camera)
+                    end
+                end, 100, "BJIRaceCameraCheck")
             end
         end
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")

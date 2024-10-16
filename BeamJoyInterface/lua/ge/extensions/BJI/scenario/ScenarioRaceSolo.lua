@@ -362,9 +362,13 @@ local function onStandStop(delayMs, wp, callback)
         if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(previousCam)
         end
-        BJIAsync.delayTask(function()
+        BJIAsync.delayTask(function(ctxt3)
             BJIVeh.freeze(true)
-        end, 100, "BJIRaceStandResetFreeze")
+            if ctxt3.camera == BJICam.CAMERAS.EXTERNAL then
+                ctxt3.camera = BJICam.CAMERAS.ORBIT
+                BJICam.setCamera(ctxt3.camera)
+            end
+        end, 100, "BJIRaceCameraCheckAndFreeze")
     end, delayMs - 3000, "BJIRaceStandReset")
 
     BJIAsync.delayTask(function()
@@ -621,6 +625,12 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         if ctxt2.camera == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(previousCam)
         end
+        BJIAsync.delayTask(function(ctxt3)
+            if ctxt3.camera == BJICam.CAMERAS.EXTERNAL then
+                ctxt3.camera = BJICam.CAMERAS.ORBIT
+                BJICam.setCamera(ctxt3.camera)
+            end
+        end, 100, "BJIRaceCameraCheck")
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
     -- enable waypoints before start to avoid stutter
