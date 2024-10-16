@@ -195,6 +195,10 @@ local function renderTick(ctxt)
         end
     end
 
+    if ctxt.isOwner and M.alphas[ctxt.veh:getID()] ~= M.playerAlpha then
+        M.alphas[ctxt.veh:getID()] = M.playerAlpha
+    end
+
     local vehs = BJIVeh.getMPVehicles()
     for _, vehData in pairs(vehs) do
         local alpha = M.playerAlpha
