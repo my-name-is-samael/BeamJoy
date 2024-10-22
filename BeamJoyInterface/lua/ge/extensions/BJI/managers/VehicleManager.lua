@@ -15,13 +15,13 @@ local function onLoad()
         M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
 
         extensions.core_vehicle_partmgmt.saveLocal = function(fileName)
-            M._saveConfigBaseFunction(fileName)
+            M.baseFunctions.saveConfigBaseFunction(fileName)
             BJIAsync.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
             end, 3000, "BJIVehPostSaveConfig")
         end
         extensions.core_vehicle_partmgmt.removeLocal = function(fileName)
-            M._removeConfigBaseFunction(fileName)
+            M.baseFunctions.removeConfigBaseFunction(fileName)
             BJIAsync.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
             end, 1000, "BJIVehPostRemoveConfig")
