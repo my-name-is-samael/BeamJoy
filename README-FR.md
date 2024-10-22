@@ -62,7 +62,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Présélections intégrées pour le temps de jeu (crépuscule, midi, aube, minuit) et la météo (clair, nuageux, pluie légère, pluvieux, neige légère, et neigeux).
 - Conservation de carburant/énergie activable lorsque le véhicule est réinitialisé, rendant les stations-service et les stations de recharge indispensables.
 
-### Installations de carte
+### Services et infrastructures de carte
 
 - Stations-service et Stations de Recharge, avec types de carburant indépendants.
 - Éditeur complet de stations pour les admins et certains joueurs sélectionnés.
@@ -94,7 +94,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Courses multijoueurs avec classement et delta de temps.
 - Courses solo avec classement et delta de temps.
 - Éditeur de courses pour les admins et certains joueurs sélectionnés.
-- Les courses multijoueurs peuvent être forcées par le personnel ou votées par les joueurs.
+- Les courses multijoueurs peuvent être forcées par le staff ou votées par les joueurs.
 - Stratégies de réapparition variées : Tous les types de réapparition, aucune réapparition (avec compteur DNF), réapparition au dernier point de contrôle.
 - Stand de ravitaillement fonctionnel.
 - Les joueurs peuvent utiliser n’importe quel véhicule, un modèle spécifique ou une configuration spécifique définie au lancement de la course.
@@ -129,10 +129,10 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Éditeur de trajets pour les admins et certains joueurs sélectionnés.
 - Récompenses de réputation en fonction des kilomètres parcourus, hautement personnalisables.
 
-#### Jeu de Vitesse
+#### Jeu de Speed
 
 - Jeu type Battle Royale où les joueurs doivent rester au-dessus d’une vitesse minimale qui augmente. Rester en dessous trop longtemps vous fait exploser.
-- Peut être forcé par le personnel ou voté par les joueurs.
+- Peut être forcé par le staff ou voté par les joueurs.
 - Récompenses de réputation, hautement personnalisables.
 
 #### Destruction Derby
@@ -160,7 +160,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 
 - Installez votre serveur BeamMP ([Télécharger BeamMP Server](https://beammp.com)) et configurez-le (au minimum votre *AuthKey*).
 - Lancez votre serveur au moins une fois pour initialiser les fichiers.
-- Téléchargez la dernière version du mod ([Mod Releases](https://github.com/my-name-is-samael/beamjoy/releases/tag/Full)).
+- Téléchargez la dernière version du mod ([Mod Releases](https://github.com/my-name-is-samael/BeamJoy/releases)).
 - Décompressez l’archive du mod dans le dossier *Resources* de votre serveur.
 - Connectez votre jeu à votre serveur.
 - Tapez dans la console du serveur `bj setgroup <votre_nom_de_joueur> owner` pour obtenir les permissions.
@@ -170,21 +170,21 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 
 - Assurez-vous d'avoir la permission *SetMaps*.
 - Placez l'archive de la carte dans le dossier *Resources* de votre serveur (pas dans *Client* ni *Server*).
-- En jeu, allez dans le menu *Config* > *Serveur* > *Maps Labels*.
+- En jeu, allez dans le menu *Configuration* > *Serveur* > *Libellés des Cartes*.
 - En bas, remplissez le *Nom Technique* (nom du dossier dans l'archive), le *Libellé de la Carte* (le nom que vos joueurs verront) et le *Nom Complet de l'Archive* (y compris l'extension) : par exemple, "ks_spa", "SPA Francorchamps", "ks_spa_v20230929.zip".
-- Cliquez sur le bouton vert *Enregistrer*.
+- Cliquez sur le bouton vert *Ajouter*.
 - Votre carte sera désormais disponible dans la zone de switch de carte et dans la zone de vote pour le switch de carte.
 
 L'objectif du switcheur de carte optimisé est de n'envoyer que la carte moddée actuelle aux joueurs rejoignant le serveur, et de ne pas envoyer toutes les cartes moddées inactives.
 
-**Attention** : Lors du passage d'une carte moddée ou vers une autre, le serveur redémarrera automatiquement. Prenez donc vos précautions pour avoir un système de redémarrage actif pour votre serveur.
+**Attention** : Lors du passage depuis ou vers une carte moddée, le serveur redémarrera automatiquement. Prenez donc vos précautions pour avoir un système de redémarrage actif pour votre serveur.
 
 ## Comment installer les données des cartes du jeu de base
 
 - Téléchargez l'archive des données (bientôt disponible).
 - Extrayez-la dans le dossier *Resources/Server/BeamJoyData/db/scenarii/*.
 - Redémarrez le serveur.
-- Vous aurez maintenant tous les scénarios et installations des cartes du jeu de base disponibles pour vos joueurs.
+- Vous aurez maintenant tous les scénarios et services disponibles sur les cartes du jeu de base pour vos joueurs.
 
 ## Comment configurer ou ajouter une langue à votre serveur
 
