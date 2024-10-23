@@ -1,6 +1,10 @@
 # BeamJoy
 All-in-One mod for BeamMP
 
+<p align="center">
+  <img src="logo_white.png" style="width: 50%; height: auto;" />
+</p>
+
 The purpose of this mod is to provide easy access to moderation tools and activities for the players on your BeamMP server.
 In addition, it includes a built-in framework to make it modular, allowing developers to easily add new features.
 
