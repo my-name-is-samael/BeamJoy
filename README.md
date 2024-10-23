@@ -232,7 +232,7 @@ Also, feel free to report bugs or suggest improvements. I'll do my best to respo
 - [ ] Synced world objects, including in scenarios (may not be possible)
 - [ ] Client-side cache system (cookie-like; useful for personal records in races, for example).
 
-Implementing BeamMP v3 features when it will come out:
+Implementing BeamMP v3.5+ features when it will come out:
 - Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
 - Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
 
