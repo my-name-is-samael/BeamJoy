@@ -164,7 +164,7 @@ local function parseCache(cacheType, cacheData, cacheHash)
             end
             -- update nametags
             BJINametags.tryUpdate()
-        end)
+        end, "BJICacheFreeroamReady")
     elseif cacheType == M.CACHES.GROUPS then
         for groupName, group in pairs(cacheData) do
             if not BJIPerm.Groups[groupName] then

@@ -20,7 +20,7 @@ local firstMessagesOffset = 0
 function ctrl.chat(data)
     local event, chatData = data[1], data[2]
     chatData.color = chatData.color and RGBA(chatData.color[1], chatData.color[2], chatData.color[3], chatData.color[4]) or
-    nil
+        nil
 
     if BJIContext.WorldReadyState ~= 2 then
         -- first message
@@ -28,10 +28,11 @@ function ctrl.chat(data)
             return BJIContext.WorldReadyState == 2
         end, function()
             BJIAsync.delayTask(function()
-                BJIChat.onChat(event, chatData)
-            end, 3000 + firstMessagesOffset)
+                    BJIChat.onChat(event, chatData)
+                end, 3000 + firstMessagesOffset,
+                svar("BJIChatReadyDelay{1}", { GetCurrentTimeMillis() }))
             firstMessagesOffset = firstMessagesOffset + 10
-        end)
+        end, "BJIChatReadyWorld")
     else
         BJIChat.onChat(event, chatData)
     end

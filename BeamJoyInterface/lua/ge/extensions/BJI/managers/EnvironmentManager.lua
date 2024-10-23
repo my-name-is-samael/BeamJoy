@@ -238,7 +238,7 @@ local function renderTick(ctxt) -- render tick
                 function()
                     M.Data.fogDensity = oldFog
                 end,
-                "bigmapFog"
+                "BJIBigmapFog"
             )
         end
     end

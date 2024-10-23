@@ -19,7 +19,7 @@ local function onLoad()
         -- REPOSITORY
         M.baseFunctions.modSubscribe = core_repository.modSubscribe
         M.baseFunctions.modUnsubscribe = core_repository.modUnsubscribe
-    end)
+    end, "BJIModsInit")
 end
 
 local function onUnload()

@@ -98,6 +98,7 @@ local function tryFinalizingEvent(id)
     end
 
     retrievingEvents[id] = nil
+    BJIAsync.removeTask(svar("BJIRxEventTimeout-{1}", { id }))
 end
 
 local function retrieveEvent(rawData)

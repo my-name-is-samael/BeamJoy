@@ -246,7 +246,7 @@ local function getScenarioEntry(ctxt)
             onClick = function()
                 BJIAsync.delayTask(function()
                     BJIScenario.switchScenario(BJIScenario.TYPES.PACKAGE_DELIVERY, ctxt)
-                end, 0)
+                end, 0, "BJIPackageDeliveryStart")
             end,
         })
     elseif BJIScenario.is(BJIScenario.TYPES.PACKAGE_DELIVERY) and
@@ -286,7 +286,7 @@ local function getScenarioEntry(ctxt)
             onClick = function()
                 BJIAsync.delayTask(function()
                     BJIScenario.switchScenario(BJIScenario.TYPES.BUS_MISSION, ctxt)
-                end, 0)
+                end, 0, "BJIBusMissionStart")
             end,
         })
     elseif BJIScenario.is(BJIScenario.TYPES.BUS_MISSION) and

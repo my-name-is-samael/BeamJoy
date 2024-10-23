@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJIVERSION = "1.0.2"
+BJIVERSION = "1.0.4"
 
 local managers = {}
 function GetBJIManagers()
@@ -128,7 +128,9 @@ M.onWorldReadyState = function(state)
 end
 
 M.onPreRender = function() end
-M.onUpdate = BJITick.client
+M.onUpdate = function(...)
+    BJITick.client()
+end
 
 commands.dropPlayerAtCamera = function(...)
     TriggerBJIEvent("onDropPlayerAtCamera", ...)
@@ -146,7 +148,7 @@ M.onVehicleResetted = function(gameVehID)
     BJIAsync.delayTask(function()
         -- delay execution or else vehicle can't be own
         TriggerBJIEvent("onVehicleResetted", gameVehID)
-    end, 100)
+    end, 100, svar("BJIVehReset{1}", { gameVehID }))
 end
 M.onVehicleDestroyed = function(...)
     TriggerBJIEvent("onVehicleDestroyed", ...)

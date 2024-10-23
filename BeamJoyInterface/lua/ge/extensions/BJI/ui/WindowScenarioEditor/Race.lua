@@ -193,7 +193,7 @@ local function saveRace(callback)
                                 end
                             end
                             return false
-                        end, function() end)
+                        end, function() end, "BJIRaceSave")
                     end
                     raceEdit.hasRecord = raceEdit.hasRecord and raceEdit.keepRecord
                     raceEdit.keepRecord = true
@@ -514,7 +514,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                         icon = ICONS.crosshair,
                                         background = BTN_PRESETS.WARNING,
                                         disabled = not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
-                                        raceEdit.processSave,
+                                            raceEdit.processSave,
                                         onClick = function()
                                             sp.pos = vehpos.pos
                                             sp.rot = vehpos.rot

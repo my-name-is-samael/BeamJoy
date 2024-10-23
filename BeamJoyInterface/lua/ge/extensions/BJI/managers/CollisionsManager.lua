@@ -123,6 +123,7 @@ end
 -- on spawn or reset
 local function onVehicleResetted(gameVehID)
     if M.type ~= M.TYPES.GHOSTS or
+        gameVehID == -1 or
         not BJIVeh.getVehicleObject(gameVehID) or
         BJIAI.isAIVehicle(gameVehID) or
         BJIVeh.isUnicycle(gameVehID) then
@@ -144,13 +145,10 @@ end
 local function renderTick(ctxt)
     local nextType = BJIScenario.getCollisionsType(ctxt)
     if nextType ~= M.type then
-        if nextType == M.TYPES.FORCED then
-            setCollisions(true)
+        if nextType ~= M.TYPES.GHOSTS then
             M.ghosts = {}
-        elseif nextType == M.TYPES.DISABLED then
-            setCollisions(false)
-            M.ghosts = {}
-        elseif nextType == M.TYPES.GHOSTS then
+            setCollisions(nextType == M.TYPES.FORCED)
+        else
             if M.type == M.TYPES.DISABLED then
                 setCollisions(not areCloseVehicles(ctxt.isOwner and ctxt.veh:getID() or nil))
             else
@@ -162,15 +160,11 @@ local function renderTick(ctxt)
 
     -- GHOST RULES
     if M.type == M.TYPES.GHOSTS then
-        -- clear invalid ghosts
-        for g in pairs(M.ghosts) do
-            if not BJIVeh.getVehicleObject(g) or
-                BJIAI.isAIVehicle(g) then
-                M.ghosts[g] = nil
-            end
-        end
-
         if ctxt.isOwner then
+            if M.ghosts[ctxt.veh:getID()] then
+                -- remove self from ghosts
+                M.ghosts[ctxt.veh:getID()] = nil
+            end
             if M.state then
                 if M.selfGhost then
                     setCollisions(false)
@@ -195,28 +189,60 @@ local function renderTick(ctxt)
         end
     end
 
-    if ctxt.isOwner and M.alphas[ctxt.veh:getID()] ~= M.playerAlpha then
-        M.alphas[ctxt.veh:getID()] = M.playerAlpha
-    end
-
-    local vehs = BJIVeh.getMPVehicles()
-    for _, vehData in pairs(vehs) do
-        local alpha = M.playerAlpha
-        if not M.state then
-            local isSelf = ctxt.isOwner and vehData.gameVehicleID == ctxt.veh:getID()
-            if not isSelf and ctxt.isOwner then
-                local target = BJIVeh.getVehicleObject(vehData.gameVehicleID)
-                local posRot = target and BJIVeh.getPositionRotation(target) or nil
-                if posRot then
-                    local dist = ctxt.vehPosRot.pos:distance(posRot.pos)
-                    local maxDist = getGhostDistance(ctxt.veh, target)
-                    alpha = getAlphaByDistance(dist, maxDist)
+    for _, veh in pairs(BJIVeh.getMPVehicles()) do
+        if veh.gameVehicleID ~= -1 then
+            local alpha = M.playerAlpha
+            if not M.state then
+                local isSelf = ctxt.isOwner and veh.gameVehicleID == ctxt.veh:getID()
+                if not isSelf and ctxt.isOwner then
+                    local target = BJIVeh.getVehicleObject(veh.gameVehicleID)
+                    local posRot = target and BJIVeh.getPositionRotation(target) or nil
+                    if posRot then
+                        local dist = ctxt.vehPosRot.pos:distance(posRot.pos)
+                        local maxDist = getGhostDistance(ctxt.veh, target)
+                        alpha = getAlphaByDistance(dist, maxDist)
+                    end
                 end
             end
+            if M.alphas[veh.gameVehicleID] ~= alpha then
+                local targetAlpha = alpha ~= M.playerAlpha and alpha or nil
+                M.alphas[veh.gameVehicleID] = targetAlpha
+                setAlpha(veh.gameVehicleID, alpha)
+            end
         end
-        if M.alphas[vehData.gameVehicleID] ~= alpha then
-            M.alphas[vehData.gameVehicleID] = alpha
-            setAlpha(vehData.gameVehicleID, alpha)
+    end
+end
+
+local function slowTick(ctxt)
+    if M.type == M.TYPES.GHOSTS then
+        -- clear invalid ghosts
+        for g in pairs(M.ghosts) do
+            if not BJIVeh.getVehicleObject(g) or
+                BJIAI.isAIVehicle(g) then
+                M.ghosts[g] = nil
+            end
+        end
+    end
+
+    -- invalid alpha target fix
+    if M.alphas[-1] then
+        M.alphas[-1] = nil
+    end
+
+    -- clear invalid alphas
+    for g in pairs(M.alphas) do
+        if not BJIVeh.getVehicleObject(g) then
+            M.alphas[g] = nil
+        end
+    end
+
+    if ctxt.veh then
+        local vehID = ctxt.veh:getID()
+        if M.alphas[vehID] ~= M.playerAlpha then
+            M.alphas[vehID] = nil
+            setAlpha(vehID, M.playerAlpha)
+        elseif getVehAlpha(vehID) ~= M.playerAlpha then
+            setAlpha(vehID, M.playerAlpha)
         end
     end
 end
@@ -225,6 +251,7 @@ M.onVehicleResetted = onVehicleResetted
 M.onVehicleSwitched = onVehicleSwitched
 
 M.renderTick = renderTick
+M.slowTick = slowTick
 
 RegisterBJIManager(M)
 return M

@@ -494,7 +494,7 @@ local function onStandStop(delayMs, wp, callback)
                 BJICam.setCamera(ctxt3.camera)
             end
         end, 100, "BJIRaceCameraCheckAndFreeze")
-    end, delayMs - 3000)
+    end, delayMs - 3000, "BJIRacePreStart")
 
     BJIAsync.delayTask(function()
         BJIVeh.freeze(false)
@@ -503,12 +503,12 @@ local function onStandStop(delayMs, wp, callback)
                 -- delays reset restriction remove
                 BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
                 M.dnf.standExempt = false
-            end, 1000)
+            end, 1000, "BJIRacePostStart")
         end
         if type(callback) == "function" then
             callback()
         end
-    end, delayMs)
+    end, delayMs, "BJIRaceStart")
 end
 
 local function drawTimeDiff(lap, wp)

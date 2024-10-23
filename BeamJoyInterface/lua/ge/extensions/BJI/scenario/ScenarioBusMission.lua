@@ -88,7 +88,9 @@ local function initDrive(ctxt)
     local startPosRot = M.line.stops[1]
     BJIVeh.replaceOrSpawnVehicle(M.model, M.config, startPosRot)
     BJIAsync.task(function(ctxt2)
-        return ctxt2.isOwner and tdeepcompare(BJIVeh.getFullConfig(ctxt2.veh.partConfig), M.config)
+        return ctxt2.isOwner and
+        not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
+        ctxt2.veh.partConfig:find(svar("/{1}.", {M.config}))
     end, function()
         M.state = M.STATES.DRIVE
         updateTarget()

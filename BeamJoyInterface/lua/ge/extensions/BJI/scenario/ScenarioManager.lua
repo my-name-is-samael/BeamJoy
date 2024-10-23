@@ -50,7 +50,7 @@ BJIAsync.task(
     function()
         return BJICache.areBaseCachesFirstLoaded() and BJICache.isFirstLoaded(BJICache.CACHES.MAP)
     end,
-    init
+    init, "BJIScenarioInit"
 )
 
 local function onVehicleSpawned(gameVehID)

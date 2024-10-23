@@ -498,7 +498,7 @@ local function engine(state, gameVehID)
         if state then
             BJIAsync.delayTask(function()
                 vehicle:queueLuaCommand('controller.mainController.setStarter(false)')
-            end, 1000)
+            end, 1000, "BJIEngineStartDelayStarter")
         end
         -- vehicle:queueLuaCommand(svar("electrics.horn({1})", { state }))
     end

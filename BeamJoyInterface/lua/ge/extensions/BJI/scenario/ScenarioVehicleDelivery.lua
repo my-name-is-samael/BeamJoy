@@ -136,7 +136,7 @@ local function initDelivery()
     if M.previousCamera then
         BJIAsync.delayTask(function()
             BJICam.setCamera(M.previousCamera, false)
-        end, 100)
+        end, 100, "BJIVehDeliveryCamera")
     end
 
     BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.targetPosition.pos,
@@ -264,7 +264,7 @@ local function onTargetReached(ctxt)
             if BJIScenario.isFreeroam() then
                 BJIScenario.switchScenario(BJIScenario.TYPES.VEHICLE_DELIVERY, ctxt)
             end
-        end, 3000)
+        end, 3000, "BJIVehDeliveryLoop")
     end
 
     reset()

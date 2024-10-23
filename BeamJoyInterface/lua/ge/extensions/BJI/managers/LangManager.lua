@@ -15,7 +15,8 @@ local function initClient()
             end,
             function()
                 BJITx.player.lang(lang)
-            end
+            end,
+            "BJILangInit"
         )
     end
 end
