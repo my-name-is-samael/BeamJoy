@@ -30,10 +30,6 @@ local function setCamera(cameraName, withTransition)
     if withTransition == nil then
         withTransition = true
     end
-    if not tincludes(M.CAMERAS, cameraName) then
-        LogError(svar("Invalid camera \"{1}\"", { cameraName }))
-        return
-    end
 
     if cameraName == M.CAMERAS.PASSENGER then
         if BJIVeh.isCurrentVehicleOwn() then

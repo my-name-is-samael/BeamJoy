@@ -55,7 +55,7 @@ local function onRepair(veh)
         BJIVeh.engine(wasEngine, veh.vehGameID)
         BJICam.resetForceCamera()
         BJIContext.User.stationProcess = false
-    end, 5000, "BJIStationRefill")
+    end, 5000, "BJIStationRepair")
 end
 
 local function commonDrawEnergyLines(veh, energyStation)

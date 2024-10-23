@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJIVERSION = "1.0.4"
+BJIVERSION = "1.0.5"
 
 local managers = {}
 function GetBJIManagers()

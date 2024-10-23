@@ -625,12 +625,6 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         if ctxt2.camera == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(previousCam)
         end
-        BJIAsync.delayTask(function(ctxt3)
-            if ctxt3.camera == BJICam.CAMERAS.EXTERNAL then
-                ctxt3.camera = BJICam.CAMERAS.ORBIT
-                BJICam.setCamera(ctxt3.camera)
-            end
-        end, 100, "BJIRaceCameraCheck")
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
     -- enable waypoints before start to avoid stutter
