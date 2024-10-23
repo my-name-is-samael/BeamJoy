@@ -230,6 +230,10 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 - [ ] Objets du monde synchronisés, y compris dans les scénarios (peut ne jamais être possible)
 - [ ] Recherche d’un système de cache côté client (type cookie, utile pour les records personnels dans les courses, par exemple)
 
+Implementer les fonctionnalités de BeamMP v3 quand il sortira:
+- Ajouter la configuration Core pour AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
+- Bypass du maximum de joueurs à la connection pour les membres du staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
+
 ## Remerciements
 
 Merci à tous les BETA-testeurs qui m'ont aidé à tester et déboguer les fonctionnalités :
