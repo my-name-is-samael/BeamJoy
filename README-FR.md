@@ -16,7 +16,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 7. [Participation](#participation)
 8. [Problèmes Connus](#problèmes-connus)
 9. [Roadmap](#roadmap)
-10. [Crédits](#crédits)
+10. [Remerciements](#remerciements)
 
 ## Fonctionnalités
 
@@ -220,8 +220,9 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 ## Problèmes connus
 
 - Le message de bienvenue ne s’affiche pas toujours, en fonction du temps de chargement de la carte (en cours de résolution).
+- Votre propre véhicle peu parfois devenir transparent quand un évenement apparaît (en cours de résolution)
 
-## Feuille de route
+## Roadmap
 
 - [ ] Messages directs
 - [ ] Délai configurable pour la réapparition bloquée des chasseurs
@@ -230,7 +231,7 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 - [ ] Objets du monde synchronisés, y compris dans les scénarios (peut ne jamais être possible)
 - [ ] Recherche d’un système de cache côté client (type cookie, utile pour les records personnels dans les courses, par exemple)
 
-## Crédits
+## Remerciements
 
 Merci à tous les BETA-testeurs qui m'ont aidé à tester et déboguer les fonctionnalités :
 dvergar, Trina, Baliverne0, Rodjiii, Lotax, Nath_YT, korrigan_91, et bien d'autres.
