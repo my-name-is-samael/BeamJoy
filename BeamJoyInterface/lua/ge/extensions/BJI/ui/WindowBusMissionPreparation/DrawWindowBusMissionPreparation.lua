@@ -1,4 +1,4 @@
-local bm
+local bm, configs
 
 local function drawBody(ctxt)
     bm = BJIScenario.get(BJIScenario.TYPES.BUS_MISSION)
@@ -83,7 +83,9 @@ local function drawBody(ctxt)
                 end,
                 function()
                     local modelLabel = BJIVeh.getModelLabel(bm.model)
-                    local configs = BJIVeh.getAllConfigsForModel(bm.model)
+                    if not configs then
+                        configs = BJIVeh.getAllConfigsForModel(bm.model)
+                    end
                     local items = {}
                     local selected
                     for _, config in pairs(configs) do
@@ -133,6 +135,7 @@ local function drawFooter(ctxt)
             background = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
+                configs = nil
             end,
         })
         :btn({
@@ -141,6 +144,7 @@ local function drawFooter(ctxt)
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 bm.initDrive(ctxt)
+                configs = nil
             end,
         })
         :build()
@@ -154,5 +158,6 @@ return {
     footer = drawFooter,
     onClose = function()
         BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+        configs = nil
     end,
 }
