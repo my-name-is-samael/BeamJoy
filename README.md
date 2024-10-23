@@ -222,7 +222,6 @@ Also, feel free to report bugs or suggest improvements. I'll do my best to respo
 ## Known issues
 
 - Welcome message not always showing, depending on the time the map took to load (in progress)
-- Your own vehicle can get transparent when an event occurs (in progress)
 
 ## Roadmap
 

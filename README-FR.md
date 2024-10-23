@@ -220,7 +220,6 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 ## Problèmes connus
 
 - Le message de bienvenue ne s’affiche pas toujours, en fonction du temps de chargement de la carte (en cours de résolution).
-- Votre propre véhicle peu parfois devenir transparent quand un évenement apparaît (en cours de résolution)
 
 ## Roadmap
 
