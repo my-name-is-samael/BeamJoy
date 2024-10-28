@@ -235,6 +235,7 @@ local function renderTick(ctxt)
     end
 
     if M.state then
+        -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
         for _, veh in pairs(BJIVeh.getMPVehicles()) do
             if not veh.isDeleted and veh.isSpawned then
                 local vehType = BJIVeh.getType(veh.jbeam)
