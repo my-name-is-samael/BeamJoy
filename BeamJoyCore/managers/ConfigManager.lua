@@ -4,7 +4,8 @@ local M = {
 }
 
 local function init()
-    M.Data = BJCDao.config.findAll()
+    M.Data = BJCDefaults.config()
+    tdeepassign(M.Data, BJCDao.config.findAll())
 
     if not M.ClientMods then
         local folder = BJCPluginPath:gsub("Server/BeamJoyCore", "Client")

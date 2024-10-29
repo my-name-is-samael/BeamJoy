@@ -936,10 +936,6 @@ end
 
 local function reward(playerID, amount)
     local self = M.Players[playerID]
-    if not self then
-        return
-    end
-    self.reputation = self.reputation or 0
     self.reputation = self.reputation + amount
     M.savePlayer(self)
 

@@ -87,6 +87,7 @@ local function config()
             DriftBig = 2000,
         },
         Reputation = {
+            KmDriveReward = 3,
             DeliveryVehicleReward = 20,
             DeliveryVehiclePristineReward = 50,
             DeliveryPackageReward = 5,
