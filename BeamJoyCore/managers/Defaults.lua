@@ -266,7 +266,7 @@ local function environment()
         flareScale = 25,
         occlusionScale = 1,
         exposure = 1,
-        shadowDistance = 1000,
+        shadowDistance = 1501, -- minimum to prevent shadows from disappearing when you go fast (140kmh+)
         shadowSoftness = .1,
         shadowSplits = 4,
         shadowTexSize = 2048,
