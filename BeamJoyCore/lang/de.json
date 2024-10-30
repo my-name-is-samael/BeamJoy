@@ -651,7 +651,9 @@
         "SpeedReward": "Speed-Gamemode-Belohnung",
         "HunterParticipationReward": "Belohnung für die Teilnahme an Jägern",
         "HunterWinnerReward": "Jäger-Gewinner-Belohnung",
-        "HunterWinnerRewardTooltip": "Gilt für alle Spieler im Gewinnerteam (Jäger oder Flüchtling)"
+        "HunterWinnerRewardTooltip": "Gilt für alle Spieler im Gewinnerteam (Jäger oder Flüchtling)",
+        "DerbyParticipationReward": "Belohnung für die Teilnahme an der Derby",
+        "DerbyWinnerReward": "Derby Gewinner-Belohnung"
       },
       "permissions": {
         "title": "Gruppen und Berechtigungen",

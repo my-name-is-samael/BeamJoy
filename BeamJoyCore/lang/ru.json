@@ -651,7 +651,9 @@
         "SpeedReward": "Награда за режим скоростной игры",
         "HunterParticipationReward": "Награда за участие в Охотнике",
         "HunterWinnerReward": "Награда победителю-охотнику",
-        "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам)."
+        "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам).",
+        "DerbyParticipationReward": "Награда за участие в дерби",
+        "DerbyWinnerReward": "Награда победителю дерби"
       },
       "permissions": {
         "title": "Группы и разрешения",

@@ -651,7 +651,9 @@
         "SpeedReward": "Recompensa do modo de jogo de velocidade",
         "HunterParticipationReward": "Recompensa de Participação do Caçador",
         "HunterWinnerReward": "Recompensa do Vencedor do Caçador",
-        "HunterWinnerRewardTooltip": "Aplica-se a todos os jogadores da equipe vencedora (caçadores ou fugitivos)"
+        "HunterWinnerRewardTooltip": "Aplica-se a todos os jogadores da equipe vencedora (caçadores ou fugitivos)",
+        "DerbyParticipationReward": "Recompensa de Participação na derby",
+        "DerbyWinnerReward": "Recompensa do Vencedor da derby"
       },
       "permissions": {
         "title": "Grupos e permissões",
