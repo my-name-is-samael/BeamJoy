@@ -292,6 +292,15 @@ local function drawTools(vehpos)
                 end,
             })
         end
+        line:btnIcon({
+            id = "rotateVeh",
+            icon = ICONS.tb_bank,
+            background = BTN_PRESETS.WARNING,
+            onClick = function ()
+                vehpos.rot = vehpos.rot * quat(0, 0, 1, 0)
+                BJIVeh.setPositionRotation(vehpos.pos, vehpos.rot)
+            end
+        })
         line:build()
     end
 end
