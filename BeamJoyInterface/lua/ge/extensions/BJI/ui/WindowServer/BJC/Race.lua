@@ -1,13 +1,14 @@
 return function(ctxt)
     local fields = {
-        { key = "PreparationTimeout", type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = 120, },
-        { key = "VoteTimeout",        type = "int",   step = 1,   stepFast = 5,  min = 10,                                       max = 120, },
-        { key = "VoteThresholdRatio", type = "float", step = .05, stepFast = .1, min = .01,                                      max = 1,                                   precision = 2 },
-        { key = "GridReadyTimeout",   type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = BJIContext.BJC.Race.GridTimeout - 1, },
-        { key = "GridTimeout",        type = "int",   step = 1,   stepFast = 5,  min = BJIContext.BJC.Race.GridReadyTimeout + 1, max = nil, },
-        { key = "RaceCountdown",      type = "int",   step = 1,   stepFast = 5,  min = 10,                                       max = nil, },
-        { key = "FinishTimeout",      type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = nil, },
-        { key = "RaceEndTimeout",     type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = nil, },
+        { key = "RaceSoloTimeBroadcast", type = "bool", },
+        { key = "PreparationTimeout",    type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = 120, },
+        { key = "VoteTimeout",           type = "int",   step = 1,   stepFast = 5,  min = 10,                                       max = 120, },
+        { key = "VoteThresholdRatio",    type = "float", step = .05, stepFast = .1, min = .01,                                      max = 1,                                   precision = 2 },
+        { key = "GridReadyTimeout",      type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = BJIContext.BJC.Race.GridTimeout - 1, },
+        { key = "GridTimeout",           type = "int",   step = 1,   stepFast = 5,  min = BJIContext.BJC.Race.GridReadyTimeout + 1, max = nil, },
+        { key = "RaceCountdown",         type = "int",   step = 1,   stepFast = 5,  min = 10,                                       max = nil, },
+        { key = "FinishTimeout",         type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = nil, },
+        { key = "RaceEndTimeout",        type = "int",   step = 1,   stepFast = 5,  min = 5,                                        max = nil, },
     }
 
     local labelWidth = 0
@@ -33,22 +34,34 @@ return function(ctxt)
                     line:build()
                 end,
                 function()
-                    LineBuilder()
-                        :inputNumeric({
+                    if v.type == "bool" then
+                        LineBuilder()
+                        :btnSwitchEnabledDisabled({
                             id = v.key,
-                            type = v.type,
-                            precision = v.precision,
-                            value = BJIContext.BJC.Race[v.key],
-                            min = v.min,
-                            max = v.max,
-                            step = v.step,
-                            stepFast = v.stepFast,
-                            onUpdate = function(val)
-                                BJIContext.BJC.Race[v.key] = val
-                                BJITx.config.bjc(svar("Race.{1}", { v.key }), val)
+                            state = not not BJIContext.BJC.Race[v.key],
+                            onClick = function()
+                                BJITx.config.bjc(svar("Race.{1}", { v.key }), not BJIContext.BJC.Race[v.key])
                             end
                         })
                         :build()
+                    else
+                        LineBuilder()
+                            :inputNumeric({
+                                id = v.key,
+                                type = v.type,
+                                precision = v.precision,
+                                value = BJIContext.BJC.Race[v.key],
+                                min = v.min,
+                                max = v.max,
+                                step = v.step,
+                                stepFast = v.stepFast,
+                                onUpdate = function(val)
+                                    BJIContext.BJC.Race[v.key] = val
+                                    BJITx.config.bjc(svar("Race.{1}", { v.key }), val)
+                                end
+                            })
+                            :build()
+                    end
                 end
             }
         })

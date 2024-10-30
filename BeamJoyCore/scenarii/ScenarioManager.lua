@@ -368,6 +368,17 @@ local function broadcastRaceRecord(raceName, playerName, time)
     end
 end
 
+local function broadcastRaceTime(raceName, playerName, time)
+    for playerID in pairs(BJCPlayers.Players) do
+        BJCChat.onServerChat(playerID,
+            svar(BJCLang.getServerMessage(playerID, "broadcast.raceTime"), {
+                playerName = playerName,
+                raceName = raceName,
+                time = RaceDelay(time),
+            }))
+    end
+end
+
 local function onRaceSoloTime(playerID, raceID, time, model)
     local player = BJCPlayers.Players[playerID]
     local race = M.getRace(raceID)
@@ -375,19 +386,18 @@ local function onRaceSoloTime(playerID, raceID, time, model)
         error({ key = "rx.errors.invalidData" })
     end
 
-    if race.record then
-        if race.record.time < time then
-            -- record not beaten
-            return
-        end
+    local isRecord = not race.record or race.record.time > time
+    if isRecord then
         BJCPlayers.reward(playerID, BJCConfig.Data.Reputation.RaceRecordReward)
+        M.saveRaceRecord(raceID, {
+            playerName = player.playerName,
+            model = model,
+            time = time,
+        })
+        M.broadcastRaceRecord(race.name, player.playerName, time)
+    elseif BJCConfig.Data.Race.RaceSoloTimeBroadcast then
+        broadcastRaceTime(race.name, player.playerName, time)
     end
-    M.saveRaceRecord(raceID, {
-        playerName = player.playerName,
-        model = model,
-        time = time,
-    })
-    M.broadcastRaceRecord(race.name, player.playerName, time)
 end
 
 local function saveEnergyStations(stations)

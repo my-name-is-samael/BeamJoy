@@ -129,7 +129,8 @@
       "serverStopsIn": "Le serveur redémarrera dans {delay}",
       "serverStopped": "Le serveur a été redémarré !",
       "bigDrift": "{playerName} a fait un drift de {score} points !",
-      "newRaceRecord": "{playerName} a établi un nouveau record sur {raceName} : {time}"
+      "newRaceRecord": "{playerName} a établi un nouveau record sur {raceName} : {time}",
+      "raceTime": "{playerName} a terminé {raceName} en {time}"
     },
     "hunter": {
       "invalidHunted": "Pas de fugitif ou le fugitif n'a pas de véhicule",
@@ -594,7 +595,8 @@
           "FinishTimeout": "Durée du finish pour les Joueurs",
           "FinishTimeoutTooltip": "Temps en secondes entre la fin de course d'un joueur et le passage au mode spectateur",
           "RaceEndTimeout": "Durée de Fin de Course",
-          "RaceEndTimeoutTooltip": "Temps en secondes entre la fin de course du dernier joueur et le retour au freeroam"
+          "RaceEndTimeoutTooltip": "Temps en secondes entre la fin de course du dernier joueur et le retour au freeroam",
+          "RaceSoloTimeBroadcast": "Diffuser les temps en solo"
         },
         "server": {
           "title": "Paramètres du Serveur",

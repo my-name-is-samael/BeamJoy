@@ -129,7 +129,8 @@
       "serverStopsIn": "Сервер перезапустится через {delay}",
       "serverStopped": "Сервер перезапущен!",
       "bigDrift": "Пользователь {playerName} сместил очки на {score}!",
-      "newRaceRecord": "Пользователь {playerName} установил новый рекорд в гонке {raceName}: {time}"
+      "newRaceRecord": "Пользователь {playerName} установил новый рекорд в гонке {raceName}: {time}",
+      "raceTime": "{playerName} завершил {raceName} за {time}"
     },
     "hunter": {
       "invalidHunted": "Беглеца нет или у беглеца нет транспортного средства",
@@ -594,7 +595,8 @@
           "FinishTimeout": "Продолжительность финиша игрока",
           "FinishTimeoutTooltip": "Время в секундах между тем, как игрок финиширует и станет зрителем.",
           "RaceEndTimeout": "Продолжительность окончания гонки",
-          "RaceEndTimeoutTooltip": "Время в секундах между финишем последнего участника гонки и завершением гонки."
+          "RaceEndTimeoutTooltip": "Время в секундах между финишем последнего участника гонки и завершением гонки.",
+          "RaceSoloTimeBroadcast": "Трансляция одиночных времен"
         },
         "server": {
           "title": "Настройки сервера",

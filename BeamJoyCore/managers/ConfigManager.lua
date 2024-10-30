@@ -108,17 +108,16 @@ local function getCache(senderID)
         data.Race.RaceCountdown = M.Data.Race.RaceCountdown
         data.Race.FinishTimeout = M.Data.Race.FinishTimeout
         data.Race.RaceEndTimeout = M.Data.Race.RaceEndTimeout
+        data.Race.RaceSoloTimeBroadcast = M.Data.Race.RaceSoloTimeBroadcast
 
-        if not data.Speed then
-            data.Speed = {
-                PreparationTimeout = M.Data.Speed.PreparationTimeout,
-                VoteTimeout = M.Data.Speed.VoteTimeout,
-                BaseSpeed = M.Data.Speed.BaseSpeed,
-                StepSpeed = M.Data.Speed.StepSpeed,
-                StepDelay = M.Data.Speed.StepDelay,
-                EndTimeout = M.Data.Speed.EndTimeout,
-            }
-        end
+        data.Speed = {
+            PreparationTimeout = M.Data.Speed.PreparationTimeout,
+            VoteTimeout = M.Data.Speed.VoteTimeout,
+            BaseSpeed = M.Data.Speed.BaseSpeed,
+            StepSpeed = M.Data.Speed.StepSpeed,
+            StepDelay = M.Data.Speed.StepDelay,
+            EndTimeout = M.Data.Speed.EndTimeout,
+        }
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) or

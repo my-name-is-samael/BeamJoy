@@ -129,7 +129,8 @@
       "serverStopsIn": "Der Server wird in {delay} neu gestartet.",
       "serverStopped": "Der Server wurde neu gestartet!",
       "bigDrift": "{playerName} hat einen Punktedrift von {score} gemacht!",
-      "newRaceRecord": "{playerName} hat einen neuen Rekord auf {raceName} aufgestellt: {time}"
+      "newRaceRecord": "{playerName} hat einen neuen Rekord auf {raceName} aufgestellt: {time}",
+      "raceTime": "{playerName} beendete {raceName} in {time}"
     },
     "hunter": {
       "invalidHunted": "Kein Flüchtling oder der Flüchtling hat kein Fahrzeug",
@@ -594,7 +595,8 @@
           "FinishTimeout": "Dauer des Spielerabschlusses",
           "FinishTimeoutTooltip": "Zeit in Sekunden zwischen einem Spieler, der das Spiel beendet und zum Zuschauer wird",
           "RaceEndTimeout": "Dauer des Rennendes",
-          "RaceEndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Rennens und dem Ende des Rennens"
+          "RaceEndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Rennens und dem Ende des Rennens",
+          "RaceSoloTimeBroadcast": "Übertrage Solozeiten"
         },
         "server": {
           "title": "Servereinstellungen",

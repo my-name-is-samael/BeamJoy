@@ -114,6 +114,7 @@ local function config()
             RaceCountdown = 10,
             FinishTimeout = 5,
             RaceEndTimeout = 5,
+            RaceSoloTimeBroadcast = false,
         },
         Hunter = {
             PreparationTimeout = 30,

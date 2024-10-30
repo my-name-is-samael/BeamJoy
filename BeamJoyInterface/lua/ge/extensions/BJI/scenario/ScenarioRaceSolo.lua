@@ -427,8 +427,9 @@ local function onCheckpointReached(wp, remainingSteps)
 
         updateLeaderBoard(remainingSteps, raceTime, lapTime)
 
-        local function checkRecord()
-            if not M.testing and (not M.record or lapTime < M.record.time) then
+        local function onLap()
+            if not M.testing then
+                -- send to server (time broadcasted or new record)
                 BJITx.scenario.RaceSoloUpdate(M.settings.raceID, lapTime, M.settings.model)
             end
         end
@@ -443,7 +444,7 @@ local function onCheckpointReached(wp, remainingSteps)
             BJIRaceUI.setWaypoint(M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
             drawLapDiff()
 
-            checkRecord()
+            onLap()
         elseif wp.lap then
             -- lap
             M.race.timers.lap:reset()
@@ -462,7 +463,7 @@ local function onCheckpointReached(wp, remainingSteps)
             end
             BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
 
-            checkRecord()
+            onLap()
         else
             -- regular checkpoint
             BJIMessage.flash("BJIRaceCheckpoint", RaceDelay(lapTime), 2, false)

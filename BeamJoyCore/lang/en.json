@@ -129,7 +129,8 @@
       "serverStopsIn": "The server will restart in {delay}",
       "serverStopped": "The server has been restarted !",
       "bigDrift": "{playerName} did a {score} points drift !",
-      "newRaceRecord": "{playerName} set a new record on {raceName} : {time}"
+      "newRaceRecord": "{playerName} set a new record on {raceName} : {time}",
+      "raceTime": "{playerName} finished {raceName} in {time}"
     },
     "hunter": {
       "invalidHunted": "No fugitive or the fugitive has no vehicle",
@@ -594,7 +595,8 @@
           "FinishTimeout": "Player Finish Duration",
           "FinishTimeoutTooltip": "Time in seconds between a player finishes and becomes a spectator",
           "RaceEndTimeout": "Race End Duration",
-          "RaceEndTimeoutTooltip": "Time in seconds between the last race player finishes and the race ends"
+          "RaceEndTimeoutTooltip": "Time in seconds between the last race player finishes and the race ends",
+          "RaceSoloTimeBroadcast": "Broadcast solo time"
         },
         "server": {
           "title": "Server Settings",
