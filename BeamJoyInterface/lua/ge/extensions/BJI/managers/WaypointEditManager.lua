@@ -32,6 +32,7 @@ local function setWaypointsWithSegments(waypoints, loopable)
         table.insert(flatWps, {
             name = wp.name,
             pos = wp.pos,
+            radius = wp.radius,
             parents = wp.parents,
             finish = wp.finish,
         })
@@ -58,11 +59,15 @@ local function setWaypointsWithSegments(waypoints, loopable)
                                 end
                             end
                             for _, iFin in ipairs(finIndices) do
+                                local fromPos = vec3(flatWps[iFin].pos)
+                                fromPos.z = fromPos.z + flatWps[iFin].radius
+                                local toPos = vec3(wp.pos)
+                                toPos.z = toPos.z + wp.radius
                                 table.insert(M.segments, {
-                                    from = flatWps[iFin].pos,
-                                    to = wp.pos,
-                                    fromWidth = 2,
-                                    toWidth = 0,
+                                    from = fromPos,
+                                    to = toPos,
+                                    fromWidth = math.ceil(flatWps[iFin].radius / 2),
+                                    toWidth = .5,
                                     color = M._segmentColor,
                                 })
                             end
@@ -70,11 +75,15 @@ local function setWaypointsWithSegments(waypoints, loopable)
                     else
                         local parent = flatWps[wpIndices[parentName]]
                         if parent then
+                            local fromPos = vec3(parent.pos)
+                            fromPos.z = fromPos.z + parent.radius
+                            local toPos = vec3(wp.pos)
+                            toPos.z = toPos.z + wp.radius
                             table.insert(M.segments, {
-                                from = parent.pos,
-                                to = wp.pos,
-                                fromWidth = 2,
-                                toWidth = 0,
+                                from = fromPos,
+                                to = toPos,
+                                fromWidth = math.ceil(parent.radius / 2),
+                                toWidth = .5,
                                 color = M._segmentColor,
                             })
                         end
