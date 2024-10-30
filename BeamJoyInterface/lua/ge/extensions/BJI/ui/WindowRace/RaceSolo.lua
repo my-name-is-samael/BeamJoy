@@ -49,7 +49,8 @@ local function drawHeader(ctxt)
     end
 
     line = LineBuilder()
-        :btnIconSwitch({
+    if not mgr.testing then
+        line:btnIconSwitch({
             id = "toggleRaceLoop",
             iconEnabled = ICONS.all_inclusive,
             state = mgr.loop,
@@ -58,6 +59,7 @@ local function drawHeader(ctxt)
             end,
             big = true,
         })
+    end
     if mgr.isRaceStarted() then
         line:btnIcon({
             id = "leaveRace",
