@@ -15,11 +15,13 @@
         "and": "et"
       },
       "enabled": "Active",
-      "disabled": "Désactive"
+      "disabled": "Désactive",
+      "allPlayers": "SERVEUR"
     },
     "messages": {
       "missing": "Erreur lors de la recherche du message {key}",
-      "invalidMessage": "Le message {key} n'est pas une chaine de caracteres"
+      "invalidMessage": "Le message {key} n'est pas une chaine de caracteres",
+      "serverBroadcast": "MESSAGE DU SERVEUR A {targetName} : {message}"
     },
     "command": {
       "errors": {

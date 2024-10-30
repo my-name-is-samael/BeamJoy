@@ -15,11 +15,13 @@
         "and": "Und"
       },
       "enabled": "Ermöglicht",
-      "disabled": "Deaktiviert"
+      "disabled": "Deaktiviert",
+      "allPlayers": "SERVER"
     },
     "messages": {
       "missing": "Fehler beim Finden der Nachricht {key}",
-      "invalidMessage": "Nachricht {key} ist keine Zeichenfolge"
+      "invalidMessage": "Nachricht {key} ist keine Zeichenfolge",
+      "serverBroadcast": "SERVER-NACHRICHT AN {targetName}: {message}"
     },
     "command": {
       "errors": {

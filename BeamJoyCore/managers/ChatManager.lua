@@ -1,3 +1,5 @@
+SetLogType("BJCChat", CONSOLE_COLORS.FOREGROUNDS.LIGHT_GREEN, nil, CONSOLE_COLORS.FOREGROUNDS.LIGHT_GREEN)
+
 local M = {
     EVENTS = {
         JOIN = "join",
@@ -47,6 +49,18 @@ local function onPlayerChat(playerName, message)
 end
 
 local function onServerChat(targetID, message, color)
+    local targetName = ""
+    if targetID == BJCTx.ALL_PLAYERS then
+        targetName = BJCLang.getConsoleMessage("common.allPlayers")
+    else
+        local target = BJCPlayers.Players[targetID]
+        targetName = target and target.playerName or svar("? (id = {1})", {targetID})
+    end
+    Log(svar(BJCLang.getConsoleMessage("messages.serverBroadcast"), {
+        targetName = targetName,
+        message = message,
+    }), "BJCChat")
+
     BJCTx.player.chat(targetID, M.EVENTS.SERVER_CHAT, {
         message = message,
         color = color,

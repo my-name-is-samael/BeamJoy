@@ -15,11 +15,13 @@
         "and": "and"
       },
       "enabled": "Enabled",
-      "disabled": "Disabled"
+      "disabled": "Disabled",
+      "allPlayers": "SERVER"
     },
     "messages": {
       "missing": "Error finding message {key}",
-      "invalidMessage": "Message {key} is not a string"
+      "invalidMessage": "Message {key} is not a string",
+      "serverBroadcast": "SERVER MESSAGE TO {targetName}: {message}"
     },
     "command": {
       "errors": {

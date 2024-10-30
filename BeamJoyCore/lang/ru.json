@@ -15,11 +15,13 @@
         "and": "и"
       },
       "enabled": "Включено",
-      "disabled": "Неполноценный"
+      "disabled": "Неполноценный",
+      "allPlayers": "СЕРВЕР"
     },
     "messages": {
       "missing": "Ошибка при поиске сообщения {key}.",
-      "invalidMessage": "Сообщение {key} не является строкой"
+      "invalidMessage": "Сообщение {key} не является строкой",
+      "serverBroadcast": "СООБЩЕНИЕ СЕРВЕРА ДЛЯ {targetName}: {message}"
     },
     "command": {
       "errors": {

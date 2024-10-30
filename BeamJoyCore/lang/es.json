@@ -15,11 +15,13 @@
         "and": "y"
       },
       "enabled": "Activado",
-      "disabled": "Desactivado"
+      "disabled": "Desactivado",
+      "allPlayers": "SERVIDOR"
     },
     "messages": {
       "missing": "Error al encontrar el mensaje {key}",
-      "invalidMessage": "El mensaje {key} no es una cadena"
+      "invalidMessage": "El mensaje {key} no es una cadena",
+      "serverBroadcast": "MENSAJE DEL SERVIDOR A {targetName}: {message}"
     },
     "command": {
       "errors": {

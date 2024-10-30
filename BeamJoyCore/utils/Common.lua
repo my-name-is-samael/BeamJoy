@@ -115,7 +115,7 @@ function Log(content, tag)
         tagColor = logTypes[tag].headingColor
         stringColor = logTypes[tag].stringColor
     end
-    prefix = svar("{1}[{2}{3}] {4}", { prefix, tagColor, tag, resetColor, stringColor })
+    prefix = svar("{1}[{2}{3}{4}] {5}", { prefix, tagColor, tag, resetColor, stringColor })
 
     if content == nil then
         content = "nil"

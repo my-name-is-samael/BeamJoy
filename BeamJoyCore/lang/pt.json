@@ -15,11 +15,13 @@
         "and": "e"
       },
       "enabled": "Habilitado",
-      "disabled": "Desabilitado"
+      "disabled": "Desabilitado",
+      "allPlayers": "SERVIDOR"
     },
     "messages": {
       "missing": "Erro ao localizar mensagem {key}",
-      "invalidMessage": "A mensagem {key} não é uma string"
+      "invalidMessage": "A mensagem {key} não é uma string",
+      "serverBroadcast": "MENSAGEM DO SERVIDOR PARA {targetName}: {message}"
     },
     "command": {
       "errors": {
