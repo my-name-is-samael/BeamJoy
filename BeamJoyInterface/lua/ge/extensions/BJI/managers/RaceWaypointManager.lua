@@ -265,10 +265,12 @@ local function checkRaceTargetReached(ctxt)
         local wp = M._race._steps[target.step][target.wp]
 
         local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, wp.pos)
-        local verticalDistance = math.abs(ctxt.vehPosRot.pos.z - wp.pos.z)
+        local hitboxBottom = wp.pos.z - 1 -- 1 meter under the waypoint
+        local hitboxTop = wp.pos.z + (wp.radius * 2) -- the diameter high over the waypoint
 
         if distance <= wp.radius + M._radiusMargin and -- +1m for visual margin
-            verticalDistance <= wp.radius * 2 then
+            ctxt.vehPosRot.pos.z >= hitboxBottom and
+            ctxt.vehPosRot.pos.z <= hitboxTop then
             local i = target.step
             while i > 0 and #M._race._steps > 0 do
                 table.remove(M._race._steps, 1)
