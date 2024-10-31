@@ -697,6 +697,8 @@ local function getEditEntry(ctxt)
                         res.author = raceData.author
                         res.name = raceData.name
                         res.hasRecord = raceData.record ~= nil
+                    else
+                        res.keepRecord = false
                     end
                     res.previewPosition = TryParsePosRot(raceData.previewPosition)
                     res.steps = raceData.steps
