@@ -973,8 +973,6 @@
         "title": "Itinéraire de bus",
         "line": "Ligne de bus {name}",
         "stopCount": "Arrêt {current}/{total}",
-        "continueLoop": "Prolonger le service",
-        "stopMissionBtn": "Arrêter la mission",
         "flashStopped": "Itinéraire de bus arrêté !",
         "flashDriveNext": "Conduisez jusqu'au prochain arrêt",
         "flashFinish": "Bien joué !"

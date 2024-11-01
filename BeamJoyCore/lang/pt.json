@@ -973,8 +973,6 @@
         "title": "Missão de ônibus",
         "line": "Linha de ônibus {name}",
         "stopCount": "Parar {current}/{total}",
-        "continueLoop": "Estender o dever",
-        "stopMissionBtn": "Pare a missão",
         "flashStopped": "Missão de ônibus parada!",
         "flashDriveNext": "Dirija até o próximo ponto de ônibus",
         "flashFinish": "Bom trabalho !"

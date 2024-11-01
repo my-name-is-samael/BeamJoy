@@ -973,8 +973,6 @@
         "title": "Автобусная миссия",
         "line": "Автобусная линия {name}",
         "stopCount": "Остановить {current}/{total}",
-        "continueLoop": "Продлить пошлину",
-        "stopMissionBtn": "Остановить миссию",
         "flashStopped": "Автобусная миссия остановлена!",
         "flashDriveNext": "Доехать до следующей автобусной остановки",
         "flashFinish": "Отличная работа !"

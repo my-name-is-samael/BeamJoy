@@ -359,7 +359,7 @@ local function drawFooter(ctxt)
         (not settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO)) then
         line:btnIcon({
             id = "raceStart",
-            icon = ICONS.done,
+            icon = ICONS.videogame_asset,
             background = BTN_PRESETS.SUCCESS,
             onClick = function()
                 if settings.multi then

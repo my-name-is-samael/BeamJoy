@@ -973,8 +973,6 @@
         "title": "Busmission",
         "line": "Buslinie {Name}",
         "stopCount": "Stoppen Sie {current}/{total}",
-        "continueLoop": "Dienst verlängern",
-        "stopMissionBtn": "Stoppen Sie die Mission",
         "flashStopped": "Busmission gestoppt!",
         "flashDriveNext": "Fahren Sie zur nächsten Bushaltestelle",
         "flashFinish": "Gut gemacht !"

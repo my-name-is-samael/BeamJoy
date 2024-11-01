@@ -231,7 +231,7 @@ local function drawFooter(ctxt)
         })
         :btnIcon({
             id = "startHunter",
-            icon = ICONS.check,
+            icon = ICONS.videogame_asset,
             background = BTN_PRESETS.SUCCESS,
             onClick = function()
                 local status = pcall(BJITx.scenario.HunterStart, {

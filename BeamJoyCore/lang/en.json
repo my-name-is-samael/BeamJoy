@@ -973,8 +973,6 @@
         "title": "Bus Mission",
         "line": "Bus Line {name}",
         "stopCount": "Stop {current}/{total}",
-        "continueLoop": "Extend duty",
-        "stopMissionBtn": "Stop mission",
         "flashStopped": "Bus Mission stopped !",
         "flashDriveNext": "Drive to next bus stop",
         "flashFinish": "Well done !"

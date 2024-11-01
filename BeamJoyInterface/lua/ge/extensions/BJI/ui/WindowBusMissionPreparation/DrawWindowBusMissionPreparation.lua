@@ -138,10 +138,10 @@ local function drawFooter(ctxt)
                 configs = nil
             end,
         })
-        :btn({
+        :btnIcon({
             id = "startBusMission",
-            label = BJILang.get("common.buttons.play"),
-            style = BTN_PRESETS.SUCCESS,
+            icon = ICONS.videogame_asset,
+            background = BTN_PRESETS.SUCCESS,
             onClick = function()
                 bm.initDrive(ctxt)
                 configs = nil

@@ -973,8 +973,6 @@
         "title": "Missione in autobus",
         "line": "Linea autobus {name}",
         "stopCount": "Interrompi {current}/{total}",
-        "continueLoop": "Estendere il dovere",
-        "stopMissionBtn": "Interrompi la missione",
         "flashStopped": "La missione dell'autobus si è fermata!",
         "flashDriveNext": "Guida fino alla prossima fermata dell'autobus",
         "flashFinish": "Ben fatto !"

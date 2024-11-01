@@ -89,8 +89,8 @@ local function initDrive(ctxt)
     BJIVeh.replaceOrSpawnVehicle(M.model, M.config, startPosRot)
     BJIAsync.task(function(ctxt2)
         return ctxt2.isOwner and
-        not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
-        ctxt2.veh.partConfig:find(svar("/{1}.", {M.config}))
+            not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
+            ctxt2.veh.partConfig:find(svar("/{1}.", { M.config }))
     end, function()
         M.state = M.STATES.DRIVE
         updateTarget()
@@ -150,24 +150,25 @@ local function drawMissionUI(ctxt)
             floatPercent = M.progression,
             width = 250,
         })
+        local line = LineBuilder()
         if M.line.loopable then
-            LineBuilder()
-                :text(BJILang.get("buslines.play.continueLoop"))
-                :btnSwitchYesNo({
-                    id = "continueLoop",
-                    state = M.nextLoop,
-                    onClick = function()
-                        M.nextLoop = not M.nextLoop
-                    end
-                })
-                :build()
+            line:btnIconSwitch({
+                id = "toggleBusLoop",
+                iconEnabled = ICONS.all_inclusive,
+                state = M.nextLoop,
+                onClick = function()
+                    M.nextLoop = not M.nextLoop
+                end,
+                big = true,
+            })
         end
-        LineBuilder()
-            :btn({
+        line
+            :btnIcon({
                 id = "stopBusMission",
-                label = "Stop mission",
-                style = BTN_PRESETS.ERROR,
+                icon = ICONS.exit_to_app,
+                background = BTN_PRESETS.ERROR,
                 onClick = onStopBusMission,
+                big = true,
             })
             :build()
     end
