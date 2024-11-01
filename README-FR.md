@@ -2,7 +2,7 @@
 Mod tout-en-un pour BeamMP
 
 <p align="center">
-  <img src="logo_white.png" style="width: 50%; height: auto;" />
+  <img src="assets/logo_white.png" style="width: 50%; height: auto;" />
 </p>
 
 Ce mod a pour objectif de fournir un accès facile aux outils de modération et aux activités pour les joueurs de votre serveur BeamMP.
@@ -106,6 +106,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Enregistrement persistant des records de chaque course.
 - Récompenses de réputation pour la participation, la victoire et les records battus, hautement personnalisables.
 - Compteur de temps en temps réel avec indication au passage des points de contrôle, et affichage dans l’interface.
+- Diffusion des temps pour les courses solo activable
 
 #### Chasseur / CarHunt
 

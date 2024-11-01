@@ -107,6 +107,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Persistent race records.
 - Reputation rewards for participation, winning races, and breaking records, highly customizable.
 - Real-time race time counter with flashing time when reaching a checkpoint (UI applications).
+- Toggleable broadcasting solo race times
 
 #### Hunter / CarHunt
 
