@@ -303,8 +303,8 @@ local function slowTick(ctxt)
         M.baseDistance = M.distance
     end
 
-    local hDistance = GetHorizontalDistance(ctxt.vehPosRot.pos, M.targetPosition.pos)
-    if hDistance < M.targetPosition.radius then
+    local distance = ctxt.vehPosRot.pos:distance(M.targetPosition.pos) - (ctxt.veh:getInitialWidth() / 2)
+    if distance < M.targetPosition.radius then
         if not M.checkTargetProcess then
             BJIMessage.flashCountdown("BJIDeliveryTarget", ctxt.now + 3100, false,
                 BJILang.get("vehicleDelivery.flashSuccess"),

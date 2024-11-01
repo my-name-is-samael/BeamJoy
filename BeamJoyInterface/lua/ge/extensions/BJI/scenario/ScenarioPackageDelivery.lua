@@ -37,7 +37,7 @@ local function initPositions(ctxt)
     local targets = {}
     for _, position in ipairs(BJIContext.Scenario.Data.Deliveries) do
         -- local distance = BJIGPS.getRouteLength({ ctxt.vehPosRot.pos, position.pos }) -- costs a lot
-        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, position.pos)
+        local distance = ctxt.vehPosRot.pos:distance(position.pos) - (ctxt.veh:getInitialWidth() / 2)
         if distance > 0 then
             table.insert(targets, {
                 pos = position.pos,
@@ -222,8 +222,8 @@ local function slowTick(ctxt)
         M.baseDistance = M.distance
     end
 
-    local hDistance = GetHorizontalDistance(ctxt.vehPosRot.pos, M.targetPosition.pos)
-    if hDistance < M.targetPosition.radius then
+    local distance = ctxt.vehPosRot.pos:distance(M.targetPosition.pos) - (ctxt.veh:getInitialWidth() / 2)
+    if distance < M.targetPosition.radius then
         if not M.checkTargetProcess then
             local streak = M.streak + 1
             local msg

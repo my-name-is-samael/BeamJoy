@@ -16,6 +16,7 @@ local function reloadMarkers()
             name = svar(BJILang.get("hunter.edit.targetName"), { index = i }),
             pos = target.pos,
             radius = target.radius,
+            type = BJIWaypointEdit.TYPES.CYLINDER,
         })
     end
 

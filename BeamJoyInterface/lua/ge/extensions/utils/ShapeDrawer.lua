@@ -59,9 +59,25 @@ local function SquarePrism(fromPos, fromWidth, toPos, toWidth, shapeColor)
         true)
 end
 
+local function Cylinder(bottomPos, topPos, radius, shapeColor)
+    local errBottom, errTop, _
+    _, bottomPos, errBottom = pcall(vec3, bottomPos)
+    _, topPos, errTop = pcall(vec3, topPos)
+    if errBottom or errTop or
+        not tonumber(radius) then
+        -- invalid position or radius
+        return
+    end
+    shapeColor = shapeColor or Color(1, 1, 1, .5)
+
+    debugDrawer:drawCylinder(bottomPos, topPos, radius,
+        ColorF(shapeColor.r, shapeColor.g, shapeColor.b, shapeColor.a))
+end
+
 drawer.Color = Color
 drawer.Sphere = Sphere
 drawer.Text = Text
 drawer.SquarePrism = SquarePrism
+drawer.Cylinder = Cylinder
 
 return drawer

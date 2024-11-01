@@ -169,6 +169,7 @@ local function drawMissionUI(ctxt)
                 style = BTN_PRESETS.ERROR,
                 onClick = onStopBusMission,
             })
+            :build()
     end
 end
 
@@ -213,7 +214,7 @@ local function slowTick(ctxt)
         M.progression = 1 - (remainingDistance / M.line.totalDistance)
 
         local target = M.line.stops[M.nextStop]
-        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, target.pos)
+        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, target.pos) - (ctxt.veh:getInitialWidth() / 2)
 
         if distance < target.radius then
             -- core_vehicleBridge.registerValueChangeNotification(veh, "kneel")

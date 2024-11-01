@@ -171,8 +171,8 @@ local function slowTick(ctxt)
                 BJIRaceWaypoint.COLORS.BLUE)
         end
 
-        local hDistance = GetHorizontalDistance(ctxt.vehPosRot.pos, M.target.pos)
-        if hDistance < M.target.radius * getRadiusMultiplier() then
+        local distance = ctxt.vehPosRot.pos:distance(M.target.pos) - (ctxt.veh:getInitialWidth() / 2)
+        if distance < M.target.radius * getRadiusMultiplier() then
             if not M.checkTargetProcess then
                 BJIMessage.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false, BJILang.get("deliveryTogether.flashPackage"), nil,
                     onTargetReached)

@@ -47,7 +47,9 @@ local function detectChunk(ctxt)
 
     for i = M.detectionProcess, target do
         local s = M.detectionStations[i]
-        if s and GetHorizontalDistance(s.pos, ctxt.vehPosRot.pos) < s.radius then
+        if s and
+            --GetHorizontalDistance(s.pos, ctxt.vehPosRot.pos) <= s.radius then
+            ctxt.vehPosRot.pos:distance(s.pos) - (ctxt.veh:getInitialWidth() / 2) <= s.radius then
             if not s.types then
                 M.station = s
                 M.detectionProcess = nil
@@ -73,9 +75,10 @@ local function renderStations(ctxt)
     if ctxt.camera == BJICam.CAMERAS.BIG_MAP then
         return
     end
-    local ownPos = (ctxt.camera == BJICam.CAMERAS.FREE or not ctxt.veh)
-        and BJICam.getPositionRotation().pos or
+    local ownPos = (ctxt.camera == BJICam.CAMERAS.FREE or not ctxt.veh) and
+        BJICam.getPositionRotation().pos or
         ctxt.vehPosRot.pos
+
 
     if BJIScenario.canRepairAtGarage() and
         BJIContext.Scenario.Data.Garages and
@@ -130,7 +133,7 @@ local function renderTick(ctxt)
             not veh or
             BJIVeh.isUnicycle(veh:getID()) then
             M.station = nil
-        elseif GetHorizontalDistance(M.station.pos, ctxt.vehPosRot.pos) >= M.station.radius then
+        elseif ctxt.vehPosRot.pos:distance(M.station.pos) - (ctxt.veh:getInitialWidth() / 2) > M.station.radius then
             M.station = nil
         end
         return

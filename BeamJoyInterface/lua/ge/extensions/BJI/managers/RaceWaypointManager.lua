@@ -261,16 +261,19 @@ local function checkRaceTargetReached(ctxt)
         return
     end
 
+    local vehpos, vehRadius = vec3(ctxt.vehPosRot.pos), ctxt.veh:getInitialWidth() / 2
+    vehpos.z = vehpos.z + (ctxt.veh:getInitialHeight() / 2)
+
     for _, target in ipairs(M._targets) do
         local wp = M._race._steps[target.step][target.wp]
 
-        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, wp.pos)
-        local hitboxBottom = wp.pos.z - 1 -- 1 meter under the waypoint
-        local hitboxTop = wp.pos.z + (wp.radius * 2) -- the diameter high over the waypoint
+        local distance = GetHorizontalDistance(vehpos, wp.pos)
+        local hitboxBottom = wp.pos.z - 1              -- 1 meter under the waypoint
+        local hitboxTop = wp.pos.z + (wp.radius * 2)   -- the diameter high over the waypoint
 
-        if distance <= wp.radius + M._radiusMargin and -- +1m for visual margin
-            ctxt.vehPosRot.pos.z >= hitboxBottom and
-            ctxt.vehPosRot.pos.z <= hitboxTop then
+        if distance <= wp.radius + vehRadius and
+            vehpos.z >= hitboxBottom and
+            vehpos.z <= hitboxTop then
             local i = target.step
             while i > 0 and #M._race._steps > 0 do
                 table.remove(M._race._steps, 1)

@@ -9,6 +9,7 @@ local function reloadMarkers()
             name = svar(BJILang.get("delivery.edit.position"), { index = i }),
             pos = position.pos,
             radius = position.radius,
+            type = BJIWaypointEdit.TYPES.CYLINDER,
         })
     end
 

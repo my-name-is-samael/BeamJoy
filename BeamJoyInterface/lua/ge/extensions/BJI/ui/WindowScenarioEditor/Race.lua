@@ -51,6 +51,7 @@ local function updateMarkers()
                 color = color,
                 parents = parents,
                 finish = iStep == #raceEdit.steps,
+                type = BJIWaypointEdit.TYPES.CYLINDER,
             })
         end
     end
