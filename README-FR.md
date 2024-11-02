@@ -2,7 +2,10 @@
 Mod tout-en-un pour BeamMP
 
 <p align="center">
-  <img src="assets/logo_white.png" style="width: 50%; height: auto;" />
+  <img src="assets/logo_white.png" style="width: 49%; height: auto;" />
+  <a target="_blank" href="https://www.youtube.com/watch?v=l-lbXQDEz-o" alt="Trailer">
+      <img src="assets/trailer_preview.jpg" style="width: 49%; height: auto;" />
+  </a>
 </p>
 
 Ce mod a pour objectif de fournir un accès facile aux outils de modération et aux activités pour les joueurs de votre serveur BeamMP.
