@@ -172,6 +172,7 @@ end
 
 return function (ctxt)
     if #BJILang.Langs > 1 then
+        EmptyLine()
         BJILang.drawSelector({
             label = svar("{1}:", { BJILang.get("serverConfig.bjc.server.lang") }),
             selected = BJIContext.BJC.Server.Lang,
