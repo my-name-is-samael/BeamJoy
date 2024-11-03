@@ -97,7 +97,14 @@ local function createVehiclesData()
             table.insert(resConfigs, config)
         end
 
+        model.paints = {}
+        local paints = BJIVeh.getAllPaintsForModel(model.key)
+        for _, pData in ipairs(paints) do
+            model.paints[pData.label] = pData.paint
+        end
+
         model.configs = nil
+
         table.insert(resModels, model)
     end
 

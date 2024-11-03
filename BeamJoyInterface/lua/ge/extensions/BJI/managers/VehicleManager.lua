@@ -917,15 +917,16 @@ local function getAllConfigsForModel(model)
     return (data or {}).configs or {}
 end
 
--- return all paints labels and data for current vehicle
-local function getAllPaintsForCurrent()
-    if not M.isCurrentVehicleOwn() then
-        return {}
+-- return all paints labels and data for model (or current vehicle)
+local function getAllPaintsForModel(model)
+    if not model then
+        if not M.isCurrentVehicleOwn() then
+            return {}
+        end
+        model = M.getCurrentModel()
     end
 
-    local currentModel = M.getCurrentModel()
-
-    local data = M.getAllVehicleConfigs(true, true)[currentModel]
+    local data = M.getAllVehicleConfigs(true, true)[model]
     return (data or {}).paints or {}
 end
 
@@ -976,7 +977,7 @@ local function spawnNewVehicle(model, config, posrot)
     core_vehicles.spawnNewVehicle(model, opts)
 end
 
--- See M.getAllPaintsForCurrent for paint data
+-- See M.getAllPaintsForModel for paint data
 local function paintVehicle(paint, paintNumber)
     local veh = M.getCurrentVehicleOwn()
     if not veh or type(paint) ~= "table" then
@@ -1211,7 +1212,7 @@ M.getAllVehicleLabels = getAllVehicleLabels
 M.getAllTrailerConfigs = getAllTrailerConfigs
 M.getAllPropConfigs = getAllPropConfigs
 M.getAllConfigsForModel = getAllConfigsForModel
-M.getAllPaintsForCurrent = getAllPaintsForCurrent
+M.getAllPaintsForModel = getAllPaintsForModel
 M.replaceOrSpawnVehicle = replaceOrSpawnVehicle
 M.spawnNewVehicle = spawnNewVehicle
 M.paintVehicle = paintVehicle
