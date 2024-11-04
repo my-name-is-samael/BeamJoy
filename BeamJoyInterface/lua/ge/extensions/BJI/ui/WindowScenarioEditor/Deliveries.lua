@@ -123,7 +123,8 @@ local function drawBody(ctxt)
                                 disabled = not vehPos or dEdit.processSave,
                                 onClick = function()
                                     if vehPos then
-                                        tdeepassign(position, vehPos)
+                                        dEdit.positions[i].pos = vec3(vehPos.pos)
+                                        dEdit.positions[i].rot = vec3(vehPos.rot)
                                         dEdit.changed = true
                                         reloadMarkers()
                                     end
