@@ -206,9 +206,10 @@ local function updateRaceMarkers(lastWp)
             local color = M.COLORS.BLACK
             for _, target in ipairs(M._targets) do
                 local wpPrevious = M._race._steps[target.step][target.wp]
-                for _, step in ipairs(M._race._steps) do
+                for iStep, step in ipairs(M._race._steps) do
                     for _, wp in ipairs(step) do
-                        if tincludes(wp.parents, wpPrevious.name) then
+                        if tincludes(wp.parents, wpPrevious.name) and
+                            (not wp.stand or iStep < #M._race._steps) then -- disable stand if last step
                             if M._modes[wp.name] == nil then
                                 table.insert(M._markers, {
                                     name = wp.name,
