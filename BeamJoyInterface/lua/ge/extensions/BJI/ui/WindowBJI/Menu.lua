@@ -210,7 +210,8 @@ local function getScenarioEntry(ctxt)
             label = BJILang.get("menu.scenario.startSoloRace"),
             elems = races
         })
-    elseif BJIScenario.is(BJIScenario.TYPES.RACE_SOLO) then
+    elseif BJIScenario.is(BJIScenario.TYPES.RACE_SOLO) and
+        BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).isRaceStarted() then
         table.insert(scenarioEntry.elems, {
             label = BJILang.get("menu.scenario.stopSoloRace"),
             onClick = function()
@@ -1002,7 +1003,7 @@ local function drawMenu(ctxt)
             label = svar("BeamJoy v{1}", { BJIVERSION }),
         },
         {
-            label = svar(BJILang.get("menu.about.createdBy"), {author = "TontonSamael"}),
+            label = svar(BJILang.get("menu.about.createdBy"), { author = "TontonSamael" }),
         },
         {
             label = svar("{1} : {2}", { BJILang.get("menu.about.computerTime"), math.floor(ctxt.now / 1000) })
