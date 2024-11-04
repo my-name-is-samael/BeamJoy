@@ -124,7 +124,7 @@ local function drawBody(ctxt)
                                 onClick = function()
                                     if vehPos then
                                         dEdit.positions[i].pos = vec3(vehPos.pos)
-                                        dEdit.positions[i].rot = vec3(vehPos.rot)
+                                        dEdit.positions[i].rot = quat(vehPos.rot)
                                         dEdit.changed = true
                                         reloadMarkers()
                                     end
