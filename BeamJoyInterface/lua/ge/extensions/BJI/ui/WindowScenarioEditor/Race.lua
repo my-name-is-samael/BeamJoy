@@ -252,6 +252,7 @@ local function tryRace(ctxt)
                 name = raceEdit.name,
                 startPositions = prepareStartPositions(),
                 steps = prepareSteps(),
+                author = raceEdit.author,
             },
             updateMarkers
         )
