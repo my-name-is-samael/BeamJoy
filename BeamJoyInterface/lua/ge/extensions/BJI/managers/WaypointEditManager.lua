@@ -106,9 +106,11 @@ local function setWaypointsWithSegments(waypoints, loopable)
                         local parent = flatWps[wpIndices[parentName]]
                         if parent then
                             local fromPos = vec3(parent.pos)
-                            fromPos.z = fromPos.z + parent.radius
+                            fromPos.z = fromPos.z + (parent.radius *
+                                (parent.type == M.TYPES.CYLINDER and 2 or 1))
                             local toPos = vec3(wp.pos)
-                            toPos.z = toPos.z + wp.radius
+                            toPos.z = toPos.z + (wp.radius *
+                                (wp.type == M.TYPES.CYLINDER and 2 or 1))
                             table.insert(M.segments, {
                                 from = fromPos,
                                 to = toPos,
