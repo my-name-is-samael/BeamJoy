@@ -86,9 +86,13 @@ local function toggle(state)
 end
 
 local function slowTick(ctxt)
-    if BJIPerm.canSpawnVehicle() and
-        M.isTrafficSpawned() then
-        local listVehs = gameplay_traffic.getTrafficList()
+    if BJIPerm.canSpawnVehicle() and M.isTrafficSpawned() then
+        local listVehs = {}
+        for _, v in ipairs(getAllVehicles()) do
+          if v.isTraffic == "true" or v.isParked == "true" then
+            table.insert(listVehs, v:getId())
+          end
+        end
         table.sort(listVehs)
         table.sort(BJIContext.Players[ctxt.user.playerID].ai)
         if not tshallowcompare(listVehs, BJIContext.Players[ctxt.user.playerID].ai) then
