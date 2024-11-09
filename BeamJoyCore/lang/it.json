@@ -777,7 +777,8 @@
           "noChild": "Nessun bambino"
         },
         "hasRecordConfirm": "È stato stabilito un record per questa gara e il salvataggio lo eliminerà. ",
-        "saveErrorToast": "Salvataggio della gara non riuscito, riprova o contatta l'amministratore"
+        "saveErrorToast": "Salvataggio della gara non riuscito, riprova o contatta l'amministratore",
+        "reverseConfirm": "Cambiare direzione rimuoverà l'intelligenza creata nella gara e dovrai controllare di nuovo ogni checkpoint. Sei sicuro di voler procedere?"
       },
       "settings": {
         "title": "Impostazioni di gara",

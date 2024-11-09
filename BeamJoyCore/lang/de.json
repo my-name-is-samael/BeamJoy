@@ -777,7 +777,8 @@
           "noChild": "Kein Kind"
         },
         "hasRecordConfirm": "Für dieses Rennen wurde ein Rekord aufgestellt und durch Speichern wird dieser gelöscht. ",
-        "saveErrorToast": "Das Speichern des Rennens ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern des Rennens ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "reverseConfirm": "Das Ändern der Richtung wird die in der Rennstrecke erstellte Intelligenz entfernen, und du musst jeden Checkpoint erneut überprüfen. Bist du sicher, dass du fortfahren möchtest?"
       },
       "settings": {
         "title": "Renneinstellungen",

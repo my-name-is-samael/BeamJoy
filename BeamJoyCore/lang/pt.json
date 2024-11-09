@@ -777,7 +777,8 @@
           "noChild": "Nenhuma criança"
         },
         "hasRecordConfirm": "Um recorde foi estabelecido nesta corrida e salvá-lo irá excluí-lo. ",
-        "saveErrorToast": "Falha ao salvar corrida, tente novamente ou entre em contato com o administrador"
+        "saveErrorToast": "Falha ao salvar corrida, tente novamente ou entre em contato com o administrador",
+        "reverseConfirm": "Mudar a direção irá remover a inteligência criada na corrida, e você precisará verificar cada checkpoint novamente. Tem certeza de que deseja continuar?"
       },
       "settings": {
         "title": "Configurações de corrida",

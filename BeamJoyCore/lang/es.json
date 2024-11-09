@@ -777,7 +777,8 @@
           "noChild": "ningún niño"
         },
         "hasRecordConfirm": "Se ha establecido un récord en esta carrera y al guardarlo se eliminará. ",
-        "saveErrorToast": "Error al guardar la carrera, inténtalo de nuevo o contacta al administrador"
+        "saveErrorToast": "Error al guardar la carrera, inténtalo de nuevo o contacta al administrador",
+        "reverseConfirm": "Cambiar la dirección eliminará la inteligencia creada en la carrera y tendrás que verificar cada checkpoint nuevamente. ¿Estás seguro de que deseas continuar?"
       },
       "settings": {
         "title": "Configuración de carrera",

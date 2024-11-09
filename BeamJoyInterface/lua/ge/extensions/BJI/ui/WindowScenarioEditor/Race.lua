@@ -265,6 +265,96 @@ local function tryRace(ctxt)
     end
 end
 
+local function reverseRace()
+    if not raceEdit then
+        return
+    end
+
+    BJIPopup.createModal(
+        BJILang.get("races.edit.reverseConfirm"),
+        {
+            {
+                label = BJILang.get("common.buttons.cancel"),
+            },
+            {
+                label = BJILang.get("common.buttons.confirm"),
+                onClick = function()
+                    local newSteps = {}
+                    for iStep, step in ipairs(raceEdit.steps) do
+                        if iStep == #raceEdit.steps then
+                            -- last step
+                            if raceEdit.loopable then
+                                -- loopable race (only reverse rotation)
+                                local newStepFinish = {}
+                                for iFinish, finish in ipairs(step) do
+                                    if #step > 1 then
+                                        -- multiple finishes
+                                        finish.name = svar("finish{1}", { iFinish })
+                                    else
+                                        -- single finish
+                                        finish.name = "finish"
+                                    end
+                                    table.insert(newStepFinish, finish)
+                                end
+                                table.insert(newSteps, newStepFinish)
+                            elseif #raceEdit.startPositions > 0 then
+                                -- sprint race (swap finish with reversed start pos)
+                                local newFinish = {
+                                    name = "finish",
+                                    pos = vec3(raceEdit.startPositions[1].pos),
+                                    rot = quat(raceEdit.startPositions[1].rot),
+                                    radius = step[1].radius,
+                                }
+                                newFinish.rot = newFinish.rot * quat(0, 0, 1, 0)
+                                table.insert(newSteps, { newFinish })
+                                -- and set start pos to reversed finish and remove other starts
+                                raceEdit.startPositions[1] = {
+                                    pos = vec3(step[1].pos),
+                                    rot = quat(step[1].rot),
+                                }
+                                raceEdit.startPositions[1].rot = raceEdit.startPositions[1].rot * quat(0, 0, 1, 0)
+                                while raceEdit.startPositions[2] do
+                                    table.remove(raceEdit.startPositions, 2)
+                                end
+                            end
+                        else
+                            -- normal step
+                            local newStep = {}
+                            for iWp, wp in ipairs(step) do
+                                local newIStep = #raceEdit.steps - iStep
+                                if #step > 1 then
+                                    -- multiple wps in this step
+                                    wp.name = svar("wp{1}-{2}", { newIStep, iWp })
+                                else
+                                    -- single wp in this step
+                                    wp.name = svar("wp{1}", { newIStep })
+                                end
+                                wp.rot = wp.rot * quat(0, 0, 1, 0)
+                                table.insert(newStep, wp)
+                            end
+                            table.insert(newSteps, 1, newStep)
+                        end
+                    end
+                    -- update parents
+                    for iStep, step in ipairs(newSteps) do
+                        for _, wp in ipairs(step) do
+                            if iStep == 1 then
+                                wp.parents = { "start" }
+                            else
+                                wp.parents = {}
+                                for _, parentWp in ipairs(newSteps[iStep - 1]) do
+                                    table.insert(wp.parents, parentWp.name)
+                                end
+                            end
+                        end
+                    end
+                    raceEdit.steps = newSteps
+                    updateMarkers()
+                end
+            }
+        })
+end
+
 -- Tools for rotating vehicle / adjusting FOV
 local function drawTools(vehpos)
     if vehpos then
@@ -298,12 +388,18 @@ local function drawTools(vehpos)
             id = "rotateVeh",
             icon = ICONS.tb_bank,
             background = BTN_PRESETS.WARNING,
-            onClick = function ()
+            onClick = function()
                 vehpos.rot = vehpos.rot * quat(0, 0, 1, 0)
                 BJIVeh.setPositionRotation(vehpos.pos, vehpos.rot)
             end
         })
-        line:build()
+            :btnIcon({
+                id = "reverseRace",
+                icon = ICONS.reply_all,
+                background = BTN_PRESETS.ERROR,
+                onClick = reverseRace,
+            })
+            :build()
     end
 end
 
@@ -915,7 +1011,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                     LineBuilder()
                         :btnIcon({
                             id = svar("addStepBranch{1}", { iStep }),
-                            icon = ICONS.call_split,
+                            icon = ICONS.fg_sideways,
                             background = BTN_PRESETS.SUCCESS,
                             disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                                 raceEdit.processSave,
@@ -945,7 +1041,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                 LineBuilder()
                     :btnIcon({
                         id = "addRaceStep",
-                        icon = ICONS.addListItem,
+                        icon = ICONS.pin_drop,
                         background = BTN_PRESETS.SUCCESS,
                         disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                             raceEdit.processSave,

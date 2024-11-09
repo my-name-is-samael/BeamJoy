@@ -777,7 +777,8 @@
           "noChild": "Aucun enfant"
         },
         "hasRecordConfirm": "Un record a été établi sur cette course et l'enregistrement le supprimera. Es-tu sûr ?",
-        "saveErrorToast": "Échec de l'enregistrement de la course, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement de la course, veuillez réessayer ou contacter l'administrateur",
+        "reverseConfirm": "L'inversion de la direction supprimera l'intelligence créée dans la course, et vous devrez vérifier chaque checkpoint à nouveau. Êtes-vous sûr de vouloir continuer?"
       },
       "settings": {
         "title": "Paramètres de course",

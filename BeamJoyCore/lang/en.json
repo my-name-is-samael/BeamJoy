@@ -777,7 +777,8 @@
           "noChild": "No child"
         },
         "hasRecordConfirm": "A record has been set on this race and saving will delete it. Are you sure ?",
-        "saveErrorToast": "Race save failed, please try again or contact the administrator"
+        "saveErrorToast": "Race save failed, please try again or contact the administrator",
+        "reverseConfirm": "Reversing will remove your race intelligence and you will need to check every waypoint again. Are you sure you want to proceed ?"
       },
       "settings": {
         "title": "Race Settings",
