@@ -231,8 +231,6 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 
 ## Roadmap
 
-- [ ] Messages directs
-- [ ] Délai configurable pour la réapparition bloquée des chasseurs
 - [ ] Fork avec uniquement les fonctionnalités de course
 - [ ] Présélections de météo aléatoires automatiques activables (peut-être avec des transitions douces, en attente de modifications du jeu de base sur la température et la météo)
 - [ ] Objets du monde synchronisés, y compris dans les scénarios (peut ne jamais être possible)

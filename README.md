@@ -233,8 +233,6 @@ Also, feel free to report bugs or suggest improvements. I'll do my best to respo
 
 ## Roadmap
 
-- [ ] Direct messages
-- [ ] Configurable Hunter respawn stuck delay
 - [ ] Fork with only race features
 - [ ] Toggleable automatic random weather presets (maybe with smooth transitions, waiting for base game changes for temperature and weather)
 - [ ] Synced world objects, including in scenarios (may not be possible)
