@@ -21,9 +21,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 5. [How to Set Or Add a Language](#how-to-set-or-add-a-language-to-your-server)
 6. [Video Tutorials](#video-tutorials)
 7. [Participating](#participating)
-8. [Known Issues](#known-issues)
-9. [Roadmap](#roadmap)
-10. [Credits](#credits)
+8. [Roadmap](#roadmap)
+9. [Credits](#credits)
 
 ## Features
 
@@ -248,10 +247,6 @@ You can also fix translations if they are wrong :
         <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" /> </a>
     </li>
 </ul>
-
-## Known issues
-
-- Welcome message not always showing, depending on the time the map took to load (in progress)
 
 ## Roadmap
 

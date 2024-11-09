@@ -21,9 +21,8 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 5. [Comment Configurer ou Ajouter une Langue](#comment-configurer-ou-ajouter-une-langue-à-votre-serveur)
 6. [Tutoriels Vidéo](#tutoriels-vidéo)
 7. [Participation](#participation)
-8. [Problèmes Connus](#problèmes-connus)
-9. [Roadmap](#roadmap)
-10. [Remerciements](#remerciements)
+8. [Roadmap](#roadmap)
+9. [Remerciements](#remerciements)
 
 ## Fonctionnalités
 
@@ -246,10 +245,6 @@ Vous pouvez aussi corriger les traductions si elles sont incorrectes :
         <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" /> </a>
     </li>
 </ul>
-
-## Problèmes connus
-
-- Le message de bienvenue ne s’affiche pas toujours, en fonction du temps de chargement de la carte (en cours de résolution).
 
 ## Roadmap
 
