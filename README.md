@@ -228,12 +228,26 @@ Feel free to create pull requests, as long as you follow the coding scheme.
 Also, feel free to report bugs or suggest improvements. I'll do my best to respond quickly, but note that I no longer work full-time on this project.
 
 You can also fix translations if they are wrong :
-<a href="https://gitlocalize.com/repo/9945/fr?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/fr/badge.svg" /> </a>
-<a href="https://gitlocalize.com/repo/9945/de?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/de/badge.svg" /> </a>
-<a href="https://gitlocalize.com/repo/9945/it?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/it/badge.svg" /> </a>
-<a href="https://gitlocalize.com/repo/9945/es?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/es/badge.svg" /> </a>
-<a href="https://gitlocalize.com/repo/9945/pt?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/pt/badge.svg" /> </a>
-<a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" /> </a>
+<ul>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/fr?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/fr/badge.svg" /> </a>
+    </li>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/de?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/de/badge.svg" /> </a>
+    </li>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/it?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/it/badge.svg" /> </a>
+    </li>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/es?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/es/badge.svg" /> </a>
+    </li>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/pt?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/pt/badge.svg" /> </a>
+    </li>
+    <li>
+        <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" /> </a>
+    </li>
+</ul>
 
 ## Known issues
 
