@@ -549,7 +549,9 @@ local function saveBusLines(lines)
 
     BJCDao.scenario.BusLines.save(lines)
     M.BusLines = BJCDao.scenario.BusLines.findAll()
-    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BUS_LINES, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO)
+    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BUS_LINES,
+        BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO,
+        BJCPerm.PERMISSIONS.SCENARIO)
 end
 
 local function saveHunter(data)

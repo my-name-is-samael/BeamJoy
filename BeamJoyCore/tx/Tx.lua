@@ -52,7 +52,7 @@ function BJCTx.sendByPermissions(eventName, endpoint, data, ...)
             end
         end
     end
-    for targetID in pairs(targets) do
+    for _, targetID in ipairs(targets) do
         BJCTx.sendToPlayer(eventName, endpoint, targetID, data)
     end
 end
