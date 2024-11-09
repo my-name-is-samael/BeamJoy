@@ -2,9 +2,9 @@
 Mod tout-en-un pour BeamMP
 
 <p align="center">
-  <img src="assets/logo_white.png" style="width: 49%; height: auto;" />
+  <img src="https://raw.githubusercontent.com/my-name-is-samael/BeamJoy/refs/heads/main/assets/logo_white.png" style="width: 49%; height: auto;" />
   <a target="_blank" href="https://www.youtube.com/watch?v=l-lbXQDEz-o" alt="Trailer">
-      <img src="assets/trailer_preview.jpg" style="width: 49%; height: auto;" />
+      <img src="https://raw.githubusercontent.com/my-name-is-samael/BeamJoy/refs/heads/main/assets/trailer_preview.jpg" style="width: 49%; height: auto;" />
   </a>
 </p>
 
