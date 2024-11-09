@@ -235,7 +235,6 @@ Also, feel free to report bugs or suggest improvements. I'll do my best to respo
 
 - [ ] Fork with only race features
 - [ ] Toggleable automatic random weather presets (maybe with smooth transitions, waiting for base game changes for temperature and weather)
-- [ ] Synced world objects, including in scenarios (may not be possible)
 - [ ] Client-side cache system (cookie-like; useful for personal records in races, for example).
 
 Implementing BeamMP v3.5+ features when it will come out:

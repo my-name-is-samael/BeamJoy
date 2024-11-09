@@ -233,7 +233,6 @@ N'hésitez pas non plus à signaler des bugs ou à proposer des améliorations s
 
 - [ ] Fork avec uniquement les fonctionnalités de course
 - [ ] Présélections de météo aléatoires automatiques activables (peut-être avec des transitions douces, en attente de modifications du jeu de base sur la température et la météo)
-- [ ] Objets du monde synchronisés, y compris dans les scénarios (peut ne jamais être possible)
 - [ ] Recherche d’un système de cache côté client (type cookie, utile pour les records personnels dans les courses, par exemple)
 
 Implementer les fonctionnalités de BeamMP v3.5+ quand il sortira:
