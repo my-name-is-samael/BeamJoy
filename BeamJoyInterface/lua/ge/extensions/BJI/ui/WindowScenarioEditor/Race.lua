@@ -287,14 +287,20 @@ local function reverseRace()
                                 -- loopable race (only reverse rotation)
                                 local newStepFinish = {}
                                 for iFinish, finish in ipairs(step) do
+                                    local newFinish = {
+                                        pos = vec3(finish.pos),
+                                        rot = quat(finish.rot),
+                                        radius = finish.radius,
+                                    }
+                                    newFinish.rot = newFinish.rot * quat(0, 0, 1, 0)
                                     if #step > 1 then
                                         -- multiple finishes
-                                        finish.name = svar("finish{1}", { iFinish })
+                                        newFinish.name = svar("finish{1}", { iFinish })
                                     else
                                         -- single finish
-                                        finish.name = "finish"
+                                        newFinish.name = "finish"
                                     end
-                                    table.insert(newStepFinish, finish)
+                                    table.insert(newStepFinish, newFinish)
                                 end
                                 table.insert(newSteps, newStepFinish)
                             elseif #raceEdit.startPositions > 0 then
