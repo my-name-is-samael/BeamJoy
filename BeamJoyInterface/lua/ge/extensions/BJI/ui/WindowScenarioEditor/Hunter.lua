@@ -260,7 +260,7 @@ local function drawWaypoints(ctxt)
     local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
     for i, waypoint in ipairs(hEdit.targets) do
         LineBuilder()
-            :text(svar(BJILang.get("hunter.edit.waypoints"), { index = i }))
+            :text(svar(BJILang.get("hunter.edit.targetName"), { index = i }))
             :btnIcon({
                 id = svar("gotoWaypoint{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
