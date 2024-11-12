@@ -30,16 +30,16 @@ local function updateMarkers()
     local finishColor = ShapeDrawer.Color(.66, .66, 1, .5)
     local standColor = ShapeDrawer.Color(1, .66, 0, .5)
     for iStep, step in ipairs(raceEdit.steps) do
-        local color = cpColor
-        if iStep == #raceEdit.steps then
-            -- finish
-            color = finishColor
-        end
         for _, wp in ipairs(step) do
+            local color = cpColor
             if wp.stand then
-                -- stand color override finish
+                -- stand overrides finish
                 color = standColor
+            elseif iStep == #raceEdit.steps then
+                -- finish
+                color = finishColor
             end
+
             local parents = {}
             for _, parent in ipairs(wp.parents) do
                 table.insert(parents, parent)
@@ -134,7 +134,7 @@ local function saveRace(callback)
         local race = {
             id = raceEdit.id,
             author = raceEdit.author,
-            name = raceEdit.name,
+            name = strim(raceEdit.name),
             enabled = raceEdit.enabled,
             previewPosition = RoundPositionRotation({
                 pos = _vec3export(raceEdit.previewPosition.pos),
@@ -413,7 +413,7 @@ local function drawNameAndAuthor()
     local validName = #raceEdit.name > 0
     if validName then
         for _, r in pairs(BJIContext.Scenario.Data.Races) do
-            if r.id ~= raceEdit.id and raceEdit.name == r.name then
+            if r.id ~= raceEdit.id and strim(raceEdit.name) == r.name then
                 validName = false
                 break
             end
