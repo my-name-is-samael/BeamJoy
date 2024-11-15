@@ -960,6 +960,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                 end
                                                 if validParent and parent ~= "start" and not findWP(parent, iStep) then
                                                     validParent = false
+                                                    valid = false
                                                 end
 
                                                 line = LineBuilder()
