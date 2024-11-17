@@ -881,7 +881,6 @@
       }
     },
     "energyStations": {
-      "noStationAvailable": "Нет станции {stationName} поблизости...",
       "flashBatteryFilled": "Батареи заряжены",
       "flashTankFilled": "Бак заполнен",
       "noRefuelScenario": "В этом сценарии вы не сможете заправить свой автомобиль.",
@@ -895,7 +894,6 @@
     },
     "garages": {
       "damagedWarning": "Ваш автомобиль поврежден",
-      "noGarageAvailable": "Гаража рядом нет...",
       "garage": "Гараж",
       "repairBtn": "Ремонт автомобиля",
       "flashVehicleRepaired": "Автомобиль отремонтирован",

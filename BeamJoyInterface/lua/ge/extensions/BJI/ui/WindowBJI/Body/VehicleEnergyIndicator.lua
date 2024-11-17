@@ -86,11 +86,6 @@ local function drawIndicator(ctxt)
                         end
                     end
                 })
-            else
-                local stationName = BJILang.get(svar("energy.stationNames.{1}", { energyType }))
-                Line = line:text(svar(BJILang.get("energyStations.noStationAvailable"), {
-                    stationName = stationName
-                }))
             end
         end
         line:build()

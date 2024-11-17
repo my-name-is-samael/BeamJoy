@@ -881,7 +881,6 @@
       }
     },
     "energyStations": {
-      "noStationAvailable": "Aucune {stationName} à proximité...",
       "flashBatteryFilled": "Batteries chargées",
       "flashTankFilled": "Réservoir rempli",
       "noRefuelScenario": "Tu ne peux pas faire le plein dans ce scénario",
@@ -895,7 +894,6 @@
     },
     "garages": {
       "damagedWarning": "Votre véhicule est endommagé",
-      "noGarageAvailable": "Aucun garage à proximité...",
       "garage": "Garage",
       "repairBtn": "Réparer le véhicule",
       "flashVehicleRepaired": "Véhicule réparé",
