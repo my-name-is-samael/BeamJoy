@@ -201,28 +201,30 @@ local function renderVehicle(ctxt, veh)
         local alpha = getAlphaByDistance(distance)
 
         local owner = BJIContext.Players[veh.ownerID]
-        local label = owner.playerName
-        if showTag then
-            reputationTag = svar("{1}{2}",
-                { reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
-            local tag = BJIPerm.isStaff(veh.ownerID) and staffTag or reputationTag
-            label = svar("[{1}]{2}", { tag, label })
+        if owner then -- can softlock the mod if triggered too early ? https://github.com/my-name-is-samael/BeamJoy/issues/10
+            local label = owner.playerName
+            if showTag then
+                reputationTag = svar("{1}{2}",
+                    { reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
+                local tag = BJIPerm.isStaff(veh.ownerID) and staffTag or reputationTag
+                label = svar("[{1}]{2}", { tag, label })
+            end
+            if showDist then
+                label = svar("{1}({2})", { label, PrettyDistance(distance) })
+            end
+
+            local zOffset = v:getInitialHeight()
+            if currentVeh then
+                zOffset = zOffset / 2
+            end
+            tagPos.z = tagPos.z + zOffset
+
+            local color = ownerDriving and getNametagColorDefault(alpha) or getNametagColorIdle(alpha)
+
+            ShapeDrawer.Text(label, tagPos, color, getNametagBgColor(alpha), false)
+
+            renderSpecs(ctxt, veh)
         end
-        if showDist then
-            label = svar("{1}({2})", { label, PrettyDistance(distance) })
-        end
-
-        local zOffset = v:getInitialHeight()
-        if currentVeh then
-            zOffset = zOffset / 2
-        end
-        tagPos.z = tagPos.z + zOffset
-
-        local color = ownerDriving and getNametagColorDefault(alpha) or getNametagColorIdle(alpha)
-
-        ShapeDrawer.Text(label, tagPos, color, getNametagBgColor(alpha), false)
-
-        renderSpecs(ctxt, veh)
     end
 end
 
