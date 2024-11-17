@@ -532,7 +532,10 @@
     },
     "playersBlock": {
       "waitingPlayers": "Ожидающие игроки",
-      "players": "Игроки"
+      "players": "Игроки",
+      "buttons": {
+        "voteKick": "Голосование Кик"
+      }
     },
     "moderationBlock": {
       "waitingPlayers": "Ожидающие игроки",
@@ -540,7 +543,7 @@
       "tempBanDuration": "Продолжительность TempBan",
       "vehicles": "Транспортные средства",
       "buttons": {
-        "kick": "Пинать",
+        "kick": "Кик",
         "tempBan": "Временный запрет",
         "ban": "Запретить",
         "demoteTo": "Понизить уровень до {groupName}",

@@ -532,7 +532,10 @@
     },
     "playersBlock": {
       "waitingPlayers": "jugadores en espera",
-      "players": "Jugadores"
+      "players": "Jugadores",
+      "buttons": {
+        "voteKick": "Voto Kick"
+      }
     },
     "moderationBlock": {
       "waitingPlayers": "jugadores en espera",
@@ -540,7 +543,7 @@
       "tempBanDuration": "Duración de la prohibición temporal",
       "vehicles": "Vehículos",
       "buttons": {
-        "kick": "Patada",
+        "kick": "Kick",
         "tempBan": "Prohibición temporal",
         "ban": "Prohibición",
         "demoteTo": "Degradar a {groupName}",
