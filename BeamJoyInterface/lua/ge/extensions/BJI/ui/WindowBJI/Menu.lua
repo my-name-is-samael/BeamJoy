@@ -706,6 +706,7 @@ local function getEditEntry(ctxt)
                     for _, step in ipairs(res.steps) do
                         for iWp, wp in ipairs(step) do
                             step[iWp] = TryParsePosRot(wp)
+                            step[iWp].zOffset = 0
                         end
                     end
                     res.startPositions = raceData.startPositions

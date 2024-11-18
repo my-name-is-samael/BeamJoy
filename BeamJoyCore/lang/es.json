@@ -770,6 +770,7 @@
         "branch": "Rama",
         "wpName": "Nombre",
         "radius": "Radio",
+        "heightOffset": "Desplazamiento de altura",
         "parent": "Padres)",
         "parentStartTooltip": "También puedes usar \"inicio\" en los siguientes pasos para bifurcar desde el principio.",
         "addParent": "Agregar padre",

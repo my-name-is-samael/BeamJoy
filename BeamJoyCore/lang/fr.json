@@ -770,6 +770,7 @@
         "branch": "Branche",
         "wpName": "Nom",
         "radius": "Rayon",
+        "heightOffset": "Décalage de hauteur",
         "parent": "Parent(s)",
         "parentStartTooltip": "Tu peux utiliser \"start\" dans les étapes suivantes pour créer une branche depuis le début de la course",
         "addParent": "Ajouter un parent",

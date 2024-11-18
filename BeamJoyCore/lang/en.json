@@ -770,6 +770,7 @@
         "branch": "Branch",
         "wpName": "Name",
         "radius": "Radius",
+        "heightOffset": "Height Offset",
         "parent": "Parent(s)",
         "parentStartTooltip": "You can use \"start\" in next steps to branch from the start too",
         "addParent": "Add Parent",

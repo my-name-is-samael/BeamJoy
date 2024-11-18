@@ -770,6 +770,7 @@
         "branch": "Ramo",
         "wpName": "Nome",
         "radius": "Raggio",
+        "heightOffset": "Offset dell'altezza",
         "parent": "Genitori)",
         "parentStartTooltip": "Puoi utilizzare \"start\" nei passaggi successivi anche per diramarsi dall'inizio",
         "addParent": "Aggiungi genitore",

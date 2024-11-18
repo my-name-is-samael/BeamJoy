@@ -770,6 +770,7 @@
         "branch": "Zweig",
         "wpName": "Name",
         "radius": "Radius",
+        "heightOffset": "Höhenversatz",
         "parent": "Eltern)",
         "parentStartTooltip": "Sie können in den nächsten Schritten auch „Start“ verwenden, um von Anfang an zu verzweigen",
         "addParent": "Übergeordnetes Element hinzufügen",

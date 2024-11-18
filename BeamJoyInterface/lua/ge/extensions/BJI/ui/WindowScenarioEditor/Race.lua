@@ -44,9 +44,11 @@ local function updateMarkers()
             for _, parent in ipairs(wp.parents) do
                 table.insert(parents, parent)
             end
+            local pos = vec3(wp.pos)
+            pos.z = pos.z + wp.zOffset
             table.insert(waypoints, {
                 name = wp.name,
-                pos = wp.pos,
+                pos = pos,
                 radius = wp.radius,
                 color = color,
                 parents = parents,
@@ -164,10 +166,12 @@ local function saveRace(callback)
                     for _, parent in ipairs(wp.parents) do
                         table.insert(parents, parent)
                     end
+                    local pos = _vec3export(wp.pos)
+                    pos.z = pos.z + wp.zOffset
                     table.insert(nstep, RoundPositionRotation({
                         name = wp.name,
                         parents = parents,
-                        pos = _vec3export(wp.pos),
+                        pos = pos,
                         rot = _quatexport(wp.rot),
                         radius = wp.radius,
                         stand = wp.stand,
@@ -807,7 +811,9 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 disabled = not vehpos and not campos,
                                 onClick = function()
                                     if vehpos then
-                                        BJIVeh.setPositionRotation(wp.pos, wp.rot, { saveHome = true })
+                                        local pos = wp.pos
+                                        pos.z = pos.z + wp.zOffset
+                                        BJIVeh.setPositionRotation(pos, wp.rot, { saveHome = true })
                                         if ctxt.camera == BJICam.CAMERAS.FREE then
                                             BJICam.setCamera(BJICam.CAMERAS.ORBIT)
                                         end
@@ -868,6 +874,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         for _, key in ipairs({
                             "races.edit.wpName",
                             "races.edit.radius",
+                            "races.edit.heightOffset",
                             "races.edit.parent",
                         }) do
                             local label = BJILang.get(key)
@@ -922,6 +929,34 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                 disabled = raceEdit.processSave,
                                                 onUpdate = function(val)
                                                     wp.radius = val
+                                                    raceEdit.changed = true
+                                                    raceEdit.keepRecord = false
+                                                    updateMarkers()
+                                                end
+                                            })
+                                            :build()
+                                    end,
+                                }
+                            })
+                            :addRow({
+                                cells = {
+                                    function()
+                                        LineBuilder()
+                                            :text(svar("{1}:", { BJILang.get("races.edit.heightOffset") }))
+                                            :build()
+                                    end,
+                                    function()
+                                        LineBuilder()
+                                            :inputNumeric({
+                                                id = svar("heightOffsetWP-{1}-{2}", { iStep, iWp }),
+                                                type = "float",
+                                                value = wp.zOffset,
+                                                min = -50,
+                                                max = 50,
+                                                step = .1,
+                                                disabled = raceEdit.processSave,
+                                                onUpdate = function(val)
+                                                    wp.zOffset = val
                                                     raceEdit.changed = true
                                                     raceEdit.keepRecord = false
                                                     updateMarkers()
@@ -1037,6 +1072,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                     rot = vehpos.rot,
                                     parents = parents,
                                     radius = 1,
+                                    zOffset = 0,
                                 })
                                 raceEdit.changed = true
                                 raceEdit.keepRecord = false
@@ -1067,6 +1103,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 rot = vehpos.rot,
                                 parents = parents,
                                 radius = 1,
+                                zOffset = 0,
                             } })
                             raceEdit.changed = true
                             raceEdit.keepRecord = false

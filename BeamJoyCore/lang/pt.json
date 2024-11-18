@@ -770,6 +770,7 @@
         "branch": "Filial",
         "wpName": "Nome",
         "radius": "Raio",
+        "heightOffset": "Deslocamento de altura",
         "parent": "Pais)",
         "parentStartTooltip": "Você também pode usar \"start\" nas próximas etapas para ramificar desde o início",
         "addParent": "Adicionar pai",
