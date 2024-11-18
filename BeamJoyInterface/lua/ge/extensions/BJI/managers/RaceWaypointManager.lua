@@ -269,8 +269,8 @@ local function checkRaceTargetReached(ctxt)
         local wp = M._race._steps[target.step][target.wp]
 
         local distance = GetHorizontalDistance(vehpos, wp.pos)
-        local hitboxBottom = wp.pos.z - 1              -- 1 meter under the waypoint
-        local hitboxTop = wp.pos.z + (wp.radius * 2)   -- the diameter high over the waypoint
+        local hitboxBottom = wp.pos.z - (wp.zOffset or 1) -- 1 meter under the waypoint by default
+        local hitboxTop = wp.pos.z + (wp.radius * 2)      -- the diameter high over the waypoint
 
         if distance <= wp.radius + vehRadius and
             vehpos.z >= hitboxBottom and

@@ -225,7 +225,8 @@ local function saveRace(race)
             type(wpData.name) == "string" and #wpData.name > 0 and
             checkParents(raceData, wpData, wpStep) and
             checkChildren(raceData, wpData.name, wpStep) and
-            type(wpData.radius) == "number" and wpData.radius > 0
+            type(wpData.radius) == "number" and wpData.radius > 0 and
+            (not wpData.zOffset or (wpData.zOffset >= 0 and wpData.zOffset <= 10))
     end
 
     local function checkWPNames(stepsData)

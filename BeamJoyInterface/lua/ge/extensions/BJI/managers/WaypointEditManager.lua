@@ -59,6 +59,7 @@ local function setWaypointsWithSegments(waypoints, loopable)
             table.insert(M.cylinders, {
                 name = wp.name,
                 pos = wp.pos,
+                zMinOffset = wp.zMinOffset or 0,
                 radius = wp.radius,
                 color = wp.color or M._wpColor
             })
@@ -141,11 +142,15 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.cylinders) do
-        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - 1)
+        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - wp.zMinOffset)
         local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
         ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
         ShapeDrawer.Text(wp.name, wp.pos, M._textColor, M._textBgColor, true)
     end
+end
+
+local function onUnload()
+    M.reset()
 end
 
 M.reset = reset
@@ -153,6 +158,8 @@ M.setWaypoints = setWaypoints
 M.setWaypointsWithSegments = setWaypointsWithSegments
 
 M.renderTick = renderTick
+
+M.onUnload = onUnload
 
 reset()
 RegisterBJIManager(M)
