@@ -142,7 +142,8 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.cylinders) do
-        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - wp.zMinOffset)
+        local zMinOffset = wp.zMinOffset or 1
+        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - zMinOffset)
         local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
         ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
         ShapeDrawer.Text(wp.name, wp.pos, M._textColor, M._textBgColor, true)
