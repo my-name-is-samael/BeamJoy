@@ -35,6 +35,18 @@ local function readServerConfig()
     return result
 end
 
+local function writeServerConfig()
+    local tmpfile, error = io.open("ServerConfig.temp", "w")
+    if tmpfile and not error then
+        local data = TOML.encode(M.Data) -- TOML encoding is altering data
+        tmpfile:write(data)
+        tmpfile:close()
+
+        FS.Remove("ServerConfig.toml")
+        FS.Rename("ServerConfig.temp", "ServerConfig.toml")
+    end
+end
+
 local function init()
     local core = readServerConfig()
     M.Data = {
@@ -57,17 +69,11 @@ local function init()
             SendErrors = core.Misc.SendErrors == true
         }
     }
-end
 
-local function writeServerConfig()
-    local tmpfile, error = io.open("ServerConfig.temp", "w")
-    if tmpfile and not error then
-        local data = TOML.encode(M.Data) -- TOML encoding is altering data
-        tmpfile:write(data)
-        tmpfile:close()
-
-        FS.Remove("ServerConfig.toml")
-        FS.Rename("ServerConfig.temp", "ServerConfig.toml")
+    -- fix invalid MaxCars
+    if M.Data.General.MaxCars < 0 then
+        M.Data.General.MaxCars = 0
+        writeServerConfig()
     end
 end
 
