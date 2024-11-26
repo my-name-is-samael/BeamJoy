@@ -60,9 +60,6 @@ local function tryApplyEngineState(gameVehID)
 end
 
 local function renderTick(ctxt)
-    if BJIDEBUGCTXT then
-        BJIDEBUG = ctxt
-    end
     if not BJIContext.User.engine then
         for _, veh in pairs(BJIContext.User.vehicles) do
             BJIVeh.engine(false, veh.gameVehID)
