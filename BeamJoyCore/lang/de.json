@@ -632,6 +632,19 @@
           "EndTimeout": "Enddauer",
           "EndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Spielers und dem Ende des Modus"
         },
+        "hunter": {
+          "title": "Hunter Gamemode Einstellungen",
+          "PreparationTimeout": "Vorbereitungsdauer",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden, in der Spieler dem Spielmodus beitreten können",
+          "HuntedStartDelay": "Flüchtiger Startverzögerung",
+          "HuntedStartDelayTooltip": "Countdown in Sekunden für die Flüchtigen",
+          "HuntersStartDelay": "Jäger Startverzögerung",
+          "HuntersStartDelayTooltip": "Countdown in Sekunden für die Jäger",
+          "HuntedStuckTimeout": "Flüchtiger Steckenbleib-Timeout",
+          "HuntedStuckTimeoutTooltip": "Zeit in Sekunden, die der Flüchtige stecken muss, damit die Jäger gewinnen",
+          "HuntersRespawnDelay": "Jäger Respawn Verzögerung",
+          "HuntersRespawnDelayTooltip": "Zeit in Sekunden, in der Jäger nach ihrem Respawn feststecken"
+        },
         "vehicleDelivery": {
           "title": "Einstellungen für die Fahrzeuglieferung",
           "modelBlacklist": "Schwarze Liste für Fahrzeuge"

@@ -118,6 +118,14 @@ local function getCache(senderID)
             StepDelay = M.Data.Speed.StepDelay,
             EndTimeout = M.Data.Speed.EndTimeout,
         }
+
+        data.Hunter = {
+            PreparationTimeout = M.Data.Hunter.PreparationTimeout,
+            HuntedStartDelay = M.Data.Hunter.HuntedStartDelay,
+            HuntersStartDelay = M.Data.Hunter.HuntersStartDelay,
+            HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
+            HuntersRespawnDelay = M.Data.Hunter.HuntersRespawnDelay,
+        }
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) or
@@ -163,7 +171,7 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
         end
     elseif parent == "CEN" then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CEN)
-    elseif tincludes({ "Race", "Hunter", "Speed", "Derby", "VehicleDelivery" }, parent, true) then
+    elseif tincludes({ "Race", "Speed", "Hunter", "Derby", "VehicleDelivery" }, parent, true) then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO)
     elseif parent == "Server" then
         if tincludes({ "Lang", "AllowClientMods", "Theme" }, key, true) then

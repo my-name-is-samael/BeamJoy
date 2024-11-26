@@ -44,6 +44,7 @@ local function getCache()
         waypoints = M.waypoints,
         huntedStartTime = M.huntedStartTime,
         hunterStartTime = M.hunterStartTime,
+        huntersRespawnDelay = BJCConfig.Data.Hunter.HuntersRespawnDelay,
     }, M.getCacheHash()
 end
 
@@ -57,6 +58,7 @@ local function getCacheHash()
         M.waypoints,
         M.huntedStartTime,
         M.hunterStartTime,
+        BJCConfig.Data.Hunter.HuntersRespawnDelay,
     })
 end
 

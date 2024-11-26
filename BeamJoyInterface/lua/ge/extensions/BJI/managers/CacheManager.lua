@@ -432,6 +432,10 @@ local function parseCache(cacheType, cacheData, cacheHash)
             bjcConf.Speed = cacheData.Speed
         end
 
+        if cacheData.Hunter then
+            bjcConf.Hunter = cacheData.Hunter
+        end
+
         if cacheData.VehicleDelivery then
             bjcConf.VehicleDelivery = cacheData.VehicleDelivery
         end

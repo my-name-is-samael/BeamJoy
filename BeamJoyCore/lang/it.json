@@ -632,6 +632,19 @@
           "EndTimeout": "Durata finale",
           "EndTimeoutTooltip": "Tempo in secondi tra l'arrivo degli ultimi giocatori e la fine della modalità"
         },
+        "hunter": {
+          "title": "Impostazioni Modalità Hunter",
+          "PreparationTimeout": "Durata preparazione",
+          "PreparationTimeoutTooltip": "Tempo in secondi durante il quale i giocatori possono entrare nel gioco",
+          "HuntedStartDelay": "Ritardo inizio fuggitivo",
+          "HuntedStartDelayTooltip": "Conto alla rovescia in secondi per i fuggitivi",
+          "HuntersStartDelay": "Ritardo inizio cacciatori",
+          "HuntersStartDelayTooltip": "Conto alla rovescia in secondi per i cacciatori",
+          "HuntedStuckTimeout": "Timeout per fuggitivi bloccati",
+          "HuntedStuckTimeoutTooltip": "Tempo in secondi che il fuggitivo deve essere bloccato per far vincere i cacciatori",
+          "HuntersRespawnDelay": "Ritardo nel respawn dei cacciatori",
+          "HuntersRespawnDelayTooltip": "Tempo in secondi in cui i cacciatori sono bloccati quando rinascono"
+        },
         "vehicleDelivery": {
           "title": "Impostazioni di consegna del veicolo",
           "modelBlacklist": "Lista nera dei veicoli"

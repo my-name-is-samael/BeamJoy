@@ -632,6 +632,19 @@
           "EndTimeout": "Duración final",
           "EndTimeoutTooltip": "Tiempo en segundos entre que terminan los últimos jugadores y termina el modo"
         },
+        "hunter": {
+          "title": "Configuración del Modo de Juego Hunter",
+          "PreparationTimeout": "Duración de preparación",
+          "PreparationTimeoutTooltip": "Tiempo en segundos durante el cual los jugadores pueden unirse al modo de juego",
+          "HuntedStartDelay": "Retraso en el inicio del fugitivo",
+          "HuntedStartDelayTooltip": "Cuenta atrás en segundos para los fugitivos",
+          "HuntersStartDelay": "Retraso en el inicio de los cazadores",
+          "HuntersStartDelayTooltip": "Cuenta atrás en segundos para los cazadores",
+          "HuntedStuckTimeout": "Tiempo de espera por estar atrapado del fugitivo",
+          "HuntedStuckTimeoutTooltip": "Tiempo en segundos que el fugitivo debe estar atrapado para que los cazadores ganen",
+          "HuntersRespawnDelay": "Retraso en la reaparición de los cazadores",
+          "HuntersRespawnDelayTooltip": "Tiempo en segundos en el que los cazadores quedan atrapados cuando respawnean"
+        },
         "vehicleDelivery": {
           "title": "Configuración de entrega de vehículos",
           "modelBlacklist": "Lista negra de vehículos"

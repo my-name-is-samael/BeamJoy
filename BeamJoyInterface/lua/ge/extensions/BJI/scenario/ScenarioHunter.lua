@@ -22,6 +22,7 @@ local M = {
     preparationTimeout = nil,
     huntedStartTime = nil,
     hunterStartTime = nil,
+    huntersRespawnDelay = 0,
     waypoints = {},
 
     startpos = nil,
@@ -227,14 +228,16 @@ end
 local function onVehicleResetted(gameVehID)
     if BJIVeh.isVehicleOwn(gameVehID) then
         local participant = M.participants[BJIContext.User.playerID]
-        if M.state == M.STATES.GAME and
-            participant and not participant.hunted and
-            M.hunterStartTime < GetCurrentTimeMillis() then
+        if M.state == M.STATES.GAME and -- game started
+            participant and not participant.hunted and -- is hunter
+            M.hunterStartTime < GetCurrentTimeMillis() and -- already started
+            M.huntersRespawnDelay > 0 then -- minimum stuck delay configured
             BJIVeh.freeze(true, gameVehID)
             BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
             BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-            BJIMessage.flashCountdown("BJIHunterReset", GetCurrentTimeMillis() + 10050,
-                false, BJILang.get("hunter.play.flashHunterResume"), 10, function()
+            local targetTime = GetCurrentTimeMillis() + (M.huntersRespawnDelay * 1000) + 50
+            BJIMessage.flashCountdown("BJIHunterReset", targetTime,
+                false, BJILang.get("hunter.play.flashHunterResume"), M.huntersRespawnDelay, function()
                     BJICam.resetForceCamera()
                     BJIVeh.freeze(false, gameVehID)
                     BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
@@ -459,6 +462,7 @@ end
 
 -- receive hunter data from backend
 local function rxData(data)
+    M.huntersRespawnDelay = data.huntersRespawnDelay
     if data.state == M.STATES.PREPARATION then
         if not M.state then
             initPreparation(data)

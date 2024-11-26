@@ -35,7 +35,6 @@ return function(ctxt)
                         :inputNumeric({
                             id = v.key,
                             type = v.type,
-                            precision = v.precision,
                             value = BJIContext.BJC.Speed[v.key],
                             min = v.min,
                             max = v.max,

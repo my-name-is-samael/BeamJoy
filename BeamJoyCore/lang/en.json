@@ -632,6 +632,19 @@
           "EndTimeout": "End Duration",
           "EndTimeoutTooltip": "Time in seconds between last players finish and the mode ends"
         },
+        "hunter": {
+          "title": "Hunter Gamemode Settings",
+          "PreparationTimeout": "Preparation Duration",
+          "PreparationTimeoutTooltip": "Time in seconds during which players can join the gamemode",
+          "HuntedStartDelay": "Fugitive Start Delay",
+          "HuntedStartDelayTooltip": "Countdown in seconds for fugitives",
+          "HuntersStartDelay": "Hunters Start Delay",
+          "HuntersStartDelayTooltip": "Countdown in seconds for hunters",
+          "HuntedStuckTimeout": "Fugitive Stuck Timeout",
+          "HuntedStuckTimeoutTooltip": "Time in seconds the fugitive must be stuck for hunters to win",
+          "HuntersRespawnDelay": "Hunters Respawn Delay",
+          "HuntersRespawnDelayTooltip": "Time in seconds hunters are stuck when they respawn"
+        },
         "vehicleDelivery": {
           "title": "Vehicle Delivery Settings",
           "modelBlacklist": "Vehicles Blacklist"

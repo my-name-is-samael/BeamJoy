@@ -33,6 +33,11 @@ local function draw(ctxt)
             :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Speed")(ctxt) end)
             :build()
 
+            AccordionBuilder()
+                :label(BJILang.get("serverConfig.bjc.hunter.title"))
+                :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Hunter")(ctxt) end)
+                :build()
+
         AccordionBuilder()
             :label(BJILang.get("serverConfig.bjc.vehicleDelivery.title"))
             :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/VehicleDelivery")(ctxt) end)
