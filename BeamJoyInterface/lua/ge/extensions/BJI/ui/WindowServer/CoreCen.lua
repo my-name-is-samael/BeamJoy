@@ -22,7 +22,7 @@ local function drawCoreConfig(ctxt)
                         :build()
                 end,
                 function()
-                    if k == "Tags" then
+                    if tincludes({ "Tags", "Description" }, k) then
                         LineBuilder()
                             :inputString({
                                 id = svar("core{1}", { k }),

@@ -6,15 +6,6 @@ local M = {
     _mapFullNameSuffix = "/info.json",
 }
 
-local function removeSpecialChars(str)
-    local s = str:find("%^")
-    while s ~= nil do
-        str = svar("{1}{2}", { str:sub(1, s - 1), str:sub(s + 2) })
-        s = str:find("%^")
-    end
-    return str
-end
-
 local function readServerConfig()
     local result = {}
 
@@ -23,13 +14,6 @@ local function readServerConfig()
         local text = file:read("*a")
         file:close()
         result = TOML.parse(text)
-    end
-
-    if result.General and result.General.Name then
-        result.General.Name = removeSpecialChars(result.General.Name)
-    end
-    if result.General and result.General.Description then
-        result.General.Description = removeSpecialChars(result.General.Description)
     end
 
     return result
@@ -153,22 +137,22 @@ local function setMap(mapName)
 end
 
 local function set(key, value)
-    local keys = { "Name", "Debug", "Private", "MaxCars", "MaxPlayers", "Map", "Description" }
+    local keys = { "Name", "Debug", "Private", "MaxCars", "MaxPlayers" }
     if type(M.Data.General[key]) == type(value) and tincludes(keys, key) then
-        if key == "Map" then
-            setMap(value)
-        else
-            if key == "Description" then
-                value = value:gsub("\n", " ")
-            end
-            M.Data.General[key] = value
-            MP.Set(MP.Settings[key], value)
-            writeServerConfig()
-            BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
-        end
+        M.Data.General[key] = value
+        MP.Set(MP.Settings[key], value)
+        writeServerConfig()
+        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
+    elseif key == "Map" then
+        setMap(value)
     elseif key == "Tags" then
         value = value:gsub("\n", ",")
         M.Data.General.Tags = value
+        writeServerConfig()
+        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
+    elseif key == "Description" then
+        value = value:gsub("\n", "^p")
+        M.Data.General.Description = value
         writeServerConfig()
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
     end
@@ -212,6 +196,8 @@ local function getCache()
         cache[v] = config[v]
         if v == "Tags" then
             cache[v] = cache[v]:gsub(",", "\n")
+        elseif v == "Description" then
+            cache[v] = cache[v]:gsub("%^p", "\n")
         end
     end
     return cache, M.getCacheHash()
