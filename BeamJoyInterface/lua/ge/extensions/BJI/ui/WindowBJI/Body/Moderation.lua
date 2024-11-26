@@ -491,6 +491,7 @@ local function drawListPlayers(players, ctxt)
                 :text(player.playerName, TEXT_COLORS.HIGHLIGHT)
                 :text(svar("({1})", { groupLabel }), TEXT_COLORS.HIGHLIGHT)
                 :build()
+            drawHeaderActions(player.playerID, false)
             Indent(-1)
         elseif not isSelf and not isGroupLower then
             -- similar or higher staff member
