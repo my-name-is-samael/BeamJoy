@@ -445,6 +445,7 @@ local function drawListPermissions(groupNames)
                             onClick = function()
                                 if permLevel ~= group.level then
                                     BJITx.config.permissions(permName, group.level)
+                                    BJIPerm.Permissions[permName] = group.level
                                 end
                             end
                         })
