@@ -93,7 +93,7 @@ end
 local function checkEnabled()
     if hEdit.enabled then
         if #hEdit.targets < 2 or
-            #hEdit.hunterPositions <= 5 or
+            #hEdit.hunterPositions < 5 or
             #hEdit.huntedPositions < 2 then
             hEdit.enabled = false
         end
