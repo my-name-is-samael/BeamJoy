@@ -1,8 +1,8 @@
 local M = {
     renderStationDistance = 50,
     COLORS = {
-        GARAGE = ShapeDrawer.Color(1, .4, 0, .02),
-        ENERGY = ShapeDrawer.Color(.2, 1, .2, .02),
+        GARAGE = ShapeDrawer.Color(1, .4, 0, .05),
+        ENERGY = ShapeDrawer.Color(.2, 1, .2, .05),
         TEXT = ShapeDrawer.Color(1, 1, 1, .5),
         BG = ShapeDrawer.Color(0, 0, 0, .3),
     },
