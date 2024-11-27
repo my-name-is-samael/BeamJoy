@@ -205,6 +205,7 @@ local function parseCache(cacheType, cacheData, cacheHash)
         end
     elseif cacheType == M.CACHES.LANG then
         BJILang.Langs = cacheData.langs
+        table.sort(BJILang.Langs)
         BJILang.Messages = cacheData.messages
     elseif cacheType == M.CACHES.ENVIRONMENT then
         local previous = {
