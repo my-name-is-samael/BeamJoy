@@ -4,6 +4,7 @@ local function config()
     return {
         Server = {
             Lang = "en",
+            AllowClientMods = true,
             DriftBigBroadcast = false,
             Broadcasts = {
                 delay = 120,
