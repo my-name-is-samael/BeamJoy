@@ -174,7 +174,8 @@ local function slowTick(ctxt)
         local distance = ctxt.vehPosRot.pos:distance(M.target.pos) - (ctxt.veh:getInitialWidth() / 2)
         if distance < M.target.radius * getRadiusMultiplier() then
             if not M.checkTargetProcess then
-                BJIMessage.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false, BJILang.get("deliveryTogether.flashPackage"), nil,
+                BJIMessage.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false,
+                    BJILang.get("deliveryTogether.flashPackage"), nil,
                     onTargetReached)
                 M.checkTargetProcess = true
             end
@@ -219,8 +220,8 @@ local function onUnload(ctxt)
 end
 
 local function onTargetChange()
-    BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos, M.target.radius * getRadiusMultiplier(), nil, nil,
-        false)
+    BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
+        M.target.radius * getRadiusMultiplier(), nil, nil, false)
     BJIMessage.flash("BJIDeliveryMultiNextTarget", BJILang.get("packageDelivery.flashStart"), 3, false)
     BJIRaceWaypoint.resetAll()
     BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
@@ -251,8 +252,8 @@ local function rxData(data)
     if previousRadius ~= getRadiusMultiplier() then
         if BJIGPS.getByKey(BJIGPS.KEYS.DELIVERY_TARGET) then
             BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
-            BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos, M.target.radius * getRadiusMultiplier(), nil,
-                nil, false)
+            BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
+                M.target.radius * getRadiusMultiplier(), nil, nil, false)
         end
         if #BJIRaceWaypoint._targets > 0 then
             BJIRaceWaypoint.resetAll()

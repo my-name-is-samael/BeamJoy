@@ -73,7 +73,7 @@ local function updateTarget()
     end
 
     BJIGPS.reset()
-    BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, next.pos, next.radius)
+    BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, next.pos, next.radius, nil, nil, false)
 end
 
 local function initDrive(ctxt)
@@ -232,7 +232,7 @@ local function slowTick(ctxt)
                 M.checkTargetProcess = false
             end
             if #BJIGPS.targets == 0 then
-                BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, target.pos, target.radius)
+                BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, target.pos, target.radius, nil, nil, false)
             end
         end
     end
