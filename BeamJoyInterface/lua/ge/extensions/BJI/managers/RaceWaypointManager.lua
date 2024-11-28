@@ -143,6 +143,7 @@ local function addRaceStep(step)
         table.insert(target, {
             name = wp.name,
             pos = wp.pos,
+            zOffset = wp.zOffset,
             rot = wp.rot,
             radius = wp.radius,
             parents = wp.parents,

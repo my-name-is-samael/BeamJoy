@@ -101,6 +101,7 @@ local function prepareSteps()
             table.insert(nStep, {
                 name = w.name,
                 pos = { x = w.pos.x, y = w.pos.y, z = w.pos.z },
+                zOffset = w.zOffset,
                 rot = { x = w.rot.x, y = w.rot.y, z = w.rot.z, w = w.rot.w },
                 radius = w.radius,
                 parents = parents,

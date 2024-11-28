@@ -220,6 +220,7 @@ local function initSteps(steps)
                 table.insert(nStep, {
                     name = name,
                     pos = wp.pos,
+                    zOffset = wp.zOffset,
                     rot = wp.rot,
                     radius = wp.radius,
                     parents = parents,
