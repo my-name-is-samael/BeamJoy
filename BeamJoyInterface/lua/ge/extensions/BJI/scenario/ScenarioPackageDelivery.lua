@@ -50,7 +50,7 @@ local function initPositions(ctxt)
         return a.distance > b.distance
     end)
     if #targets > 1 then
-        local threhsholdPos = math.ceil(#targets / 2) + 1
+        local threhsholdPos = math.ceil(#targets * .66) + 1 -- 66% furthest
         while targets[threhsholdPos] do
             table.remove(targets, threhsholdPos)
         end
