@@ -20,21 +20,27 @@ local function reloadMarkers()
         })
     end
 
+    local hunterColor = ShapeDrawer.Color(1, 1, 0, .5)
     for i, hunter in ipairs(hEdit.hunterPositions) do
         table.insert(waypoints, {
             name = svar(BJILang.get("hunter.edit.hunterPositionName"), { index = i }),
             pos = hunter.pos,
             radius = 1,
-            color = ShapeDrawer.Color(1, 1, 0, .5),
+            color = hunterColor,
+            textColor = ShapeDrawer.Color(0, 0, 0, .5),
+            textBg = hunterColor,
         })
     end
 
+    local huntedColor = ShapeDrawer.Color(1, 0, 0, .5)
     for i, hunted in ipairs(hEdit.huntedPositions) do
         table.insert(waypoints, {
             name = svar(BJILang.get("hunter.edit.huntedPositionName"), { index = i }),
             pos = hunted.pos,
             radius = 1,
-            color = ShapeDrawer.Color(1, 0, 0, .5),
+            color = huntedColor,
+            textColor = ShapeDrawer.Color(0, 0, 0, .5),
+            textBg = huntedColor,
         })
     end
 

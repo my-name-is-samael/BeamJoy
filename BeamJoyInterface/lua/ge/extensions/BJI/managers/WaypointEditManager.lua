@@ -27,6 +27,8 @@ local function setWaypoints(points)
                 pos = wp.pos,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
             })
         else
             -- SPHERE
@@ -35,6 +37,8 @@ local function setWaypoints(points)
                 pos = wp.pos,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
             })
         end
     end
@@ -61,7 +65,9 @@ local function setWaypointsWithSegments(waypoints, loopable)
                 pos = wp.pos,
                 zMinOffset = wp.zMinOffset or 0,
                 radius = wp.radius,
-                color = wp.color or M._wpColor
+                color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
             })
         else
             -- SPHERE
@@ -70,6 +76,8 @@ local function setWaypointsWithSegments(waypoints, loopable)
                 pos = wp.pos,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
             })
         end
     end
@@ -138,7 +146,8 @@ local function renderTick(ctxt)
 
     for _, start in ipairs(M.spheres) do
         ShapeDrawer.Sphere(start.pos, start.radius, start.color)
-        ShapeDrawer.Text(start.name, start.pos, M._textColor, M._textBgColor, true)
+        ShapeDrawer.Text(start.name, start.pos, start.textColor or M._textColor,
+            start.textBg or M._textBgColor, true)
     end
 
     for _, wp in ipairs(M.cylinders) do
@@ -146,7 +155,8 @@ local function renderTick(ctxt)
         local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - zMinOffset)
         local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
         ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
-        ShapeDrawer.Text(wp.name, wp.pos, M._textColor, M._textBgColor, true)
+        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+            wp.textBg or M._textBgColor, true)
     end
 end
 

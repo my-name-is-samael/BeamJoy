@@ -22,6 +22,8 @@ local function updateMarkers()
             pos = p.pos,
             radius = 1,
             color = startPositionColor,
+            textColor = ShapeDrawer.Color(0, 0, 0, .5),
+            textBg = startPositionColor,
         })
     end
 
