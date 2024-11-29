@@ -183,7 +183,8 @@ local function checkJoin(playerID)
     -- whitelist
     if BJCConfig.Data.Whitelist.Enabled and
         not tincludes(BJCConfig.Data.Whitelist.PlayerNames, player.playerName) and
-        not BJCPerm.hasMinimumGroup(playerID, BJCGroups.GROUPS.MOD) then
+        not group.whitelisted and
+        not group.staff then
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.notWhitelisted"))
         M.Players[playerID] = nil
         return
