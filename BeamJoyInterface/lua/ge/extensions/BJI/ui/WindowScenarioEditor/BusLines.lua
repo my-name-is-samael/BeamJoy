@@ -151,225 +151,229 @@ local function drawBody(ctxt)
 
     for iLine, busLine in ipairs(blEdit.lines) do
         local displayed = blEdit.markersLine == iLine
-        LineBuilder()
-            :text(svar(BJILang.get("buslines.edit.line"), { index = iLine }),
-                displayed and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-            :btnIcon({
-                id = svar("reloadMarkers{1}", { iLine }),
-                icon = ICONS.visibility,
-                style = displayed and TEXT_COLORS.SUCCESS or TEXT_COLORS.DEFAULT,
-                background = displayed and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
-                onClick = function()
-                    if not displayed then
-                        reloadMarkers(iLine)
-                    end
-                end,
-            })
-            :btnIcon({
-                id = svar("deleteLine{1}", { iLine }),
-                icon = ICONS.delete_forever,
-                background = BTN_PRESETS.ERROR,
-                disabled = blEdit.processSave,
-                onClick = function()
-                    table.remove(blEdit.lines, iLine)
-                    blEdit.changed = true
-                    if displayed then
-                        BJIWaypointEdit.reset()
-                        blEdit.markersLine = nil
-                    end
+        AccordionBuilder()
+            :label(svar("##{1}", { iLine }))
+            :commonStart(function()
+                local line = LineBuilder(true)
+                    :text(svar(BJILang.get("buslines.edit.line"), { index = iLine }),
+                        displayed and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+                    :text(svar("({1})", { busLine.name }))
+                    :btnIcon({
+                        id = svar("reloadMarkers{1}", { iLine }),
+                        icon = ICONS.visibility,
+                        style = displayed and TEXT_COLORS.SUCCESS or TEXT_COLORS.DEFAULT,
+                        background = displayed and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
+                        onClick = function()
+                            if not displayed then
+                                reloadMarkers(iLine)
+                            end
+                        end,
+                    })
+                    :btnIcon({
+                        id = svar("deleteLine{1}", { iLine }),
+                        icon = ICONS.delete_forever,
+                        background = BTN_PRESETS.ERROR,
+                        disabled = blEdit.processSave,
+                        onClick = function()
+                            table.remove(blEdit.lines, iLine)
+                            blEdit.changed = true
+                            if displayed then
+                                BJIWaypointEdit.reset()
+                                blEdit.markersLine = nil
+                            end
+                        end
+                    })
+                if #busLine.stops < 2 then
+                    line:text(BJILang.get("buslines.edit.stopsMinimumError"), TEXT_COLORS.ERROR)
+                    blEdit.valid = false
                 end
-            })
-            :build()
-        if #busLine.stops < 2 then
-            LineBuilder()
-                :text(BJILang.get("buslines.edit.stopsMinimumError"), TEXT_COLORS.ERROR)
-                :build()
-            blEdit.valid = false
-        end
-        Indent(2)
-        local validName = validLineName(iLine)
-        if not validName then
-            blEdit.valid = false
-        end
-        LineBuilder()
-            :text(svar("{1}:", { BJILang.get("buslines.edit.lineName") }),
-                validName and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
-            :inputString({
-                id = svar("lineName{1}", { iLine }),
-                value = busLine.name,
-                disabled = blEdit.processSave,
-                style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
-                onUpdate = function(value)
-                    busLine.name = value
-                    blEdit.changed = true
+                line:build()
+            end)
+            :openedBehavior(function()
+                local validName = validLineName(iLine)
+                if not validName then
+                    blEdit.valid = false
                 end
-            })
-            :build()
-        LineBuilder()
-            :text(BJILang.get("buslines.edit.loopable"))
-            :btnIconSwitch({
-                id = svar("lineLoopable{1}", { iLine }),
-                iconEnabled = ICONS.rotate_90_degrees_ccw,
-                state = busLine.loopable,
-                disabled = blEdit.processSave,
-                onClick = function()
-                    busLine.loopable = not busLine.loopable
-                    blEdit.changed = true
-                    reloadMarkers(iLine)
-                end
-            })
-            :build()
-
-        for iStop, stop in ipairs(busLine.stops) do
-            validName = validStopName(iLine, iStop)
-            if not validName then
-                blEdit.valid = false
-            end
-            local line = LineBuilder()
-                :icon({
-                    icon = ICONS.simobject_bng_waypoint,
-                })
-                :text(svar(BJILang.get("buslines.edit.stop"), { index = iStop }))
-                :btnIcon({
-                    id = svar("busStopMoveUp{1}{2}", { iLine, iStop }),
-                    icon = ICONS.arrow_drop_up,
-                    background = BTN_PRESETS.WARNING,
-                    disabled = iStop == 1 or blEdit.processSave,
-                    onClick = function()
-                        table.insert(busLine.stops, iStop - 1, busLine.stops[iStop])
-                        table.remove(busLine.stops, iStop + 1)
-                        blEdit.changed = true
-                        reloadMarkers(iLine)
-                    end,
-                })
-                :btnIcon({
-                    id = svar("busStopMoveDown{1}{2}", { iLine, iStop }),
-                    icon = ICONS.arrow_drop_down,
-                    background = BTN_PRESETS.WARNING,
-                    disabled = iStop == #busLine.stops or blEdit.processSave,
-                    onClick = function()
-                        table.insert(busLine.stops, iStop + 2, busLine.stops[iStop])
-                        table.remove(busLine.stops, iStop)
-                        blEdit.changed = true
-                        reloadMarkers(iLine)
-                    end,
-                })
-                :btnIcon({
-                    id = svar("busStopGoTo{1}{2}", { iLine, iStop }),
-                    icon = ICONS.cameraFocusOnVehicle2,
-                    background = BTN_PRESETS.INFO,
-                    disabled = not vehPos,
-                    onClick = function()
-                        BJIVeh.setPositionRotation(stop.pos, stop.rot)
-                    end
-                })
-                :btnIcon({
-                    id = svar("busStopMoveHere{1}{2}", { iLine, iStop }),
-                    icon = ICONS.crosshair,
-                    background = BTN_PRESETS.WARNING,
-                    disabled = not vehPos or blEdit.processSave,
-                    onClick = function()
-                        if vehPos then
-                            stop.pos = vehPos.pos
-                            stop.rot = vehPos.rot
+                LineBuilder()
+                    :text(svar("{1}:", { BJILang.get("buslines.edit.lineName") }),
+                        validName and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
+                    :inputString({
+                        id = svar("lineName{1}", { iLine }),
+                        value = busLine.name,
+                        disabled = blEdit.processSave,
+                        style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
+                        onUpdate = function(value)
+                            busLine.name = value
+                            blEdit.changed = true
+                        end
+                    })
+                    :build()
+                LineBuilder()
+                    :text(BJILang.get("buslines.edit.loopable"))
+                    :btnIconSwitch({
+                        id = svar("lineLoopable{1}", { iLine }),
+                        iconEnabled = ICONS.rotate_90_degrees_ccw,
+                        state = busLine.loopable,
+                        disabled = blEdit.processSave,
+                        onClick = function()
+                            busLine.loopable = not busLine.loopable
                             blEdit.changed = true
                             reloadMarkers(iLine)
                         end
+                    })
+                    :build()
+
+                for iStop, stop in ipairs(busLine.stops) do
+                    validName = validStopName(iLine, iStop)
+                    if not validName then
+                        blEdit.valid = false
                     end
-                })
-            if iStop > 1 then
-                line:btnIcon({
-                    id = svar("busStopDelete{1}{2}", { iLine, iStop }),
-                    icon = ICONS.delete_forever,
-                    background = BTN_PRESETS.ERROR,
-                    disabled = blEdit.processSave,
-                    onClick = function()
-                        table.remove(busLine.stops, iStop)
-                        blEdit.changed = true
-                        reloadMarkers(iLine)
-                    end
-                })
-            end
-            line:build()
-            Indent(1)
-            ColumnsBuilder(svar("BJIScenarioEditorBusLine{1}-{2}", { iLine, iStop }),
-                { stopNameRadiusWidth, -1 })
-                :addRow({
-                    cells = {
-                        function()
-                            LineBuilder()
-                                :text(svar("{1}:", { BJILang.get("buslines.edit.stopName") }))
-                                :build()
-                        end,
-                        function()
-                            LineBuilder()
-                                :inputString({
-                                    id = svar("busStopName{1}{2}", { iLine, iStop }),
-                                    value = stop.name,
-                                    disabled = blEdit.processSave,
-                                    style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
-                                    onUpdate = function(val)
-                                        stop.name = val
-                                        blEdit.changed = true
-                                        reloadMarkers(iLine)
-                                    end
-                                })
-                                :build()
-                        end,
-                    }
-                })
-                :addRow({
-                    cells = {
-                        function()
-                            LineBuilder()
-                                :text(svar("{1}:", { BJILang.get("buslines.edit.stopRadius") }))
-                                :build()
-                        end,
-                        function()
-                            LineBuilder()
-                                :inputNumeric({
-                                    id = svar("busStopRadius{1}{2}", { iLine, iStop }),
-                                    type = "float",
-                                    precision = 1,
-                                    value = stop.radius,
-                                    min = 1,
-                                    max = 5,
-                                    step = .5,
-                                    disabled = blEdit.processSave,
-                                    onUpdate = function(val)
-                                        stop.radius = val
-                                        blEdit.changed = true
-                                        reloadMarkers(iLine)
-                                    end
-                                })
-                                :build()
-                        end,
-                    }
-                })
-                :build()
-            Indent(-1)
-        end
-        LineBuilder()
-            :btnIcon({
-                id = svar("addStop{1}", { iLine }),
-                icon = ICONS.addListItem,
-                background = TEXT_COLORS.SUCCESS,
-                disabled = not vehPos or blEdit.processSave,
-                onClick = function()
-                    if vehPos then
-                        table.insert(busLine.stops, {
-                            name = "",
-                            pos = vehPos.pos,
-                            rot = vehPos.rot,
-                            radius = 2,
+                    local line = LineBuilder()
+                        :icon({
+                            icon = ICONS.simobject_bng_waypoint,
                         })
-                        blEdit.changed = true
-                        reloadMarkers(iLine)
+                        :text(svar(BJILang.get("buslines.edit.stop"), { index = iStop }))
+                        :btnIcon({
+                            id = svar("busStopMoveUp{1}{2}", { iLine, iStop }),
+                            icon = ICONS.arrow_drop_up,
+                            background = BTN_PRESETS.WARNING,
+                            disabled = iStop == 1 or blEdit.processSave,
+                            onClick = function()
+                                table.insert(busLine.stops, iStop - 1, busLine.stops[iStop])
+                                table.remove(busLine.stops, iStop + 1)
+                                blEdit.changed = true
+                                reloadMarkers(iLine)
+                            end,
+                        })
+                        :btnIcon({
+                            id = svar("busStopMoveDown{1}{2}", { iLine, iStop }),
+                            icon = ICONS.arrow_drop_down,
+                            background = BTN_PRESETS.WARNING,
+                            disabled = iStop == #busLine.stops or blEdit.processSave,
+                            onClick = function()
+                                table.insert(busLine.stops, iStop + 2, busLine.stops[iStop])
+                                table.remove(busLine.stops, iStop)
+                                blEdit.changed = true
+                                reloadMarkers(iLine)
+                            end,
+                        })
+                        :btnIcon({
+                            id = svar("busStopGoTo{1}{2}", { iLine, iStop }),
+                            icon = ICONS.cameraFocusOnVehicle2,
+                            background = BTN_PRESETS.INFO,
+                            disabled = not vehPos,
+                            onClick = function()
+                                BJIVeh.setPositionRotation(stop.pos, stop.rot)
+                            end
+                        })
+                        :btnIcon({
+                            id = svar("busStopMoveHere{1}{2}", { iLine, iStop }),
+                            icon = ICONS.crosshair,
+                            background = BTN_PRESETS.WARNING,
+                            disabled = not vehPos or blEdit.processSave,
+                            onClick = function()
+                                if vehPos then
+                                    stop.pos = vehPos.pos
+                                    stop.rot = vehPos.rot
+                                    blEdit.changed = true
+                                    reloadMarkers(iLine)
+                                end
+                            end
+                        })
+                    if iStop > 1 then
+                        line:btnIcon({
+                            id = svar("busStopDelete{1}{2}", { iLine, iStop }),
+                            icon = ICONS.delete_forever,
+                            background = BTN_PRESETS.ERROR,
+                            disabled = blEdit.processSave,
+                            onClick = function()
+                                table.remove(busLine.stops, iStop)
+                                blEdit.changed = true
+                                reloadMarkers(iLine)
+                            end
+                        })
                     end
+                    line:build()
+                    Indent(1)
+                    ColumnsBuilder(svar("BJIScenarioEditorBusLine{1}-{2}", { iLine, iStop }),
+                        { stopNameRadiusWidth, -1 })
+                        :addRow({
+                            cells = {
+                                function()
+                                    LineBuilder()
+                                        :text(svar("{1}:", { BJILang.get("buslines.edit.stopName") }))
+                                        :build()
+                                end,
+                                function()
+                                    LineBuilder()
+                                        :inputString({
+                                            id = svar("busStopName{1}{2}", { iLine, iStop }),
+                                            value = stop.name,
+                                            disabled = blEdit.processSave,
+                                            style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
+                                            onUpdate = function(val)
+                                                stop.name = val
+                                                blEdit.changed = true
+                                                reloadMarkers(iLine)
+                                            end
+                                        })
+                                        :build()
+                                end,
+                            }
+                        })
+                        :addRow({
+                            cells = {
+                                function()
+                                    LineBuilder()
+                                        :text(svar("{1}:", { BJILang.get("buslines.edit.stopRadius") }))
+                                        :build()
+                                end,
+                                function()
+                                    LineBuilder()
+                                        :inputNumeric({
+                                            id = svar("busStopRadius{1}{2}", { iLine, iStop }),
+                                            type = "float",
+                                            precision = 1,
+                                            value = stop.radius,
+                                            min = 1,
+                                            max = 5,
+                                            step = .5,
+                                            disabled = blEdit.processSave,
+                                            onUpdate = function(val)
+                                                stop.radius = val
+                                                blEdit.changed = true
+                                                reloadMarkers(iLine)
+                                            end
+                                        })
+                                        :build()
+                                end,
+                            }
+                        })
+                        :build()
+                    Indent(-1)
                 end
-            })
+                LineBuilder()
+                    :btnIcon({
+                        id = svar("addStop{1}", { iLine }),
+                        icon = ICONS.addListItem,
+                        background = TEXT_COLORS.SUCCESS,
+                        disabled = not vehPos or blEdit.processSave,
+                        onClick = function()
+                            if vehPos then
+                                table.insert(busLine.stops, {
+                                    name = "",
+                                    pos = vehPos.pos,
+                                    rot = vehPos.rot,
+                                    radius = 2,
+                                })
+                                blEdit.changed = true
+                                reloadMarkers(iLine)
+                            end
+                        end
+                    })
+                    :build()
+            end)
             :build()
-        Indent(-2)
         Separator()
     end
 
