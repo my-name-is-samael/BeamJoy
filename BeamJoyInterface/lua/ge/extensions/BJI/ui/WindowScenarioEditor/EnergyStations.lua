@@ -139,6 +139,7 @@ local function drawBody(ctxt)
                                 onUpdate = function(val)
                                     station.name = val
                                     esEdit.changed = true
+                                    reloadMarkers()
                                 end
                             })
                             :build()
