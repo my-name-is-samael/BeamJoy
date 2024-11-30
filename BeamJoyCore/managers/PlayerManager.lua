@@ -456,11 +456,7 @@ end
 local function dropMultiple(playerIDs, reasonKey)
     for _, playerID in ipairs(playerIDs) do
         local playerName = M.Players[playerID].playerName
-        local reason
-        if reasonKey ~= nil then
-            reason = BJCLang.getServerMessage(playerID, reasonKey)
-        end
-        MP.DropPlayer(playerID, reason)
+        MP.DropPlayer(playerID, reasonKey)
         M.Players[playerID] = nil
         BJCChat.onPlayerDisconnect(playerID, playerName)
     end
