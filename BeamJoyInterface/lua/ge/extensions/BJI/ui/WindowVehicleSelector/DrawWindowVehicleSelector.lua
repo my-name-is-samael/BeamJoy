@@ -196,7 +196,7 @@ local function drawModel(model)
             end
             if ownVeh then
                 line:btnIcon({
-                    id = svar("replace-{1}-{2}", { model.key }),
+                    id = svar("replace-{1}", { model.key }),
                     icon = ICONS.carSensors,
                     background = BTN_PRESETS.WARNING,
                     onClick = function()
@@ -220,7 +220,15 @@ local function drawModel(model)
                 end
             })
         end
-        line:build()
+        line:btnIcon({
+            id = svar("preview-{1}", { model.key }),
+            icon = ICONS.ab_asset_image,
+            background = BTN_PRESETS.INFO,
+            onClick = function()
+                BJIVehSelectorPreview.open(model.preview)
+            end,
+        })
+            :build()
     end
 
     local function drawModelConfigs()
@@ -562,6 +570,7 @@ end
 local function updateOnClose(state)
     if state and not M.onClose then
         M.onClose = function()
+            BJIVehSelectorPreview.onClose()
             M.state = false
             M.models = {
                 cars = {},
@@ -612,6 +621,7 @@ local function open(models, canClose)
             label = arr[index].label,
             custom = arr[index].custom,
             configs = res,
+            preview = arr[index].preview,
         }
     end
 

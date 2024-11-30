@@ -261,7 +261,8 @@
       "BJIHunterSettings": "Настройки игры Охотник",
       "BJIHunter": "Охотничья игра",
       "BJITheme": "Редактор тем",
-      "BJIDerby": "Дерби Разрушения"
+      "BJIDerby": "Дерби Разрушения",
+      "BJIVehicleSelectorPreview": "Предпросмотр транспорта"
     },
     "menu": {
       "me": {

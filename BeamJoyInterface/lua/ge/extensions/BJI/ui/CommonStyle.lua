@@ -10,6 +10,7 @@ WINDOW_FLAGS = {
     NO_SCROLL_WITH_MOUSE = im.WindowFlags_NoScrollWithMouse,
     NO_COLLAPSE = im.WindowFlags_NoCollapse,
     NO_FOCUS_ON_APPEARING = im.WindowFlags_NoFocusOnAppearing,
+    NO_RESIZE = im.WindowFlags_NoResize,
 }
 
 STYLE_COLS = {

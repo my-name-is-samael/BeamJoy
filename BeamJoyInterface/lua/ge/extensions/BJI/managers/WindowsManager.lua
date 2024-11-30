@@ -75,6 +75,17 @@ local function initWindows()
         h = 420,
     })
 
+    -- VEHICLE SELECTOR PREVIEW
+    M.register({
+        name = "BJIVehicleSelectorPreview",
+        showConditionFn = function()
+            return BJIVehSelectorPreview.preview
+        end,
+        draw = BJIVehSelectorPreview,
+        w = BJIVehSelectorPreview.imageSize.x + BJIVehSelectorPreview.windowSizeOffset.x,
+        h = BJIVehSelectorPreview.imageSize.y + BJIVehSelectorPreview.windowSizeOffset.y,
+    })
+
     -- RACE SETTINGS
     M.register({
         name = "BJIRaceSettings",
@@ -412,7 +423,7 @@ local function renderTick(ctxt)
         -- apply min height (fixes moved out collapsed size issue)
         local size = im.GetWindowSize()
         if w.h and size.y < w.h * BJIContext.UserSettings.UIScale then
-            im.SetWindowSize1(im.ImVec2(size.x, w.h * BJIContext.UserSettings.UIScale), im.ImGuiCond_Always)
+            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * BJIContext.UserSettings.UIScale)), im.Cond_Always)
         end
         local _, err = pcall(fn, ctxt)
         if err then
@@ -442,7 +453,10 @@ local function renderTick(ctxt)
             end
 
             if w.w and w.h then
-                im.SetNextWindowSize(im.ImVec2(w.w, w.h))
+                im.SetNextWindowSize(im.ImVec2(
+                    math.floor(w.w * BJIContext.UserSettings.UIScale),
+                    math.floor(w.h * BJIContext.UserSettings.UIScale)
+                ))
             end
             if w.x and w.y then
                 im.SetNextWindowPos(im.ImVec2(w.x, w.y))

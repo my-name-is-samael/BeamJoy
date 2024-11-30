@@ -261,7 +261,8 @@
       "BJIHunterSettings": "Hunter-Spieleinstellungen",
       "BJIHunter": "Jägerspiel",
       "BJITheme": "Theme-Editor",
-      "BJIDerby": "Zerstörungsderby"
+      "BJIDerby": "Zerstörungsderby",
+      "BJIVehicleSelectorPreview": "Fahrzeugvorschau"
     },
     "menu": {
       "me": {

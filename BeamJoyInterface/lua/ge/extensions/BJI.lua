@@ -72,7 +72,6 @@ local function loadManagers()
     BJIControllers = require("ge/extensions/BJI/rx/Controllers")
     BJIVote = require("ge/extensions/BJI/managers/VotesManager")
     BJITick = require("ge/extensions/BJI/managers/TickManager")
-    BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
     BJIQuickTravel = require("ge/extensions/BJI/managers/QuickTravelManager")
     BJIBigmap = require("ge/extensions/BJI/managers/BigmapManager")
     BJIDrift = require("ge/extensions/BJI/managers/DriftManager")
@@ -88,6 +87,9 @@ local function loadManagers()
     BJIVehUI = require("ge/extensions/BJI/managers/VehicleSelectorUIManager")
 
     BJIVehSelector = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelector")
+    BJIVehSelectorPreview = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelectorPreview")
+
+    BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
 end
 loadManagers()
 

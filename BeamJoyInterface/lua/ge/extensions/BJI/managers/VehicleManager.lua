@@ -833,6 +833,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 custom = veh.model.aggregates.Source.Mod,
                 paints = paints,
                 configs = {},
+                preview = veh.model.preview,
             })
 
             local configs = target[veh.model.key].configs

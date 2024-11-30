@@ -261,7 +261,8 @@
       "BJIHunterSettings": "Configuración del juego de cazadores",
       "BJIHunter": "Juego de cazador",
       "BJITheme": "Editor de temas",
-      "BJIDerby": "Derbi de destrucción"
+      "BJIDerby": "Derbi de destrucción",
+      "BJIVehicleSelectorPreview": "Vista previa del vehículo"
     },
     "menu": {
       "me": {
