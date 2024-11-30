@@ -173,22 +173,33 @@ local function pm(sender, args)
             })
         })
     else -- target found
+        local target = founds[1]
         table.insert(sender.messages, {
             time = GetCurrentTime(),
-            message = svar("mp {1} : {2}", { founds[1].playerName, message }),
+            message = svar("mp {1} : {2}", { target.playerName, message }),
         })
-        Log(svar("OnChatPrivateMessage - {1} -> {2} : {3}", { sender.playerName, founds[1].playerName, message }),
+        Log(svar("OnChatPrivateMessage - {1} -> {2} : {3}", { sender.playerName, target.playerName, message }),
             "BJCChat")
-        BJCTx.player.chat(founds[1].playerID, BJCChat.EVENTS.DIRECT_MESSAGE, {
+        BJCTx.player.chat(target.playerID, BJCChat.EVENTS.DIRECT_MESSAGE, {
             playerName = sender.playerName,
             message = message,
             color = { .6, .6, .6, 1 },
         })
         BJCTx.player.chat(sender.playerID, BJCChat.EVENTS.DIRECT_MESSAGE_SENT, {
-            playerName = founds[1].playerName,
+            playerName = target.playerName,
             message = message,
             color = { .6, .6, .6, 1 },
         })
+
+        -- staff players copy
+        for _, player in pairs(BJCPlayers.Players) do
+            if not tincludes({ sender.playerID, target.playerID }, player.playerID, true) and
+                BJCPerm.isStaff(player.playerID) then
+                BJCTx.player.chat(player.playerID, BJCChat.EVENTS.SERVER_CHAT, {
+                    message = svar("{1} -> {2}: {3}", { sender.playerName, target.playerName, message }),
+                })
+            end
+        end
     end
 end
 
