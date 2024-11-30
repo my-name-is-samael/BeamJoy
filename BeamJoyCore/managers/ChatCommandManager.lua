@@ -6,7 +6,7 @@ local M = {
 local function findCommand(sender, cmd, excludedCmds)
     local found
     for _, command in ipairs(M.commands) do
-        if not tincludes(excludedCmds, command.cmd, true) and (
+        if not tincludes(excludedCmds or {}, command.cmd, true) and (
                 command.cmd == cmd or
                 tincludes(command.aliases, cmd, true) -- command match or alias
             ) then
@@ -173,7 +173,7 @@ local function pm(sender, args)
             })
         })
     else -- target found
-        local target = founds[1]
+        target = founds[1]
         table.insert(sender.messages, {
             time = GetCurrentTime(),
             message = svar("mp {1} : {2}", { target.playerName, message }),

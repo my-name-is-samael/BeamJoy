@@ -260,7 +260,7 @@ function _BJCOnChatMessage(senderID, name, chatMessage)
 
     -- command
     if chatMessage:sub(1, 1) == BJCChatCommand.COMMAND_CHAR then
-        BJCChatCommand.handle(player, chatMessage:sub(2))
+        pcall(BJCChatCommand.handle, player, chatMessage:sub(2))
         return -1
     end
 
