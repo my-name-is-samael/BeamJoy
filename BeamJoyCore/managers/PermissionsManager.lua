@@ -1,5 +1,7 @@
 local M = {
     PERMISSIONS = {
+        SEND_PRIVATE_MESSAGE = "SendPrivateMessage",
+
         VOTE_KICK = "VoteKick",
         VOTE_MAP = "VoteMap",
         TELEPORT_TO = "TeleportTo",
@@ -40,7 +42,8 @@ local M = {
 }
 
 local function init()
-    M.Data = BJCDao.permissions.findAll()
+    M.Data = BJCDefaults.permissions()
+    tdeepassign(M.Data, BJCDao.permissions.findAll())
 end
 
 local function hasPermission(playerID, permissionName)

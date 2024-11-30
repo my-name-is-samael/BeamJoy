@@ -7,6 +7,7 @@ local M = {
         PLAYER_CHAT = "playerchat",
         SERVER_CHAT = "serverchat",
         DIRECT_MESSAGE = "directmessage",
+        DIRECT_MESSAGE_SENT = "directmessagesent",
     },
 
     msgCounter = 1,
@@ -63,8 +64,11 @@ local function onChat(event, data)
     elseif event == M.EVENTS.SERVER_CHAT then
         _printChat(nil, data.message, data.color)
     elseif event == M.EVENTS.DIRECT_MESSAGE then
-        local playerName, message = data.playerName, data.message
-        _printChat(svar(BJILang.get("chat.directMessage", { playerName = playerName })), message)
+        _printChat(svar(BJILang.get("chat.directMessage"), { playerName = data.playerName }),
+            data.message, data.color)
+    elseif event == M.EVENTS.DIRECT_MESSAGE_SENT then
+        _printChat(svar(BJILang.get("chat.directMessageSent"), { playerName = data.playerName }),
+            data.message, data.color)
     elseif tincludes({ M.EVENTS.JOIN, M.EVENTS.LEAVE }, event, true) then
         local key = event == M.EVENTS.JOIN and "chat.playerJoined" or "chat.playerLeft"
         _printChat(nil, svar(BJILang.get(key), { playerName = data.playerName }))

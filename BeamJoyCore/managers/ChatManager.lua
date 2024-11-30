@@ -7,6 +7,7 @@ local M = {
         PLAYER_CHAT = "playerchat",
         SERVER_CHAT = "serverchat",
         DIRECT_MESSAGE = "directmessage",
+        DIRECT_MESSAGE_SENT = "directmessagesent",
     },
 
     broadcast = {
@@ -54,7 +55,7 @@ local function onServerChat(targetID, message, color)
         targetName = BJCLang.getConsoleMessage("common.allPlayers")
     else
         local target = BJCPlayers.Players[targetID]
-        targetName = target and target.playerName or svar("? (id = {1})", {targetID})
+        targetName = target and target.playerName or svar("? (id = {1})", { targetID })
     end
     Log(svar(BJCLang.getConsoleMessage("messages.serverBroadcast"), {
         targetName = targetName,
@@ -64,13 +65,6 @@ local function onServerChat(targetID, message, color)
     BJCTx.player.chat(targetID, M.EVENTS.SERVER_CHAT, {
         message = message,
         color = color,
-    })
-end
-
-local function onPlayerDirectMessage(targetID, playerName, message)
-    BJCTx.player.chat(targetID, M.EVENTS.DIRECT_MESSAGE, {
-        playerName = playerName,
-        message = message,
     })
 end
 
@@ -110,7 +104,6 @@ M.onWelcome = onWelcome
 M.onPlayerJoin = onPlayerJoin
 M.onPlayerChat = onPlayerChat
 M.onServerChat = onServerChat
-M.onPlayerDirectMessage = onPlayerDirectMessage
 M.onPlayerDisconnect = onPlayerDisconnect
 
 M.broadcastTick = broadcastTick

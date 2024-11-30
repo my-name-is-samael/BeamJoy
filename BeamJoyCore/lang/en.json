@@ -111,7 +111,9 @@
         "invalidVehicleID": "Invalid vehicle ({vehicleID})",
         "invalidLang": "Invalid language \"{lang}\"",
         "insufficientPlayers": "Not enough players",
-        "guestCannotBeWhitelisted": "Guests cannot be whitelisted"
+        "guestCannotBeWhitelisted": "Guests cannot be whitelisted",
+        "playerAmbiguity": "Ambiguity with players : {playerList}"
+        
       },
       "vehicleRemoveOneOf": "One of your vehicles",
       "vehicleRemoveMain": "Your vehicle",
@@ -143,6 +145,16 @@
     "derby": {
       "winner": "{playerName} won the game !",
       "draw": "Draw"
+    },
+    "commands": {
+      "title": "Commands",
+      "aliases": "Aliases",
+      "invalidCommand": "Invalid command",
+      "usage": "Usage",
+      "helpArgs": "[command]",
+      "helpDesc": "Print this message, or show the help for the specified command",
+      "pmArgs": "<player_name> <message>",
+      "pmDesc": "Send a private message to someone (player_name is insensitive and can be a subpart)"
     }
   },
   "client": {
@@ -221,7 +233,8 @@
       "reputationTag": "RP",
       "playerJoined": "{playerName} joined",
       "playerLeft": "{playerName} left",
-      "directMessage": "{playerName} sends you"
+      "directMessage": "from {playerName}",
+      "directMessageSent": "to {playerName}"
     },
     "nametags": {
       "staffTag": "STAFF",

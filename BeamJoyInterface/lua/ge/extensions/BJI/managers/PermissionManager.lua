@@ -1,5 +1,7 @@
 local M = {
     PERMISSIONS = {
+        SEND_PRIVATE_MESSAGE = "SendPrivateMessage",
+
         VOTE_KICK = "VoteKick",
         VOTE_MAP = "VoteMap",
         TELEPORT_TO = "TeleportTo",

@@ -111,7 +111,8 @@
         "invalidVehicleID": "Неверный автомобиль ({vehicleID})",
         "invalidLang": "Неверный язык \"{lang}\"",
         "insufficientPlayers": "Недостаточно игроков",
-        "guestCannotBeWhitelisted": "Гостей нельзя внести в белый список"
+        "guestCannotBeWhitelisted": "Гостей нельзя внести в белый список",
+        "playerAmbiguity": "Неоднозначность с игроками: {playerList}"
       },
       "vehicleRemoveOneOf": "Один из ваших автомобилей",
       "vehicleRemoveMain": "Ваш автомобиль",
@@ -143,6 +144,16 @@
     "derby": {
       "winner": "{playerName} выиграл игру!",
       "draw": "Рисовать"
+    },
+    "commands": {
+      "title": "Команды",
+      "aliases": "Псевдонимы",
+      "invalidCommand": "Неверная команда",
+      "usage": "Использование",
+      "helpArgs": "[команда]",
+      "helpDesc": "Выводит это сообщение или справку по указанной команде",
+      "pmArgs": "<имя_игрока> <сообщение>",
+      "pmDesc": "Отправить личное сообщение кому-то (имя игрока нечувствительно к регистру и может быть частью)"
     }
   },
   "client": {
@@ -221,7 +232,8 @@
       "reputationTag": "РП",
       "playerJoined": "{playerName} присоединился",
       "playerLeft": "{playerName} остался",
-      "directMessage": "Пользователь {playerName} отправляет вам: {message}"
+      "directMessage": "от {playerName}",
+      "directMessageSent": "к {playerName}"
     },
     "nametags": {
       "staffTag": "ПЕРСОНАЛ",

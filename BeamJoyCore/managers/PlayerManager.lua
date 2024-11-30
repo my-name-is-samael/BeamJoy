@@ -241,11 +241,6 @@ function _BJCOnPlayerDisconnect(playerID)
 end
 
 function _BJCOnChatMessage(senderID, name, chatMessage)
-    if chatMessage:sub(1, 1) == "/" then
-        -- command
-        return -1
-    end
-
     local player = M.Players[senderID]
     if not player then
         LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = senderID }))
@@ -258,6 +253,17 @@ function _BJCOnChatMessage(senderID, name, chatMessage)
         return -1
     end
 
+    chatMessage = strim(chatMessage)
+    while chatMessage:find("  ") do -- removing multiple following spaces
+        chatMessage = chatMessage:gsub("  ", " ")
+    end
+
+    -- command
+    if chatMessage:sub(1, 1) == BJCChatCommand.COMMAND_CHAR then
+        BJCChatCommand.handle(player, chatMessage:sub(2))
+        return -1
+    end
+
     if player.muted or group.muted then
         BJCChat.onServerChat(senderID, BJCLang.getServerMessage(senderID, "players.cantSendMessage"))
         return -1
@@ -267,7 +273,7 @@ function _BJCOnChatMessage(senderID, name, chatMessage)
         time = GetCurrentTime(),
         message = chatMessage
     })
-    Log("OnChatMessage", logTag)
+    Log(svar("OnChatMessage - {1} : {2}", { player.playerName, chatMessage }), "BJCChat")
     -- send to mods+ players cache invalidation
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.PLAYERS, BJCPerm.PERMISSIONS.KICK)
 

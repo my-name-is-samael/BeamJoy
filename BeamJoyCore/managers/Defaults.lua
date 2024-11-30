@@ -166,6 +166,8 @@ end
 
 local function permissions()
     return {
+        SendPrivateMessage = 0,
+
         VoteKick = 2,
         VoteMap = 2,
         TeleportTo = 2,

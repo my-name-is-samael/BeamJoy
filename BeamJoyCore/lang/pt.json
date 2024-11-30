@@ -111,7 +111,8 @@
         "invalidVehicleID": "Veículo inválido ({vehicleID})",
         "invalidLang": "Idioma inválido \"{lang}\"",
         "insufficientPlayers": "Não há jogadores suficientes",
-        "guestCannotBeWhitelisted": "Os convidados não podem ser colocados na lista de permissões"
+        "guestCannotBeWhitelisted": "Os convidados não podem ser colocados na lista de permissões",
+        "playerAmbiguity": "Ambiguidade com jogadores: {playerList}"
       },
       "vehicleRemoveOneOf": "Um de seus veículos",
       "vehicleRemoveMain": "Seu veículo",
@@ -143,6 +144,16 @@
     "derby": {
       "winner": "{playerName} ganhou o jogo!",
       "draw": "Empate"
+    },
+    "commands": {
+      "title": "Comandos",
+      "aliases": "Apelidos",
+      "invalidCommand": "Comando inválido",
+      "usage": "Uso",
+      "helpArgs": "[comando]",
+      "helpDesc": "Exibe esta mensagem ou ajuda para o comando especificado",
+      "pmArgs": "<nome_jogador> <mensagem>",
+      "pmDesc": "Envie uma mensagem privada para alguém (o nome do jogador não diferencia maiúsculas de minúsculas e pode ser uma parte)"
     }
   },
   "client": {
@@ -221,7 +232,8 @@
       "reputationTag": "PR",
       "playerJoined": "{playerName} entrou",
       "playerLeft": "{playerName} restante",
-      "directMessage": "{playerName} enviou para você: {message}"
+      "directMessage": "de {playerName}",
+      "directMessageSent": "para {playerName}"
     },
     "nametags": {
       "staffTag": "FUNCIONÁRIOS",
