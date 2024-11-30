@@ -42,11 +42,7 @@ local function open(imagePath)
             open(pngPath)
         else -- already a png, no solution :(
             LogDebug(svar("Invalid vehicle image : \"{1}\"", { imagePath }))
-            local vehnameParts = ssplit(imagePath, "/")
-            vehnameParts = ssplit(vehnameParts[#vehnameParts], ".")
-            vehnameParts[#vehnameParts] = nil
-            local vehname = tconcat(vehnameParts, "")
-            BJIToast.error(svar("Invalid vehicle : {1}", { vehname }))
+            BJIToast.error("Invalid vehicle image")
             M.onClose()
         end
     end
