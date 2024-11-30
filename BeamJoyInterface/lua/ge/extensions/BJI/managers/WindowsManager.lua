@@ -307,12 +307,12 @@ local function initWindows()
             flags = {
                 WINDOW_FLAGS.NO_COLLAPSE,
             },
-            header = function()
+            header = function(ctxt)
                 LineBuilder()
                     :text("DEBUG")
                     :build()
             end,
-            body = function()
+            body = function(ctxt)
                 local totalLines = 0
                 local function display(obj, key)
                     local line = LineBuilder()
@@ -349,18 +349,14 @@ local function initWindows()
 
                 local data = BJIDEBUG
                 if type(data) == "function" then
-                    local status
-                    status, data = pcall(data)
-                    if not status or type(data) == "function" then
-                        data = BJIDEBUG
-                    end
+                    _, data = pcall(data, ctxt)
                 end
                 display(data)
                 if totalLines > 200 then
                     LineBuilder():text("..."):build()
                 end
             end,
-            footer = function()
+            footer = function(ctxt)
                 LineBuilder()
                     :btnIcon({
                         id = "emptyDebug",
