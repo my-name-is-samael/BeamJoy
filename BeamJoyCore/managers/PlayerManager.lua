@@ -456,7 +456,7 @@ end
 local function dropMultiple(playerIDs, reasonKey)
     for _, playerID in ipairs(playerIDs) do
         local playerName = M.Players[playerID].playerName
-        MP.DropPlayer(playerID, reasonKey)
+        drop(playerID, reasonKey)
         M.Players[playerID] = nil
         BJCChat.onPlayerDisconnect(playerID, playerName)
     end
