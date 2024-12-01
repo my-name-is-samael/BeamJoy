@@ -20,6 +20,8 @@ local M = {
     init = false,
     nextResetExempt = true,     -- exempt reset fail for vehicle creation
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+
+    cornerMarkers = {},
 }
 
 local function reset()
@@ -49,6 +51,46 @@ local function canChangeTo(ctxt)
         #BJIContext.Scenario.Data.BusLines > 0
 end
 
+local function initCornerMarkers()
+    local function create(name)
+        local marker = createObject('TSStatic')
+        marker:setField('shapeName', 0, "art/shapes/interface/position_marker.dae")
+        marker:setPosition(vec3(0, 0, 0))
+        marker.scale = vec3(1, 1, 1)
+        marker:setField('rotation', 0, '1 0 0 0')
+        marker.useInstanceRenderData = true
+        marker:setField('instanceColor', 0, '1 1 1 0')
+        marker:setField('collisionType', 0, "Collision Mesh")
+        marker:setField('decalType', 0, "Collision Mesh")
+        marker:setField('playAmbient', 0, "1")
+        marker:setField('allowPlayerStep', 0, "1")
+        marker:setField('canSave', 0, "0")
+        marker:setField('canSaveDynamicFields', 0, "1")
+        marker:setField('renderNormals', 0, "0")
+        marker:setField('meshCulling', 0, "0")
+        marker:setField('originSort', 0, "0")
+        marker:setField('forceDetail', 0, "-1")
+        marker.canSave = false
+        marker:registerObject(name)
+        return marker;
+    end
+
+    if not scenetree.findObject("ScenarioObjectsGroup") then
+        local ScenarioObjectsGroup = createObject('SimGroup')
+        ScenarioObjectsGroup:registerObject('ScenarioObjectsGroup')
+        ScenarioObjectsGroup.canSave = false
+        scenetree.MissionGroup:addObject(ScenarioObjectsGroup.obj)
+    end
+    for _, name in ipairs({ "busMarkerTL", "busMarkerTR", "busMarkerBL", "busMarkerBR" }) do
+        local marker = scenetree.findObject(name)
+        if not marker then
+            marker = create(name)
+            scenetree.findObject("ScenarioObjectsGroup"):addObject(marker.obj)
+            table.insert(M.cornerMarkers, marker)
+        end
+    end
+end
+
 local function onLoad(ctxt)
     reset()
     BJIVehSelector.tryClose()
@@ -62,11 +104,41 @@ local function onLoad(ctxt)
     BJIRaceWaypoint.resetAll()
 end
 
-local function updateTarget()
+local function updateCornerMarkers(ctxt, stop)
+    if not ctxt.veh or not stop then return end
+
+    local wpRadius = 2
+    local tpos = stop.pos + vec3(0, 0, 3)
+    local pos = vec3()
+    local tr = stop.rot * quatFromEuler(0, 0, math.rad(90))
+    local r
+    local yVec, xVec = tr * vec3(0, 1, 0), tr * vec3(1, 0, 0)
+    local d = ctxt.veh:getInitialLength() / 2 + wpRadius / 2
+    local w = ctxt.veh:getInitialWidth() / 2 + wpRadius / 2
+    for k, marker in ipairs(M.cornerMarkers) do
+        if k == 1 then
+            pos = (tpos - xVec * d + yVec * w)
+            r = tr * quatFromEuler(0, 0, math.rad(90))
+        elseif k == 2 then
+            pos = (tpos + xVec * d + yVec * w)
+            r = tr * quatFromEuler(0, 0, math.rad(180))
+        elseif k == 3 then
+            pos = (tpos + xVec * d - yVec * w)
+            r = tr * quatFromEuler(0, 0, math.rad(270))
+        elseif k == 4 then
+            pos = (tpos - xVec * d - yVec * w)
+            r = tr
+        end
+        pos.z = be:getSurfaceHeightBelow(pos) + .2
+        marker:setPosRot(pos.x, pos.y, pos.z, r.x, r.y, r.z, r.w)
+        marker:setField('instanceColor', 0, "1 0 0 1")
+    end
+end
+
+local function updateTarget(ctxt)
     local next = M.line.stops[M.nextStop]
 
-    BJIRaceWaypoint.resetAll()
-    BJIRaceWaypoint.addWaypoint("BJIBusMission", next.pos, next.radius, BJIRaceWaypoint.COLORS.BLUE)
+    updateCornerMarkers(ctxt, next)
     if M.init then
         BJIBusUI.nextStop(M.nextStop)
         BJIBusUI.requestStop(true)
@@ -91,9 +163,10 @@ local function initDrive(ctxt)
         return ctxt2.isOwner and
             not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
             ctxt2.veh.partConfig:find(svar("/{1}.", { M.config }))
-    end, function()
+    end, function(ctxt2)
         M.state = M.STATES.DRIVE
-        updateTarget()
+        initCornerMarkers()
+        updateTarget(ctxt2)
         BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
         BJIAsync.delayTask(function()
             BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
@@ -174,7 +247,7 @@ local function drawMissionUI(ctxt)
     end
 end
 
-local function onTargetReached()
+local function onTargetReached(ctxt)
     M.checkTargetProcess = false
     local flashMsg = BJILang.get("buslines.play.flashDriveNext")
     if M.nextStop == #M.line.stops then
@@ -182,7 +255,7 @@ local function onTargetReached()
         if M.line.loopable and M.nextLoop then
             -- trigger next loop
             M.nextStop = 2
-            updateTarget()
+            updateTarget(ctxt)
         else
             -- end of mission
             BJITx.scenario.BusMissionStop()
@@ -191,13 +264,23 @@ local function onTargetReached()
         end
     else
         M.nextStop = M.nextStop + 1
-        updateTarget()
+        updateTarget(ctxt)
     end
     BJIMessage.flash("BJIBusMissionTarget", flashMsg, 3, false)
 end
 
 local function canVehUpdate()
     return not M.init
+end
+
+local function updateCornerMarkersColor(reached)
+    for _, marker in ipairs(M.cornerMarkers) do
+        if reached then
+            marker:setField('instanceColor', 0, '0 1 0 1')
+        else
+            marker:setField('instanceColor', 0, "1 0 0 1")
+        end
+    end
 end
 
 local function slowTick(ctxt)
@@ -225,11 +308,13 @@ local function slowTick(ctxt)
             if not M.checkTargetProcess then
                 M.checkTargetProcess = true
                 BJIMessage.flashCountdown("BJIBusMissionTarget", ctxt.now + 5100, false, "", nil, onTargetReached)
+                updateCornerMarkersColor(true)
             end
         else
             if M.checkTargetProcess then
                 BJIMessage.cancelFlash("BJIBusMissionTarget")
                 M.checkTargetProcess = false
+                updateCornerMarkersColor(false)
             end
             if #BJIGPS.targets == 0 then
                 BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, target.pos, target.radius, nil, nil, false)
@@ -258,13 +343,22 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
+local function removeCornerMarkers()
+    for _, marker in ipairs(M.cornerMarkers) do
+        scenetree.findObject('ScenarioObjectsGroup'):removeObject(marker)
+        marker:unregisterObject()
+        marker:delete()
+    end
+    table.clear(M.cornerMarkers)
+end
+
 local function onUnload(ctxt)
+    removeCornerMarkers()
     reset()
     BJIRestrictions.apply(BJIRestrictions.TYPES.ResetBusMission, false)
     BJIQuickTravel.toggle(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
     BJIBusUI.reset()
 end
 
