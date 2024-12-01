@@ -25,10 +25,12 @@ local function reloadMarkers()
         table.insert(waypoints, {
             name = svar(BJILang.get("hunter.edit.hunterPositionName"), { index = i }),
             pos = hunter.pos,
-            radius = 1,
+            rot = hunter.rot,
+            radius = 2,
             color = hunterColor,
-            textColor = ShapeDrawer.Color(0, 0, 0, .5),
-            textBg = hunterColor,
+            textColor = hunterColor,
+            textBg = ShapeDrawer.Color(0, 0, 0, .5),
+            type = BJIWaypointEdit.TYPES.ARROW,
         })
     end
 
@@ -37,10 +39,12 @@ local function reloadMarkers()
         table.insert(waypoints, {
             name = svar(BJILang.get("hunter.edit.huntedPositionName"), { index = i }),
             pos = hunted.pos,
-            radius = 1,
+            rot = hunted.rot,
+            radius = 2,
             color = huntedColor,
-            textColor = ShapeDrawer.Color(0, 0, 0, .5),
-            textBg = huntedColor,
+            textColor = huntedColor,
+            textBg = ShapeDrawer.Color(0, 0, 0, .5),
+            type = BJIWaypointEdit.TYPES.ARROW,
         })
     end
 

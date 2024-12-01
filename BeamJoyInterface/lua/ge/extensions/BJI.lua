@@ -176,3 +176,6 @@ return M
 
 -- top left message
 -- guihooks.trigger('Message',{ttl=1,msg="Hello World !",category=""})
+
+-- get map height below pos
+-- be:getSurfaceHeightBelow(vec3)

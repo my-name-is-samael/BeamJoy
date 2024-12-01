@@ -20,8 +20,10 @@ local function reloadMarkers(indexArena)
             table.insert(waypoints, {
                 name = svar(BJILang.get("derby.edit.startPositionName"), { index = i }),
                 pos = target.pos,
-                radius = 1,
+                rot = target.rot,
+                radius = 2,
                 color = ShapeDrawer.Color(1, 1, 0, .5),
+                type = BJIWaypointEdit.TYPES.ARROW,
             })
         end
 

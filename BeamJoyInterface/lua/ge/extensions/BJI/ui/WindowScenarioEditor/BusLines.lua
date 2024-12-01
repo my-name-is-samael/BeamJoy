@@ -21,8 +21,10 @@ local function reloadMarkers(iLine)
                 name = stop.name,
                 parents = parents,
                 pos = stop.pos,
+                rot = stop.rot,
                 radius = stop.radius,
                 color = color,
+                type = BJIWaypointEdit.TYPES.CYLINDER
             })
         end
 

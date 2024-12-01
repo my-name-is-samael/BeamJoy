@@ -20,10 +20,12 @@ local function updateMarkers()
         table.insert(waypoints, {
             name = svar(BJILang.get("races.edit.startPositionLabel"), { index = i }),
             pos = p.pos,
-            radius = 1,
+            rot = p.rot,
+            radius = 2,
             color = startPositionColor,
-            textColor = ShapeDrawer.Color(0, 0, 0, .5),
-            textBg = startPositionColor,
+            textColor = startPositionColor,
+            textBg = ShapeDrawer.Color(0, 0, 0, .5),
+            type = BJIWaypointEdit.TYPES.ARROW,
         })
     end
 
@@ -49,6 +51,7 @@ local function updateMarkers()
             table.insert(waypoints, {
                 name = wp.name,
                 pos = wp.pos,
+                rot = wp.rot,
                 zMinOffset = wp.zOffset or 1,
                 radius = wp.radius,
                 color = color,

@@ -215,7 +215,7 @@ local function slowTick(ctxt)
         M.progression = 1 - (remainingDistance / M.line.totalDistance)
 
         local target = M.line.stops[M.nextStop]
-        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, target.pos) - (ctxt.veh:getInitialWidth() / 2)
+        local distance = GetHorizontalDistance(ctxt.vehPosRot.pos, target.pos)
 
         if distance < target.radius then
             -- core_vehicleBridge.registerValueChangeNotification(veh, "kneel")

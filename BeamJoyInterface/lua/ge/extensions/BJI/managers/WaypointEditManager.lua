@@ -8,12 +8,14 @@ local M = {
     TYPES = {
         SPHERE = "start",
         CYLINDER = "wp",
+        ARROW = "arrow",
     }
 }
 
 local function reset()
     M.spheres = {}
     M.cylinders = {}
+    M.arrows = {}
     M.segments = {}
 end
 
@@ -25,16 +27,27 @@ local function setWaypoints(points)
             table.insert(M.cylinders, {
                 name = wp.name,
                 pos = wp.pos,
+                rot = wp.rot,
+                zMinOffset = wp.zMinOffset or 0,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
                 textColor = wp.textColor,
                 textBg = wp.textBg,
             })
-        else
-            -- SPHERE
+        elseif wp.type == M.TYPES.SPHERE then
             table.insert(M.spheres, {
                 name = wp.name,
                 pos = wp.pos,
+                radius = wp.radius,
+                color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
+            })
+        elseif wp.type == M.TYPES.ARROW then
+            table.insert(M.arrows, {
+                name = wp.name,
+                pos = wp.pos,
+                rot = wp.rot,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
                 textColor = wp.textColor,
@@ -63,17 +76,27 @@ local function setWaypointsWithSegments(waypoints, loopable)
             table.insert(M.cylinders, {
                 name = wp.name,
                 pos = wp.pos,
+                rot = wp.rot,
                 zMinOffset = wp.zMinOffset or 0,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
                 textColor = wp.textColor,
                 textBg = wp.textBg,
             })
-        else
-            -- SPHERE
+        elseif wp.type == M.TYPES.SPHERE then
             table.insert(M.spheres, {
                 name = wp.name,
                 pos = wp.pos,
+                radius = wp.radius,
+                color = wp.color or M._wpColor,
+                textColor = wp.textColor,
+                textBg = wp.textBg,
+            })
+        elseif wp.type == M.TYPES.ARROW then
+            table.insert(M.arrows, {
+                name = wp.name,
+                pos = wp.pos,
+                rot = wp.rot,
                 radius = wp.radius,
                 color = wp.color or M._wpColor,
                 textColor = wp.textColor,
@@ -135,6 +158,18 @@ local function setWaypointsWithSegments(waypoints, loopable)
     end
 end
 
+local function drawArrow(ctxt, wp, color)
+    local angle = AngleFromQuatRotation(wp.rot)
+    local len = Rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
+    local tip = vec3(wp.pos) + len
+    local base = vec3(wp.pos) + Rotate2DVec(len, math.pi)
+    ShapeDrawer.SquarePrism(
+        base, ctxt.veh and ctxt.veh:getInitialWidth() or wp.radius * 1.2,
+        tip, 0,
+        color
+    )
+end
+
 local function renderTick(ctxt)
     for _, segment in ipairs(M.segments) do
         ShapeDrawer.SquarePrism(
@@ -144,17 +179,26 @@ local function renderTick(ctxt)
         )
     end
 
-    for _, start in ipairs(M.spheres) do
-        ShapeDrawer.Sphere(start.pos, start.radius, start.color)
-        ShapeDrawer.Text(start.name, start.pos, start.textColor or M._textColor,
-            start.textBg or M._textBgColor, true)
-    end
-
     for _, wp in ipairs(M.cylinders) do
         local zMinOffset = wp.zMinOffset or 1
         local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z - zMinOffset)
         local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
         ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
+        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+            wp.textBg or M._textBgColor, true)
+        if wp.rot then
+            drawArrow(ctxt, wp, ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, wp.color.a))
+        end
+    end
+
+    for _, wp in ipairs(M.spheres) do
+        ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
+        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+            wp.textBg or M._textBgColor, true)
+    end
+
+    for _, wp in ipairs(M.arrows) do
+        drawArrow(ctxt, wp, wp.color)
         ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
             wp.textBg or M._textBgColor, true)
     end

@@ -9,6 +9,7 @@ local function reloadMarkers()
             name = station.name,
             pos = station.pos,
             radius = station.radius,
+            type = BJIWaypointEdit.TYPES.SPHERE,
         })
     end
 

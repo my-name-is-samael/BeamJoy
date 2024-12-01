@@ -31,3 +31,35 @@ end
 function CelsiusToFarenheit(celsius)
     return (celsius * 9 / 5) + 32
 end
+
+-- override because deprecated in lua.math
+function Atan2(y, x)
+    if x > 0 then
+        return math.atan(y / x)
+    elseif x < 0 and y >= 0 then
+        return math.atan(y / x) + math.pi
+    elseif x < 0 and y < 0 then
+        return math.atan(y / x) - math.pi
+    elseif x == 0 and y > 0 then
+        return math.pi / 2
+    elseif x == 0 and y < 0 then
+        return -math.pi / 2
+    else
+        return 0
+    end;
+end
+
+function Rotate2DVec(vec, rad)
+    local cosrad, sinrad = math.cos(rad), math.sin(rad)
+    local res = vec3()
+    res.x = cosrad * vec.x - sinrad * vec.y
+    res.y = sinrad * vec.x + cosrad * vec.y
+    return res
+end
+
+function AngleFromQuatRotation(rot)
+    local sin_yaw = 2 * (rot.w * rot.z + rot.x * rot.y)
+    local cos_yaw = 1 - 2 * (rot.y ^ 2 + rot.z ^ 2)
+    local angle = Atan2(sin_yaw, cos_yaw) + math.pi
+    return Scale(angle, 0, math.pi * 2, math.pi * 2, 0)
+end

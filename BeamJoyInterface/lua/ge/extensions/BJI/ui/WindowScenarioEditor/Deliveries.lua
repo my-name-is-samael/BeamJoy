@@ -8,6 +8,7 @@ local function reloadMarkers()
         table.insert(waypoints, {
             name = svar(BJILang.get("delivery.edit.position"), { index = i }),
             pos = position.pos,
+            rot = position.rot,
             radius = position.radius,
             type = BJIWaypointEdit.TYPES.CYLINDER,
         })

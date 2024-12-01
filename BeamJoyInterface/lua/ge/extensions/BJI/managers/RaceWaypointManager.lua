@@ -7,6 +7,7 @@ local M = {
         _onWaypoint = nil,
         _onFinish = nil,
         _steps = {},
+        _lastPos = nil,
     },
     _raceMarker = require("scenario/race_marker"),
     _targets = {},
@@ -88,6 +89,7 @@ local function resetAll()
     M._race._countWp = 0
     M._race._onWaypoint = nil
     M._race._onFinish = nil
+    M._race._lastPos = false
     table.clear(M._race._steps)
 
     table.clear(M._targets)
@@ -181,9 +183,13 @@ local function updateRaceMarkers(lastWp)
                         wp = iWp,
                     })
 
+                    local angle = AngleFromQuatRotation(wp.rot)
+                    local normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+
                     table.insert(M._markers, {
                         name = wp.name,
                         pos = wp.pos,
+                        normal = normal:normalized(),
                         radius = wp.radius,
                         fadeNear = false,
                         fadeFar = false,
@@ -212,9 +218,13 @@ local function updateRaceMarkers(lastWp)
                         if tincludes(wp.parents, wpPrevious.name) and
                             (not wp.stand or iStep < #M._race._steps) then -- disable stand if last step
                             if M._modes[wp.name] == nil then
+                                local angle = AngleFromQuatRotation(wp.rot)
+                                local normal = Rotate2DVec(vec3(0, wp.radius, 0), angle)
+
                                 table.insert(M._markers, {
                                     name = wp.name,
                                     pos = wp.pos,
+                                    normal = normal:normalized(),
                                     radius = wp.radius,
                                     fadeNear = false,
                                     fadeFar = false,
@@ -253,6 +263,57 @@ local function onRaceFinishReached()
     M.resetAll()
 end
 
+-- Retrieve middle front position of the current vehicle
+local function getVehFrontPos(ctxt)
+    if not ctxt.veh then return end
+
+    local origin = vec3(ctxt.vehPosRot.pos);
+    local len = vec3(ctxt.veh:getInitialLength() / 2, 0, 0);
+    local vdata = map.objects[ctxt.veh:getID()];
+    local dir = vdata.dirVec;
+    local angle = Atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
+    angle = Scale(angle, -math.pi, math.pi, 0, math.pi * 2);
+    angle = (angle + math.pi / 2) % (math.pi * 2);
+    local toFront = Rotate2DVec(len, angle);
+    return origin + toFront;
+end
+
+local function checkMatchingHeight(ctxt, wp)
+    if not ctxt.veh or not M._race._lastPos then return end
+
+    local wpBottom = wp.pos.z - (wp.zOffset or 1) -- 1 meter under the waypoint by default
+    local wpTop = wp.pos.z + (wp.radius * 2)      -- the diameter high over the waypoint
+    local lastTop = M._race._lastPos.z + ctxt.veh:getInitialHeight()
+    local currentTop = ctxt.vehPosRot.pos.z + ctxt.veh:getInitialHeight()
+    return (lastTop >= wpBottom or currentTop >= wpBottom) and
+        (M._race._lastPos.z <= wpTop or ctxt.vehPosRot.pos.z <= wpTop)
+end
+
+local function ccw_intersect(a, b, c)
+    return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
+end
+
+local function checkSegmentCrossed(ctxt, wp, currPos)
+    if not ctxt.veh or not M._race._lastPos then return end
+
+    local angle = AngleFromQuatRotation(wp.rot)
+    local wpRadius = wp.radius + ctxt.veh:getInitialWidth() / 2
+    local len = Rotate2DVec(vec3(0, wpRadius, 0), angle)
+    local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
+    local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+    if BJIDEBUG then
+        ShapeDrawer.Cylinder(wpLeft, vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2), .1,
+            ShapeDrawer.Color(0, 1, 0, .7))
+        ShapeDrawer.Cylinder(wpRight, vec3(wpRight.x, wpRight.y, wpRight.z + wp.radius * 2), .1,
+            ShapeDrawer.Color(0, 0, 1, .7))
+        ShapeDrawer.Cylinder(wpLeft, wpRight, .1, ShapeDrawer.Color(1, 1, 1, .7))
+    end
+
+    -- https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+    return ccw_intersect(wpLeft, M._race._lastPos, currPos) ~= ccw_intersect(wpRight, M._race._lastPos, currPos) and
+        ccw_intersect(wpLeft, wpRight, M._race._lastPos) ~= ccw_intersect(wpLeft, wpRight, currPos)
+end
+
 local function checkRaceTargetReached(ctxt)
     if not M.isRacing() then
         return
@@ -263,19 +324,17 @@ local function checkRaceTargetReached(ctxt)
         return
     end
 
-    local vehpos, vehRadius = vec3(ctxt.vehPosRot.pos), ctxt.veh:getInitialWidth() / 2
-    vehpos.z = vehpos.z + (ctxt.veh:getInitialHeight() / 2)
+    local vehFrontPos = getVehFrontPos(ctxt)
+    if BJIDEBUG then
+        ShapeDrawer.Cylinder(vehFrontPos,
+            vec3(vehFrontPos.x, vehFrontPos.y, vehFrontPos.z + ctxt.veh:getInitialHeight() * 2),
+            .1, ShapeDrawer.Color(1, 0, 0, .7))
+    end
 
     for _, target in ipairs(M._targets) do
         local wp = M._race._steps[target.step][target.wp]
 
-        local distance = GetHorizontalDistance(vehpos, wp.pos)
-        local hitboxBottom = wp.pos.z - (wp.zOffset or 1) -- 1 meter under the waypoint by default
-        local hitboxTop = wp.pos.z + (wp.radius * 2)      -- the diameter high over the waypoint
-
-        if distance <= wp.radius + vehRadius and
-            vehpos.z >= hitboxBottom and
-            vehpos.z <= hitboxTop then
+        if checkMatchingHeight(ctxt, wp) and checkSegmentCrossed(ctxt, wp, vehFrontPos) then
             local i = target.step
             while i > 0 and #M._race._steps > 0 do
                 table.remove(M._race._steps, 1)
@@ -327,9 +386,14 @@ local function renderTick(ctxt)
     if M.isRacing() then
         if #M._race._steps == 0 then
             M._race._started = false
-        else
-            checkRaceTargetReached(ctxt)
+        elseif ctxt.isOwner then
+            if M._race._lastPos then
+                checkRaceTargetReached(ctxt)
+            end
+            M._race._lastPos = getVehFrontPos(ctxt)
         end
+    elseif M._race._lastPos then
+        M._race._lastPos = nil
     end
 
     if #M._targets > 0 then

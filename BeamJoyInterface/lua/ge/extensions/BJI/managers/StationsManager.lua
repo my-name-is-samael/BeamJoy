@@ -48,8 +48,7 @@ local function detectChunk(ctxt)
     for i = M.detectionProcess, target do
         local s = M.detectionStations[i]
         if s and
-            --GetHorizontalDistance(s.pos, ctxt.vehPosRot.pos) <= s.radius then
-            ctxt.vehPosRot.pos:distance(s.pos) - (ctxt.veh:getInitialWidth() / 2) <= s.radius then
+            ctxt.vehPosRot.pos:distance(s.pos) <= s.radius then
             if not s.types then
                 M.station = s
                 M.detectionProcess = nil
@@ -133,7 +132,7 @@ local function renderTick(ctxt)
             not veh or
             BJIVeh.isUnicycle(veh:getID()) then
             M.station = nil
-        elseif ctxt.vehPosRot.pos:distance(M.station.pos) - (ctxt.veh:getInitialWidth() / 2) > M.station.radius then
+        elseif ctxt.vehPosRot.pos:distance(M.station.pos) > M.station.radius then
             M.station = nil
         end
         return
