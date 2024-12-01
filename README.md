@@ -45,6 +45,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - A broadcast system for customizable messages sent at specified intervals, by language.
 - All server configurations can be changed in-game with sufficient permissions; no need for file-based configuration changes.
 - Toggleable Console, WorldEditor, and NodeGrabber for your players (some scenarios disable these to prevent cheating).
+- Localized and dynamic chat commands system.
 
 ### QoL
 
@@ -61,12 +62,13 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - BigMap missions are removed since they are unavailable on BeamMP.
 - Traffic spawning is managed with a per-group VehicleCap permission to prevent game softlock when permission is missing.
 - Prevent users from activating their own mods and disrupting the server experience.
-- A secondary, highly responsive vehicle selector with all the base functionalities but without preview images (works with modded vehicles).
+- A secondary, highly responsive vehicle selector with all the base functionalities with preview images (works with modded vehicles).
 - Complete theme editor for windows for admins and selected players.
 - Vehicle model blacklist to prevent their usage on your server (only staff can see and spawn them).
 - Specific permissions for spawning trailers and props. Vehicles in categories for which you lack permissions will be hidden in both vehicle selectors.
 - Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
 - Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
+- Customizable emergency refuel system when players vehicles are running out of gas.
 
 ### Facilities
 
@@ -102,20 +104,21 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Solo races with leaderboards and time delta.
 - Race editor for admins and selected players.
 - Multiplayer races can be forced by staff or voted for by players.
-- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint.
+- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint and respawn in the pit stand.
 - Working pit stands.
 - Players can use any vehicle, a specific model, or a specified configuration set at race launch.
 - Dynamic branching race mapping allows shortcuts or reroutes.
 - Persistent race records.
 - Reputation rewards for participation, winning races, and breaking records, highly customizable.
 - Real-time race time counter with flashing time when reaching a checkpoint (UI applications).
-- Toggleable broadcasting solo race times
+- Toggleable broadcasting solo race times.
+- Useful tools in race editor, such as 180deg vehicle rotation and race reversal.
 
 #### Hunter / CarHunt
 
 - Working hunter system where the fugitive and hunters cannot see each other's nametags.
 - The fugitive must pass the specified checkpoints without being taken down by hunters or crashing.
-- Hunters can reset their vehicles but with a 10-second penalty before resuming the chase.
+- Hunters can reset their vehicles but with a time penalty before resuming the chase.
 - Vehicle configurations can be forced at launch.
 - Complete editor for starting positions (Hunters and Fugitive) and checkpoints for admins and selected players.
 - Reputation rewards for participation and winning, highly customizable.
@@ -182,9 +185,9 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - In-game, navigate to *Config* Menu > *Server* > *Maps Labels*.
 - At the bottom, fill in the *Tech Name* (name of the folder inside the archive), the *Map Label* (the label you want players to see) and the *Archive Full Name* (including the extension), e.g., "ks_spa", "SPA Francorchamps", "ks_spa_v20230929.zip".
 - Click the green *Save* button.
-- Your map will no appear in the map switcher and map vote areas.
+- Your map will now appear in the map switcher and map vote areas.
 
-The optimized map switcher only sends the current modded map to joining players, not all idle modded maps.
+The optimized map switcher only sends the current modded map to joining players, not all idle map mods.
 
 **Caution** : When switching to or from a modded map, the server will restart. Ensure you have an active reboot system for your server.
 
@@ -207,8 +210,11 @@ To remove languages:
     - Server.WelcomeMessage
 
 To add new language:
-- In the BeamNG main menu, open the console and type `dump(Lua:getSelectedLanguage())`.
-- You should get a result like *"en_EN"*. Name your future JSON file using the part before the underscore, converted to lowercase (e.g., *"Tr_UI"* becomes *tr.json*).
+- You want to add an in-game language:
+- - In the BeamNG main menu, open the console and type `dump(Lua:getSelectedLanguage())`.
+- - You should get a result like *"en_EN"*. Name your future JSON file using the part before the underscore, converted to lowercase (e.g., *"Tr_UI"* becomes *tr.json*).
+- Or you want to add a new language:
+- - Find the best code for your language (usually 2 or 3 letters). Name your future JSON file with your lowered code (e.g., *tr.json*)
 - Copy *Resources/Server/BeamJoyCore/lang/en.json* and rename it with the new name from the previous step.
 - Translate the newly created file, but only change the values, not the keys, and do not modify variables between braces (**{** and **}**) in values.
 

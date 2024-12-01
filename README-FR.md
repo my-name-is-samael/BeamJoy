@@ -45,6 +45,7 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Système d'annonce de messages à intervalles définis, personnalisable par langue.
 - Toutes les configurations du serveur peuvent être modifiées en jeu, avec les permissions adéquates; aucune modification dans les fichiers n’est nécessaire.
 - Console, WorldEditor et NodeGrabber activables/désactivables pour les joueurs (certains scénarios désactivent ces fonctions pour éviter la triche).
+- Système de commandes dans le chat entièrement traduit et dynamique.
 
 ### Qualité de Vie (QoL)
 
@@ -61,12 +62,13 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Les missions du menu Carte sont supprimées car indisponibles sur BeamMP.
 - La gestion du trafic est effectuée avec une permission VehicleCap par groupe pour éviter un soft-lock du jeu lorsque la permission est manquante.
 - Empêche les utilisateurs d’activer leurs propres mods et de ruiner l’expérience du serveur.
-- Un sélecteur de véhicules secondaire et réactif, avec toutes les fonctionnalités de base, mais sans les images de prévisualisation (compatible avec les véhicules moddées).
+- Un sélecteur de véhicules secondaire et réactif, avec toutes les fonctionnalités de base, avec les images de prévisualisation (fonctionne aussi avec les véhicules moddées).
 - Éditeur de thème complet pour les fenêtres, disponible pour les admins et certains joueurs sélectionnés.
 - Blacklist de modèles de véhicules pour empêcher leur utilisation sur votre serveur (seuls le staff peut les voir et les faire apparaître).
 - Permissions spécifiques pour faire apparaître des remorques et des props. Les véhicules d’une catégorie pour laquelle vous n’avez pas la permission seront cachés dans les deux sélecteurs de véhicules.
 - Présélections intégrées pour le temps de jeu (crépuscule, midi, aube, minuit) et la météo (clair, nuageux, pluie légère, pluvieux, neige légère, et neigeux).
 - Conservation de carburant/énergie activable lorsque le véhicule est réinitialisé, rendant les stations-service et les stations de recharge indispensables.
+- Systène de ravitaillement d'urgence configurable pour les véhicules des joueurs qui tombent en panne.
 
 ### Services et infrastructures de carte
 
@@ -101,20 +103,21 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - Courses solo avec classement et delta de temps.
 - Éditeur de courses pour les admins et certains joueurs sélectionnés.
 - Les courses multijoueurs peuvent être forcées par le staff ou votées par les joueurs.
-- Stratégies de réapparition variées : Tous les types de réapparition, aucune réapparition (avec compteur DNF), réapparition au dernier point de contrôle.
+- Stratégies de réapparition variées : Tous les types de réapparition, aucune réapparition (avec compteur DNF), réapparition au dernier point de contrôle et réapparition dans les stands.
 - Stand de ravitaillement fonctionnel.
 - Les joueurs peuvent utiliser n’importe quel véhicule, un modèle spécifique ou une configuration spécifique définie au lancement de la course.
 - Editeur dynamique des courses permettant des raccourcis ou des détours.
 - Enregistrement persistant des records de chaque course.
 - Récompenses de réputation pour la participation, la victoire et les records battus, hautement personnalisables.
 - Compteur de temps en temps réel avec indication au passage des points de contrôle, et affichage dans l’interface.
-- Diffusion des temps pour les courses solo activable
+- Diffusion des temps pour les courses solo activable.
+- Outils pratiques dans l'éditeur de courses, notamment la rotation à 180 degrés du véhicule et l'inversion de course.
 
 #### Chasseur / CarHunt
 
 - Système de Hunter fonctionnel où le fugitif et les chasseurs ne peuvent pas voir les plaques nominatives de l’autre équipe.
 - Le fugitif doit franchir un certain nombre de points de contrôle sans être attrapé par les chasseurs ou se bloquer par ses propres erreurs de conduite.
-- Chaque chasseur peut réinitialiser son véhicule, mais aura une pénalité de 10 secondes avant de reprendre la chasse.
+- Chaque chasseur peut réinitialiser son véhicule, mais aura une pénalité de temps avant de pouvoir reprendre la chasse.
 - Configurations de véhicules imposées au lancement possibles.
 - Éditeur complet des positions de départ (Chasseurs et Fugitif) et des points de contrôle pour les admins et certains joueurs sélectionnés.
 - Récompenses de réputation pour les participants et les vainqueurs, hautement personnalisables.
@@ -180,9 +183,9 @@ De plus, il intègre un framework modulaire permettant aux développeurs d’ajo
 - En jeu, allez dans le menu *Configuration* > *Serveur* > *Libellés des Cartes*.
 - En bas, remplissez le *Nom Technique* (nom du dossier dans l'archive), le *Libellé de la Carte* (le nom que vos joueurs verront) et le *Nom Complet de l'Archive* (y compris l'extension) : par exemple, "ks_spa", "SPA Francorchamps", "ks_spa_v20230929.zip".
 - Cliquez sur le bouton vert *Ajouter*.
-- Votre carte sera désormais disponible dans la zone de switch de carte et dans la zone de vote pour le switch de carte.
+- Votre carte sera désormais disponible dans le switch de carte et dans le vote de carte.
 
-L'objectif du switcheur de carte optimisé est de n'envoyer que la carte moddée actuelle aux joueurs rejoignant le serveur, et de ne pas envoyer toutes les cartes moddées inactives.
+L'objectif du switcheur de carte optimisé est de n'envoyer que la carte moddée actuelle aux joueurs rejoignant le serveur, et de ne pas envoyer tous les autres mods de carte non utilisés.
 
 **Attention** : Lors du passage depuis ou vers une carte moddée, le serveur redémarrera automatiquement. Prenez donc vos précautions pour avoir un système de redémarrage actif pour votre serveur.
 
@@ -205,8 +208,11 @@ Si vous voulez supprimer une ou plusieurs langues:
     - Server.WelcomeMessage
 
 Si vous voulez ajouter une langue :
-- Dans le menu principal de BeamNG, ouvrez la console et tapez `dump(Lua:getSelectedLanguage())`.
-- Vous obtiendrez un résultat comme *"en_EN"*. Votre fichier JSON sera nommé selon la partie avant l’underscore et devra être en minuscules (par exemple, *Tr_UI* donnera un fichier nommé *tr.json*).
+- Vous souhaitez ajouter une langue présente dans le jeu:
+- - Dans le menu principal de BeamNG, ouvrez la console et tapez `dump(Lua:getSelectedLanguage())`.
+- - Vous obtiendrez un résultat comme *"en_EN"*. Votre fichier JSON sera nommé selon la partie avant l’underscore et devra être en minuscules (par exemple, *Tr_UI* donnera un fichier nommé *tr.json*).
+- Vous souhaitez ajouter une nouvelle langue:
+- - Déterminez le code de votre langue (habituellement 2 ou 3 lettres). Votre fichier JSON sera nommé avec ce code en minuscules (par exemple, *tr.json*)
 - Vous pouvez copier le fichier *Resources/Server/BeamJoyCore/lang/en.json* sous le nom que vous avez déterminé dans l’étape précédente, dans le même dossier.
 - Vous pouvez traduire ce fichier nouvellement créé, mais n'oubliez pas de ne modifier que les valeurs et pas les clés, ni les variables entre accolades (**{** et **}**).
 
