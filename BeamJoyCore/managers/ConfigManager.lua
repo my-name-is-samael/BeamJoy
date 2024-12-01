@@ -189,7 +189,7 @@ end
 local function clampValue(parent, key, value)
     if parent == "VoteKick" then
         if key == "Timeout" then
-            return Clamp(value, 5 300)
+            return Clamp(value, 5, 300)
         elseif key == "ThresholdRatio" then
             return Clamp(value, 0.01, 1)
         end
