@@ -135,7 +135,10 @@ local function parseCache(cacheType, cacheData, cacheHash)
         BJIContext.User.currentVehicle = cacheData.currentVehicle
         for vehID, vehicle in pairs(cacheData.vehicles) do
             if not BJIContext.User.vehicles[vehID] then
-                BJIContext.User.vehicles[vehID] = {}
+                BJIContext.User.vehicles[vehID] = {
+                    freezeStation = false,
+                    engineStation = true,
+                }
             end
             tdeepassign(BJIContext.User.vehicles[vehID], vehicle)
         end

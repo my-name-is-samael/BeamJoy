@@ -1,19 +1,45 @@
+local M = {
+    flags = {
+        WINDOW_FLAGS.NO_COLLAPSE
+    },
+    onClose = function()
+        BJIContext.Scenario.FreeroamSettingsOpen = false
+    end,
+}
+
+local labelsConf = {
+    { key = "freeroamSettings.resetDelay",              colon = true },
+    { key = "freeroamSettings.teleportDelay",           colon = true },
+    { key = "freeroamSettings.nametags",                colon = true },
+    { key = "freeroamSettings.driftGood",               colon = true },
+    { key = "freeroamSettings.driftBig",                colon = true },
+    { key = "freeroamSettings.preserveEnergy",          colon = true },
+    { key = "freeroamSettings.vehicleSpawning",         colon = true, minimumGroup = BJI_GROUP_NAMES.ADMIN },
+    { key = "freeroamSettings.quickTravel",             colon = true, minimumGroup = BJI_GROUP_NAMES.ADMIN },
+    { key = "freeroamSettings.emergencyRefuelDuration", colon = true, tooltip = true },
+    { key = "freeroamSettings.emergencyRefuelPercent",  colon = true, tooltip = true },
+}
+
 local function draw(ctxt)
+    if not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) then
+        M.onClose()
+        return
+    end
+
     local labelWidth = 0
-    for _, key in ipairs({
-        "freeroamSettings.resetDelay",
-        "freeroamSettings.teleportDelay",
-        "freeroamSettings.nametags",
-        "freeroamSettings.preserveEnergy",
-        "freeroamSettings.driftGood",
-        "freeroamSettings.driftBig",
-        BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and "freeroamSettings.vehicleSpawning" or nil,
-        BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and "freeroamSettings.quickTravel" or nil,
-    }) do
-        local label = BJILang.get(key)
-        local w = GetColumnTextWidth(label .. ":")
-        if w > labelWidth then
-            labelWidth = w
+    for _, labelConf in ipairs(labelsConf) do
+        if not labelConf.minimumGroup or BJIPerm.hasMinimumGroup(labelConf.minimumGroup) then
+            local label = BJILang.get(labelConf.key)
+            if labelConf.colon then
+                label = svar("{1}:", { label })
+            end
+            if labelConf.tooltip then
+                label = svar("{1} {2}", { label, HELPMARKER_TEXT })
+            end
+            local w = GetColumnTextWidth(label)
+            if w > labelWidth then
+                labelWidth = w
+            end
         end
     end
     local cols = ColumnsBuilder("freeroamSettings", { labelWidth, -1, -1 })
@@ -143,26 +169,6 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.preserveEnergy") }))
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :btnSwitchEnabledDisabled({
-                            id = "freeroamPreserveEnergy",
-                            state = BJIContext.BJC.Freeroam.PreserveEnergy,
-                            onClick = function()
-                                BJITx.config.bjc("Freeroam.PreserveEnergy", not BJIContext.BJC.Freeroam.PreserveEnergy)
-                            end,
-                        })
-                        :build()
-                end
-            }
-        })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
                         :text(svar("{1}:", { BJILang.get("freeroamSettings.allowUnicycle") }))
                         :build()
                 end,
@@ -257,6 +263,78 @@ local function draw(ctxt)
                 end
             }
         })
+        :addRow({
+            cells = {
+                function()
+                    LineBuilder()
+                        :text(svar("{1}:", { BJILang.get("freeroamSettings.preserveEnergy") }))
+                        :build()
+                end,
+                function()
+                    LineBuilder()
+                        :btnSwitchEnabledDisabled({
+                            id = "freeroamPreserveEnergy",
+                            state = BJIContext.BJC.Freeroam.PreserveEnergy,
+                            onClick = function()
+                                BJITx.config.bjc("Freeroam.PreserveEnergy", not BJIContext.BJC.Freeroam.PreserveEnergy)
+                            end,
+                        })
+                        :build()
+                end
+            }
+        })
+        :addRow({
+            cells = {
+                function()
+                    LineBuilder()
+                        :text(svar("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelDuration") }))
+                        :helpMarker(BJILang.get("freeroamSettings.emergencyRefuelDurationTooltip"))
+                        :build()
+                end,
+                function()
+                    LineBuilder()
+                        :inputNumeric({
+                            id = "freeroamEmergencyRefuelDuration",
+                            type = "int",
+                            value = BJIContext.BJC.Freeroam.EmergencyRefuelDuration,
+                            min = 5,
+                            max = 60,
+                            disabled = not BJIContext.BJC.Freeroam.PreserveEnergy,
+                            onUpdate = function(val)
+                                BJIContext.BJC.Freeroam.EmergencyRefuelDuration = val
+                                BJITx.config.bjc("Freeroam.EmergencyRefuelDuration", val)
+                            end
+                        })
+                        :build()
+                end
+            }
+        })
+        :addRow({
+            cells = {
+                function()
+                    LineBuilder()
+                        :text(svar("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelPercent") }))
+                        :helpMarker(BJILang.get("freeroamSettings.emergencyRefuelPercentTooltip"))
+                        :build()
+                end,
+                function()
+                    LineBuilder()
+                        :inputNumeric({
+                            id = "freeroamEmergencyRefuelPercent",
+                            type = "int",
+                            value = BJIContext.BJC.Freeroam.EmergencyRefuelPercent,
+                            min = 5,
+                            max = 100,
+                            disabled = not BJIContext.BJC.Freeroam.PreserveEnergy,
+                            onUpdate = function(val)
+                                BJIContext.BJC.Freeroam.EmergencyRefuelPercent = val
+                                BJITx.config.bjc("Freeroam.EmergencyRefuelPercent", val)
+                            end
+                        })
+                        :build()
+                end
+            }
+        })
         :build()
 end
 
@@ -273,13 +351,7 @@ local function drawFooter(ctxt)
         :build()
 end
 
-return {
-    flags = {
-        WINDOW_FLAGS.NO_COLLAPSE
-    },
-    body = draw,
-    footer = drawFooter,
-    onClose = function()
-        BJIContext.Scenario.FreeroamSettingsOpen = false
-    end,
-}
+M.body = draw
+M.footer = drawFooter
+
+return M

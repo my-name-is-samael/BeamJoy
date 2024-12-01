@@ -1,3 +1,12 @@
+local M = {
+    flags = {
+        WINDOW_FLAGS.NO_COLLAPSE
+    },
+    onClose = function()
+        BJIContext.ServerEditorOpen = false
+    end,
+}
+
 local tabs = {}
 local currentTab
 local function updateTabs()
@@ -66,6 +75,14 @@ local function updateTabs()
 end
 
 local function drawHeader(ctxt)
+    if not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) and
+        not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) and
+        not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CEN) and
+        not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_MAPS) and
+        not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_PERMISSIONS) then
+        M.onClose()
+        return
+    end
     updateTabs()
 
     if #tabs == 0 then
@@ -113,14 +130,8 @@ local function drawFooter(ctxt)
         :build()
 end
 
-return {
-    flags = {
-        WINDOW_FLAGS.NO_COLLAPSE
-    },
-    header = drawHeader,
-    body = drawBody,
-    footer = drawFooter,
-    onClose = function()
-        BJIContext.ServerEditorOpen = false
-    end,
-}
+M.header = drawHeader
+M.body = drawBody
+M.footer = drawFooter
+
+return M

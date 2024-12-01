@@ -938,7 +938,7 @@ ProgressBar = function(data)
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
-    local size = im.ImVec2(data.width, height)
+    local size = im.ImVec2(data.width * BJIContext.UserSettings.UIScale, height)
 
     im.ProgressBar(data.floatPercent, size, text)
 end

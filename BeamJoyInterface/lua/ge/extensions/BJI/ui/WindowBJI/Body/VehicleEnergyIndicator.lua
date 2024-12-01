@@ -16,35 +16,37 @@ local function drawIndicator(ctxt)
     local garageCount = #BJIContext.Scenario.Data.Garages
 
     -- group energy types
-    local tanks = {}
+    local tankGroups = {}
     for _, tank in pairs(ctxt.vehData.tanks) do
-        local t = tanks[tank.energyType]
+        local t = tankGroups[tank.energyType]
         if not t then
-            tanks[tank.energyType] = {
+            tankGroups[tank.energyType] = {
                 current = 0,
                 max = 0,
             }
-            t = tanks[tank.energyType]
+            t = tankGroups[tank.energyType]
         end
         t.current = t.current + tank.currentEnergy
         t.max = t.max + tank.maxEnergy
     end
 
     local i = 1
-    for energyType, tank in pairs(tanks) do
+    for energyType, energyData in pairs(tankGroups) do
         local indicatorColor = TEXT_COLORS.DEFAULT
-        if tank.current / tank.max <= .05 then
+        if energyData.current / energyData.max <= .05 then
             indicatorColor = TEXT_COLORS.ERROR
-        elseif tank.current / tank.max <= .15 then
+        elseif energyData.current / energyData.max <= .15 then
             indicatorColor = TEXT_COLORS.HIGHLIGHT
         end
         local line = LineBuilder()
             :text(svar("{1}:", { BJILang.get(svar("energy.tankNames.{1}", { energyType })) }))
             :text(svar("{1}{2}", {
-                Round(BJIVeh.jouleToReadableUnit(tank.current, energyType), 1),
+                Round(BJIVeh.jouleToReadableUnit(energyData.current, energyType), 1),
                 BJILang.get(svar("energy.energyUnits.{1}", { energyType }))
             }), indicatorColor)
-        if BJIScenario.canRefuelAtStation() then
+        if BJIScenario.canRefuelAtStation() and
+            not BJIStations.station and
+            not BJIContext.User.stationProcess then
             local isEnergyStation = tincludes(BJI_ENERGY_STATION_TYPES, energyType, true)
             local stationCount = isEnergyStation and
                 (energyStationCounts[energyType] and energyStationCounts[energyType]) or
@@ -88,10 +90,22 @@ local function drawIndicator(ctxt)
                 })
             end
         end
+        if BJIContext.BJC.Freeroam.PreserveEnergy and
+            not BJIContext.User.stationProcess and
+            energyData.current / energyData.max <= .02 then
+            line:btn({
+                id = svar("emergencyRefuel{1}", { energyType }),
+                label = BJILang.get("energyStations.emergencyRefuel"),
+                style = BTN_PRESETS.ERROR,
+                onClick = function()
+                    BJIStations.tryRefillVehicle(ctxt, { energyType })
+                end,
+            })
+        end
         line:build()
 
         ProgressBar({
-            floatPercent = tank.current / tank.max,
+            floatPercent = energyData.current / energyData.max,
             width = 250,
         })
         i = i + 1

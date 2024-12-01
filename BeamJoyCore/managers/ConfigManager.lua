@@ -34,9 +34,11 @@ local function getCache(senderID)
             TeleportDelay = M.Data.Freeroam.TeleportDelay,
             QuickTravel = M.Data.Freeroam.QuickTravel,
             Nametags = M.Data.Freeroam.Nametags,
-            PreserveEnergy = M.Data.Freeroam.PreserveEnergy,
             DriftGood = M.Data.Freeroam.DriftGood,
             DriftBig = M.Data.Freeroam.DriftBig,
+            PreserveEnergy = M.Data.Freeroam.PreserveEnergy,
+            EmergencyRefuelDuration = M.Data.Freeroam.EmergencyRefuelDuration,
+            EmergencyRefuelPercent = M.Data.Freeroam.EmergencyRefuelPercent,
         }
     end
 
@@ -154,7 +156,8 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
     elseif parent == "Freeroam" then
         if tincludes({ "VehicleSpawning", "VehicleReset", "QuickTravel", "AllowUnicycle" }, key) then
             return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.ADMIN)
-        elseif tincludes({ "ResetDelay", "TeleportDelay", "PreserveEnergy", "DriftGood", "DriftBig", "Nametags" }, key) then
+        elseif tincludes({ "ResetDelay", "TeleportDelay", "PreserveEnergy", "DriftGood",
+                "DriftBig", "Nametags", "EmergencyRefuelDuration", "EmergencyRefuelPercent" }, key) then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
         end
     elseif parent == "Reputation" then
@@ -199,6 +202,10 @@ local function clampValue(parent, key, value)
     elseif parent == "Freeroam" then
         if tincludes({ "ResetDelay", "TeleportDelay" }, key) then
             return math.max(0, value)
+        elseif key == "EmergencyRefuelDuration" then
+            return math.max(5, math.min(60, value))
+        elseif key == "EmergencyRefuelPercent" then
+            return math.max(5, math.min(100, value))
         end
     elseif parent == "TempBan" then
         if key == "minTime" then

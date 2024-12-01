@@ -177,7 +177,68 @@ local function renderTick(ctxt)
     end
 end
 
+local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
+    if not ctxt.isOwner or not ctxt.vehData or not ctxt.vehData.tanks then return end
+    if not energyTypes or #energyTypes == 0 then return end
+
+    -- no values = emergency refill
+    fillDuration = fillDuration or BJIContext.BJC.Freeroam.EmergencyRefuelDuration
+    fillPercent = fillPercent or Round(BJIContext.BJC.Freeroam.EmergencyRefuelPercent / 100, 2)
+
+
+    local tanksToRefuel = {}
+    for tankName, tank in pairs(ctxt.vehData.tanks) do
+        if tincludes(energyTypes, tank.energyType, true) then
+            tanksToRefuel[tankName] = tank
+        end
+    end
+    if tlength(tanksToRefuel) == 0 then return end
+
+    -- start process
+    BJIVeh.stopCurrentVehicle()
+    BJIContext.User.stationProcess = true
+    local wasResetRestricted = BJIRestrictions.getState(BJIRestrictions.TYPES.Reset)
+    if not wasResetRestricted then
+        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+    end
+    BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
+    ctxt.vehData.freezeStation = true
+    BJIVeh.freeze(true, ctxt.vehData.vehGameID)
+    ctxt.vehData.engineStation = false
+    BJIVeh.engine(false, ctxt.vehData.vehGameID)
+
+    local completedKey = tlength(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
+        "energyStations.flashTankFilled"
+    if #energyTypes == 1 and energyTypes[1] == BJI_ENERGY_STATION_TYPES.ELECTRIC then
+        completedKey = "energyStations.flashBatteryFilled"
+    end
+    BJIMessage.flashCountdown("BJIRefill", GetCurrentTimeMillis() + fillDuration * 1000 + 10, false,
+        BJILang.get(completedKey), fillDuration)
+    BJIAsync.delayTask(function()
+        for tankName, t in pairs(tanksToRefuel) do
+            local targetEnergy = Round(t.maxEnergy * fillPercent)
+            BJIVeh.setFuel(tankName, targetEnergy)
+        end
+    end, fillDuration * 1000 - 1000, "BJIStationRefillFuel")
+    BJIAsync.delayTask(function()
+        ctxt.vehData.freezeStation = false
+        if not ctxt.vehData.freeze then
+            BJIVeh.freeze(false, ctxt.vehData.vehGameID)
+        end
+        ctxt.vehData.engineStation = true
+        if ctxt.vehData.engine then
+            BJIVeh.engine(true, ctxt.vehData.vehGameID)
+        end
+        BJICam.resetForceCamera()
+        if not wasResetRestricted then
+            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+        end
+        BJIContext.User.stationProcess = false
+    end, fillDuration * 1000, "BJIStationRefillEnd")
+end
+
 M.renderTick = renderTick
+M.tryRefillVehicle = tryRefillVehicle
 
 RegisterBJIManager(M)
 return M

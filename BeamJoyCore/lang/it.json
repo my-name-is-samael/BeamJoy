@@ -759,6 +759,10 @@
       "quickTravel": "Viaggio veloce",
       "nametags": "Targhette con i nomi dei giocatori",
       "preserveEnergy": "Conservare il carburante tra i ripristini",
+      "emergencyRefuelDuration": "Durata del rifornimento d'emergenza",
+      "emergencyRefuelDurationTooltip": "Durata del processo di rifornimento d'emergenza in secondi",
+      "emergencyRefuelPercent": "Percentuale di rifornimento d'emergenza",
+      "emergencyRefuelPercentTooltip": "Percentuale del serbatoio rifornita dopo il processo",
       "driftGood": "Punteggio minimo di buone derive",
       "driftBig": "Punteggio minimo per grandi derive",
       "allowUnicycle": "Consentire di camminare"
@@ -913,7 +917,10 @@
     "energyStations": {
       "flashBatteryFilled": "Batterie cariche",
       "flashTankFilled": "Serbatoio pieno",
+      "flashTanksFilled": "Serbatoi riempiti",
       "noRefuelScenario": "Non puoi fare rifornimento al tuo veicolo in questo scenario",
+      "tanksAmount": "{amount} serbatoi",
+      "emergencyRefuel": "Rifornimento d'emergenza",
       "edit": {
         "title": "Redattore delle stazioni energetiche",
         "name": "Nome della stazione",

@@ -759,6 +759,10 @@
       "quickTravel": "Voyage rapide",
       "nametags": "Nametags des joueurs",
       "preserveEnergy": "Conserver le carburant après reset",
+      "emergencyRefuelDuration": "Durée du ravitaillement d'urgence",
+      "emergencyRefuelDurationTooltip": "Durée du processus de ravitaillement d'urgence en secondes",
+      "emergencyRefuelPercent": "Pourcentage de ravitaillement d'urgence",
+      "emergencyRefuelPercentTooltip": "Pourcentage du réservoir ravitaillé après le processus",
       "driftGood": "Score minimum pour de bons dérapages",
       "driftBig": "Score minimum pour des gros dérapages",
       "allowUnicycle": "Autoriser la marche à pied (monocycle)"
@@ -913,7 +917,10 @@
     "energyStations": {
       "flashBatteryFilled": "Batteries chargées",
       "flashTankFilled": "Réservoir rempli",
+      "flashTanksFilled": "Réservoirs remplis",
       "noRefuelScenario": "Tu ne peux pas faire le plein dans ce scénario",
+      "tanksAmount": "{amount} réservoirs",
+      "emergencyRefuel": "Ravitaillement d'urgence",
       "edit": {
         "title": "Éditeur de stations-services",
         "name": "Nom de la station",

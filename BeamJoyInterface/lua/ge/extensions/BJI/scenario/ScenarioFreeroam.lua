@@ -36,7 +36,7 @@ local function tryApplyFreeze(gameVehID)
         return
     end
 
-    local state = BJIContext.User.freeze or veh.freeze
+    local state = BJIContext.User.freeze or veh.freeze or veh.freezeStation
     BJIVeh.freeze(state, gameVehID)
 end
 
@@ -67,7 +67,7 @@ local function renderTick(ctxt)
         end
     else
         for _, veh in pairs(BJIContext.User.vehicles) do
-            if not veh.engine then
+            if not veh.engine or not veh.engineStation then
                 BJIVeh.engine(false, veh.gameVehID)
                 BJIVeh.lights(false, veh.gameVehID)
             end

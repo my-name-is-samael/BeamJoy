@@ -759,6 +759,10 @@
       "quickTravel": "viaje rápido",
       "nametags": "Etiquetas de nombres de jugadores",
       "preserveEnergy": "Conservar combustible entre reinicios",
+      "emergencyRefuelDuration": "Duración de repostaje de emergencia",
+      "emergencyRefuelDurationTooltip": "Duración del proceso de repostaje de emergencia en segundos",
+      "emergencyRefuelPercent": "Porcentaje de repostaje de emergencia",
+      "emergencyRefuelPercentTooltip": "Porcentaje del tanque repostado tras el proceso",
       "driftGood": "Puntuación mínima de buenos derrapes.",
       "driftBig": "Puntuación mínima de grandes derrapes",
       "allowUnicycle": "permitir caminar"
@@ -913,7 +917,10 @@
     "energyStations": {
       "flashBatteryFilled": "Baterías cargadas",
       "flashTankFilled": "Tanque lleno",
+      "flashTanksFilled": "Tanques llenos",
       "noRefuelScenario": "No puede repostar su vehículo en este escenario.",
+      "tanksAmount": "{amount} tanques",
+      "emergencyRefuel": "Repostaje de emergencia",
       "edit": {
         "title": "Editor de Estaciones de Energía",
         "name": "Nombre de la estación",

@@ -760,6 +760,10 @@
       "quickTravel": "Quick travel",
       "nametags": "Players nametags",
       "preserveEnergy": "Preserve fuel between resets",
+      "emergencyRefuelDuration": "Emergency refuel duration",
+      "emergencyRefuelDurationTooltip": "Duration of emergency refueling process in seconds",
+      "emergencyRefuelPercent": "Emergency refuel percent",
+      "emergencyRefuelPercentTooltip": "Tank's percentage refueled after process",
       "driftGood": "Good drifts minimum score",
       "driftBig": "Big drifts minimum score",
       "allowUnicycle": "Allow walking"
@@ -914,7 +918,10 @@
     "energyStations": {
       "flashBatteryFilled": "Batteries charged",
       "flashTankFilled": "Tank filled",
+      "flashTanksFilled": "Tanks filled",
       "noRefuelScenario": "You cannot refuel your vehicle in this scenario",
+      "tanksAmount": "{amount} tanks",
+      "emergencyRefuel": "Emergency refuel",
       "edit": {
         "title": "Energy Stations Editor",
         "name": "Station name",

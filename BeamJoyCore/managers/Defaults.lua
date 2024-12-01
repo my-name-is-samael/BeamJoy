@@ -83,9 +83,11 @@ local function config()
             TeleportDelay = 30,
             Nametags = true,
             QuickTravel = true,
-            PreserveEnergy = false,
             DriftGood = 1000,
             DriftBig = 2000,
+            PreserveEnergy = false,
+            EmergencyRefuelDuration = 20,
+            EmergencyRefuelPercent = 30,
         },
         Reputation = {
             KmDriveReward = 3,

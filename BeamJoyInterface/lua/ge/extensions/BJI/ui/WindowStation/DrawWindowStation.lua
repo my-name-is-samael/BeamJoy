@@ -1,42 +1,15 @@
-local function onRefill(veh, tankName, targetEnergy, energyType)
+local function onRepair(ctxt)
+    BJIVeh.stopCurrentVehicle()
     BJIContext.User.stationProcess = true
+    local wasResetRestricted = BJIRestrictions.getState(BJIRestrictions.TYPES.Reset)
+    if not wasResetRestricted then
+        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+    end
     BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
-    local wasFreeze = veh.freeze
-    veh.freeze = true
-    BJIVeh.freeze(true, veh.vehGameID)
-    local wasEngine = veh.engine
-    veh.engine = false
-    BJIVeh.engine(false, veh.vehGameID)
-
-    local completedLabel = BJILang.get(energyType == BJI_ENERGY_STATION_TYPES.ELECTRIC and
-        "energyStations.flashBatteryFilled" or
-        "energyStations.flashTankFilled")
-    BJIMessage.flashCountdown("BJIRefill", GetCurrentTimeMillis() + 5000, false,
-        completedLabel)
-    BJIAsync.delayTask(function()
-        BJIVeh.setFuel(tankName, targetEnergy)
-    end, 4000, "BJIStationRefillFuel")
-    BJIAsync.delayTask(function()
-        veh.freeze = wasFreeze
-        if not wasFreeze then
-            BJIVeh.freeze(false, veh.vehGameID)
-        end
-        veh.engine = wasEngine
-        BJIVeh.engine(wasEngine, veh.vehGameID)
-        BJICam.resetForceCamera()
-        BJIContext.User.stationProcess = false
-    end, 5000, "BJIStationRefillEnd")
-end
-
-local function onRepair(veh)
-    BJIContext.User.stationProcess = true
-    BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
-    local wasFreeze = veh.freeze
-    veh.freeze = true
-    BJIVeh.freeze(true, veh.vehGameID)
-    local wasEngine = veh.engine
-    veh.engine = false
-    BJIVeh.engine(false, veh.vehGameID)
+    ctxt.vehData.freezeStation = true
+    BJIVeh.freeze(true, ctxt.vehData.vehGameID)
+    ctxt.vehData.engineStation = false
+    BJIVeh.engine(false, ctxt.vehData.vehGameID)
 
     BJIMessage.flashCountdown("BJIRefill", GetCurrentTimeMillis() + 5000, false,
         BJILang.get("garages.flashVehicleRepaired"))
@@ -46,69 +19,114 @@ local function onRepair(veh)
         BJIVeh.setPositionRotation(BJIVeh.getPositionRotation().pos, nil, {
             safe = false
         })
-        BJIVeh.postResetPreserveEnergy(veh.gameVehID)
-        veh.freeze = wasFreeze
-        if not wasFreeze then
-            BJIVeh.freeze(false, veh.vehGameID)
+        BJIVeh.postResetPreserveEnergy(ctxt.vehData.gameVehID)
+        ctxt.vehData.freezeStation = false
+        if not ctxt.vehData.freeze then
+            BJIVeh.freeze(false, ctxt.vehData.vehGameID)
         end
-        veh.engine = wasEngine
-        BJIVeh.engine(wasEngine, veh.vehGameID)
+        ctxt.vehData.engineStation = true
+        if ctxt.vehData.engine then
+            BJIVeh.engine(true, ctxt.vehData.vehGameID)
+        end
         BJICam.resetForceCamera()
+        if not wasResetRestricted then
+            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+        end
         BJIContext.User.stationProcess = false
     end, 5000, "BJIStationRepair")
 end
 
-local function commonDrawEnergyLines(veh, energyStation)
-    local function drawLine(tankName, tank)
-        local qty = BJIVeh.jouleToReadableUnit(tank.currentEnergy, tank.energyType)
-        local max = BJIVeh.jouleToReadableUnit(tank.maxEnergy, tank.energyType)
+local function commonDrawEnergyLines(ctxt, energyStation)
+    if not energyStation or not ctxt.vehData.tanks then
+        return
+    end
+
+    local function drawEnergyLine(energyType, energyData)
+        local qty = BJIVeh.jouleToReadableUnit(energyData.currentEnergy, energyType)
+        local max = BJIVeh.jouleToReadableUnit(energyData.maxEnergy, energyType)
         local line = LineBuilder()
             :text(svar("{1} : {2}{4}/{3}{4}", {
-                BJILang.get(svar("energy.tankNames.{1}", { tank.energyType })),
+                BJILang.get(svar("energy.tankNames.{1}", { energyType })),
                 Round(qty, 2),
                 Round(max, 2),
-                BJILang.get(svar("energy.energyUnits.{1}", { tank.energyType }))
+                BJILang.get(svar("energy.energyUnits.{1}", { energyType }))
             }))
-        if qty < max * .95 then
-            local icon = ICONS.local_gas_station
-            if tank.energyType == BJI_ENERGY_STATION_TYPES.ELECTRIC then
-                -- ELECTRIC
-                icon = ICONS.ev_station
-            end
-            line:btnIcon({
-                id = svar("refill{1}", { tankName }),
-                icon = icon,
-                style = TEXT_COLORS.DEFAULT,
-                background = BTN_PRESETS.SUCCESS,
-                onClick = function()
-                    onRefill(veh, tankName, tank.maxEnergy, tank.energyType)
-                end,
-            })
+        if energyData.amount > 1 then
+            line:text(svar(" ({1})", {
+                svar(BJILang.get("energyStations.tanksAmount"),
+                    { amount = energyData.amount })
+            }))
         end
-        line:build()
+        local icon = ICONS.local_gas_station
+        if energyType == BJI_ENERGY_STATION_TYPES.ELECTRIC then
+            -- ELECTRIC
+            icon = ICONS.ev_station
+        end
+        line:btnIcon({
+            id = svar("refill{1}", { energyType }),
+            icon = icon,
+            style = TEXT_COLORS.DEFAULT,
+            background = BTN_PRESETS.SUCCESS,
+            disabled = energyData.currentEnergy / energyData.maxEnergy > .95,
+            onClick = function()
+                BJIStations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
+            end,
+        })
+            :build()
+
+        ProgressBar({
+            floatPercent = energyData.currentEnergy / energyData.maxEnergy,
+            width = 250,
+        })
     end
-    for tankName, tank in pairs(veh.tanks) do
+
+    local tankGroups = {}
+    for _, tank in pairs(ctxt.vehData.tanks) do
         if energyStation then
             -- Energy station
             if tincludes(BJI_ENERGY_STATION_TYPES, tank.energyType, true) and
                 tincludes(energyStation.types, tank.energyType, true) then
-                drawLine(tankName, tank)
+                if not tankGroups[tank.energyType] then
+                    tankGroups[tank.energyType] = {
+                        currentEnergy = 0,
+                        maxEnergy = 0,
+                        amount = 0,
+                    }
+                end
+                tankGroups[tank.energyType].currentEnergy = tankGroups[tank.energyType].currentEnergy +
+                    tank.currentEnergy
+                tankGroups[tank.energyType].maxEnergy = tankGroups[tank.energyType].maxEnergy + tank.maxEnergy
+                tankGroups[tank.energyType].amount = tankGroups[tank.energyType].amount + 1
             end
         else
             -- Garage
             if not tincludes(BJI_ENERGY_STATION_TYPES, tank.energyType, true) then
-                drawLine(tankName, tank)
+                if not tankGroups[tank.energyType] then
+                    tankGroups[tank.energyType] = {
+                        currentEnergy = 0,
+                        maxEnergy = 0,
+                        amount = 0,
+                    }
+                end
+                tankGroups[tank.energyType].currentEnergy = tankGroups[tank.energyType].currentEnergy +
+                    tank.currentEnergy
+                tankGroups[tank.energyType].maxEnergy = tankGroups[tank.energyType].maxEnergy + tank.maxEnergy
+                tankGroups[tank.energyType].amount = tankGroups[tank.energyType].amount + 1
             end
         end
     end
+
+    for energyType, energyData in pairs(tankGroups) do
+        drawEnergyLine(energyType, energyData)
+    end
 end
 
-local function drawGarage(veh, garage)
-    if not garage or not veh.tanks then
+local function drawGarage(ctxt, garage)
+    if not garage or not ctxt.vehData.tanks then
         return
     end
 
-    commonDrawEnergyLines(veh)
+    commonDrawEnergyLines(ctxt)
 
     if not BJIScenario.canRepairAtGarage() then
         LineBuilder()
@@ -118,7 +136,7 @@ local function drawGarage(veh, garage)
             })
             :text(BJILang.get("garages.noRepairScenario"))
             :build()
-    elseif veh.damageState >= 1 then
+    elseif ctxt.vehData.damageState >= 1 then
         LineBuilder()
             :text(BJILang.get("garages.damagedWarning"))
             :btnIcon({
@@ -126,7 +144,7 @@ local function drawGarage(veh, garage)
                 icon = ICONS.build,
                 background = BTN_PRESETS.SUCCESS,
                 onClick = function()
-                    onRepair(veh)
+                    onRepair(ctxt)
                 end,
             })
             :build()
@@ -137,8 +155,8 @@ local function drawGarage(veh, garage)
     end
 end
 
-local function drawEnergyStation(veh, station)
-    if not station or not veh.tanks then
+local function drawEnergyStation(ctxt, station)
+    if not station or not ctxt.vehData.tanks then
         return
     end
 
@@ -151,7 +169,7 @@ local function drawEnergyStation(veh, station)
             :text(BJILang.get("energyStations.noRefuelScenario"))
             :build()
     else
-        commonDrawEnergyLines(veh, station)
+        commonDrawEnergyLines(ctxt, station)
     end
 end
 
@@ -194,9 +212,9 @@ local function drawBody(ctxt)
     local station = BJIStations.station
     if station then
         if station.isEnergy then
-            drawEnergyStation(ctxt.vehData, station)
+            drawEnergyStation(ctxt, station)
         else
-            drawGarage(ctxt.vehData, station)
+            drawGarage(ctxt, station)
         end
     end
 end
