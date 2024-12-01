@@ -6,9 +6,9 @@ function Round(val, precision)
 end
 
 function Clamp(value, min, max)
-    if value < min then
+    if min and value < min then
         return min
-    elseif value > max then
+    elseif max and value > max then
         return max
     end
     return value
