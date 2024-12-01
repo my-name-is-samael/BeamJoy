@@ -529,8 +529,9 @@
       "uiScale": "Escala da IU",
       "vehicles": {
         "automaticLights": "Luzes automáticas",
-        "automaticLightsTooltip": "Alterne os faróis automaticamente com base na hora do dia.",
+        "automaticLightsTooltip": "Alterne os faróis automaticamente com base na hora do dia",
         "driftFlashes": "Indicador de deriva",
+        "driftFlashesTooltip": "Certifique-se de ter o aplicativo \"Ecrã de corrida em tempo real\" na sua disposição",
         "nametags": "Crachás dos jogadores"
       },
       "freecam": {

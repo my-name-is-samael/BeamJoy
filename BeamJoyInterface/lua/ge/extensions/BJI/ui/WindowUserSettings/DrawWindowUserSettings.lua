@@ -53,7 +53,7 @@ local function drawVehicleSettings(ctxt)
                         :build()
                 end,
                 function()
-                    LineBuilder()
+                    local line = LineBuilder()
                         :btnIconSwitch({
                             id = "driftFlashesToggle",
                             iconEnabled = ICONS.visibility,
@@ -64,7 +64,10 @@ local function drawVehicleSettings(ctxt)
                                 BJITx.player.settings("driftFlashes", BJIContext.UserSettings.driftFlashes)
                             end,
                         })
-                        :build()
+                        if BJIContext.UserSettings.driftFlashes then
+                            line:helpMarker(BJILang.get("userSettings.vehicles.driftFlashesTooltip"))
+                        end
+                        line:build()
                 end
             }
         })
