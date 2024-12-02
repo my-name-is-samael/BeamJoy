@@ -260,7 +260,9 @@ local function set(ctxt, key, value)
     M.Data[parent][key] = value
     BJCDao.config.save(parent, key, value)
 
-    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.BJC)
+    if BJCTx then
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.BJC)
+    end
 end
 
 local function consoleSetWhitelist(args)

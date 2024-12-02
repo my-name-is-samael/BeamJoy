@@ -52,10 +52,12 @@ end
 -- ON CHANGE
 
 local function checkConsoleLang(consoleLang)
-    if not consoleLang or not M.Langs[consoleLang] then
+    if not consoleLang or not M.Langs[consoleLang] or not M.Langs[consoleLang].console then
         LogError(svar("Server lang \"{1}\" is missing, using and saving fallback \"{2}\"",
             { consoleLang, M.FallbackLang }))
-        BJCConfig.set("Lang", M.FallbackLang)
+        local ctxt = {}
+        BJCInitContext(ctxt)
+        BJCConfig.set(ctxt, "Server.Lang", M.FallbackLang)
     end
 end
 

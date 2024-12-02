@@ -20,7 +20,7 @@
     },
     "messages": {
       "missing": "Errore durante la ricerca del messaggio {key}",
-      "invalidMessage": "Il messaggio {key} non è una stringa",
+      "invalidMessage": "Il messaggio {key} non e una stringa",
       "serverBroadcast": "MESSAGGIO DEL SERVER A {targetName}: {message}"
     },
     "command": {
@@ -33,20 +33,24 @@
         "invalidPlayer": "ERRORE Giocatore {playerName} non valido",
         "invalidGroup": "ERRORE Gruppo {groupName} non valido",
         "errorUpdatePlayer": "ERRORE Impossibile aggiornare il giocatore {playerName}",
-        "playerAmbiguity": "ERRORE Ambiguità con il giocatore {playerName}: {playerList}"
+        "playerAmbiguity": "ERRORE Ambiguita con il giocatore {playerName}: {playerList}"
       },
       "help": {
         "setgroup": "Aggiungi un giocatore a un gruppo",
         "setenv": "Imposta o reimposta un valore di ambiente",
-        "whitelist": "mostra lo stato della lista bianca o imposta il valore"
+        "whitelist": "mostra lo stato della lista bianca o imposta il valore",
+        "stop": "Arresta il server correttamente (avvisa i giocatori prima di espellerli, poi esci)"
       },
+      "defaultReturn": "Comando eseguito con successo",
       "envValueSetTo": "Valore dell'ambiente \"{key}\" impostato su \"{value}\"",
-      "groupAssigned": "Il giocatore {playerName} è stato assegnato al gruppo {group}",
-      "showWhitelistState": "Lo stato della lista bianca è {state}",
-      "newWhitelistState": "La lista bianca è ora {state}"
+      "groupAssigned": "Il giocatore {playerName} e stato assegnato al gruppo {group}",
+      "showWhitelistState": "Lo stato della lista bianca e {state}",
+      "newWhitelistState": "La lista bianca e ora {state}",
+      "stopIn": "Arresto del server tra {seconds} secondi",
+      "stop": "Il server si sta arrestando..."
     },
     "db": {
-      "dbFileChanged": "Il file \"{dbName}\" è stato modificato",
+      "dbFileChanged": "Il file \"{dbName}\" e stato modificato",
       "dbLoadingError": "Errore durante il caricamento del DB \"{dbName}\"",
       "dbSaveError": "Errore durante il salvataggio del DB \"{dbName}\"",
       "dbFileLoadingError": "Errore durante il caricamento del file {file}",
@@ -55,7 +59,7 @@
     "players": {
       "dbSaveError": "Errore durante il salvataggio del DB del giocatore \"{playerName}\"",
       "dbSaved": "DB del giocatore \"{playerName}\" salvato",
-      "dbFileChanged": "Il file \"{playerName}\" è stato modificato",
+      "dbFileChanged": "Il file \"{playerName}\" e stato modificato",
       "dbLoadingError": "Errore durante il caricamento del DB \"{playerName}\"",
       "authPlayerNotFound": "AuthPlayer \"{playerName}\" non trovato",
       "invalidPlayer": "Giocatore non valido {playerID}",

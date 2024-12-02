@@ -12,20 +12,13 @@ function M.addCommand(cmd, helpCmd, helpDescription, fnName)
         return
     end
 
-    M.COMMANDS[#M.COMMANDS + 1] = {
+    table.insert(M.COMMANDS, {
         cmd = cmd,
         helpCmd = helpCmd,
         helpDescription = helpDescription,
         fnName = fnName
-    }
+    })
 end
-
-M.addCommand("setgroup", "bj setgroup <player_name> [group_name]",
-    BJCLang.getConsoleMessage("command.help.setgroup"), "BJCPlayers.consoleSetGroup")
-M.addCommand("setenv", "bj setenv <env_key> [env_value]",
-    BJCLang.getConsoleMessage("command.help.setenv"), "BJCEnvironment.consoleSet")
-M.addCommand("whitelist", "bj whitelist [true|false]",
-    BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleWhitelist")
 
 local function _printHelp()
     local out = "BeamJoy commands :"
@@ -36,7 +29,7 @@ local function _printHelp()
         end
     end
     for _, v in ipairs(M.COMMANDS) do
-        out = svar("{1}\n\t{2} = {3}", { out, snormalize(v.helpCmd, cmdLen), v.helpDescription })
+        out = svar("{1}\n\t{2} {3}", { out, snormalize(v.helpCmd, cmdLen), v.helpDescription })
     end
     return out
 end
@@ -86,7 +79,7 @@ function _OnConsoleInput(message)
     -- allow calling subfunctions like "BJCPlayerManager.onConsoleSetGroup(args)"
     local fn = GetSubobject(cmd.fnName)
     if fn then
-        return fn(args)
+        return fn(args) or BJCLang.getConsoleMessage("command.defaultReturn")
     else
         return svar(BJCLang.getConsoleMessage("command.errors.invalidFunctionName"), { functionName = cmd.fnName })
     end
@@ -101,7 +94,15 @@ end
 local function _init()
     MP.RegisterEvent("onConsoleInput", "_OnConsoleInput")
 
-    MP.RegisterEvent("stop", "_StopServer")
+    -- Registering Console Commands
+    M.addCommand("setgroup", "bj setgroup <player_name> [group_name]",
+        BJCLang.getConsoleMessage("command.help.setgroup"), "BJCPlayers.consoleSetGroup")
+    M.addCommand("setenv", "bj setenv <env_key> [env_value]",
+        BJCLang.getConsoleMessage("command.help.setenv"), "BJCEnvironment.consoleSet")
+    M.addCommand("whitelist", "bj whitelist [true|false]",
+        BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleWhitelist")
+    M.addCommand("stop", "bj stop",
+        BJCLang.getConsoleMessage("command.help.stop"), "BJCCore.stop")
 end
 _init()
 

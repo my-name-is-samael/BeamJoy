@@ -4,14 +4,14 @@
       "time": {
         "month": "mes",
         "months": "meses",
-        "day": "día",
-        "days": "días",
+        "day": "dia",
+        "days": "dias",
         "hour": "hora",
         "hours": "horas",
         "minute": "minuto",
         "minutes": "minutos",
         "second": "segundo",
-        "seconds": "artículos de segunda clase",
+        "seconds": "segundos",
         "and": "y"
       },
       "enabled": "Activado",
@@ -26,24 +26,28 @@
     "command": {
       "errors": {
         "usage": "Uso: {command}",
-        "invalidFunctionName": "ERROR Nombre de función no válido \"{functionName}\"",
-        "invalidCommandData": "ERROR Datos de comando no válidos",
-        "invalidEnvKey": "ERROR clave_env \"{key}\" no válida",
-        "invalidValue": "ERROR Valor no válido \"{value}\"",
-        "invalidPlayer": "ERROR Jugador no válido {playerName}",
-        "invalidGroup": "ERROR Grupo no válido {groupName}",
+        "invalidFunctionName": "ERROR Nombre de función no valido \"{functionName}\"",
+        "invalidCommandData": "ERROR Datos de comando no validos",
+        "invalidEnvKey": "ERROR clave_env \"{key}\" no valida",
+        "invalidValue": "ERROR Valor no valido \"{value}\"",
+        "invalidPlayer": "ERROR Jugador no valido {playerName}",
+        "invalidGroup": "ERROR Grupo no valido {groupName}",
         "errorUpdatePlayer": "ERROR No se puede actualizar el jugador {playerName}",
         "playerAmbiguity": "ERROR Ambigüedad con el jugador {playerName}: {playerList}"
       },
       "help": {
         "setgroup": "Agregar un jugador a un grupo",
         "setenv": "Establecer o restablecer un valor de entorno",
-        "whitelist": "mostrar el estado de la lista blanca o establecer el valor"
+        "whitelist": "mostrar el estado de la lista blanca o establecer el valor",
+        "stop": "Detener el servidor correctamente (advierte a los jugadores antes de expulsarlos, luego salir)"
       },
+      "defaultReturn": "Comando ejecutado con exito",
       "envValueSetTo": "Valor de entorno \"{key}\" establecido en \"{value}\"",
       "groupAssigned": "Jugador {playerName} asignado al grupo {group}",
       "showWhitelistState": "El estado de la lista blanca es {state}",
-      "newWhitelistState": "La lista blanca ahora es {state}"
+      "newWhitelistState": "La lista blanca ahora es {state}",
+      "stopIn": "El servidor se detendra en {seconds} segundos",
+      "stop": "El servidor se esta deteniendo..."
     },
     "db": {
       "dbFileChanged": "Archivo \"{dbName}\" cambiado",
@@ -58,17 +62,17 @@
       "dbFileChanged": "Archivo \"{playerName}\" cambiado",
       "dbLoadingError": "Error al cargar la base de datos \"{playerName}\"",
       "authPlayerNotFound": "AuthPlayer \"{playerName}\" no encontrado",
-      "invalidPlayer": "Jugador no válido {playerID}",
-      "invalidGroup": "Grupo no válido {group}",
-      "invalidPermission": "Permiso no válido para el jugador {playerID}",
-      "invalidVehicleData": "Datos del vehículo no válidos para el jugador {playerID}"
+      "invalidPlayer": "Jugador no valido {playerID}",
+      "invalidGroup": "Grupo no valido {group}",
+      "invalidPermission": "Permiso no valido para el jugador {playerID}",
+      "invalidVehicleData": "Datos del vehiculo no validos para el jugador {playerID}"
     },
     "rx": {
       "eventReceived": "Evento recibido {eventName}.{endpoint} por {playerName}"
     },
     "tx": {
-      "invalidEventDataType": "Tipo de datos de evento no válido ({dataType})",
-      "invalidPlayerIDType": "Tipo de ID de jugador no válido ({playerIDType})"
+      "invalidEventDataType": "Tipo de datos de evento no valido ({dataType})",
+      "invalidPlayerIDType": "Tipo de ID de jugador no valido ({playerIDType})"
     }
   },
   "server": {

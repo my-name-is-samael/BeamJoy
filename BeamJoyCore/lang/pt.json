@@ -2,7 +2,7 @@
   "console": {
     "common": {
       "time": {
-        "month": "mês",
+        "month": "mes",
         "months": "meses",
         "day": "dia",
         "days": "dias",
@@ -20,30 +20,34 @@
     },
     "messages": {
       "missing": "Erro ao localizar mensagem {key}",
-      "invalidMessage": "A mensagem {key} não é uma string",
+      "invalidMessage": "A mensagem {key} nao e uma string",
       "serverBroadcast": "MENSAGEM DO SERVIDOR PARA {targetName}: {message}"
     },
     "command": {
       "errors": {
         "usage": "Uso: {command}",
-        "invalidFunctionName": "ERRO Nome de função inválido \"{functionName}\"",
-        "invalidCommandData": "ERRO Dados de comando inválidos",
-        "invalidEnvKey": "ERRO env_key \"{key}\" inválido",
-        "invalidValue": "ERRO Valor inválido \"{value}\"",
-        "invalidPlayer": "ERRO Jogador inválido {playerName}",
-        "invalidGroup": "ERRO Grupo inválido {groupName}",
-        "errorUpdatePlayer": "ERRO Não é possível atualizar o jogador {playerName}",
+        "invalidFunctionName": "ERRO Nome de funçao invalido \"{functionName}\"",
+        "invalidCommandData": "ERRO Dados de comando invalidos",
+        "invalidEnvKey": "ERRO env_key \"{key}\" invalido",
+        "invalidValue": "ERRO Valor invalido \"{value}\"",
+        "invalidPlayer": "ERRO Jogador invalido {playerName}",
+        "invalidGroup": "ERRO Grupo invalido {groupName}",
+        "errorUpdatePlayer": "ERRO Nao e possível atualizar o jogador {playerName}",
         "playerAmbiguity": "ERRO Ambiguidade com o jogador {playerName}: {playerList}"
       },
       "help": {
         "setgroup": "Adicionar um jogador a um grupo",
         "setenv": "Definir ou redefinir um valor de ambiente",
-        "whitelist": "mostrar o estado da lista de permissões ou definir valor"
+        "whitelist": "mostrar o estado da lista de permissoes ou definir valor",
+        "stop": "Pare o servidor corretamente (avisa os jogadores antes de expulsa-los e depois saia)"
       },
+      "defaultReturn": "Comando executado com sucesso",
       "envValueSetTo": "Valor do ambiente \"{key}\" definido como \"{value}\"",
       "groupAssigned": "Jogador {playerName} atribuído ao grupo {group}",
-      "showWhitelistState": "O estado da lista de permissões é {state}",
-      "newWhitelistState": "A lista de permissões agora é {state}"
+      "showWhitelistState": "O estado da lista de permissoes e {state}",
+      "newWhitelistState": "A lista de permissoes agora e {state}",
+      "stopIn": "O servidor sera parado em {seconds} segundos",
+      "stop": "O servidor esta parando..."
     },
     "db": {
       "dbFileChanged": "Arquivo \"{dbName}\" alterado",
@@ -57,18 +61,18 @@
       "dbSaved": "Banco de dados do jogador \"{playerName}\" salvo",
       "dbFileChanged": "Arquivo \"{playerName}\" alterado",
       "dbLoadingError": "Erro ao carregar o banco de dados \"{playerName}\"",
-      "authPlayerNotFound": "AuthPlayer \"{playerName}\" não encontrado",
-      "invalidPlayer": "Jogador inválido {playerID}",
-      "invalidGroup": "Grupo inválido {group}",
-      "invalidPermission": "Permissão inválida para o jogador {playerID}",
-      "invalidVehicleData": "Dados do veículo inválidos para o jogador {playerID}"
+      "authPlayerNotFound": "AuthPlayer \"{playerName}\" nao encontrado",
+      "invalidPlayer": "Jogador invalido {playerID}",
+      "invalidGroup": "Grupo invalido {group}",
+      "invalidPermission": "Permissao invalida para o jogador {playerID}",
+      "invalidVehicleData": "Dados do veículo invalidos para o jogador {playerID}"
     },
     "rx": {
       "eventReceived": "Evento recebido {eventName}.{endpoint} por {playerName}"
     },
     "tx": {
-      "invalidEventDataType": "Tipo de dados de evento inválido ({dataType})",
-      "invalidPlayerIDType": "Tipo de ID de jogador inválido ({playerIDType})"
+      "invalidEventDataType": "Tipo de dados de evento invalido ({dataType})",
+      "invalidPlayerIDType": "Tipo de ID de jogador invalido ({playerIDType})"
     }
   },
   "server": {

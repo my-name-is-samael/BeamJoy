@@ -38,12 +38,16 @@
       "help": {
         "setgroup": "Add a player to a group",
         "setenv": "Set or reset an environment value",
-        "whitelist": "show whitelist state or set value"
+        "whitelist": "show whitelist state or set value",
+        "stop": "Stop server properly (warns players before kicking them, then exit)"
       },
+      "defaultReturn": "Command executed successfully",
       "envValueSetTo": "Environment value \"{key}\" set to \"{value}\"",
       "groupAssigned": "Player {playerName} assigned to group {group}",
       "showWhitelistState": "Whitelist state is {state}",
-      "newWhitelistState": "Whitelist is now {state}"
+      "newWhitelistState": "Whitelist is now {state}",
+      "stopIn": "Stopping server in {seconds} seconds",
+      "stop": "Server is stopping..."
     },
     "db": {
       "dbFileChanged": "File \"{dbName}\" changed",

@@ -15,7 +15,7 @@
         "and": "et"
       },
       "enabled": "Active",
-      "disabled": "Désactive",
+      "disabled": "Desactive",
       "allPlayers": "SERVEUR"
     },
     "messages": {
@@ -36,14 +36,18 @@
         "playerAmbiguity": "ERREUR Ambiguite avec le joueur {playerName} : {playerList}"
       },
       "help": {
-        "setgroup": "Ajouter un joueur à un groupe",
+        "setgroup": "Ajouter un joueur a un groupe",
         "setenv": "Definir ou reinitialiser une valeur d'environnement",
-        "whitelist": "afficher l'etat de la whitelist ou definir la valeur"
+        "whitelist": "afficher l'etat de la whitelist ou definir la valeur",
+        "stop": "Arreter correctement le serveur (avertit les joueurs avant de les expulser, puis quitter)"
       },
-      "envValueSetTo": "Valeur d'environnement \"{key}\" definie à \"{value}\"",
+      "defaultReturn": "Commande executee avec succes",
+      "envValueSetTo": "Valeur d'environnement \"{key}\" definie a \"{value}\"",
       "groupAssigned": "Joueur {playerName} assigne au groupe {group}",
       "showWhitelistState": "L'etat de la whitelist est {state}e",
-      "newWhitelistState": "La whitelist est maintenant {state}e"
+      "newWhitelistState": "La whitelist est maintenant {state}e",
+      "stopIn": "Arret du serveur dans {seconds} secondes",
+      "stop": "Le serveur est en train de s'arreter..."
     },
     "db": {
       "dbFileChanged": "Fichier \"{dbName}\" modifie",
@@ -61,7 +65,7 @@
       "invalidPlayer": "Joueur invalide {playerID}",
       "invalidGroup": "Groupe invalide {group}",
       "invalidPermission": "Permission invalide pour le joueur {playerID}",
-      "invalidVehicleData": "Données de vehicule invalides pour le joueur {playerID}"
+      "invalidVehicleData": "Donnees de vehicule invalides pour le joueur {playerID}"
     },
     "rx": {
       "eventReceived": "Evenement recu {eventName}.{endpoint} par {playerName}"

@@ -158,34 +158,47 @@ local function set(key, value)
     end
 end
 
+local stopDelay = 10
 local function stop()
-    -- countdown
-    local messagesCache = {}
-    for i = 10, 1, -1 do
-        BJCAsync.delayTask(function()
-            for playerID, player in pairs(BJCPlayers.Players) do
-                if not messagesCache[player.lang] then
-                    messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
-                        "broadcast.serverStopsIn")
+    if tlength(BJCPlayers.Players) > 0 then
+        -- countdown
+        local messagesCache = {}
+        for i = stopDelay, 1, -1 do
+            BJCAsync.delayTask(function()
+                if tlength(BJCPlayers.Players) == 0 then
+                    for j = 1, stopDelay do BJCAsync.removeTask(svar("BJCStopMessage-{1}", {j})) end
+                    Exit()
+                else
+                    for playerID, player in pairs(BJCPlayers.Players) do
+                        if not messagesCache[player.lang] then
+                            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
+                                "broadcast.serverStopsIn")
+                        end
+                        BJCChat.onServerChat(playerID,
+                            svar(messagesCache[player.lang], { delay = PrettyDelay(i) }))
+                    end
                 end
-                BJCChat.onServerChat(playerID,
-                    svar(messagesCache[player.lang], { delay = PrettyDelay(i) }))
-            end
-        end, 11 - i, svar("BJCStopMessage-{1}", { i }))
-    end
-
-    BJCAsync.delayTask(function()
-        -- kick all players
-        local playerIDs = {}
-        for playerID in pairs(BJCPlayers.Players) do
-            table.insert(playerIDs, playerID)
+                if i == 1 then
+                    BJCAsync.delayTask(function()
+                        -- kick all players
+                        local playerIDs = {}
+                        for playerID in pairs(BJCPlayers.Players) do
+                            table.insert(playerIDs, playerID)
+                        end
+                        if #playerIDs > 0 then
+                            BJCPlayers.dropMultiple(playerIDs, "broadcast.serverStopped")
+                        end
+                        Exit()
+                    end, 1, "BJCStopServer")
+                end
+            end, stopDelay + 1 - i, svar("BJCStopMessage-{1}", { i }))
         end
-        if #playerIDs > 0 then
-            BJCPlayers.dropMultiple(playerIDs, "broadcast.serverStopped")
-        end
 
+        return svar(BJCLang.getConsoleMessage("command.stopIn"), {seconds = stopDelay})
+    else
         Exit()
-    end, 11, "BJCStopServer")
+        return BJCLang.getConsoleMessage("command.stop")
+    end
 end
 
 local function getCache()

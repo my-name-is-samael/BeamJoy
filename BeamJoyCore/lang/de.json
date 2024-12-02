@@ -10,11 +10,11 @@
         "hours": "Std.",
         "minute": "Minute",
         "minutes": "Minuten",
-        "second": "zweite",
+        "second": "Sekunde",
         "seconds": "Sekunden",
         "and": "Und"
       },
-      "enabled": "Ermöglicht",
+      "enabled": "Ermoglicht",
       "disabled": "Deaktiviert",
       "allPlayers": "SERVER"
     },
@@ -26,27 +26,31 @@
     "command": {
       "errors": {
         "usage": "Verwendung: {Befehl}",
-        "invalidFunctionName": "FEHLER Ungültiger Funktionsname „{functionName}“",
-        "invalidCommandData": "FEHLER Ungültige Befehlsdaten",
-        "invalidEnvKey": "FEHLER Ungültiger env_key „{key}“",
-        "invalidValue": "FEHLER Ungültiger Wert „{value}“",
-        "invalidPlayer": "FEHLER Ungültiger Spieler {playerName}",
-        "invalidGroup": "FEHLER Ungültige Gruppe {groupName}",
+        "invalidFunctionName": "FEHLER Ungultiger Funktionsname „{functionName}“",
+        "invalidCommandData": "FEHLER Ungultige Befehlsdaten",
+        "invalidEnvKey": "FEHLER Ungultiger env_key „{key}“",
+        "invalidValue": "FEHLER Ungultiger Wert „{value}“",
+        "invalidPlayer": "FEHLER Ungultiger Spieler {playerName}",
+        "invalidGroup": "FEHLER Ungultige Gruppe {groupName}",
         "errorUpdatePlayer": "FEHLER Der Spieler {playerName} kann nicht aktualisiert werden.",
         "playerAmbiguity": "FEHLER Mehrdeutigkeit mit Spieler {playerName}: {playerList}"
       },
       "help": {
-        "setgroup": "Einen Spieler zu einer Gruppe hinzufügen",
-        "setenv": "Legen Sie einen Umgebungswert fest oder setzen Sie ihn zurück",
-        "whitelist": "Whitelist-Status anzeigen oder Wert festlegen"
+        "setgroup": "Einen Spieler zu einer Gruppe hinzufugen",
+        "setenv": "Legen Sie einen Umgebungswert fest oder setzen Sie ihn zuruck",
+        "whitelist": "Whitelist-Status anzeigen oder Wert festlegen",
+        "stop": "Server ordnungsgemaB stoppen (warnt Spieler, bevor sie entfernt werden, dann beenden)"
       },
+      "defaultReturn": "Befehl erfolgreich ausgefuhrt",
       "envValueSetTo": "Umgebungswert „{key}“ auf „{value}“ gesetzt",
       "groupAssigned": "Spieler {playerName} wurde der Gruppe {group} zugewiesen",
       "showWhitelistState": "Status der Whitelist ist {state}",
-      "newWhitelistState": "Whitelist ist jetzt {state}"
+      "newWhitelistState": "Whitelist ist jetzt {state}",
+      "stopIn": "Server wird in {seconds} Sekunden gestoppt",
+      "stop": "Server wird gestoppt..."
     },
     "db": {
-      "dbFileChanged": "Datei „{dbName}“ geändert",
+      "dbFileChanged": "Datei „{dbName}“ geandert",
       "dbLoadingError": "Fehler beim Laden der Datenbank „{dbName}“",
       "dbSaveError": "Fehler beim Speichern der Datenbank „{dbName}“",
       "dbFileLoadingError": "Fehler beim Laden der Datei {file}",
@@ -55,20 +59,20 @@
     "players": {
       "dbSaveError": "Fehler beim Speichern der Spieler-Datenbank „{playerName}“",
       "dbSaved": "Spielerdatenbank „{playerName}“ gespeichert",
-      "dbFileChanged": "Datei „{playerName}“ geändert",
+      "dbFileChanged": "Datei „{playerName}“ geandert",
       "dbLoadingError": "Fehler beim Laden der Datenbank „{playerName}“",
       "authPlayerNotFound": "AuthPlayer „{playerName}“ nicht gefunden",
-      "invalidPlayer": "Ungültiger Spieler {playerID}",
-      "invalidGroup": "Ungültige Gruppe {group}",
-      "invalidPermission": "Ungültige Berechtigung für Spieler {playerID}",
-      "invalidVehicleData": "Ungültige Fahrzeugdaten für Spieler {playerID}"
+      "invalidPlayer": "Ungultiger Spieler {playerID}",
+      "invalidGroup": "Ungultige Gruppe {group}",
+      "invalidPermission": "Ungultige Berechtigung fur Spieler {playerID}",
+      "invalidVehicleData": "Ungultige Fahrzeugdaten fur Spieler {playerID}"
     },
     "rx": {
       "eventReceived": "Ereignis {eventName}.{endpoint} von {playerName} empfangen"
     },
     "tx": {
-      "invalidEventDataType": "Ungültiger Ereignisdatentyp ({dataType})",
-      "invalidPlayerIDType": "Ungültiger Spieler-ID-Typ ({playerIDType})"
+      "invalidEventDataType": "Ungultiger Ereignisdatentyp ({dataType})",
+      "invalidPlayerIDType": "Ungultiger Spieler-ID-Typ ({playerIDType})"
     }
   },
   "server": {
