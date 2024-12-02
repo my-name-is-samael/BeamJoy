@@ -332,6 +332,7 @@ local function maps()
         east_coast_usa = {
             label = "East Coast",
             custom = false,
+            dropSizeRatio = .17,
         },
         hirochi_raceway = {
             label = "Hirochi Raceway",
@@ -340,19 +341,22 @@ local function maps()
         italy = {
             label = "Italy",
             custom = false,
+            dropSizeRatio = .14,
         },
         jungle_rock_island = {
             label = "Jungle Rock Island",
             custom = false,
+            dropSizeRatio = .08,
         },
         industrial = {
             label = "Industrial",
             custom = false,
+            dropSizeRatio = .08,
         },
         small_island = {
             label = "Small Island",
             custom = false,
-            dropSizeRatio = .1,
+            dropSizeRatio = .07,
         },
         utah = {
             label = "Utah",
@@ -361,10 +365,12 @@ local function maps()
         west_coast_usa = {
             label = "West Coast",
             custom = false,
+            dropSizeRatio = .4,
         },
         driver_training = {
             label = "Driver Training",
             custom = false,
+            dropSizeRatio = .12,
         },
         derby = {
             label = "Derby Arena",
