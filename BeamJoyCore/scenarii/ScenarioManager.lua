@@ -335,13 +335,7 @@ local function raceDelete(raceID)
 end
 
 local function saveRaceRecord(raceID, record)
-    local race
-    for _, r in ipairs(M.Races) do
-        if r.id == raceID then
-            race = r
-            break
-        end
-    end
+    local race = M.getRace(raceID)
     if not race then
         error({ key = "rx.errors.invalidData" })
     end

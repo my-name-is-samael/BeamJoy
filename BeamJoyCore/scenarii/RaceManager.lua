@@ -376,6 +376,28 @@ local function startFinishRace()
     end, BJCConfig.Data.Race.RaceEndTimeout)
 end
 
+local function checkNewRecord(raceID, time, player, model)
+    local race = BJCScenario.getRace(raceID)
+    if race and (not race.record or race.record.time > time) then
+        local err
+        if not player.guest then
+            M.baseRace.record = {
+                time = time,
+                playerName = player.playerName,
+                model = model,
+            }
+            _, err = pcall(BJCScenario.saveRaceRecord, raceID, M.baseRace.record)
+        end
+        if not err then
+            if race.record then
+                BJCPlayers.reward(player.playerID, BJCConfig.Data.Reputation.RaceRecordReward)
+            end
+            BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACES)
+            BJCScenario.broadcastRaceRecord(M.baseRace.name, player.playerName, M.baseRace.record.time)
+        end
+    end
+end
+
 local function onClientReachedWaypoint(playerID, currentWp, time)
     local pos
     for i, lbData in ipairs(M.race.leaderboard) do
@@ -441,34 +463,17 @@ local function onClientReachedWaypoint(playerID, currentWp, time)
         local lapTime = time - M.race.leaderboard[pos][2][lap].start
         -- check race record
         if not M.baseRace.record or M.baseRace.record.time > lapTime then
-            BJCAsync.delayTask(function()
-                local target = BJCPlayers.Players[playerID]
-                if M.baseRace.record then
-                    BJCPlayers.reward(playerID, BJCConfig.Data.Reputation.RaceRecordReward)
-                end
-                local _, err
-                if not target.guest then
-                    -- record save if not guest player
-                    local vehID
-                    for id in pairs(target.vehicles) do
-                        vehID = id
+            local player = BJCPlayers.Players[playerID]
+            if not player.guest then
+                BJCAsync.delayTask(function()
+                    local model
+                    for _, v in pairs(player.vehicles) do
+                        model = v.name
                         break
                     end
-                    M.baseRace.record = {
-                        playerName = target.playerName,
-                        model = target.vehicles[vehID].name,
-                        time = lapTime,
-                    }
-                    _, err = pcall(BJCScenario.saveRaceRecord, M.baseRace.id, M.baseRace.record)
-                    if not err then
-                        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACES)
-                    end
-                end
-                if not err then
-                    -- broadcast new race record
-                    BJCScenario.broadcastRaceRecord(M.baseRace.name, target.playerName, M.baseRace.record.time)
-                end
-            end, 1)
+                    checkNewRecord(M.baseRace.id, lapTime, player, model)
+                end, 1)
+            end
         end
     end
 
