@@ -544,8 +544,11 @@ local function getEditEntry(ctxt)
         for mapName, map in pairs(BJIContext.Maps.Data) do
             table.insert(maps, {
                 label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                active = BJIContext.UI.mapName == mapName,
                 onClick = function()
-                    BJITx.config.switchMap(mapName)
+                    if not BJIContext.UI.mapName == mapName then
+                        BJITx.config.switchMap(mapName)
+                    end
                 end
             })
         end
