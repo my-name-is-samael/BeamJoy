@@ -58,8 +58,11 @@ local function getVoteEntry(ctxt)
         for mapName, map in pairs(BJIContext.Maps.Data) do
             table.insert(maps, {
                 label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                active = BJIContext.UI.mapName == mapName,
                 onClick = function()
-                    BJITx.votemap.start(mapName)
+                    if BJIContext.UI.mapName ~= mapName then
+                        BJITx.votemap.start(mapName)
+                    end
                 end
             })
         end
@@ -546,7 +549,7 @@ local function getEditEntry(ctxt)
                 label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
                 active = BJIContext.UI.mapName == mapName,
                 onClick = function()
-                    if not BJIContext.UI.mapName == mapName then
+                    if BJIContext.UI.mapName ~= mapName then
                         BJITx.config.switchMap(mapName)
                     end
                 end
