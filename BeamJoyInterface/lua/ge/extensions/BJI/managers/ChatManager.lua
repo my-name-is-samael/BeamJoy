@@ -62,9 +62,8 @@ local function onChat(event, data)
 end
 
 local function renderTick(ctxt)
-    if not M.init and
-        BJIContext.WorldReadyState == 2 and
-        im.GetIO().Framerate > 5 then
+    if not M.init and BJICache.isFirstLoaded(BJICache.CACHES.LANG) and
+        BJIContext.WorldReadyState == 2 and im.GetIO().Framerate > 5 then
         M.init = true
     end
 
@@ -93,9 +92,17 @@ local function renderTick(ctxt)
     end
 end
 
+local function onUnload()
+    M.msgCounter = 1
+    M.init = false
+    M.queue = {}
+end
+
 M.onChat = onChat
 
 M.renderTick = renderTick
+
+M.onUnload = onUnload
 
 RegisterBJIManager(M)
 return M
