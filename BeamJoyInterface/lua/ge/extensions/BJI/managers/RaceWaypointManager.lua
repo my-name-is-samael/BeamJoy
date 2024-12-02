@@ -7,7 +7,6 @@ local M = {
         _onWaypoint = nil,
         _onFinish = nil,
         _steps = {},
-        _lastPos = nil,
     },
     _raceMarker = require("scenario/race_marker"),
     _targets = {},
@@ -89,7 +88,6 @@ local function resetAll()
     M._race._countWp = 0
     M._race._onWaypoint = nil
     M._race._onFinish = nil
-    M._race._lastPos = false
     table.clear(M._race._steps)
 
     table.clear(M._targets)
@@ -263,8 +261,8 @@ local function onRaceFinishReached()
     M.resetAll()
 end
 
--- Retrieve middle front position of the current vehicle
-local function getVehFrontPos(ctxt)
+-- Retrieve vehicle corners positions
+local function getVehCorners(ctxt)
     if not ctxt.veh then return end
 
     local origin = vec3(ctxt.vehPosRot.pos);
@@ -274,31 +272,34 @@ local function getVehFrontPos(ctxt)
     local angle = Atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
     angle = Scale(angle, -math.pi, math.pi, 0, math.pi * 2);
     angle = (angle + math.pi / 2) % (math.pi * 2);
-    local toFront = Rotate2DVec(len, angle);
-    return origin + toFront;
+
+    local w = vec3(0, ctxt.veh:getInitialWidth() / 2, 0);
+    return {
+        fl = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle),
+        fr = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle + math.pi),
+        bl = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle),
+        br = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle + math.pi),
+    }
 end
 
 local function checkMatchingHeight(ctxt, wp)
-    if not ctxt.veh or not M._race._lastPos then return end
+    if not ctxt.veh then return end
 
     local wpBottom = wp.pos.z - (wp.zOffset or 1) -- 1 meter under the waypoint by default
     local wpTop = wp.pos.z + (wp.radius * 2)      -- the diameter high over the waypoint
-    local lastTop = M._race._lastPos.z + ctxt.veh:getInitialHeight()
     local currentTop = ctxt.vehPosRot.pos.z + ctxt.veh:getInitialHeight()
-    return (lastTop >= wpBottom or currentTop >= wpBottom) and
-        (M._race._lastPos.z <= wpTop or ctxt.vehPosRot.pos.z <= wpTop)
+    return currentTop >= wpBottom and ctxt.vehPosRot.pos.z <= wpTop
 end
 
 local function ccw_intersect(a, b, c)
     return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
 end
 
-local function checkSegmentCrossed(ctxt, wp, currPos)
-    if not ctxt.veh or not M._race._lastPos then return end
+local function checkSegmentCrossed(ctxt, wp, vehCorners)
+    if not ctxt.veh then return end
 
     local angle = AngleFromQuatRotation(wp.rot)
-    local wpRadius = wp.radius + ctxt.veh:getInitialWidth() / 2
-    local len = Rotate2DVec(vec3(0, wpRadius, 0), angle)
+    local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
     local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
     local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
     if BJIDEBUG then
@@ -309,9 +310,17 @@ local function checkSegmentCrossed(ctxt, wp, currPos)
         ShapeDrawer.Cylinder(wpLeft, wpRight, .1, ShapeDrawer.Color(1, 1, 1, .7))
     end
 
-    -- https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
-    return ccw_intersect(wpLeft, M._race._lastPos, currPos) ~= ccw_intersect(wpRight, M._race._lastPos, currPos) and
-        ccw_intersect(wpLeft, wpRight, M._race._lastPos) ~= ccw_intersect(wpLeft, wpRight, currPos)
+    for _, segment in ipairs({
+        { vehCorners.fl, vehCorners.br },
+        { vehCorners.fr, vehCorners.bl },
+    }) do
+        -- https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+        if ccw_intersect(wpLeft, segment[1], segment[2]) ~= ccw_intersect(wpRight, segment[1], segment[2]) and
+            ccw_intersect(wpLeft, wpRight, segment[1]) ~= ccw_intersect(wpLeft, wpRight, segment[2]) then
+            return true
+        end
+    end
+    return false
 end
 
 local function checkRaceTargetReached(ctxt)
@@ -324,17 +333,23 @@ local function checkRaceTargetReached(ctxt)
         return
     end
 
-    local vehFrontPos = getVehFrontPos(ctxt)
+    local vehCorners = getVehCorners(ctxt) or {}
     if BJIDEBUG then
-        ShapeDrawer.Cylinder(vehFrontPos,
-            vec3(vehFrontPos.x, vehFrontPos.y, vehFrontPos.z + ctxt.veh:getInitialHeight() * 2),
-            .1, ShapeDrawer.Color(1, 0, 0, .7))
+        for _, segment in ipairs({
+            { vehCorners.fl, vehCorners.br },
+            { vehCorners.fr, vehCorners.bl },
+        }) do
+            ShapeDrawer.Cylinder(
+                vec3(segment[1].x, segment[1].y, segment[1].z),
+                vec3(segment[2].x, segment[2].y, segment[2].z),
+                .1, ShapeDrawer.Color(1, 0, 0, .7))
+        end
     end
 
     for _, target in ipairs(M._targets) do
         local wp = M._race._steps[target.step][target.wp]
 
-        if checkMatchingHeight(ctxt, wp) and checkSegmentCrossed(ctxt, wp, vehFrontPos) then
+        if checkMatchingHeight(ctxt, wp) and checkSegmentCrossed(ctxt, wp, vehCorners) then
             local i = target.step
             while i > 0 and #M._race._steps > 0 do
                 table.remove(M._race._steps, 1)
@@ -387,13 +402,8 @@ local function renderTick(ctxt)
         if #M._race._steps == 0 then
             M._race._started = false
         elseif ctxt.isOwner then
-            if M._race._lastPos then
-                checkRaceTargetReached(ctxt)
-            end
-            M._race._lastPos = getVehFrontPos(ctxt)
+            checkRaceTargetReached(ctxt)
         end
-    elseif M._race._lastPos then
-        M._race._lastPos = nil
     end
 
     if #M._targets > 0 then
