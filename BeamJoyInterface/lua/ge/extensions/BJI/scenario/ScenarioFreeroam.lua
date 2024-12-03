@@ -6,6 +6,7 @@ local M = {
     teleport = {
         restricted = false,
     },
+    engineStates = {},
 }
 
 local function canChangeTo()
@@ -52,9 +53,18 @@ local function tryApplyEngineState(gameVehID)
         return
     end
 
-    local disabled = not BJIContext.User.engine or not veh.engine
-    BJIVeh.engine(not disabled, gameVehID)
-    if disabled then
+    if M.engineStates[gameVehID] == nil then
+        M.engineStates[gameVehID] = true
+    end
+
+    local state = BJIContext.User.engine and veh.engine and veh.engineStation
+    if state and M.engineStates[gameVehID] then
+        return
+    else
+        M.engineStates[gameVehID] = state
+    end
+    BJIVeh.engine(state, gameVehID)
+    if not state then
         BJIVeh.lights(false, gameVehID)
     end
 end
@@ -75,6 +85,16 @@ local function renderTick(ctxt)
     end
 
     BJIDrift.updateRealtimeDisplay(ctxt)
+end
+
+local function slowTick(ctxt)
+    -- engine states cleanup
+    for gameVehID in pairs(M.engineStates) do
+        if not BJIVeh.getVehicleObject(gameVehID) or
+            not BJIVeh.isVehicleOwn(gameVehID) then
+            M.engineStates[gameVehID] = nil
+        end
+    end
 end
 
 local function onVehicleSpawned(gameVehID)
@@ -405,6 +425,7 @@ M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getModelList = getModelList
 
 M.renderTick = renderTick
+M.slowTick = slowTick
 
 M.exemptNextReset = exemptNextReset
 

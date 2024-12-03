@@ -139,7 +139,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                     :btnIconSwitch({
                         id = svar("toggleFreeze{1}-{2}", { playerID, vehID }),
                         iconEnabled = ICONS.ac_unit,
-                        state = vehicle.freeze == true,
+                        state = not not vehicle.freeze,
                         disabled = not finalGameVehID,
                         onClick = function()
                             BJITx.moderation.freeze(playerID, vehID)
@@ -148,7 +148,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                     :btnIconSwitch({
                         id = svar("toggleEngine{1}-{2}", { playerID, vehID }),
                         iconEnabled = ICONS.cogs,
-                        state = vehicle.engine == false,
+                        state = not not vehicle.engine,
                         disabled = not finalGameVehID,
                         onClick = function()
                             BJITx.moderation.engine(playerID, vehID)
