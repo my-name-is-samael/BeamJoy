@@ -64,11 +64,21 @@ function ctrl.switchMap(ctxt)
 end
 
 function ctrl.maps(ctxt)
-    local mapName, label, archive = ctxt.data[1], ctxt.data[2], ctxt.data[3]
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_MAPS) then
-        error({ key = "rx.errors.insufficientPermissions" })
+    if type(ctxt.data[2]) == "boolean" then
+        -- update map state
+        local mapName, state = ctxt.data[1], ctxt.data[2]
+        if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_MAPS) then
+            error({ key = "rx.errors.insufficientPermissions" })
+        end
+        BJCMaps.setMapState(mapName, state)
+    else
+        -- CRUD map
+        local mapName, label, archive = ctxt.data[1], ctxt.data[2], ctxt.data[3]
+        if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_MAPS) then
+            error({ key = "rx.errors.insufficientPermissions" })
+        end
+        BJCMaps.set(mapName, label, archive)
     end
-    BJCMaps.set(mapName, label, archive)
 end
 
 function ctrl.stop(ctxt)

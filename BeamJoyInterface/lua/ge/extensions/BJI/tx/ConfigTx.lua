@@ -34,6 +34,10 @@ function BJITx.config.maps(map, label, archiveName)
     BJITx._send(event.EVENT, event.TX.MAPS, { map, label, archiveName })
 end
 
+function BJITx.config.mapState(map, state)
+    BJITx._send(event.EVENT, event.TX.MAPS, { map, state })
+end
+
 function BJITx.config.stop()
     BJITx._send(event.EVENT, event.TX.STOP)
 end

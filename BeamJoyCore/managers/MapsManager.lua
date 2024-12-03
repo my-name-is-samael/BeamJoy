@@ -3,7 +3,8 @@ local M = {
 }
 
 local function init()
-    M.Data = BJCDao.maps.findAll()
+    M.Data = BJCDefaults.maps()
+    tdeepassign(M.Data, BJCDao.maps.findAll())
 end
 
 --[[
@@ -22,6 +23,7 @@ local function set(mapName, label, archive)
             label = label,
             archive = archive,
             custom = true,
+            enabled = true,
         }
 
         M.Data[mapName] = map
@@ -73,6 +75,19 @@ local function setMapDropSizeRatio(mapName, ratio)
     end
 end
 
+local function setMapState(mapName, state)
+    local map = M.Data[mapName]
+    if not map or type(state) ~= "boolean" then
+        error({ key = "rx.errors.invalidData" })
+    end
+
+    if map.enabled ~= state then
+        map.enabled = state
+        BJCDao.maps.saveMap(mapName, map)
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.MAPS)
+    end
+end
+
 local function getCacheMap(senderID)
     local mapName = BJCCore.getMap()
     local map = M.Data[mapName]
@@ -98,12 +113,15 @@ local function getCacheMaps(senderID)
     local canEdit = BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_MAPS)
     local maps = {}
     for k, v in pairs(M.Data) do
-        maps[k] = {
-            label = v.label,
-            custom = v.custom,
-        }
-        if canEdit then
-            maps[k].archive = v.archive
+        if canEdit or v.enabled then
+            maps[k] = {
+                label = v.label,
+                custom = v.custom,
+                enabled = v.enabled,
+            }
+            if canEdit then
+                maps[k].archive = v.archive
+            end
         end
     end
     return maps, M.getCacheMapsHash()
@@ -115,6 +133,7 @@ end
 
 M.set = set
 M.setMapDropSizeRatio = setMapDropSizeRatio
+M.setMapState = setMapState
 
 M.getCacheMap = getCacheMap
 M.getCacheMapHash = getCacheMapHash

@@ -5,6 +5,7 @@ local M = {
         custom = "boolean",
         dropSizeRatio = "number",
         archive = "string",
+        enabled = "boolean",
     }
 }
 

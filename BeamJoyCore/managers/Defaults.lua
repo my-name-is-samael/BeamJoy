@@ -320,65 +320,79 @@ local function maps()
         smallgrid = {
             label = "SmallGrid",
             custom = false,
+            enabled = true,
         },
         gridmap_v2 = {
             label = "Grid Map V2",
             custom = false,
+            enabled = true,
         },
         automation_test_track = {
             label = "Automation Test Track",
             custom = false,
+            enabled = true,
         },
         east_coast_usa = {
             label = "East Coast",
             custom = false,
+            enabled = true,
             dropSizeRatio = .17,
         },
         hirochi_raceway = {
             label = "Hirochi Raceway",
             custom = false,
+            enabled = true,
         },
         italy = {
             label = "Italy",
             custom = false,
+            enabled = true,
             dropSizeRatio = .14,
         },
         jungle_rock_island = {
             label = "Jungle Rock Island",
             custom = false,
+            enabled = true,
             dropSizeRatio = .08,
         },
         industrial = {
             label = "Industrial",
             custom = false,
+            enabled = true,
             dropSizeRatio = .08,
         },
         small_island = {
             label = "Small Island",
             custom = false,
+            enabled = true,
             dropSizeRatio = .07,
         },
         utah = {
             label = "Utah",
             custom = false,
+            enabled = true,
         },
         west_coast_usa = {
             label = "West Coast",
             custom = false,
+            enabled = true,
             dropSizeRatio = .4,
         },
         driver_training = {
             label = "Driver Training",
             custom = false,
+            enabled = true,
             dropSizeRatio = .12,
         },
         derby = {
             label = "Derby Arena",
             custom = false,
+            enabled = true,
         },
         johnson_valley = {
             label = "Johnson Valley",
             custom = false,
+            enabled = true,
         }
     }
 end

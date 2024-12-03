@@ -135,6 +135,15 @@ local function drawMapsList(ctxt)
             :text(map.custom and
                 svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or
                 "", TEXT_COLORS.HIGHLIGHT)
+            :btnIcon({
+                id = svar("map{1}State", { techName }),
+                icon = map.enabled and ICONS.visibility or ICONS.visibility_off,
+                background = map.enabled and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+                disabled = BJIContext.UI.mapName == techName,
+                onClick = function()
+                    BJITx.config.mapState(techName, not map.enabled)
+                end,
+            })
             :build()
         Indent(2)
         local cols = ColumnsBuilder("mapsList", { labelWidth, -1 })
