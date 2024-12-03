@@ -64,7 +64,7 @@ local function draw(ctxt)
 
     if voteRace.record then
         local record = voteRace.record or {}
-        local modelName = BJIVeh.getModelLabel(record.model) or record.model
+        local modelName = BJIVeh.getModelLabel(record.model)
         if modelName then
             LineBuilder()
                 :text(svar(BJILang.get("races.play.record"), {

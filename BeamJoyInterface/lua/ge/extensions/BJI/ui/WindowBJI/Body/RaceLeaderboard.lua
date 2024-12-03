@@ -25,7 +25,7 @@ local function draw(races)
                         end,
                         function()
                             LineBuilder()
-                                :text(svar("{time} - {playerName} ({model})", {
+                                :text(svar("{time} - {playerName} - {model}", {
                                         time = RaceDelay(race.record.time),
                                         playerName = race.record.playerName,
                                         model = BJIVeh.getModelLabel(race.record.model)

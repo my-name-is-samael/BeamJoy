@@ -17,7 +17,7 @@ local function drawHeader(ctxt)
     line:build()
 
     if mgr.record then
-        local modelName = BJIVeh.getModelLabel(mgr.record.model) or mgr.record.model
+        local modelName = BJIVeh.getModelLabel(mgr.record.model)
         if modelName then
             LineBuilder()
                 :text(svar(BJILang.get("races.play.record"), {
