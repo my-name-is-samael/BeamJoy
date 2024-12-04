@@ -12,7 +12,7 @@ local function Color(r, g, b, a)
 end
 
 local function ColorContrasted(r, g, b, a)
-    local contrast = 0.2126 * r*r + 0.7152 * g*g + 0.0722 * b*b
+    local contrast = 0.2126 * r * r + 0.7152 * g * g + 0.0722 * b * b
     if contrast > .3 then
         return Color(0, 0, 0, a)
     else
@@ -84,11 +84,46 @@ local function Cylinder(bottomPos, topPos, radius, shapeColor)
         ColorF(shapeColor.r, shapeColor.g, shapeColor.b, shapeColor.a))
 end
 
+local function Triangle(posA, posB, posC, shapeColor)
+    local errA, errB, errC, _
+    _, posA, errA = pcall(vec3, posA)
+    _, posB, errB = pcall(vec3, posB)
+    _, posC, errC = pcall(vec3, posC)
+    if errA or errB or errC then
+        -- invalid position
+        return
+    end
+    shapeColor = shapeColor or Color(1, 1, 1, .5)
+
+    local col = color(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255)
+    debugDrawer:drawTriSolid(posA, posB, posC, col)
+    debugDrawer:drawTriSolid(posC, posB, posA, col)
+end
+
+local function Arrow(pos, rot, radius, shapeColor)
+    local errPos, errRot, _
+    _, pos, errPos = pcall(vec3, pos)
+    _, rot, errRot = pcall(quat, rot)
+    if errPos or errRot or not tonumber(radius) then
+        -- invalid position or rotation or radius
+        return
+    end
+    shapeColor = shapeColor or Color(1, 1, 1, .5)
+
+    local angle = AngleFromQuatRotation(rot)
+    local len = Rotate2DVec(vec3(0, radius, 0), angle)
+    local tip = vec3(pos) + len
+    local base = vec3(pos) + Rotate2DVec(len, math.pi)
+    debugDrawer:drawArrow(base, tip, ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
+end
+
 drawer.Color = Color
 drawer.ColorContrasted = ColorContrasted
 drawer.Sphere = Sphere
 drawer.Text = Text
 drawer.SquarePrism = SquarePrism
 drawer.Cylinder = Cylinder
+drawer.Triangle = Triangle
+drawer.Arrow = Arrow
 
 return drawer

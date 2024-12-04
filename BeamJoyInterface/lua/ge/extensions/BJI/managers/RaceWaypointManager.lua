@@ -302,13 +302,6 @@ local function checkSegmentCrossed(ctxt, wp, vehCorners)
     local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
     local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
     local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
-    if BJIDEBUG then
-        ShapeDrawer.Cylinder(wpLeft, vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2), .1,
-            ShapeDrawer.Color(0, 1, 0, .7))
-        ShapeDrawer.Cylinder(wpRight, vec3(wpRight.x, wpRight.y, wpRight.z + wp.radius * 2), .1,
-            ShapeDrawer.Color(0, 0, 1, .7))
-        ShapeDrawer.Cylinder(wpLeft, wpRight, .1, ShapeDrawer.Color(1, 1, 1, .7))
-    end
 
     for _, segment in ipairs({
         { vehCorners.fl, vehCorners.br },
@@ -348,6 +341,23 @@ local function checkRaceTargetReached(ctxt)
 
     for _, target in ipairs(M._targets) do
         local wp = M._race._steps[target.step][target.wp]
+
+        if BJIDEBUG then
+            local angle = AngleFromQuatRotation(wp.rot)
+            local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
+            local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
+            local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+            
+            local gateColor = ShapeDrawer.Color(1, 0, 1, .33)
+            local a = vec3(wpLeft.x, wpLeft.y, wpLeft.z)
+            local b = vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2)
+            local c = vec3(wpRight.x, wpRight.y, wpRight.z)
+            ShapeDrawer.Triangle(a, b, c, gateColor)
+            local d = vec3(wpRight.x, wpRight.y, wpRight.z)
+            local e = vec3(wpRight.x, wpRight.y, wpRight.z + wp.radius * 2)
+            local f = vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2)
+            ShapeDrawer.Triangle(d, e, f, gateColor)
+        end
 
         if checkMatchingHeight(ctxt, wp) and checkSegmentCrossed(ctxt, wp, vehCorners) then
             local i = target.step

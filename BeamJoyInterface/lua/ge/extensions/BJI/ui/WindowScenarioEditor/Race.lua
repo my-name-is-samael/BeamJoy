@@ -52,12 +52,12 @@ local function updateMarkers()
                 name = wp.name,
                 pos = wp.pos,
                 rot = wp.rot,
-                zMinOffset = wp.zOffset or 1,
+                zOffset = wp.zOffset or 1,
                 radius = wp.radius,
                 color = color,
                 parents = parents,
                 finish = iStep == #raceEdit.steps,
-                type = BJIWaypointEdit.TYPES.CYLINDER,
+                type = BJIWaypointEdit.TYPES.RACE_GATE,
             })
         end
     end
