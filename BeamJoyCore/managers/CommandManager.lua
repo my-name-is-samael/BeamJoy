@@ -99,6 +99,8 @@ local function _init()
         BJCLang.getConsoleMessage("command.help.setgroup"), "BJCPlayers.consoleSetGroup")
     M.addCommand("setenv", "bj setenv <env_key> [env_value]",
         BJCLang.getConsoleMessage("command.help.setenv"), "BJCEnvironment.consoleSet")
+    M.addCommand("map", "bj map <map_name>",
+        BJCLang.getConsoleMessage("command.help.map"), "BJCCore.consoleSetMap")
     M.addCommand("whitelist", "bj whitelist [true|false]",
         BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleWhitelist")
     M.addCommand("stop", "bj stop",

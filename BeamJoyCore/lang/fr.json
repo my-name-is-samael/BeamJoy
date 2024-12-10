@@ -38,7 +38,8 @@
       "help": {
         "setgroup": "Ajouter un joueur a un groupe",
         "setenv": "Definir ou reinitialiser une valeur d'environnement",
-        "whitelist": "afficher l'etat de la whitelist ou definir la valeur",
+        "whitelist": "Afficher l'etat de la whitelist ou definir la valeur",
+        "map": "Passer a la carte",
         "stop": "Arreter correctement le serveur (avertit les joueurs avant de les expulser, puis quitter)"
       },
       "defaultReturn": "Commande executee avec succes",
@@ -47,7 +48,9 @@
       "showWhitelistState": "L'etat de la whitelist est {state}e",
       "newWhitelistState": "La whitelist est maintenant {state}e",
       "stopIn": "Arret du serveur dans {seconds} secondes",
-      "stop": "Le serveur est en train de s'arreter..."
+      "stop": "Le serveur est en train de s'arreter...",
+      "validMaps": "Noms de cartes valides : {maps}",
+      "mapSwitched": "Carte changee"
     },
     "db": {
       "dbFileChanged": "Fichier \"{dbName}\" modifie",

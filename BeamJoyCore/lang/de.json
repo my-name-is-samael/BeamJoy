@@ -39,6 +39,7 @@
         "setgroup": "Einen Spieler zu einer Gruppe hinzufugen",
         "setenv": "Legen Sie einen Umgebungswert fest oder setzen Sie ihn zuruck",
         "whitelist": "Whitelist-Status anzeigen oder Wert festlegen",
+        "map": "Zur Karte wechseln",
         "stop": "Server ordnungsgemaB stoppen (warnt Spieler, bevor sie entfernt werden, dann beenden)"
       },
       "defaultReturn": "Befehl erfolgreich ausgefuhrt",
@@ -47,7 +48,9 @@
       "showWhitelistState": "Status der Whitelist ist {state}",
       "newWhitelistState": "Whitelist ist jetzt {state}",
       "stopIn": "Server wird in {seconds} Sekunden gestoppt",
-      "stop": "Server wird gestoppt..."
+      "stop": "Server wird gestoppt...",
+      "validMaps": "Gultige Kartenname: {maps}",
+      "mapSwitched": "Karte gewechselt"
     },
     "db": {
       "dbFileChanged": "Datei „{dbName}“ geandert",

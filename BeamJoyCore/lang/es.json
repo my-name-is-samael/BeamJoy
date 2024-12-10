@@ -38,7 +38,8 @@
       "help": {
         "setgroup": "Agregar un jugador a un grupo",
         "setenv": "Establecer o restablecer un valor de entorno",
-        "whitelist": "mostrar el estado de la lista blanca o establecer el valor",
+        "whitelist": "Mostrar el estado de la lista blanca o establecer el valor",
+        "map": "Cambiar al mapa",
         "stop": "Detener el servidor correctamente (advierte a los jugadores antes de expulsarlos, luego salir)"
       },
       "defaultReturn": "Comando ejecutado con exito",
@@ -47,7 +48,9 @@
       "showWhitelistState": "El estado de la lista blanca es {state}",
       "newWhitelistState": "La lista blanca ahora es {state}",
       "stopIn": "El servidor se detendra en {seconds} segundos",
-      "stop": "El servidor se esta deteniendo..."
+      "stop": "El servidor se esta deteniendo...",
+      "validMaps": "Nombres de mapas validos: {maps}",
+      "mapSwitched": "Mapa cambiado"
     },
     "db": {
       "dbFileChanged": "Archivo \"{dbName}\" cambiado",

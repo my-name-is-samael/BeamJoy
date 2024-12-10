@@ -38,7 +38,8 @@
       "help": {
         "setgroup": "Aggiungi un giocatore a un gruppo",
         "setenv": "Imposta o reimposta un valore di ambiente",
-        "whitelist": "mostra lo stato della lista bianca o imposta il valore",
+        "whitelist": "Mostra lo stato della lista bianca o imposta il valore",
+        "map": "Passa alla mappa",
         "stop": "Arresta il server correttamente (avvisa i giocatori prima di espellerli, poi esci)"
       },
       "defaultReturn": "Comando eseguito con successo",
@@ -47,7 +48,9 @@
       "showWhitelistState": "Lo stato della lista bianca e {state}",
       "newWhitelistState": "La lista bianca e ora {state}",
       "stopIn": "Arresto del server tra {seconds} secondi",
-      "stop": "Il server si sta arrestando..."
+      "stop": "Il server si sta arrestando...",
+      "validMaps": "Nomi di mappe validi: {maps}",
+      "mapSwitched": "Mappa cambiata"
     },
     "db": {
       "dbFileChanged": "Il file \"{dbName}\" e stato modificato",

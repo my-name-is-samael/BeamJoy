@@ -136,6 +136,22 @@ local function setMap(mapName)
     end, 6, "BJCSwitchMap")
 end
 
+local function consoleSetMap(args)
+    local maps = {}
+    for mapName in pairs(BJCMaps.Data) do
+        table.insert(maps, mapName)
+    end
+    table.sort(maps)
+
+    if not args[1] or #args[1] == 0 or not tincludes(maps, args[1], true) then
+        return svar(BJCLang.getConsoleMessage("command.validMaps"),
+            { maps = tconcat(maps, ", ") })
+    end
+
+    M.setMap(args[1])
+    return BJCLang.getConsoleMessage("command.mapSwitched")
+end
+
 local function set(key, value)
     local keys = { "Name", "Debug", "Private", "MaxCars", "MaxPlayers" }
     if type(M.Data.General[key]) == type(value) and tincludes(keys, key) then
@@ -166,7 +182,7 @@ local function stop()
         for i = stopDelay, 1, -1 do
             BJCAsync.delayTask(function()
                 if tlength(BJCPlayers.Players) == 0 then
-                    for j = 1, stopDelay do BJCAsync.removeTask(svar("BJCStopMessage-{1}", {j})) end
+                    for j = 1, stopDelay do BJCAsync.removeTask(svar("BJCStopMessage-{1}", { j })) end
                     Exit()
                 else
                     for playerID, player in pairs(BJCPlayers.Players) do
@@ -194,7 +210,7 @@ local function stop()
             end, stopDelay + 1 - i, svar("BJCStopMessage-{1}", { i }))
         end
 
-        return svar(BJCLang.getConsoleMessage("command.stopIn"), {seconds = stopDelay})
+        return svar(BJCLang.getConsoleMessage("command.stopIn"), { seconds = stopDelay })
     else
         Exit()
         return BJCLang.getConsoleMessage("command.stop")
@@ -222,6 +238,7 @@ end
 
 M.getMap = getMap
 M.setMap = setMap
+M.consoleSetMap = consoleSetMap
 M.set = set
 M.stop = stop
 

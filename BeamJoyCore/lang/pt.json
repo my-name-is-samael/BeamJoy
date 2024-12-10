@@ -38,7 +38,8 @@
       "help": {
         "setgroup": "Adicionar um jogador a um grupo",
         "setenv": "Definir ou redefinir um valor de ambiente",
-        "whitelist": "mostrar o estado da lista de permissoes ou definir valor",
+        "whitelist": "Mostrar o estado da lista de permissoes ou definir valor",
+        "map": "Mudar para o mapa",
         "stop": "Pare o servidor corretamente (avisa os jogadores antes de expulsa-los e depois saia)"
       },
       "defaultReturn": "Comando executado com sucesso",
@@ -47,7 +48,9 @@
       "showWhitelistState": "O estado da lista de permissoes e {state}",
       "newWhitelistState": "A lista de permissoes agora e {state}",
       "stopIn": "O servidor sera parado em {seconds} segundos",
-      "stop": "O servidor esta parando..."
+      "stop": "O servidor esta parando...",
+      "validMaps": "Nomes de mapas validos: {maps}",
+      "mapSwitched": "Mapa alterado"
     },
     "db": {
       "dbFileChanged": "Arquivo \"{dbName}\" alterado",

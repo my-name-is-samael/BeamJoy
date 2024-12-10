@@ -13,6 +13,22 @@ local function drawNewMap(ctxt)
 
     LineBuilder()
         :text(BJILang.get("serverConfig.maps.new.title"))
+        :btnIcon({
+            id = "addNewMap",
+            icon = ICONS.save,
+            background = BTN_PRESETS.SUCCESS,
+            disabled = not canCreate,
+            onClick = function()
+                BJITx.config.maps(
+                    BJIContext.Maps.new,
+                    BJIContext.Maps.newLabel,
+                    BJIContext.Maps.newArchive
+                )
+                BJIContext.Maps.new = ""
+                BJIContext.Maps.newLabel = ""
+                BJIContext.Maps.newArchive = ""
+            end
+        })
         :build()
     Indent(2)
 
@@ -90,30 +106,6 @@ local function drawNewMap(ctxt)
                 end
             }
         })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :btn({
-                            id = "addNewMap",
-                            label = BJILang.get("common.buttons.add"),
-                            style = BTN_PRESETS.SUCCESS,
-                            disabled = not canCreate,
-                            onClick = function()
-                                BJITx.config.maps(
-                                    BJIContext.Maps.new,
-                                    BJIContext.Maps.newLabel,
-                                    BJIContext.Maps.newArchive
-                                )
-                                BJIContext.Maps.new = ""
-                                BJIContext.Maps.newLabel = ""
-                                BJIContext.Maps.newArchive = ""
-                            end
-                        })
-                        :build()
-                end
-            }
-        })
         :build()
 
 
@@ -130,7 +122,8 @@ local function drawMapsList(ctxt)
         end
     end
     for techName, map in pairs(BJIContext.Maps.Data) do
-        LineBuilder()
+        local valid = #map.label > 0 and (not map.custom or #map.archive > 0)
+        local line = LineBuilder()
             :text(svar("{1}:", { techName }))
             :text(map.custom and
                 svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or
@@ -144,10 +137,33 @@ local function drawMapsList(ctxt)
                     BJITx.config.mapState(techName, not map.enabled)
                 end,
             })
-            :build()
+        if map.changed then
+            line:btnIcon({
+                id = svar("map{1}save", { techName }),
+                icon = ICONS.save,
+                background = BTN_PRESETS.SUCCESS,
+                disabled = not valid,
+                onClick = function()
+                    BJITx.config.maps(techName, map.label, map.custom and map.archive or nil)
+                    map.changed = false
+                end
+            })
+        end
+        if map.custom then
+            line:btnIcon({
+                id = svar("map{1}delete", { techName }),
+                icon = ICONS.delete_forever,
+                background = BTN_PRESETS.ERROR,
+                disabled = techName == BJIContext.UI.mapName,
+                onClick = function()
+                    BJIContext.Maps.Data[techName] = nil
+                    BJITx.config.maps(techName)
+                end
+            })
+        end
+        line:build()
         Indent(2)
         local cols = ColumnsBuilder("mapsList", { labelWidth, -1 })
-        local valid = #map.label > 0 and (not map.custom or #map.archive > 0)
         cols:addRow({
             cells = {
                 function()
@@ -195,30 +211,6 @@ local function drawMapsList(ctxt)
             })
         end
         cols:build()
-        local line = LineBuilder()
-            :btn({
-                id = svar("map{1}save", { techName }),
-                label = BJILang.get("common.buttons.save"),
-                style = BTN_PRESETS.SUCCESS,
-                disabled = not valid or not map.changed,
-                onClick = function()
-                    BJITx.config.maps(techName, map.label, map.custom and map.archive or nil)
-                    map.changed = false
-                end
-            })
-        if map.custom then
-            line:btn({
-                id = svar("map{1}delete", { techName }),
-                label = BJILang.get("common.buttons.delete"),
-                style = BTN_PRESETS.ERROR,
-                disabled = techName == BJIContext.UI.mapName,
-                onClick = function()
-                    BJIContext.Maps.Data[techName] = nil
-                    BJITx.config.maps(techName)
-                end
-            })
-        end
-        line:build()
         Indent(-2)
     end
 end
