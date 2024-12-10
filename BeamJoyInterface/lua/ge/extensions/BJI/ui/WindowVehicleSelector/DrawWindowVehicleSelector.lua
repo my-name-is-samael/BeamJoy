@@ -16,13 +16,18 @@ local ownVeh, limitReached = false, false
 
 local function waitUntil(fn)
     local target = GetCurrentTimeMillis() + 500
+    local timeout = GetCurrentTimeMillis() + 5000
     guihooks.trigger("app:waiting", true)
     BJIAsync.delayTask(function()
         fn()
         if GetCurrentTimeMillis() < target then
-            BJIAsync.programTask(function()
+            BJIAsync.task(function(ctxt)
+                return (ctxt.now >= target and
+                        (ctxt.isOwner and BJIVeh.isVehReady(ctxt.veh:getID()))) or
+                    ctxt.now >= timeout
+            end, function()
                 guihooks.trigger("app:waiting", false)
-            end, target, "BJISpawnVehLoadingStop")
+            end, "BJISpawnVehLoadingStop")
         else
             guihooks.trigger("app:waiting", false)
         end
