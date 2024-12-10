@@ -241,6 +241,7 @@ local function initGrid(data)
 
     local veh = BJIVeh.getCurrentVehicleOwn()
 
+    M.preRaceCam = BJICam.CAMERAS.ORBIT
     if veh then
         M.preRaceCam = BJICam.getCamera()
         if tincludes({
@@ -268,8 +269,12 @@ local function tryReplaceOrSpawn(model, config)
         local pos = tpos(M.grid.participants, BJIContext.User.playerID)
         local posrot = M.grid.startPositions[pos]
         BJIVeh.replaceOrSpawnVehicle(model, config, posrot)
-        BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-        BJIVeh.freeze(true)
+        BJIAsync.task(function(ctxt)
+            return ctxt.isOwner and BJIVeh.isVehReady(ctxt.veh:getID())
+        end, function()
+            BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
+            BJIVeh.freeze(true)
+        end, "BJIRacePostSpawn")
     end
 end
 

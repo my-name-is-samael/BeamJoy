@@ -675,7 +675,7 @@ local function renderTick(ctxt)
         local damaged = ctxt.vehData and ctxt.vehData.damageState > damageThreshold
         if moved or damaged then
             M.startPosition = findFreeStartPosition(M.baseRaceData.startPositions)
-            if M.startPosition then
+            if M.startPosition and M.startPosition.pos then
                 BJIVeh.setPositionRotation(M.startPosition.pos, M.startPosition.rot)
                 BJIVeh.freeze(true, ctxt.veh:getID())
                 M.gridResetProcess = true

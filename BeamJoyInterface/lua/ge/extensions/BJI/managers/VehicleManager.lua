@@ -84,6 +84,11 @@ local function getMPOwnVehicles()
     return vehs
 end
 
+local function isVehReady(gameVehID)
+    local veh = MPVehicleGE.getOwnMap()[gameVehID]
+    return veh and veh.isSpawned and not veh.isDeleted
+end
+
 local function _getPlayerVehicleAndPosAndRotation(thenFn)
     local playerVehicle = M.getCurrentVehicle()
     if not playerVehicle then return end
@@ -1160,6 +1165,7 @@ M.onUnload = onUnload
 M.isGEInit = isGEInit
 M.getMPVehicles = getMPVehicles
 M.getMPOwnVehicles = getMPOwnVehicles
+M.isVehReady = isVehReady
 
 M.dropPlayerAtCamera = dropPlayerAtCamera
 M.dropPlayerAtCameraNoReset = dropPlayerAtCameraNoReset

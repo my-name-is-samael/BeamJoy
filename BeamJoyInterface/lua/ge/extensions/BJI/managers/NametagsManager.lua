@@ -7,7 +7,6 @@ local function getAlphaByDistance(distance)
     if settings.getValue("nameTagFadeEnabled") then
         local fadeoutDistance = settings.getValue("nameTagFadeDistance", 40)
         alpha = Scale(distance, fadeoutDistance, 0, 0, 1, true)
-        --alpha = Clamp(_linearScale(distance, fadeoutDistance, 0, 0, 1), 0, 1)
 
         if BJICam.getCamera() ~= BJICam.CAMERAS.FREE and
             settings.getValue("nameTagFadeInvert") then
@@ -32,7 +31,7 @@ local function tryUpdate()
     end
 end
 
-local alphaRatio = .75
+local alphaRatio = 1
 local function getNametagColorDefault(alpha)
     return ShapeDrawer.Color(1, 1, 1, alpha * alphaRatio)
 end
@@ -190,15 +189,15 @@ local function renderVehicle(ctxt, veh)
             renderSpecs(ctxt, veh)
         end
     else
-        local showTag = ownerDriving
-        local showDist = not currentVeh or freecaming
-
         local tagPos = BJIVeh.getPositionRotation(v).pos
         local ownPos = freecaming and BJICam.getPositionRotation().pos or
             (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
         if not ownPos then return end
         local distance = ownPos:distance(tagPos)
         local alpha = getAlphaByDistance(distance)
+
+        local showTag = ownerDriving
+        local showDist = (not currentVeh or freecaming) and distance > 10
 
         local owner = BJIContext.Players[veh.ownerID]
         if owner then -- can softlock the mod if triggered too early ? https://github.com/my-name-is-samael/BeamJoy/issues/10
