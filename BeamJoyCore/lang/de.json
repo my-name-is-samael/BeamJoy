@@ -534,8 +534,6 @@
       "vehicles": {
         "automaticLights": "Automatische Lichter",
         "automaticLightsTooltip": "Schalten Sie die Scheinwerfer je nach Tageszeit automatisch um",
-        "driftFlashes": "Driftanzeige",
-        "driftFlashesTooltip": "Stellen Sie sicher, dass die \"Rennechtzeitanzeige\" UI-App in Ihrem Layout enthalten ist",
         "nametags": "Namensschilder der Spieler"
       },
       "freecam": {

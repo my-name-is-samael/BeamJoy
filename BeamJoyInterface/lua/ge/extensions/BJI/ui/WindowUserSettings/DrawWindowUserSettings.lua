@@ -10,7 +10,6 @@ local function drawVehicleSettings(ctxt)
     local labelWidth = 0
     local labels = {
         BJILang.get("userSettings.vehicles.automaticLights") .. ":" .. HELPMARKER_TEXT,
-        BJILang.get("userSettings.vehicles.driftFlashes") .. ":",
         BJILang.get("userSettings.vehicles.nametags") .. ":",
     }
     for _, key in ipairs(labels) do
@@ -42,32 +41,6 @@ local function drawVehicleSettings(ctxt)
                             end,
                         })
                         :build()
-                end
-            }
-        })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("userSettings.vehicles.driftFlashes") }))
-                        :build()
-                end,
-                function()
-                    local line = LineBuilder()
-                        :btnIconSwitch({
-                            id = "driftFlashesToggle",
-                            iconEnabled = ICONS.visibility,
-                            iconDisabled = ICONS.visibility_off,
-                            state = BJIContext.UserSettings.driftFlashes,
-                            onClick = function()
-                                BJIContext.UserSettings.driftFlashes = not BJIContext.UserSettings.driftFlashes
-                                BJITx.player.settings("driftFlashes", BJIContext.UserSettings.driftFlashes)
-                            end,
-                        })
-                        if BJIContext.UserSettings.driftFlashes then
-                            line:helpMarker(BJILang.get("userSettings.vehicles.driftFlashesTooltip"))
-                        end
-                        line:build()
                 end
             }
         })

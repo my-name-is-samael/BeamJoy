@@ -535,8 +535,6 @@
       "vehicles": {
         "automaticLights": "Automatic lights",
         "automaticLightsTooltip": "Toggle headlights automatically based on the time of day",
-        "driftFlashes": "Drift Indicator",
-        "driftFlashesTooltip": "Be sure to have the \"Race Realtime Display\" UI App to your layout",
         "nametags": "Players nametags"
       },
       "freecam": {

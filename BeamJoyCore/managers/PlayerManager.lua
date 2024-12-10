@@ -66,9 +66,6 @@ local function sanitizePlayer(player)
     if type(player.settings.automaticLights) ~= "boolean" then
         player.settings.automaticLights = true
     end
-    if type(player.settings.driftFlashes) ~= "boolean" then
-        player.settings.driftFlashes = false
-    end
     if type(player.settings.freecamSmooth) ~= "boolean" then
         player.settings.freecamSmooth = false
     end
@@ -115,7 +112,6 @@ local function instantiatePlayer(playerID)
         player.settings = {
             UIScale = 1,
             automaticLights = true,
-            driftFlashes = false,
             freecamFov = 65,
             freecamSmooth = false,
             nametags = true,

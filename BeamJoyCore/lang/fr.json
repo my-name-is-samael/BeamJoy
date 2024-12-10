@@ -534,8 +534,6 @@
       "vehicles": {
         "automaticLights": "Feux Automatiques",
         "automaticLightsTooltip": "Activer les phares automatiquement en fonction de l'heure de la journée",
-        "driftFlashes": "Indicateur de Drift",
-        "driftFlashesTooltip": "Assurez-vous d'avoir l'application d'interface \"Affichage de la course en temps réel\" dans votre layout",
         "nametags": "Nametags des Joueurs"
       },
       "freecam": {

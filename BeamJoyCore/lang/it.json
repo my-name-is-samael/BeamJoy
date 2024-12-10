@@ -534,8 +534,6 @@
       "vehicles": {
         "automaticLights": "Luci automatiche",
         "automaticLightsTooltip": "Attiva/disattiva automaticamente i fari in base all'ora del giorno",
-        "driftFlashes": "Indicatore di deriva",
-        "driftFlashesTooltip": "Assicurati di avere l'app UI \"Race Realtime Display\" nel tuo layout",
         "nametags": "Targhette con i nomi dei giocatori"
       },
       "freecam": {
