@@ -156,6 +156,10 @@ M.onVehicleDestroyed = function(...)
     TriggerBJIEvent("onVehicleDestroyed", ...)
 end
 
+function M.onDriftCompletedScored(...)
+    TriggerBJIEvent("onDriftCompletedScored", ...)
+end
+
 M.setPhysicsSpeed = BJIContext.setPhysicsSpeed
 
 function M.onExtensionUnloaded()

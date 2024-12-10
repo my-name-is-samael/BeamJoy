@@ -772,11 +772,6 @@
       "driftBig": "Pontuação mínima de grandes desvios",
       "allowUnicycle": "Permitir caminhar"
     },
-    "drift": {
-      "indicator": "Deriva",
-      "goodFlash": "Legal !",
-      "bigFlash": "Incrível !!!"
-    },
     "races": {
       "races": "Corridas",
       "names": {},

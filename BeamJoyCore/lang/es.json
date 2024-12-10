@@ -772,11 +772,6 @@
       "driftBig": "Puntuación mínima de grandes derrapes",
       "allowUnicycle": "permitir caminar"
     },
-    "drift": {
-      "indicator": "Deriva",
-      "goodFlash": "Lindo !",
-      "bigFlash": "Impresionante !!!"
-    },
     "races": {
       "races": "carreras",
       "names": {},

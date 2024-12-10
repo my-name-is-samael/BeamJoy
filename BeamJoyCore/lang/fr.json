@@ -772,11 +772,6 @@
       "driftBig": "Score minimum pour des gros dérapages",
       "allowUnicycle": "Autoriser la marche à pied (monocycle)"
     },
-    "drift": {
-      "indicator": "Drift",
-      "goodFlash": "Bravo !",
-      "bigFlash": "Incroyable !!!"
-    },
     "races": {
       "races": "Courses",
       "names": {},

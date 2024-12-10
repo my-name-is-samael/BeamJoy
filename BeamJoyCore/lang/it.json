@@ -772,11 +772,6 @@
       "driftBig": "Punteggio minimo per grandi derive",
       "allowUnicycle": "Consentire di camminare"
     },
-    "drift": {
-      "indicator": "Deriva",
-      "goodFlash": "Carino !",
-      "bigFlash": "Eccezionale !!!"
-    },
     "races": {
       "races": "Razze",
       "names": {},

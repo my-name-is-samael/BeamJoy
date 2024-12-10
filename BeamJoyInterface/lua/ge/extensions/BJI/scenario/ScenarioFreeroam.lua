@@ -83,8 +83,6 @@ local function renderTick(ctxt)
             end
         end
     end
-
-    BJIDrift.updateRealtimeDisplay(ctxt)
 end
 
 local function slowTick(ctxt)

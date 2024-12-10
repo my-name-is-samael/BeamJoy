@@ -696,11 +696,6 @@
       "driftBig": "Минимальный балл за большие заносы",
       "allowUnicycle": "Разрешить ходьбу"
     },
-    "drift": {
-      "indicator": "Дрифт",
-      "goodFlash": "Хороший !",
-      "bigFlash": "Потрясающий !!!"
-    },
     "races": {
       "races": "Гонки",
       "names": {},

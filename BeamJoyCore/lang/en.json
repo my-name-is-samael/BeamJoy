@@ -773,11 +773,6 @@
       "driftBig": "Big drifts minimum score",
       "allowUnicycle": "Allow walking"
     },
-    "drift": {
-      "indicator": "Drift",
-      "goodFlash": "Nice !",
-      "bigFlash": "Awesome !!!"
-    },
     "races": {
       "races": "Races",
       "names": {},

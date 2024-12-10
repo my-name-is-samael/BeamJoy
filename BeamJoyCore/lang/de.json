@@ -772,11 +772,6 @@
       "driftBig": "Mindestpunktzahl für große Drifts",
       "allowUnicycle": "Erlauben Sie das Gehen"
     },
-    "drift": {
-      "indicator": "Drift",
-      "goodFlash": "Hübsch !",
-      "bigFlash": "Eindrucksvoll !!!"
-    },
     "races": {
       "races": "Rennen",
       "names": {},
