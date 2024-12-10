@@ -180,7 +180,7 @@ local function onUnload(ctxt)
     BJIRaceWaypoint.resetAll()
     BJIRestrictions.apply(BJIRestrictions.TYPES.ResetRace, false)
     BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-    BJIMessage.stopRealtimeDisplay()
+    guihooks.trigger('ScenarioResetTimer')
 end
 
 -- prepare complete race steps list
@@ -662,7 +662,7 @@ local function renderTick(ctxt)
     elseif M.race.timers.lap then
         time = M.race.timers.lap:get()
     end
-    BJIMessage.realtimeDisplay("race", RaceDelay(time))
+    guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
 
     -- fix vehicle position / damages on grid
     if not M.gridResetProcess and

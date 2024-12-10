@@ -222,7 +222,7 @@ local function onUnload(ctxt)
     BJIRestrictions.apply(BJIRestrictions.TYPES.ResetRace, false)
     BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
     BJIVehSelector.tryClose(true)
-    BJIMessage.stopRealtimeDisplay()
+    guihooks.trigger('ScenarioResetTimer')
 end
 
 local function initGrid(data)
@@ -900,12 +900,12 @@ local function renderTick(ctxt)
             if M.race.timers.raceOffset then
                 time = time + M.race.timers.raceOffset
             end
-            BJIMessage.realtimeDisplay("race", RaceDelay(time))
+            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
         elseif M.isParticipant() and not M.isFinished() and not M.isEliminated() then
             local time = M.race.timers.lap and M.race.timers.lap:get() or 0
-            BJIMessage.realtimeDisplay("race", RaceDelay(time))
+            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
         elseif BJIMessage.realtimeData.context == "race" then
-            BJIMessage.stopRealtimeDisplay()
+            guihooks.trigger('ScenarioResetTimer')
         end
     end
 
