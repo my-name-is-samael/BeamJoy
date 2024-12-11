@@ -10,7 +10,8 @@ local function getRawPoiListByLevel(level)
     local list, generation = M.baseFunctions.getRawPoiListByLevel(level)
     local i = 1
     while i < #list do
-        while tincludes(M.POI_TYPES_BLACKLIST, list[i].data.type, true) do
+        while type(list[i].data) == "table" and
+            tincludes(M.POI_TYPES_BLACKLIST, list[i].data.type, true) do
             table.remove(list, i)
         end
         i = i + 1

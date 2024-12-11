@@ -675,10 +675,6 @@ local function renderTick(ctxt)
         local damaged = ctxt.vehData and ctxt.vehData.damageState > damageThreshold
         if moved or damaged then
             M.startPosition = findFreeStartPosition(M.baseRaceData.startPositions)
-            if not M.startPosition or not M.startPosition.pos then
-                -- apply first position (respawn will find a close space to spawn)
-                M.startPosition = TryParsePosRot(tdeepcopy(M.baseRaceData.startPositions[1]))
-            end
             BJIVeh.setPositionRotation(M.startPosition.pos, M.startPosition.rot)
             BJIVeh.freeze(true, ctxt.veh:getID())
             M.gridResetProcess = true

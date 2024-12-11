@@ -126,6 +126,13 @@ local function drawSprint(ctxt)
 
     local labelWidth = 0
     local currentWp = 1
+    if tonumber(wpPerLap) == nil then
+        if not BJIDEBUG2 then
+            LogError("display wpPerLap nil")
+            BJIDEBUG2 = true
+        end
+        return
+    end
     for iWp = 1, wpPerLap do
         local label = svar(BJILang.get("races.play.WP"), { wp = iWp })
         local w = GetColumnTextWidth(label)

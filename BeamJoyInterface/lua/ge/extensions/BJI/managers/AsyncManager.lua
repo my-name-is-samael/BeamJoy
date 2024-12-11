@@ -88,13 +88,21 @@ local function renderTick(ctxt)
     end)
     for _, data in pairs(delayed) do
         local key, ctask = data[1], data[2]
-        pcall(ctask.taskFn, ctxt)
+        local status, err = pcall(ctask.taskFn, ctxt)
+        if not status then
+            LogError(svar("Error executing delayed task {1} :", { key }))
+            PrintObj(err, "Stack trace")
+        end
         M.delayedTasks[key] = nil
     end
 
     for key, ctask in pairs(M.tasks) do
         if ctask.conditionFn(ctxt) then
-            pcall(ctask.taskFn, ctxt)
+            local status, err = pcall(ctask.taskFn, ctxt)
+            if not status then
+                LogError(svar("Error executing programmed task {1} :", { key }))
+                PrintObj(err, "Stack trace")
+            end
             M.tasks[key] = nil
         end
     end
