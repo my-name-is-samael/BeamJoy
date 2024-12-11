@@ -826,24 +826,11 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 yearsPrefix = svar(" ({1})", { veh.model.Years.min })
             end
 
-            local paints = {}
-            if veh.model.paints then
-                for label, paint in pairs(veh.model.paints) do
-                    table.insert(paints, {
-                        label = label,
-                        paint = paint,
-                    })
-                end
-            end
-            table.sort(paints, function(a, b)
-                return a.label < b.label
-            end)
-
             target[veh.model.key] = tdeepcopy(veh.model)
             tdeepassign(target[veh.model.key], {
                 label = svar("{1}{2}{3}", { brandPrefix, veh.model.Name, yearsPrefix }),
                 custom = veh.model.aggregates.Source.Mod,
-                paints = paints,
+                paints = target[veh.model.key].paints or {},
                 configs = {},
                 preview = veh.model.preview,
             })

@@ -656,7 +656,16 @@ local function open(models, canClose)
     M.models.props = props
 
     for model, modelData in pairs(BJIVeh.getAllVehicleConfigs(true, true)) do
-        M.paints[model] = modelData.paints
+        M.paints[model] = {}
+        for paintLabel, paintData in pairs(modelData.paints) do
+            table.insert(M.paints[model], {
+                label = paintLabel,
+                paint = paintData,
+            })
+        end
+        table.sort(M.paints[model], function(a, b)
+            return a.label < b.label
+        end)
     end
 
     M.sumConfigs = 0
