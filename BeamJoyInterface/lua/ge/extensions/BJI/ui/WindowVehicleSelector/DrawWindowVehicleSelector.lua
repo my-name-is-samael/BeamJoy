@@ -14,24 +14,6 @@ local M = {
 }
 local ownVeh, limitReached = false, false
 
-local function waitUntil(fn)
-    local targetTime = GetCurrentTimeMillis() + 1000
-    guihooks.trigger("app:waiting", true)
-    BJIAsync.delayTask(function()
-        fn()
-        if GetCurrentTimeMillis() < targetTime then
-            BJIAsync.task(function(ctxt)
-                return ctxt.now >= targetTime and
-                        (ctxt.isOwner and BJIVeh.isVehReady(ctxt.veh:getID()))
-            end, function()
-                guihooks.trigger("app:waiting", false)
-            end, "BJISpawnVehLoadingStop")
-        else
-            guihooks.trigger("app:waiting", false)
-        end
-    end, 300, "BJISpawnVehLoadingStart")
-end
-
 local function updateFiltered()
     M.filtered = {}
     if #M.vehFilter == 0 then
@@ -150,9 +132,7 @@ local function drawConfig(cols, modelKey, config)
                         icon = ICONS.add,
                         background = BTN_PRESETS.SUCCESS,
                         onClick = function()
-                            waitUntil(function()
-                                BJIScenario.trySpawnNew(modelKey, config.key)
-                            end)
+                            BJIScenario.trySpawnNew(modelKey, config.key)
                         end
                     })
                 end
@@ -165,9 +145,7 @@ local function drawConfig(cols, modelKey, config)
                         icon = ICONS.carSensors,
                         background = BTN_PRESETS.WARNING,
                         onClick = function()
-                            waitUntil(function()
-                                BJIScenario.tryReplaceOrSpawn(modelKey, config.key)
-                            end)
+                            BJIScenario.tryReplaceOrSpawn(modelKey, config.key)
                         end
                     })
                 end
@@ -191,9 +169,7 @@ local function drawModel(model)
                     icon = ICONS.add,
                     background = BTN_PRESETS.SUCCESS,
                     onClick = function()
-                        waitUntil(function()
-                            BJIScenario.trySpawnNew(model.key)
-                        end)
+                        BJIScenario.trySpawnNew(model.key)
                     end
                 })
             end
@@ -203,9 +179,7 @@ local function drawModel(model)
                     icon = ICONS.carSensors,
                     background = BTN_PRESETS.WARNING,
                     onClick = function()
-                        waitUntil(function()
-                            BJIScenario.tryReplaceOrSpawn(model.key)
-                        end)
+                        BJIScenario.tryReplaceOrSpawn(model.key)
                     end
                 })
             end
@@ -217,9 +191,7 @@ local function drawModel(model)
                 background = BTN_PRESETS.WARNING,
                 onClick = function()
                     local config = trandom(model.configs) or {}
-                    waitUntil(function()
-                        BJIScenario.tryReplaceOrSpawn(model.key, config.key)
-                    end)
+                    BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                 end
             })
         end
@@ -263,9 +235,7 @@ local function drawModel(model)
                 icon = ICONS.add,
                 background = BTN_PRESETS.SUCCESS,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.trySpawnNew(model.key, config.key)
-                    end)
+                    BJIScenario.trySpawnNew(model.key, config.key)
                 end
             })
         end
@@ -275,9 +245,7 @@ local function drawModel(model)
                 icon = ICONS.carSensors,
                 background = BTN_PRESETS.WARNING,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.tryReplaceOrSpawn(model.key, config.key)
-                    end)
+                    BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                 end
             })
         end
@@ -323,9 +291,7 @@ local function drawType(vehs, label, name, icon)
                         local config = trandom(model.configs) or {}
 
                         if model.key and config.key then
-                            waitUntil(function()
-                                BJIScenario.tryReplaceOrSpawn(model.key, config.key)
-                            end)
+                            BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                         end
                     end
                 })
@@ -390,9 +356,7 @@ local function drawPaints(paints)
                             id = "applyPaint" .. paintData.label:gsub(" ", ""),
                             label = svar(BJILang.get("vehicleSelector.applyPaint"), { position = i }),
                             onClick = function()
-                                waitUntil(function()
-                                    BJIScenario.tryPaint(paintData.paint, i)
-                                end)
+                                BJIScenario.tryPaint(paintData.paint, i)
                             end
                         })
                     end
@@ -434,9 +398,7 @@ local function drawPreviousVeh(ctxt)
                 icon = ICONS.add,
                 background = BTN_PRESETS.SUCCESS,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.trySpawnNew(previousConfig.model, previousConfig)
-                    end)
+                    BJIScenario.trySpawnNew(previousConfig.model, previousConfig)
                 end
             })
         end
@@ -446,9 +408,7 @@ local function drawPreviousVeh(ctxt)
                 icon = ICONS.carSensors,
                 background = BTN_PRESETS.WARNING,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.tryReplaceOrSpawn(previousConfig.model, previousConfig)
-                    end)
+                    BJIScenario.tryReplaceOrSpawn(previousConfig.model, previousConfig)
                 end
             })
         end
@@ -486,9 +446,7 @@ local function drawDefaultVeh(ctxt)
                 icon = ICONS.add,
                 background = BTN_PRESETS.SUCCESS,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.trySpawnNew(defaultVeh.model, defaultVeh.config)
-                    end)
+                    BJIScenario.trySpawnNew(defaultVeh.model, defaultVeh.config)
                 end
             })
         end
@@ -498,9 +456,7 @@ local function drawDefaultVeh(ctxt)
                 icon = ICONS.carSensors,
                 background = BTN_PRESETS.WARNING,
                 onClick = function()
-                    waitUntil(function()
-                        BJIScenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
-                    end)
+                    BJIScenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
                 end
             })
         end
