@@ -562,7 +562,7 @@ local function findFreeStartPosition(startPositions)
             if veh and v.gameVehicleID ~= BJIContext.User.currentVehicle then
                 local posRot = BJIVeh.getPositionRotation(veh)
                 if posRot and
-                    posRot.pos:distance(vec3(sp.pos)) <= veh:getInitialLength() / 2 then
+                    posRot.pos:distance(vec3(sp.pos)) <= veh:getInitialWidth() / 2 then
                     positionFree = false
                     break
                 end
