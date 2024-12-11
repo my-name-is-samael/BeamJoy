@@ -115,7 +115,7 @@ local function setWaypointsWithSegments(waypoints, loopable)
                                 end
                             end
                             for _, iFin in ipairs(finishIndices) do
-                                -- place segments on top of cylinder or sphere
+                                -- place segments on top of gate
                                 local fromPos = vec3(flatWps[iFin].pos)
                                 fromPos.z = fromPos.z + (flatWps[iFin].radius *
                                     (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, flatWps[iFin].type) and 2 or 1))

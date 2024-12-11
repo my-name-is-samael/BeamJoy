@@ -181,13 +181,17 @@ local function updateRaceMarkers(lastWp)
                         wp = iWp,
                     })
 
-                    local angle = AngleFromQuatRotation(wp.rot)
-                    local normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                    local normal
+                    if not wp.stand then
+                        local angle = AngleFromQuatRotation(wp.rot)
+                        normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                        normal = normal:normalized()
+                    end
 
                     table.insert(M._markers, {
                         name = wp.name,
                         pos = wp.pos,
-                        normal = normal:normalized(),
+                        normal = normal,
                         radius = wp.radius,
                         fadeNear = false,
                         fadeFar = false,
@@ -216,13 +220,17 @@ local function updateRaceMarkers(lastWp)
                         if tincludes(wp.parents, wpPrevious.name) and
                             (not wp.stand or iStep < #M._race._steps) then -- disable stand if last step
                             if M._modes[wp.name] == nil then
-                                local angle = AngleFromQuatRotation(wp.rot)
-                                local normal = Rotate2DVec(vec3(0, wp.radius, 0), angle)
+                                local normal
+                                if not wp.stand then
+                                    local angle = AngleFromQuatRotation(wp.rot)
+                                    normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                                    normal = normal:normalized()
+                                end
 
                                 table.insert(M._markers, {
                                     name = wp.name,
                                     pos = wp.pos,
-                                    normal = normal:normalized(),
+                                    normal = normal,
                                     radius = wp.radius,
                                     fadeNear = false,
                                     fadeFar = false,
@@ -291,10 +299,17 @@ local function checkMatchingHeight(ctxt, wp)
     return currentTop >= wpBottom and ctxt.vehPosRot.pos.z <= wpTop
 end
 
+-- check collision for radius checkpoint
+local function checkVehInRadius(ctxt, wp)
+    local vehRadius = ctxt.veh:getInitialWidth() / 2
+    return vec3(ctxt.vehPosRot.pos):distance(vec3(wp.pos)) <= (vehRadius + wp.radius)
+end
+
 local function ccw_intersect(a, b, c)
     return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x)
 end
 
+-- check collision for gate checkpoint
 local function checkSegmentCrossed(ctxt, wp, vehCorners)
     if not ctxt.veh then return end
 
@@ -347,7 +362,7 @@ local function checkRaceTargetReached(ctxt)
             local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
             local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
             local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
-            
+
             local gateColor = ShapeDrawer.Color(1, 0, 1, .33)
             local a = vec3(wpLeft.x, wpLeft.y, wpLeft.z)
             local b = vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2)
@@ -359,20 +374,22 @@ local function checkRaceTargetReached(ctxt)
             ShapeDrawer.Triangle(d, e, f, gateColor)
         end
 
-        if checkMatchingHeight(ctxt, wp) and checkSegmentCrossed(ctxt, wp, vehCorners) then
-            local i = target.step
-            while i > 0 and #M._race._steps > 0 do
-                table.remove(M._race._steps, 1)
-                i = i - 1
+        if checkMatchingHeight(ctxt, wp) then
+            if wp.stand and checkVehInRadius(ctxt, wp) or checkSegmentCrossed(ctxt, wp, vehCorners) then
+                local i = target.step
+                while i > 0 and #M._race._steps > 0 do
+                    table.remove(M._race._steps, 1)
+                    i = i - 1
+                end
+                M._race._countWp = M._race._countWp + 1
+                onRaceWaypointReached(wp)
+                if #M._race._steps == 0 then
+                    onRaceFinishReached()
+                else
+                    updateRaceMarkers(wp)
+                end
+                break
             end
-            M._race._countWp = M._race._countWp + 1
-            onRaceWaypointReached(wp)
-            if #M._race._steps == 0 then
-                onRaceFinishReached()
-            else
-                updateRaceMarkers(wp)
-            end
-            break
         end
     end
 end

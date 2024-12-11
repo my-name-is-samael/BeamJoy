@@ -57,7 +57,7 @@ local function updateMarkers()
                 color = color,
                 parents = parents,
                 finish = iStep == #raceEdit.steps,
-                type = BJIWaypointEdit.TYPES.RACE_GATE,
+                type = wp.stand and BJIWaypointEdit.TYPES.CYLINDER or BJIWaypointEdit.TYPES.RACE_GATE,
             })
         end
     end
