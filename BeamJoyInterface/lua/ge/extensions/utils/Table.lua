@@ -281,3 +281,21 @@ function tshallowcompare(table1, table2)
     end
     return true
 end
+
+function tevery(table, fn)
+    for _, val in pairs(table) do
+        if not fn(val) then
+            return false
+        end
+    end
+    return true
+end
+
+function tsome(table, fn)
+    for _, val in pairs(table) do
+        if fn(val) then
+            return true
+        end
+    end
+    return false
+end

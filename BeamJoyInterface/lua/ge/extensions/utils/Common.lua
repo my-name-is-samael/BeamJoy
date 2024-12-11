@@ -4,7 +4,7 @@ function GetTextWidth(text)
     end
     local sum = 0
     for i = 1, #text do
-        local char = text:sub(i,i)
+        local char = text:sub(i, i)
         sum = sum + ui_imgui.CalcTextSize(char).x
     end
     return sum
@@ -40,10 +40,12 @@ function TryParsePosRot(obj)
         return obj
     end
 
-    if type(obj.pos) == "table" then
+    if tincludes({ "table", "userdata" }, type(obj.pos), true) and
+        tevery({ "x", "y", "z" }, function(k) return obj.pos[k] ~= nil end) then
         obj.pos = vec3(obj.pos.x, obj.pos.y, obj.pos.z)
     end
-    if type(obj.rot) == "table" then
+    if tincludes({ "table", "userdata" }, type(obj.rot), true) and
+    tevery({ "x", "y", "z", "w" }, function(k) return obj.rot[k] ~= nil end) then
         obj.rot = quat(obj.rot.x, obj.rot.y, obj.rot.z, obj.rot.w)
     end
     return obj
