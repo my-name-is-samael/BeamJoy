@@ -272,7 +272,7 @@ local function consoleSetWhitelist(args)
             { command = "bj whitelist [true|false]" })
     end
 
-    if value == "" then
+    if value == nil or value == "" then
         return svar("Whitelist.Enabled = {1}", { M.Data.Whitelist.Enabled })
     elseif value == "true" or value == "false" then
         value = value == "true"

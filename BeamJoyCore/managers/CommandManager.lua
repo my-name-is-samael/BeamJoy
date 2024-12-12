@@ -102,7 +102,7 @@ local function _init()
     M.addCommand("map", "bj map <map_name>",
         BJCLang.getConsoleMessage("command.help.map"), "BJCCore.consoleSetMap")
     M.addCommand("whitelist", "bj whitelist [true|false]",
-        BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleWhitelist")
+        BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleSetWhitelist")
     M.addCommand("stop", "bj stop",
         BJCLang.getConsoleMessage("command.help.stop"), "BJCCore.stop")
 end
