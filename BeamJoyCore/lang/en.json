@@ -120,7 +120,6 @@
         "insufficientPlayers": "Not enough players",
         "guestCannotBeWhitelisted": "Guests cannot be whitelisted",
         "playerAmbiguity": "Ambiguity with players : {playerList}"
-        
       },
       "vehicleRemoveOneOf": "One of your vehicles",
       "vehicleRemoveMain": "Your vehicle",
@@ -723,7 +722,32 @@
         "MaxCars": "Max Cars",
         "MaxPlayers": "Max Players",
         "Private": "Private",
-        "Debug": "Debug"
+        "Debug": "Debug",
+        "previewTooltip": "Preview does only displays colors",
+        "formattingHints": {
+          "title": "Formatting Hints (only applied on Name and Description)",
+          "reset": "Reset",
+          "underline": "Underline",
+          "bold": "Bold",
+          "strike": "Strike-through",
+          "italic": "Italic",
+          "black": "Black",
+          "darkblue": "Dark Blue",
+          "green": "Green",
+          "darkaqua": "Dark Aqua",
+          "red": "Red",
+          "purple": "Purple",
+          "orange": "Orange",
+          "grey": "Grey",
+          "darkgrey": "Dark Grey",
+          "blue": "Blue",
+          "lightgreen": "Light Green",
+          "aqua": "Aqua",
+          "lightred": "Light Red",
+          "pink": "Pink",
+          "yellow": "Yellow",
+          "white": "White"
+        }
       },
       "maps": {
         "title": "Maps Labels",

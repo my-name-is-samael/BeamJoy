@@ -722,7 +722,32 @@
         "MaxCars": "Nombre Max de Voitures",
         "MaxPlayers": "Nombre Max de Joueurs",
         "Private": "Privé",
-        "Debug": "Debug"
+        "Debug": "Debug",
+        "previewTooltip": "L'aperçu affiche uniquement les couleurs",
+        "formattingHints": {
+          "title": "Conseils de mise en forme (appliqués uniquement au Nom et à la Description)",
+          "reset": "Réinitialiser",
+          "underline": "Souligner",
+          "bold": "Gras",
+          "strike": "Barré",
+          "italic": "Italique",
+          "black": "Noir",
+          "darkblue": "Bleu foncé",
+          "green": "Vert",
+          "darkaqua": "Aqua foncé",
+          "red": "Rouge",
+          "purple": "Violet",
+          "orange": "Orange",
+          "grey": "Gris",
+          "darkgrey": "Gris foncé",
+          "blue": "Bleu",
+          "lightgreen": "Vert clair",
+          "aqua": "Aqua",
+          "lightred": "Rouge clair",
+          "pink": "Rose",
+          "yellow": "Jaune",
+          "white": "Blanc"
+        }
       },
       "maps": {
         "title": "Libellés des Cartes",
