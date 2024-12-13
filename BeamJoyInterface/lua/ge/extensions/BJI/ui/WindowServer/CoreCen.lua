@@ -91,9 +91,7 @@ local function drawCoreTextPreview(cols, value, key)
         end
         if char == newlineChar then
             -- newline
-            if key ~= "Name" then
-                removeLastSpaceAndAdd(text, lastColor, true)
-            end
+            removeLastSpaceAndAdd(text, lastColor, key ~= "Name")
         elseif char == reset.char then
             -- char is reset
             removeLastSpaceAndAdd(text, reset.color)
