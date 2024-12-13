@@ -138,8 +138,10 @@ end
 
 local function consoleSetMap(args)
     local maps = {}
-    for mapName in pairs(BJCMaps.Data) do
-        table.insert(maps, mapName)
+    for mapName, map in pairs(BJCMaps.Data) do
+        if map.enabled then
+            table.insert(maps, mapName)
+        end
     end
     table.sort(maps)
 
