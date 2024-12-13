@@ -266,23 +266,89 @@ local function set(ctxt, key, value)
 end
 
 local function consoleSetWhitelist(args)
-    local value = args[1]
-    if #args > 0 and (not tincludes({ "true", "false" }, value) or value == "help") then
-        return svar(BJCLang.getConsoleMessage("command.errors.usage"),
-            { command = "bj whitelist [true|false]" })
-    end
-
-    if value == nil or value == "" then
-        return svar("Whitelist.Enabled = {1}", { M.Data.Whitelist.Enabled })
-    elseif value == "true" or value == "false" then
-        value = value == "true"
-    end
-
     local ctxt = {}
     BJCInitContext(ctxt)
-    M.set(ctxt, "Whitelist.Enabled", value)
-    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BJC, BJCPerm.PERMISSIONS.WHITELIST)
-    return svar("Whitelist.Enabled = {1}", { value })
+    if #args == 0 then -- print whitelist status
+        return svar("{1}\n{2}", {
+            svar(BJCLang.getConsoleMessage("command.showWhitelistState"),
+                {
+                    state = BJCLang.getConsoleMessage(svar("common.{1}", {
+                        M.Data.Whitelist.Enabled and "enabled" or "disabled"
+                    }))
+                }),
+            svar(BJCLang.getConsoleMessage("command.showWhitelistedPlayers"),
+                {
+                    playerList = #M.Data.Whitelist.PlayerNames > 0 and
+                        tconcat(M.Data.Whitelist.PlayerNames, ", ") or
+                        BJCLang.getConsoleMessage("common.empty")
+                }),
+        })
+    elseif args[1] == "set" then                                                 -- set whitelist status
+        if not args[2] or not tincludes({ "true", "false" }, args[2], true) then -- invalid arg
+            return svar("{1}whitelist set {2}", {
+                BJCCommand.commandPrefix,
+                BJCLang.getConsoleMessage("command.help.whitelistSetArgs")
+            })
+        else -- change whitelist state
+            local newState = args[2] == "true"
+            M.set(ctxt, "Whitelist.Enabled", newState)
+            BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BJC, BJCPerm.PERMISSIONS.WHITELIST)
+            return svar(BJCLang.getConsoleMessage("command.newWhitelistState"), { state = newState })
+        end
+    elseif args[1] == "add" then             -- add player to whitelist
+        if not args[2] or args[2] == "" then -- invalid arg
+            return svar("{1}whitelist add {2}", {
+                BJCCommand.commandPrefix,
+                BJCLang.getConsoleMessage("command.help.whitelistAddRemoveArgs")
+            })
+        elseif tincludes(M.Data.Whitelist.PlayerNames, args[2], true) then -- already whitelisted
+            return svar(BJCLang.getConsoleMessage("command.alreadyWhitelistedPlayer"), { playerName = args[2] })
+        else                                                               -- proceed
+            BJCPlayers.whitelist(ctxt, args[2])
+            return svar(BJCLang.getConsoleMessage("command.whitelistAddedPlayer"), { playerName = args[2] })
+        end
+    elseif args[1] == "remove" then -- remove player from whitelist
+        if not args[2] then         -- invalid arg
+            return svar("{1}whitelist remove {2}", {
+                BJCCommand.commandPrefix,
+                BJCLang.getConsoleMessage("command.help.whitelistAddRemoveArgs")
+            })
+        else -- valid arg
+            local matches = {}
+            local list = tdeepcopy(M.Data.Whitelist.PlayerNames)
+            for i, pname in ipairs(list) do -- find matches
+                if pname == args[2] then    -- exact match
+                    matches = { pos = i, playerName = args[2] }
+                    break
+                elseif pname:lower():find(args[2]:lower()) then -- approximate match
+                    table.insert(matches, { pos = i, playerName = pname })
+                end
+            end
+            if #matches == 0 then    -- not whitelisted
+                return svar(BJCLang.getConsoleMessage("command.notWhitelistedPlayer"), { playerName = args[2] })
+            elseif #matches > 1 then -- ambiguity
+                local playerList = {}
+                for _, m in ipairs(matches) do
+                    table.insert(playerList, m.playerName)
+                end
+                table.sort(playerList)
+                return svar(BJCLang.getConsoleMessage("command.errors.playerAmbiguity"),
+                    { playerName = args[2], playerList = tconcat(playerList, ", ") })
+            else -- proceed
+                BJCPlayers.whitelist(ctxt, matches[1].playerName)
+                return svar(BJCLang.getConsoleMessage("command.whitelistRemovedPlayer"),
+                    { playerName = matches[1].playerName })
+            end
+        end
+    else -- invalid args
+        return svar(BJCLang.getConsoleMessage("command.errors.usage"),
+            {
+                command = svar(
+                    "{1}whitelist {2}",
+                    { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.whitelistArgs") }
+                )
+            })
+    end
 end
 
 M.getCache = getCache

@@ -6,7 +6,7 @@ local M = {
     COMMANDS = {}
 }
 
-function M.addCommand(cmd, helpCmd, helpDescription, fnName)
+function M.addCommand(cmd, fnName)
     if not cmd or not fnName or cmd:find(" ") then
         LogError(BJCLang.getConsoleMessage("errors.invalidCommandData"), logTag)
         return
@@ -14,22 +14,28 @@ function M.addCommand(cmd, helpCmd, helpDescription, fnName)
 
     table.insert(M.COMMANDS, {
         cmd = cmd,
-        helpCmd = helpCmd,
-        helpDescription = helpDescription,
         fnName = fnName
     })
 end
 
 local function _printHelp()
-    local out = "BeamJoy commands :"
+    local out = BJCLang.getConsoleMessage("command.help.title")
     local cmdLen = 0
+    local helpContent = {}
     for _, v in ipairs(M.COMMANDS) do
-        if #v.helpCmd > cmdLen then
-            cmdLen = #v.helpCmd
+        local commandStr = svar("{1}{2} {3}",
+            { M.commandPrefix, v.cmd, BJCLang.getConsoleMessage(svar("command.help.{1}Args", { v.cmd })) })
+        local commandDesc = BJCLang.getConsoleMessage(svar("command.help.{1}Description", { v.cmd }))
+        if #commandStr > cmdLen then
+            cmdLen = #commandStr
         end
+        table.insert(helpContent, {
+            command = commandStr,
+            description = commandDesc,
+        })
     end
-    for _, v in ipairs(M.COMMANDS) do
-        out = svar("{1}\n\t{2} {3}", { out, snormalize(v.helpCmd, cmdLen), v.helpDescription })
+    for _, v in ipairs(helpContent) do
+        out = svar("{1}\n\t{2} {3}", { out, snormalize(v.command, cmdLen), v.description })
     end
     return out
 end
@@ -73,7 +79,7 @@ function _OnConsoleInput(message)
         end
     end
     if not cmd then
-        return svar("ERROR Invalid command : \"{1}\"", { command })
+        return svar(BJCLang.getConsoleMessage("command.errors.invalidCommand"), { command = command })
     end
 
     -- allow calling subfunctions like "BJCPlayerManager.onConsoleSetGroup(args)"
@@ -85,26 +91,23 @@ function _OnConsoleInput(message)
     end
 end
 
-function _StopServer(source)
-    MP.TriggerGlobalEvent("onServerStop")
-
-    Exit()
-end
-
 local function _init()
     MP.RegisterEvent("onConsoleInput", "_OnConsoleInput")
 
     -- Registering Console Commands
-    M.addCommand("setgroup", "bj setgroup <player_name> [group_name]",
-        BJCLang.getConsoleMessage("command.help.setgroup"), "BJCPlayers.consoleSetGroup")
-    M.addCommand("setenv", "bj setenv <env_key> [env_value]",
-        BJCLang.getConsoleMessage("command.help.setenv"), "BJCEnvironment.consoleSet")
-    M.addCommand("map", "bj map <map_name>",
-        BJCLang.getConsoleMessage("command.help.map"), "BJCCore.consoleSetMap")
-    M.addCommand("whitelist", "bj whitelist [true|false]",
-        BJCLang.getConsoleMessage("command.help.whitelist"), "BJCConfig.consoleSetWhitelist")
-    M.addCommand("stop", "bj stop",
-        BJCLang.getConsoleMessage("command.help.stop"), "BJCCore.stop")
+    M.addCommand("map", "BJCCore.consoleSetMap")
+    M.addCommand("setenv", "BJCEnvironment.consoleSet")
+    M.addCommand("whitelist", "BJCConfig.consoleSetWhitelist")
+
+    M.addCommand("setgroup", "BJCPlayers.consoleSetGroup")
+    M.addCommand("kick", "BJCPlayers.consoleKick")
+    M.addCommand("ban", "BJCPlayers.consoleBan")
+    M.addCommand("tempban", "BJCPlayers.consoleTempBan")
+    M.addCommand("unban", "BJCPlayers.consoleUnban")
+    M.addCommand("mute", "BJCPlayers.consoleMute")
+    M.addCommand("unmute", "BJCPlayers.consoleUnmute")
+
+    M.addCommand("stop", "BJCCore.stop")
 end
 _init()
 

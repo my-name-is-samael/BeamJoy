@@ -93,7 +93,9 @@ local function getConsoleMessage(key)
     M.checkConsoleLang(BJCConfig.Data.Server.Lang)
     local lang = tdeepcopy(M.Langs[M.FallbackLang])
     tdeepassign(lang, M.Langs[BJCConfig.Data.Server.Lang])
-    return _getMessage(lang, "console." .. tostring(key))
+    local compiledKey = "console." .. tostring(key)
+    local message = _getMessage(lang, compiledKey)
+    return message ~= compiledKey and message or key
 end
 
 local function _getPlayerLang(playerID)
@@ -110,7 +112,9 @@ local function getServerMessage(targetLang, key)
     if tincludes(M.getLangsList(), targetLang) then
         tdeepassign(lang, M.Langs[targetLang])
     end
-    return _getMessage(lang, "server." .. tostring(key))
+    local compiledKey = "server." .. tostring(key)
+    local message = _getMessage(lang, compiledKey)
+    return message ~= compiledKey and message or key
 end
 
 local function getCache(playerID)

@@ -142,7 +142,12 @@ local function consoleSet(args)
     local key, value = args[1], args[2]
     if not key or key == "help" then
         return svar(BJCLang.getConsoleMessage("command.errors.usage"),
-            { command = "bj setenv <env_key> [env_value]" })
+            {
+                command = svar(
+                    "{1}setenv {2}",
+                    { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.setenvArgs") }
+                )
+            })
     end
     if not tincludes(M.Data, key) then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
@@ -173,7 +178,8 @@ local function consoleSet(args)
     local _, err = pcall(set, key, value)
     if err then
         err = type(err) == "table" and err or {}
-        return svar(BJCLang.getServerMessage(BJCConfig.Data.ServerLang, err.key or "rx.errors.serverError"), err.data or {})
+        return svar(BJCLang.getServerMessage(BJCConfig.Data.ServerLang, err.key or "rx.errors.serverError"),
+            err.data or {})
     end
 
     return svar(BJCLang.getConsoleMessage("command.envValueSetTo"), { key = key, value = value })
