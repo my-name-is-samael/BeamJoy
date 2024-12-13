@@ -48,7 +48,9 @@ local function init()
 end
 BJIAsync.task(
     function()
-        return BJICache.areBaseCachesFirstLoaded() and BJICache.isFirstLoaded(BJICache.CACHES.MAP)
+        return BJICache.areBaseCachesFirstLoaded() and
+        BJICache.isFirstLoaded(BJICache.CACHES.MAP) and
+        BJICache.isFirstLoaded(BJICache.CACHES.BJC)
     end,
     init, "BJIScenarioInit"
 )
