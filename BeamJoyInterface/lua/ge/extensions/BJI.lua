@@ -30,9 +30,12 @@ function RegisterBJIManager(manager)
 end
 
 function TriggerBJIEvent(eventName, ...)
-    for _, manager in ipairs(managers) do
+    for i, manager in ipairs(managers) do
         if type(manager[eventName]) == "function" then
-            manager[eventName](...)
+            local status, err = pcall(manager[eventName], ...)
+            if not status then
+                LogError(svar("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
+            end
         end
     end
 end

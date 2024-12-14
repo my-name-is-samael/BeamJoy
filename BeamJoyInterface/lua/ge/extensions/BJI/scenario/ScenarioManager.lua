@@ -49,8 +49,8 @@ end
 BJIAsync.task(
     function()
         return BJICache.areBaseCachesFirstLoaded() and
-        BJICache.isFirstLoaded(BJICache.CACHES.MAP) and
-        BJICache.isFirstLoaded(BJICache.CACHES.BJC)
+            BJICache.isFirstLoaded(BJICache.CACHES.MAP) and
+            BJICache.isFirstLoaded(BJICache.CACHES.BJC)
     end,
     init, "BJIScenarioInit"
 )
@@ -286,9 +286,22 @@ local function getCollisionsType(ctxt)
     end
 end
 
+local renderTickErrorLimitTime = nil
 local function renderTick(ctxt)
     if _curr().renderTick then
-        _curr().renderTick(ctxt or BJITick.getContext())
+        local status, err = pcall(_curr().renderTick, ctxt or BJITick.getContext())
+        if not status then
+            if not renderTickErrorLimitTime then
+                renderTickErrorLimitTime = ctxt.now + 3000
+            elseif ctxt.now >= renderTickErrorLimitTime then
+                BJIToast.error("Continuous error during scenario, backup to Freeroam")
+                renderTickErrorLimitTime = nil
+                M.switchScenario(M.TYPES.FREEROAM)
+            end
+            error(err)
+        elseif renderTickErrorLimitTime then
+            renderTickErrorLimitTime = nil
+        end
     end
 end
 
@@ -327,12 +340,23 @@ local function switchScenario(newType, ctxt)
         return
     end
 
+    local previousScenario = M.CurrentScenario
+    local status, err
     if _curr().onUnload then
-        _curr().onUnload(ctxt)
+        status, err = pcall(_curr().onUnload, ctxt)
+        if not status then
+            BJIToast.error("Error unloading scenario")
+            error(err)
+        end
     end
     M.CurrentScenario = newType
     if _curr().onLoad then
-        _curr().onLoad(ctxt)
+        status, err = pcall(_curr().onLoad, ctxt)
+        if not status then
+            BJIToast.error("Error loading scenario")
+            M.CurrentScenario = previousScenario
+            error(err)
+        end
     end
 end
 

@@ -7,16 +7,23 @@ local M = {
 
 -- remove missions from bigmap
 local function getRawPoiListByLevel(level)
-    local list, generation = M.baseFunctions.getRawPoiListByLevel(level)
-    local i = 1
-    while i < #list do
-        while type(list[i].data) == "table" and
-            tincludes(M.POI_TYPES_BLACKLIST, list[i].data.type, true) do
-            table.remove(list, i)
+    local status, list, generation = pcall(M.baseFunctions.getRawPoiListByLevel, level)
+    if status then
+        local i = 1
+        while i < #list do
+            while type(list[i].data) == "table" and
+                tincludes(M.POI_TYPES_BLACKLIST, list[i].data.type, true) do
+                table.remove(list, i)
+            end
+            i = i + 1
         end
-        i = i + 1
+        return list, generation
+    else
+        local err = list
+        BJIToast.error("Error retrieving POIs for current map")
+        LogError(err)
+        return {}, 0
     end
-    return list, generation
 end
 
 local function onLoad()

@@ -667,9 +667,6 @@ local function renderTick(ctxt)
     -- fix vehicle position / damages on grid
     if not M.gridResetProcess and
         not M.isRaceStarted(ctxt) then
-        if not M.startPosition then
-            M.startPosition = findFreeStartPosition(M.baseRaceData.startPositions)
-        end
         local moved = GetHorizontalDistance(
             M.startPosition.pos,
             ctxt.vehPosRot.pos
