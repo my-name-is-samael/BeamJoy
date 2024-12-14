@@ -34,7 +34,7 @@
         "invalidValue": "ERRO Valor invalido \"{value}\"",
         "invalidPlayer": "ERRO Jogador invalido \"{playerName}\"",
         "invalidPlayerWithList": "ERRO Jogador invalido \"{playerName}\", jogadores conectados: {playerList}",
-        "invalidGroup": "ERRO Grupo invalido \"{groupName}\"",
+        "invalidGroupWithList": "ERRO Grupo invalido \"{groupName}\", grupos: {groupList}",
         "errorUpdatePlayer": "ERRO Nao e possivel atualizar o jogador \"{playerName}\"",
         "playerAmbiguity": "ERRO Ambiguidade com o jogador \"{playerName}\": {playerList}"
       },
@@ -87,8 +87,7 @@
       "playerNotMuted": "Jogador {playerName} nao esta silenciado",
       "stopIn": "Parando servidor em {seconds} segundos",
       "stop": "Servidor esta parando..."
-    }
-    ,
+    },
     "db": {
       "dbFileChanged": "Arquivo \"{dbName}\" alterado",
       "dbLoadingError": "Erro ao carregar o banco de dados \"{dbName}\"",

@@ -34,7 +34,7 @@
         "invalidValue": "ERROR Invalid value \"{value}\"",
         "invalidPlayer": "ERROR Invalid player \"{playerName}\"",
         "invalidPlayerWithList": "ERROR Invalid player \"{playerName}\", connected players : {playerList}",
-        "invalidGroup": "ERROR Invalid group \"{groupName}\"",
+        "invalidGroupWithList": "ERROR Invalid group \"{groupName}\", groups : {groupList}",
         "errorUpdatePlayer": "ERROR Can't update player \"{playerName}\"",
         "playerAmbiguity": "ERROR Ambiguity with player \"{playerName}\" : {playerList}"
       },

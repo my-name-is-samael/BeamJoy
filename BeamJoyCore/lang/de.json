@@ -34,7 +34,7 @@
         "invalidValue": "FEHLER Ungultiger Wert \"{value}\"",
         "invalidPlayer": "FEHLER Ungultiger Spieler \"{playerName}\"",
         "invalidPlayerWithList": "FEHLER Ungultiger Spieler \"{playerName}\", verbundene Spieler: {playerList}",
-        "invalidGroup": "FEHLER Ungultige Gruppe \"{groupName}\"",
+        "invalidGroupWithList": "FEHLER Ungultige Gruppe \"{groupName}\", Gruppen: {groupList}",
         "errorUpdatePlayer": "FEHLER Kann Spieler \"{playerName}\" nicht aktualisieren",
         "playerAmbiguity": "FEHLER Mehrdeutigkeit bei Spieler \"{playerName}\": {playerList}"
       },

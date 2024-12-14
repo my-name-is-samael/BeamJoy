@@ -995,8 +995,6 @@ local function consoleSetGroup(args)
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.setgroupArgs") }
                 )
             })
-    elseif not groupName then
-        groupName = BJCGroups.GROUPS.NONE
     end
 
     local matches = findConnectedPlayers(playerName)
@@ -1017,6 +1015,20 @@ local function consoleSetGroup(args)
             { playerName = playerName, playerList = table.concat(matches, ", ") })
     end
     local target = matches[1]
+
+    if not groupName then
+        groupName = BJCGroups.GROUPS.NONE
+    elseif not BJCGroups.Data[groupName] then
+        local list = {}
+        for g in pairs(BJCGroups.Data) do
+            table.insert(list, g)
+        end
+        table.sort(list)
+        return svar(BJCLang.getConsoleMessage("command.errors.invalidGroupWithList"), {
+            groupName = groupName,
+            groupList = table.concat(list, ", ")
+        })
+    end
 
     local ctxt = {}
     BJCInitContext(ctxt)
