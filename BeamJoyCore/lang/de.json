@@ -36,12 +36,14 @@
         "invalidPlayerWithList": "FEHLER Ungultiger Spieler \"{playerName}\", verbundene Spieler: {playerList}",
         "invalidGroupWithList": "FEHLER Ungultige Gruppe \"{groupName}\", Gruppen: {groupList}",
         "errorUpdatePlayer": "FEHLER Kann Spieler \"{playerName}\" nicht aktualisieren",
-        "playerAmbiguity": "FEHLER Mehrdeutigkeit bei Spieler \"{playerName}\": {playerList}"
+        "playerAmbiguity": "FEHLER Mehrdeutigkeit bei Spieler \"{playerName}\": {playerList}",
+        "invalidMap": "FEHLER Ungultige Karte \"{mapName}\"",
+        "mapAmbiguity": "FEHLER Mehrdeutigkeit bei Karte \"{mapName}\": {mapList}"
       },
       "help": {
         "title": "BeamJoy-Befehle:",
-        "mapArgs": "<kartenname>",
-        "mapDescription": "Zur Karte wechseln",
+        "mapArgs": "[kartenname]",
+        "mapDescription": "Karte anzeigen oder wechseln",
         "setenvArgs": "<umgebungsschluessel> [umgebungswert]",
         "setenvDescription": "Einen Umgebungswert setzen oder zuruecksetzen",
         "whitelistArgs": "<set|add|remove> [argument]",
@@ -66,6 +68,7 @@
         "stopDescription": "Server ordnungsgemaess stoppen (warnt Spieler vor dem Kicken, dann beenden)"
       },
       "defaultReturn": "Befehl erfolgreich ausgefuehrt",
+      "currentMap": "Aktuelle Karte: {mapName}",
       "validMaps": "Gueltige Kartennamen: {maps}",
       "mapSwitched": "Karte gewechselt",
       "envValueSetTo": "Umgebungswert \"{key}\" auf \"{value}\" gesetzt",

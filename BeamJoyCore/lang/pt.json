@@ -36,12 +36,14 @@
         "invalidPlayerWithList": "ERRO Jogador invalido \"{playerName}\", jogadores conectados: {playerList}",
         "invalidGroupWithList": "ERRO Grupo invalido \"{groupName}\", grupos: {groupList}",
         "errorUpdatePlayer": "ERRO Nao e possivel atualizar o jogador \"{playerName}\"",
-        "playerAmbiguity": "ERRO Ambiguidade com o jogador \"{playerName}\": {playerList}"
+        "playerAmbiguity": "ERRO Ambiguidade com o jogador \"{playerName}\": {playerList}",
+        "invalidMap": "ERRO Mapa invalido \"{mapName}\"",
+        "mapAmbiguity": "ERRO Ambiguidade com o mapa \"{mapName}\": {mapList}"
       },
       "help": {
         "title": "Comandos do BeamJoy:",
-        "mapArgs": "<nome_do_mapa>",
-        "mapDescription": "Mudar para o mapa",
+        "mapArgs": "[nome_do_mapa]",
+        "mapDescription": "Mostrar ou alterar o mapa",
         "setenvArgs": "<chave_de_ambiente> [valor_ambiente]",
         "setenvDescription": "Definir ou redefinir um valor de ambiente",
         "whitelistArgs": "<set|add|remove> [argumento]",
@@ -66,6 +68,7 @@
         "stopDescription": "Parar o servidor corretamente (avisa os jogadores antes de expulsa-los, entao sai)"
       },
       "defaultReturn": "Comando executado com sucesso",
+      "currentMap": "Mapa atual: {mapName}",
       "validMaps": "Nomes de mapa validos: {maps}",
       "mapSwitched": "Mapa trocado",
       "envValueSetTo": "Valor de ambiente \"{key}\" definido para \"{value}\"",

@@ -36,12 +36,14 @@
         "invalidPlayerWithList": "ERROR Invalid player \"{playerName}\", connected players : {playerList}",
         "invalidGroupWithList": "ERROR Invalid group \"{groupName}\", groups : {groupList}",
         "errorUpdatePlayer": "ERROR Can't update player \"{playerName}\"",
-        "playerAmbiguity": "ERROR Ambiguity with player \"{playerName}\" : {playerList}"
+        "playerAmbiguity": "ERROR Ambiguity with player \"{playerName}\" : {playerList}",
+        "invalidMap": "ERROR Invalid map \"{mapName}\"",
+        "mapAmbiguity": "ERROR Ambiguity with map \"{mapName}\" : {mapList}"
       },
       "help": {
         "title": "BeamJoy commands :",
-        "mapArgs": "<map_name>",
-        "mapDescription": "Switch to map",
+        "mapArgs": "[map_name]",
+        "mapDescription": "Show current or switch to map",
         "setenvArgs": "<env_key> [env_value]",
         "setenvDescription": "Set or reset an environment value",
         "whitelistArgs": "<set|add|remove> [arg]",
@@ -66,6 +68,7 @@
         "stopDescription": "Stop server properly (warns players before kicking them, then exit)"
       },
       "defaultReturn": "Command executed successfully",
+      "currentMap": "Current map: {mapName}",
       "validMaps": "Valid map names: {maps}",
       "mapSwitched": "Map switched",
       "envValueSetTo": "Environment value \"{key}\" set to \"{value}\"",
@@ -156,7 +159,8 @@
         "invalidLang": "Invalid language \"{lang}\"",
         "insufficientPlayers": "Not enough players",
         "guestCannotBeWhitelisted": "Guests cannot be whitelisted",
-        "playerAmbiguity": "Ambiguity with players : {playerList}"
+        "playerAmbiguity": "Ambiguity with players : {playerList}",
+        "forbidden": "Forbidden"
       },
       "vehicleRemoveOneOf": "One of your vehicles",
       "vehicleRemoveMain": "Your vehicle",

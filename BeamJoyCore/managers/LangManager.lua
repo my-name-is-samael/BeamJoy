@@ -72,6 +72,9 @@ local function getLangsList()
 end
 
 local function _getMessage(lang, key)
+    if key:find(" ") then
+        return key
+    end
     local parts = ssplit(key, ".")
     local obj = lang or M.Langs[M.FallbackLang]
     for i = 1, #parts do

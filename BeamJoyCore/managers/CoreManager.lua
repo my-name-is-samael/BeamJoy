@@ -145,12 +145,37 @@ local function consoleSetMap(args)
     end
     table.sort(maps)
 
-    if not args[1] or #args[1] == 0 or not tincludes(maps, args[1], true) then
-        return svar(BJCLang.getConsoleMessage("command.validMaps"),
-            { maps = tconcat(maps, ", ") })
+    if not args[1] or #args[1] == 0 then -- show current and list maps
+        return svar("{1}\n{2}", {
+            svar(BJCLang.getConsoleMessage("command.currentMap"), { mapName = getMap() }),
+            svar(BJCLang.getConsoleMessage("command.validMaps"),
+                { maps = tconcat(maps, ", ") })
+        })
     end
 
-    M.setMap(args[1])
+    local matches = {}
+    for _, name in ipairs(maps) do
+        if name == args[1] then -- exact match
+            matches = { name }
+            break
+        elseif name:lower():find(args[1]:lower()) then -- approximate match
+            table.insert(matches, name)
+        end
+    end
+
+    if #matches == 0 then -- no match
+        return svar("{1}\n{2}", {
+            svar(BJCLang.getConsoleMessage("command.errors.invalidMap"), { mapName = args[1] }),
+            svar(BJCLang.getConsoleMessage("command.validMaps"),
+                { maps = tconcat(maps, ", ") })
+        })
+    elseif #matches > 1 then -- multiple matches
+        return svar(BJCLang.getConsoleMessage("command.errors.mapAmbiguity"),
+            { mapName = args[1], mapList = tconcat(matches, ", ") })
+    end
+
+    -- switch map
+    M.setMap(matches[1])
     return BJCLang.getConsoleMessage("command.mapSwitched")
 end
 
@@ -173,6 +198,50 @@ local function set(key, value)
         M.Data.General.Description = value
         writeServerConfig()
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
+    end
+end
+
+local function consoleSet(key, value)
+    local keyParts = ssplit(key, ".")
+    if #keyParts ~= 2 then
+        error({ key = "rx.errors.invalidKey", data = { key = key } })
+    end
+    if not keyParts[1] or not keyParts[2] or not M.Data[keyParts[1]] or M.Data[keyParts[1]][keyParts[2]] == nil then
+        error({ key = "rx.errors.invalidKey", data = { key = key } })
+    end
+
+    if keyParts[1] == "General" then
+        -- AuthKey is not editable
+        if keyParts[2] == "AuthKey" then
+            error({ key = "rx.errors.forbidden" })
+        end
+
+        -- value types validation
+        if tincludes({ "Port", "MaxPlayers", "MaxCars" }, keyParts[2], true) then
+            value = tonumber(value)
+            if not value then
+                error({ key = "rx.errors.invalidValue", data = { value = value } })
+            end
+        elseif tincludes({ "Debug", "Private" }, keyParts[2], true) then
+            if value == "true" then
+                value = true
+            elseif value == "false" then
+                value = false
+            else
+                error({ key = "rx.errors.invalidValue", data = { value = value } })
+            end
+        end
+
+        -- apply
+        if keyParts[2] == "Map" then
+            -- not an actual error but will be printed next instead of default message
+            error({ key = M.consoleSetMap({ value }) })
+        else
+            M.set(keyParts[2], value)
+        end
+    elseif keyParts[2] then -- other than "General"
+        M.data[keyParts[1]][keyParts[2]] = value
+        writeServerConfig()
     end
 end
 
@@ -242,6 +311,7 @@ M.getMap = getMap
 M.setMap = setMap
 M.consoleSetMap = consoleSetMap
 M.set = set
+M.consoleSet = consoleSet
 M.stop = stop
 
 M.getCache = getCache
