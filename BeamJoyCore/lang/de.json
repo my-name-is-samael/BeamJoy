@@ -42,6 +42,8 @@
       },
       "help": {
         "title": "BeamJoy-Befehle:",
+        "langArgs": "[sprache_code]",
+        "langDescription": "Aktuelle Konsolensprache anzeigen oder andern",
         "mapArgs": "[kartenname]",
         "mapDescription": "Karte anzeigen oder wechseln",
         "setenvArgs": "<umgebungsschluessel> [umgebungswert]",
@@ -68,6 +70,9 @@
         "stopDescription": "Server ordnungsgemaess stoppen (warnt Spieler vor dem Kicken, dann beenden)"
       },
       "defaultReturn": "Befehl erfolgreich ausgefuehrt",
+      "currentLang": "Aktuelle Konsolensprache: {langName}",
+      "validLangs": "Gultige Sprachcodes: {langNames}",
+      "langChanged": "Konsolensprache geandert in \"{langName}\"",
       "currentMap": "Aktuelle Karte: {mapName}",
       "validMaps": "Gueltige Kartennamen: {maps}",
       "mapSwitched": "Karte gewechselt",

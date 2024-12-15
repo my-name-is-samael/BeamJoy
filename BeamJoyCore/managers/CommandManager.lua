@@ -243,6 +243,7 @@ local function _init()
     MP.RegisterEvent("onConsoleInput", "_OnConsoleInput")
 
     -- Registering Console Commands
+    M.addCommand("lang", "BJCCore.consoleSetLang")
     M.addCommand("map", "BJCCore.consoleSetMap")
     M.addCommand("setenv", "BJCEnvironment.consoleSet")
     M.addCommand("whitelist", "BJCConfig.consoleSetWhitelist")

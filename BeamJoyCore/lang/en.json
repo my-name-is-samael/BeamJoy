@@ -42,6 +42,8 @@
       },
       "help": {
         "title": "BeamJoy commands :",
+        "langArgs": "[language_code]",
+        "langDescription": "Show current or change console language",
         "mapArgs": "[map_name]",
         "mapDescription": "Show current or switch to map",
         "setenvArgs": "<env_key> [env_value]",
@@ -68,6 +70,9 @@
         "stopDescription": "Stop server properly (warns players before kicking them, then exit)"
       },
       "defaultReturn": "Command executed successfully",
+      "currentLang": "Current console language: {langName}",
+      "validLangs": "Valid languages codes: {langNames}",
+      "langChanged": "Console language changed to \"{langName}\"",
       "currentMap": "Current map: {mapName}",
       "validMaps": "Valid map names: {maps}",
       "mapSwitched": "Map switched",

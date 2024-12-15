@@ -61,6 +61,28 @@ local function init()
     end
 end
 
+local function consoleSetLang(args)
+    local langs = BJCLang.getLangsList()
+    table.sort(langs)
+
+    if not args[1] then -- displays current
+        return svar(BJCLang.getConsoleMessage("command.currentLang"),
+            { langName = BJCConfig.Data.Server.Lang })
+    end
+
+    if not tincludes(langs, args[1]:lower()) then -- invalid lang
+        return svar("{1}\n{2}", {
+            svar(BJCLang.getConsoleMessage("command.errors.invalidValue"), { value = args[1] }),
+            svar(BJCLang.getConsoleMessage("command.validLangs"), { langNames = tconcat(langs, ", ") })
+        })
+    end
+
+    local ctxt = {}
+    BJCInitContext(ctxt)
+    BJCConfig.set(ctxt, "Server.Lang", args[1]:lower())
+    return svar(BJCLang.getConsoleMessage("command.langChanged"), { langName = BJCConfig.Data.Server.Lang })
+end
+
 local function getMap()
     return M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
 end
@@ -307,6 +329,7 @@ local function getCacheHash()
     return Hash(M.Data)
 end
 
+M.consoleSetLang = consoleSetLang
 M.getMap = getMap
 M.setMap = setMap
 M.consoleSetMap = consoleSetMap

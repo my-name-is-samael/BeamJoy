@@ -42,6 +42,8 @@
       },
       "help": {
         "title": "Comandos do BeamJoy:",
+        "langArgs": "[codigo_idioma]",
+        "langDescription": "Mostrar o idioma atual ou alterar o idioma da consola",
         "mapArgs": "[nome_do_mapa]",
         "mapDescription": "Mostrar ou alterar o mapa",
         "setenvArgs": "<chave_de_ambiente> [valor_ambiente]",
@@ -68,6 +70,9 @@
         "stopDescription": "Parar o servidor corretamente (avisa os jogadores antes de expulsa-los, entao sai)"
       },
       "defaultReturn": "Comando executado com sucesso",
+      "currentLang": "Idioma atual da consola: {langName}",
+      "validLangs": "Codigos de idiomas validos: {langNames}",
+      "langChanged": "Idioma da consola alterado para \"{langName}\"",
       "currentMap": "Mapa atual: {mapName}",
       "validMaps": "Nomes de mapa validos: {maps}",
       "mapSwitched": "Mapa trocado",
