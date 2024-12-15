@@ -937,7 +937,6 @@ local function getConfigEntry(ctxt)
                 else
                     BJIContext.ThemeEditor = {
                         data = tdeepcopy(BJIContext.BJC.Server.Theme),
-                        changed = false,
                     }
                 end
             end

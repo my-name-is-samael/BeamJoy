@@ -3,9 +3,30 @@ local M = {
     ClientMods = nil,
 }
 
+local function sanitizeTheme(themeData)
+    local removedFields = {
+        { "Fields", "BUTTON" },
+        { "Fields", "BUTTON_HOVERED" },
+        { "Fields", "BUTTON_ACTIVE" },
+        { "Fields", "TEXT_COLOR" },
+    }
+    local changed = false
+    for _, path in ipairs(removedFields) do
+        if themeData[path[1]] and themeData[path[1]][path[2]] then
+            themeData[path[1]][path[2]] = nil
+            changed = true
+        end
+    end
+    return changed
+end
+
 local function init()
     M.Data = BJCDefaults.config()
     tdeepassign(M.Data, BJCDao.config.findAll())
+
+    if sanitizeTheme(M.Data.Server.Theme) then
+        BJCDao.config.save("Server", "Theme", M.Data.Server.Theme)
+    end
 
     if not M.ClientMods then
         local folder = BJCPluginPath:gsub("Server/BeamJoyCore", "Client")

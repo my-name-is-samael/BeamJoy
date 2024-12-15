@@ -3,6 +3,7 @@ local im = ui_imgui
 function RGBA(r, g, b, a)
     return im.ImVec4(r, g, b, a)
 end
+RGBA_PRECISION = 3
 
 WINDOW_FLAGS = {
     MENU_BAR = im.WindowFlags_MenuBar,

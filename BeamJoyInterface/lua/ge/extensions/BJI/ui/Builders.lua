@@ -471,12 +471,10 @@ LineBuilder = function(startSameLine)
         SetStyleColor(STYLE_COLS.BUTTON, preset[1])
         SetStyleColor(STYLE_COLS.BUTTON_HOVERED, preset[2])
         SetStyleColor(STYLE_COLS.BUTTON_ACTIVE, preset[3])
-        if preset[4] then
-            SetStyleColor(STYLE_COLS.TEXT_COLOR, preset[4])
-        end
+        SetStyleColor(STYLE_COLS.TEXT_COLOR, preset[4])
     end
     local function resetBtnStyle()
-        im.PopStyleColor(3)
+        im.PopStyleColor(4)
     end
     builder.btn = function(self, data)
         if not data or not data.id or not data.label or
@@ -487,16 +485,29 @@ LineBuilder = function(startSameLine)
         self:_commonStartElem()
 
         if data.disabled == true then
-            btnStylePreset(BTN_PRESETS.DISABLED)
-        elseif data.style then
-            btnStylePreset(data.style)
+            data.style = {
+                BTN_PRESETS.DISABLED[1],
+                BTN_PRESETS.DISABLED[2],
+                BTN_PRESETS.DISABLED[3],
+                BTN_PRESETS.DISABLED[4],
+            }
         end
+        if not data.style then
+            data.style = {
+                BTN_PRESETS.DEFAULT[1],
+                BTN_PRESETS.DEFAULT[2],
+                BTN_PRESETS.DEFAULT[3],
+                BTN_PRESETS.DEFAULT[4],
+            }
+        end
+        if not data.style[4] then
+            data.style[4] = TEXT_COLORS.DEFAULT
+        end
+        btnStylePreset(data.style)
         if im.SmallButton(svar("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
             data.onClick()
         end
-        if data.disabled or data.style then
-            resetBtnStyle()
-        end
+        resetBtnStyle()
 
         self._elemCount = self._elemCount + 1
         return self
@@ -591,6 +602,18 @@ LineBuilder = function(startSameLine)
         })
     end
 
+    local function inputStylePreset(preset, numeric)
+        SetStyleColor(STYLE_COLS.FRAME_BG, preset[1])
+        SetStyleColor(STYLE_COLS.TEXT_COLOR, preset[2])
+        if numeric then
+            SetStyleColor(STYLE_COLS.BUTTON, preset[1])
+            SetStyleColor(STYLE_COLS.BUTTON_HOVERED, preset[1])
+            SetStyleColor(STYLE_COLS.BUTTON_ACTIVE, preset[1])
+        end
+    end
+    local function resetInputStyle(numeric)
+        im.PopStyleColor(numeric and 5 or 2)
+    end
     builder.inputNumeric = function(self, data)
         if not data or not data.id or not data.type or type(data.value) ~= "number" then
             LogError("inputNumeric requires id, type and value", logTag)
@@ -615,14 +638,21 @@ LineBuilder = function(startSameLine)
 
         -- DISABLED / STYLE
         if data.disabled then
-            SetStyleColor(STYLE_COLS.FRAME_BG, INPUT_PRESETS.DISABLED[1])
-            SetStyleColor(STYLE_COLS.TEXT_COLOR, INPUT_PRESETS.DISABLED[2])
-        elseif data.style then
-            SetStyleColor(STYLE_COLS.FRAME_BG, data.style[1])
-            if data.style[2] then
-                SetStyleColor(STYLE_COLS.TEXT_COLOR, data.style[2])
-            end
+            data.style = {
+                INPUT_PRESETS.DISABLED[1],
+                INPUT_PRESETS.DISABLED[2],
+            }
         end
+        if not data.style then
+            data.style = {
+                INPUT_PRESETS.DEFAULT[1],
+                INPUT_PRESETS.DEFAULT[2],
+            }
+        end
+        if not data.style[2] then
+            data.style[2] = TEXT_COLORS.DEFAULT
+        end
+        inputStylePreset(data.style, true)
 
         local input = InputInt(Round(data.value))
         local drawFn = im.InputInt
@@ -648,15 +678,7 @@ LineBuilder = function(startSameLine)
         end
 
         -- REMOVE STYLE
-        if data.disabled then
-            PopStyleColor(2)
-        elseif data.style then
-            if data.style[2] then
-                PopStyleColor(2)
-            else
-                PopStyleColor(1)
-            end
-        end
+        resetInputStyle(true)
 
         -- REMOVE WIDTH
         im.PopItemWidth()
@@ -685,14 +707,21 @@ LineBuilder = function(startSameLine)
 
         -- DISABLED / STYLE
         if data.disabled then
-            SetStyleColor(STYLE_COLS.FRAME_BG, INPUT_PRESETS.DISABLED[1])
-            SetStyleColor(STYLE_COLS.TEXT_COLOR, INPUT_PRESETS.DISABLED[2])
-        elseif data.style then
-            SetStyleColor(STYLE_COLS.FRAME_BG, data.style[1])
-            if data.style[2] then
-                SetStyleColor(STYLE_COLS.TEXT_COLOR, data.style[2])
-            end
+            data.style = {
+                INPUT_PRESETS.DISABLED[1],
+                INPUT_PRESETS.DISABLED[2],
+            }
         end
+        if not data.style then
+            data.style = {
+                INPUT_PRESETS.DEFAULT[1],
+                INPUT_PRESETS.DEFAULT[2],
+            }
+        end
+        if not data.style[2] then
+            data.style[2] = TEXT_COLORS.DEFAULT
+        end
+        inputStylePreset(data.style)
 
         -- DRAW
         local input = InputString(data.size or 100, data.value)
@@ -743,15 +772,7 @@ LineBuilder = function(startSameLine)
         end
 
         -- REMOVE STYLE
-        if data.disabled then
-            PopStyleColor(2)
-        elseif data.style then
-            if data.style[2] then
-                PopStyleColor(2)
-            else
-                PopStyleColor(1)
-            end
-        end
+        resetInputStyle()
 
         -- REMOVE WIDTH
         im.PopItemWidth()
@@ -915,10 +936,43 @@ LineBuilder = function(startSameLine)
 
         data.iconDisabled = data.iconDisabled or data.iconEnabled
         data.icon = data.state and data.iconEnabled or data.iconDisabled
-        data.style = TEXT_COLORS.DEFAULT
-        data.background = data.state and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR
+        data.style = data.style or TEXT_COLORS.DEFAULT
+        if not data.background then
+            data.background = data.state and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR
+        end
 
         return self:btnIcon(data)
+    end
+
+    builder.colorPicker = function(self, data)
+        if not data.id or not data.value or not data.onChange then
+            LogError("colorPicker requires id, label, value and onChange", logTag)
+            return self
+        end
+
+        self:_commonStartElem()
+
+        local flags = im.flags(im.ColorEditFlags_NoInputs)
+        local color = im.ArrayFloat(4)
+        color[0] = data.value[1]
+        color[1] = data.value[2]
+        color[2] = data.value[3]
+        color[3] = data.alpha and data.value[4] or 1
+
+        local fn = im.ColorEdit3
+        if data.alpha then
+            fn = im.ColorEdit4
+        end
+        if fn(svar("##{1}", { data.id }), color, flags) then
+            data.onChange({
+                Round(color[0], RGBA_PRECISION),
+                Round(color[1], RGBA_PRECISION),
+                Round(color[2], RGBA_PRECISION),
+                Round(color[3], RGBA_PRECISION),
+            })
+        end
+        self._elemCount = self._elemCount + 1
+        return self
     end
 
     builder.build = function(self)
@@ -1029,39 +1083,4 @@ ColumnsBuilder = function(name, colsWidths, borders)
     end
 
     return builder
-end
-
-ColorPicker = function(data)
-    if not data.id or not data.label or not data.value or not data.onChange then
-        LogError("ColorPicker requires id, label, value and onChange", logTag)
-        return
-    end
-    local flags = im.flags(tunpack({
-        im.ColorEditFlags_NoSmallPreview,
-        im.ColorEditFlags_NoSidePreview,
-        im.ColorEditFlags_AlphaBar,
-    }))
-
-    AccordionBuilder()
-        :label(svar("{1}##{2}", { data.label, data.id }))
-        :openedBehavior(function()
-            local color = im.ArrayFloat(4)
-            color[0] = data.value.x
-            color[1] = data.value.y
-            color[2] = data.value.z
-            color[3] = data.alpha and data.value.w or 1
-
-            if data.alpha then
-                if im.ColorPicker4(svar("##{1}", { data.id }), color, flags) then
-                    local updated = RGBA(color[0], color[1], color[2], color[3])
-                    data.onChange(updated)
-                end
-            else
-                if im.ColorPicker3(svar("##{1}", { data.id }), color, flags) then
-                    local updated = RGBA(color[0], color[1], color[2], color[3])
-                    data.onChange(updated)
-                end
-            end
-        end)
-        :build()
 end
