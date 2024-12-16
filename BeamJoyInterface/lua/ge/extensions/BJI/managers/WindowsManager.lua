@@ -361,7 +361,7 @@ local function initWindows()
                     :btnIcon({
                         id = "emptyDebug",
                         icon = ICONS.exit_to_app,
-                        background = BTN_PRESETS.ERROR,
+                        style = BTN_PRESETS.ERROR,
                         onClick = function()
                             BJIDEBUG = nil
                         end

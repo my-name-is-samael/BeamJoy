@@ -442,25 +442,15 @@ local function getEditEntry(ctxt)
         local elems = {
             [1] = {
                 render = function()
-                    local onClick = function()
-                        BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
-                        BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
-                    end
                     LineBuilder()
-                        :btnIcon({
+                        :btnIconToggle({
                             id = "timePlayButton",
-                            icon = ICONS.play_arrow,
-                            style = TEXT_COLORS.DEFAULT,
-                            background = BJIEnv.Data.timePlay and
-                                BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
-                            onClick = onClick,
-                        })
-                        :btn({
-                            id = "timePlayLabel",
-                            label = BJILang.get("environment.timePlay"),
-                            style = BJIEnv.Data.timePlay and
-                                BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
-                            onClick = onClick,
+                            icon = BJIEnv.Data.timePlay and ICONS.play or ICONS.pause,
+                            state = BJIEnv.Data.timePlay,
+                            onClick = function()
+                                BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
+                                BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
+                            end,
                         })
                         :build()
                 end,
@@ -480,8 +470,7 @@ local function getEditEntry(ctxt)
                         :btnIcon({
                             id = svar("timePreset{1}Button", { preset.label }),
                             icon = preset.icon,
-                            style = disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT,
-                            background = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
+                            style = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
                             onClick = onClick,
                         })
                         :btn({
@@ -521,8 +510,7 @@ local function getEditEntry(ctxt)
                         :btnIcon({
                             id = svar("weatherPreset{1}Button", { preset.label }),
                             icon = preset.icon,
-                            style = disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT,
-                            background = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
+                            style = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
                             onClick = onClick,
                         })
                         :btn({
@@ -766,7 +754,7 @@ local function getEditEntry(ctxt)
                             :btnIcon({
                                 id = "edit" .. race.id,
                                 icon = ICONS.mode_edit,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
                                 onClick = function()
                                     createRaceEditData(race)
                                 end
@@ -774,7 +762,7 @@ local function getEditEntry(ctxt)
                             :btnIcon({
                                 id = "copy" .. race.id,
                                 icon = ICONS.content_copy,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
                                 onClick = function()
                                     createRaceEditData(race, true)
                                 end
@@ -782,7 +770,7 @@ local function getEditEntry(ctxt)
                             :btnIcon({
                                 id = svar("delete{1}", { race.id }),
                                 icon = ICONS.delete_forever,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
                                         svar(BJILang.get("menu.edit.raceDeleteModal"),
@@ -801,10 +789,9 @@ local function getEditEntry(ctxt)
                                     )
                                 end
                             })
-                            :btnIconSwitch({
+                            :btnIconToggle({
                                 id = svar("toggleEnabled{1}", { race.id }),
-                                iconEnabled = ICONS.visibility,
-                                iconDisabled = ICONS.visibility_off,
+                                icon = race.enabled and ICONS.visibility or ICONS.visibility_off,
                                 state = race.enabled == true,
                                 onClick = function()
                                     BJITx.scenario.RaceToggle(race.id, not race.enabled)

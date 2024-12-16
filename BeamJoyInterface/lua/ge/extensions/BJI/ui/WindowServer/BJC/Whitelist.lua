@@ -3,39 +3,27 @@ local function drawWhitelistOnlinePlayers(playerNames)
         :text(svar("{1}:", { BJILang.get("serverConfig.bjc.whitelist.players") }))
         :build()
     Indent(1)
-    local nameWidth = 0
     for _, playerName in ipairs(playerNames) do
-        local w = GetColumnTextWidth(playerName)
-        if w > nameWidth then
-            nameWidth = w
-        end
-    end
-    local cols = ColumnsBuilder("whitelistOnlinePlayers", { nameWidth, -1 })
-    for _, playerName in ipairs(playerNames) do
-        cols:addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(playerName)
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :btnSwitch({
-                            id = svar("toggleWhitelist{1}", { playerName }),
-                            labelOn = BJILang.get("common.buttons.add"),
-                            labelOff = BJILang.get("common.buttons.remove"),
-                            state = not tincludes(BJIContext.BJC.Whitelist.PlayerNames, playerName),
-                            onClick = function()
-                                BJITx.moderation.whitelist(playerName)
-                            end
-                        })
-                        :build()
+        local included = tincludes(BJIContext.BJC.Whitelist.PlayerNames, playerName)
+        LineBuilder()
+            :btnIconToggle({
+                id = svar("toggleWhitelist{1}", { playerName }),
+                icon = included and ICONS.remove_circle or ICONS.add_circle,
+                state = not included,
+                coloredIcon = true,
+                onClick = function()
+                    BJITx.moderation.whitelist(playerName)
+                    if included then
+                        local pos = tpos(BJIContext.BJC.Whitelist.PlayerNames, playerName)
+                        table.remove(BJIContext.BJC.Whitelist.PlayerNames, pos)
+                    else
+                        table.insert(BJIContext.BJC.Whitelist.PlayerNames, playerName)
+                    end
                 end
-            }
-        })
+            })
+            :text(playerName)
+            :build()
     end
-    cols:build()
     Indent(-1)
 end
 
@@ -44,38 +32,22 @@ local function drawWhitelistOfflinePlayers(playerNames)
         :text(svar("{1}:", { BJILang.get("serverConfig.bjc.whitelist.offlinePlayers") }))
         :build()
     Indent(1)
-    local nameWidth = 0
     for _, playerName in ipairs(playerNames) do
-        local w = GetColumnTextWidth(playerName)
-        if w > nameWidth then
-            nameWidth = w
-        end
-    end
-    local cols = ColumnsBuilder("whitelistOfflinePlayers", { nameWidth, -1 })
-    for _, playerName in ipairs(playerNames) do
-        cols:addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(playerName)
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :btn({
-                            id = svar("removeWhitelist{1}", { playerName }),
-                            label = BJILang.get("common.buttons.remove"),
-                            style = BTN_PRESETS.ERROR,
-                            onClick = function()
-                                BJITx.moderation.whitelist(playerName)
-                            end
-                        })
-                        :build()
+        LineBuilder()
+            :btnIcon({
+                id = svar("removeWhitelist{1}", { playerName }),
+                icon = ICONS.remove_circle,
+                style = BTN_PRESETS.ERROR,
+                coloredIcon = true,
+                onClick = function()
+                    BJITx.moderation.whitelist(playerName)
+                    local pos = tpos(BJIContext.BJC.Whitelist.PlayerNames, playerName)
+                    table.remove(BJIContext.BJC.Whitelist.PlayerNames, pos)
                 end
-            }
-        })
+            })
+            :text(playerName)
+            :build()
     end
-    cols:build()
     Indent(-1)
 end
 
@@ -92,19 +64,21 @@ return function(ctxt)
     local line = LineBuilder()
         :text(svar("{1}:", { BJILang.get("common.state") }))
     if canToggleWL then
-        line:btnSwitchEnabledDisabled({
+        line:btnIconToggle({
             id = "toggleWhitelist",
             state = BJIContext.BJC.Whitelist.Enabled,
+            coloredIcon = true,
             onClick = function()
                 BJITx.config.bjc("Whitelist.Enabled", not BJIContext.BJC.Whitelist.Enabled)
+                BJIContext.BJC.Whitelist.Enabled = not BJIContext.BJC.Whitelist.Enabled
             end
         })
     else
-        local label = BJILang.get("common.disabled")
-        if BJIContext.BJC.Whitelist.Enabled then
-            label = BJILang.get("common.enabled")
-        end
-        line:text(label)
+        line:icon({
+            icon = BJIContext.BJC.Whitelist.Enabled and ICONS.check_circle or ICONS.cancel,
+            style = BJIContext.BJC.Whitelist.Enabled and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+            coloredIcon = true,
+        })
     end
     line:build()
 
@@ -135,9 +109,9 @@ return function(ctxt)
                 BJIContext.BJC.Whitelist.PlayerName = val
             end
         })
-        :btn({
+        :btnIcon({
             id = "addWhitelist",
-            label = BJILang.get("common.buttons.add"),
+            icon = ICONS.addListItem,
             style = BTN_PRESETS.SUCCESS,
             disabled = not canAdd,
             onClick = function()

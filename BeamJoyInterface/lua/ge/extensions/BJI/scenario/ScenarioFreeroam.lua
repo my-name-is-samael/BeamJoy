@@ -291,7 +291,7 @@ local function getPlayerListActions(player, ctxt)
         table.insert(actions, {
             id = svar("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             disabled = disabled,
             onClick = function()
                 if isSelf then
@@ -325,7 +325,7 @@ local function getPlayerListActions(player, ctxt)
             table.insert(actions, {
                 id = "stopWalking",
                 icon = ICONS.directions_run,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = BJIVeh.deleteCurrentOwnVehicle,
             })
         end
@@ -334,7 +334,7 @@ local function getPlayerListActions(player, ctxt)
             table.insert(actions, {
                 id = svar("gpsPlayer{1}", { player.playerID }),
                 icon = ICONS.add_location,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = function()
                     BJIGPS.prependWaypoint(BJIGPS.KEYS.PLAYER, nil, 20, nil, player.playerName)
                 end
@@ -344,7 +344,7 @@ local function getPlayerListActions(player, ctxt)
                 table.insert(actions, {
                     id = svar("teleportTo{1}", { player.playerID }),
                     icon = ICONS.tb_height_higher,
-                    background = BTN_PRESETS.WARNING,
+                    style = BTN_PRESETS.WARNING,
                     onClick = function()
                         M.tryTeleportToPlayer(player.playerID)
                     end
@@ -358,7 +358,7 @@ local function getPlayerListActions(player, ctxt)
                     table.insert(actions, {
                         id = svar("teleportFrom{1}", { player.playerID }),
                         icon = ICONS.tb_height_lower,
-                        background = BTN_PRESETS.WARNING,
+                        style = BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
                             not ctxt.isOwner or
                             finalGameVehID == ctxt.veh:getID(),
@@ -377,7 +377,7 @@ local function getPlayerListActions(player, ctxt)
         table.insert(actions, {
             id = svar("voteKick{1}", { player.playerID }),
             icon = ICONS.event_busy,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
             end

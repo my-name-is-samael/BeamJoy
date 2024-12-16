@@ -63,7 +63,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "deliveryMultiLeave",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = BJITx.scenario.DeliveryMultiLeave,
         })
         :build()

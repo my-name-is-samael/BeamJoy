@@ -19,7 +19,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
         table.insert(actions, {
             id = svar("deleteVehicles{1}", { playerID }),
             icon = ICONS.directions_car,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 if isSelf then
                     BJIContext.User.currentVehicle = nil
@@ -40,7 +40,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
                 table.insert(actions, {
                     id = svar("toggleMute{1}", { playerID }),
                     icon = ICONS.speaker_notes_off,
-                    background = target.muted and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+                    style = target.muted and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                     onClick = function()
                         BJITx.moderation.mute(target.playerName)
                     end
@@ -79,7 +79,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
             table.insert(actions, {
                 id = svar("toggleFreeze{1}", { playerID }),
                 icon = ICONS.ac_unit,
-                background = target.freeze and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+                style = target.freeze and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                 onClick = function()
                     BJITx.moderation.freeze(playerID)
                 end
@@ -90,7 +90,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
             table.insert(actions, {
                 id = svar("toggleEngine{1}", { playerID }),
                 icon = ICONS.cogs,
-                background = target.engine and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+                style = target.engine and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                 onClick = function()
                     BJITx.moderation.engine(playerID)
                 end
@@ -129,25 +129,25 @@ local function drawPlayerVehicles(playerID, ctxt)
                 line:btnIcon({
                     id = svar("focus{1}-{2}", { playerID, vehID }),
                     icon = ICONS.cameraFocusOnVehicle2,
-                    background = BTN_PRESETS.INFO,
+                    style = BTN_PRESETS.INFO,
                     disabled = not finalGameVehID or
                         (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
                     onClick = function()
                         BJIVeh.focusVehicle(finalGameVehID)
                     end
                 })
-                    :btnIconSwitch({
+                    :btnIconToggle({
                         id = svar("toggleFreeze{1}-{2}", { playerID, vehID }),
-                        iconEnabled = ICONS.ac_unit,
+                        icon = ICONS.ac_unit,
                         state = not not vehicle.freeze,
                         disabled = not finalGameVehID,
                         onClick = function()
                             BJITx.moderation.freeze(playerID, vehID)
                         end
                     })
-                    :btnIconSwitch({
+                    :btnIconToggle({
                         id = svar("toggleEngine{1}-{2}", { playerID, vehID }),
-                        iconEnabled = ICONS.cogs,
+                        icon = ICONS.cogs,
                         state = not not vehicle.engine,
                         disabled = not finalGameVehID,
                         onClick = function()
@@ -157,7 +157,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                     :btnIcon({
                         id = svar("delete{1}-{2}", { playerID, vehID }),
                         icon = ICONS.delete_forever,
-                        background = BTN_PRESETS.ERROR,
+                        style = BTN_PRESETS.ERROR,
                         onClick = function()
                             BJITx.moderation.deleteVehicle(playerID, vehicle.gameVehID)
                         end
@@ -165,7 +165,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                     :btnIcon({
                         id = svar("explode{1}-{2}", { playerID, vehID }),
                         icon = ICONS.whatshot,
-                        background = BTN_PRESETS.ERROR,
+                        style = BTN_PRESETS.ERROR,
                         disabled = not finalGameVehID,
                         onClick = function()
                             BJITx.player.explodeVehicle(vehicle.gameVehID)
@@ -227,9 +227,9 @@ local function drawPlayerDetails(playerID, ctxt)
                     end,
                     function()
                         LineBuilder()
-                            :btnIconSwitch({
+                            :btnIconToggle({
                                 id = svar("toggleMute{1}", { playerID }),
-                                iconEnabled = ICONS.speaker_notes_off,
+                                icon = ICONS.speaker_notes_off,
                                 state = target.muted == true,
                                 onClick = function()
                                     BJITx.moderation.mute(target.playerName, target.muteReason)
@@ -308,7 +308,7 @@ local function drawPlayerDetails(playerID, ctxt)
                             :btnIcon({
                                 id = svar("ban{1}", { playerID }),
                                 icon = ICONS.gavel,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
                                         svar(BJILang.get("moderationBlock.banModal"),
@@ -349,7 +349,7 @@ local function drawPlayerDetails(playerID, ctxt)
                             :btnIcon({
                                 id = svar("tempBan{1}", { playerID }),
                                 icon = ICONS.av_timer,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
                                         svar(BJILang.get("moderationBlock.tempBanModal"),

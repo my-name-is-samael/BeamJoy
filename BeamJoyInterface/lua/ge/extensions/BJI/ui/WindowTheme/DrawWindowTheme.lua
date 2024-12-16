@@ -28,8 +28,11 @@ local function onClose(ctxt)
 end
 
 local function drawColorLine(data)
-    if not data.id or not data.label or not data.labelWidth then
-        LogError("drawLabelPicker requires id, label and labelWidth")
+    if not data.id or not data.label then
+        LogError("drawLabelPicker requires id, label")
+        return
+    elseif not data.reverse and not data.labelWidth then
+        LogError("drawLabelPicker requires reverse or labelWidth")
         return
     elseif not data.toggle and not data.color then
         LogError("drawLabelPicker requires toggle or color")
@@ -56,48 +59,49 @@ local function drawColorLine(data)
         end
     end
 
-    ColumnsBuilder(data.id, { data.labelWidth, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(data.label)
-                        :build()
-                end,
-                function()
-                    local line = LineBuilder()
-                    if data.toggle then
-                        line:btnIconSwitch({
-                            id = svar("{1}-toggle", { data.id }),
-                            iconEnabled = ICONS.check_circle,
-                            iconDisabled = ICONS.cancel,
-                            style = data.toggle.state and BTN_PRESETS.SUCCESS[1] or BTN_PRESETS.ERROR[1],
-                            background = INPUT_PRESETS.TRANSPARENT[1],
-                            state = not not data.toggle.state,
-                            onClick = data.toggle.onClick,
-                        })
-                    end
-                    if not data.toggle or data.toggle.state then
-                        line:colorPicker({
-                            id = svar("{1}-color", { data.id }),
-                            value = data.color.value,
-                            alpha = true,
-                            onChange = data.color.onChange
-                        })
-                    end
-                    if data.reset then
-                        line:btnIcon({
-                            id = svar("{1}-reset", { data.id }),
-                            icon = ICONS.refresh,
-                            background = BTN_PRESETS.WARNING,
-                            onClick = data.reset,
-                        })
-                    end
-                    line:build()
-                end
-            }
-        })
-        :build()
+    local drawLabel = function(sameLine)
+        LineBuilder(sameLine == true)
+            :text(data.label)
+            :build()
+    end
+
+    local drawInputs = function()
+        local line = LineBuilder()
+        if data.toggle then
+            line:btnIconToggle({
+                id = svar("{1}-toggle", { data.id }),
+                state = not not data.toggle.state,
+                coloredIcon = true,
+                onClick = data.toggle.onClick,
+            })
+        end
+        if not data.toggle or data.toggle.state then
+            line:colorPicker({
+                id = svar("{1}-color", { data.id }),
+                value = data.color.value,
+                alpha = true,
+                onChange = data.color.onChange
+            })
+        end
+        if data.reset then
+            line:btnIcon({
+                id = svar("{1}-reset", { data.id }),
+                icon = ICONS.refresh,
+                style = BTN_PRESETS.WARNING,
+                onClick = data.reset,
+            })
+        end
+        line:build()
+    end
+
+    if data.reverse then
+        drawInputs()
+        drawLabel(true)
+    else
+        ColumnsBuilder(data.id, { data.labelWidth, -1 })
+            :addRow({ cells = { drawLabel, drawInputs } })
+            :build()
+    end
     Separator()
 end
 
@@ -120,30 +124,24 @@ local function drawThemeCategory(cat)
         :commonStart(Separator)
         :openedBehavior(function()
             local listInputs = {}
-            local labelWidth = 0
             for key, value in pairs(te.data[cat]) do
                 local label = BJILang.get(svar("themeEditor.{1}.{2}", { cat, key }))
-                local w = GetColumnTextWidth(label)
-                if w > labelWidth then
-                    labelWidth = w
-                end
                 table.insert(listInputs, {
                     key = key,
                     value = value,
                     label = label,
-                    default = BJIContext.BJC.Server.Theme[cat][key],
                 })
             end
             table.sort(listInputs, function(a, b) return a.label < b.label end)
             for _, data in ipairs(listInputs) do
-                local changed = not compareColorToDefault(data.value, data.default)
+                local changed = not compareColorToDefault(data.value, BJIContext.BJC.Server.Theme[cat][data.key])
                 if changed then
                     te.changed = true
                 end
                 drawColorLine({
                     id = svar("{1}-{2}", { cat, data.key }),
                     label = data.label,
-                    labelWidth = labelWidth,
+                    reverse = true,
                     color = {
                         value = data.value,
                         onChange = function(color)
@@ -152,7 +150,7 @@ local function drawThemeCategory(cat)
                         end
                     },
                     reset = changed and function()
-                        te.data[cat][data.key] = tdeepcopy(data.default)
+                        te.data[cat][data.key] = tdeepcopy(BJIContext.BJC.Server.Theme[cat][data.key])
                         updateTheme()
                     end
                 })
@@ -214,7 +212,7 @@ local function drawButtonsPresets()
                     })
                 end
             end
-            for i, btnPreset in ipairs(btnPresets) do
+            for _, btnPreset in ipairs(btnPresets) do
                 AccordionBuilder()
                     :label(btnPreset.label)
                     :commonStart(Separator)
@@ -227,8 +225,14 @@ local function drawButtonsPresets()
                             function()
                                 LineBuilder()
                                     :btn({
-                                        id = svar("Button-{1}-preview", { btnPreset.key }),
+                                        id = svar("Button-{1}-preview-text", { btnPreset.key }),
                                         label = "ABC123",
+                                        style = BTN_PRESETS[btnPreset.key],
+                                        onClick = function() end,
+                                    })
+                                    :btnIcon({
+                                        id = svar("Button-{1}-preview-icon", { btnPreset.key }),
+                                        icon = ICONS.bug_report,
                                         style = BTN_PRESETS[btnPreset.key],
                                         onClick = function() end,
                                     })
@@ -238,7 +242,7 @@ local function drawButtonsPresets()
 
                         -- Base Color
                         local value = btnPreset.value[1]
-                        local default = btnPreset.default[1]
+                        local default = BJIContext.BJC.Server.Theme.Button[btnPreset.key][1]
                         local changed = not compareColorToDefault(value, default)
                         if changed then
                             te.changed = true
@@ -262,7 +266,7 @@ local function drawButtonsPresets()
 
                         -- Hovered Color
                         value = btnPreset.value[2]
-                        default = btnPreset.default[2]
+                        default = BJIContext.BJC.Server.Theme.Button[btnPreset.key][2]
                         changed = not compareColorToDefault(value, default)
                         if changed then
                             te.changed = true
@@ -286,7 +290,7 @@ local function drawButtonsPresets()
 
                         -- Active Color
                         value = btnPreset.value[3]
-                        default = btnPreset.default[3]
+                        default = BJIContext.BJC.Server.Theme.Button[btnPreset.key][3]
                         changed = not compareColorToDefault(value, default)
                         if changed then
                             te.changed = true
@@ -310,7 +314,7 @@ local function drawButtonsPresets()
 
                         -- Override Text Color
                         value = btnPreset.value[4]
-                        default = btnPreset.default[4]
+                        default = BJIContext.BJC.Server.Theme.Button[btnPreset.key][4]
                         if value and default then
                             changed = not compareColorToDefault(value, default)
                         else
@@ -363,7 +367,6 @@ local function drawInputsPresets()
                 table.insert(inputPresets, {
                     key = key,
                     value = value,
-                    default = BJIContext.BJC.Server.Theme.Input[key],
                     label = BJILang.get(svar("themeEditor.Input.{1}", { key })),
                 })
             end
@@ -389,23 +392,22 @@ local function drawInputsPresets()
                     })
                 end
             end
-            for i, btnPreset in ipairs(inputPresets) do
+            for _, inputPreset in ipairs(inputPresets) do
                 AccordionBuilder()
-                    :label(btnPreset.label)
+                    :label(inputPreset.label)
                     :commonStart(Separator)
                     :openedBehavior(function()
                         -- Preview String
                         drawPreview(
-                            svar("Input-{1}-cols-preview", { btnPreset.key }),
+                            svar("Input-{1}-cols-preview", { inputPreset.key }),
                             labelWidth,
                             inputTypes[3].label,
                             function()
                                 LineBuilder()
                                     :inputString({
-                                        id = svar("Input-{1}-string-preview", { btnPreset.key }),
+                                        id = svar("Input-{1}-string-preview", { inputPreset.key }),
                                         value = "ABC123",
-                                        --width = math.floor(w),
-                                        style = INPUT_PRESETS[btnPreset.key],
+                                        style = INPUT_PRESETS[inputPreset.key],
                                         onChange = function() end,
                                     })
                                     :build()
@@ -414,18 +416,17 @@ local function drawInputsPresets()
 
                         -- Preview Numeric
                         drawPreview(
-                            svar("Input-{1}-cols-preview", { btnPreset.key }),
+                            svar("Input-{1}-cols-preview", { inputPreset.key }),
                             labelWidth,
                             inputTypes[4].label,
                             function()
                                 LineBuilder()
                                     :inputNumeric({
-                                        id = svar("Input-{1}-numeric-preview", { btnPreset.key }),
+                                        id = svar("Input-{1}-numeric-preview", { inputPreset.key }),
                                         type = "float",
                                         value = 123.456,
                                         precision = 3,
-                                        --width = math.floor(w / 2) - numericButtonsWidth,
-                                        style = INPUT_PRESETS[btnPreset.key],
+                                        style = INPUT_PRESETS[inputPreset.key],
                                         onChange = function() end,
                                     })
                                     :build()
@@ -433,32 +434,32 @@ local function drawInputsPresets()
                         )
 
                         -- Base Color
-                        local value = btnPreset.value[1]
-                        local default = btnPreset.default[1]
+                        local value = inputPreset.value[1]
+                        local default = BJIContext.BJC.Server.Theme.Input[inputPreset.key][1]
                         local changed = not compareColorToDefault(value, default)
                         if changed then
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Input-{1}-{2}", { btnPreset.key, inputTypes[1].key }),
+                            id = svar("Input-{1}-{2}", { inputPreset.key, inputTypes[1].key }),
                             label = inputTypes[1].label,
                             labelWidth = labelWidth,
                             color = {
                                 value = value,
                                 onChange = function(color)
-                                    te.data.Input[btnPreset.key][1] = color
+                                    te.data.Input[inputPreset.key][1] = color
                                     updateTheme()
                                 end,
                             },
                             reset = changed and function()
-                                te.data.Input[btnPreset.key][1] = tdeepcopy(default)
+                                te.data.Input[inputPreset.key][1] = tdeepcopy(default)
                                 updateTheme()
                             end
                         })
 
                         -- Override Text Color
-                        value = btnPreset.value[2]
-                        default = btnPreset.default[2]
+                        value = inputPreset.value[2]
+                        default = BJIContext.BJC.Server.Theme.Input[inputPreset.key][2]
                         if value and default then
                             changed = not compareColorToDefault(value, default)
                         else
@@ -468,16 +469,16 @@ local function drawInputsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Input-{1}-{2}", { btnPreset.key, inputTypes[2].key }),
+                            id = svar("Input-{1}-{2}", { inputPreset.key, inputTypes[2].key }),
                             label = inputTypes[2].label,
                             labelWidth = labelWidth,
                             toggle = {
                                 state = not not value,
                                 onClick = function()
                                     if value then
-                                        te.data.Input[btnPreset.key][2] = nil
+                                        te.data.Input[inputPreset.key][2] = nil
                                     else
-                                        te.data.Input[btnPreset.key][2] = tdeepcopy(te.data.Text.DEFAULT)
+                                        te.data.Input[inputPreset.key][2] = tdeepcopy(te.data.Text.DEFAULT)
                                     end
                                     updateTheme()
                                 end
@@ -485,12 +486,12 @@ local function drawInputsPresets()
                             color = value and {
                                 value = value,
                                 onChange = function(color)
-                                    te.data.Input[btnPreset.key][2] = color
+                                    te.data.Input[inputPreset.key][2] = color
                                     updateTheme()
                                 end,
                             } or nil,
                             reset = changed and function()
-                                te.data.Input[btnPreset.key][2] = tdeepcopy(default)
+                                te.data.Input[inputPreset.key][2] = tdeepcopy(default)
                                 updateTheme()
                             end
                         })
@@ -521,14 +522,14 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancel",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = onClose,
         })
     if te.changed then
         line:btnIcon({
             id = "reset",
             icon = ICONS.refresh,
-            background = BTN_PRESETS.WARNING,
+            style = BTN_PRESETS.WARNING,
             onClick = function()
                 te.data = tdeepcopy(BJIContext.BJC.Server.Theme)
                 te.changed = false
@@ -538,7 +539,7 @@ local function drawFooter(ctxt)
             :btnIcon({
                 id = "save",
                 icon = ICONS.save,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = save,
             })
     end

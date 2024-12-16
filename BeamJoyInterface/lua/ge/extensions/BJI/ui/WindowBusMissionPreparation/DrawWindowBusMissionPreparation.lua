@@ -132,7 +132,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancelBusMission",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
                 configs = nil
@@ -141,7 +141,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "startBusMission",
             icon = ICONS.videogame_asset,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 bm.initDrive(ctxt)
                 configs = nil

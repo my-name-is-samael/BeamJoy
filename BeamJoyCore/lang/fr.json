@@ -496,7 +496,7 @@
     "themeEditor": {
       "cancelModal": "Les modifications ne seront pas enregistrées. Es-tu sûr de vouloir annuler ?",
       "Fields": {
-        "title": "Champs",
+        "title": "Éléments",
         "WINDOW_BG": "Fond de Fenêtre",
         "CHILD_BG": "Fond des Enfants",
         "POPUP_BG": "Fond des Fenêtres Pop-up",
@@ -741,6 +741,7 @@
       "permissions": {
         "title": "Groupes & Permissions",
         "groups": "Groupes",
+        "deleteModal": "Êtes-vous sûr de vouloir supprimer le groupe \"{groupName}\"?",
         "permissions": "Permissions",
         "groupKeys": {
           "level": "Niveau",

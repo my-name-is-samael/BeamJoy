@@ -52,7 +52,7 @@ local function drawHeader(ctxt)
             :btnIcon({
                 id = "forfeitRace",
                 icon = ICONS.exit_to_app,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = function()
                     BJITx.scenario.RaceMultiUpdate(mgr.CLIENT_EVENTS.LEAVE)
                 end,
@@ -256,11 +256,10 @@ local function drawGrid(ctxt)
     if not tincludes(mgr.grid.ready, BJIContext.User.playerID, true) then
         local participates = tincludes(mgr.grid.participants, BJIContext.User.playerID, true)
         local line = LineBuilder()
-            :btnIcon({
+            :btnIconToggle({
                 id = "joinRace",
                 icon = participates and ICONS.exit_to_app or ICONS.videogame_asset,
-                background = participates and BTN_PRESETS.ERROR or
-                    BTN_PRESETS.SUCCESS,
+                state = not participates,
                 onClick = function()
                     BJITx.scenario.RaceMultiUpdate(mgr.CLIENT_EVENTS.JOIN)
                     if participates and BJIVeh.isCurrentVehicleOwn() then
@@ -276,7 +275,7 @@ local function drawGrid(ctxt)
             line:btnIcon({
                 id = "raceReady",
                 icon = ICONS.done,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 disabled = ctxt.now < mgr.grid.readyTime,
                 onClick = function()
                     BJITx.scenario.RaceMultiUpdate(mgr.CLIENT_EVENTS.READY)

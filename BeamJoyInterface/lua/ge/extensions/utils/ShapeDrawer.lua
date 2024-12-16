@@ -1,12 +1,3 @@
-debugDrawer = debugDrawer or {
-    drawSphere = function(self, pos, r, shapeColF, useZ) end,
-    drawCylinder = function(self, bottomPos, topPos, radius, shapeColF, useZ) end,
-    drawSquarePrism = function(self, base, tip, baseSize, tipSize, shpaeColF, useZ) end,
-    drawTextAdvanced = function(self, pos, text, textColF, useAdvancedText, twod, bgColI, shadow, useZ) end,
-}
-
-color = color or function(r, g, b, a) return {} end
-
 local drawer = {}
 
 local function Color(r, g, b, a)

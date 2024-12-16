@@ -98,7 +98,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("showDerbyConfig{1}", { i }),
                             icon = ICONS.visibility,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
                             onClick = function()
                                 BJIVeh.replaceOrSpawnVehicle(confData.model, confData.config)
@@ -107,7 +107,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("removeDerbyConfig{1}", { i }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 table.remove(ds.configs, i)
                             end,
@@ -133,7 +133,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = "addDerbyConfig",
                             icon = ICONS.addListItem,
-                            background = BTN_PRESETS.SUCCESS,
+                            style = BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh,
                             onClick = function()
                                 local config = getConfig()
@@ -159,13 +159,13 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "closeDerbySettings",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = onClose,
         })
         :btnIcon({
             id = "startDerby",
             icon = ICONS.check,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 local status = pcall(BJITx.scenario.DerbyStart, ds.arenaIndex, ds.lives, ds.configs)
                 if status then

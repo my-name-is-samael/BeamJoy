@@ -36,14 +36,16 @@ return function(ctxt)
                 function()
                     if v.type == "bool" then
                         LineBuilder()
-                        :btnSwitchEnabledDisabled({
-                            id = v.key,
-                            state = not not BJIContext.BJC.Race[v.key],
-                            onClick = function()
-                                BJITx.config.bjc(svar("Race.{1}", { v.key }), not BJIContext.BJC.Race[v.key])
-                            end
-                        })
-                        :build()
+                            :btnIconToggle({
+                                id = v.key,
+                                state = not not BJIContext.BJC.Race[v.key],
+                                coloredIcon = true,
+                                onClick = function()
+                                    BJITx.config.bjc(svar("Race.{1}", { v.key }), not BJIContext.BJC.Race[v.key])
+                                    BJIContext.BJC.Race[v.key] = not BJIContext.BJC.Race[v.key]
+                                end
+                            })
+                            :build()
                     else
                         LineBuilder()
                             :inputNumeric({

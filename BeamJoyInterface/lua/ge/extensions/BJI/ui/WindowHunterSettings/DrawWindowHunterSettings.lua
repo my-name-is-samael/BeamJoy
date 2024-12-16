@@ -90,7 +90,7 @@ local function drawBody(ctxt)
                     line:btnIcon({
                         id = "addHuntedConfig",
                         icon = ICONS.addListItem,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh,
                         onClick = function()
                             if BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
@@ -109,7 +109,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = "showHuntedConfig",
                             icon = ICONS.visibility,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
                             onClick = function()
                                 BJIVeh.replaceOrSpawnVehicle(hs.huntedConfig.model,
@@ -119,7 +119,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = "refreshHuntedConfig",
                             icon = ICONS.refresh,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = not ctxt.veh,
                             onClick = function()
                                 if BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
@@ -132,7 +132,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = "removeHuntedConfig",
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 hs.huntedConfig = nil
                             end,
@@ -165,7 +165,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("showHunterConfig{1}", { i }),
                             icon = ICONS.visibility,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
                             onClick = function()
                                 BJIVeh.replaceOrSpawnVehicle(confData.model, confData.config)
@@ -174,7 +174,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("removeHunterConfig{1}", { i }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 table.remove(hs.hunterConfigs, i)
                             end,
@@ -200,7 +200,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = "addHunterConfig",
                             icon = ICONS.addListItem,
-                            background = BTN_PRESETS.SUCCESS,
+                            style = BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh,
                             onClick = function()
                                 local config = getConfig()
@@ -226,13 +226,13 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "closeHunterSettings",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = onClose,
         })
         :btnIcon({
             id = "startHunter",
             icon = ICONS.videogame_asset,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 local status = pcall(BJITx.scenario.HunterStart, {
                     waypoints = hs.waypoints,

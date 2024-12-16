@@ -55,7 +55,7 @@ local function drawIndicator(ctxt)
                 line:btnIcon({
                     id = svar("setRouteStation{1}", { i }),
                     icon = ICONS.add_location,
-                    background = BTN_PRESETS.SUCCESS,
+                    style = BTN_PRESETS.SUCCESS,
                     disabled = BJIGPS.getByKey("BJIEnergyStation"),
                     onClick = function()
                         if isEnergyStation then

@@ -123,17 +123,16 @@ local function drawHeader(ctxt)
         :btnIcon({
             id = "reloadMarkers",
             icon = ICONS.sync,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = reloadMarkers,
         })
         :build()
 
     LineBuilder()
         :text(svar("{1}:", { BJILang.get("hunter.edit.enabled") }))
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "toggleEnabled",
-            iconEnabled = ICONS.visibility,
-            iconDisabled = ICONS.visibility_off,
+            icon = hEdit.enabled and ICONS.visibility or ICONS.visibility_off,
             state = hEdit.enabled == true,
             disabled = hEdit.processSave,
             onClick = function()
@@ -162,7 +161,7 @@ local function drawHunters(ctxt)
             :btnIcon({
                 id = svar("gotoHunter{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
-                background = BTN_PRESETS.INFO,
+                style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
                 onClick = function()
                     if freecaming then
@@ -174,7 +173,7 @@ local function drawHunters(ctxt)
             :btnIcon({
                 id = svar("moveHunter{1}", { i }),
                 icon = ICONS.crosshair,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
                 onClick = function()
                     hEdit.hunterPositions[i] = ctxt.vehPosRot
@@ -185,7 +184,7 @@ local function drawHunters(ctxt)
             :btnIcon({
                 id = svar("deleteHunter{1}", { i }),
                 icon = ICONS.delete_forever,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
                 onClick = function()
                     table.remove(hEdit.hunterPositions, i)
@@ -199,7 +198,7 @@ local function drawHunters(ctxt)
         :btnIcon({
             id = "addHunterPosition",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not ctxt.veh or freecaming or hEdit.processSave,
             onClick = function()
                 table.insert(hEdit.hunterPositions, ctxt.vehPosRot)
@@ -218,7 +217,7 @@ local function drawHunted(ctxt)
             :btnIcon({
                 id = svar("gotoHunted{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
-                background = BTN_PRESETS.INFO,
+                style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
                 onClick = function()
                     if freecaming then
@@ -230,7 +229,7 @@ local function drawHunted(ctxt)
             :btnIcon({
                 id = svar("moveHunted{1}", { i }),
                 icon = ICONS.crosshair,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
                 onClick = function()
                     hEdit.huntedPositions[i] = ctxt.vehPosRot
@@ -241,7 +240,7 @@ local function drawHunted(ctxt)
             :btnIcon({
                 id = svar("deleteHunted{1}", { i }),
                 icon = ICONS.delete_forever,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
                 onClick = function()
                     table.remove(hEdit.huntedPositions, i)
@@ -255,7 +254,7 @@ local function drawHunted(ctxt)
         :btnIcon({
             id = "addHuntedPosition",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not ctxt.veh or freecaming or hEdit.processSave,
             onClick = function()
                 table.insert(hEdit.huntedPositions, ctxt.vehPosRot)
@@ -274,7 +273,7 @@ local function drawWaypoints(ctxt)
             :btnIcon({
                 id = svar("gotoWaypoint{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
-                background = BTN_PRESETS.INFO,
+                style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
                 onClick = function()
                     if freecaming then
@@ -286,7 +285,7 @@ local function drawWaypoints(ctxt)
             :btnIcon({
                 id = svar("moveWaypoint{1}", { i }),
                 icon = ICONS.crosshair,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
                 onClick = function()
                     waypoint.pos = ctxt.vehPosRot.pos
@@ -297,7 +296,7 @@ local function drawWaypoints(ctxt)
             :btnIcon({
                 id = svar("deleteWaypoint{1}", { i }),
                 icon = ICONS.delete_forever,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
                 onClick = function()
                     table.remove(hEdit.targets, i)
@@ -332,7 +331,7 @@ local function drawWaypoints(ctxt)
         :btnIcon({
             id = "addWaypoint",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not ctxt.veh or freecaming or hEdit.processSave,
             onClick = function()
                 table.insert(hEdit.targets, {
@@ -401,14 +400,14 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancelHunterEdit",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = close,
         })
     if hEdit.changed then
         line:btnIcon({
             id = "saveHunterEdit",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not valid or hEdit.processSave,
             onClick = save,
         })

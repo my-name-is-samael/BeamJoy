@@ -24,7 +24,7 @@ local function draw()
         :btnIcon({
             id = "databasePlayersRefresh",
             icon = ICONS.refresh,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = function()
                 BJICache.invalidate(BJICache.CACHES.DATABASE_PLAYERS)
             end
@@ -149,9 +149,9 @@ local function draw()
                             line:text(playerData.muted and
                                 BJILang.get("common.yes") or BJILang.get("common.no"))
                         else
-                            line:btnIconSwitch({
+                            line:btnIconToggle({
                                 id = "databasePlayerBanned",
-                                iconEnabled = ICONS.gavel,
+                                icon = ICONS.gavel,
                                 state = playerData.banned == true or playerData.tempBanUntil ~= nil,
                                 onClick = function()
                                     if playerData.banned or playerData.tempBanUntil then
@@ -201,7 +201,7 @@ local function draw()
                                 :btnIcon({
                                     id = "databasePlayerBan",
                                     icon = ICONS.gavel,
-                                    background = BTN_PRESETS.ERROR,
+                                    style = BTN_PRESETS.ERROR,
                                     onClick = function()
                                         BJITx.moderation.ban(playerData.playerName, playerData.banReason)
                                     end
@@ -226,9 +226,9 @@ local function draw()
                                 :build()
                         else
                             LineBuilder()
-                                :btnIconSwitch({
+                                :btnIconToggle({
                                     id = "databasePlayerMuted",
-                                    iconEnabled = ICONS.mic_off,
+                                    icon = ICONS.mic_off,
                                     state = playerData.muted == true,
                                     onClick = function()
                                         BJITx.moderation.mute(playerData.playerName)
@@ -267,7 +267,7 @@ local function draw()
                                 :btnIcon({
                                     id = "databasePlayerMute",
                                     icon = ICONS.mic_off,
-                                    background = BTN_PRESETS.ERROR,
+                                    style = BTN_PRESETS.ERROR,
                                     onClick = function()
                                         BJITx.moderation.mute(playerData.playerName, playerData.muteReason)
                                         playerData.muted = true

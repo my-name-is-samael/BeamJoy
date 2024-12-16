@@ -65,8 +65,7 @@ local function commonDrawEnergyLines(ctxt, energyStation)
         line:btnIcon({
             id = svar("refill{1}", { energyType }),
             icon = icon,
-            style = TEXT_COLORS.DEFAULT,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = energyData.currentEnergy / energyData.maxEnergy > .95,
             onClick = function()
                 BJIStations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
@@ -142,7 +141,7 @@ local function drawGarage(ctxt, garage)
             :btnIcon({
                 id = "repairVehicle",
                 icon = ICONS.build,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = function()
                     onRepair(ctxt)
                 end,

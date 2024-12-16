@@ -23,10 +23,9 @@ local function draw(ctxt)
         :text(delayLabel)
         :build()
     local line = LineBuilder()
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "voteMap",
-            iconEnabled = ICONS.event_available,
-            iconDisabled = ICONS.event_busy,
+            icon = vm.selfVoted and ICONS.event_busy or ICONS.event_available,
             state = not vm.selfVoted,
             onClick = function()
                 BJITx.votemap.vote()
@@ -36,7 +35,7 @@ local function draw(ctxt)
         line:btnIcon({
             id = "stopVoteMap",
             icon = ICONS.cancel,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = BJITx.votemap.stop,
         })
     end

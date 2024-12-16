@@ -49,7 +49,7 @@ local function drawHeader(ctxt)
             line:btnIcon({
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
-                background = BTN_PRESETS.INFO,
+                style = BTN_PRESETS.INFO,
                 onClick = function()
                     BJIVehSelector.tryClose()
                     core_vehicles.openSelectorUI()
@@ -112,62 +112,51 @@ local function drawHeader(ctxt)
     end
 end
 
-local function drawConfig(cols, modelKey, config)
-    cols:addRow({
-        cells = {
-            function()
-                LineBuilder()
-                    :text(config.label,
-                        config.custom and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-                    :build()
-            end,
-            function()
-                local line
-                if not limitReached then
-                    if not line then
-                        line = LineBuilder()
-                    end
-                    line:btnIcon({
-                        id = svar("spawnNew-{1}-{2}", { modelKey, config.key }),
-                        icon = ICONS.add,
-                        background = BTN_PRESETS.SUCCESS,
-                        onClick = function()
-                            BJIScenario.trySpawnNew(modelKey, config.key)
-                        end
-                    })
-                end
-                if ownVeh then
-                    if not line then
-                        line = LineBuilder()
-                    end
-                    line:btnIcon({
-                        id = svar("replace-{1}-{2}", { modelKey, config.key }),
-                        icon = ICONS.carSensors,
-                        background = BTN_PRESETS.WARNING,
-                        onClick = function()
-                            BJIScenario.tryReplaceOrSpawn(modelKey, config.key)
-                        end
-                    })
-                end
-                if line then
-                    line:build()
-                end
-            end,
-        }
-    })
+local function drawConfig(modelKey, config)
+    local line = LineBuilder()
+    if not limitReached then
+        line:btnIcon({
+            id = svar("spawnNew-{1}-{2}", { modelKey, config.key }),
+            icon = ICONS.add,
+            style = BTN_PRESETS.SUCCESS,
+            onClick = function()
+                BJIScenario.trySpawnNew(modelKey, config.key)
+            end
+        })
+    end
+    if ownVeh then
+        if not line then
+            line = LineBuilder()
+        end
+        line:btnIcon({
+            id = svar("replace-{1}-{2}", { modelKey, config.key }),
+            icon = ICONS.carSensors,
+            style = BTN_PRESETS.WARNING,
+            onClick = function()
+                BJIScenario.tryReplaceOrSpawn(modelKey, config.key)
+            end
+        })
+    end
+    line:text(config.label, config.custom and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+        :build()
 end
 
 local function drawModel(model)
-    local function drawModelTitle(inAccordion, opened)
-        local line = LineBuilder(inAccordion)
-            :text(model.label,
-                model.custom and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-        if not opened then
+    local function drawModelButtons(line, withSpawn)
+        line:btnIcon({
+            id = svar("preview-{1}", { model.key }),
+            icon = ICONS.ab_asset_image,
+            style = BTN_PRESETS.INFO,
+            onClick = function()
+                BJIVehSelectorPreview.open(model.preview)
+            end,
+        })
+        if withSpawn then
             if not limitReached then
                 line:btnIcon({
                     id = svar("spawnNew-{1}", { model.key }),
                     icon = ICONS.add,
-                    background = BTN_PRESETS.SUCCESS,
+                    style = BTN_PRESETS.SUCCESS,
                     onClick = function()
                         BJIScenario.trySpawnNew(model.key)
                     end
@@ -177,7 +166,7 @@ local function drawModel(model)
                 line:btnIcon({
                     id = svar("replace-{1}", { model.key }),
                     icon = ICONS.carSensors,
-                    background = BTN_PRESETS.WARNING,
+                    style = BTN_PRESETS.WARNING,
                     onClick = function()
                         BJIScenario.tryReplaceOrSpawn(model.key)
                     end
@@ -188,70 +177,41 @@ local function drawModel(model)
             line:btnIcon({
                 id = svar("spawnRandom-{1}", { model.key }),
                 icon = ICONS.casino,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 onClick = function()
                     local config = trandom(model.configs) or {}
                     BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                 end
             })
         end
-        line:btnIcon({
-            id = svar("preview-{1}", { model.key }),
-            icon = ICONS.ab_asset_image,
-            background = BTN_PRESETS.INFO,
-            onClick = function()
-                BJIVehSelectorPreview.open(model.preview)
-            end,
-        })
-            :build()
+    end
+
+    local drawModelTitle = function(line)
+        return line:text(model.label, model.custom and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
     end
 
     local function drawModelConfigs()
-        local labelWidth = 0
         for _, config in ipairs(model.configs) do
-            local w = GetColumnTextWidth(config.label)
-            if w > labelWidth then
-                labelWidth = w
-            end
+            drawConfig(model.key, config)
         end
-        local cols = ColumnsBuilder(svar("BJIVehSelectorConfigs-{1}", { model.key }), { labelWidth, -1 })
-        for _, config in ipairs(model.configs) do
-            drawConfig(cols, model.key, config)
-        end
-        cols:build()
     end
 
     if #model.configs == 0 then
         return
     elseif #model.configs == 1 then
         -- compacted model-config (only 1 line)
-        drawModelTitle(false, true)
+        Indent(1)
+        local line = LineBuilder():text("")
+        drawModelButtons(line, true)
+        drawModelTitle(line):build()
         local config = model.configs[1]
-        local line = LineBuilder(true)
-            :text(svar("({1})", { config.label }))
-        if not limitReached then
-            line:btnIcon({
-                id = svar("spawnNew-{1}-{2}", { model.key, config.key }),
-                icon = ICONS.add,
-                background = BTN_PRESETS.SUCCESS,
-                onClick = function()
-                    BJIScenario.trySpawnNew(model.key, config.key)
-                end
-            })
-        end
-        if ownVeh then
-            line:btnIcon({
-                id = svar("replace-{1}-{2}", { model.key, config.key }),
-                icon = ICONS.carSensors,
-                background = BTN_PRESETS.WARNING,
-                onClick = function()
-                    BJIScenario.tryReplaceOrSpawn(model.key, config.key)
-                end
-            })
-        end
-        line:build()
+        line:text(svar("({1})", { config.label }))
+            :build()
+        Indent(-1)
     elseif #model.configs < ACCORDION_THRESHOLD then
-        drawModelTitle(false, true)
+        local line = LineBuilder()
+        drawModelButtons(line, false)
+        drawModelTitle(line):build()
         Indent(2)
         drawModelConfigs()
         Indent(-2)
@@ -259,11 +219,15 @@ local function drawModel(model)
         AccordionBuilder()
             :label(svar("##{1}", { model.key }))
             :openedBehavior(function()
-                drawModelTitle(true, true)
+                local line = LineBuilder(true)
+                drawModelButtons(line, false)
+                drawModelTitle(line):build()
                 drawModelConfigs()
             end)
             :closedBehavior(function()
-                drawModelTitle(true, false)
+                local line = LineBuilder(true)
+                drawModelButtons(line, true)
+                drawModelTitle(line):build()
             end)
             :build()
     end
@@ -285,7 +249,7 @@ local function drawType(vehs, label, name, icon)
                 line:btnIcon({
                     id = svar("random-{1}", { name }),
                     icon = ICONS.casino,
-                    background = BTN_PRESETS.WARNING,
+                    style = BTN_PRESETS.WARNING,
                     onClick = function()
                         local model = trandom(vehs) or {}
                         local config = trandom(model.configs) or {}
@@ -327,45 +291,39 @@ local function drawType(vehs, label, name, icon)
     end
 end
 
+local function paintToIconStyle(baseColor)
+    local im = ui_imgui
+    local contrasted = baseColor[1] + baseColor[2] + baseColor[3] > 1.5 and 0 or 1
+    local converted = im.ImVec4(baseColor[1], baseColor[2], baseColor[3], baseColor[4] or 1.2)
+    return {
+        converted,
+        converted,
+        converted,
+        im.ImVec4(contrasted, contrasted, contrasted, 1),
+    }
+end
+
 local function drawPaints(paints)
     if not BJIVeh.isCurrentVehicleOwn() then
         return
     end
 
-    local labelWidth = 0
-    for _, p in ipairs(paints) do
-        local w = GetColumnTextWidth(p.label)
-        if w > labelWidth then
-            labelWidth = w
+    for i, paintData in ipairs(paints) do
+        local line = LineBuilder()
+        for j = 1, 3 do
+            local style = paintToIconStyle(paintData.paint.baseColor)
+            line:btnIcon({
+                id = svar("applyPaint-{1}-{2}", { i, j }),
+                icon = ICONS.format_color_fill,
+                style = style,
+                onClick = function()
+                    BJIScenario.tryPaint(paintData.paint, i)
+                end
+            })
         end
+        line:text(paintData.label)
+            :build()
     end
-
-    local cols = ColumnsBuilder("BJIVehSelectorPaints", { labelWidth, -1 })
-    for _, paintData in ipairs(paints) do
-        cols:addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(paintData.label)
-                        :build()
-                end,
-                function()
-                    local line = LineBuilder()
-                    for i = 1, 3 do
-                        line:btn({
-                            id = "applyPaint" .. paintData.label:gsub(" ", ""),
-                            label = svar(BJILang.get("vehicleSelector.applyPaint"), { position = i }),
-                            onClick = function()
-                                BJIScenario.tryPaint(paintData.paint, i)
-                            end
-                        })
-                    end
-                    line:build()
-                end,
-            }
-        })
-    end
-    cols:build()
 end
 
 local function drawPreviousVeh(ctxt)
@@ -390,13 +348,11 @@ local function drawPreviousVeh(ctxt)
     if previousConfig and previousIncluded then
         local modelLabel = BJIVeh.getModelLabel(previousConfig.model)
         local line = LineBuilder()
-            :text(svar("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
-            :text(modelLabel)
         if not limitReached then
             line:btnIcon({
                 id = svar("spawnNewPrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.add,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = function()
                     BJIScenario.trySpawnNew(previousConfig.model, previousConfig)
                 end
@@ -406,13 +362,15 @@ local function drawPreviousVeh(ctxt)
             line:btnIcon({
                 id = svar("replacePrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.carSensors,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 onClick = function()
                     BJIScenario.tryReplaceOrSpawn(previousConfig.model, previousConfig)
                 end
             })
         end
-        line:build()
+        line:text(svar("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
+            :text(modelLabel)
+            :build()
     end
 end
 
@@ -438,13 +396,11 @@ local function drawDefaultVeh(ctxt)
     if defaultVeh and defaultIncluded then
         local modelLabel = BJIVeh.getModelLabel(defaultVeh.model)
         local line = LineBuilder()
-            :text(svar("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
-            :text(modelLabel)
         if not limitReached then
             line:btnIcon({
                 id = svar("spawnNewDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.add,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = function()
                     BJIScenario.trySpawnNew(defaultVeh.model, defaultVeh.config)
                 end
@@ -454,13 +410,15 @@ local function drawDefaultVeh(ctxt)
             line:btnIcon({
                 id = svar("replaceDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.carSensors,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 onClick = function()
                     BJIScenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
                 end
             })
         end
-        line:build()
+        line:text(svar("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
+            :text(modelLabel)
+            :build()
     end
 end
 
@@ -515,7 +473,7 @@ local function drawFooter(ctxt)
             :btnIcon({
                 id = "closeVehicleSelector",
                 icon = ICONS.exit_to_app,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = M.onClose,
             })
             :build()

@@ -25,10 +25,9 @@ local function draw(ctxt)
         :text(delayLabel)
         :build()
     local line = LineBuilder()
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "voteKick",
-            iconEnabled = ICONS.event_available,
-            iconDisabled = ICONS.event_busy,
+            icon = vk.selfVoted and ICONS.event_busy or ICONS.event_available,
             state = not vk.selfVoted,
             onClick = function()
                 BJITx.votekick.vote()
@@ -38,7 +37,7 @@ local function draw(ctxt)
         line:btnIcon({
             id = "stopVoteKick",
             icon = ICONS.cancel,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = BJITx.votekick.stop,
         })
     end

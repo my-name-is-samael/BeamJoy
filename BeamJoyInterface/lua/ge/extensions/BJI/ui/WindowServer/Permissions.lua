@@ -46,7 +46,7 @@ local function drawGroupNewPermission(groupName, cols)
                     :btnIcon({
                         id = svar("newPerm" .. groupName),
                         icon = ICONS.done,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = group._new == "",
                         onClick = function()
                             BJITx.config.permissionsGroupSpecific(groupName, group._new, true)
@@ -172,9 +172,10 @@ local function drawGroupData(groupName)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = svar("perm-{1}-staff", { groupName }),
                             state = group.staff,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.permissionsGroup(groupName, "staff", not group.staff)
                             end
@@ -194,9 +195,10 @@ local function drawGroupData(groupName)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = svar("perm-{1}-banned", { groupName }),
                             state = group.banned,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.permissionsGroup(groupName, "banned", not group.banned)
                             end
@@ -216,9 +218,10 @@ local function drawGroupData(groupName)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = svar("perm-{1}-muted", { groupName }),
                             state = group.muted,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.permissionsGroup(groupName, "muted", not group.muted)
                             end
@@ -238,9 +241,10 @@ local function drawGroupData(groupName)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = svar("perm-{1}-whitelisted", { groupName }),
                             state = group.whitelisted,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.permissionsGroup(groupName, "whitelisted", not group.whitelisted)
                             end
@@ -269,7 +273,7 @@ local function drawGroupData(groupName)
                         :btnIcon({
                             id = svar("deleteGroupPerm-{1}-{2}", { groupName, permName }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 BJITx.config.permissionsGroupSpecific(groupName, permName, false)
                             end
@@ -356,9 +360,9 @@ local function drawNewGroup()
         })
         :build()
     LineBuilder()
-        :btn({
+        :btnIcon({
             id = "addNewGroup",
-            label = BJILang.get("common.buttons.add"),
+            icon = ICONS.addListItem,
             style = BTN_PRESETS.SUCCESS,
             disabled = not canCreate,
             onClick = function()
@@ -384,13 +388,26 @@ local function drawListGroups(groupNames)
                         local line = LineBuilder(true)
                             :text(svar("({1})", { group.level }))
                         if not tincludes(BJI_GROUP_NAMES, groupName) then
-                            line:btn({
+                            line:btnIcon({
                                 id = "deleteGroup" .. groupName,
-                                label = BJILang.get("common.buttons.delete"),
+                                icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
-                                    BJITx.config.permissionsGroup(groupName, "level")
-                                    BJIPerm.Groups[groupName] = nil
+                                    BJIPopup.createModal(
+                                        svar(BJILang.get("serverConfig.permissions.deleteModal"),
+                                            { groupName = groupName }),
+                                        {
+                                            {
+                                                label = BJILang.get("common.buttons.cancel"),
+                                            },
+                                            {
+                                                label = BJILang.get("common.buttons.confirm"),
+                                                onClick = function()
+                                                    BJITx.config.permissionsGroup(groupName, "level")
+                                                    BJIPerm.Groups[groupName] = nil
+                                                end
+                                            },
+                                        })
                                 end
                             })
                         end

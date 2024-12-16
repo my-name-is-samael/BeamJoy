@@ -496,7 +496,7 @@
     "themeEditor": {
       "cancelModal": "Änderungen werden nicht gespeichert. ",
       "Fields": {
-        "title": "Felder",
+        "title": "Elemente",
         "WINDOW_BG": "Fensterhintergrund",
         "CHILD_BG": "Kinderhintergrund",
         "POPUP_BG": "Popup-Hintergrund",
@@ -741,6 +741,7 @@
       "permissions": {
         "title": "Gruppen und Berechtigungen",
         "groups": "Gruppen",
+        "deleteModal": "Sind Sie sicher, dass Sie die Gruppe \"{groupName}\" löschen möchten?",
         "permissions": "Berechtigungen",
         "groupKeys": {
           "level": "Ebene",

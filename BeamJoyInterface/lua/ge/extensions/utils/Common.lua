@@ -45,7 +45,7 @@ function TryParsePosRot(obj)
         obj.pos = vec3(obj.pos.x, obj.pos.y, obj.pos.z)
     end
     if tincludes({ "table", "userdata" }, type(obj.rot), true) and
-    tevery({ "x", "y", "z", "w" }, function(k) return obj.rot[k] ~= nil end) then
+        tevery({ "x", "y", "z", "w" }, function(k) return obj.rot[k] ~= nil end) then
         obj.rot = quat(obj.rot.x, obj.rot.y, obj.rot.z, obj.rot.w)
     end
     return obj
@@ -310,9 +310,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
             end
         })
     end
-    line:btn({
+    line:btnIcon({
         id = svar("{1}reset", { id }),
-        label = BJILang.get("common.buttons.reset"),
+        icon = ICONS.refresh,
         style = BTN_PRESETS.WARNING,
         onClick = function()
             callback(resetValue)

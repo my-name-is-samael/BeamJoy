@@ -50,9 +50,9 @@ local function drawHeader(ctxt)
 
     line = LineBuilder()
     if not mgr.testing then
-        line:btnIconSwitch({
+        line:btnIconToggle({
             id = "toggleRaceLoop",
-            iconEnabled = ICONS.all_inclusive,
+            icon = ICONS.all_inclusive,
             state = mgr.loop,
             onClick = function()
                 mgr.loop = not mgr.loop
@@ -64,7 +64,7 @@ local function drawHeader(ctxt)
         line:btnIcon({
             id = "leaveRace",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 mgr.loop = false
                 BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
@@ -75,7 +75,7 @@ local function drawHeader(ctxt)
             line:btnIcon({
                 id = "restartRace",
                 icon = ICONS.restart,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 onClick = function()
                     local settings, raceData = mgr.baseSettings, mgr.baseRaceData
                     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)

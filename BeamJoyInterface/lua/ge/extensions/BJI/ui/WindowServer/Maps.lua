@@ -16,7 +16,7 @@ local function drawNewMap(ctxt)
         :btnIcon({
             id = "addNewMap",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not canCreate,
             onClick = function()
                 BJITx.config.maps(
@@ -128,20 +128,21 @@ local function drawMapsList(ctxt)
             :text(map.custom and
                 svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or
                 "", TEXT_COLORS.HIGHLIGHT)
-            :btnIcon({
+            :btnIconToggle({
                 id = svar("map{1}State", { techName }),
                 icon = map.enabled and ICONS.visibility or ICONS.visibility_off,
-                background = map.enabled and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
+                state = map.enabled,
                 disabled = BJIContext.UI.mapName == techName,
                 onClick = function()
                     BJITx.config.mapState(techName, not map.enabled)
+                    map.enabled = not map.enabled
                 end,
             })
         if map.changed then
             line:btnIcon({
                 id = svar("map{1}save", { techName }),
                 icon = ICONS.save,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 disabled = not valid,
                 onClick = function()
                     BJITx.config.maps(techName, map.label, map.custom and map.archive or nil)
@@ -153,7 +154,7 @@ local function drawMapsList(ctxt)
             line:btnIcon({
                 id = svar("map{1}delete", { techName }),
                 icon = ICONS.delete_forever,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 disabled = techName == BJIContext.UI.mapName,
                 onClick = function()
                     BJIContext.Maps.Data[techName] = nil

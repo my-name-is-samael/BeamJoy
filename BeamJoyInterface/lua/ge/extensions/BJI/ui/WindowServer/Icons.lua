@@ -38,7 +38,8 @@ local function draw(ctxt)
             LineBuilder(true)
                 :icon({
                     icon = ICONS.warning,
-                    style = BTN_PRESETS.WARNING[1],
+                    style = BTN_PRESETS.WARNING,
+                    coloredIcon = true,
                 })
                 :text("Performances")
                 :build()

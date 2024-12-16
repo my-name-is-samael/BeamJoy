@@ -709,8 +709,11 @@ local function getFullConfig(config)
 
     config = config or veh.partConfig
     if isConfigCustom(config) then
-        local _, data, err = pcall(load(svar("return {1}", { config:gsub("'", "") })))
-        return err and nil or data
+        local fn = load(svar("return {1}", { config:gsub("'", "") }))
+        if type(fn) == "function" then
+            local status, data = pcall(fn)
+            return status and data or nil
+        end
     else
         return jsonReadFile(config)
     end
@@ -789,6 +792,10 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
         return configs
     end
 
+    if not forced then
+        -- first loading
+        BJIMessage.message("Caching all vehicles...")
+    end
     -- data gathering
     local vehicles = {}
     local trailers = {}
@@ -870,6 +877,10 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
         M.allPropLabels[model] = d.label or model
     end
 
+    if not forced then
+        -- first loading
+        BJIMessage.message("All vehicles cached !")
+    end
     -- return cached data
     return M.getAllVehicleConfigs(withTrailers, withProps)
 end
@@ -1104,7 +1115,6 @@ local function slowTick(ctxt)
 end
 
 local function setFuel(tankName, targetEnergy)
-    local _vehBridge = core_vehicleBridge
     if not M.isCurrentVehicleOwn() then
         return
     end
@@ -1116,7 +1126,8 @@ local function setFuel(tankName, targetEnergy)
         local veh = M.getCurrentVehicle()
         local tank = vehData.tanks[tankName]
         if tank then
-            _vehBridge.executeAction(veh, 'setEnergyStorageEnergy', tankName, math.min(tank.maxEnergy, targetEnergy))
+            core_vehicleBridge.executeAction(veh, 'setEnergyStorageEnergy', tankName,
+                math.min(tank.maxEnergy, targetEnergy))
         end
     end
 end

@@ -72,7 +72,7 @@ local function getPlayerListActions(player, ctxt)
         table.insert(actions, {
             id = svar("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
             onClick = function()

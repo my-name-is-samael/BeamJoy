@@ -497,7 +497,7 @@
     "themeEditor": {
       "cancelModal": "Changes will not be saved. Are you sure you want to cancel ?",
       "Fields": {
-        "title": "Fields",
+        "title": "Elements",
         "WINDOW_BG": "Window Background",
         "CHILD_BG": "Children Background",
         "POPUP_BG": "Popup Background",
@@ -742,6 +742,7 @@
       "permissions": {
         "title": "Groups & Permissions",
         "groups": "Groups",
+        "deleteModal": "Are you sure you want to delete the group \"{groupName}\"?",
         "permissions": "Permissions",
         "groupKeys": {
           "level": "Level",
@@ -768,7 +769,7 @@
         "MaxPlayers": "Max Players",
         "Private": "Private",
         "Debug": "Debug",
-        "previewTooltip": "Preview does only displays colors",
+        "previewTooltip": "Preview does only display colors",
         "formattingHints": {
           "title": "Formatting Hints (only applied on Name and Description)",
           "reset": "Reset",

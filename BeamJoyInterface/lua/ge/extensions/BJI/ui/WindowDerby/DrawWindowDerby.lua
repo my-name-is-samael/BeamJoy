@@ -13,10 +13,10 @@ local function drawHeaderPreparation(ctxt)
     local participant = dm.getParticipant()
     if not participant or not participant.ready then
         local line = LineBuilder()
-            :btnIcon({
+            :btnIconToggle({
                 id = "joinDerby",
                 icon = participant and ICONS.exit_to_app or ICONS.videogame_asset,
-                background = participant and BTN_PRESETS.ERROR or BTN_PRESETS.SUCCESS,
+                state = not participant,
                 big = true,
                 onClick = function()
                     BJITx.scenario.DerbyUpdate(dm.CLIENT_EVENTS.JOIN)
@@ -26,7 +26,7 @@ local function drawHeaderPreparation(ctxt)
             line:btnIcon({
                 id = "readyDerby",
                 icon = ICONS.check,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 big = true,
                 onClick = function()
                     BJITx.scenario.DerbyUpdate(dm.CLIENT_EVENTS.READY, ctxt.veh:getID())
@@ -64,7 +64,7 @@ local function drawHeaderGame(ctxt)
             :btnIcon({
                 id = "leaveDerby",
                 icon = ICONS.exit_to_app,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 big = true,
                 onClick = function()
                     BJITx.scenario.DerbyUpdate(dm.CLIENT_EVENTS.LEAVE, ctxt.now - dm.startTime)
@@ -130,7 +130,7 @@ local function drawBodyPreparation(ctxt)
                 :btnIcon({
                     id = svar("spawnConfig{1}", { i }),
                     icon = ICONS.carSensors,
-                    background = ctxt.isOwner and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
+                    style = ctxt.isOwner and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
                     onClick = function()
                         dm.tryReplaceOrSpawn(config.model, config.config)
                     end

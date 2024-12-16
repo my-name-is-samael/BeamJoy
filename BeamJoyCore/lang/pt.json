@@ -496,7 +496,7 @@
     "themeEditor": {
       "cancelModal": "As alterações não serão salvas. ",
       "Fields": {
-        "title": "Campos",
+        "title": "Elementos",
         "WINDOW_BG": "Fundo da janela",
         "CHILD_BG": "Fundo infantil",
         "POPUP_BG": "Fundo pop-up",
@@ -741,6 +741,7 @@
       "permissions": {
         "title": "Grupos e permissões",
         "groups": "Grupos",
+        "deleteModal": "Tem a certeza de que pretende eliminar o grupo \"{groupName}\"?",
         "permissions": "Permissões",
         "groupKeys": {
           "level": "Nível",

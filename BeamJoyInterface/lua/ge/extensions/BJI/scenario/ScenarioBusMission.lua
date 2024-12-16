@@ -225,9 +225,9 @@ local function drawMissionUI(ctxt)
         })
         local line = LineBuilder()
         if M.line.loopable then
-            line:btnIconSwitch({
+            line:btnIconToggle({
                 id = "toggleBusLoop",
-                iconEnabled = ICONS.all_inclusive,
+                icon = ICONS.all_inclusive,
                 state = M.nextLoop,
                 onClick = function()
                     M.nextLoop = not M.nextLoop
@@ -239,7 +239,7 @@ local function drawMissionUI(ctxt)
             :btnIcon({
                 id = "stopBusMission",
                 icon = ICONS.exit_to_app,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = onStopBusMission,
                 big = true,
             })

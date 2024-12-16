@@ -167,7 +167,7 @@ local function drawDeliveryUI(ctxt)
         :btnIcon({
             id = "stopPackageDelivery",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = M.onStopDelivery,
             big = true,
         })

@@ -91,10 +91,9 @@ local function draw(ctxt)
             :text(labelDelay)
             :build()
         local line = LineBuilder()
-            :btnIconSwitch({
+            :btnIconToggle({
                 id = "voteRace",
-                iconEnabled = ICONS.event_available,
-                iconDisabled = ICONS.event_busy,
+                icon = voteRace.selfVoted and ICONS.event_busy or ICONS.event_available,
                 state = not voteRace.selfVoted,
                 onClick = BJITx.voterace.vote,
             })
@@ -102,7 +101,7 @@ local function draw(ctxt)
             line:btnIcon({
                 id = "stopVoteRace",
                 icon = ICONS.cancel,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = BJITx.voterace.stop,
             })
         end
@@ -124,7 +123,7 @@ local function draw(ctxt)
                 :btnIcon({
                     id = "stopStartRace",
                     icon = ICONS.cancel,
-                    background = BTN_PRESETS.ERROR,
+                    style = BTN_PRESETS.ERROR,
                     onClick = BJITx.voterace.stop,
                 })
                 :build()
@@ -135,7 +134,7 @@ local function draw(ctxt)
                 :btnIcon({
                     id = "cancelRaceStart",
                     icon = ICONS.cancel,
-                    background = BTN_PRESETS.ERROR,
+                    style = BTN_PRESETS.ERROR,
                     onClick = BJITx.voterace.vote,
                 })
                 :build()

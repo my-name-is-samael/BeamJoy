@@ -23,19 +23,12 @@ for _, ctrl in pairs(M._ctrls) do
     end
 end
 
-local function _listen(eventName)
-    AddEventHandler(eventName, function(data)
-        BJIControllers.dispatchEvent(eventName, data)
-    end)
-end
-
 BJILoaded = {}
 local function initListeners()
     if MPConfig then
         for _, v in pairs(BJI_EVENTS) do
             if type(v) == "table" and type(v.RX) == "table" and tlength(v.RX) > 0 then
                 BJILoaded[v.EVENT] = true
-                --_listen(v.EVENT)
             end
         end
     end

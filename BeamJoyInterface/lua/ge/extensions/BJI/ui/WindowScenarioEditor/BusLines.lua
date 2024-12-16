@@ -100,7 +100,7 @@ local function drawHeader(ctxt)
             :btnIcon({
                 id = "spawnBus",
                 icon = ICONS.directions_bus,
-                background = BTN_PRESETS.INFO,
+                style = BTN_PRESETS.INFO,
                 onClick = function()
                     local camPosRot = BJICam.getPositionRotation(false)
                     camPosRot.rot = camPosRot.rot * quat(0, 0, 1, 0) -- invert forward
@@ -163,8 +163,8 @@ local function drawBody(ctxt)
                     :btnIcon({
                         id = svar("reloadMarkers{1}", { iLine }),
                         icon = ICONS.visibility,
-                        style = displayed and TEXT_COLORS.SUCCESS or TEXT_COLORS.DEFAULT,
-                        background = displayed and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
+                        style = displayed and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
+                        active = displayed,
                         onClick = function()
                             if not displayed then
                                 reloadMarkers(iLine)
@@ -174,7 +174,7 @@ local function drawBody(ctxt)
                     :btnIcon({
                         id = svar("deleteLine{1}", { iLine }),
                         icon = ICONS.delete_forever,
-                        background = BTN_PRESETS.ERROR,
+                        style = BTN_PRESETS.ERROR,
                         disabled = blEdit.processSave,
                         onClick = function()
                             table.remove(blEdit.lines, iLine)
@@ -212,9 +212,9 @@ local function drawBody(ctxt)
                     :build()
                 LineBuilder()
                     :text(BJILang.get("buslines.edit.loopable"))
-                    :btnIconSwitch({
+                    :btnIconToggle({
                         id = svar("lineLoopable{1}", { iLine }),
-                        iconEnabled = ICONS.rotate_90_degrees_ccw,
+                        icon = ICONS.rotate_90_degrees_ccw,
                         state = busLine.loopable,
                         disabled = blEdit.processSave,
                         onClick = function()
@@ -238,7 +238,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("busStopMoveUp{1}{2}", { iLine, iStop }),
                             icon = ICONS.arrow_drop_up,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = iStop == 1 or blEdit.processSave,
                             onClick = function()
                                 table.insert(busLine.stops, iStop - 1, busLine.stops[iStop])
@@ -250,7 +250,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("busStopMoveDown{1}{2}", { iLine, iStop }),
                             icon = ICONS.arrow_drop_down,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = iStop == #busLine.stops or blEdit.processSave,
                             onClick = function()
                                 table.insert(busLine.stops, iStop + 2, busLine.stops[iStop])
@@ -262,7 +262,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("busStopGoTo{1}{2}", { iLine, iStop }),
                             icon = ICONS.cameraFocusOnVehicle2,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not vehPos,
                             onClick = function()
                                 BJIVeh.setPositionRotation(stop.pos, stop.rot)
@@ -271,7 +271,7 @@ local function drawBody(ctxt)
                         :btnIcon({
                             id = svar("busStopMoveHere{1}{2}", { iLine, iStop }),
                             icon = ICONS.crosshair,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = not vehPos or blEdit.processSave,
                             onClick = function()
                                 if vehPos then
@@ -286,7 +286,7 @@ local function drawBody(ctxt)
                         line:btnIcon({
                             id = svar("busStopDelete{1}{2}", { iLine, iStop }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             disabled = blEdit.processSave,
                             onClick = function()
                                 table.remove(busLine.stops, iStop)
@@ -358,7 +358,7 @@ local function drawBody(ctxt)
                     :btnIcon({
                         id = svar("addStop{1}", { iLine }),
                         icon = ICONS.addListItem,
-                        background = TEXT_COLORS.SUCCESS,
+                        style = TEXT_COLORS.SUCCESS,
                         disabled = not vehPos or blEdit.processSave,
                         onClick = function()
                             if vehPos then
@@ -383,7 +383,7 @@ local function drawBody(ctxt)
         :btnIcon({
             id = "createBusLine",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not vehPos or blEdit.processSave,
             onClick = function()
                 if vehPos then
@@ -412,7 +412,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancel",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.Scenario.BusLinesEdit = nil
                 BJIWaypointEdit.reset()
@@ -422,7 +422,7 @@ local function drawFooter(ctxt)
         line:btnIcon({
             id = "save",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not blEdit.valid or blEdit.processSave,
             onClick = save,
         })

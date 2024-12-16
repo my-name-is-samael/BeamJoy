@@ -12,9 +12,8 @@ local function draw(ctxt)
                             :btnIcon({
                                 id = "toggleUserSettings",
                                 icon = ICONS.settings,
-                                style = BJIContext.UserSettings.open and
-                                    TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
+                                active = BJIContext.UserSettings.open,
                                 onClick = function()
                                     BJIContext.UserSettings.open = not BJIContext.UserSettings.open
                                 end
@@ -24,9 +23,8 @@ local function draw(ctxt)
                             line:btnIcon({
                                 id = "toggleVehicleSelector",
                                 icon = ICONS.directions_car,
-                                style = BJIVehSelector.state and
-                                    TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
+                                active = BJIVehSelector.state,
                                 onClick = function()
                                     if BJIVehSelector.state then
                                         BJIVehSelector.tryClose()
@@ -39,11 +37,11 @@ local function draw(ctxt)
                                 end
                             })
                         end
-                        line:btnIconSwitch({
+                        line:btnIconToggle({
                             id = "togleNametags",
-                            iconEnabled = ICONS.speaker_notes,
-                            iconDisabled = ICONS.speaker_notes_off,
+                            icon = BJIContext.UserSettings.nametags and ICONS.speaker_notes or ICONS.speaker_notes_off,
                             state = BJIContext.UserSettings.nametags,
+                            coloredIcon = true,
                             onClick = function()
                                 BJIContext.UserSettings.nametags = not BJIContext.UserSettings.nametags
                                 BJITx.player.settings("nametags", BJIContext.UserSettings.nametags)
@@ -54,7 +52,8 @@ local function draw(ctxt)
                             line:btnIcon({
                                 id = "clearGPS",
                                 icon = ICONS.location_off,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
+                                coloredIcon = true,
                                 onClick = BJIGPS.clear,
                             })
                         end
@@ -148,17 +147,18 @@ local function draw(ctxt)
                             :btnIcon({
                                 id = "debugAppWaiting",
                                 icon = ICONS.bug_report,
-                                style = TEXT_COLORS.SUCCESS,
+                                style = BTN_PRESETS.SUCCESS,
+                                coloredIcon = true,
                                 onClick = function()
                                     guihooks.trigger("app:waiting", false)
                                 end,
                             })
                         if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) and BJIContext.Core then
                             local state = BJIContext.Core.Private
-                            line:btnIcon({
+                            line:btnIconToggle({
                                 id = "toggleCorePrivate",
                                 icon = state and ICONS.visibility_off or ICONS.visibility,
-                                background = state and BTN_PRESETS.ERROR or BTN_PRESETS.SUCCESS,
+                                state = not state,
                                 onClick = function()
                                     BJITx.config.core("Private", not BJIContext.Core.Private)
                                 end,

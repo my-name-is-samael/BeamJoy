@@ -230,9 +230,9 @@ local function drawDeliveryUI(ctxt)
         }))
 
     LineBuilder()
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "vehicleDeliveryLoop",
-            iconEnabled = ICONS.all_inclusive,
+            icon = ICONS.all_inclusive,
             state = M.nextLoop,
             onClick = function()
                 M.nextLoop = not M.nextLoop
@@ -242,7 +242,7 @@ local function drawDeliveryUI(ctxt)
         :btnIcon({
             id = "stopVehicleDelivery",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = M.onStopDelivery,
             big = true,
         })

@@ -21,15 +21,32 @@ local function drawServerBroadcasts()
         :text(PrettyDelay(BJIContext.BJC.Server.Broadcasts.delay))
         :build()
 
+    local langs = {}
+    for _, l in ipairs(BJILang.Langs) do
+        table.insert(langs, {
+            value = l,
+            label = l:upper(),
+        })
+    end
+    table.sort(langs, function(a, b) return a.label < b.label end)
+    local iSelected = 0
+    for i, l in ipairs(langs) do
+        if l.value == BJIContext.BJC.Server.BroadcastsLang then
+            iSelected = i
+        end
+    end
     LineBuilder()
         :text(BJILang.get("serverConfig.bjc.server.broadcasts.lang"))
         :inputCombo({
             id = "serverBroadcastsLang",
-            items = BJILang.Langs,
-            value = BJIContext.BJC.Server.BroadcastsLang,
+            items = langs,
+            getLabelFn = function(v)
+                return v.label
+            end,
+            value = langs[iSelected],
             width = 50,
-            onChange = function(val)
-                BJIContext.BJC.Server.BroadcastsLang = val
+            onChange = function(el)
+                BJIContext.BJC.Server.BroadcastsLang = el.value
             end
         })
         :build()
@@ -65,9 +82,9 @@ local function drawServerBroadcasts()
     local iLastMessage = #BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang]
     local lastMessage = BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang][iLastMessage]
     local line = LineBuilder()
-        :btn({
+        :btnIcon({
             id = "addServerBroadcastsMessage",
-            label = BJILang.get("common.buttons.add"),
+            icon = ICONS.addListItem,
             style = BTN_PRESETS.SUCCESS,
             disabled = lastMessage and #lastMessage == 0,
             onClick = function()
@@ -75,9 +92,9 @@ local function drawServerBroadcasts()
             end
         })
     if iLastMessage > 0 then
-        line:btn({
+        line:btnIcon({
             id = "deleteServerBroadcastsMessage",
-            label = BJILang.get("common.buttons.delete"),
+            icon = ICONS.delete_forever,
             style = BTN_PRESETS.ERROR,
             onClick = function()
                 table.remove(BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang],
@@ -89,9 +106,9 @@ local function drawServerBroadcasts()
     Indent(-2)
 
     LineBuilder()
-        :btn({
+        :btnIcon({
             id = "saveServerBroadcasts",
-            label = BJILang.get("common.buttons.save"),
+            icon = ICONS.save,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 local data = tdeepcopy(BJIContext.BJC.Server.Broadcasts)
@@ -118,31 +135,37 @@ local function drawServerWelcomeMessages()
         :build()
     Indent(2)
     local labelWidth = 0
-    for lang in pairs(BJIContext.BJC.Server.WelcomeMessage) do
+    local langs = {}
+    for l, msg in pairs(BJIContext.BJC.Server.WelcomeMessage) do
         local w = GetColumnTextWidth(svar(BJILang.get("serverConfig.bjc.server.welcomeMessage.message"),
-            { lang = lang }))
+            { lang = l:upper() }))
         if w > labelWidth then
             labelWidth = w
         end
+        table.insert(langs, {
+            lang = l,
+            msg = msg,
+        })
     end
+    table.sort(langs, function(a, b) return a.lang < b.lang end)
     local cols = ColumnsBuilder("serverWelcomeMessages", { labelWidth, -1 })
-    for lang, message in pairs(BJIContext.BJC.Server.WelcomeMessage) do
+    for _, el in pairs(langs) do
         cols:addRow({
             cells = {
                 function()
                     LineBuilder()
                         :text(svar(BJILang.get("serverConfig.bjc.server.welcomeMessage.message"),
-                            { lang = lang }))
+                            { lang = el.lang:upper() }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :inputString({
-                            id = "serverWelcomeMessage" .. lang,
-                            value = message,
+                            id = "serverWelcomeMessage" .. el.lang,
+                            value = el.msg,
                             size = 200,
                             onUpdate = function(val)
-                                BJIContext.BJC.Server.WelcomeMessage[lang] = val
+                                BJIContext.BJC.Server.WelcomeMessage[el.lang] = val
                             end
                         })
                         :build()
@@ -152,9 +175,9 @@ local function drawServerWelcomeMessages()
     end
     cols:build()
     LineBuilder()
-        :btn({
+        :btnIcon({
             id = "saveServerWelcomeMessage",
-            label = BJILang.get("common.buttons.save"),
+            icon = ICONS.save,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 local data = tdeepcopy(BJIContext.BJC.Server.WelcomeMessage)
@@ -170,7 +193,7 @@ local function drawServerWelcomeMessages()
     Indent(-2)
 end
 
-return function (ctxt)
+return function(ctxt)
     if #BJILang.Langs > 1 then
         EmptyLine()
         BJILang.drawSelector({
@@ -189,9 +212,10 @@ return function (ctxt)
 
     LineBuilder()
         :text("Allow Client Mods:")
-        :btnSwitchYesNo({
+        :btnIconToggle({
             id = "toggleAllowClientMods",
             state = BJIContext.BJC.Server.AllowClientMods,
+            coloredIcon = true,
             onClick = function()
                 BJITx.config.bjc("Server.AllowClientMods", not BJIContext.BJC.Server.AllowClientMods)
             end,
@@ -200,9 +224,10 @@ return function (ctxt)
 
     LineBuilder()
         :text(svar("{1}:", { BJILang.get("serverConfig.bjc.server.driftBigBroadcast") }))
-        :btnSwitchEnabledDisabled({
+        :btnIconToggle({
             id = "driftBigBroadcast",
             state = BJIContext.BJC.Server.DriftBigBroadcast,
+            coloredIcon = true,
             onClick = function()
                 BJITx.config.bjc("Server.DriftBigBroadcast",
                     not BJIContext.BJC.Server.DriftBigBroadcast)

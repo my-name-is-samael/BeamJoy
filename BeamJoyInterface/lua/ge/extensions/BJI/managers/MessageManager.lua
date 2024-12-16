@@ -123,6 +123,10 @@ local function stopRealtimeDisplay()
     guihooks.trigger('ScenarioRealtimeDisplay', M.realtimeData)
 end
 
+local function message(msg)
+    guihooks.trigger('Message', { ttl = 1, msg = msg, category = "" })
+end
+
 M.flash = flash
 M.flashCountdown = flashCountdown
 M.cancelFlash = cancelFlash
@@ -130,6 +134,8 @@ M.renderTick = renderTick
 
 M.realtimeDisplay = realtimeDisplay
 M.stopRealtimeDisplay = stopRealtimeDisplay
+
+M.message = message
 
 RegisterBJIManager(M)
 return M

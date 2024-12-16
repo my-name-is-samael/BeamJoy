@@ -124,7 +124,7 @@ local function drawVehicleSelector(cols, ctxt)
                     :btnIcon({
                         id = "raceSettingsVehicleRefresh",
                         icon = ICONS.refresh,
-                        background = BTN_PRESETS.INFO,
+                        style = BTN_PRESETS.INFO,
                         disabled = not ctxt.veh,
                         onClick = function()
                             if BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
@@ -339,7 +339,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancelRaceStart",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.Scenario.RaceSettings = nil
             end
@@ -348,7 +348,7 @@ local function drawFooter(ctxt)
         line:btnIcon({
             id = "voteRaceStart",
             icon = ICONS.event_available,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 BJITx.voterace.start(settings.raceID, true, getPayloadSettings())
                 BJIContext.Scenario.RaceSettings = nil
@@ -360,7 +360,7 @@ local function drawFooter(ctxt)
         line:btnIcon({
             id = "raceStart",
             icon = ICONS.videogame_asset,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 if settings.multi then
                     BJITx.voterace.start(settings.raceID, false, getPayloadSettings())

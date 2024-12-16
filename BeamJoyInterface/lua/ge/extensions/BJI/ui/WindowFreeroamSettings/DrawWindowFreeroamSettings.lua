@@ -20,6 +20,9 @@ local labelsConf = {
     { key = "freeroamSettings.emergencyRefuelPercent",  colon = true, tooltip = true },
 }
 
+local DEFAULT_DRIFT_GOOD = 2000
+local DEFAULT_DRIFT_BIG = 10000
+
 local function draw(ctxt)
     if not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) then
         M.onClose()
@@ -113,11 +116,13 @@ local function draw(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = "freeroamVehicleSpawning",
                             state = BJIContext.BJC.Freeroam.VehicleSpawning,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.bjc("Freeroam.VehicleSpawning", not BJIContext.BJC.Freeroam.VehicleSpawning)
+                                BJIContext.BJC.Freeroam.VehicleSpawning = not BJIContext.BJC.Freeroam.VehicleSpawning
                             end,
                         })
                         :build()
@@ -133,11 +138,13 @@ local function draw(ctxt)
                     end,
                     function()
                         LineBuilder()
-                            :btnSwitchEnabledDisabled({
+                            :btnIconToggle({
                                 id = "freeroamQuickTravel",
                                 state = BJIContext.BJC.Freeroam.QuickTravel,
+                                coloredIcon = true,
                                 onClick = function()
                                     BJITx.config.bjc("Freeroam.QuickTravel", not BJIContext.BJC.Freeroam.QuickTravel)
+                                    BJIContext.BJC.Freeroam.QuickTravel = not BJIContext.BJC.Freeroam.QuickTravel
                                 end,
                             })
                             :build()
@@ -154,11 +161,13 @@ local function draw(ctxt)
             end,
             function()
                 LineBuilder()
-                    :btnSwitchEnabledDisabled({
+                    :btnIconToggle({
                         id = "freeroamNametags",
                         state = BJIContext.BJC.Freeroam.Nametags,
+                        coloredIcon = true,
                         onClick = function()
                             BJITx.config.bjc("Freeroam.Nametags", not BJIContext.BJC.Freeroam.Nametags)
+                            BJIContext.BJC.Freeroam.Nametags = not BJIContext.BJC.Freeroam.Nametags
                         end,
                     })
                     :build()
@@ -174,11 +183,13 @@ local function draw(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = "freeroamAllowUnicycle",
                             state = BJIContext.BJC.Freeroam.AllowUnicycle,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.bjc("Freeroam.AllowUnicycle", not BJIContext.BJC.Freeroam.AllowUnicycle)
+                                BJIContext.BJC.Freeroam.AllowUnicycle = not BJIContext.BJC.Freeroam.AllowUnicycle
                             end,
                         })
                         :build()
@@ -208,15 +219,17 @@ local function draw(ctxt)
                         :build()
                 end,
                 function()
+                    local defaultDriftGood = 1000
                     LineBuilder()
-                        :btn({
+                        :btnIcon({
                             id = "resetDriftGood",
-                            label = BJILang.get("common.buttons.reset"),
+                            icon = ICONS.refresh,
                             style = BTN_PRESETS.WARNING,
+                            disabled = BJIContext.BJC.Freeroam.DriftGood == DEFAULT_DRIFT_GOOD,
                             onClick = function()
-                                BJITx.config.bjc("Freeroam.DriftGood", 1000)
-                                if BJIContext.BJC.Freeroam.DriftBig <= 1000 then
-                                    BJITx.config.bjc("Freeroam.DriftBig", 2000)
+                                BJITx.config.bjc("Freeroam.DriftGood", DEFAULT_DRIFT_GOOD)
+                                if BJIContext.BJC.Freeroam.DriftBig <= DEFAULT_DRIFT_GOOD then
+                                    BJITx.config.bjc("Freeroam.DriftBig", DEFAULT_DRIFT_BIG)
                                 end
                             end,
                         })
@@ -248,14 +261,15 @@ local function draw(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btn({
+                        :btnIcon({
                             id = "resetDriftBig",
-                            label = BJILang.get("common.buttons.reset"),
+                            icon = ICONS.refresh,
                             style = BTN_PRESETS.WARNING,
+                            disabled = BJIContext.BJC.Freeroam.DriftBig == DEFAULT_DRIFT_BIG,
                             onClick = function()
-                                BJITx.config.bjc("Freeroam.DriftBig", 2000)
-                                if BJIContext.BJC.Freeroam.DriftGood >= 2000 then
-                                    BJITx.config.bjc("Freeroam.DriftGood", 1000)
+                                BJITx.config.bjc("Freeroam.DriftBig", DEFAULT_DRIFT_BIG)
+                                if BJIContext.BJC.Freeroam.DriftGood >= DEFAULT_DRIFT_BIG then
+                                    BJITx.config.bjc("Freeroam.DriftGood", DEFAULT_DRIFT_GOOD)
                                 end
                             end,
                         })
@@ -272,11 +286,13 @@ local function draw(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = "freeroamPreserveEnergy",
                             state = BJIContext.BJC.Freeroam.PreserveEnergy,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.bjc("Freeroam.PreserveEnergy", not BJIContext.BJC.Freeroam.PreserveEnergy)
+                                BJIContext.BJC.Freeroam.PreserveEnergy = not BJIContext.BJC.Freeroam.PreserveEnergy
                             end,
                         })
                         :build()
@@ -343,7 +359,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "closeFreeroamSettings",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.Scenario.FreeroamSettingsOpen = false
             end

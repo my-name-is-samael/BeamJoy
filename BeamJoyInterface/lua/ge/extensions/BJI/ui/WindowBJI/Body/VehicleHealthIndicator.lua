@@ -22,7 +22,7 @@ local function drawHealth(ctxt)
                     line:btnIcon({
                         id = "setRouteGarage",
                         icon = ICONS.add_location,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         onClick = function()
                             local garages = {}
                             for _, garage in ipairs(BJIContext.Scenario.Data.Garages) do

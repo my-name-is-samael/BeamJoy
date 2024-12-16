@@ -45,9 +45,9 @@ return function(ctxt)
 
     local canSave = minTime >= 0 and maxTime >= 0 and minTime <= maxTime
     LineBuilder()
-        :btn({
+        :btnIcon({
             id = "tempBanLimitsSave",
-            label = BJILang.get("common.buttons.save"),
+            icon = ICONS.save,
             style = BTN_PRESETS.SUCCESS,
             disabled = not canSave,
             onClick = function()

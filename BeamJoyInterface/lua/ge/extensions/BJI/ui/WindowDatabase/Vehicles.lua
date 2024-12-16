@@ -55,7 +55,7 @@ local function draw(data)
                         :btnIcon({
                             id = svar("removeBlacklisted-{1}", { model }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 BJITx.database.Vehicle(model, false)
                             end
@@ -104,7 +104,7 @@ local function draw(data)
                     :btnIcon({
                         id = "addBlacklistedModel",
                         icon = ICONS.addListItem,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         onClick = function()
                             BJITx.database.Vehicle(data.newBlacklistModel, true)
                         end

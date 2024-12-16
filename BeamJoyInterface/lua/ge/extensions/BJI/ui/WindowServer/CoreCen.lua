@@ -186,11 +186,13 @@ local function drawCoreConfig(ctxt)
                     else
                         local line = LineBuilder()
                         if type(v) == "boolean" then
-                            line:btnSwitchEnabledDisabled({
+                            line:btnIconToggle({
                                 id = "core" .. k,
                                 state = v,
+                                coloredIcon = true,
                                 onClick = function()
                                     BJITx.config.core(k, not v)
+                                    BJIContext.Core[k] = not v
                                 end
                             })
                         elseif type(v) == "number" then
@@ -273,11 +275,13 @@ local function drawCEN(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = "cen" .. k,
                             state = v,
+                            coloredIcon = true,
                             onClick = function()
                                 BJITx.config.bjc("CEN." .. k, not v)
+                                BJIContext.BJC.CEN[k] = not v
                             end
                         })
                         :build()

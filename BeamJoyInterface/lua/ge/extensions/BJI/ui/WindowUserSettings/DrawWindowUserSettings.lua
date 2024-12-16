@@ -30,10 +30,10 @@ local function drawVehicleSettings(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnIconSwitch({
+                        :btnIconToggle({
                             id = "automaticLightsToggle",
-                            iconEnabled = ICONS.brightness_high,
-                            iconDisabled = ICONS.brightness_low,
+                            icon = BJIContext.UserSettings.automaticLights and ICONS.brightness_high or
+                                ICONS.brightness_low,
                             state = BJIContext.UserSettings.automaticLights,
                             onClick = function()
                                 BJIContext.UserSettings.automaticLights = not BJIContext.UserSettings.automaticLights
@@ -53,11 +53,11 @@ local function drawVehicleSettings(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnIconSwitch({
+                        :btnIconToggle({
                             id = "nametagsToggle",
-                            iconEnabled = ICONS.speaker_notes,
-                            iconDisabled = ICONS.speaker_notes_off,
+                            icon = BJIContext.UserSettings.nametags and ICONS.speaker_notes or ICONS.speaker_notes_off,
                             state = BJIContext.UserSettings.nametags,
+                            coloredIcon = true,
                             onClick = function()
                                 BJIContext.UserSettings.nametags = not BJIContext.UserSettings.nametags
                                 BJITx.player.settings("nametags", BJIContext.UserSettings.nametags)
@@ -103,9 +103,10 @@ local function drawFreecamSettings(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnSwitchEnabledDisabled({
+                        :btnIconToggle({
                             id = "toggleSmooth",
                             state = BJIContext.UserSettings.freecamSmooth,
+                            coloredIcon = true,
                             onClick = function()
                                 BJIContext.UserSettings.freecamSmooth = not BJIContext.UserSettings.freecamSmooth
                                 BJITx.player.settings("freecamSmooth", BJIContext.UserSettings.freecamSmooth)
@@ -124,10 +125,11 @@ local function drawFreecamSettings(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btn({
+                        :btnIcon({
                             id = "fovReset",
-                            label = BJILang.get("common.buttons.reset"),
+                            icon = ICONS.refresh,
                             style = BTN_PRESETS.WARNING,
+                            disabled = BJIContext.UserSettings.freecamFov == BJICam.DEFAULT_FREECAM_FOV,
                             onClick = function()
                                 BJIContext.UserSettings.freecamFov = BJICam.DEFAULT_FREECAM_FOV
                                 if ctxt.camera == BJICam.CAMERAS.FREE then
@@ -213,7 +215,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "closeUserSettings",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.UserSettings.open = false
             end

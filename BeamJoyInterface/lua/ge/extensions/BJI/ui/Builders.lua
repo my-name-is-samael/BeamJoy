@@ -483,24 +483,17 @@ LineBuilder = function(startSameLine)
             return self
         end
         self:_commonStartElem()
+        data.style = data.style and tdeepcopy(data.style) or nil
 
         if data.disabled == true then
-            data.style = {
-                BTN_PRESETS.DISABLED[1],
-                BTN_PRESETS.DISABLED[2],
-                BTN_PRESETS.DISABLED[3],
-                BTN_PRESETS.DISABLED[4],
-            }
+            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
         end
         if not data.style then
-            data.style = {
-                BTN_PRESETS.DEFAULT[1],
-                BTN_PRESETS.DEFAULT[2],
-                BTN_PRESETS.DEFAULT[3],
-                BTN_PRESETS.DEFAULT[4],
-            }
+            data.style = tdeepcopy(BTN_PRESETS.INFO)
         end
-        if not data.style[4] then
+        if data.active then
+            data.style[4] = TEXT_COLORS.HIGHLIGHT
+        elseif not data.style[4] then
             data.style[4] = TEXT_COLORS.DEFAULT
         end
         btnStylePreset(data.style)
@@ -872,13 +865,23 @@ LineBuilder = function(startSameLine)
         end
 
         local size = GetIconSize(data.big)
-        local style = data.style or TEXT_COLORS.DEFAULT
         local border = data.border or nil
+
+        data.style = data.style and tdeepcopy(data.style) or tdeepcopy(BTN_PRESETS.INFO)
+        local iconColor
+        if data.coloredIcon then
+            iconColor = data.style[1]
+        else
+            if not data.style[4] then
+                data.style[4] = tdeepcopy(TEXT_COLORS.DEFAULT)
+            end
+            iconColor = data.style[4]
+        end
 
         self:_commonStartElem()
         BJIContext.GUI.uiIconImage(icon, -- ICON
             im.ImVec2(size, size),       -- SIZE
-            style,                       -- ICON COLOR
+            iconColor,                   -- ICON COLOR
             border,                      -- BORDER COLOR
             nil                          -- LABEL
         )
@@ -893,30 +896,40 @@ LineBuilder = function(startSameLine)
 
         local icon = GetIcon(data.icon)
         if not icon then
+            -- error already logged inside GetIcon(str)
             return self
         end
+        self:_commonStartElem()
+        data.style = data.style and tdeepcopy(data.style) or nil
 
         local size = GetIconSize(data.big)
-        local style = data.style or TEXT_COLORS.DEFAULT
-        if type(style) == "table" then
-            style = style[1]
-        end
-        local bg = data.background or BTN_PRESETS.TRANSPARENT
-        if type(bg) == "table" then
-            bg = bg[1]
-        end
-
         if data.disabled then
-            style = TEXT_COLORS.DEFAULT
-            bg = BTN_PRESETS.DISABLED[1]
+            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
+        end
+        data.style = data.style or tdeepcopy(BTN_PRESETS.INFO)
+        local iconColor
+        if data.active then
+            iconColor = tdeepcopy(TEXT_COLORS.HIGHLIGHT)
+        else
+            iconColor = data.style[4] and tdeepcopy(data.style[4]) or tdeepcopy(TEXT_COLORS.DEFAULT)
+        end
+        local bgColor = tdeepcopy(data.style[1])
+        local hoveredColor = tdeepcopy(data.style[2])
+        local activeColor = tdeepcopy(data.style[3])
+        if data.coloredIcon then
+            iconColor = bgColor
+            bgColor = BTN_PRESETS.TRANSPARENT[1]
+            hoveredColor = BTN_PRESETS.TRANSPARENT[2]
+            activeColor = BTN_PRESETS.TRANSPARENT[3]
         end
 
-        self:_commonStartElem()
+        SetStyleColor(STYLE_COLS.BUTTON_HOVERED, hoveredColor)
+        SetStyleColor(STYLE_COLS.BUTTON_ACTIVE, activeColor)
         if BJIContext.GUI.uiIconImageButton(icon, -- ICON
                 im.ImVec2(size, size),            -- SIZE
-                style,                            -- ICON COLOR
+                iconColor,                        -- ICON COLOR
                 nil,                              -- LABEL
-                bg,                               -- ICON BG COLOR
+                bgColor,                          -- ICON BG COLOR
                 data.id,                          -- ID
                 nil,                              -- TEXT COLOR
                 nil,                              -- TEXT BG FLAG
@@ -925,21 +938,18 @@ LineBuilder = function(startSameLine)
             ) and not data.disabled then
             data.onClick()
         end
+        im.PopStyleColor(2)
         self._elemCount = self._elemCount + 1
         return self
     end
-    builder.btnIconSwitch = function(self, data)
-        if not data.id or not data.iconEnabled or data.state == nil or not data.onClick then
-            LogError("btnIconSwitch requires id, iconEnabled, state and onClick", logTag)
+    builder.btnIconToggle = function(self, data)
+        if not data.id or data.state == nil or not data.onClick then
+            LogError("btnIconToggle requires id, state and onClick", logTag)
             return self
         end
 
-        data.iconDisabled = data.iconDisabled or data.iconEnabled
-        data.icon = data.state and data.iconEnabled or data.iconDisabled
-        data.style = data.style or TEXT_COLORS.DEFAULT
-        if not data.background then
-            data.background = data.state and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR
-        end
+        data.icon = data.icon or (data.state and ICONS.check_circle or ICONS.cancel)
+        data.style = data.style or (data.state and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR)
 
         return self:btnIcon(data)
     end

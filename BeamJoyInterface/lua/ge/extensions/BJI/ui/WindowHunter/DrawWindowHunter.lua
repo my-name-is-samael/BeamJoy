@@ -11,11 +11,10 @@ local function drawHeaderPreparation(ctxt)
     local participant = sh.participants[BJIContext.User.playerID]
     if not participant or not participant.ready then
         local line = LineBuilder()
-            :btnIcon({
+            :btnIconToggle({
                 id = "joinHunter",
                 icon = participant and ICONS.exit_to_app or ICONS.videogame_asset,
-                background = participant and BTN_PRESETS.ERROR or
-                    BTN_PRESETS.SUCCESS,
+                state = not participant,
                 onClick = function()
                     BJITx.scenario.HunterUpdate(sh.CLIENT_EVENTS.JOIN)
                     if participant and BJIVeh.isCurrentVehicleOwn() then
@@ -30,7 +29,7 @@ local function drawHeaderPreparation(ctxt)
             line:btnIcon({
                 id = "readyHunter",
                 icon = ICONS.check,
-                background = BTN_PRESETS.SUCCESS,
+                style = BTN_PRESETS.SUCCESS,
                 onClick = function()
                     BJITx.scenario.HunterUpdate(sh.CLIENT_EVENTS.READY, ctxt.veh:getID())
                 end,
@@ -57,7 +56,7 @@ local function drawHeaderGame(ctxt)
             :btnIcon({
                 id = "leaveHunter",
                 icon = ICONS.exit_to_app,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = function()
                     BJICam.removeRestrictedCamera(BJICam.CAMERAS.FREE)
                     BJITx.scenario.HunterUpdate(
@@ -128,7 +127,7 @@ local function drawBodyPreparation(ctxt)
                                 :btnIcon({
                                     id = svar("spawnConfig{1}", { i }),
                                     icon = ICONS.carSensors,
-                                    background = BTN_PRESETS.SUCCESS,
+                                    style = BTN_PRESETS.SUCCESS,
                                     onClick = function()
                                         sh.tryReplaceOrSpawn(confData.model, confData.config)
                                         if not BJIVehSelector.state then

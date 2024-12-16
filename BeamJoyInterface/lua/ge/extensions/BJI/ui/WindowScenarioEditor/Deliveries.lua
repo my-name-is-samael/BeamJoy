@@ -72,7 +72,7 @@ local function drawHeader(ctxt)
         :btnIcon({
             id = "reloadMarkers",
             icon = ICONS.sync,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = reloadMarkers,
         })
         :build()
@@ -108,7 +108,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("goTo{1}", { i }),
                                 icon = ICONS.cameraFocusOnVehicle2,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
                                 disabled = not ctxt.isOwner,
                                 onClick = function()
                                     BJIVeh.setPositionRotation(position.pos, position.rot)
@@ -120,7 +120,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("movePos{1}", { i }),
                                 icon = ICONS.crosshair,
-                                background = BTN_PRESETS.WARNING,
+                                style = BTN_PRESETS.WARNING,
                                 disabled = not vehPos or dEdit.processSave,
                                 onClick = function()
                                     if vehPos then
@@ -134,7 +134,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("delete{1}", { i }),
                                 icon = ICONS.delete_forever,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 disabled = dEdit.processSave,
                                 onClick = function()
                                     table.remove(dEdit.positions, i)
@@ -185,7 +185,7 @@ local function drawBody(ctxt)
         :btnIcon({
             id = "createPosition",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not ctxt.isOwner or not vehPos or dEdit.processSave,
             onClick = function()
                 if vehPos then
@@ -207,7 +207,7 @@ local function drawFooter()
         :btnIcon({
             id = "cancel",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.Scenario.DeliveryEdit = nil
                 BJIWaypointEdit.reset()
@@ -217,7 +217,7 @@ local function drawFooter()
         line:btnIcon({
             id = "save",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = dEdit.processSave,
             onClick = save,
         })

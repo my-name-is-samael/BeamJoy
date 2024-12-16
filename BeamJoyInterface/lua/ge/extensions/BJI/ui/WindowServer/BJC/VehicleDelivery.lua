@@ -54,7 +54,7 @@ return function(ctxt)
                         :btnIcon({
                             id = svar("removeVehDeliveryBlackListModel{1}", { model }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             onClick = function()
                                 table.remove(BJIContext.BJC.VehicleDelivery.ModelBlacklist, i)
                                 BJITx.config.bjc("VehicleDelivery.ModelBlacklist",
@@ -105,7 +105,7 @@ return function(ctxt)
                     :btnIcon({
                         id = "addVehDeliveryBlackListModel",
                         icon = ICONS.addListItem,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = #options <= 1,
                         onClick = function()
                             table.insert(BJIContext.BJC.VehicleDelivery.ModelBlacklist, newModel)

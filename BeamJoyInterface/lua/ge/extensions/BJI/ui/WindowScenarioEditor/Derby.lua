@@ -91,7 +91,7 @@ local function drawArena(index, arena, ctxt)
         :btnIcon({
             id = svar("reloadMarkersArena{1}", { index }),
             icon = ICONS.visibility,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             disabled = drawnArena == index or #arena.startPositions == 0,
             onClick = function()
                 reloadMarkers(index)
@@ -100,7 +100,7 @@ local function drawArena(index, arena, ctxt)
         :btnIcon({
             id = svar("deleteArena{1}", { index }),
             icon = ICONS.delete_forever,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 table.remove(dEdit.arenas, index)
                 dEdit.changed = true
@@ -160,10 +160,9 @@ local function drawArena(index, arena, ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :btnIconSwitch({
+                        :btnIconToggle({
                             id = svar("toggleArenaEnabled{1}", { index }),
-                            iconEnabled = ICONS.visibility,
-                            iconDisabled = ICONS.visibility_off,
+                            icon = arena.enabled and ICONS.visibility or ICONS.visibility_off,
                             state = arena.enabled,
                             onClick = function()
                                 arena.enabled = not arena.enabled
@@ -191,7 +190,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("setArenaPreviewPos{1}", { index }),
                             icon = arena.previewPosition and ICONS.crosshair or ICONS.video_call,
-                            background = arena.previewPosition and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
+                            style = arena.previewPosition and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
                             disabled = dEdit.processSave,
                             onClick = function()
                                 local campos = BJICam.getPositionRotation(true)
@@ -206,7 +205,7 @@ local function drawArena(index, arena, ctxt)
                         line:btnIcon({
                             id = svar("showArenaPreviePosition{1}", { index }),
                             icon = ICONS.visibility,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not arena.previewPosition,
                             onClick = function()
                                 if ctxt.camera ~= BJICam.CAMERAS.FREE then
@@ -256,7 +255,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("upArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.arrow_drop_up,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = i == 1 or dEdit.processSave,
                             onClick = function()
                                 table.insert(arena.startPositions, i - 1, sp)
@@ -268,7 +267,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("downArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.arrow_drop_down,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = i == #arena.startPositions or dEdit.processSave,
                             onClick = function()
                                 table.insert(arena.startPositions, i + 2, sp)
@@ -280,7 +279,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("gotoArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.cameraFocusOnVehicle2,
-                            background = BTN_PRESETS.INFO,
+                            style = BTN_PRESETS.INFO,
                             disabled = not ctxt.veh,
                             onClick = function()
                                 local posRot = arena.startPositions[i]
@@ -294,7 +293,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("moveHereArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.crosshair,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = not ctxt.veh or dEdit.processSave,
                             onClick = function()
                                 arena.startPositions[i] = RoundPositionRotation(ctxt.vehPosRot)
@@ -305,7 +304,7 @@ local function drawArena(index, arena, ctxt)
                         :btnIcon({
                             id = svar("deleteArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             disabled = dEdit.processSave,
                             onClick = function()
                                 table.remove(arena.startPositions, i)
@@ -326,7 +325,7 @@ local function drawArena(index, arena, ctxt)
                     :btnIcon({
                         id = svar("addStartPos{1}", { index }),
                         icon = ICONS.addListItem,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh or dEdit.processSave,
                         onClick = function()
                             table.insert(arena.startPositions, RoundPositionRotation(ctxt.vehPosRot))
@@ -351,7 +350,7 @@ local function drawBody(ctxt)
         :btnIcon({
             id = "addArena",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             onClick = function()
                 table.insert(dEdit.arenas, {
                     name = "",
@@ -369,14 +368,14 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancelDerbyEdit",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = close,
         })
     if dEdit.changed then
         line:btnIcon({
             id = "saveDerbyEdit",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not valid or dEdit.processSave,
             onClick = save,
         })

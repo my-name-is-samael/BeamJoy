@@ -67,7 +67,7 @@ local function drawHeader(ctxt)
         :btnIcon({
             id = "reloadMarkers",
             icon = ICONS.sync,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = reloadMarkers,
         })
         :build()
@@ -216,7 +216,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("goToStation{1}", { i }),
                                 icon = ICONS.cameraFocusTopDown,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
                                 onClick = function()
                                     if ctxt.camera ~= BJICam.CAMERAS.FREE then
                                         BJICam.setCamera(BJICam.CAMERAS.FREE)
@@ -227,7 +227,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("moveStation{1}", { i }),
                                 icon = ICONS.crosshair,
-                                background = BTN_PRESETS.WARNING,
+                                style = BTN_PRESETS.WARNING,
                                 disabled = ctxt.camera ~= BJICam.CAMERAS.FREE or esEdit.processSave,
                                 onClick = function()
                                     station.pos = BJICam.getPositionRotation().pos
@@ -238,7 +238,7 @@ local function drawBody(ctxt)
                             :btnIcon({
                                 id = svar("deleteStation{1}", { i }),
                                 icon = ICONS.delete_forever,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 disabled = esEdit.processSave,
                                 onClick = function()
                                     table.remove(esEdit.stations, i)
@@ -257,7 +257,7 @@ local function drawBody(ctxt)
         :btnIcon({
             id = "createStation",
             icon = ICONS.addListItem,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = ctxt.camera ~= BJICam.CAMERAS.FREE or esEdit.processSave,
             onClick = function()
                 table.insert(esEdit.stations, {
@@ -278,7 +278,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancelEnergyStationsEdit",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 BJIContext.Scenario.EnergyStationsEdit = nil
                 BJIWaypointEdit.reset()
@@ -288,7 +288,7 @@ local function drawFooter(ctxt)
         line:btnIcon({
             id = "saveEnergyStationsEdit",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not esEdit.valid or esEdit.processSave,
             onClick = save,
         })

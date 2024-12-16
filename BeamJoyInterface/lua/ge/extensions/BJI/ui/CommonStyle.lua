@@ -3,6 +3,7 @@ local im = ui_imgui
 function RGBA(r, g, b, a)
     return im.ImVec4(r, g, b, a)
 end
+
 RGBA_PRECISION = 3
 
 WINDOW_FLAGS = {
@@ -121,8 +122,9 @@ function InitDefaultStyles()
     for k, v in pairs(BJIStyles) do
         SetStyleColor(k, v)
     end
+    SetStyleColor(STYLE_COLS.TEXT_COLOR, TEXT_COLORS.DEFAULT)
 end
 
 function ResetStyles()
-    PopStyleColor(tlength(BJIStyles))
+    PopStyleColor(tlength(BJIStyles) + 1)
 end

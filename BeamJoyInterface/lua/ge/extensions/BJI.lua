@@ -20,6 +20,8 @@ Contact : https://github.com/my-name-is-samael
 
 BJIVERSION = "1.1.4"
 
+require("ge/extensions/utils/LoadDefaults")
+
 local managers = {}
 function GetBJIManagers()
     return managers
@@ -180,9 +182,6 @@ return M
 
 -- hide/show ui apps
 -- guihooks.trigger('ShowApps', true/false)
-
--- top left message
--- guihooks.trigger('Message',{ttl=1,msg="Hello World !",category=""})
 
 -- get map height below pos
 -- be:getSurfaceHeightBelow(vec3)

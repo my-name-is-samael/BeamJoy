@@ -373,7 +373,7 @@
     "themeEditor": {
       "cancelModal": "Изменения не будут сохранены. ",
       "Fields": {
-        "title": "Поля",
+        "title": "Элементы",
         "WINDOW_BG": "Фон окна",
         "CHILD_BG": "Детский фон",
         "POPUP_BG": "Фон всплывающего окна",
@@ -618,6 +618,7 @@
       "permissions": {
         "title": "Группы и разрешения",
         "groups": "Группы",
+        "deleteModal": "Вы уверены, что хотите удалить группу \"{groupName}\"?",
         "permissions": "Разрешения",
         "groupKeys": {
           "level": "Уровень",

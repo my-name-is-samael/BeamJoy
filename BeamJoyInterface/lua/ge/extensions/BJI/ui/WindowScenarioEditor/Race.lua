@@ -390,7 +390,7 @@ local function drawTools(vehpos)
             line:btnIcon({
                 id = svar("rotate{1}", { r.value }),
                 icon = r.icon,
-                background = BTN_PRESETS.WARNING,
+                style = BTN_PRESETS.WARNING,
                 onClick = function()
                     local rot = vehpos.rot
                     rot = rot - quat(0, 0, Round(r.value / 360, 8), 0)
@@ -401,7 +401,7 @@ local function drawTools(vehpos)
         line:btnIcon({
             id = "rotateVeh",
             icon = ICONS.tb_bank,
-            background = BTN_PRESETS.WARNING,
+            style = BTN_PRESETS.WARNING,
             onClick = function()
                 vehpos.rot = vehpos.rot * quat(0, 0, 1, 0)
                 BJIVeh.setPositionRotation(vehpos.pos, vehpos.rot)
@@ -410,7 +410,7 @@ local function drawTools(vehpos)
             :btnIcon({
                 id = "reverseRace",
                 icon = ICONS.reply_all,
-                background = BTN_PRESETS.ERROR,
+                style = BTN_PRESETS.ERROR,
                 onClick = reverseRace,
             })
             :build()
@@ -463,7 +463,7 @@ local function drawPreviewPosition(isFreeCam, campos)
         :btnIcon({
             id = "setPreviewPos",
             icon = raceEdit.previewPosition and ICONS.crosshair or ICONS.video_call,
-            background = raceEdit.previewPosition and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
+            style = raceEdit.previewPosition and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
             disabled = raceEdit.processSave,
             onClick = function()
                 raceEdit.previewPosition = {
@@ -477,7 +477,7 @@ local function drawPreviewPosition(isFreeCam, campos)
         line:btnIcon({
             id = "goToPreviewPos",
             icon = ICONS.cameraFocusTopDown,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = function()
                 if not isFreeCam then
                     BJICam.setCamera(BJICam.CAMERAS.FREE)
@@ -495,9 +495,9 @@ end
 local function drawLoopable()
     LineBuilder()
         :text(BJILang.get("races.edit.loopable"))
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "toggleLoopable",
-            iconEnabled = ICONS.rotate_90_degrees_ccw,
+            icon = ICONS.rotate_90_degrees_ccw,
             state = raceEdit.loopable,
             disabled = raceEdit.processSave,
             onClick = function()
@@ -553,7 +553,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                     :btnIcon({
                         id = "addStartPos",
                         icon = ICONS.addListItem,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or raceEdit.processSave,
                         onClick = function()
                             table.insert(raceEdit.startPositions, {
@@ -591,7 +591,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                     :btnIcon({
                                         id = "moveUpStartPos" .. tostring(i),
                                         icon = ICONS.arrow_drop_up,
-                                        background = BTN_PRESETS.WARNING,
+                                        style = BTN_PRESETS.WARNING,
                                         disabled = i == 1 or raceEdit.processSave,
                                         onClick = function()
                                             table.insert(raceEdit.startPositions, i - 1, raceEdit.startPositions[i])
@@ -604,7 +604,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                     :btnIcon({
                                         id = "moveDownStartPos" .. tostring(i),
                                         icon = ICONS.arrow_drop_down,
-                                        background = BTN_PRESETS.WARNING,
+                                        style = BTN_PRESETS.WARNING,
                                         disabled = i == #raceEdit.startPositions or raceEdit.processSave,
                                         onClick = function()
                                             table.insert(raceEdit.startPositions, i + 2, raceEdit.startPositions[i])
@@ -617,7 +617,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                     :btnIcon({
                                         id = "goToStartPos" .. tostring(i),
                                         icon = ICONS.cameraFocusOnVehicle2,
-                                        background = BTN_PRESETS.INFO,
+                                        style = BTN_PRESETS.INFO,
                                         disabled = not vehpos and not campos,
                                         onClick = function()
                                             if vehpos then
@@ -633,7 +633,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                     :btnIcon({
                                         id = "moveStartPos" .. tostring(i),
                                         icon = ICONS.crosshair,
-                                        background = BTN_PRESETS.WARNING,
+                                        style = BTN_PRESETS.WARNING,
                                         disabled = not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                                             raceEdit.processSave,
                                         onClick = function()
@@ -647,7 +647,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                                     :btnIcon({
                                         id = "deleteStartPos" .. tostring(i),
                                         icon = ICONS.delete_forever,
-                                        background = BTN_PRESETS.ERROR,
+                                        style = BTN_PRESETS.ERROR,
                                         disabled = raceEdit.processSave,
                                         onClick = function()
                                             table.remove(raceEdit.startPositions, i)
@@ -730,7 +730,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         :btnIcon({
                             id = svar("moveupStep{1}", { iStep }),
                             icon = ICONS.arrow_drop_up,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = iStep == 1 or raceEdit.processSave,
                             onClick = function()
                                 table.insert(raceEdit.steps, iStep - 1, raceEdit.steps[iStep])
@@ -752,7 +752,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         :btnIcon({
                             id = svar("movedownStep{1}", { iStep }),
                             icon = ICONS.arrow_drop_down,
-                            background = BTN_PRESETS.WARNING,
+                            style = BTN_PRESETS.WARNING,
                             disabled = iStep == #raceEdit.steps or raceEdit.processSave,
                             onClick = function()
                                 if iStep == 1 then
@@ -773,7 +773,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         :btnIcon({
                             id = svar("deleteStep{1}", { iStep }),
                             icon = ICONS.delete_forever,
-                            background = BTN_PRESETS.ERROR,
+                            style = BTN_PRESETS.ERROR,
                             disabled = raceEdit.processSave,
                             onClick = function()
                                 if iStep == 1 and raceEdit.steps[iStep + 1] then
@@ -811,7 +811,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             :btnIcon({
                                 id = svar("goToWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.cameraFocusOnVehicle2,
-                                background = BTN_PRESETS.INFO,
+                                style = BTN_PRESETS.INFO,
                                 disabled = not vehpos and not campos,
                                 onClick = function()
                                     if vehpos then
@@ -827,7 +827,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             :btnIcon({
                                 id = svar("moveWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.crosshair,
-                                background = BTN_PRESETS.WARNING,
+                                style = BTN_PRESETS.WARNING,
                                 disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                                     raceEdit.processSave,
                                 onClick = function()
@@ -838,9 +838,9 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                     updateMarkers()
                                 end,
                             })
-                            :btnIconSwitch({
+                            :btnIconToggle({
                                 id = svar("toggleStandWP-{1}-{2}", { iStep, iWp }),
-                                iconEnabled = ICONS.local_gas_station,
+                                icon = ICONS.local_gas_station,
                                 state = wp.stand == true,
                                 disabled = raceEdit.processSave,
                                 onClick = function()
@@ -853,7 +853,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             :btnIcon({
                                 id = svar("deleteWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.delete_forever,
-                                background = BTN_PRESETS.ERROR,
+                                style = BTN_PRESETS.ERROR,
                                 disabled = raceEdit.processSave,
                                 onClick = function()
                                     if iWp == 1 and #step == 1 then
@@ -1023,7 +1023,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                     line:btnIcon({
                                                         id = svar("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
                                                         icon = ICONS.delete_forever,
-                                                        background = BTN_PRESETS.ERROR,
+                                                        style = BTN_PRESETS.ERROR,
                                                         disabled = raceEdit.processSave,
                                                         onClick = function()
                                                             table.remove(wp.parents, iParent)
@@ -1039,7 +1039,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                 :btnIcon({
                                                     id = svar("addWPParent-{1}-{2}", { iStep, iWp }),
                                                     icon = ICONS.add_box,
-                                                    background = BTN_PRESETS.SUCCESS,
+                                                    style = BTN_PRESETS.SUCCESS,
                                                     disabled = raceEdit.processSave,
                                                     onClick = function()
                                                         table.insert(wp.parents, "")
@@ -1060,7 +1060,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         :btnIcon({
                             id = svar("addStepBranch{1}", { iStep }),
                             icon = ICONS.fg_sideways,
-                            background = BTN_PRESETS.SUCCESS,
+                            style = BTN_PRESETS.SUCCESS,
                             disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                                 raceEdit.processSave,
                             onClick = function()
@@ -1090,7 +1090,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                     :btnIcon({
                         id = "addRaceStep",
                         icon = ICONS.pin_drop,
-                        background = BTN_PRESETS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
                             raceEdit.processSave,
                         onClick = function()
@@ -1138,7 +1138,7 @@ local function drawHeader(ctxt)
         :btnIcon({
             id = "reloadMarkers",
             icon = ICONS.sync,
-            background = BTN_PRESETS.INFO,
+            style = BTN_PRESETS.INFO,
             onClick = updateMarkers,
         })
         :build()
@@ -1158,10 +1158,9 @@ local function drawHeader(ctxt)
 
     LineBuilder()
         :text(BJILang.get("races.edit.enabled"))
-        :btnIconSwitch({
+        :btnIconToggle({
             id = "raceEnabled",
-            iconEnabled = ICONS.visibility,
-            iconDisabled = ICONS.visibility_off,
+            icon = raceEdit.enabled and ICONS.visibility or ICONS.visibility_off,
             state = raceEdit.enabled,
             onClick = function()
                 raceEdit.enabled = not raceEdit.enabled
@@ -1205,7 +1204,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "cancel",
             icon = ICONS.exit_to_app,
-            background = BTN_PRESETS.ERROR,
+            style = BTN_PRESETS.ERROR,
             onClick = function()
                 leaveRaceEdit(ctxt)
             end,
@@ -1213,7 +1212,7 @@ local function drawFooter(ctxt)
         :btnIcon({
             id = "tryRace",
             icon = ICONS.fg_vehicle_race_car,
-            background = BTN_PRESETS.WARNING,
+            style = BTN_PRESETS.WARNING,
             disabled = not raceEdit.validTry or
                 not mgr.canChangeTo(ctxt) or
                 (not BJIVeh.getDefaultModelAndConfig() and not ctxt.isOwner),
@@ -1225,7 +1224,7 @@ local function drawFooter(ctxt)
         line:btnIcon({
             id = "saveRace",
             icon = ICONS.save,
-            background = BTN_PRESETS.SUCCESS,
+            style = BTN_PRESETS.SUCCESS,
             disabled = not raceEdit.validSave or raceEdit.processSave,
             onClick = saveRace,
         })
