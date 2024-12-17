@@ -456,7 +456,7 @@ local function drawPreviewPosition(isFreeCam, campos)
     local line = LineBuilder()
         :icon({
             icon = ICONS.simobject_camera,
-            style = raceEdit.previewPosition and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR
+            style = raceEdit.previewPosition and BTN_PRESETS.INFO or BTN_PRESETS.ERROR
         })
         :text(BJILang.get("races.edit.previewPosition"))
         :helpMarker(BJILang.get("races.edit.previewPositionTooltip"))
