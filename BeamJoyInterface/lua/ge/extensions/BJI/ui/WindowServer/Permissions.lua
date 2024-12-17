@@ -431,7 +431,7 @@ local function drawListPermissions(groupNames)
     for _, permissionName in pairs(BJIPerm.PERMISSIONS) do
         table.insert(permNames, permissionName)
     end
-    table.sort(permNames)
+    table.sort(permNames, function(a, b) return a:lower() < b:lower() end)
 
     local labelWidth = 0
     for _, permName in ipairs(permNames) do

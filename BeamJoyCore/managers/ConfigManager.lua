@@ -352,7 +352,7 @@ local function consoleSetWhitelist(args)
                 for _, m in ipairs(matches) do
                     table.insert(playerList, m.playerName)
                 end
-                table.sort(playerList)
+                table.sort(playerList, function(a, b) return a:lower() < b:lower() end)
                 return svar(BJCLang.getConsoleMessage("command.errors.playerAmbiguity"),
                     { playerName = args[2], playerList = tconcat(playerList, ", ") })
             else -- proceed

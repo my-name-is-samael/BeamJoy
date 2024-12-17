@@ -63,7 +63,7 @@ end
 
 local function consoleSetLang(args)
     local langs = BJCLang.getLangsList()
-    table.sort(langs)
+    table.sort(langs, function(a, b) return a:lower() < b:lower() end)
 
     if not args[1] then -- displays current
         return svar(BJCLang.getConsoleMessage("command.currentLang"),
@@ -165,7 +165,7 @@ local function consoleSetMap(args)
             table.insert(maps, mapName)
         end
     end
-    table.sort(maps)
+    table.sort(maps, function(a, b) return a:lower() < b:lower() end)
 
     if not args[1] or #args[1] == 0 then -- show current and list maps
         return svar("{1}\n{2}", {

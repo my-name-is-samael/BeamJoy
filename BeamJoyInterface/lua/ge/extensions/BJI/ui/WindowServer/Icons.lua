@@ -12,7 +12,7 @@ local function updateFilter()
             end
         end
     end
-    table.sort(filtered)
+    table.sort(filtered, function(a, b) return a:lower() < b:lower() end)
 end
 
 local function drawFilter()

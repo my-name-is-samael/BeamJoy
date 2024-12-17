@@ -246,11 +246,17 @@ local function renderTick(ctxt)
                         ownerID = veh.ownerID
                     }) then
                     if BJIAI.isAIVehicle(veh.gameVehicleID) then
+                        local start = GetCurrentTimeMillis()
                         renderAI(ctxt, veh)
+                        BenchAdd("BJINametags", "renderAI", GetCurrentTimeMillis() - start)
                     elseif vehType == "Trailer" then
+                        local start = GetCurrentTimeMillis()
                         renderTrailer(ctxt, veh)
+                        BenchAdd("BJINametags", "renderTrailer", GetCurrentTimeMillis() - start)
                     else
+                        local start = GetCurrentTimeMillis()
                         renderVehicle(ctxt, veh)
+                        BenchAdd("BJINametags", "renderVehicle", GetCurrentTimeMillis() - start)
                     end
                 end
             end

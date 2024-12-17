@@ -31,6 +31,7 @@ function RegisterBJIManager(manager)
     table.insert(managers, manager)
 end
 
+BJIBENCH = false
 require("ge/extensions/utils/Bench")
 
 function TriggerBJIEvent(eventName, ...)

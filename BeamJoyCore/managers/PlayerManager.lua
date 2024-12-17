@@ -1023,7 +1023,7 @@ local function consoleSetGroup(args)
         for g in pairs(BJCGroups.Data) do
             table.insert(list, g)
         end
-        table.sort(list)
+        table.sort(list, function(a, b) return a:lower() < b:lower() end)
         return svar(BJCLang.getConsoleMessage("command.errors.invalidGroupWithList"), {
             groupName = groupName,
             groupList = table.concat(list, ", ")

@@ -1402,7 +1402,7 @@ ICONS_FLAT = {}
 for _, icon in pairs(ICONS) do
     table.insert(ICONS_FLAT, icon)
 end
-table.sort(ICONS_FLAT)
+table.sort(ICONS_FLAT, function(a, b) return a:lower() < b:lower() end)
 
 function GetIcon(icon)
     local res = BJIContext.GUI.icons[icon]

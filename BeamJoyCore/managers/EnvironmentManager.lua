@@ -138,45 +138,60 @@ local function resetType(type)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
 end
 
-local function consoleSet(args)
+local function consoleEnv(args)
+    local validKeys = {}
+    for k in pairs(M.Data) do
+        table.insert(validKeys, k)
+    end
+    table.sort(validKeys, function(a, b) return a:lower() < b:lower() end)
+
     local key, value = args[1], args[2]
-    if not key or key == "help" then
-        return svar(BJCLang.getConsoleMessage("command.errors.usage"),
-            {
-                command = svar(
-                    "{1}setenv {2}",
-                    { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.setenvArgs") }
-                )
-            })
-    end
-    if not tincludes(M.Data, key) then
-        error({ key = "rx.errors.invalidKey", data = { key = key } })
-    end
-
-    if value == nil then
-        value = BJCDefaults.environment()[key]
-    else
-        local typeKey = type(M.Data[key])
-        local parsed
-        if typeKey == "number" then
-            parsed = tonumber(value)
-        elseif typeKey == "boolean" then
-            if value == "true" then
-                parsed = true
-            elseif value == "false" then
-                parsed = false
+    if not key then -- print all keys and values
+        local out = ""
+        for i, k in ipairs(validKeys) do
+            if i > 1 then
+                out = svar("{1}\n", { out })
             end
-        elseif typeKey == "string" then
-            parsed = tostring(value)
+            out = svar("{1}{2} = {3}", { out, k, M.Data[k] })
         end
-        if parsed == nil then
-            value = BJCDefaults.environment()[key]
-        end
-        value = parsed
+        return out
     end
 
-    local _, err = pcall(set, key, value)
-    if err then
+    if M.Data[key] == nil then -- invalid key
+        return svar("{1}\n{2}", {
+            svar(BJCLang.getConsoleMessage("command.errors.invalidEnvKey"), { key = key }),
+            svar(BJCLang.getConsoleMessage("command.envValues"), { values = tconcat(validKeys, ", ") })
+        })
+    end
+
+    if value == nil then -- print value and default
+        value = M.Data[key]
+        local default = BJCDefaults.environment()[key]
+        return svar(BJCLang.getConsoleMessage("command.envValueWithDefault"),
+            { key = key, value = value, defaultValue = default })
+    end
+
+    -- update value
+    local typeKey = type(M.Data[key])
+    local parsed
+    if typeKey == "number" then
+        parsed = tonumber(value)
+    elseif typeKey == "boolean" then
+        if value == "true" then
+            parsed = true
+        elseif value == "false" then
+            parsed = false
+        end
+    elseif typeKey == "string" then
+        parsed = tostring(value)
+    end
+    if parsed == nil then
+        value = BJCDefaults.environment()[key]
+    end
+    value = parsed
+
+    local status, err = pcall(set, key, value)
+    if not status then
         err = type(err) == "table" and err or {}
         return svar(BJCLang.getServerMessage(BJCConfig.Data.ServerLang, err.key or "rx.errors.serverError"),
             err.data or {})
@@ -209,7 +224,7 @@ end
 
 M.set = set
 M.resetType = resetType
-M.consoleSet = consoleSet
+M.consoleEnv = consoleEnv
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash

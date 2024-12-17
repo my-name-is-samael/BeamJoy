@@ -26,8 +26,8 @@ local function Help()
         local commandStr = svar("{1}{2} {3}",
             { M.commandPrefix, v.cmd, BJCLang.getConsoleMessage(svar("command.help.{1}Args", { v.cmd })) })
         local commandDesc = BJCLang.getConsoleMessage(svar("command.help.{1}Description", { v.cmd }))
-        if #commandStr > cmdLen then
-            cmdLen = #commandStr
+        if #commandStr + 2 > cmdLen then
+            cmdLen = #commandStr + 2
         end
         table.insert(helpContent, {
             command = commandStr,
@@ -245,7 +245,7 @@ local function _init()
     -- Registering Console Commands
     M.addCommand("lang", "BJCCore.consoleSetLang")
     M.addCommand("map", "BJCCore.consoleSetMap")
-    M.addCommand("setenv", "BJCEnvironment.consoleSet")
+    M.addCommand("env", "BJCEnvironment.consoleEnv")
     M.addCommand("whitelist", "BJCConfig.consoleSetWhitelist")
 
     M.addCommand("setgroup", "BJCPlayers.consoleSetGroup")
