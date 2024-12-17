@@ -172,16 +172,18 @@ local function draw(ctxt)
     end
 
     -- GRAVITY / SPEED
-    local showGravity = BJIContext.UI.gravity and BJIContext.UI.gravity.display ~= false
-    local showSpeed = BJIContext.UI.speed and BJIContext.UI.speed.display ~= false
+    local showGravity = BJIContext.UI.gravity.key and not BJIContext.UI.gravity.default
+    local showSpeed = BJIContext.UI.speed and not BJIContext.UI.speed.default
     if showGravity or showSpeed then
         local line = LineBuilder()
         -- GRAVITY
         if showGravity then
             line:text(svar("{1}:", { BJILang.get("header.gravity") }))
-                :text(BJIContext.UI.gravity.label)
-            if BJIContext.UI.gravity.value ~= 0 then
-                line:text(svar("({1})", { BJIContext.UI.gravity.value }))
+            if BJIContext.UI.gravity.key then
+                line:text(BJILang.get(svar("presets.gravity.{1}", { BJIContext.UI.gravity.key })))
+                    :text(svar("({1})", { BJIContext.UI.gravity.value }))
+            else
+                line:text(svar("{1}", { BJIContext.UI.gravity.value }))
             end
         end
 
@@ -191,7 +193,12 @@ local function draw(ctxt)
                 line:text(vSeparator)
             end
             line:text(svar("{1}:", { BJILang.get("header.speed") }))
-                :text(BJIContext.UI.speed.label)
+            if BJIContext.UI.speed.key then
+                line:text(BJILang.get(svar("presets.speed.{1}", { BJIContext.UI.speed.key })))
+                    :text(svar("(x{1})", { BJIContext.UI.speed.value }))
+            else
+                line:text(svar("x{1}", { BJIContext.UI.speed.value }))
+            end
         end
         line:build()
     end

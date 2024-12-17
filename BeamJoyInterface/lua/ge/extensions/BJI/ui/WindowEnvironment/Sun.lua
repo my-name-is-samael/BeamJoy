@@ -9,31 +9,32 @@ local function draw()
         :build()
 
     local labelWidth = 0
-    for _, label in ipairs({
-        BJILang.get("environment.controlSun"),
-        BJILang.get("environment.timePlay"),
-        common.numericData.ToD.label,
-        common.numericData.dayLength.label,
-        common.numericData.dayScale.label,
-        common.numericData.nightScale.label,
-        common.numericData.sunAzimuthOverride.label,
-        common.numericData.sunSize.label,
-        common.numericData.skyBrightness.label,
-        common.numericData.sunLightBrightness.label,
-        common.numericData.rayleighScattering.label,
-        common.numericData.flareScale.label,
-        common.numericData.occlusionScale.label,
-        common.numericData.exposure.label,
-        common.numericData.shadowDistance.label,
-        common.numericData.shadowSoftness.label,
-        common.numericData.shadowSplits.label,
-        common.numericData.shadowTexSize.label,
-        common.numericData.shadowLogWeight.label,
-        common.numericData.visibleDistance.label,
-        common.numericData.moonAzimuth.label,
-        common.numericData.moonElevation.label,
-        common.numericData.moonScale.label,
+    for _, key in ipairs({
+        "controlSun",
+        "timePlay",
+        "ToD",
+        "dayLength",
+        "dayScale",
+        "nightScale",
+        "sunAzimuthOverride",
+        "sunSize",
+        "skyBrightness",
+        "sunLightBrightness",
+        "rayleighScattering",
+        "flareScale",
+        "occlusionScale",
+        "exposure",
+        "shadowDistance",
+        "shadowSoftness",
+        "shadowSplits",
+        "shadowTexSize",
+        "shadowLogWeight",
+        "visibleDistance",
+        "moonAzimuth",
+        "moonElevation",
+        "moonScale",
     }) do
+        local label = BJILang.get(svar("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -122,7 +123,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { common.numericData.shadowTexSize.label }))
+                        :text(svar("{1}:", { BJILang.get("environment.shadowTexSize") }))
                         :build()
                 end,
                 function()
@@ -144,9 +145,9 @@ local function draw()
                                 end
                             end
                         })
-                        :btn({
+                        :btnIcon({
                             id = "resetshadowTexSize",
-                            label = BJILang.get("common.buttons.reset"),
+                            icon = ICONS.refresh,
                             style = BTN_PRESETS.WARNING,
                             onClick = function()
                                 BJITx.config.env("shadowTexSize")

@@ -231,34 +231,34 @@ local function parseCache(cacheType, cacheData, cacheHash)
 
         local presetsUtils = require("ge/extensions/utils/EnvironmentUtils")
 
-        BJIContext.UI.gravity = nil
+        BJIContext.UI.gravity = {
+            value = BJIEnv.Data.gravityRate,
+        }
         if BJIEnv.Data.gravityRate ~= nil then
             for _, p in ipairs(presetsUtils.gravityPresets()) do
                 if Round(p.value, 3) == Round(BJIEnv.Data.gravityRate, 3) then
-                    BJIContext.UI.gravity = {
-                        label = p.label,
-                        value = p.value,
-                        display = p.display,
-                    }
+                    BJIContext.UI.gravity.key = p.key
+                    BJIContext.UI.gravity.default = p.default
                 end
             end
-            if previous.gravityRate ~= BJIEnv.Data.gravityRate and BJIContext.UI.gravity then
-                BJIToast.info("Gravity changed to " .. BJIContext.UI.gravity
-                    .label)
+            if previous.gravityRate ~= BJIEnv.Data.gravityRate and BJIContext.UI.gravity.key then
+                local label = BJILang.get(svar("presets.gravity.{1}", { BJIContext.UI.gravity.key }))
+                BJIToast.info(svar("Gravity changed to {1}", { label }))
             end
         end
 
-        BJIContext.UI.speed = nil
+        BJIContext.UI.speed = {
+            value = BJIEnv.Data.simSpeed,
+        }
         for _, p in ipairs(presetsUtils.speedPresets()) do
             if Round(p.value, 3) == Round(BJIEnv.Data.simSpeed, 3) then
-                BJIContext.UI.speed = {
-                    label = p.label,
-                    display = p.display,
-                }
+                BJIContext.UI.speed.key = p.key
+                BJIContext.UI.speed.default = p.default
             end
         end
-        if previous.simSpeed ~= BJIEnv.Data.simSpeed and BJIContext.UI.speed then
-            BJIToast.info("Speed changed to " .. BJIContext.UI.speed.label)
+        if previous.simSpeed ~= BJIEnv.Data.simSpeed and BJIContext.UI.speed.key then
+            local label = BJILang.get(svar("presets.speed.{1}", { BJIContext.UI.speed.key }))
+            BJIToast.info(svar("Speed changed to {1}", { label }))
         end
     elseif cacheType == M.CACHES.PLAYERS then
         for _, pData in pairs(cacheData) do

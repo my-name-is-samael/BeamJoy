@@ -9,13 +9,14 @@ local function draw()
         :build()
 
     local labelWidth = 0
-    for _, label in ipairs({
-        BJILang.get("environment.controlTemperature"),
-        common.numericData.tempCurveNoon.label,
-        common.numericData.tempCurveDusk.label,
-        common.numericData.tempCurveMidnight.label,
-        common.numericData.tempCurveDawn.label,
+    for _, key in ipairs({
+        "controlTemperature",
+        "tempCurveNoon",
+        "tempCurveDusk",
+        "tempCurveMidnight",
+        "tempCurveDawn",
     }) do
+        local label = BJILang.get(svar("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -41,16 +42,6 @@ local function draw()
                                 BJIEnv.Data.useTempCurve = not BJIEnv.Data.useTempCurve
                             end,
                         })
-                    if BJIEnv.Data.useTempCurve then
-                        line:btnIcon({
-                            id = "resetTemperature",
-                            icon = ICONS.refresh,
-                            style = BTN_PRESETS.WARNING,
-                            onClick = function()
-                                BJITx.config.env("reset", BJI_ENV_TYPES.TEMPERATURE)
-                            end,
-                        })
-                    end
                     line:build()
                 end
             }

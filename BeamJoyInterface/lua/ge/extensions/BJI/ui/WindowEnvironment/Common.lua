@@ -16,7 +16,7 @@ local function drawNumericWithReset(cols, key, inputsCallback)
         cells = {
             function()
                 LineBuilder()
-                    :text(svar("{1}:", { numericData[key].label }))
+                    :text(svar("{1}:", { BJILang.get(svar("environment.{1}", { key })) }))
                     :build()
             end,
             function()

@@ -1,32 +1,30 @@
 local common = require("ge/extensions/BJI/ui/WindowEnvironment/Common")
 
 local function drawGravityPresets(presets)
-    -- 6 buttons per line
-    local lineThresh = 6
-    local i = 1
-    while i < tlength(presets) do
-        local line = LineBuilder()
-        for offset = 0, lineThresh - 1 do
-            if presets[i + offset] ~= nil then
-                local preset = presets[i + offset]
-                local style = BTN_PRESETS.INFO
-                if Round(BJIEnv.Data.gravityRate, 3) == Round(preset.value, 3) then
-                    style = BTN_PRESETS.DISABLED
-                elseif Round(preset.value, 3) == -9.81 then
-                    style = BTN_PRESETS.SUCCESS
-                end
-                line:btn({
-                    id = preset.label,
-                    label = preset.label,
-                    style = style,
-                    onClick = function()
-                        BJITx.config.env("gravityRate", preset.value)
-                    end
-                })
-            end
+    for _, p in ipairs(presets) do
+        local value = Round(p.value, 3)
+        local selected = Round(BJIEnv.Data.gravityRate, 3) == value
+        local style = BTN_PRESETS.INFO
+        if not selected and p.default then
+            style = BTN_PRESETS.SUCCESS
         end
-        line:build()
-        i = i + lineThresh
+        LineBuilder()
+            :btn({
+                id = p.key,
+                label = svar("{1} ({2})", {
+                    BJILang.get(svar("presets.gravity.{1}", { p.key })),
+                    p.value,
+                }),
+                style = style,
+                disabled = selected,
+                onClick = function()
+                    if BJIEnv.Data.gravityRate ~= value then
+                        BJITx.config.env("gravityRate", p.value)
+                        -- no client assign to sync all players on change
+                    end
+                end
+            })
+            :build()
     end
 end
 
@@ -39,10 +37,11 @@ local function draw()
         :build()
 
     local labelWidth = 0
-    for _, label in ipairs({
-        BJILang.get("environment.controlGravity"),
-        common.numericData.gravityRate.label,
+    for _, key in ipairs({
+        "controlGravity",
+        "gravityRate",
     }) do
+        local label = BJILang.get(svar("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -68,16 +67,6 @@ local function draw()
                                 BJIEnv.Data.controlGravity = not BJIEnv.Data.controlGravity
                             end,
                         })
-                    if BJIEnv.Data.controlGravity then
-                        line:btn({
-                            id = "resetGravity",
-                            label = BJILang.get("common.buttons.resetAll"),
-                            style = BTN_PRESETS.WARNING,
-                            onClick = function()
-                                BJITx.config.env("reset", BJI_ENV_TYPES.GRAVITY)
-                            end,
-                        })
-                    end
                     line:build()
                 end
             }

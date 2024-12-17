@@ -9,26 +9,27 @@ local function draw()
         :build()
 
     local labelWidth = 0
-    for _, label in ipairs({
-        BJILang.get("environment.controlWeather"),
-        common.numericData.fogDensity.label,
-        common.numericData.fogDensityOffset.label,
-        common.numericData.fogAtmosphereHeight.label,
-        common.numericData.cloudHeight.label,
-        common.numericData.cloudHeightOne.label,
-        common.numericData.cloudCover.label,
-        common.numericData.cloudCoverOne.label,
-        common.numericData.cloudSpeed.label,
-        common.numericData.cloudSpeedOne.label,
-        common.numericData.cloudExposure.label,
-        common.numericData.cloudExposureOne.label,
-        common.numericData.rainDrops.label,
-        common.numericData.dropSize.label,
-        BJILang.get("environment.dropSizeRatio"),
-        common.numericData.dropMinSpeed.label,
-        common.numericData.dropMaxSpeed.label,
-        BJILang.get("environment.precipType")
+    for _, key in ipairs({
+        "controlWeather",
+        "fogDensity",
+        "fogDensityOffset",
+        "fogAtmosphereHeight",
+        "cloudHeight",
+        "cloudHeightOne",
+        "cloudCover",
+        "cloudCoverOne",
+        "cloudSpeed",
+        "cloudSpeedOne",
+        "cloudExposure",
+        "cloudExposureOne",
+        "rainDrops",
+        "dropSize",
+        "dropSizeRatio",
+        "dropMinSpeed",
+        "dropMaxSpeed",
+        "precipType",
     }) do
+        local label = BJILang.get(svar("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -100,10 +101,17 @@ local function draw()
                             min = .001,
                             step = .001,
                             onUpdate = function(val)
-                                if BJIContext.UI.dropSizeRatio then
-                                    BJIContext.UI.dropSizeRatio = val
-                                end
                                 BJITx.config.env("dropSizeRatio", val)
+                                BJIContext.UI.dropSizeRatio = val
+                            end
+                        })
+                        :btnIcon({
+                            id = "resetdropSizeRatio",
+                            icon = ICONS.refresh,
+                            style = BTN_PRESETS.WARNING,
+                            onClick = function()
+                                BJITx.config.env("dropSizeRatio", 1)
+                                BJIContext.UI.dropSizeRatio = 1
                             end
                         })
                         :build()
