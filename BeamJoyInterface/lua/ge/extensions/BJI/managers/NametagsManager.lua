@@ -28,7 +28,7 @@ end
 
 local function tryUpdate()
     if BJIScenario.isFreeroam() or BJIScenario.isPlayerScenarioInProgress() then
-        M.toggle(BJIContext.UserSettings.nametags)
+        M.toggle(not settings.getValue("hideNameTags", false))
     end
 end
 
@@ -42,12 +42,23 @@ end
 local function getNametagColorIdle(alpha)
     return ShapeDrawer.Color(1, .6, 0, alpha * alphaRatio)
 end
-local function getNametagBgColor(alpha)
-    return ShapeDrawer.Color(0, 0, 0, alpha * alphaRatio)
+local function getNametagBgColor(alpha, spec)
+    local finalAlpha = 0
+    if not spec or settings.getValue("spectatorUnifiedColors", false) then
+        finalAlpha = alpha * alphaRatio
+    end
+    return ShapeDrawer.Color(0, 0, 0, finalAlpha)
+end
+
+local function shortenName(name)
+    local charLimit = tonumber(settings.getValue("nametagCharLimit", 50))
+    local short = name:sub(1, charLimit)
+    if #short ~= #name then short = svar("{1}...", { short }) end
+    return short
 end
 
 local function renderSpecs(ctxt, veh)
-    if tlength(veh.spectators) == 0 or
+    if not settings.getValue("showSpectators", true) or tlength(veh.spectators) == 0 or
         not BJIScenario.doShowNametagsSpecs(veh) then
         return
     end
@@ -70,7 +81,10 @@ local function renderSpecs(ctxt, veh)
     for playerID in pairs(veh.spectators) do
         if playerID ~= ctxt.user.playerID and playerID ~= veh.ownerID then
             local name = BJIContext.Players[playerID].playerName
-            ShapeDrawer.Text(name, tagPos, getNametagColorSpec(alpha), getNametagBgColor(alpha), false)
+            if settings.getValue("shortenNametags", false) then
+                name = shortenName(name)
+            end
+            ShapeDrawer.Text(name, tagPos, getNametagColorSpec(alpha), getNametagBgColor(alpha, true), false)
         end
     end
 end
@@ -131,7 +145,11 @@ local function renderTrailer(ctxt, veh)
     else
         if not ownerTracting or ownerSpectating then
             local showDist = not currentVeh or freecaming
-            local label = svar(trailerName, { playerName = BJIContext.Players[veh.ownerID].playerName })
+            local name = BJIContext.Players[veh.ownerID].playerName
+            if settings.getValue("shortenNametags", false) then
+                name = shortenName(name)
+            end
+            local label = svar(trailerName, { playerName = name })
 
             local tagPos = BJIVeh.getPositionRotation(v).pos
             local ownPos = freecaming and BJICam.getPositionRotation().pos or
@@ -179,7 +197,10 @@ local function renderVehicle(ctxt, veh)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
-            local label = svar("{1}({2})", { BJILang.get("nametags.self"), PrettyDistance(distance) })
+            local label = BJILang.get("nametags.self")
+            if settings.getValue("nameTagShowDistance", true) then
+                label = svar("{1}({2})", { label, PrettyDistance(distance) })
+            end
 
             tagPos.z = tagPos.z + v:getInitialHeight()
 
@@ -197,41 +218,45 @@ local function renderVehicle(ctxt, veh)
         local distance = ownPos:distance(tagPos)
         local alpha = getAlphaByDistance(distance)
 
-        local showTag = ownerDriving
-        local showDist = (not currentVeh or freecaming) and distance > 10
+        local showTag = not settings.getValue("shortenNametags", false) and ownerDriving
+        local showDist = settings.getValue("nameTagShowDistance", true) and
+            (not currentVeh or freecaming) and distance > 10
 
-        local owner = BJIContext.Players[veh.ownerID]
-        if owner then -- can softlock the mod if triggered too early ? https://github.com/my-name-is-samael/BeamJoy/issues/10
-            local label = owner.playerName
-            if showTag then
-                reputationTag = svar("{1}{2}",
-                    { reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
-                local tag = BJIPerm.isStaff(veh.ownerID) and staffTag or reputationTag
-                label = svar("[{1}]{2}", { tag, label })
-            end
-            if showDist then
-                label = svar("{1}({2})", { label, PrettyDistance(distance) })
-            end
-
-            local zOffset = v:getInitialHeight()
-            if currentVeh then
-                zOffset = zOffset / 2
-            end
-            tagPos.z = tagPos.z + zOffset
-
-            local color = ownerDriving and getNametagColorDefault(alpha) or getNametagColorIdle(alpha)
-
-            ShapeDrawer.Text(label, tagPos, color, getNametagBgColor(alpha), false)
-
-            renderSpecs(ctxt, veh)
+        local owner = BJIContext.Players[veh.ownerID] or error()
+        local label = owner.playerName
+        if settings.getValue("shortenNametags", false) then
+            label = shortenName(label)
         end
+        if showTag then
+            reputationTag = svar("{1}{2}",
+                { reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
+            local tag = BJIPerm.isStaff(veh.ownerID) and staffTag or reputationTag
+            label = svar("[{1}]{2}", { tag, label })
+        end
+        if showDist then
+            label = svar("{1}({2})", { label, PrettyDistance(distance) })
+        end
+
+        local zOffset = v:getInitialHeight()
+        if currentVeh then
+            zOffset = zOffset / 2
+        end
+        tagPos.z = tagPos.z + zOffset
+
+        local color = ownerDriving and getNametagColorDefault(alpha) or getNametagColorIdle(alpha)
+
+        ShapeDrawer.Text(label, tagPos, color, getNametagBgColor(alpha), false)
+
+        renderSpecs(ctxt, veh)
     end
 end
 
 local function renderTick(ctxt)
     MPVehicleGE.hideNicknames(true)
 
-    if (not BJIContext.BJC.Freeroam or not BJIContext.BJC.Freeroam.Nametags) and
+    if settings.getValue("hideNameTags", false) then
+        return
+    elseif (not BJIContext.BJC.Freeroam or not BJIContext.BJC.Freeroam.Nametags) and
         not BJIPerm.isStaff() then
         return
     end
@@ -246,11 +271,11 @@ local function renderTick(ctxt)
                         ownerID = veh.ownerID
                     }) then
                     if BJIAI.isAIVehicle(veh.gameVehicleID) then
-                        renderAI(ctxt, veh)
+                        pcall(renderAI, ctxt, veh)
                     elseif vehType == "Trailer" then
-                        renderTrailer(ctxt, veh)
+                        pcall(renderTrailer, ctxt, veh)
                     else
-                        renderVehicle(ctxt, veh)
+                        pcall(renderVehicle, ctxt, veh)
                     end
                 end
             end

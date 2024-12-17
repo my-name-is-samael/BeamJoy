@@ -583,8 +583,7 @@
       "uiScale": "UI-Skala",
       "vehicles": {
         "automaticLights": "Automatische Lichter",
-        "automaticLightsTooltip": "Schalten Sie die Scheinwerfer je nach Tageszeit automatisch um",
-        "nametags": "Namensschilder der Spieler"
+        "automaticLightsTooltip": "Schalten Sie die Scheinwerfer je nach Tageszeit automatisch um"
       },
       "freecam": {
         "smoothed": "Geglättete Kamera",

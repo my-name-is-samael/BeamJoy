@@ -583,8 +583,7 @@
       "uiScale": "Scala dell'interfaccia utente",
       "vehicles": {
         "automaticLights": "Luci automatiche",
-        "automaticLightsTooltip": "Attiva/disattiva automaticamente i fari in base all'ora del giorno",
-        "nametags": "Targhette con i nomi dei giocatori"
+        "automaticLightsTooltip": "Attiva/disattiva automaticamente i fari in base all'ora del giorno"
       },
       "freecam": {
         "smoothed": "Fotocamera levigata",

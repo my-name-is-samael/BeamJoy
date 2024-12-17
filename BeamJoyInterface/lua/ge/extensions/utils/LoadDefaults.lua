@@ -70,6 +70,7 @@ core_vehicleBridge = core_vehicleBridge or {}
 
 AddEventHandler = AddEventHandler or function(eventname, callback) end
 TriggerServerEvent = TriggerServerEvent or function(eventname, ...) end
+MPTranslate = MPTranslate or function(key, default) return "" or default or key end
 
 settings = settings or {}
 MPConfig = MPConfig or {}

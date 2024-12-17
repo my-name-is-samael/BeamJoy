@@ -583,8 +583,7 @@
       "uiScale": "Échelle de l'Interface",
       "vehicles": {
         "automaticLights": "Feux Automatiques",
-        "automaticLightsTooltip": "Activer les phares automatiquement en fonction de l'heure de la journée",
-        "nametags": "Nametags des Joueurs"
+        "automaticLightsTooltip": "Activer les phares automatiquement en fonction de l'heure de la journée"
       },
       "freecam": {
         "smoothed": "Caméra Adoucie",

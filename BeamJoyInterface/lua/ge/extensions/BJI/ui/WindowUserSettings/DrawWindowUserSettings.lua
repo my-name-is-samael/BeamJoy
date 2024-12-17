@@ -10,7 +10,6 @@ local function drawVehicleSettings(ctxt)
     local labelWidth = 0
     local labels = {
         BJILang.get("userSettings.vehicles.automaticLights") .. ":" .. HELPMARKER_TEXT,
-        BJILang.get("userSettings.vehicles.nametags") .. ":",
     }
     for _, key in ipairs(labels) do
         local w = GetColumnTextWidth(key)
@@ -44,31 +43,169 @@ local function drawVehicleSettings(ctxt)
                 end
             }
         })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("userSettings.vehicles.nametags") }))
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :btnIconToggle({
-                            id = "nametagsToggle",
-                            icon = BJIContext.UserSettings.nametags and ICONS.speaker_notes or ICONS.speaker_notes_off,
-                            state = BJIContext.UserSettings.nametags,
-                            coloredIcon = true,
-                            onClick = function()
-                                BJIContext.UserSettings.nametags = not BJIContext.UserSettings.nametags
-                                BJITx.player.settings("nametags", BJIContext.UserSettings.nametags)
-                                BJINametags.tryUpdate()
-                            end,
-                        })
-                        :build()
-                end
-            }
+        :build()
+    Indent(-2)
+end
+
+local nametagsFields = {
+    {
+        setting = "hideNameTags",
+        label = "nameTags",
+        type = "boolean"
+    },
+    {
+        setting = "nameTagShowDistance",
+        label = "nameTagShowDistance",
+        type = "boolean"
+    },
+    {
+        setting = "nameTagFadeEnabled",
+        label = "nametagFade",
+        type = "boolean"
+    },
+    {
+        setting = "nameTagFadeDistance",
+        label = "nametagFadeDistance",
+        tooltip = "nametagFadeDistance.tooltip",
+        condition = function()
+            return settings.getValue("nameTagFadeEnabled", true) == true
+        end,
+        type = "int",
+        default = 40,
+        min = 0,
+        max = 1500,
+        step = 10,
+        stepFast = 50
+    },
+    {
+        setting = "nameTagFadeInvert",
+        label = "nametagInvertFade",
+        condition = function()
+            return settings.getValue("nameTagFadeEnabled", true) == true
+        end,
+        type = "boolean",
+        labelTrue = "nametagFadeIn",
+        labelFalse = "nametagFadeOut"
+    },
+    {
+        setting = "nameTagDontFullyHide",
+        label = "nametagDontFullyHide",
+        condition = function()
+            return settings.getValue("nameTagFadeEnabled", true) == true
+        end,
+        type = "boolean",
+    },
+    {
+        setting = "shortenNametags",
+        label = "shortenNametags",
+        type = "boolean",
+        tooltip = "shortenNametags.tooltip"
+    },
+    {
+        setting = "nametagCharLimit",
+        label = "nametagCharLimit",
+        tooltip = "nametagCharLimit.tooltip",
+        condition = function()
+            return settings.getValue("shortenNametags", true) == true
+        end,
+        type = "int",
+        min = 0,
+        max = 50,
+        step = 1,
+        stepFast = 5,
+    },
+    {
+        setting = "showSpectators",
+        label = "showSpectators",
+        tooltip = "showSpectators.tooltip",
+        type = "boolean",
+    },
+    {
+        setting = "spectatorUnifiedColors",
+        label = "spectatorUnifiedColors",
+        condition = function()
+            return settings.getValue("showSpectators", true) == true
+        end,
+        type = "boolean",
+    }
+}
+
+local function drawNametagsSettings(ctxt)
+    LineBuilder()
+        :icon({
+            icon = ICONS.speaker_notes,
+            big = true,
         })
         :build()
+    Indent(2)
+
+    local labelWidth = 0
+    for _, f in ipairs(nametagsFields) do
+        local label = svar("{1}:", { MPTranslate(svar("ui.options.multiplayer.{1}", { f.label })) })
+        local tooltip
+        tooltip = f.tooltip and #MPTranslate(svar("ui.options.multiplayer.{1}", { f.tooltip }), "") > 0
+        local w = GetColumnTextWidth(label .. (tooltip and HELPMARKER_TEXT or ""))
+        if w > labelWidth then
+            labelWidth = w
+        end
+    end
+    local cols = ColumnsBuilder("UserSettingsNametags", { labelWidth, -1 })
+    for _, f in ipairs(nametagsFields) do
+        local disabled = f.condition and not f.condition()
+        cols:addRow({
+            cells = {
+                function()
+                    local line = LineBuilder()
+                        :text(MPTranslate(svar("ui.options.multiplayer.{1}", { f.label })),
+                            disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT)
+                    local tooltip = f.tooltip and MPTranslate(svar("ui.options.multiplayer.{1}", { f.label }), "")
+                    if tooltip and #tooltip > 0 then
+                        line:helpMarker(tooltip)
+                    end
+                    line:build()
+                end,
+                function()
+                    if f.type == "boolean" then
+                        local line = LineBuilder()
+                            :btnIconToggle({
+                                id = f.setting,
+                                state = settings.getValue(f.setting) == true,
+                                disabled = disabled,
+                                coloredIcon = true,
+                                onClick = function()
+                                    settings.setValue(f.setting, not settings.getValue(f.setting))
+                                end
+                            })
+                        if f.labelTrue and settings.getValue(f.setting) == true then
+                            line:text(MPTranslate(svar("ui.options.multiplayer.{1}", { f.labelTrue })),
+                                disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT)
+                        elseif f.labelFalse and settings.getValue(f.setting) ~= true then
+                            line:text(MPTranslate(svar("ui.options.multiplayer.{1}", { f.labelFalse })),
+                                disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT)
+                        end
+                        line:build()
+                    elseif f.type == "int" then
+                        LineBuilder()
+                            :inputNumeric({
+                                id = f.setting,
+                                type = "int",
+                                value = tonumber(settings.getValue(f.setting, tonumber(f.default) or 0)),
+                                min = f.min,
+                                max = f.max,
+                                step = f.step,
+                                stepFast = f.stepFast,
+                                disabled = disabled,
+                                onUpdate = function(val)
+                                    settings.setValue(f.setting, val)
+                                end,
+                            })
+                            :build()
+                    end
+                end,
+            }
+        })
+    end
+    cols:build()
     Indent(-2)
 end
 
@@ -203,6 +340,7 @@ end
 
 local function drawBody(ctxt)
     drawVehicleSettings(ctxt)
+    drawNametagsSettings(ctxt)
     drawFreecamSettings(ctxt)
 
     Separator()

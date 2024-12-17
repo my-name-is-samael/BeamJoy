@@ -583,8 +583,7 @@
       "uiScale": "escala de interfaz de usuario",
       "vehicles": {
         "automaticLights": "Luces automáticas",
-        "automaticLightsTooltip": "Cambia los faros automáticamente según la hora del día",
-        "nametags": "Etiquetas de nombres de jugadores"
+        "automaticLightsTooltip": "Cambia los faros automáticamente según la hora del día"
       },
       "freecam": {
         "smoothed": "Cámara suavizada",

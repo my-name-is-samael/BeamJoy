@@ -364,7 +364,7 @@ local function parseCache(cacheType, cacheData, cacheHash)
             -- update nametags
             if BJIScenario.isFreeroam() or BJIScenario.isPlayerScenarioInProgress() then
                 BJINametags.toggle((bjcConf.Freeroam.Nametags or BJIPerm.isStaff()) and
-                    BJIContext.UserSettings.nametags)
+                    not settings.getValue("hideNameTags", false))
             end
         end
 

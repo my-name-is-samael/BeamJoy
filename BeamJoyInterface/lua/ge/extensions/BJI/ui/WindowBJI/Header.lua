@@ -39,12 +39,11 @@ local function draw(ctxt)
                         end
                         line:btnIconToggle({
                             id = "togleNametags",
-                            icon = BJIContext.UserSettings.nametags and ICONS.speaker_notes or ICONS.speaker_notes_off,
-                            state = BJIContext.UserSettings.nametags,
+                            icon = settings.getValue("hideNameTags", false) and ICONS.speaker_notes_off or ICONS.speaker_notes,
+                            state = not settings.getValue("hideNameTags", false),
                             coloredIcon = true,
                             onClick = function()
-                                BJIContext.UserSettings.nametags = not BJIContext.UserSettings.nametags
-                                BJITx.player.settings("nametags", BJIContext.UserSettings.nametags)
+                                settings.setValue("hideNameTags", not settings.getValue("hideNameTags", false))
                                 BJINametags.tryUpdate()
                             end,
                         })

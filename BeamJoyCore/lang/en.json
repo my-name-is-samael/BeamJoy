@@ -584,8 +584,7 @@
       "uiScale": "UI scale",
       "vehicles": {
         "automaticLights": "Automatic lights",
-        "automaticLightsTooltip": "Toggle headlights automatically based on the time of day",
-        "nametags": "Players nametags"
+        "automaticLightsTooltip": "Toggle headlights automatically based on the time of day"
       },
       "freecam": {
         "smoothed": "Smoothed Camera",

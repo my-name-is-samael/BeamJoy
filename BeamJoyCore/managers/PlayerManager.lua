@@ -69,8 +69,8 @@ local function sanitizePlayer(player)
     if type(player.settings.freecamSmooth) ~= "boolean" then
         player.settings.freecamSmooth = false
     end
-    if type(player.settings.nametags) ~= "boolean" then
-        player.settings.nametags = true
+    if player.settings.nametags then
+        player.settings.nametags = nil
     end
 
     player.stats = player.stats or {}
@@ -114,7 +114,6 @@ local function instantiatePlayer(playerID)
             automaticLights = true,
             freecamFov = 65,
             freecamSmooth = false,
-            nametags = true,
         }
 
         player.stats = {

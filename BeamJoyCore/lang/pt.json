@@ -583,8 +583,7 @@
       "uiScale": "Escala da IU",
       "vehicles": {
         "automaticLights": "Luzes automáticas",
-        "automaticLightsTooltip": "Alterne os faróis automaticamente com base na hora do dia",
-        "nametags": "Crachás dos jogadores"
+        "automaticLightsTooltip": "Alterne os faróis automaticamente com base na hora do dia"
       },
       "freecam": {
         "smoothed": "Câmera Suavizada",
