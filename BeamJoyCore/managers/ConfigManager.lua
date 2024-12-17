@@ -290,12 +290,25 @@ local function consoleSetWhitelist(args)
     local ctxt = {}
     BJCInitContext(ctxt)
     if #args == 0 then -- print whitelist status
-        return svar("{1}\n{2}", {
+        local wlGroups = {}
+        for k, g in pairs(BJCGroups.Data) do
+            if g.whitelisted or g.staff then
+                table.insert(wlGroups, k)
+            end
+        end
+        table.sort(wlGroups, function(a, b) return a:lower() < b:lower() end)
+        return svar("{1}\n{2}\n{3}", {
             svar(BJCLang.getConsoleMessage("command.showWhitelistState"),
                 {
                     state = BJCLang.getConsoleMessage(svar("common.{1}", {
                         M.Data.Whitelist.Enabled and "enabled" or "disabled"
                     }))
+                }),
+            svar(BJCLang.getConsoleMessage("command.showWhitelistedGroups"),
+                {
+                    groupList = #wlGroups > 0 and
+                        tconcat(wlGroups, ", ") or
+                        BJCLang.getConsoleMessage("common.empty")
                 }),
             svar(BJCLang.getConsoleMessage("command.showWhitelistedPlayers"),
                 {

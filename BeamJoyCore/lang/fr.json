@@ -81,6 +81,7 @@
       "envValueSetTo": "Valeur de l'environnement \"{key}\" definie sur \"{value}\"",
       "showWhitelistState": "La whitelist est actuellement {state}",
       "showWhitelistedPlayers": "Joueurs dans la whitelist : {playerList}",
+      "showWhitelistedGroups": "Groupes dans la whitelist: {groupList}",
       "newWhitelistState": "La whitelist est maintenant {state}",
       "whitelistAddedPlayer": "Joueur {playerName} ajoute a la whitelist",
       "alreadyWhitelistedPlayer": "Le joueur {playerName} est deja dans la whitelist",
