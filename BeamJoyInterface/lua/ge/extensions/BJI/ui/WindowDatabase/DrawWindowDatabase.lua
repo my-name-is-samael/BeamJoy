@@ -25,7 +25,7 @@ local function drawHeader(ctxt)
         BJIContext.DatabaseEditorOpen = false
         cacheData = {}
     elseif #tabs == 1 then
-        tabs[1].draw()
+        tabDraw = tabs[1].draw
     else
         local tabBar = TabBarBuilder("BJIDatabaseTabs")
         for _, t in ipairs(tabs) do
