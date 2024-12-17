@@ -335,3 +335,34 @@ function TimerCreate()
         end
     })
 end
+
+function DrawTimePlayPauseButtons(id, withUpdate)
+    LineBuilder()
+        :btnIcon({
+            id = svar("{1}-pause", { id }),
+            icon = ICONS.pause,
+            style = not BJIEnv.Data.timePlay and BTN_PRESETS.ERROR or BTN_PRESETS.INFO,
+            coloredIcon = not BJIEnv.Data.timePlay,
+            onClick = function()
+                local hasRight = BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+                if hasRight and withUpdate and BJIEnv.Data.timePlay then
+                    BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
+                    BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
+                end
+            end,
+        })
+        :btnIcon({
+            id = svar("{1}-play", { id }),
+            icon = ICONS.play,
+            style = BJIEnv.Data.timePlay and BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
+            coloredIcon = BJIEnv.Data.timePlay,
+            onClick = function()
+                local hasRight = BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+                if hasRight and withUpdate and not BJIEnv.Data.timePlay then
+                    BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
+                    BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
+                end
+            end,
+        })
+        :build()
+end

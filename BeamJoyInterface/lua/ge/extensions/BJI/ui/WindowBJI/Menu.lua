@@ -442,17 +442,7 @@ local function getEditEntry(ctxt)
         local elems = {
             [1] = {
                 render = function()
-                    LineBuilder()
-                        :btnIconToggle({
-                            id = "timePlayButton",
-                            icon = BJIEnv.Data.timePlay and ICONS.play or ICONS.pause,
-                            state = BJIEnv.Data.timePlay,
-                            onClick = function()
-                                BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
-                                BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
-                            end,
-                        })
-                        :build()
+                    DrawTimePlayPauseButtons("menuTimePlay", true)
                 end,
             }
         }

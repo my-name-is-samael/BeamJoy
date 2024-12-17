@@ -83,17 +83,7 @@ local function draw()
                         :build()
                 end,
                 function()
-                    LineBuilder()
-                        :btnIconToggle({
-                            id = "timePlay",
-                            icon = BJIEnv.Data.timePlay and ICONS.play or ICONS.pause,
-                            state = BJIEnv.Data.timePlay,
-                            onClick = function()
-                                BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
-                                BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
-                            end,
-                        })
-                        :build()
+                    DrawTimePlayPauseButtons("envSunTimePlay", true)
                 end,
             }
         })
