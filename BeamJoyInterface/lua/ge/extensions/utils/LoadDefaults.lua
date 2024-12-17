@@ -29,6 +29,7 @@ ColorI = ColorI or function(r, g, b, a) return {} end
 log = log or function(type, tag, msg) end
 jsonReadFile = jsonReadFile or function(path) return {} end
 jsonDecode = jsonDecode or function(str) return {} end
+jsonEncode = jsonEncode or function(obj) return "" end
 getAllVehicles = getAllVehicles or function() return {} end
 getCurrentLevelIdentifier = getCurrentLevelIdentifier or function() return "" end
 LuaProfiler = LuaProfiler or function(msg) return {} end
@@ -68,6 +69,7 @@ core_vehicleBridge = core_vehicleBridge or {}
 -- BEAMMP
 
 AddEventHandler = AddEventHandler or function(eventname, callback) end
+TriggerServerEvent = TriggerServerEvent or function(eventname, ...) end
 
 settings = settings or {}
 MPConfig = MPConfig or {}

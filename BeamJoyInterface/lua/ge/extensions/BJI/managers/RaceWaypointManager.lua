@@ -1,6 +1,5 @@
-local tag = "BJIWaypoint"
-
 local M = {
+    _name = "BJIWaypoint",
     _race = {
         _started = false,
         _countWp = 0,
@@ -131,7 +130,7 @@ end
 ]]
 local function addRaceStep(step)
     if M._race._started then
-        LogError("already started", tag)
+        LogError("already started", M._name)
         return
     elseif type(step) ~= "table" or #step == 0 then
         return
@@ -398,7 +397,7 @@ local function addWaypoint(name, pos, radius, color)
     local _, err
     _, pos, err = pcall(vec3, pos)
     if err then
-        LogError("invalid position", tag)
+        LogError("invalid position", M._name)
         return
     end
 

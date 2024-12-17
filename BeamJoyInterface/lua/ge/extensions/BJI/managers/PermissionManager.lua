@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIPerm",
     PERMISSIONS = {
         SEND_PRIVATE_MESSAGE = "SendPrivateMessage",
 

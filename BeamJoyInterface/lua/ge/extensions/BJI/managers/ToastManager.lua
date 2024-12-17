@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIToast",
     TOAST_TYPES = {
         SUCCESS = "success",
         INFO = "info",

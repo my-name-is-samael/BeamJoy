@@ -1,6 +1,5 @@
-local tag = "BJIRX"
-
 local M = {
+    _name = "BJIRX",
     _ctrls = {},
     logEndpointsBlacklist = {
         { BJI_EVENTS.PLAYER.EVENT, BJI_EVENTS.PLAYER.RX.SERVER_TICK }
@@ -49,7 +48,7 @@ end
 
 local function dispatchEvent(eventName, endpoint, data)
     if not data or type(data) ~= "table" then
-        LogError(svar("Invalid endpoint {1}.{2}", { eventName, endpoint }), tag)
+        LogError(svar("Invalid endpoint {1}.{2}", { eventName, endpoint }), M._name)
         return
     end
     for event, ctrl in pairs(M._ctrls) do
@@ -63,7 +62,7 @@ local function dispatchEvent(eventName, endpoint, data)
                 end
             end
             if not inBlacklist then
-                LogDebug(svar("Event received : {1}.{2}", { eventName, endpoint }), tag)
+                LogDebug(svar("Event received : {1}.{2}", { eventName, endpoint }), M._name)
                 if BJIContext.DEBUG and tlength(data) > 0 then
                     PrintObj(data, svar("{1}.{2}", { eventName, endpoint }))
                 end

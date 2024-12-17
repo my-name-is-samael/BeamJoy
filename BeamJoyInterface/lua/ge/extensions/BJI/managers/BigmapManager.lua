@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIBigmap",
     baseFunctions = {},
     POI_TYPES_BLACKLIST = {
         "mission"

@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIRaceUI",
     lap = {
         current = nil,
         count = nil,

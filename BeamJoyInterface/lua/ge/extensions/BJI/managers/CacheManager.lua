@@ -1,6 +1,5 @@
-local logTag = "BJICacheManager"
-
 local M = {
+    _name = "BJICache",
     CACHES = {
         -- default
         LANG = "lang",
@@ -95,13 +94,13 @@ local function _tryRequestCache(cacheType)
     local permissionName = M.CACHE_PERMISSIONS[cacheType]
     if permissionName then
         if BJIPerm.hasPermission(permissionName) then
-            LogDebug(svar("Requesting cache {1}", { cacheType }), logTag)
+            LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
             BJITx.cache.require(cacheType)
         end
     else
         -- no permission on this cache
-        LogDebug(svar("Requesting cache {1}", { cacheType }), logTag)
+        LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
         M._states[cacheType] = M.CACHE_STATES.PROCESSING
         BJITx.cache.require(cacheType)
     end
@@ -112,7 +111,7 @@ local function invalidate(cacheType)
 end
 
 local function parseCache(cacheType, cacheData, cacheHash)
-    LogDebug(svar("Received cache {1}", { cacheType }), logTag)
+    LogDebug(svar("Received cache {1}", { cacheType }), M._name)
     local foundCache = true
     if cacheType == M.CACHES.USER then
         BJIContext.User.playerID = cacheData.playerID
@@ -605,7 +604,7 @@ local function slowTick(ctxt)
     for _, cacheType in pairs(M.BASE_CACHES) do
         if M._states[cacheType] == M.CACHE_STATES.EMPTY then
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
-            LogDebug(svar("Requesting cache {1}", { cacheType }), logTag)
+            LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
             BJITx.cache.require(cacheType)
         end
     end

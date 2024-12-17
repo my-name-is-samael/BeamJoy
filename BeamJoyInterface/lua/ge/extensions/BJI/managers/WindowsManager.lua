@@ -1,8 +1,7 @@
 local im = ui_imgui
 
-local logTag = "BJIWindowsManager"
-
 local M = {
+    _name = "BJIWindowsManager",
     _windows = {},
     _baseFlags = {
         WINDOW_FLAGS.NO_SCROLLBAR,
@@ -423,7 +422,7 @@ local function renderTick(ctxt)
         end
         local _, err = pcall(fn, ctxt)
         if err then
-            LogError(err, logTag)
+            LogError(err, M._name)
         end
     end
 

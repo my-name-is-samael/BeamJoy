@@ -1,7 +1,7 @@
 local im = ui_imgui
 
-local tag = "BJIChat"
 local M = {
+    _name = "BJIChat",
     EVENTS = {
         JOIN = "join",
         LEAVE = "leave",
@@ -44,7 +44,7 @@ local function _onPlayerChat(playerName, message, color)
         end
     end
     if not player then
-        LogError("Invalid player chat data (playerName)", tag)
+        LogError("Invalid player chat data (playerName)", M._name)
         return
     end
     local playerTag = player.staff and BJILang.get("chat.staffTag") or
@@ -72,7 +72,7 @@ local function renderTick(ctxt)
         data.color = parseColor(data.color)
         if event == M.EVENTS.PLAYER_CHAT then
             if not data.message then
-                LogError("Invalid player chat data (message)", tag)
+                LogError("Invalid player chat data (message)", M._name)
                 return
             end
             _onPlayerChat(data.playerName, data.message, data.color)

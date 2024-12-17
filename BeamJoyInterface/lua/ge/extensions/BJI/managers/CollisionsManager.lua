@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJICollisions",
     TYPES = {
         FORCED = 1,
         DISABLED = 2,
@@ -189,12 +190,11 @@ local function renderTick(ctxt)
         end
     end
 
-    for _, veh in pairs(BJIVeh.getMPVehicles()) do
-        if veh.gameVehicleID ~= -1 then
-            local alpha = M.playerAlpha
-            if not M.state then
-                local isSelf = ctxt.isOwner and veh.gameVehicleID == ctxt.veh:getID()
-                if not isSelf and ctxt.isOwner then
+    if ctxt.isOwner then
+        for _, veh in pairs(BJIVeh.getMPVehicles()) do
+            if veh.gameVehicleID ~= -1 and veh.gameVehicleID ~= ctxt.veh:getID() then
+                local alpha = M.playerAlpha
+                if not M.state then
                     local target = BJIVeh.getVehicleObject(veh.gameVehicleID)
                     local posRot = target and BJIVeh.getPositionRotation(target) or nil
                     if posRot then
@@ -203,11 +203,17 @@ local function renderTick(ctxt)
                         alpha = getAlphaByDistance(dist, maxDist)
                     end
                 end
-            end
-            if M.alphas[veh.gameVehicleID] ~= alpha then
-                local targetAlpha = alpha ~= M.playerAlpha and alpha or nil
-                M.alphas[veh.gameVehicleID] = targetAlpha
-                setAlpha(veh.gameVehicleID, alpha)
+                local alphaNeedsChange = false
+                if alpha == 1 and M.alphas[veh.gameVehicleID] then
+                    alphaNeedsChange = true
+                elseif math.abs(alpha - (M.alphas[veh.gameVehicleID] or 1)) > .1 then
+                    alphaNeedsChange = true
+                end
+                if alphaNeedsChange then
+                    local targetAlpha = alpha ~= M.playerAlpha and alpha or nil
+                    M.alphas[veh.gameVehicleID] = targetAlpha
+                    setAlpha(veh.gameVehicleID, alpha)
+                end
             end
         end
     end

@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIPopup",
     callbacks = {},
 }
 

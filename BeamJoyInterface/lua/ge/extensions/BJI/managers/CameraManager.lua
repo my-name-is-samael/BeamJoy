@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJICam",
     DEFAULT_FREECAM_FOV = 65,
     CAMERAS = {
         ORBIT = "orbit",

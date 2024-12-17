@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIDrift",
     lastCached = 0,
 
     nextScoreCancel = false,

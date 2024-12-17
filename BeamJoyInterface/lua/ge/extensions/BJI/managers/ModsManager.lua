@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIMods",
     baseFunctions = {},
     state = true,
 }

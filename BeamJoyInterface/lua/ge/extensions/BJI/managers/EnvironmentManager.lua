@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIEnvironment",
     Data = {
         controlSun = false,
         ToD = .78,

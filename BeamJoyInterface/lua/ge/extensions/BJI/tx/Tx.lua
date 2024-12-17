@@ -1,9 +1,5 @@
-local _encode = jsonEncode
-local _Trigger = TriggerServerEvent
-
-local tag = "BJITX"
-
 BJITx = {
+    _name = "BJITX",
     PAYLOAD_LIMIT_SIZE = 20000,
 }
 
@@ -15,27 +11,27 @@ function BJITx._send(controller, endpoint, data)
 
     local id = UUID()
     local parts = {}
-    local payload = _encode(data)
+    local payload = jsonEncode(data)
     while #payload > 0 do
         table.insert(parts, payload:sub(1, BJITx.PAYLOAD_LIMIT_SIZE))
         payload = payload:sub(BJITx.PAYLOAD_LIMIT_SIZE + 1)
     end
 
-    _Trigger(BJI_EVENTS.SERVER_EVENT, _encode({
+    TriggerServerEvent(BJI_EVENTS.SERVER_EVENT, jsonEncode({
         id = id,
         parts = #parts,
         controller = controller,
         endpoint = endpoint,
     }))
     for i, p in ipairs(parts) do
-        _Trigger(BJI_EVENTS.SERVER_EVENT_PARTS, _encode({
+        TriggerServerEvent(BJI_EVENTS.SERVER_EVENT_PARTS, jsonEncode({
             id = id,
             part = i,
             data = p,
         }))
     end
 
-    LogDebug(svar("Event {1}.{2} sent ({3} parts data)", { controller, endpoint, #parts }), tag)
+    LogDebug(svar("Event {1}.{2} sent ({3} parts data)", { controller, endpoint, #parts }), BJITx._name)
     if logData then
         PrintObj(data, endpoint)
     end

@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJITick",
     timeOffsets = {}, -- time offsets in sec
 }
 

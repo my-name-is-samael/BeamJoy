@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIWaypointEdit",
     _startColor = ShapeDrawer.Color(1, 1, 0, .5),
     _wpColor = ShapeDrawer.Color(.66, .66, 1, .5),
     _segmentColor = ShapeDrawer.Color(1, 1, 1, .5),

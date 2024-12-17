@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIGPS",
     baseFunctions = {},
     targets = {},
     defaultRadius = 5,

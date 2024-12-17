@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIAsync",
     KEYS = {
         BASE_CACHES_POST_INPUTS = "baseCachesPostInputs",
         RESTRICTIONS_RESET_TIMER = "restrictionsResetTimer",

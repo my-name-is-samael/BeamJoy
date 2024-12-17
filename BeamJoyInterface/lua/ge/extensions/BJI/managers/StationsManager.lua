@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIStations",
     renderStationDistance = 50,
     COLORS = {
         GARAGE = ShapeDrawer.Color(1, .4, 0, .05),

@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIQuickTravel",
     state = true, -- default state when joining
 }
 

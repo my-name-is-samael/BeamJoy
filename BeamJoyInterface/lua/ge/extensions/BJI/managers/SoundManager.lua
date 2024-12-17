@@ -3,6 +3,7 @@ local function _baseSoundsPath(filename)
 end
 
 local M = {
+    _name = "BJISound",
     SOUNDS = {
         LEVEL_UP = _baseSoundsPath("levelup"),
         NAV_CHANGE = _baseSoundsPath("nav_change"),

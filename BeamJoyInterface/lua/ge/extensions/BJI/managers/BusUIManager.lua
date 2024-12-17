@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIBusUI",
     id = "00",
     color = "#FF0",
     tasklist = {},

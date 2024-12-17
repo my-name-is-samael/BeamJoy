@@ -1,6 +1,5 @@
-local logTag = "BJIRestrictions"
-
 local M = {
+    _name = "BJIRestrictions",
     TYPES = {
         Reset = "Reset",
         ResetRace = "ResetRace",
@@ -193,7 +192,7 @@ local function applySpecific(tag, restrictions, state)
         -- if trying to disable and existing
         extensions.core_input_actionFilter.addAction(0, tag, state)
     else
-        LogError(svar("Invalid restriction \"{1}\"", { tag }), logTag)
+        LogError(svar("Invalid restriction \"{1}\"", { tag }), M._name)
     end
 end
 

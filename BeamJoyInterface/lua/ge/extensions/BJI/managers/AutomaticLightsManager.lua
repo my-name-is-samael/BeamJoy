@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIAutomaticLights",
     morningSwitched = {}, -- gameVehID : state
     nightSwitched = {},   -- gameVehID : state
 }

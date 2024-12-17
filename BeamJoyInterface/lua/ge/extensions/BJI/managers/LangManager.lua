@@ -1,6 +1,5 @@
-local tag = "LangManager"
-
 local M = {
+    _name = "BJILang",
     Langs = {},
     Messages = {},
 }
@@ -46,7 +45,7 @@ end
 
 local function drawSelector(data)
     if not data then
-        LogError(M.get("errors.invalidData"), tag)
+        LogError(M.get("errors.invalidData"), M._name)
         return
     end
 

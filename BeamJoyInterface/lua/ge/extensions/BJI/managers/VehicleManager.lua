@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIVeh",
     baseFunctions = {},
     _saveConfigBaseFunction = nil,
     _removeConfigBaseFunction = nil,

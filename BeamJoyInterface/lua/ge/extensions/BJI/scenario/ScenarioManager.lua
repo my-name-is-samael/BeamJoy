@@ -1,4 +1,5 @@
 local M = {
+    _name = "BJIScenario",
     TYPES = {},
     solo = {},
     multi = {},

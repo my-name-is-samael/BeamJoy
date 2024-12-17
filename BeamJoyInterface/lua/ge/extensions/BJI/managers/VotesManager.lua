@@ -1,4 +1,6 @@
-local M = {}
+local M = {
+    _name = "BJIVotes",
+}
 
 -- KICK
 M.Kick = {
