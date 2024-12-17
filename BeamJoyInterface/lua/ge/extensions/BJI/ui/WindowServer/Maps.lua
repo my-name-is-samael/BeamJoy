@@ -131,7 +131,7 @@ local function drawMapsList(ctxt)
             :btnIconToggle({
                 id = svar("map{1}State", { techName }),
                 icon = map.enabled and ICONS.visibility or ICONS.visibility_off,
-                state = map.enabled,
+                state = map.enabled == true,
                 disabled = BJIContext.UI.mapName == techName,
                 onClick = function()
                     BJITx.config.mapState(techName, not map.enabled)
