@@ -317,7 +317,7 @@ local function drawPaints(paints)
                 icon = ICONS.format_color_fill,
                 style = style,
                 onClick = function()
-                    BJIScenario.tryPaint(paintData.paint, i)
+                    BJIScenario.tryPaint(paintData.paint, j)
                 end
             })
         end
