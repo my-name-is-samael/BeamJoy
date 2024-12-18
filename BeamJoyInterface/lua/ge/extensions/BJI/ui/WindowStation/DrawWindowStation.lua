@@ -131,7 +131,7 @@ local function drawGarage(ctxt, garage)
         LineBuilder()
             :icon({
                 icon = ICONS.block,
-                style = TEXT_COLORS.ERROR,
+                style = BTN_PRESETS.ERROR,
             })
             :text(BJILang.get("garages.noRepairScenario"))
             :build()
@@ -163,7 +163,7 @@ local function drawEnergyStation(ctxt, station)
         LineBuilder()
             :icon({
                 icon = ICONS.block,
-                style = TEXT_COLORS.ERROR,
+                style = BTN_PRESETS.ERROR,
             })
             :text(BJILang.get("energyStations.noRefuelScenario"))
             :build()
