@@ -121,44 +121,56 @@ local function drawMapsList(ctxt)
             labelWidth = w
         end
     end
-    for techName, map in pairs(BJIContext.Maps.Data) do
-        local valid = #map.label > 0 and (not map.custom or #map.archive > 0)
+    local mapsList = {}
+    for name, map in pairs(BJIContext.Maps.Data) do
+        if not tincludes({ "new", "newLabel" }, name) then
+            table.insert(mapsList, {
+                name = name,
+                map = map
+            })
+        end
+    end
+    table.sort(mapsList, function(a, b)
+        return a.name:lower() < b.name:lower()
+    end)
+    for _, data in ipairs(mapsList) do
+        local valid = #data.map.label > 0 and (not data.map.custom or #data.map.archive > 0)
         local line = LineBuilder()
-            :text(svar("{1}:", { techName }))
-            :text(map.custom and
+            :text(svar("{1}:", { data.name }))
+            :text(data.map.custom and
                 svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or
                 "", TEXT_COLORS.HIGHLIGHT)
             :btnIconToggle({
-                id = svar("map{1}State", { techName }),
-                icon = map.enabled and ICONS.visibility or ICONS.visibility_off,
-                state = map.enabled == true,
-                disabled = BJIContext.UI.mapName == techName,
+                id = svar("map{1}State", { data.name }),
+                icon = data.map.enabled and ICONS.visibility or ICONS.visibility_off,
+                state = data.map.enabled == true,
+                disabled = BJIContext.UI.mapName == data.name,
                 onClick = function()
-                    BJITx.config.mapState(techName, not map.enabled)
-                    map.enabled = not map.enabled
+                    BJITx.config.mapState(data.name, not data.map.enabled)
+                    data.map.enabled = not data.map.enabled
                 end,
             })
-        if map.changed then
+        if data.map.changed then
             line:btnIcon({
-                id = svar("map{1}save", { techName }),
+                id = svar("map{1}save", { data.name }),
                 icon = ICONS.save,
                 style = BTN_PRESETS.SUCCESS,
                 disabled = not valid,
                 onClick = function()
-                    BJITx.config.maps(techName, map.label, map.custom and map.archive or nil)
-                    map.changed = false
+                    BJITx.config.maps(data.name, data.map.label, data.map.custom and data.map.archive or nil)
+                    data.map.changed = false
                 end
             })
         end
-        if map.custom then
+        if data.map.custom then
             line:btnIcon({
-                id = svar("map{1}delete", { techName }),
+                id = svar("map{1}delete", { data.name }),
                 icon = ICONS.delete_forever,
                 style = BTN_PRESETS.ERROR,
-                disabled = techName == BJIContext.UI.mapName,
+                disabled = data.name == BJIContext.UI.mapName,
                 onClick = function()
-                    BJIContext.Maps.Data[techName] = nil
-                    BJITx.config.maps(techName)
+                    BJIContext.Maps.Data[data.name] = nil
+                    BJITx.config.maps(data.name)
                 end
             })
         end
@@ -175,20 +187,20 @@ local function drawMapsList(ctxt)
                 function()
                     LineBuilder()
                         :inputString({
-                            id = svar("map{1}label", { techName }),
-                            value = map.label,
+                            id = svar("map{1}label", { data.name }),
+                            value = data.map.label,
                             onUpdate = function(val)
-                                map.label = val
-                                map.changed = true
+                                data.map.label = val
+                                data.map.changed = true
                             end
                         })
                         :build()
                 end,
-                map.custom and function()
+                data.map.custom and function()
                 end or nil,
             }
         })
-        if map.custom then
+        if data.map.custom then
             cols:addRow({
                 cells = {
                     function()
@@ -199,11 +211,11 @@ local function drawMapsList(ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("map{1}archive", { techName }),
-                                value = map.archive,
+                                id = svar("map{1}archive", { data.name }),
+                                value = data.map.archive,
                                 onUpdate = function(val)
-                                    map.archive = val
-                                    map.changed = true
+                                    data.map.archive = val
+                                    data.map.changed = true
                                 end
                             })
                             :build()

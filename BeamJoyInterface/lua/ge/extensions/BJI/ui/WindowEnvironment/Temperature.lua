@@ -49,10 +49,25 @@ local function draw()
     LineBuilder():build()
 
     if BJIEnv.Data.useTempCurve then
-        common.drawNumericWithReset(cols, "tempCurveNoon")
-        common.drawNumericWithReset(cols, "tempCurveDusk")
-        common.drawNumericWithReset(cols, "tempCurveMidnight")
-        common.drawNumericWithReset(cols, "tempCurveDawn")
+        local vSeparator = BJILang.get("common.vSeparator")
+        for _, k in ipairs({
+            "tempCurveNoon",
+            "tempCurveDusk",
+            "tempCurveMidnight",
+            "tempCurveDawn",
+        }) do
+            common.drawNumericWithReset(cols, k, function()
+                local kelvin = CelsiusToKelvin(BJIEnv.Data[k])
+                local labels = {
+                    svar("{1}°C", { Round(BJIEnv.Data[k] or 0, 2) }),
+                    svar("{1}°F", { Round(KelvinToFahrenheit(kelvin or 0) or 0, 2) }),
+                    svar("{1}K", { Round(kelvin or 0, 2) }),
+                }
+                LineBuilder(true)
+                    :text(tconcat(labels, svar(" {1} ", { vSeparator })))
+                    :build()
+            end)
+        end
     end
     cols:build()
 end

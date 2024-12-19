@@ -585,6 +585,23 @@
         "automaticLights": "Feux Automatiques",
         "automaticLightsTooltip": "Activer les phares automatiquement en fonction de l'heure de la journée"
       },
+      "nametags": {
+        "preview": "Aperçu",
+        "colors": {
+          "player": {
+            "text": "Couleurs des noms des joueurs",
+            "bg": "Couleur de fond des noms des joueurs"
+          },
+          "idle": {
+            "text": "Couleurs des joueurs inactifs",
+            "bg": "Couleur de fond des joueurs inactifs"
+          },
+          "spec": {
+            "text": "Couleurs des spectateurs",
+            "bg": "Couleur de fond des spectateurs"
+          }
+        }
+      },
       "freecam": {
         "smoothed": "Caméra Adoucie",
         "fov": "Champ de Vision"

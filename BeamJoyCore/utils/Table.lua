@@ -153,7 +153,7 @@ end
 
 function tdeepassign(target, source)
     if type(target) ~= 'table' or type(source) ~= 'table' then
-        return
+        return target
     end
 
     for k, v in pairs(source) do

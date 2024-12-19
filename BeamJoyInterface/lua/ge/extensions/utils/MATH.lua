@@ -28,8 +28,12 @@ function KelvinToCelsius(kelvin)
     return kelvin - 273.15
 end
 
-function CelsiusToFarenheit(celsius)
-    return (celsius * 9 / 5) + 32
+function CelsiusToKelvin(celsius)
+    return celsius + 273.15
+end
+
+function KelvinToFahrenheit(kelvin)
+    return (kelvin - 273.15) * (9 / 5) + 32
 end
 
 -- override because deprecated in lua.math

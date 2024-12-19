@@ -454,15 +454,46 @@ LineBuilder = function(startSameLine)
         end
     end
 
-    builder.text = function(self, text, color, bgColor)
+    local function convertColorToVec4(color)
+        if type(color) == "table" then
+            if color.r then
+                color = RGBA(color.r, color.g, color.b, color.a)
+            elseif color[1] then
+                color = RGBA(color[1], color[2], color[3], color[4] or 1)
+            end
+        end
+        return color
+    end
+
+    builder.text = function(self, text, color)
+        text = text or ""
         self:_commonStartElem()
         SetStyleColor(STYLE_COLS.HEADER, RGBA(1, 0, 0, 1))
-        if color ~= nil then
-            im.TextColored(color, tostring(text))
-        else
-            im.Text(tostring(text))
-        end
+        color = color and convertColorToVec4(color) or TEXT_COLORS.DEFAULT
+        im.TextColored(color, tostring(text))
         PopStyleColor(1)
+        self._elemCount = self._elemCount + 1
+        return self
+    end
+    builder.bgText = function(self, id, text, color, bgColor)
+        if not id or not text or not color or not bgColor then
+            LogError("bgText requires id, text, color and bgColor", logTag)
+            return
+        end
+        self:_commonStartElem()
+        bgColor = bgColor and convertColorToVec4(bgColor)
+        color = color and convertColorToVec4(color)
+        local size = im.CalcTextSize(text)
+        size.x = size.x + 4 * BJIContext.UserSettings.UIScale
+        size.y = size.y + 4 * BJIContext.UserSettings.UIScale
+
+        SetStyleColor(STYLE_COLS.HEADER, RGBA(1, 0, 0, 1))
+        SetStyleColor(STYLE_COLS.CHILD_BG, convertColorToVec4(bgColor))
+        im.BeginChild1(id, size)
+        im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+        im.TextColored(color, tostring(text))
+        im.EndChild()
+        PopStyleColor(2)
         self._elemCount = self._elemCount + 1
         return self
     end
@@ -956,24 +987,36 @@ LineBuilder = function(startSameLine)
 
     builder.colorPicker = function(self, data)
         if not data.id or not data.value or not data.onChange then
-            LogError("colorPicker requires id, label, value and onChange", logTag)
+            LogError("colorPicker requires id, value and onChange", logTag)
             return self
         end
-
         self:_commonStartElem()
 
-        local flags = im.flags(im.ColorEditFlags_NoInputs)
+        local flags = {
+            im.ColorEditFlags_NoInputs
+        }
+        if data.disabled then
+            table.insert(flags, im.ColorEditFlags_NoPicker)
+        end
         local color = im.ArrayFloat(4)
-        color[0] = data.value[1]
-        color[1] = data.value[2]
-        color[2] = data.value[3]
-        color[3] = data.alpha and data.value[4] or 1
-
+        if data.value.r then
+            color[0] = data.value.r
+            color[1] = data.value.g
+            color[2] = data.value.b
+            color[3] = data.alpha and data.value.a or 1
+        elseif data.value[4] then
+            color[0] = data.value[1]
+            color[1] = data.value[2]
+            color[2] = data.value[3]
+            color[3] = data.alpha and data.value[4] or 1
+        elseif data.value[0] then
+            color[3] = color[3] or 1
+        end
         local fn = im.ColorEdit3
         if data.alpha then
             fn = im.ColorEdit4
         end
-        if fn(svar("##{1}", { data.id }), color, flags) then
+        if fn(svar("##{1}", { data.id }), color, im.flags(tunpack(flags))) and not data.disabled then
             data.onChange({
                 Round(color[0], RGBA_PRECISION),
                 Round(color[1], RGBA_PRECISION),

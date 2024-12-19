@@ -39,7 +39,8 @@ local function draw(ctxt)
                         end
                         line:btnIconToggle({
                             id = "togleNametags",
-                            icon = settings.getValue("hideNameTags", false) and ICONS.speaker_notes_off or ICONS.speaker_notes,
+                            icon = settings.getValue("hideNameTags", false) and ICONS.speaker_notes_off or
+                                ICONS.speaker_notes,
                             state = not settings.getValue("hideNameTags", false),
                             coloredIcon = true,
                             onClick = function()
@@ -113,32 +114,27 @@ local function draw(ctxt)
                             :text(BJIContext.UI.mapLabel, TEXT_COLORS.HIGHLIGHT)
 
                         -- TIME & TEMPERATURE
+                        local labels = {}
                         local time = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and BJIEnv.getTime() and
                             BJIEnv.getTime().time
-                        local timeLabel = time and PrettyTime(time)
-
-                        local temp = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and BJIEnv.getTemperature()
-                        local celsius = temp and KelvinToCelsius(temp)
-                        local tempLabel = temp and svar("{1}°C / {2}°F", {
-                            Round(celsius, 2),
-                            Round(CelsiusToFarenheit(celsius), 2)
-                        })
-
-                        if timeLabel or tempLabel then
-                            local str = "("
-                            if timeLabel then
-                                str = svar("{1}{2}", { str, timeLabel })
-                            end
-                            if tempLabel then
-                                if timeLabel then
-                                    str = svar("{1} {2} ", { str, vSeparator })
-                                end
-                                str = svar("{1}{2}", { str, tempLabel })
-                            end
-                            str = svar("{1})", { str })
-                            line:text(str)
+                        if time then
+                            table.insert(labels, PrettyTime(time))
                         end
 
+                        local temp = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and BJIEnv.getTemperature()
+                        if temp then
+                            local tempUnit = settings.getValue("uiUnitTemperature")
+                            if tempUnit == "k" then
+                                table.insert(labels, svar("{1}K", { Round(temp, 2) }))
+                            elseif tempUnit == "c" then
+                                table.insert(labels, svar("{1}°C", { Round(KelvinToCelsius(temp) or 0, 2) }))
+                            elseif tempUnit == "f" then
+                                table.insert(labels, svar("{1}°F", { Round(KelvinToFahrenheit(temp) or 0, 2) }))
+                            end
+                        end
+                        if #labels > 0 then
+                            line:text(svar("{1}", { tconcat(labels, svar(" {1} ", { vSeparator })) }))
+                        end
                         line:build()
                     end,
                     function()

@@ -194,12 +194,21 @@ function RaceDelay(ms)
 end
 
 function PrettyDistance(m)
-    local kms = m / 1000
-
-    if kms >= .5 then
-        return svar("{1}km", { Round(kms, 1) })
+    if settings.getValue("uiUnitLength") == "imperial" then
+        local foot = m * 3.28084
+        local miles = foot / 5280
+        if miles >= .5 then
+            return svar("{1}mi", { Round(miles, 1) })
+        else
+            return svar("{1}ft", { Round(foot) })
+        end
     else
-        return svar("{1}m", { Round(m) })
+        local kms = m / 1000
+        if kms >= .5 then
+            return svar("{1}km", { Round(kms, 1) })
+        else
+            return svar("{1}m", { Round(m) })
+        end
     end
 end
 

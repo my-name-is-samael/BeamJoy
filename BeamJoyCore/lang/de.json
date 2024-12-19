@@ -585,6 +585,23 @@
         "automaticLights": "Automatische Lichter",
         "automaticLightsTooltip": "Schalten Sie die Scheinwerfer je nach Tageszeit automatisch um"
       },
+      "nametags": {
+        "preview": "Vorschau",
+        "colors": {
+          "player": {
+            "text": "Farben der Spielernamen",
+            "bg": "Hintergrundfarbe der Spielernamen"
+          },
+          "idle": {
+            "text": "Farben der untätigen Spieler",
+            "bg": "Hintergrundfarbe der untätigen Spieler"
+          },
+          "spec": {
+            "text": "Farben der Zuschauer",
+            "bg": "Hintergrundfarbe der Zuschauer"
+          }
+        }
+      },
       "freecam": {
         "smoothed": "Geglättete Kamera",
         "fov": "Sichtfeld"

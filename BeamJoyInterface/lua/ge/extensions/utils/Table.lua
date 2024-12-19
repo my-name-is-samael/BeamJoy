@@ -152,7 +152,7 @@ end
 
 function tdeepassign(target, source)
     if type(target) ~= 'table' or type(source) ~= 'table' then
-        return
+        return target
     end
 
     for k, v in pairs(source) do
@@ -225,7 +225,12 @@ function tdeepcompare(table1, table2)
     local avoid_loops = {}
     local function recurse(t1, t2)
         if type(t1) ~= type(t2) then return false end
-        if type(t1) ~= "table" then return t1 == t2 end
+        if type(t1) ~= "table" then
+            if type(t1) == "number" and type(t2) == "number" then
+                return math.abs(t1 - t2) < 0.00001
+            end
+            return t1 == t2
+        end
         if avoid_loops[t1] then return avoid_loops[t1] == t2 end
         avoid_loops[t1] = t2
         local t2keys = {}

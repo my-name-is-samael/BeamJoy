@@ -585,6 +585,23 @@
         "automaticLights": "Luzes automáticas",
         "automaticLightsTooltip": "Alterne os faróis automaticamente com base na hora do dia"
       },
+      "nametags": {
+        "preview": "Pré-visualização",
+        "colors": {
+          "player": {
+            "text": "Cores dos nomes dos jogadores",
+            "bg": "Cor de fundo dos nomes dos jogadores"
+          },
+          "idle": {
+            "text": "Cores dos jogadores inativos",
+            "bg": "Cor de fundo dos jogadores inativos"
+          },
+          "spec": {
+            "text": "Cores dos espectadores",
+            "bg": "Cor de fundo dos espectadores"
+          }
+        }
+      },
       "freecam": {
         "smoothed": "Câmera Suavizada",
         "fov": "Campo de visão"
