@@ -1,8 +1,6 @@
 local M = {
     _name = "BJIVeh",
     baseFunctions = {},
-    _saveConfigBaseFunction = nil,
-    _removeConfigBaseFunction = nil,
 }
 
 --gameplay_walk.toggleWalkingMode()
@@ -10,19 +8,19 @@ local M = {
 local function onLoad()
     -- update configs cache when saving/overwriting/deleting a config
     BJIAsync.task(function()
-        return extensions.core_vehicle_partmgmt
+        return extensions.core_vehicle_partmgmt and extensions.util_screenshotCreator
     end, function()
-        M.baseFunctions.saveConfigBaseFunction = extensions.core_vehicle_partmgmt.saveLocal
+        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
         M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
 
-        extensions.core_vehicle_partmgmt.saveLocal = function(fileName)
-            M.baseFunctions.saveConfigBaseFunction(fileName)
+        extensions.util_screenshotCreator.startWork = function(...)
+            M.baseFunctions.saveConfigBaseFunction(...)
             BJIAsync.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
             end, 3000, "BJIVehPostSaveConfig")
         end
-        extensions.core_vehicle_partmgmt.removeLocal = function(fileName)
-            M.baseFunctions.removeConfigBaseFunction(fileName)
+        extensions.core_vehicle_partmgmt.removeLocal = function(...)
+            M.baseFunctions.removeConfigBaseFunction(...)
             BJIAsync.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
             end, 1000, "BJIVehPostRemoveConfig")
@@ -33,7 +31,7 @@ end
 local function onUnload()
     if extensions.core_vehicle_partmgmt then
         if M.baseFunctions.saveConfigBaseFunction then
-            extensions.core_vehicle_partmgmt.saveLocal = M.baseFunctions.saveConfigBaseFunction
+            extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
             extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
         end
     end
