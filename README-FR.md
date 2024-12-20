@@ -191,7 +191,7 @@ L'objectif du switcheur de carte optimisé est de n'envoyer que la carte moddée
 
 ## Comment installer les données des cartes du jeu de base
 
-- Téléchargez l'archive des données (bientôt disponible).
+- Téléchargez l'archive des données ([disponible ici](https://github.com/my-name-is-samael/BeamJoy/releases/tag/datapack-2024-12-20)).
 - Extrayez-la dans le dossier *Resources/Server/BeamJoyData/db/scenarii/*.
 - Redémarrez le serveur.
 - Vous aurez maintenant tous les scénarios et services disponibles sur les cartes du jeu de base pour vos joueurs.

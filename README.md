@@ -193,7 +193,7 @@ The optimized map switcher only sends the current modded map to joining players,
 
 ## How to install basegame maps data
 
-- Download the data archive (Coming Soon...).
+- Download the data archive ([available here](https://github.com/my-name-is-samael/BeamJoy/releases/tag/datapack-2024-12-20)).
 - Extract it to the *Resources/Server/BeamJoyData/db/scenarii/* folder.
 - Restart the server.
 - All basegame maps, scenarios, and facilities will now be available for players.
