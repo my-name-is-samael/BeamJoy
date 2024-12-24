@@ -57,7 +57,7 @@ local function save()
     local data = {
         enabled = hEdit.enabled and
             #hEdit.targets >= 2 and
-            #hEdit.hunterPositions > 5 and
+            #hEdit.hunterPositions >= 5 and
             #hEdit.huntedPositions >= 2,
         targets = {},
         hunterPositions = {},
