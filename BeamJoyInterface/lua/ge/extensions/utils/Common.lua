@@ -2,12 +2,7 @@ function GetTextWidth(text)
     if type(text) ~= "string" then
         return 0
     end
-    local sum = 0
-    for i = 1, #text do
-        local char = text:sub(i, i)
-        sum = sum + ui_imgui.CalcTextSize(char).x
-    end
-    return sum
+    return ui_imgui.CalcTextSize(text).x
 end
 
 local COLUMNS_MARGIN = GetTextWidth("  ")
