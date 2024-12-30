@@ -94,7 +94,11 @@ local function getModelList()
 end
 
 -- per vehicle show nametag
-local function doShowNametag()
+local function doShowNametag(vehData)
+end
+
+local function getCollisionsType(ctxt)
+    return BJICollisions.TYPES.GHOSTS
 end
 
 -- player list contextual actions getter
@@ -138,6 +142,7 @@ M.canDeleteOtherVehicles = canDeleteOtherVehicles
 M.canEditVehicle = canEditVehicle
 M.getModelList = getModelList
 M.doShowNametag = doShowNametag
+M.getCollisionsType = getCollisionsType
 
 M.getPlayerListActions = getPlayerListActions
 
