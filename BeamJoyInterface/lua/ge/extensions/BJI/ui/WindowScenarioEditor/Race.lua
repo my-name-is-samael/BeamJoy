@@ -81,6 +81,19 @@ local function getNewWPName()
     return svar("wp{1}", { max + 1 })
 end
 
+local function getNewWaypointRadius(iStep, iWp)
+    local previousStep = raceEdit.steps[iStep - 1]
+    PrintObj(previousStep, iStep - 1)
+    if previousStep then
+        if previousStep[iWp] then
+            return previousStep[iWp].radius
+        else
+            return previousStep[1].radius
+        end
+    end
+    return 1
+end
+
 local function prepareStartPositions()
     local positions = {}
     for _, sp in ipairs(raceEdit.startPositions) do
@@ -807,23 +820,27 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             valid = false
                         end
                         local line = LineBuilder()
-                            :text(svar("{1} {2}", { BJILang.get("races.edit.branch"), iWp }))
-                            :btnIcon({
-                                id = svar("goToWP-{1}-{2}", { iStep, iWp }),
-                                icon = ICONS.cameraFocusOnVehicle2,
-                                style = BTN_PRESETS.INFO,
-                                disabled = not vehpos and not campos,
-                                onClick = function()
-                                    if vehpos then
-                                        BJIVeh.setPositionRotation(wp.pos, wp.rot, { saveHome = true })
-                                        if ctxt.camera == BJICam.CAMERAS.FREE then
-                                            BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-                                        end
-                                    elseif campos then
-                                        BJICam.setPositionRotation(wp.pos)
+                        if #step == 1 then
+                            line:text(BJILang.get("races.edit.waypoint"))
+                        else
+                            line:text(svar("{1} {2}", { BJILang.get("races.edit.branch"), iWp }))
+                        end
+                        line:btnIcon({
+                            id = svar("goToWP-{1}-{2}", { iStep, iWp }),
+                            icon = ICONS.cameraFocusOnVehicle2,
+                            style = BTN_PRESETS.INFO,
+                            disabled = not vehpos and not campos,
+                            onClick = function()
+                                if vehpos then
+                                    BJIVeh.setPositionRotation(wp.pos, wp.rot, { saveHome = true })
+                                    if ctxt.camera == BJICam.CAMERAS.FREE then
+                                        BJICam.setCamera(BJICam.CAMERAS.ORBIT)
                                     end
-                                end,
-                            })
+                                elseif campos then
+                                    BJICam.setPositionRotation(wp.pos)
+                                end
+                            end,
+                        })
                             :btnIcon({
                                 id = svar("moveWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.crosshair,
@@ -876,6 +893,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         for _, key in ipairs({
                             "races.edit.wpName",
                             "races.edit.radius",
+                            "races.edit.size",
                             "races.edit.bottomHeight",
                             "races.edit.parent",
                         }) do
@@ -916,7 +934,11 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 cells = {
                                     function()
                                         LineBuilder()
-                                            :text(svar("{1}:", { BJILang.get("races.edit.radius") }))
+                                            :text(svar("{1}:", {
+                                                wp.stand and
+                                                BJILang.get("races.edit.radius") or
+                                                BJILang.get("races.edit.size")
+                                            }))
                                             :build()
                                     end,
                                     function()
@@ -1019,7 +1041,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                             updateMarkers()
                                                         end
                                                     })
-                                                if iParent > 1 then
+                                                if #wp.parents > 1 then
                                                     line:btnIcon({
                                                         id = svar("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
                                                         icon = ICONS.delete_forever,
@@ -1077,7 +1099,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                     pos = vehpos.pos,
                                     rot = vehpos.rot,
                                     parents = parents,
-                                    radius = 1,
+                                    radius = getNewWaypointRadius(iStep, #step + 1),
                                 })
                                 raceEdit.changed = true
                                 raceEdit.keepRecord = false
@@ -1107,7 +1129,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 pos = vehpos.pos,
                                 rot = vehpos.rot,
                                 parents = parents,
-                                radius = 1,
+                                radius = getNewWaypointRadius(#raceEdit.steps + 1, 1),
                             } })
                             raceEdit.changed = true
                             raceEdit.keepRecord = false
