@@ -195,3 +195,5 @@ return M
 
 -- get map height below pos
 -- be:getSurfaceHeightBelow(vec3)
+
+-- if stuck in loading screen during disconnect => core_gamestate.requestExitLoadingScreen("serverConnection")
