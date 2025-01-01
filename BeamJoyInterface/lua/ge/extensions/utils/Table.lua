@@ -287,20 +287,28 @@ function tshallowcompare(table1, table2)
     return true
 end
 
-function tevery(table, fn)
-    for _, val in pairs(table) do
-        if not fn(val) then
+function tevery(arr, fn)
+    for i, val in pairs(arr) do
+        if not fn(val, i, arr) then
             return false
         end
     end
     return true
 end
 
-function tsome(table, fn)
-    for _, val in pairs(table) do
-        if fn(val) then
+function tsome(arr, fn)
+    for i, val in pairs(arr) do
+        if fn(val, i, arr) then
             return true
         end
     end
     return false
+end
+
+function tmap(arr, fn)
+    local res = {}
+    for i, v in pairs(arr) do
+        res[i] = fn(v, i, arr)
+    end
+    return res
 end

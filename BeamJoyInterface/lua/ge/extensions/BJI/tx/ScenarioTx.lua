@@ -153,3 +153,15 @@ end
 function BJITx.scenario.DerbyStop()
     BJITx._send(event.EVENT, event.TX.DERBY_STOP)
 end
+
+function BJITx.scenario.TagDuoJoin(lobbyId, gameVehID)
+    BJITx._send(event.EVENT, event.TX.TAG_DUO_JOIN, { lobbyId, gameVehID })
+end
+
+function BJITx.scenario.TagDuoUpdate(lobbyId, clientEvent)
+    BJITx._send(event.EVENT, event.TX.TAG_DUO_UPDATE, { lobbyId, clientEvent })
+end
+
+function BJITx.scenario.TagDuoLeave()
+    BJITx._send(event.EVENT, event.TX.TAG_DUO_LEAVE)
+end

@@ -23,6 +23,7 @@ local M = {
         HUNTER = "hunter",
         DERBY_DATA = "derbydata",
         DERBY = "derby",
+        TAG_DUO = "tagduo",
         -- admin
         DATABASE_PLAYERS = "databasePlayers",
         DATABASE_VEHICLES = "databaseVehicles",
@@ -580,6 +581,16 @@ local function parseCache(cacheType, cacheData, cacheHash)
             end, function()
                 BJIScenario.get(BJIScenario.TYPES.DERBY).rxData(cacheData)
             end, "BJICacheDerbyInit")
+        end
+    elseif cacheType == M.CACHES.TAG_DUO then
+        if BJIScenario.get(BJIScenario.TYPES.TAG_DUO) then
+            BJIScenario.get(BJIScenario.TYPES.TAG_DUO).rxData(cacheData)
+        else
+            BJIAsync.task(function()
+                return BJIScenario.get(BJIScenario.TYPES.TAG_DUO)
+            end, function()
+                BJIScenario.get(BJIScenario.TYPES.TAG_DUO).rxData(cacheData)
+            end, "BJICacheTagDuoInit")
         end
     else
         foundCache = false

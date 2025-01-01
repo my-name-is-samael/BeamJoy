@@ -21,6 +21,7 @@ local M = {
         HUNTER = "hunter",
         DERBY_DATA = "derbydata",
         DERBY = "derby",
+        TAG_DUO = "tagduo",
         -- admin
         DATABASE_PLAYERS = "databasePlayers",
         DATABASE_VEHICLES = "databaseVehicles",
@@ -56,6 +57,7 @@ local function getTargetMap()
         [M.CACHES.HUNTER] = { permission = nil, fn = BJCScenario.HunterManager.getCache },
         [M.CACHES.DERBY_DATA] = { permission = nil, fn = BJCScenario.getCacheDerby },
         [M.CACHES.DERBY] = { permission = nil, fn = BJCScenario.DerbyManager.getCache },
+        [M.CACHES.TAG_DUO] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.TagDuoManager.getCache },
     }
 end
 

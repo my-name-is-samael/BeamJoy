@@ -359,4 +359,33 @@ function ctrl.DerbyStop(ctxt)
     BJCScenario.DerbyManager.onClientStopDerby()
 end
 
+function ctrl.TagDuoJoin(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
+        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    local lobbyIndex, vehID = ctxt.data[1], ctxt.data[2]
+    BJCScenario.TagDuoManager.onClientJoin(ctxt.senderID, lobbyIndex, vehID)
+end
+
+function ctrl.TagDuoUpdate(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
+        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    local lobbyIndex, event = ctxt.data[1], ctxt.data[2]
+    BJCScenario.TagDuoManager.onClientUpdate(ctxt.senderID, lobbyIndex, event)
+end
+
+function ctrl.TagDuoLeave(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
+        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    BJCScenario.TagDuoManager.onClientLeave(ctxt.senderID)
+end
+
 return ctrl

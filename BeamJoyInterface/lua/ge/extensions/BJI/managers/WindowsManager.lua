@@ -125,7 +125,7 @@ local function initWindows()
                     BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO))
         end,
         draw = require("ge/extensions/BJI/ui/WindowHunterSettings/DrawWindowHunterSettings"),
-        w = 250,
+        w = 350,
         h = 350,
     })
 
@@ -151,6 +151,20 @@ local function initWindows()
         draw = require("ge/extensions/BJI/ui/WindowDeliveryMulti/DrawWindowDeliveryMulti"),
         w = 350,
         h = 220,
+    })
+
+    -- TAG
+    M.register({
+        name = "BJITag",
+        showConditionFn = function()
+            return (BJIScenario.get(BJIScenario.TYPES.TAG_DUO) and
+                    BJIScenario.is(BJIScenario.TYPES.TAG_DUO)) or
+                (BJIScenario.get(BJIScenario.TYPES.TAG_SERVER) and
+                    BJIScenario.is(BJIScenario.TYPES.TAG_SERVER))
+        end,
+        draw = require("ge/extensions/BJI/ui/WindowTag/DrawWindowTag"),
+        w = 300,
+        h = 250,
     })
 
     -- SPEED

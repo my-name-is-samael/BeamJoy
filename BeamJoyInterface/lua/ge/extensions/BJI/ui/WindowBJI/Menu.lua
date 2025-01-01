@@ -283,6 +283,40 @@ local function getScenarioEntry(ctxt)
         })
     end
 
+    -- TAG DUO
+    if BJIScenario.get(BJIScenario.TYPES.TAG_DUO) and
+        BJIScenario.get(BJIScenario.TYPES.TAG_DUO).canChangeTo(ctxt) then
+        local lobbies = {}
+        table.insert(lobbies, {
+            label = "Create a lobby",
+            onClick = function()
+                BJITx.scenario.TagDuoJoin(nil, ctxt.veh:getID())
+            end,
+        })
+        for i, l in ipairs(BJIScenario.get(BJIScenario.TYPES.TAG_DUO).lobbies) do
+            if tlength(l.players) < 2 then
+                table.insert(lobbies, {
+                    label = svar("Join {1}'s lobby", { BJIContext.Players[l.host].playerName }),
+                    onClick = function()
+                        BJITx.scenario.TagDuoJoin(i, ctxt.veh:getID())
+                    end,
+                })
+            end
+        end
+        table.insert(scenarioEntry.elems, {
+            label = "Tag Duo",
+            elems = lobbies,
+        })
+    elseif BJIScenario.get(BJIScenario.TYPES.TAG_DUO) and
+        BJIScenario.is(BJIScenario.TYPES.TAG_DUO) then
+        table.insert(scenarioEntry.elems, {
+            label = "Stop Tag Duo",
+            onClick = function()
+                BJITx.scenario.TagDuoLeave()
+            end,
+        })
+    end
+
     -- BUS MISSION
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJIScenario.get(BJIScenario.TYPES.BUS_MISSION) and

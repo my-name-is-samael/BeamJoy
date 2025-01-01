@@ -11,6 +11,7 @@ local M = {
         BUS_STOP = "busStop",
         HUNTER = "hunter",
         MANUAL = "manual",
+        TAGGED = "tagged",
     },
 
     COLORS = {

@@ -8,6 +8,7 @@ local M = {
         ResetSpeed = "ResetSpeed",
         ResetDerby = "ResetDerby",
         ResetBusMission = "ResetBusMission",
+        ResetTag = "ResetTag",
         Delivery = "Delivery",
         NodeGrabber = "NodeGrabber",
         Console = "Console",
@@ -21,6 +22,7 @@ local M = {
         ResetSpeed = "BJIResetSpeed",
         ResetDerby = "BJIResetDerby",
         ResetBusMission = "BJIResetBusMission",
+        ResetTag = "BJIResetTag",
         Delivery = "BJIDelivery",
         NodeGrabber = "BJINodeGrabber",
         Console = "BJIConsole",
@@ -118,6 +120,21 @@ local M = {
         },
         ResetBusMission = {
             --"recover_vehicle", -- only recover allowed in bus mission
+            "reset_physics",
+            "reset_all_physics",
+            "recover_vehicle_alt",
+            "recover_to_last_road",
+            "reload_vehicle",
+            "reload_all_vehicles",
+            "loadHome",
+            "saveHome",
+            "dropPlayerAtCamera",
+            "dropPlayerAtCameraNoReset",
+            "goto_checkpoint",
+            "nodegrabberRender",
+        },
+        ResetTag = {
+            --"recover_vehicle", -- only recover allowed in tag game
             "reset_physics",
             "reset_all_physics",
             "recover_vehicle_alt",

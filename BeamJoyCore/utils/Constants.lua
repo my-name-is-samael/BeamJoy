@@ -154,6 +154,12 @@ BJC_EVENTS = {
             DERBY_START = "DerbyStart",
             DERBY_UPDATE = "DerbyUpdate",
             DERBY_STOP = "DerbyStop",
+            TAG_DUO_JOIN = "TagDuoJoin",
+            TAG_DUO_UPDATE = "TagDuoUpdate",
+            TAG_DUO_LEAVE = "TagDuoLeave",
+            TAG_SERVER_START = "TagServerStart",
+            TAG_SERVER_UPDATE = "TagServerUpdate",
+            TAG_SERVER_STOP = "TagServerStop",
         }
     }
 }

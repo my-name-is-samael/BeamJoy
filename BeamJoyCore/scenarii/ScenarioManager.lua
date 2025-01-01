@@ -28,6 +28,7 @@ local M = {
     SpeedManager = require("scenarii/SpeedManager"),
     HunterManager = require("scenarii/HunterManager"),
     DerbyManager = require("scenarii/DerbyManager"),
+    TagDuoManager = require("scenarii/TagDuoManager")
 }
 
 local function reload()
@@ -656,6 +657,7 @@ local function stopServerScenarii()
     M.RaceManager.stop()
     M.SpeedManager.stop()
     M.DeliveryMultiManager.stop()
+    M.TagDuoManager.stop()
 end
 
 local function onPlayerKicked(targetID)
