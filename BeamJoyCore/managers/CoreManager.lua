@@ -95,11 +95,11 @@ local function setMap(mapName)
         error({ key = "rx.errors.invalidData" })
     end
 
-    if currentMap == targetMap then
+    if currentMap and targetMap and currentMap == targetMap then
         return
     end
 
-    if currentMap.custom then
+    if currentMap and currentMap.custom then
         -- move map mod out of folder
         local targetPath = svar("{1}Client/{2}", { resourcesFolderPath, currentMap.archive })
         if FS.Exists(targetPath) then
@@ -107,7 +107,7 @@ local function setMap(mapName)
         end
     end
 
-    if targetMap.custom then
+    if targetMap and targetMap.custom then
         -- move map mod into folder
         local sourcePath = svar("{1}{2}", { resourcesFolderPath, targetMap.archive })
         if FS.Exists(sourcePath) then
@@ -148,7 +148,9 @@ local function setMap(mapName)
             BJCPlayers.dropMultiple(playerIDs, "mapSwitch.kick")
         end
 
-        if (currentMap.custom or targetMap.custom) and targetMap.archive ~= currentMap.archive then
+        if currentMap and targetMap and
+            (currentMap.custom or targetMap.custom) and
+            targetMap.archive ~= currentMap.archive then
             -- if current or target is custom and not from the same mod, a reboot is mandatory
             Exit()
         else
