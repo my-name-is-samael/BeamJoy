@@ -143,8 +143,13 @@ local function drawSprint(ctxt)
             big = true,
         })
         :build()
+    local maxCheckpoints = 3
+    local totalCheckpoints = #lb.waypoints
+
+    local startIndex = math.max(1, totalCheckpoints - maxCheckpoints + 1)
+
     local cols = ColumnsBuilder("BJIRaceSoloSprintLeaderboard", { labelWidth, -1 })
-    for iWp = 1, wpPerLap do
+    for iWp = startIndex, totalCheckpoints do
         if lb.waypoints[iWp] then
             local color = iWp == currentWp and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT
             cols:addRow({
