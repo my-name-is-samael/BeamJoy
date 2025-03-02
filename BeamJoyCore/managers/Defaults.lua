@@ -112,8 +112,8 @@ local function config()
             GridTimeout = 60,
             RaceCountdown = 10,
             FinishTimeout = 5,
-            RaceEndTimeout = 5,
-            RaceSoloTimeBroadcast = false,
+            RaceEndTimeout = 120,
+            RaceSoloTimeBroadcast = true,
         },
         Hunter = {
             PreparationTimeout = 30,
@@ -133,7 +133,7 @@ local function config()
         Derby = {
             PreparationTimeout = 60,
             StartCountdown = 10,
-            DestroyedTimeout = 5,
+            DestroyedTimeout = 30,
         },
         VehicleDelivery = {
             ModelBlacklist = { "atv", "citybus" }

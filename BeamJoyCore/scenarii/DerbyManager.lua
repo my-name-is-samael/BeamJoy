@@ -27,7 +27,7 @@ local M = {
         startTime = nil,
     },
 }
-local MINIMUM_PARTICIPANTS = 3
+local MINIMUM_PARTICIPANTS = 1
 
 local function getParticipantPosition(playerID)
     for i, participant in ipairs(M.participants) do
