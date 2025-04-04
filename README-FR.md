@@ -11,8 +11,6 @@ Mod tout-en-un pour BeamMP
 Ce mod a pour objectif de fournir un accès facile aux outils de modération et aux activités pour les joueurs de votre serveur BeamMP.
 De plus, il intègre un framework modulaire permettant aux développeurs d’ajouter facilement de nouvelles fonctionnalités.
 
-🎮 Venez l'essayer sur mon serveur de démonstration: Cherchez "BeamJoy DEMO" dans la liste des serveurs en jeu.
-
 ## Sommaire
 1. [Fonctionnalités](#fonctionnalités)
 2. [Comment Installer](#comment-installer)
