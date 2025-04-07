@@ -706,7 +706,8 @@ local function getFullConfig(config)
         return nil
     end
 
-    config = config or veh.partConfig
+-- Changes for 0.35 handling of new vehicle part selector.https://github.com/my-name-is-samael/BeamJoy/issues/91#issuecomment-2782916143
+    config = MPHelpers.simplifyVehConfig(config) or MPHelpers.simplifyVehConfig(veh.partConfig)
     if isConfigCustom(config) then
         local fn = load(svar("return {1}", { config:gsub("'", "") }))
         if type(fn) == "function" then
