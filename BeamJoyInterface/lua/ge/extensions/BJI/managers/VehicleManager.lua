@@ -717,6 +717,9 @@ local function getFullConfig(config)
     return nil
 end
 
+    return nil
+end
+
 
 local function getType(model)
     if not M.allVehicleConfigs then
