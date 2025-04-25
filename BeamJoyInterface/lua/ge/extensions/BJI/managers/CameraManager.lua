@@ -77,6 +77,18 @@ local function setPositionRotation(pos, rot)
     )
 end
 
+local function toggleFreeCam()
+    if M.getCamera() == M.CAMERAS.FREE then
+        if BJIVeh.getCurrentVehicle() then
+            commands.toggleCamera()
+        end
+    else
+        if not M.isRestrictedCamera(M.CAMERAS.FREE) then
+            commands.toggleCamera()
+        end
+    end
+end
+
 local function isForcedCamera()
     return M.forced.cam ~= nil
 end
@@ -240,6 +252,7 @@ M.getCamera = getCamera
 M.setCamera = setCamera
 M.getPositionRotation = getPositionRotation
 M.setPositionRotation = setPositionRotation
+M.toggleFreeCam = toggleFreeCam
 
 M.isForcedCamera = isForcedCamera
 M.forceCamera = forceCamera

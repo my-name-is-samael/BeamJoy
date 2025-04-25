@@ -969,6 +969,9 @@ local function replaceOrSpawnVehicle(model, config, posrot)
     else
         core_vehicles.replaceVehicle(model, opts)
     end
+    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
+        BJICam.toggleFreeCam()
+    end
 end
 
 -- optionnal config and posrot
@@ -985,6 +988,9 @@ local function spawnNewVehicle(model, config, posrot)
         opts.rot = posrot.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
     end
     core_vehicles.spawnNewVehicle(model, opts)
+    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
+        BJICam.toggleFreeCam()
+    end
 end
 
 -- See M.getAllPaintsForModel for paint data
