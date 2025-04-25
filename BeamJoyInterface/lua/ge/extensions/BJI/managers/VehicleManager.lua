@@ -773,6 +773,11 @@ local function getCurrentConfigLabel()
     return "Custom"
 end
 
+-- vehicles banned from cache
+local INVALID_VEHICLES = {
+    "unicycle",
+    "roof_crush_tester"
+}
 -- cache spawnable data
 local function getAllVehicleConfigs(withTrailers, withProps, forced)
     if not forced and M.allVehicleConfigs then
@@ -810,7 +815,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             if isVeh and veh.model.preview == "/ui/images/appDefault.png" then
                 -- not loaded vehicle
                 goto skipVeh
-            elseif veh.model.key == "unicycle" then
+            elseif tincludes(INVALID_VEHICLES, veh.model.key) then
                 -- do not use
                 goto skipVeh
             end
