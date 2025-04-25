@@ -330,7 +330,11 @@
         "title": "Voto",
         "map": "Mapa",
         "mapCustom": "personalizado",
-        "race": "Corrida",
+        "race": {
+          "title": "Corrida",
+          "noRace": "Nenhuma corrida disponível",
+          "missingPlayers": "Faltam {amount} jogador(es)"
+        },
         "voteSpeed": "Jogo de velocidade"
       },
       "scenario": {
@@ -944,7 +948,8 @@
         "voteTimeout": "A votação terminará em {delay}",
         "voteAboutToEnd": "A votação está prestes a terminar",
         "startVote": "Iniciar votação",
-        "places": "{places} lugares"
+        "places": "{places} lugares",
+        "notEnoughPlayers": "Não há jogadores suficientes para iniciar uma corrida multijogador"
       },
       "play": {
         "race": "Corrida",

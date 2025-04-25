@@ -330,7 +330,11 @@
         "title": "Votare",
         "map": "Mappa",
         "mapCustom": "costume",
-        "race": "Gara",
+        "race": {
+          "title": "Gara",
+          "noRace": "Nessuna gara disponibile",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        },
         "voteSpeed": "Gioco di velocità"
       },
       "scenario": {
@@ -944,7 +948,8 @@
         "voteTimeout": "La votazione terminerà tra {delay}",
         "voteAboutToEnd": "La votazione sta per finire",
         "startVote": "Inizia la votazione",
-        "places": "{places} luoghi"
+        "places": "{places} luoghi",
+        "notEnoughPlayers": "Non ci sono abbastanza giocatori per avviare una gara multigiocatore"
       },
       "play": {
         "race": "Gara",

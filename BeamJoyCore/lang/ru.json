@@ -204,7 +204,11 @@
         "title": "Голосование",
         "map": "Карта",
         "mapCustom": "обычай",
-        "race": "Раса",
+        "race": {
+          "title": "Раса",
+          "noRace": "Нет доступных гонок",
+          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
+        },
         "voteSpeed": "Скорость игры"
       },
       "scenario": {
@@ -818,7 +822,8 @@
         "voteTimeout": "Голосование завершится через {delay}",
         "voteAboutToEnd": "Голосование подходит к концу",
         "startVote": "Начать голосование",
-        "places": "{places} мест"
+        "places": "{places} мест",
+        "notEnoughPlayers": "Недостаточно игроков для начала многопользовательской гонки"
       },
       "play": {
         "race": "Раса",

@@ -330,7 +330,11 @@
         "title": "Vote",
         "map": "Carte",
         "mapCustom": "custom",
-        "race": "Course",
+        "race": {
+          "title": "Course",
+          "noRace": "Aucune course disponible",
+          "missingPlayers": "Il manque encore {amount} joueur(s)"
+        },
         "voteSpeed": "Speed"
       },
       "scenario": {
@@ -944,7 +948,8 @@
         "voteTimeout": "Le vote se terminera dans {delay}",
         "voteAboutToEnd": "Le vote est sur le point de se terminer",
         "startVote": "Lancer un vote",
-        "places": "{places} places"
+        "places": "{places} places",
+        "notEnoughPlayers": "Il n'y a pas assez de joueurs pour lancer une course multijoueur"
       },
       "play": {
         "race": "Course",
