@@ -336,26 +336,59 @@
           "noRace": "No race available",
           "missingPlayers": "Missing {amount} more player(s)"
         },
-        "voteSpeed": "Speed Game"
+        "speed": {
+          "title": "Speed Game",
+          "missingPlayers": "Missing {amount} more player(s)"
+        }
       },
       "scenario": {
         "title": "Scenario",
-        "startSoloRace": "Start Solo Race",
-        "stopSoloRace": "Stop Race",
-        "startVehicleDelivery": "Start Vehicle Delivery",
-        "startPackageDelivery": "Start Package Delivery",
-        "stopDelivery": "Stop Delivery",
-        "joinDeliveryMulti": "Join Delivery Together",
-        "leaveDeliveryMulti": "Leave Delivery Together",
-        "startBusMission": "Start Bus Mission",
-        "stopBusMission": "Stop Bus Mission",
-        "startSpeed": "Start Speed Game",
-        "stopSpeed": "Stop Speed Game",
+        "soloRace": {
+          "start": "Start Solo Race",
+          "stop": "Stop Race",
+          "noRace": "No race available",
+          "missingOwnVehicle": "Missing an owned vehicle"
+        },
+        "vehicleDelivery": {
+          "start": "Start Vehicle Delivery",
+          "stop": "Stop Delivery",
+          "noDelivery": "No delivery available"
+        },
+        "packageDelivery": {
+          "start": "Start Package Delivery",
+          "stop": "Stop Delivery",
+          "noDelivery": "No delivery available",
+          "missingOwnVehicle": "Missing an owned vehicle"
+        },
+        "deliveryMulti": {
+          "join": "Join Delivery Together",
+          "leave": "Leave Delivery Together",
+          "noDelivery": "No delivery available",
+          "missingOwnVehicle": "Missing an owned vehicle"
+        },
+        "busMission": {
+          "start": "Start Bus Mission",
+          "stop": "Stop Bus Mission",
+          "noBusMission": "No bus mission available"
+        },
+        "speed": {
+          "start": "Start Speed Game",
+          "stop": "Stop Speed Game",
+          "missingPlayers": "Missing {amount} more player(s)"
+        },
         "raceStop": "Stop Race",
-        "startHunter": "Start Hunter",
-        "stopHunter": "Stop Hunter",
-        "startDerby": "Start Destruction Derby",
-        "stopDerby": "Stop Destruction Derby"
+        "hunter": {
+          "start": "Start Hunter",
+          "stop": "Stop Hunter",
+          "modeDisabled": "disabled",
+          "missingPlayers": "Missing {amount} more player(s)"
+        },
+        "derby": {
+          "start": "Start Destruction Derby",
+          "stop": "Stop Destruction Derby",
+          "noArena": "No arena available",
+          "missingPlayers": "Missing {amount} more player(s)"
+        }
       },
       "edit": {
         "title": "Edit",
@@ -1189,7 +1222,8 @@
         "hunterConfigs": "Hunter Configs",
         "hunterConfigsTooltip": "Vehicle configs hunters can choose from (if none, any game config can be picked)",
         "toastConfigAlreadySaved": "Config already saved",
-        "specificConfig": "Specific {model}"
+        "specificConfig": "Specific {model}",
+        "notEnoughPlayers": "There are not enough players to start the hunter mode"
       },
       "play": {
         "flashChooseVehicle": "Choose your vehicle",
@@ -1230,7 +1264,8 @@
         "configs": "Vehicle configs",
         "configsTooltip": "Vehicle configs players can choose from (if none, any game config can be picked)",
         "toastConfigAlreadySaved": "Config already saved",
-        "specificConfig": "Specific {model}"
+        "specificConfig": "Specific {model}",
+        "notEnoughPlayers": "There are not enough players to start the derby"
       },
       "play": {
         "flashNoLifeRemaining": "Last life",

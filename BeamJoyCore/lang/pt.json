@@ -335,26 +335,59 @@
           "noRace": "Nenhuma corrida disponível",
           "missingPlayers": "Faltam {amount} jogador(es)"
         },
-        "voteSpeed": "Jogo de velocidade"
+        "speed": {
+          "title": "Jogo de velocidade",
+          "missingPlayers": "Faltam {amount} jogador(es)"
+        }
       },
       "scenario": {
         "title": "Cenário",
-        "startSoloRace": "Comece a corrida solo",
-        "stopSoloRace": "Parar corrida",
-        "startVehicleDelivery": "Iniciar entrega do veículo",
-        "startPackageDelivery": "Iniciar entrega de pacotes",
-        "stopDelivery": "Interromper entrega",
-        "joinDeliveryMulti": "Junte-se à entrega juntos",
-        "leaveDeliveryMulti": "Deixe a entrega juntos",
-        "startBusMission": "Iniciar missão de ônibus",
-        "stopBusMission": "Parar missão de ônibus",
-        "startSpeed": "Iniciar jogo de velocidade",
-        "stopSpeed": "Pare o jogo de velocidade",
+        "soloRace": {
+          "start": "Comece a corrida solo",
+          "stop": "Parar corrida",
+          "noRace": "Nenhuma corrida disponível",
+          "missingOwnVehicle": "Falta um veículo próprio"
+        },
+        "vehicleDelivery": {
+          "start": "Iniciar entrega do veículo",
+          "stop": "Interromper entrega",
+          "noDelivery": "Nenhuma entrega disponível"
+        },
+        "packageDelivery": {
+          "start": "Iniciar entrega de pacotes",
+          "stop": "Interromper entrega",
+          "noDelivery": "Nenhuma entrega disponível",
+          "missingOwnVehicle": "Falta um veículo próprio"
+        },
+        "deliveryMulti": {
+          "join": "Junte-se à entrega juntos",
+          "leave": "Deixe a entrega juntos",
+          "noDelivery": "Nenhuma entrega disponível",
+          "missingOwnVehicle": "Falta um veículo próprio"
+        },
+        "busMission": {
+          "start": "Iniciar missão de ônibus",
+          "stop": "Parar missão de ônibus",
+          "noBusMission": "Nenhuma missão de ônibus disponível"
+        },
+        "speed": {
+          "start": "Iniciar jogo de velocidade",
+          "stop": "Pare o jogo de velocidade",
+          "missingPlayers": "Faltam {amount} jogador(es)"
+        },
         "raceStop": "Parar corrida",
-        "startHunter": "Iniciar caçador",
-        "stopHunter": "Pare o caçador",
-        "startDerby": "Comece o Derby de Destruição",
-        "stopDerby": "Pare o Derby da Destruição"
+        "hunter": {
+          "start": "Iniciar caçador",
+          "stop": "Pare o caçador",
+          "modeDisabled": "desabilitado",
+          "missingPlayers": "Faltam {amount} jogador(es)"
+        },
+        "derby": {
+          "start": "Comece o Derby de Destruição",
+          "stop": "Pare o Derby da Destruição",
+          "noArena": "Nenhuma arena disponível",
+          "missingPlayers": "Faltam {amount} jogador(es)"
+        }
       },
       "edit": {
         "title": "Editar",
@@ -1188,7 +1221,8 @@
         "hunterConfigs": "Configurações do Hunter",
         "hunterConfigsTooltip": "Os caçadores de configurações de veículos podem escolher (se não houver nenhuma, qualquer configuração de jogo pode ser escolhida)",
         "toastConfigAlreadySaved": "Configuração já salva",
-        "specificConfig": "{model} específico"
+        "specificConfig": "{model} específico",
+        "notEnoughPlayers": "Não há jogadores suficientes para iniciar o modo caçador"
       },
       "play": {
         "flashChooseVehicle": "Escolha seu veículo",
@@ -1229,7 +1263,8 @@
         "configs": "Configurações do veículo",
         "configsTooltip": "Os jogadores podem escolher as configurações do veículo (se não houver nenhuma, qualquer configuração do jogo pode ser escolhida)",
         "toastConfigAlreadySaved": "Configuração já salva",
-        "specificConfig": "{model} específico"
+        "specificConfig": "{model} específico",
+        "notEnoughPlayers": "Não há jogadores suficientes para iniciar o derby"
       },
       "play": {
         "flashNoLifeRemaining": "Última vida",

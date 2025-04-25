@@ -1,9 +1,4 @@
-return function(ctxt)
-    local configEntry = {
-        label = BJILang.get("menu.config.title"),
-        elems = {},
-    }
-
+local function menuServer(ctxt, configEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CEN) or
@@ -17,7 +12,9 @@ return function(ctxt)
             end
         })
     end
+end
 
+local function menuEnvironment(ctxt, configEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) then
         table.insert(configEntry.elems, {
             label = BJILang.get("menu.config.environment"),
@@ -27,7 +24,9 @@ return function(ctxt)
             end
         })
     end
+end
 
+local function menuTheme(ctxt, configEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) then
         table.insert(configEntry.elems, {
             label = BJILang.get("menu.config.theme"),
@@ -58,7 +57,9 @@ return function(ctxt)
             end
         })
     end
+end
 
+local function menuDatabase(ctxt, configEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.DATABASE_PLAYERS) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.DATABASE_VEHICLES) then
         table.insert(configEntry.elems, {
@@ -69,7 +70,9 @@ return function(ctxt)
             end
         })
     end
+end
 
+local function menuStopServer(ctxt, configEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) then
         table.insert(configEntry.elems, {
             label = BJILang.get("menu.config.stop"),
@@ -86,6 +89,19 @@ return function(ctxt)
             end,
         })
     end
+end
+
+return function(ctxt)
+    local configEntry = {
+        label = BJILang.get("menu.config.title"),
+        elems = {},
+    }
+
+    menuServer(ctxt, configEntry)
+    menuEnvironment(ctxt, configEntry)
+    menuTheme(ctxt, configEntry)
+    menuDatabase(ctxt, configEntry)
+    menuStopServer(ctxt, configEntry)
 
     return #configEntry.elems > 0 and configEntry or nil
 end

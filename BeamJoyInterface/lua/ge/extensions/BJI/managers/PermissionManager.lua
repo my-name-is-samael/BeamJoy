@@ -205,6 +205,16 @@ local function getPreviousGroup(groupName)
     return nil
 end
 
+local function getCountPlayersCanSpawnVehicle()
+    local count = 0
+    for _, player in pairs(BJIContext.Players) do
+        if M.canSpawnVehicle(player.playerID) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 M.hasMinimumGroup = hasMinimumGroup
 M.hasPermission = hasPermission
 M.hasMinimumGroupOrPermission = hasMinimumGroupOrPermission
@@ -212,6 +222,7 @@ M.canSpawnVehicle = canSpawnVehicle
 M.isStaff = isStaff
 M.getNextGroup = getNextGroup
 M.getPreviousGroup = getPreviousGroup
+M.getCountPlayersCanSpawnVehicle = getCountPlayersCanSpawnVehicle
 
 RegisterBJIManager(M)
 return M

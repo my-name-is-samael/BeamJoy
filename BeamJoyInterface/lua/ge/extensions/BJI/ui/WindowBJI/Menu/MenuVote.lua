@@ -1,10 +1,4 @@
-return function(ctxt)
-    local votesEntry = {
-        label = BJILang.get("menu.vote.title"),
-        elems = {}
-    }
-
-    -- VOTE MAP
+local function menuMap(ctxt, votesEntry)
     if BJIVote.Map.canStartVote() and
         BJIScenario.isFreeroam() and
         BJIContext.Maps then
@@ -31,8 +25,9 @@ return function(ctxt)
             elems = maps
         })
     end
+end
 
-    --VOTE RACE
+local function menuRace(ctxt, votesEntry)
     local function openRaceVote(raceID)
         local race
         for _, r in ipairs(BJIContext.Scenario.Data.Races) do
@@ -79,7 +74,7 @@ return function(ctxt)
     if BJIVote.Race.canStartVote() then
         local raceErrorMessage = nil
         local minParticipants = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
-        local playersCount = tlength(BJIContext.Players)
+        local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
         local rawRaces = {}
         if BJIContext.Scenario.Data.Races then
             for _, race in ipairs(BJIContext.Scenario.Data.Races) do
@@ -90,9 +85,9 @@ return function(ctxt)
         end
         if #rawRaces == 0 then
             raceErrorMessage = BJILang.get("menu.vote.race.noRace")
-        elseif playersCount < minParticipants then
+        elseif potentialPlayers < minParticipants then
             raceErrorMessage = svar(BJILang.get("menu.vote.race.missingPlayers"),
-                { amount = minParticipants - playersCount })
+                { amount = minParticipants - potentialPlayers })
         end
 
         if raceErrorMessage then
@@ -132,17 +127,48 @@ return function(ctxt)
             })
         end
     end
+end
 
-    -- SPEED
-    if not BJIScenario.isServerScenarioInProgress() and
-        BJIVote.Speed.canStartVote() then
-        table.insert(votesEntry.elems, {
-            label = BJILang.get("menu.vote.voteSpeed"),
-            onClick = function()
-                BJITx.scenario.SpeedStart(true)
-            end,
-        })
+local function menuSpeed(ctxt, votesEntry)
+    if BJIVote.Speed.canStartVote() then
+        local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
+        local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
+        local errorMessage = nil
+        if potentialPlayers < minimumParticipants then
+            errorMessage = svar(BJILang.get("menu.vote.speed.missingPlayers"), {
+                amount = minimumParticipants - potentialPlayers
+            })
+        end
+
+        if errorMessage then
+            table.insert(votesEntry.elems, {
+                render = function()
+                    LineBuilder()
+                        :text(BJILang.get("menu.vote.speed.title"), TEXT_COLORS.DISABLED)
+                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :build()
+                end
+            })
+        else
+            table.insert(votesEntry.elems, {
+                label = BJILang.get("menu.vote.speed.title"),
+                onClick = function()
+                    BJITx.scenario.SpeedStart(true)
+                end,
+            })
+        end
     end
+end
+
+return function(ctxt)
+    local votesEntry = {
+        label = BJILang.get("menu.vote.title"),
+        elems = {}
+    }
+
+    menuMap(ctxt, votesEntry)
+    menuRace(ctxt, votesEntry)
+    menuSpeed(ctxt, votesEntry)
 
     return #votesEntry.elems > 0 and votesEntry or nil
 end

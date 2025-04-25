@@ -41,7 +41,7 @@ local function init()
     registerSoloScenario("DELIVERY_MULTI", require("ge/extensions/BJI/scenario/ScenarioDeliveryMulti"))
     registerMultiScenario("HUNTER", require("ge/extensions/BJI/scenario/ScenarioHunter"))
     registerMultiScenario("DERBY", require("ge/extensions/BJI/scenario/ScenarioDerby"))
-    --registerMultiScenario("TAG_DUO", require("ge/extensions/BJI/scenario/ScenarioTagDuo"))
+    --registerSoloScenario("TAG_DUO", require("ge/extensions/BJI/scenario/ScenarioTagDuo"))
 
     M.CurrentScenario = M.TYPES.FREEROAM
     if _curr().onLoad then

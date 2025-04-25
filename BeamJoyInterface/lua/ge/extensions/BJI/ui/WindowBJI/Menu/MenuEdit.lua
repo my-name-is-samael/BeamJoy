@@ -1,10 +1,4 @@
-return function(ctxt)
-    local editEntry = {
-        label = BJILang.get("menu.edit.title"),
-        elems = {},
-    }
-
-    -- FREEROAM SETTINGS
+local function menuFreeroamSettings(ctxt, editEntry)
     if BJICache.isFirstLoaded(BJICache.CACHES.BJC) and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) then
         table.insert(editEntry.elems, {
@@ -15,8 +9,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- TIME PRESETS
+local function menuTimePresets(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJIEnv.Data.controlSun then
         local presets = require("ge/extensions/utils/EnvironmentUtils").timePresets()
@@ -59,8 +54,9 @@ return function(ctxt)
             elems = elems,
         })
     end
+end
 
-    -- WEATHER PRESETS
+local function menuWeatherPresets(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJIEnv.Data.controlWeather then
         local presets = require("ge/extensions/utils/EnvironmentUtils").weatherPresets()
@@ -99,8 +95,9 @@ return function(ctxt)
             elems = elems,
         })
     end
+end
 
-    -- SWITCH MAP
+local function menuSwitchMap(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP) and
         BJIContext.Maps then
         local maps = {}
@@ -126,15 +123,16 @@ return function(ctxt)
             elems = maps
         })
     end
+end
 
-    local function isScenarioEditorDisabled(currentData)
-        if currentData or not BJIScenario.isFreeroam() then
-            return false
-        end
-        return BJIContext.Scenario.isEditorOpen()
+local function isScenarioEditorDisabled(currentData)
+    if currentData or not BJIScenario.isFreeroam() then
+        return false
     end
+    return BJIContext.Scenario.isEditorOpen()
+end
 
-    -- ENERGY STATIONS
+local function menuEnergyStations(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.EnergyStations then
         table.insert(editEntry.elems, {
@@ -158,8 +156,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- GARAGES
+local function menuGarages(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Garages then
         table.insert(editEntry.elems, {
@@ -183,8 +182,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- DELIVERIES
+local function menuDeliveries(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Deliveries then
         table.insert(editEntry.elems, {
@@ -209,8 +209,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- BUS LINES
+local function menuBusLines(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.BusLines then
         table.insert(editEntry.elems, {
@@ -235,8 +236,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- RACES
+local function menuRaces(ctxt, editEntry)
     local function createRaceEditData(r, isCopy)
         -- creation
         local res = {
@@ -379,8 +381,9 @@ return function(ctxt)
             })
         end
     end
+end
 
-    -- HUNTER
+local function menuHunter(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Hunter and
         BJIContext.Scenario.Data.Hunter.targets then
@@ -410,8 +413,9 @@ return function(ctxt)
             end,
         })
     end
+end
 
-    -- DERBY
+local function menuDerby(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Derby then
         table.insert(editEntry.elems, {
@@ -436,6 +440,27 @@ return function(ctxt)
             end
         })
     end
+end
+
+return function(ctxt)
+    local editEntry = {
+        label = BJILang.get("menu.edit.title"),
+        elems = {},
+    }
+
+    menuFreeroamSettings(ctxt, editEntry)
+    menuTimePresets(ctxt, editEntry)
+    menuWeatherPresets(ctxt, editEntry)
+    menuSwitchMap(ctxt, editEntry)
+
+    -- scenario editors
+    menuEnergyStations(ctxt, editEntry)
+    menuGarages(ctxt, editEntry)
+    menuDeliveries(ctxt, editEntry)
+    menuBusLines(ctxt, editEntry)
+    menuRaces(ctxt, editEntry)
+    menuHunter(ctxt, editEntry)
+    menuDerby(ctxt, editEntry)
 
     return #editEntry.elems > 0 and editEntry or nil
 end

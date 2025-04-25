@@ -6,7 +6,11 @@ end
 
 local function drawHeader(ctxt)
     hs = BJIContext.Scenario.HunterSettings
-    if tlength(BJIContext.Players) < 3 then
+    local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
+    local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS
+    if potentialPlayers < minimumParticipants then
+        -- when a player leaves then there are not enough players to start
+        BJIToast.warning(BJILang.get("hunter.settings.notEnoughPlayers"))
         onClose()
     end
 
@@ -16,6 +20,9 @@ local function drawHeader(ctxt)
 end
 
 local function drawBody(ctxt)
+    if not BJIContext.Scenario.HunterSettings then
+        return
+    end
     local labelWidth = 0
     for _, key in ipairs({
         "hunter.settings.huntedWaypoints",
@@ -222,6 +229,9 @@ local function drawBody(ctxt)
 end
 
 local function drawFooter(ctxt)
+    if not BJIContext.Scenario.HunterSettings then
+        return
+    end
     LineBuilder()
         :btnIcon({
             id = "closeHunterSettings",

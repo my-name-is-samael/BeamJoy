@@ -1,5 +1,6 @@
 local M = {
     -- server data
+    MINIMUM_PARTICIPANTS = 2,
     isEvent = false,
     startTime = nil,
     participants = {},
@@ -181,6 +182,7 @@ local function stop()
 end
 
 local function rxData(data)
+    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
     M.isEvent = data.isEvent
     M.participants = data.participants
     M.leaderboard = data.leaderboard
