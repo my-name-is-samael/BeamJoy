@@ -1,6 +1,6 @@
 --[[
 BeamJoy for BeamMP
-Copyright (C) 2024 TontonSamael
+Copyright (C) 2024-2025 TontonSamael
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJIVERSION = "1.1.5"
+BJIVERSION = "1.1.6"
 
 require("ge/extensions/utils/LoadDefaults")
 
