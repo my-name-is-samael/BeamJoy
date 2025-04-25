@@ -85,7 +85,6 @@ local function help(sender, argsStr)
     if #argsStr > 0 then
         cmd = ssplit(argsStr, " ")[1]
         local found = findCommand(sender, cmd, { "help" })
-        PrintObj(found)
         if found then
             printUsage(sender, found)
             return

@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 3,
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation
         READY = "Ready",         -- preparation
@@ -472,6 +473,7 @@ local function updateGame(data)
 end
 
 local function rxData(data)
+    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
     if data.state then
         if data.state == M.STATES.PREPARATION then
             if not M.state then

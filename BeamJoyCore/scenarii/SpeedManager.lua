@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 2,
     isEvent = false,
     startTime = nil,
     participants = {},
@@ -12,6 +13,7 @@ local M = {
 
 local function getCache()
     return {
+        minimumParticipants = M.MINIMUM_PARTICIPANTS,
         isEvent = M.isEvent,
         startTime = M.startTime,
         participants = M.participants,
@@ -31,7 +33,7 @@ local function getCacheHash()
 end
 
 local function start(participants, isEvent)
-    if tlength(participants) < 1 then -- DEBUG
+    if tlength(participants) < M.MINIMUM_PARTICIPANTS then
         return
     end
     if isEvent then

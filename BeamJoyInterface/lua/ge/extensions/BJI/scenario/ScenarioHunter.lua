@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 3,
     STATES = {
         PREPARATION = 1,
         GAME = 2,
@@ -462,6 +463,7 @@ end
 
 -- receive hunter data from backend
 local function rxData(data)
+    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
     M.huntersRespawnDelay = data.huntersRespawnDelay
     if data.state == M.STATES.PREPARATION then
         if not M.state then

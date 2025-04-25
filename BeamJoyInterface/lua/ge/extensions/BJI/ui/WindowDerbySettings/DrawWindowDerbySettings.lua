@@ -6,7 +6,11 @@ end
 
 local function drawHeader(ctxt)
     ds = BJIContext.Scenario.DerbySettings
-    if tlength(BJIContext.Players) < 3 then
+    local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
+    local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
+    if potentialPlayers < minimumParticipants then
+        -- when a player leaves then there are not enough players to start
+        BJIToast.warning(BJILang.get("derby.settings.notEnoughPlayers"))
         onClose()
     end
 
@@ -21,6 +25,9 @@ local function drawHeader(ctxt)
 end
 
 local function drawBody(ctxt)
+    if not BJIContext.Scenario.DerbySettings then
+        return
+    end
     local labelWidth = 0
     for _, key in ipairs({
         "derby.settings.lives",
@@ -155,6 +162,9 @@ local function drawBody(ctxt)
 end
 
 local function drawFooter(ctxt)
+    if not BJIContext.Scenario.DerbySettings then
+        return
+    end
     LineBuilder()
         :btnIcon({
             id = "closeDerbySettings",

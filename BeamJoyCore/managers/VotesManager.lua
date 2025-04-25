@@ -277,7 +277,7 @@ end
 
 local function getRaceThreshold()
     return math.ceil(
-        tlength(BJCPlayers.Players) * BJCConfig.Data.Race.VoteThresholdRatio
+        BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Race.VoteThresholdRatio
     )
 end
 
@@ -318,7 +318,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
     local race
     if raceStarted() then
         error({ key = "rx.errors.invalidData" })
-    elseif MP.GetPlayerCount() < 1 then -- DEBUG 2
+    elseif BJCPerm.getCountPlayersCanSpawnVehicles() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     else
         race = BJCScenario.getRace(raceID)
@@ -437,21 +437,10 @@ local function speedVoteTimeout()
     resetSpeed()
 end
 
-local function getSpeedTotalPlayers()
-    local total = 0
-    for playerID, player in pairs(BJCPlayers.Players) do
-        local group = BJCGroups.Data[player.group]
-        if group and group.vehicleCap ~= 0 then
-            total = total + 1
-        end
-    end
-    return total
-end
-
 function M.Speed.start(senderID, isVote)
     if speedStarted() then
         error({ key = "rx.errors.invalidData" })
-    elseif getSpeedTotalPlayers() < 1 then -- DEBUG 2
+    elseif BJCPerm.getCountPlayersCanSpawnVehicles() < BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     elseif not isVote and
         not BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then

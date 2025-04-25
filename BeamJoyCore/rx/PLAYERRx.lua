@@ -1,5 +1,9 @@
 local ctrl = {}
 
+function ctrl.connected(ctxt)
+    BJCPlayers.onPlayerConnect(ctxt.senderID)
+end
+
 function ctrl.settings(ctxt)
     local key, value = ctxt.data[1], ctxt.data[2]
     BJCPlayers.settings(ctxt.senderID, key, value)

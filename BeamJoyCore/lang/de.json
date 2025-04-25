@@ -330,27 +330,64 @@
         "title": "Abstimmung",
         "map": "Karte",
         "mapCustom": "Brauch",
-        "race": "Wettrennen",
-        "voteSpeed": "Geschwindigkeitsspiel"
+        "race": {
+          "title": "Wettrennen",
+          "noRace": "Kein Rennen verfügbar",
+          "missingPlayers": "Es fehlen noch {amount} Spieler"
+        },
+        "speed": {
+          "title": "Geschwindigkeitsspiel",
+          "missingPlayers": "Es fehlen noch {amount} Spieler"
+        }
       },
       "scenario": {
         "title": "Szenario",
-        "startSoloRace": "Solo-Rennen starten",
-        "stopSoloRace": "Stoppen Sie das Rennen",
-        "startVehicleDelivery": "Fahrzeugauslieferung starten",
-        "startPackageDelivery": "Starten Sie die Paketzustellung",
-        "stopDelivery": "Lieferung stoppen",
-        "joinDeliveryMulti": "Nehmen Sie gemeinsam an der Lieferung teil",
-        "leaveDeliveryMulti": "Überlassen Sie die Lieferung gemeinsam",
-        "startBusMission": "Busmission starten",
-        "stopBusMission": "Stop-Bus-Mission",
-        "startSpeed": "Geschwindigkeitsspiel starten",
-        "stopSpeed": "Stoppen Sie das Geschwindigkeitsspiel",
+        "soloRace": {
+          "start": "Solo-Rennen starten",
+          "stop": "Stoppen Sie das Rennen",
+          "noRace": "Kein Rennen verfügbar",
+          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+        },
+        "vehicleDelivery": {
+          "start": "Fahrzeugauslieferung starten",
+          "stop": "Lieferung stoppen",
+          "noDelivery": "Keine Lieferung verfügbar"
+        },
+        "packageDelivery": {
+          "start": "Starten Sie die Paketzustellung",
+          "stop": "Lieferung stoppen",
+          "noDelivery": "Keine Lieferung verfügbar",
+          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+        },
+        "deliveryMulti": {
+          "join": "Nehmen Sie gemeinsam an der Lieferung teil",
+          "leave": "Überlassen Sie die Lieferung gemeinsam",
+          "noDelivery": "Keine Lieferung verfügbar",
+          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+        },
+        "busMission": {
+          "start": "Busmission starten",
+          "stop": "Stop-Bus-Mission",
+          "noBusMission": "Keine Busmission verfügbar"
+        },
+        "speed": {
+          "start": "Geschwindigkeitsspiel starten",
+          "stop": "Stoppen Sie das Geschwindigkeitsspiel",
+          "missingPlayers": "Es fehlen noch {amount} Spieler"
+        },
         "raceStop": "Stoppen Sie das Rennen",
-        "startHunter": "Starten Sie Hunter",
-        "stopHunter": "Stoppen Sie Hunter",
-        "startDerby": "Starten Sie Destruction Derby",
-        "stopDerby": "Stop Destruction Derby"
+        "hunter": {
+          "start": "Starten Sie Hunter",
+          "stop": "Stoppen Sie Hunter",
+          "modeDisabled": "deaktiviert",
+          "missingPlayers": "Es fehlen noch {amount} Spieler"
+        },
+        "derby": {
+          "start": "Starten Sie Destruction Derby",
+          "stop": "Stop Destruction Derby",
+          "noArena": "Keine Arena verfügbar",
+          "missingPlayers": "Es fehlen noch {amount} Spieler"
+        }
       },
       "edit": {
         "title": "Bearbeiten",
@@ -944,7 +981,8 @@
         "voteTimeout": "Die Abstimmung endet in {delay}",
         "voteAboutToEnd": "Die Abstimmung steht vor dem Ende",
         "startVote": "Abstimmung starten",
-        "places": "{places} Orte"
+        "places": "{places} Orte",
+        "notEnoughPlayers": "Es sind nicht genügend Spieler vorhanden, um ein Mehrspielerrennen zu starten"
       },
       "play": {
         "race": "Wettrennen",
@@ -1183,7 +1221,8 @@
         "hunterConfigs": "Hunter-Konfigurationen",
         "hunterConfigsTooltip": "Fahrzeugkonfigurationen, aus denen Jäger wählen können (falls keine vorhanden sind, kann jede beliebige Spielkonfiguration ausgewählt werden)",
         "toastConfigAlreadySaved": "Konfiguration bereits gespeichert",
-        "specificConfig": "Spezifisches {model}"
+        "specificConfig": "Spezifisches {model}",
+        "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um den Jägermodus zu starten"
       },
       "play": {
         "flashChooseVehicle": "Wählen Sie Ihr Fahrzeug",
@@ -1224,7 +1263,8 @@
         "configs": "Fahrzeugkonfigurationen",
         "configsTooltip": "Fahrzeugkonfigurationen, aus denen Spieler wählen können (falls keine vorhanden sind, kann eine beliebige Spielkonfiguration ausgewählt werden)",
         "toastConfigAlreadySaved": "Konfiguration bereits gespeichert",
-        "specificConfig": "Spezifisches {model}"
+        "specificConfig": "Spezifisches {model}",
+        "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um das Derby zu starten"
       },
       "play": {
         "flashNoLifeRemaining": "Letztes Leben",

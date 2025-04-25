@@ -688,7 +688,7 @@ local function isConfigCustom(config)
     end
 
     config = config or veh.partConfig
-    return not config:find(".+%.pc$")
+    return not config:find("%.pc$")
 end
 
 local function isModelBlacklisted(model)
@@ -773,6 +773,11 @@ local function getCurrentConfigLabel()
     return "Custom"
 end
 
+-- vehicles banned from cache
+local INVALID_VEHICLES = {
+    "unicycle",
+    "roof_crush_tester"
+}
 -- cache spawnable data
 local function getAllVehicleConfigs(withTrailers, withProps, forced)
     if not forced and M.allVehicleConfigs then
@@ -810,7 +815,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             if isVeh and veh.model.preview == "/ui/images/appDefault.png" then
                 -- not loaded vehicle
                 goto skipVeh
-            elseif veh.model.key == "unicycle" then
+            elseif tincludes(INVALID_VEHICLES, veh.model.key) then
                 -- do not use
                 goto skipVeh
             end
@@ -969,6 +974,9 @@ local function replaceOrSpawnVehicle(model, config, posrot)
     else
         core_vehicles.replaceVehicle(model, opts)
     end
+    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
+        BJICam.toggleFreeCam()
+    end
 end
 
 -- optionnal config and posrot
@@ -985,6 +993,9 @@ local function spawnNewVehicle(model, config, posrot)
         opts.rot = posrot.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
     end
     core_vehicles.spawnNewVehicle(model, opts)
+    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
+        BJICam.toggleFreeCam()
+    end
 end
 
 -- See M.getAllPaintsForModel for paint data

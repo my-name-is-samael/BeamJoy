@@ -106,17 +106,13 @@ function M.Race.started()
     return M.Race.creatorID ~= nil
 end
 
-function M.Race.getTotalPlayers()
-    return tlength(BJIContext.Players)
-end
-
 function M.Race.canStartVote()
-    return not M.Race.started() and
+    return not BJIScenario.isServerScenarioInProgress() and
+        not M.Race.started() and
         (
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
-        ) and
-        M.Race.getTotalPlayers() > 1
+        )
 end
 
 function M.Race.start(raceID, isVote, settings)
@@ -137,21 +133,11 @@ function M.Speed.started()
     return M.Speed.endsAt ~= nil
 end
 
-local function getSpeedTotalPlayers()
-    local total = 0
-    for playerID in pairs(BJIContext.Players) do
-        if BJIPerm.canSpawnVehicle(playerID) then
-            total = total + 1
-        end
-    end
-    return total
-end
-
 function M.Speed.canStartVote()
     return not M.Speed.started() and
+        not BJIScenario.isServerScenarioInProgress() and
         BJIScenario.isFreeroam() and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) and
-        getSpeedTotalPlayers() > 1
+        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
 end
 
 local function slowTick(ctxt)

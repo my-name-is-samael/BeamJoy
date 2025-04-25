@@ -206,21 +206,24 @@ function _BJCOnPlayerJoining(playerID)
 end
 
 function _BJCOnPlayerJoin(playerID)
+    if not M.Players[playerID] then
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        M.Players[playerID] = nil
+    end
+end
+
+-- Triggered when player is connected and ready to play
+local function onPlayerConnect(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
-
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
-        TriggerBJCManagers("onPlayerJoin", playerID, M.Players[playerID].playerName)
+        TriggerBJCManagers("onPlayerConnected", playerID, M.Players[playerID].playerName)
     else
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
     end
-
-    BJCAsync.delayTask(function()
-        BJCChat.onWelcome(playerID)
-    end, 3)
 end
 
 function _BJCOnPlayerDisconnect(playerID)
@@ -342,46 +345,48 @@ end
 local function getCachePlayers(senderID)
     local players = {}
     for playerID, player in pairs(M.Players) do
-        -- basic data
-        players[playerID] = {
-            playerID = playerID,
-            playerName = player.playerName,
-            guest = player.guest,
-            group = player.group,
-            reputation = player.reputation,
-            staff = BJCPerm.isStaff(playerID),
-            currentVehicle = player.currentVehicle,
-            vehicles = {},
-            ai = tdeepcopy(player.ai),
-        }
-        players[playerID].vehicles = {}
-        for vehID, vehicle in pairs(player.vehicles) do
-            players[playerID].vehicles[vehID] = {
-                vehID = vehID,
-                gameVehID = vehicle.vid,
-                model = vehicle.name,
+        if player.ready then
+            -- basic data
+            players[playerID] = {
+                playerID = playerID,
+                playerName = player.playerName,
+                guest = player.guest,
+                group = player.group,
+                reputation = player.reputation,
+                staff = BJCPerm.isStaff(playerID),
+                currentVehicle = player.currentVehicle,
+                vehicles = {},
+                ai = tdeepcopy(player.ai),
             }
-        end
-        -- moderation data
-        if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.MOD) then
-            players[playerID].freeze = player.freeze
-            players[playerID].engine = player.engine
-            players[playerID].muted = player.muted
-            players[playerID].muteReason = player.muteReason
-            players[playerID].kickReason = player.kickReason
-            players[playerID].banReason = player.banReason
-
+            players[playerID].vehicles = {}
             for vehID, vehicle in pairs(player.vehicles) do
-                players[playerID].vehicles[vehID].freeze = vehicle.freeze
-                players[playerID].vehicles[vehID].engine = vehicle.engine
+                players[playerID].vehicles[vehID] = {
+                    vehID = vehID,
+                    gameVehID = vehicle.vid,
+                    model = vehicle.name,
+                }
             end
+            -- moderation data
+            if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.MOD) then
+                players[playerID].freeze = player.freeze
+                players[playerID].engine = player.engine
+                players[playerID].muted = player.muted
+                players[playerID].muteReason = player.muteReason
+                players[playerID].kickReason = player.kickReason
+                players[playerID].banReason = player.banReason
 
-            players[playerID].messages = {}
-            for _, msg in ipairs(player.messages) do
-                table.insert(players[playerID].messages, {
-                    time = msg.time,
-                    message = msg.message,
-                })
+                for vehID, vehicle in pairs(player.vehicles) do
+                    players[playerID].vehicles[vehID].freeze = vehicle.freeze
+                    players[playerID].vehicles[vehID].engine = vehicle.engine
+                end
+
+                players[playerID].messages = {}
+                for _, msg in ipairs(player.messages) do
+                    table.insert(players[playerID].messages, {
+                        time = msg.time,
+                        message = msg.message,
+                    })
+                end
             end
         end
     end
@@ -1368,6 +1373,7 @@ MP.RegisterEvent("onPlayerAuth", "_BJCOnPlayerAuth")
 MP.RegisterEvent("onPlayerConnecting", "_BJCOnPlayerConnecting")
 MP.RegisterEvent("onPlayerJoining", "_BJCOnPlayerJoining")
 MP.RegisterEvent("onPlayerJoin", "_BJCOnPlayerJoin")
+M.onPlayerConnect = onPlayerConnect
 MP.RegisterEvent("onPlayerDisconnect", "_BJCOnPlayerDisconnect")
 
 MP.RegisterEvent("onChatMessage", "_BJCOnChatMessage")

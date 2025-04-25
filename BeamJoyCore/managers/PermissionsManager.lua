@@ -114,6 +114,16 @@ local function canSpawnVehicle(playerID)
     return group.vehicleCap ~= 0
 end
 
+local function getCountPlayersCanSpawnVehicle()
+    local count = 0
+    for playerID in pairs(BJCPlayers.Players) do
+        if BJCPerm.canSpawnVehicle(playerID) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 local function getPlayersByPermission(permission)
     local players = {}
     for playerID, player in pairs(BJCPlayers.Players) do
@@ -175,17 +185,18 @@ local function getCacheHash()
     return Hash(M.Data)
 end
 
-M.hasPermission               = hasPermission
-M.hasMinimumGroup             = hasMinimumGroup
-M.hasMinimumGroupOrPermission = hasMinimumGroupOrPermission
-M.canSpawnVehicle             = canSpawnVehicle
-M.getPlayersByPermission      = getPlayersByPermission
-M.isStaff                     = isStaff
+M.hasPermission                  = hasPermission
+M.hasMinimumGroup                = hasMinimumGroup
+M.hasMinimumGroupOrPermission    = hasMinimumGroupOrPermission
+M.canSpawnVehicle                = canSpawnVehicle
+M.getCountPlayersCanSpawnVehicle = getCountPlayersCanSpawnVehicle
+M.getPlayersByPermission         = getPlayersByPermission
+M.isStaff                        = isStaff
 
-M.setPermission               = setPermission
+M.setPermission                  = setPermission
 
-M.getCache                    = getCache
-M.getCacheHash                = getCacheHash
+M.getCache                       = getCache
+M.getCacheHash                   = getCacheHash
 
 init()
 

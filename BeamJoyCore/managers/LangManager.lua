@@ -121,7 +121,6 @@ local function getServerMessage(targetLang, key)
 end
 
 local function getCache(playerID)
-    PrintObj(BJCPlayers.Players[playerID].lang, "player lang")
     return {
         langs = M.getLangsList(),
         messages = _getPlayerLang(playerID).client

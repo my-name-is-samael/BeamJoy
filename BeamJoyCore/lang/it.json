@@ -330,27 +330,64 @@
         "title": "Votare",
         "map": "Mappa",
         "mapCustom": "costume",
-        "race": "Gara",
-        "voteSpeed": "Gioco di velocità"
+        "race": {
+          "title": "Gara",
+          "noRace": "Nessuna gara disponibile",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        },
+        "speed": {
+          "title": "Gioco di velocità",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        }
       },
       "scenario": {
         "title": "Scenario",
-        "startSoloRace": "Inizia la gara in solitaria",
-        "stopSoloRace": "Interrompere la corsa",
-        "startVehicleDelivery": "Inizia la consegna del veicolo",
-        "startPackageDelivery": "Avvia la consegna del pacco",
-        "stopDelivery": "Interrompi la consegna",
-        "joinDeliveryMulti": "Partecipa alla consegna insieme",
-        "leaveDeliveryMulti": "Lasciamo insieme la consegna",
-        "startBusMission": "Inizia la missione sull'autobus",
-        "stopBusMission": "Ferma la missione dell'autobus",
-        "startSpeed": "Avvia il gioco di velocità",
-        "stopSpeed": "Interrompi il gioco di velocità",
+        "soloRace": {
+          "start": "Inizia la gara in solitaria",
+          "stop": "Interrompere la corsa",
+          "noRace": "Nessuna gara disponibile",
+          "missingOwnVehicle": "Veicolo di proprietà mancante"
+        },
+        "vehicleDelivery": {
+          "start": "Inizia la consegna del veicolo",
+          "stop": "Interrompi la consegna",
+          "noDelivery": "Nessuna consegna disponibile"
+        },
+        "packageDelivery": {
+          "start": "Avvia la consegna del pacco",
+          "stop": "Interrompi la consegna",
+          "noDelivery": "Nessuna consegna disponibile",
+          "missingOwnVehicle": "Veicolo di proprietà mancante"
+        },
+        "deliveryMulti": {
+          "join": "Partecipa alla consegna insieme",
+          "leave": "Lasciamo insieme la consegna",
+          "noDelivery": "Nessuna consegna disponibile",
+          "missingOwnVehicle": "Veicolo di proprietà mancante"
+        },
+        "busMission": {
+          "start": "Inizia la missione sull'autobus",
+          "stop": "Ferma la missione dell'autobus",
+          "noBusMission": "Nessuna missione autobus disponibile"
+        },
+        "speed": {
+          "start": "Avvia il gioco di velocità",
+          "stop": "Interrompi il gioco di velocità",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        },
         "raceStop": "Interrompere la corsa",
-        "startHunter": "Avvia cacciatore",
-        "stopHunter": "Ferma Hunter",
-        "startDerby": "Inizia il derby della distruzione",
-        "stopDerby": "Stop al derby della distruzione"
+        "hunter": {
+          "start": "Avvia cacciatore",
+          "stop": "Ferma Hunter",
+          "modeDisabled": "disabilitato",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        },
+        "derby": {
+          "start": "Inizia il derby della distruzione",
+          "stop": "Stop al derby della distruzione",
+          "noArena": "Nessuna arena disponibile",
+          "missingPlayers": "Mancano ancora {amount} giocatore/i"
+        }
       },
       "edit": {
         "title": "Modificare",
@@ -944,7 +981,8 @@
         "voteTimeout": "La votazione terminerà tra {delay}",
         "voteAboutToEnd": "La votazione sta per finire",
         "startVote": "Inizia la votazione",
-        "places": "{places} luoghi"
+        "places": "{places} luoghi",
+        "notEnoughPlayers": "Non ci sono abbastanza giocatori per avviare una gara multigiocatore"
       },
       "play": {
         "race": "Gara",
@@ -1183,7 +1221,8 @@
         "hunterConfigs": "Configurazioni del cacciatore",
         "hunterConfigsTooltip": "Configurazioni del veicolo tra cui i cacciatori possono scegliere (se non ce n'è nessuna, è possibile scegliere qualsiasi configurazione di gioco)",
         "toastConfigAlreadySaved": "Configurazione già salvata",
-        "specificConfig": "{model} specifico"
+        "specificConfig": "{model} specifico",
+        "notEnoughPlayers": "Non ci sono abbastanza giocatori per avviare la modalità cacciatore"
       },
       "play": {
         "flashChooseVehicle": "Scegli il tuo veicolo",
@@ -1224,7 +1263,8 @@
         "configs": "Configurazioni del veicolo",
         "configsTooltip": "Configurazioni del veicolo tra cui i giocatori possono scegliere (se non ce n'è nessuna, è possibile scegliere qualsiasi configurazione di gioco)",
         "toastConfigAlreadySaved": "Configurazione già salvata",
-        "specificConfig": "{model} specifico"
+        "specificConfig": "{model} specifico",
+        "notEnoughPlayers": "Non ci sono abbastanza giocatori per avviare il derby"
       },
       "play": {
         "flashNoLifeRemaining": "Ultima vita",

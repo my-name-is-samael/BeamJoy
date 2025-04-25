@@ -76,3 +76,4 @@ settings = settings or {}
 MPConfig = MPConfig or {}
 MPVehicleGE = MPVehicleGE or {}
 MPGameNetwork = MPGameNetwork or {}
+MPHelpers = MPHelpers or {}

@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 3,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation
@@ -27,7 +28,6 @@ local M = {
         startTime = nil,
     },
 }
-local MINIMUM_PARTICIPANTS = 3
 
 local function getParticipantPosition(playerID)
     for i, participant in ipairs(M.participants) do
@@ -80,7 +80,7 @@ end
 
 local function checkDerbyReady()
     if M.state == M.STATES.PREPARATION and
-        #M.participants >= MINIMUM_PARTICIPANTS then
+        #M.participants >= M.MINIMUM_PARTICIPANTS then
         local everyoneReady = true
         for _, participant in ipairs(M.participants) do
             if not participant.ready then
@@ -113,7 +113,7 @@ local function onPreparationTimeout()
         end
     end
 
-    if #M.participants < MINIMUM_PARTICIPANTS then
+    if #M.participants < M.MINIMUM_PARTICIPANTS then
         stopDerby()
     else
         startDerby()
@@ -333,6 +333,7 @@ end
 local function getCache()
     return {
         -- common
+        minimumParticipants = M.MINIMUM_PARTICIPANTS,
         state = M.state,
         destroyedTimeout = BJCConfig.Data.Derby.DestroyedTimeout,
         -- settings

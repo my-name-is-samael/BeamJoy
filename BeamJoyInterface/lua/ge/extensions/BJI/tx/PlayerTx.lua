@@ -2,6 +2,10 @@ local event = BJI_EVENTS.PLAYER
 
 BJITx.player = {}
 
+function BJITx.player.connected()
+    BJITx._send(event.EVENT, event.TX.CONNECTED)
+end
+
 function BJITx.player.settings(key, value)
     BJITx._send(event.EVENT, event.TX.SETTINGS, { key, value })
 end

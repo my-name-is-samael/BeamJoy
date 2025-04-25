@@ -242,7 +242,11 @@ end
 
 local function drawHeader(ctxt)
     settings = BJIContext.Scenario.RaceSettings or {}
-    if settings.multi and tlength(BJIContext.Players) < 1 then -- DEBUG 2
+    local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
+    local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
+    if settings.multi and potentialPlayers < minimumParticipants then
+        -- when a player leaves then there are not enough players to start
+        BJIToast.warning(BJILang.get("races.preparation.notEnoughPlayers"))
         onClose()
     end
 

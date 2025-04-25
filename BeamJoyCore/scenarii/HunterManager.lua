@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 3,
     STATES = {
         PREPARATION = 1,
         GAME = 2,
@@ -20,7 +21,6 @@ local M = {
     huntedStartTime = nil,
     hunterStartTime = nil,
 }
-local MINIMUM_PARTICIPANTS = 3
 
 local function stop()
     BJCAsync.removeTask("BJCHunterPreparation")
@@ -36,6 +36,7 @@ end
 
 local function getCache()
     return {
+        minimumParticipants = M.MINIMUM_PARTICIPANTS,
         state = M.state,
         participants = M.participants,
         preparationTimeout = M.preparationTimeout,
@@ -80,7 +81,7 @@ local function onPreparationTimeout()
     end
 
     -- check players amount
-    if tlength(M.participants) < MINIMUM_PARTICIPANTS then
+    if tlength(M.participants) < M.MINIMUM_PARTICIPANTS then
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "rx.errors.insufficientPlayers")
         stop()
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
@@ -115,7 +116,7 @@ end
 local function onStart(settings)
     if not BJCScenario.Hunter.enabled then
         error({ key = "rx.errors.invalidData" })
-    elseif MP.GetPlayerCount() < MINIMUM_PARTICIPANTS then
+    elseif BJCPerm.getCountPlayersCanSpawnVehicle() < M.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     elseif M.state then
         error({ key = "rx.errors.invalidData" })
@@ -186,7 +187,7 @@ end
 local function onReady(senderID, gameVehID)
     M.participants[senderID].ready = true
     M.participants[senderID].gameVehID = gameVehID
-    if tlength(M.participants) >= MINIMUM_PARTICIPANTS then
+    if tlength(M.participants) >= M.MINIMUM_PARTICIPANTS then
         local allReady = true
         for _, p in pairs(M.participants) do
             if not p.ready then
