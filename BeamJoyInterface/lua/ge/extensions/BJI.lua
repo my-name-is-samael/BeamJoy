@@ -31,22 +31,14 @@ function RegisterBJIManager(manager)
     table.insert(managers, manager)
 end
 
-BJIBENCH = false
 require("ge/extensions/utils/Bench")
 
 function TriggerBJIEvent(eventName, ...)
     for i, manager in ipairs(managers) do
         if type(manager[eventName]) == "function" then
-            local start
-            if BJIBENCH then
-                start = GetCurrentTimeMillis()
-            end
             local status, err = pcall(manager[eventName], ...)
             if not status then
                 LogError(svar("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
-            end
-            if BJIBENCH then
-                BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
             end
         end
     end

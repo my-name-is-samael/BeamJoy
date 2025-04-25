@@ -1,3 +1,4 @@
+BJIBENCH = false
 local bench = {}
 
 function BenchAdd(manager, event, time)
@@ -40,7 +41,7 @@ function BenchGet()
         end
     end
     table.sort(lines, function(a, b) return a.avg > b.avg end)
-    local out = ""
+    local out = "\n"
     for _, l in ipairs(lines) do
         out = svar("{1}{2}.{3} - min {4}ms ; max {5}ms ; avg {6}ms [{7}]\n",
             { out, l.manager, l.event, l.min, l.max, l.avg, l.amount })
@@ -51,3 +52,15 @@ end
 function BenchReset()
     bench = {}
 end
+
+--[[
+-- USAGE
+local start
+if BJIBENCH then
+    start = GetCurrentTimeMillis()
+end
+-- BENCHMARKED CODE EXEC HERE
+if BJIBENCH then
+    BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
+end
+]]
