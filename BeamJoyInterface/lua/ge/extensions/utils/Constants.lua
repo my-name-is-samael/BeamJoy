@@ -33,6 +33,7 @@ BJI_EVENTS = {
             EXPLODE_VEHICLE = "explodeVehicle",
         },
         TX = {
+            CONNECTED = "connected",
             SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",

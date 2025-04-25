@@ -424,7 +424,7 @@ local function register(data)
 end
 
 local function renderTick(ctxt)
-    if not BJICache.areBaseCachesFirstLoaded() or not BJIThemeLoaded then
+    if not BJICONNECTED or not BJICache.areBaseCachesFirstLoaded() or not BJIThemeLoaded then
         return
     end
 

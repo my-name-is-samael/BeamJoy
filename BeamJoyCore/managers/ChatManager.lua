@@ -40,6 +40,7 @@ local function onPlayerJoin(playerID, playerName)
     BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.JOIN, {
         playerName = playerName,
     })
+    onWelcome(playerID)
 end
 
 local function onPlayerChat(playerName, message)
@@ -100,7 +101,6 @@ local function broadcastTick()
     end
 end
 
-M.onWelcome = onWelcome
 M.onPlayerJoin = onPlayerJoin
 M.onPlayerChat = onPlayerChat
 M.onServerChat = onServerChat

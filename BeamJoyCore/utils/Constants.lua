@@ -25,6 +25,7 @@ BJC_EVENTS = {
             EXPLODE_VEHICLE = "explodeVehicle",
         },
         RX = {
+            CONNECTED = "connected",
             SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",

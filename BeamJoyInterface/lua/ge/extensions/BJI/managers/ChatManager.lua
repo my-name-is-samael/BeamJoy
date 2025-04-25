@@ -12,8 +12,6 @@ local M = {
     },
 
     msgCounter = 1,
-
-    init = false, -- wait for chat to be ready before printing messages
     queue = {},
 }
 local chatWindow = require("multiplayer.ui.chat")
@@ -62,12 +60,7 @@ local function onChat(event, data)
 end
 
 local function renderTick(ctxt)
-    if not M.init and BJICache.isFirstLoaded(BJICache.CACHES.LANG) and
-        BJIContext.WorldReadyState == 2 and im.GetIO().Framerate > 5 then
-        M.init = true
-    end
-
-    if M.init and M.queue[1] then
+    if BJICache.isFirstLoaded(BJICache.CACHES.LANG) and M.queue[1] then
         local event, data = M.queue[1].event, M.queue[1].data
         data.color = parseColor(data.color)
         if event == M.EVENTS.PLAYER_CHAT then
@@ -94,7 +87,6 @@ end
 
 local function onUnload()
     M.msgCounter = 1
-    M.init = false
     M.queue = {}
 end
 

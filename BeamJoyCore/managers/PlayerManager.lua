@@ -206,21 +206,25 @@ function _BJCOnPlayerJoining(playerID)
 end
 
 function _BJCOnPlayerJoin(playerID)
+    if not M.Players[playerID] then
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        M.Players[playerID] = nil
+    end
+end
+
+-- Triggered when player is REALLY connected and ready to play
+local function onPlayerConnected(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
-
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
         TriggerBJCManagers("onPlayerJoin", playerID, M.Players[playerID].playerName)
+        BJCChat.onWelcome(playerID)
     else
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
     end
-
-    BJCAsync.delayTask(function()
-        BJCChat.onWelcome(playerID)
-    end, 3)
 end
 
 function _BJCOnPlayerDisconnect(playerID)
@@ -1368,6 +1372,7 @@ MP.RegisterEvent("onPlayerAuth", "_BJCOnPlayerAuth")
 MP.RegisterEvent("onPlayerConnecting", "_BJCOnPlayerConnecting")
 MP.RegisterEvent("onPlayerJoining", "_BJCOnPlayerJoining")
 MP.RegisterEvent("onPlayerJoin", "_BJCOnPlayerJoin")
+M.onPlayerConnected = onPlayerConnected
 MP.RegisterEvent("onPlayerDisconnect", "_BJCOnPlayerDisconnect")
 
 MP.RegisterEvent("onChatMessage", "_BJCOnChatMessage")

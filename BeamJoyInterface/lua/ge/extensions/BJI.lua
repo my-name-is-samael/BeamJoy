@@ -137,7 +137,14 @@ M.onWorldReadyState = function(state)
 end
 
 M.onPreRender = function() end
+BJICONNECTED = false
 M.onUpdate = function(...)
+    if not BJICONNECTED and BJIContext.WorldReadyState == 2 and
+        ui_imgui.GetIO().Framerate > 5 then
+        BJICONNECTED = true
+        BJITx.player.connected()
+    end
+
     BJITick.client()
 end
 
