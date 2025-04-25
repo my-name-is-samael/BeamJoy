@@ -82,18 +82,20 @@ local function tryFinalizeEvent(id)
             end
         end
         if ctrl then
-            Log(
-                svar(
-                    BJCLang.getConsoleMessage("rx.eventReceived"),
-                    {
-                        eventName = ctxt.event,
-                        endpoint = ctxt.endpoint,
-                        playerName = ctxt.sender.playerName,
-                    }),
-                logTag)
-            if BJCCore.Data.General.Debug and tlength(ctxt.data) > 0 then
-                PrintObj(ctxt.data, svar("{1}.{2} ({3} parts data)",
-                    { ctxt.event, ctxt.endpoint, event.parts }))
+            if BJCCore.Data.General.Debug then
+                Log(
+                    svar(
+                        BJCLang.getConsoleMessage("rx.eventReceived"),
+                        {
+                            eventName = ctxt.event,
+                            endpoint = ctxt.endpoint,
+                            playerName = ctxt.sender.playerName,
+                        }),
+                    logTag)
+                if tlength(ctxt.data) > 0 then
+                    PrintObj(ctxt.data, svar("{1}.{2} ({3} parts data)",
+                        { ctxt.event, ctxt.endpoint, event.parts }))
+                end
             end
 
             local _, err = pcall(ctrl.dispatchEvent, ctrl, ctxt)
