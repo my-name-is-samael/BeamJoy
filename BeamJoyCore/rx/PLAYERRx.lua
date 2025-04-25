@@ -1,7 +1,7 @@
 local ctrl = {}
 
 function ctrl.connected(ctxt)
-    BJCPlayers.onPlayerConnected(ctxt.senderID)
+    BJCPlayers.onPlayerConnect(ctxt.senderID)
 end
 
 function ctrl.settings(ctxt)

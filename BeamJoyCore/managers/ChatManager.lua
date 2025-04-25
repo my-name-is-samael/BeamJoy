@@ -37,9 +37,13 @@ local function onWelcome(playerID)
 end
 
 local function onPlayerConnected(playerID, playerName)
-    BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.JOIN, {
-        playerName = playerName,
-    })
+    for pid in pairs(BJCPlayers.Players) do
+        if playerID ~= pid then
+            BJCTx.player.chat(pid, M.EVENTS.JOIN, {
+                playerName = playerName,
+            })
+        end
+    end
     onWelcome(playerID)
 end
 

@@ -3,7 +3,6 @@ local ctrl = {}
 function ctrl.mute(ctxt)
     local targetName, reason = ctxt.data[1], ctxt.data[2]
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.MUTE) then
-        PrintObj("PERM ERROR")
         error({ key = "rx.errors.insufficientPermissions" })
     end
     BJCPlayers.toggleMute(ctxt.senderID, targetName, reason)

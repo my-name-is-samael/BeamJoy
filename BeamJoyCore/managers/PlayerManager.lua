@@ -213,7 +213,7 @@ function _BJCOnPlayerJoin(playerID)
 end
 
 -- Triggered when player is connected and ready to play
-local function onPlayerConnected(playerID)
+local function onPlayerConnect(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
@@ -1371,7 +1371,7 @@ MP.RegisterEvent("onPlayerAuth", "_BJCOnPlayerAuth")
 MP.RegisterEvent("onPlayerConnecting", "_BJCOnPlayerConnecting")
 MP.RegisterEvent("onPlayerJoining", "_BJCOnPlayerJoining")
 MP.RegisterEvent("onPlayerJoin", "_BJCOnPlayerJoin")
-M.onPlayerConnected = onPlayerConnected
+M.onPlayerConnect = onPlayerConnect
 MP.RegisterEvent("onPlayerDisconnect", "_BJCOnPlayerDisconnect")
 
 MP.RegisterEvent("onChatMessage", "_BJCOnChatMessage")
