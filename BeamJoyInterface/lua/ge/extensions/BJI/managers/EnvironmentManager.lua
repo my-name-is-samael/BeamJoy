@@ -228,18 +228,21 @@ local function renderTick(ctxt) -- render tick
             _tryApplyGravity()
         end
 
-        -- remove fog in bigmap view
-        if ctxt.camera == BJICam.CAMERAS.BIG_MAP and not BJIAsync.exists("bigmapFog") then
+        -- adjust environment settings in bigmap view
+        if ctxt.camera == BJICam.CAMERAS.BIG_MAP and not BJIAsync.exists("BJIBigmapEnv") then
             local oldFog = M.Data.fogDensity
+            local oldVisibleDistance = M.Data.visibleDistance
             M.Data.fogDensity = 0
+            M.Data.visibleDistance = 20000
             BJIAsync.task(
                 function(ctxt2)
                     return ctxt2.camera ~= BJICam.CAMERAS.BIG_MAP
                 end,
                 function()
                     M.Data.fogDensity = oldFog
+                    M.Data.visibleDistance = oldVisibleDistance
                 end,
-                "BJIBigmapFog"
+                "BJIBigmapEnv"
             )
         end
     end
