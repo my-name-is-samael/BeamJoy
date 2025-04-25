@@ -345,46 +345,48 @@ end
 local function getCachePlayers(senderID)
     local players = {}
     for playerID, player in pairs(M.Players) do
-        -- basic data
-        players[playerID] = {
-            playerID = playerID,
-            playerName = player.playerName,
-            guest = player.guest,
-            group = player.group,
-            reputation = player.reputation,
-            staff = BJCPerm.isStaff(playerID),
-            currentVehicle = player.currentVehicle,
-            vehicles = {},
-            ai = tdeepcopy(player.ai),
-        }
-        players[playerID].vehicles = {}
-        for vehID, vehicle in pairs(player.vehicles) do
-            players[playerID].vehicles[vehID] = {
-                vehID = vehID,
-                gameVehID = vehicle.vid,
-                model = vehicle.name,
+        if player.ready then
+            -- basic data
+            players[playerID] = {
+                playerID = playerID,
+                playerName = player.playerName,
+                guest = player.guest,
+                group = player.group,
+                reputation = player.reputation,
+                staff = BJCPerm.isStaff(playerID),
+                currentVehicle = player.currentVehicle,
+                vehicles = {},
+                ai = tdeepcopy(player.ai),
             }
-        end
-        -- moderation data
-        if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.MOD) then
-            players[playerID].freeze = player.freeze
-            players[playerID].engine = player.engine
-            players[playerID].muted = player.muted
-            players[playerID].muteReason = player.muteReason
-            players[playerID].kickReason = player.kickReason
-            players[playerID].banReason = player.banReason
-
+            players[playerID].vehicles = {}
             for vehID, vehicle in pairs(player.vehicles) do
-                players[playerID].vehicles[vehID].freeze = vehicle.freeze
-                players[playerID].vehicles[vehID].engine = vehicle.engine
+                players[playerID].vehicles[vehID] = {
+                    vehID = vehID,
+                    gameVehID = vehicle.vid,
+                    model = vehicle.name,
+                }
             end
+            -- moderation data
+            if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.MOD) then
+                players[playerID].freeze = player.freeze
+                players[playerID].engine = player.engine
+                players[playerID].muted = player.muted
+                players[playerID].muteReason = player.muteReason
+                players[playerID].kickReason = player.kickReason
+                players[playerID].banReason = player.banReason
 
-            players[playerID].messages = {}
-            for _, msg in ipairs(player.messages) do
-                table.insert(players[playerID].messages, {
-                    time = msg.time,
-                    message = msg.message,
-                })
+                for vehID, vehicle in pairs(player.vehicles) do
+                    players[playerID].vehicles[vehID].freeze = vehicle.freeze
+                    players[playerID].vehicles[vehID].engine = vehicle.engine
+                end
+
+                players[playerID].messages = {}
+                for _, msg in ipairs(player.messages) do
+                    table.insert(players[playerID].messages, {
+                        time = msg.time,
+                        message = msg.message,
+                    })
+                end
             end
         end
     end

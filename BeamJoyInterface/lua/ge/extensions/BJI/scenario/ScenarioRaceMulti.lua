@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 2,
     STATES = {
         GRID = 1,     -- time when all players choose a vehicle
         RACE = 2,     -- time from countdown to last player finish
@@ -759,6 +760,7 @@ end
 
 -- receive race data from backend
 local function rxData(data)
+    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
     if data.state then
         M.raceName = data.raceName
         M.raceAuthor = data.raceAuthor

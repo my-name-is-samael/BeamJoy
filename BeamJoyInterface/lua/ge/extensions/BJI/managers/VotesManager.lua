@@ -106,17 +106,13 @@ function M.Race.started()
     return M.Race.creatorID ~= nil
 end
 
-function M.Race.getTotalPlayers()
-    return tlength(BJIContext.Players)
-end
-
 function M.Race.canStartVote()
-    return not M.Race.started() and
+    return not BJIScenario.isServerScenarioInProgress() and
+        not M.Race.started() and
         (
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
-        ) and
-        M.Race.getTotalPlayers() > 1
+        )
 end
 
 function M.Race.start(raceID, isVote, settings)

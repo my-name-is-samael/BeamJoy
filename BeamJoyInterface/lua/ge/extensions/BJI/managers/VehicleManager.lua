@@ -711,10 +711,10 @@ local function getFullConfig(config)
         local fn = load(svar("return {1}", { config:gsub("'", "") }))
         if type(fn) == "function" then
             local status, data = pcall(fn)
-            return status and MPHelpers.simplifyVehConfig(data) or nil
+            return status and data or nil
         end
     else
-        return MPHelpers.simplifyVehConfig(jsonReadFile(config))
+        return jsonReadFile(config)
     end
 end
 

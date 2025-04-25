@@ -331,7 +331,11 @@
         "title": "Vote",
         "map": "Map",
         "mapCustom": "custom",
-        "race": "Race",
+        "race": {
+          "title": "Race",
+          "noRace": "No race available",
+          "missingPlayers": "Missing {amount} more player(s)"
+        },
         "voteSpeed": "Speed Game"
       },
       "scenario": {
@@ -945,7 +949,8 @@
         "voteTimeout": "The vote will end in {delay}",
         "voteAboutToEnd": "The vote is about to end",
         "startVote": "Start Vote",
-        "places": "{places} places"
+        "places": "{places} places",
+        "notEnoughPlayers": "There are not enough players to start a multiplayer race"
       },
       "play": {
         "race": "Race",

@@ -1,4 +1,5 @@
 local M = {
+    MINIMUM_PARTICIPANTS = 2,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",                            -- grid
@@ -55,7 +56,6 @@ local M = {
         eliminated = {}, -- list of eliminated players (leaved, disconnected, dnf, etc)
     },
 }
-local MINIMUM_PARTICIPANTS = 2
 
 local function cancelGridTimeout()
     BJCAsync.removeTask("BJCRaceGridTimeout")
@@ -179,7 +179,7 @@ local function onGridTimeout()
         end
     end
 
-    if #M.grid.participants < MINIMUM_PARTICIPANTS then
+    if #M.grid.participants < M.MINIMUM_PARTICIPANTS then
         stopRace()
     else
         checkRaceReady()
@@ -547,6 +547,23 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
+local function compareVehicle(required, spawned)
+    if not required and spawned or not spawned then
+        return false
+    end
+
+    -- remove blank parts (causing compare to fail)
+    for _, arr in ipairs({required, spawned}) do
+        for k, v in pairs(arr) do
+            if #strim(v) == 0 then
+                arr[k] = nil
+            end
+        end
+    end
+
+    return tshallowcompare(required, spawned)
+end
+
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     if not M.state then
         return true
@@ -567,8 +584,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             if type(M.settings.config) == "table" then
                 -- forced config
                 M.settings.config = M.settings.config or {}
-                local sameConfig = tdeepcompare({ model = vehData.vcf.model, parts = vehData.vcf.parts },
-                    { model = M.settings.config.model, parts = M.settings.config.parts })
+                local sameConfig = vehData.vcf.model == M.settings.config.model and
+                compareVehicle(M.settings.config.parts, vehData.vcf.parts)
                 if not sameConfig then
                     onWrongVehicleAtGrid()
                 end
@@ -671,6 +688,7 @@ end
 local function getCache()
     return {
         -- common
+        minimumParticipants = M.MINIMUM_PARTICIPANTS,
         state = M.state,
         raceName = M.baseRace and M.baseRace.name or nil,
         raceAuthor = M.baseRace and M.baseRace.author or nil,

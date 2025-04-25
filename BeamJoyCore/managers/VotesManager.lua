@@ -318,7 +318,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
     local race
     if raceStarted() then
         error({ key = "rx.errors.invalidData" })
-    elseif MP.GetPlayerCount() < 1 then -- DEBUG 2
+    elseif MP.GetPlayerCount() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     else
         race = BJCScenario.getRace(raceID)
