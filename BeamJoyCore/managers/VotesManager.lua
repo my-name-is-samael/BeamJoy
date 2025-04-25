@@ -318,7 +318,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
     local race
     if raceStarted() then
         error({ key = "rx.errors.invalidData" })
-    elseif MP.GetPlayerCount() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS then
+    elseif BJCPerm.getCountPlayersCanSpawnVehicles() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     else
         race = BJCScenario.getRace(raceID)
@@ -451,7 +451,7 @@ end
 function M.Speed.start(senderID, isVote)
     if speedStarted() then
         error({ key = "rx.errors.invalidData" })
-    elseif getSpeedTotalPlayers() < 1 then -- DEBUG 2
+    elseif BJCPerm.getCountPlayersCanSpawnVehicles() < BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     elseif not isVote and
         not BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
