@@ -437,17 +437,6 @@ local function speedVoteTimeout()
     resetSpeed()
 end
 
-local function getSpeedTotalPlayers()
-    local total = 0
-    for playerID, player in pairs(BJCPlayers.Players) do
-        local group = BJCGroups.Data[player.group]
-        if group and group.vehicleCap ~= 0 then
-            total = total + 1
-        end
-    end
-    return total
-end
-
 function M.Speed.start(senderID, isVote)
     if speedStarted() then
         error({ key = "rx.errors.invalidData" })
