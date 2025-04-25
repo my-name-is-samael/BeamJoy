@@ -212,15 +212,14 @@ function _BJCOnPlayerJoin(playerID)
     end
 end
 
--- Triggered when player is REALLY connected and ready to play
+-- Triggered when player is connected and ready to play
 local function onPlayerConnected(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
-        TriggerBJCManagers("onPlayerJoin", playerID, M.Players[playerID].playerName)
-        BJCChat.onWelcome(playerID)
+        TriggerBJCManagers("onPlayerConnected", playerID, M.Players[playerID].playerName)
     else
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
