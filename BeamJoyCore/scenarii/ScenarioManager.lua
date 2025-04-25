@@ -95,7 +95,7 @@ local function getCacheDeliveries(senderID)
 end
 
 local function getCacheDeliveriesHash()
-    return Hash(M.Deliveries)
+    return Hash({M.Deliveries, M.DeliveryLeaderboard})
 end
 
 local function getCacheStations(senderID)
@@ -466,7 +466,6 @@ local function saveDeliveryPositions(positions)
 end
 
 local function updateDeliveryLeaderboard()
-    local previous = tdeepcopy(M.DeliveryLeaderboard)
     local playersScores = {}
 
     local players = BJCDao.players.findAll()
@@ -496,21 +495,6 @@ local function updateDeliveryLeaderboard()
                 table.insert(M.DeliveryLeaderboard, playersScores[i])
             end
         end
-    end
-
-    local changed = #previous ~= #M.DeliveryLeaderboard
-    if not changed and #M.DeliveryLeaderboard > 0 then
-        for i, lb in ipairs(M.DeliveryLeaderboard) do
-            if lb.playerName ~= previous[i].playerName or
-                lb.delivery ~= previous[i].delivery then
-                changed = true
-                break
-            end
-        end
-    end
-
-    if changed then
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERIES)
     end
 end
 
