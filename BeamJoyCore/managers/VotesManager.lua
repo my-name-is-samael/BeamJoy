@@ -277,7 +277,7 @@ end
 
 local function getRaceThreshold()
     return math.ceil(
-        tlength(BJCPlayers.Players) * BJCConfig.Data.Race.VoteThresholdRatio
+        BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Race.VoteThresholdRatio
     )
 end
 

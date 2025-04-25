@@ -116,7 +116,7 @@ end
 local function onStart(settings)
     if not BJCScenario.Hunter.enabled then
         error({ key = "rx.errors.invalidData" })
-    elseif MP.GetPlayerCount() < M.MINIMUM_PARTICIPANTS then
+    elseif BJCPerm.getCountPlayersCanSpawnVehicle() < M.MINIMUM_PARTICIPANTS then
         error({ key = "rx.errors.insufficientPlayers" })
     elseif M.state then
         error({ key = "rx.errors.invalidData" })
