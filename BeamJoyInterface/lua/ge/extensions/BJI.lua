@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJIVERSION = "1.1.8"
+BJIVERSION = "1.2.0"
 
 require("ge/extensions/utils/LoadDefaults")
 
