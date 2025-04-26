@@ -431,7 +431,7 @@ local function speedVoteTimeout()
         return
     end
 
-    if tlength(M.Speed.participants) >= 1 then -- DEBUG
+    if tlength(M.Speed.participants) >= BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS then
         BJCScenario.SpeedManager.start(M.Speed.participants, M.Speed.isVote)
     end
     resetSpeed()
