@@ -8,18 +8,18 @@ local function draw(ctxt)
             BJIContext.User.playerID == vm.creatorID and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
         :text(BJILang.get("votemap.hasStarted"))
         :text(vm.mapLabel)
-        :text(vm.mapCustom and svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or "")
+        :text(vm.mapCustom and string.var("({1})", { BJILang.get("votemap.targetMapCustom") }) or "")
         :build()
     local delayLabel
     local remainingTime = vm.endsAt - ctxt.now
     if remainingTime < 1000 then
         delayLabel = BJILang.get("votekick.voteAboutToEnd")
     else
-        delayLabel = svar(BJILang.get("votekick.voteTimeout"),
-            { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+        delayLabel = BJILang.get("votekick.voteTimeout")
+            :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
     end
     LineBuilder()
-        :text(svar("{1}/{2}", { vm.amountVotes, vm.threshold }))
+        :text(string.var("{1}/{2}", { vm.amountVotes, vm.threshold }))
         :text(delayLabel)
         :build()
     local line = LineBuilder()

@@ -16,7 +16,7 @@ return function(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.voteKick.timeout") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.voteKick.timeout") }))
                         :build()
                 end,
                 function()
@@ -44,7 +44,7 @@ return function(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.voteKick.thresholdRatio") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.voteKick.thresholdRatio") }))
                         :build()
                 end,
                 function()

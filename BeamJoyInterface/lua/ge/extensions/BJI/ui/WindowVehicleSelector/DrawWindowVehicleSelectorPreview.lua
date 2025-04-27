@@ -41,7 +41,7 @@ local function open(imagePath)
             end
             open(pngPath)
         else -- already a png, no solution :(
-            LogDebug(svar("Invalid vehicle image : \"{1}\"", { imagePath }))
+            LogDebug(string.var("Invalid vehicle image : \"{1}\"", { imagePath }))
             BJIToast.error("Invalid vehicle image")
             M.onClose()
         end

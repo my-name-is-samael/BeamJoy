@@ -4,26 +4,26 @@ local function draw(ctxt)
     local creatorName = creator and creator.playerName or BJILang.get("races.preparation.defaultPlayerName")
     if voteRace.isVote then
         LineBuilder()
-            :text(svar(BJILang.get("races.preparation.hasStartedVote"),
-                { creatorName = creatorName, raceName = voteRace.raceName, places = voteRace.places }))
+            :text(BJILang.get("races.preparation.hasStartedVote")
+                :var({ creatorName = creatorName, raceName = voteRace.raceName, places = voteRace.places }))
             :build()
     else
         LineBuilder()
-            :text(svar(BJILang.get("races.preparation.hasStarted"),
-                { creatorName = creatorName, raceName = voteRace.raceName, places = voteRace.places }))
+            :text(BJILang.get("races.preparation.hasStarted")
+                :var({ creatorName = creatorName, raceName = voteRace.raceName, places = voteRace.places }))
             :build()
     end
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("races.settings.title") }))
+        :text(string.var("{1}:", { BJILang.get("races.settings.title") }))
         :build()
     local settings = {}
     if voteRace.laps then
         local laps = voteRace.laps
         table.insert(settings,
             voteRace.laps > 1 and
-            svar(BJILang.get("races.settings.laps"), { laps = laps }) or
-            svar(BJILang.get("races.settings.lap"), { lap = laps }))
+            BJILang.get("races.settings.laps"):var({ laps = laps }) or
+            BJILang.get("races.settings.lap"):var({ lap = laps }))
     end
 
     if not voteRace.model then
@@ -31,13 +31,13 @@ local function draw(ctxt)
     elseif not voteRace.specificConfig then
         table.insert(settings, BJIVeh.getModelLabel(voteRace.model))
     else
-        table.insert(settings, svar(BJILang.get("races.settings.vehicles.specific"),
-            { model = BJIVeh.getModelLabel(voteRace.model) }))
+        table.insert(settings, BJILang.get("races.settings.vehicles.specific")
+            :var({ model = BJIVeh.getModelLabel(voteRace.model) }))
     end
 
-    local rs = BJILang.get(svar("races.settings.respawnStrategies.{1}",
+    local rs = BJILang.get(string.var("races.settings.respawnStrategies.{1}",
         { voteRace.respawnStrategy or "all" }))
-    table.insert(settings, svar("{1}: {2}", { BJILang.get("races.settings.respawnStrategies.respawns"), rs }))
+    table.insert(settings, string.var("{1}: {2}", { BJILang.get("races.settings.respawnStrategies.respawns"), rs }))
 
     LineBuilder()
         :text(table.concat(settings, ", "))
@@ -48,15 +48,15 @@ local function draw(ctxt)
     if time or weather then
         local line = LineBuilder()
         if time then
-            line:text(svar("{1}: {2}",
-                { BJILang.get("environment.ToD"), BJILang.get(svar("presets.time.{1}", { time })) }))
+            line:text(string.var("{1}: {2}",
+                { BJILang.get("environment.ToD"), BJILang.get(string.var("presets.time.{1}", { time })) }))
         end
         if weather then
             if time then
                 line:text(BJILang.get("common.vSeparator"))
             end
-            line:text(svar("{1}: {2}",
-                { BJILang.get("environment.weather"), BJILang.get(svar("presets.weather.{1}", { weather })) }))
+            line:text(string.var("{1}: {2}",
+                { BJILang.get("environment.weather"), BJILang.get(string.var("presets.weather.{1}", { weather })) }))
         end
 
         line:build()
@@ -67,7 +67,7 @@ local function draw(ctxt)
         local modelName = BJIVeh.getModelLabel(record.model)
         if modelName then
             LineBuilder()
-                :text(svar(BJILang.get("races.play.record"), {
+                :text(BJILang.get("races.play.record"):var({
                     playerName = record.playerName,
                     model = modelName,
                     time = RaceDelay(record.time)
@@ -82,11 +82,11 @@ local function draw(ctxt)
         if remainingTime < 1000 then
             labelDelay = BJILang.get("races.preparation.voteAboutToEnd")
         else
-            labelDelay = svar(BJILang.get("races.preparation.voteTimeout"),
-                { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+            labelDelay = BJILang.get("races.preparation.voteTimeout")
+                :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
         end
         LineBuilder()
-            :text(svar("{1}: {2}/{3}",
+            :text(string.var("{1}: {2}/{3}",
                 { BJILang.get("races.preparation.currentVotes"), voteRace.amountVotes, voteRace.threshold }))
             :text(labelDelay)
             :build()
@@ -111,8 +111,8 @@ local function draw(ctxt)
         if remainingTime < 1000 then
             labelDelay = BJILang.get("races.preparation.raceAboutToStart")
         else
-            labelDelay = svar(BJILang.get("races.preparation.startTimeout"),
-                { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+            labelDelay = BJILang.get("races.preparation.startTimeout")
+                :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
         end
         LineBuilder()
             :text(labelDelay)

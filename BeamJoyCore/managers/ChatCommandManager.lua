@@ -6,9 +6,9 @@ local M = {
 local function findCommand(sender, cmd, excludedCmds)
     local found
     for _, command in ipairs(M.commands) do
-        if not tincludes(excludedCmds or {}, command.cmd, true) and (
+        if not table.includes(excludedCmds or {}, command.cmd) and (
                 command.cmd == cmd or
-                tincludes(command.aliases, cmd, true) -- command match or alias
+                table.includes(command.aliases, cmd) -- command match or alias
             ) then
             if #command.permissions > 0 then          -- check permission
                 local hasPerm = false
@@ -33,7 +33,7 @@ end
 
 local function printInvalidCommand(sender, cmd)
     BJCTx.player.chat(sender.playerID, BJCChat.EVENTS.SERVER_CHAT, {
-        message = svar("{1} : {2}", {
+        message = string.var("{1} : {2}", {
             BJCLang.getServerMessage(sender.lang, "commands.invalidCommand"),
             M.COMMAND_CHAR .. cmd,
         }),
@@ -43,8 +43,8 @@ end
 
 local function getAliasesLine(sender, aliases)
     if #aliases > 0 then
-        aliases = M.COMMAND_CHAR .. tconcat(aliases, svar(", {1}", { M.COMMAND_CHAR }))
-        return svar(
+        aliases = M.COMMAND_CHAR .. table.join(aliases, string.var(", {1}", { M.COMMAND_CHAR }))
+        return string.var(
             "{1} : {2}",
             {
                 BJCLang.getServerMessage(sender.lang, "commands.aliases"),
@@ -55,11 +55,11 @@ local function getAliasesLine(sender, aliases)
 end
 
 local function printUsage(sender, command)
-    local args = BJCLang.getServerMessage(sender.lang, svar("commands.{1}Args", { command.cmd }))
-    args = #args > 0 and svar(" {1}", { args }) or ""
-    local desc = BJCLang.getServerMessage(sender.lang, svar("commands.{1}Desc", { command.cmd }))
+    local args = BJCLang.getServerMessage(sender.lang, string.var("commands.{1}Args", { command.cmd }))
+    args = #args > 0 and string.var(" {1}", { args }) or ""
+    local desc = BJCLang.getServerMessage(sender.lang, string.var("commands.{1}Desc", { command.cmd }))
     local messages = {
-        svar("{1} : {2}{3}{4} : {5}", {
+        string.var("{1} : {2}{3}{4} : {5}", {
             BJCLang.getServerMessage(sender.lang, "commands.usage"),
             M.COMMAND_CHAR,
             command.cmd,
@@ -83,7 +83,7 @@ local function help(sender, argsStr)
     -- check if specific command help requested
     local cmd
     if #argsStr > 0 then
-        cmd = ssplit(argsStr, " ")[1]
+        cmd = string.split(argsStr, " ")[1]
         local found = findCommand(sender, cmd, { "help" })
         if found then
             printUsage(sender, found)
@@ -92,7 +92,7 @@ local function help(sender, argsStr)
     end
 
     -- otherwise print help message
-    local messages = { svar("{1} :", { BJCLang.getServerMessage(sender.lang, "commands.title") }) }
+    local messages = { string.var("{1} :", { BJCLang.getServerMessage(sender.lang, "commands.title") }) }
     for _, command in ipairs(M.commands) do
         local hasPerm = false
         if #command.permissions == 0 then
@@ -106,10 +106,10 @@ local function help(sender, argsStr)
             end
         end
         if hasPerm then
-            local args = BJCLang.getServerMessage(sender.lang, svar("commands.{1}Args", { command.cmd }))
-            args = #args > 0 and svar(" {1}", { args }) or ""
-            local desc = BJCLang.getServerMessage(sender.lang, svar("commands.{1}Desc", { command.cmd }))
-            table.insert(messages, svar(
+            local args = BJCLang.getServerMessage(sender.lang, string.var("commands.{1}Args", { command.cmd }))
+            args = #args > 0 and string.var(" {1}", { args }) or ""
+            local desc = BJCLang.getServerMessage(sender.lang, string.var("commands.{1}Desc", { command.cmd }))
+            table.insert(messages, string.var(
                 "{1}{2}{3} : {4}",
                 {
                     M.COMMAND_CHAR, command.cmd, args, desc,
@@ -131,7 +131,7 @@ local function help(sender, argsStr)
 end
 
 local function pm(sender, args)
-    local target = ssplit(args, " ")[1]
+    local target = string.split(args, " ")[1]
     local message = args:sub(#target + 2)
 
     -- exact target name
@@ -157,7 +157,7 @@ local function pm(sender, args)
 
     if #founds == 0 then -- no target
         BJCTx.player.chat(sender.playerID, BJCChat.EVENTS.SERVER_CHAT, {
-            message = svar(BJCLang.getServerMessage(sender.lang, "rx.errors.invalidPlayer"), {
+            message = BJCLang.getServerMessage(sender.lang, "rx.errors.invalidPlayer"):var({
                 playerName = target,
             })
         })
@@ -167,17 +167,17 @@ local function pm(sender, args)
             table.insert(list, player.playerName)
         end
         BJCTx.player.chat(sender.playerID, BJCChat.EVENTS.SERVER_CHAT, {
-            message = svar(BJCLang.getServerMessage(sender.lang, "rx.errors.playerAmbiguity"), {
-                playerList = tconcat(list, ", "),
+            message = BJCLang.getServerMessage(sender.lang, "rx.errors.playerAmbiguity"):var({
+                playerList = table.join(list, ", "),
             })
         })
     else -- target found
         target = founds[1]
         table.insert(sender.messages, {
             time = GetCurrentTime(),
-            message = svar("mp {1} : {2}", { target.playerName, message }),
+            message = string.var("mp {1} : {2}", { target.playerName, message }),
         })
-        Log(svar("OnChatPrivateMessage - {1} -> {2} : {3}", { sender.playerName, target.playerName, message }),
+        Log(string.var("OnChatPrivateMessage - {1} -> {2} : {3}", { sender.playerName, target.playerName, message }),
             "BJCChat")
         BJCTx.player.chat(target.playerID, BJCChat.EVENTS.DIRECT_MESSAGE, {
             playerName = sender.playerName,
@@ -192,10 +192,10 @@ local function pm(sender, args)
 
         -- staff players copy
         for _, player in pairs(BJCPlayers.Players) do
-            if not tincludes({ sender.playerID, target.playerID }, player.playerID, true) and
+            if not table.includes({ sender.playerID, target.playerID }, player.playerID) and
                 BJCPerm.isStaff(player.playerID) then
                 BJCTx.player.chat(player.playerID, BJCChat.EVENTS.SERVER_CHAT, {
-                    message = svar("{1} -> {2}: {3}", { sender.playerName, target.playerName, message }),
+                    message = string.var("{1} -> {2}: {3}", { sender.playerName, target.playerName, message }),
                 })
             end
         end
@@ -207,7 +207,7 @@ local function handle(sender, commandStr)
         return -- empty command
     end
 
-    local cmd = ssplit(commandStr, " ")[1]:lower()
+    local cmd = string.split(commandStr, " ")[1]:lower()
     local found = findCommand(sender, cmd)
     if not found then
         printInvalidCommand(sender, cmd)
@@ -239,7 +239,7 @@ local function onInit()
         aliases = { "mp", "whisper", "msg", "message" },
         permissions = { BJCPerm.PERMISSIONS.SEND_PRIVATE_MESSAGE },
         validate = function(sender, args)
-            return #ssplit(args, " ") >= 2
+            return #string.split(args, " ") >= 2
         end,
         exec = pm,
     })

@@ -7,7 +7,7 @@ local M = {
 local function initClient()
     local lang = Lua:getSelectedLanguage()
     if lang and type(lang) == "string" and lang:find("_") then
-        lang = ssplit(lang, "_")[1]:lower()
+        lang = lang:split2("_")[1]:lower()
         BJIAsync.task(
             function()
                 return BJICache.areBaseCachesFirstLoaded()
@@ -25,11 +25,11 @@ local function get(key, defaultValue)
         defaultValue = key
     end
     if not key or type(key) ~= "string" then
-        LogError(svar("Invalid key {1}", { key }))
+        LogError(string.var("Invalid key {1}", { key }))
         return "invalid"
     end
 
-    local parts = ssplit(key, ".")
+    local parts = key:split2(".")
     local val = M.Messages
     for i = 1, #parts do
         if val[parts[i]] == nil then

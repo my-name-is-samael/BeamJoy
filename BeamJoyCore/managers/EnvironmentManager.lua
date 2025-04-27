@@ -66,7 +66,7 @@ local function getRanges()
 end
 
 local function set(key, value)
-    if not tincludes(M.Data, key) then
+    if M.Data[key] == nil then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     end
 
@@ -78,23 +78,23 @@ local function set(key, value)
         end
 
         -- specific field restrictions
-        if key == "shadowTexSize" and not tincludes({ 32, 64, 128, 256, 512, 1024, 2048 }, value) then
+        if key == "shadowTexSize" and not table.includes({ 32, 64, 128, 256, 512, 1024, 2048 }, value) then
             error({ key = "rx.errors.invalidValue", { value = value } })
-        elseif key == "precipType" and not tincludes(M.PRECIP_TYPES, value) then
+        elseif key == "precipType" and not table.includes(M.PRECIP_TYPES, value) then
             error({ key = "rx.errors.invalidValue", { value = value } })
         end
 
         -- parse ints
         local intFields = { "dayLength", "shadowDistance", "shadowSplits", "visibleDistance", "fogAtmosphereHeight",
             "rainDrops", "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }
-        if tincludes(intFields, key) then
+        if table.includes(intFields, key) then
             value = math.floor(value)
         end
 
         -- clamp numerics
         if type(value) == "number" then
             local range = getRanges()[key]
-            value = Clamp(value, range.min, range.max)
+            value = math.clamp(value, range.min, range.max)
         end
     end
 
@@ -105,7 +105,7 @@ local function set(key, value)
 end
 
 local function resetType(type)
-    if not tincludes(M.TYPES, type) then
+    if not table.includes(M.TYPES, type) then
         error({ key = "rx.errors.invalidValue", data = { value = type } })
     end
 
@@ -150,25 +150,28 @@ local function consoleEnv(args)
         local out = ""
         for i, k in ipairs(validKeys) do
             if i > 1 then
-                out = svar("{1}\n", { out })
+                out = string.var("{1}\n", { out })
             end
-            out = svar("{1}{2} = {3}", { out, k, M.Data[k] })
+            out = string.var("{1}{2} = {3}", { out, k, M.Data[k] })
         end
         return out
     end
 
     if M.Data[key] == nil then -- invalid key
-        return svar("{1}\n{2}", {
-            svar(BJCLang.getConsoleMessage("command.errors.invalidEnvKey"), { key = key }),
-            svar(BJCLang.getConsoleMessage("command.envValues"), { values = tconcat(validKeys, ", ") })
+        return string.var("{1}\n{2}", {
+            BJCLang.getConsoleMessage("command.errors.invalidEnvKey"):var({ key = key }),
+            BJCLang.getConsoleMessage("command.envValues"):var({ values = table.join(validKeys, ", ") })
         })
     end
 
     if value == nil then -- print value and default
         value = M.Data[key]
         local default = BJCDefaults.environment()[key]
-        return svar(BJCLang.getConsoleMessage("command.envValueWithDefault"),
-            { key = key, value = value, defaultValue = default })
+        return BJCLang.getConsoleMessage("command.envValueWithDefault"):var({
+            key = key,
+            value = value,
+            defaultValue = default
+        })
     end
 
     -- update value
@@ -193,15 +196,15 @@ local function consoleEnv(args)
     local status, err = pcall(set, key, value)
     if not status then
         err = type(err) == "table" and err or {}
-        return svar(BJCLang.getServerMessage(BJCConfig.Data.ServerLang, err.key or "rx.errors.serverError"),
-            err.data or {})
+        return BJCLang.getServerMessage(BJCConfig.Data.ServerLang, err.key or "rx.errors.serverError")
+            :var(err.data or {})
     end
 
-    return svar(BJCLang.getConsoleMessage("command.envValueSetTo"), { key = key, value = value })
+    return BJCLang.getConsoleMessage("command.envValueSetTo"):var({ key = key, value = value })
 end
 
 local function getCache()
-    return tdeepcopy(M.Data), M.getCacheHash()
+    return table.deepcopy(M.Data), M.getCacheHash()
 end
 
 local function getCacheHash()

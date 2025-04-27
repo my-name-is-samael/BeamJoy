@@ -11,7 +11,7 @@ local filtersWhiteList = { "Drivetrain", "Type", "Config Type", "Transmission", 
 local range = { 'Years' }
 local convertToRange = { 'Value', 'Weight', 'Top Speed', '0-100 km/h', '0-60 mph', 'Weight/Power', "Off-Road Score" }
 local finalRanges = {}
-tdeepassign(tdeepassign(finalRanges, convertToRange), range)
+table.assign(table.assign(finalRanges, convertToRange), range)
 
 local displayInfo = {
     ranges = {
@@ -48,12 +48,12 @@ local function createFilters(models)
     if models then
         for _, value in pairs(models) do
             for propName, propVal in pairs(value.aggregates) do
-                if tincludes(finalRanges, propName, true) then
+                if table.includes(finalRanges, propName) then
                     if filter[propName] then
                         filter[propName].min = math.min(value.aggregates[propName].min, filter[propName].min)
                         filter[propName].max = math.max(value.aggregates[propName].max, filter[propName].max)
                     else
-                        filter[propName] = tdeepcopy(value.aggregates[propName])
+                        filter[propName] = table.clone(value.aggregates[propName])
                     end
                 else
                     if not filter[propName] then
@@ -137,7 +137,7 @@ local function cloneCurrent(...)
         local group = BJIPerm.Groups[BJIContext.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= tlength(BJIContext.User.vehicles) then
+            group.vehicleCap <= table.length(BJIContext.User.vehicles) then
             BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
@@ -186,7 +186,7 @@ local function spawnNewVehicle(model, opts)
         local group = BJIPerm.Groups[BJIContext.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= tlength(BJIContext.User.vehicles) then
+            group.vehicleCap <= table.length(BJIContext.User.vehicles) then
             BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end

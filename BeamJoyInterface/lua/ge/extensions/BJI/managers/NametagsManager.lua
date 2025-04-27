@@ -62,7 +62,7 @@ local function onLoad()
                 local stored = settings.getValue(el.key)
                 if stored == nil then
                     local value = jsonEncode(el.default)
-                    LogDebug(svar("Assigning default setting value \"{1}\" to \"{2}\"", { el.key, value }))
+                    LogDebug(string.var("Assigning default setting value \"{1}\" to \"{2}\"", { el.key, value }))
                     settings.setValue(el.key, value)
                 else
                     el.value = jsonDecode(stored)
@@ -78,7 +78,7 @@ local function getAlphaByDistance(distance)
     local alpha = 1
     if settings.getValue("nameTagFadeEnabled") then
         local fadeoutDistance = settings.getValue("nameTagFadeDistance", 40)
-        alpha = Scale(distance, fadeoutDistance, 0, 0, 1, true)
+        alpha = math.scale(distance, fadeoutDistance, 0, 0, 1, true)
 
         if BJICam.getCamera() ~= BJICam.CAMERAS.FREE and
             settings.getValue("nameTagFadeInvert") then
@@ -86,7 +86,7 @@ local function getAlphaByDistance(distance)
         end
 
         if settings.getValue("nameTagDontFullyHide") then
-            alpha = Clamp(alpha, .3)
+            alpha = math.clamp(alpha, .3)
         end
     end
 
@@ -106,11 +106,11 @@ end
 local function getNametagColor(alpha, spec, idle)
     local color
     if spec then
-        color = tdeepcopy(M.COLORS.SPEC.TEXT.value)
+        color = table.clone(M.COLORS.SPEC.TEXT.value)
     elseif idle then
-        color = tdeepcopy(M.COLORS.IDLE.TEXT.value)
+        color = table.clone(M.COLORS.IDLE.TEXT.value)
     else
-        color = tdeepcopy(M.COLORS.PLAYER.TEXT.value)
+        color = table.clone(M.COLORS.PLAYER.TEXT.value)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 
@@ -120,11 +120,11 @@ end
 local function getNametagBgColor(alpha, spec, idle)
     local color
     if spec then
-        color = tdeepcopy(M.COLORS.SPEC.BG.value)
+        color = table.clone(M.COLORS.SPEC.BG.value)
     elseif idle then
-        color = tdeepcopy(M.COLORS.IDLE.BG.value)
+        color = table.clone(M.COLORS.IDLE.BG.value)
     else
-        color = tdeepcopy(M.COLORS.PLAYER.BG.value)
+        color = table.clone(M.COLORS.PLAYER.BG.value)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 
@@ -133,7 +133,7 @@ local function getNametagBgColor(alpha, spec, idle)
 end
 
 local function renderSpecs(ctxt, veh)
-    if not settings.getValue("showSpectators", true) or tlength(veh.spectators) == 0 or
+    if not settings.getValue("showSpectators", true) or table.length(veh.spectators) == 0 or
         not BJIScenario.doShowNametagsSpecs(veh) then
         return
     end
@@ -202,7 +202,7 @@ local function renderTrailer(ctxt, veh)
             local alpha = getAlphaByDistance(distance)
 
             if showDist then
-                label = svar("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
             end
 
             local zOffset = v:getInitialHeight()
@@ -225,7 +225,7 @@ local function renderTrailer(ctxt, veh)
             if settings.getValue("shortenNametags", false) then
                 name = BJIContext.Players[veh.ownerID].shortName
             end
-            local label = svar(M.renderConstants.trailer, { playerName = name })
+            local label = M.renderConstants.trailer:var({ playerName = name })
 
             local tagPos = BJIVeh.getPositionRotation(v).pos
             local ownPos = freecaming and BJICam.getPositionRotation().pos or
@@ -235,7 +235,7 @@ local function renderTrailer(ctxt, veh)
             local alpha = getAlphaByDistance(distance)
 
             if showDist then
-                label = svar("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
             end
 
             local zOffset = v:getInitialHeight()
@@ -272,7 +272,7 @@ local function renderVehicle(ctxt, veh)
 
             local label = M.renderConstants.self
             if settings.getValue("nameTagShowDistance", true) then
-                label = svar("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
             end
 
             tagPos.z = tagPos.z + v:getInitialHeight()
@@ -306,14 +306,14 @@ local function renderVehicle(ctxt, veh)
             if BJIPerm.isStaff(veh.ownerID) then
                 tag = M.renderConstants.staffTag
             else
-                local reputationTag = svar("{1}{2}",
+                local reputationTag = string.var("{1}{2}",
                     { M.renderConstants.reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
                 tag = reputationTag
             end
-            label = svar("[{1}]{2}", { tag, label })
+            label = string.var("[{1}]{2}", { tag, label })
         end
         if showDist then
-            label = svar("{1}({2})", { label, PrettyDistance(distance) })
+            label = string.var("{1}({2})", { label, PrettyDistance(distance) })
         end
 
         local zOffset = v:getInitialHeight()
@@ -350,7 +350,7 @@ local function renderTick(ctxt)
             local nameLength = tonumber(settings.getValue("nametagCharLimit", 50))
             for _, p in pairs(BJIContext.Players) do
                 local short = p.playerName:sub(1, nameLength)
-                if #short ~= #p.playerName then short = svar("{1}...", { short }) end
+                if #short ~= #p.playerName then short = string.var("{1}...", { short }) end
                 p.shortName = short
             end
         end

@@ -188,7 +188,7 @@ end
 
 local function apply(type, state)
     if not M.TYPES[type] then
-        LogError(svar("Invalid restriction type {1}", { type }))
+        LogError(string.var("Invalid restriction type {1}", { type }))
         return
     end
 
@@ -209,13 +209,13 @@ local function applySpecific(tag, restrictions, state)
         -- if trying to disable and existing
         extensions.core_input_actionFilter.addAction(0, tag, state)
     else
-        LogError(svar("Invalid restriction \"{1}\"", { tag }), M._name)
+        LogError(string.var("Invalid restriction \"{1}\"", { tag }), M._name)
     end
 end
 
 local function getState(type)
     if not M.TYPES[type] then
-        LogError(svar("Invalid restriction type {1}", { type }))
+        LogError(string.var("Invalid restriction type {1}", { type }))
         return
     end
 

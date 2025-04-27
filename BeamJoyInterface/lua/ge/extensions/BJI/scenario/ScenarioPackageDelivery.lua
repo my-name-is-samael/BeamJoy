@@ -55,7 +55,7 @@ local function initPositions(ctxt)
             table.remove(targets, threhsholdPos)
         end
     end
-    M.targetPosition = trandom(targets)
+    M.targetPosition = table.random(targets)
     M.targetPosition.distance = nil
 end
 
@@ -134,7 +134,7 @@ local function onGarageRepair()
         end
     end
     if veh then
-        M.tanksSaved = tdeepcopy(veh.tanks)
+        M.tanksSaved = table.clone(veh.tanks)
     end
 end
 
@@ -145,10 +145,10 @@ end
 local function drawDeliveryUI(ctxt)
     if M.distance then
         LineBuilder()
-            :text(svar("{1}: {2}", {
+            :text(string.var("{1}: {2}", {
                 BJILang.get("delivery.currentDelivery"),
-                svar(BJILang.get("delivery.distanceLeft"),
-                    { distance = PrettyDistance(M.distance) })
+                BJILang.get("delivery.distanceLeft")
+                    :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
 
@@ -159,7 +159,7 @@ local function drawDeliveryUI(ctxt)
     end
 
     LineBuilder()
-        :text(svar(BJILang.get("packageDelivery.currentStreak"), { streak = M.streak }))
+        :text(BJILang.get("packageDelivery.currentStreak"):var({ streak = M.streak }))
         :helpMarker(BJILang.get("packageDelivery.streakTooltip"))
         :build()
 
@@ -230,7 +230,7 @@ local function slowTick(ctxt)
             if streak == 1 then
                 msg = BJILang.get("packageDelivery.flashFirstPackage")
             else
-                msg = svar(BJILang.get("packageDelivery.flashPackageStreak"), { streak = streak })
+                msg = BJILang.get("packageDelivery.flashPackageStreak"):var({ streak = streak })
             end
             BJIMessage.flashCountdown("BJIDeliveryTarget", ctxt.now + 3100, false, msg, nil,
                 onTargetReached)
@@ -253,7 +253,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)

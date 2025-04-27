@@ -263,7 +263,7 @@ local function appendWaypoint(key, pos, radius, callback, playerName, clearable)
 end
 
 local function getCurrentRouteLength()
-    return #M.targets > 0 and Round(core_groundMarkers.getPathLength(), 3) or 0
+    return #M.targets > 0 and math.round(core_groundMarkers.getPathLength(), 3) or 0
 end
 
 --[[
@@ -289,7 +289,7 @@ local function getRouteLength(points)
 
     local length
     if M.routePlanner.path and M.routePlanner.path[1] then
-        length = Round(M.routePlanner.path[1].distToTarget, 3)
+        length = math.round(M.routePlanner.path[1].distToTarget, 3)
     else
         length = 0
     end

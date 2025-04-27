@@ -6,7 +6,7 @@ local function draw()
     for beamID, playerData in pairs(BJIContext.Database.Players) do
         table.insert(options, {
             value = beamID,
-            label = svar("{1} ({2})", { playerData.playerName, playerData.lang }),
+            label = string.var("{1} ({2})", { playerData.playerName, playerData.lang }),
         })
         if currentBeamID == beamID then
             selected = options[#options]
@@ -56,12 +56,12 @@ local function draw()
         local groups = {}
         local selectedGroup
         for groupName, group in pairs(BJIPerm.Groups) do
-            if not tincludes({ "_new", "_newLevel" }, groupName, true) and
+            if not table.includes({ "_new", "_newLevel" }, groupName) and
                 group.level < selfGroup.level then
                 table.insert(groups, {
                     value = group.level,
                     name = groupName,
-                    label = BJILang.get(svar("groups.{1}", { groupName }), groupName),
+                    label = BJILang.get(string.var("groups.{1}", { groupName }), groupName),
                 })
                 if groupName == playerData.group then
                     selectedGroup = groups[#groups]
@@ -88,7 +88,7 @@ local function draw()
             end
         end
 
-        ColumnsBuilder(svar("databasePlayer-{1}", { playerData.playerName }), { labelWidth, -1, GetBtnIconSize() })
+        ColumnsBuilder(string.var("databasePlayer-{1}", { playerData.playerName }), { labelWidth, -1, GetBtnIconSize() })
             :addRow({
                 cells = {
                     function()
@@ -98,7 +98,7 @@ local function draw()
                     end,
                     function()
                         LineBuilder()
-                            :text(svar("{1} - {2} ({3})",
+                            :text(string.var("{1} - {2} ({3})",
                                 { playerData.beammp, playerData.playerName, playerData.lang }))
                             :build()
                     end,
@@ -114,7 +114,7 @@ local function draw()
                     function()
                         if readOnly then
                             LineBuilder()
-                                :text(BJILang.get(svar("groups.{1}",
+                                :text(BJILang.get(string.var("groups.{1}",
                                     { playerData.group }), playerData.group))
                                 :build()
                         else
@@ -163,8 +163,8 @@ local function draw()
                             })
                         end
                         if playerData.tempBanUntil then
-                            line:text(svar(BJILang.get("database.players.tempBanEndsIn"),
-                                {
+                            line:text(BJILang.get("database.players.tempBanEndsIn")
+                                :var({
                                     secs = playerData.tempBanUntil -
                                         PrettyDelay(BJITick.applyTimeOffset(GetCurrentTime()))
                                 }))

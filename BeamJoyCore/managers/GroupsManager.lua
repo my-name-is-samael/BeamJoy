@@ -39,7 +39,7 @@ local function _reassignMembersAfterGroupDeletion(groupName, oldLevel)
         newGroupName = M.GROUPS.NONE
     end
     local players = BJCDao.players.findAll()
-    if tlength(players) > 0 then
+    if table.length(players) > 0 then
         for _, player in ipairs(players) do
             if player.group == groupName then
                 local connectedID
@@ -129,7 +129,7 @@ UPDATE group = %groupName%, %key%, %value% -- key can be "banned", "muted", "whi
 ]]
 local function setPermission(groupName, key, value)
     -- valid key
-    if not tincludes({ "level", "vehicleCap", "banned", "muted", "whitelisted", "staff" }, key, true) then
+    if not table.includes({ "level", "vehicleCap", "banned", "muted", "whitelisted", "staff" }, key) then
         error({ key = "rx.errors.invalidData" })
     end
 
@@ -147,7 +147,7 @@ local function setPermission(groupName, key, value)
             -- try creating without level or invalid level or empty groupName
             error({ key = "rx.errors.invalidData" })
         end
-        if _isLevelAssignedToAnotherGroup(groupName, value) then
+        if value < 0 or _isLevelAssignedToAnotherGroup(groupName, value) then
             error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
         M.Data[groupName] = {
@@ -162,7 +162,7 @@ local function setPermission(groupName, key, value)
     else
         if key == "level" and tonumber(value) == nil then
             -- group deletion
-            if tincludes(M.GROUPS, groupName) then
+            if table.includes(M.GROUPS, groupName) then
                 -- trying to delete base group
                 error({ key = "rx.errors.invalidValue", data = { value = value } })
             end
@@ -174,10 +174,10 @@ local function setPermission(groupName, key, value)
         else
             -- group modification
             if key == "level" then
-                if _isLevelAssignedToAnotherGroup(groupName, value) then
+                value = tonumber(value)
+                if value < 0 or _isLevelAssignedToAnotherGroup(groupName, value) then
                     error({ key = "rx.errors.invalidValue", data = { value = value } })
                 end
-                value = tonumber(value)
                 local oldLevel = M.Data[groupName].level
                 M.Data[groupName].level = value
                 _reassignLevelAfterGroupChange(oldLevel, value)
@@ -215,7 +215,7 @@ local function toggleGroupPermission(groupName, permissionName, state)
     end
 
     -- check permission existing
-    if not tincludes(BJCPerm.PERMISSIONS, permissionName, true) then
+    if not table.includes(BJCPerm.PERMISSIONS, permissionName) then
         error({ key = "rx.errors.invalidData" })
     end
 
@@ -227,12 +227,12 @@ local function toggleGroupPermission(groupName, permissionName, state)
     end
 
     if state then
-        if not tincludes(group.permissions, permissionName, true) then
+        if not table.includes(group.permissions, permissionName) then
             table.insert(group.permissions, permissionName)
             postUpdate()
         end
     else
-        local pos = tpos(group.permissions, permissionName)
+        local pos = table.indexOf(group.permissions, permissionName)
         if pos then
             table.remove(group.permissions, pos)
             postUpdate()
@@ -242,13 +242,13 @@ end
 
 local function getCache(senderID)
     local cache = {}
-    local groups = tdeepcopy(M.Data)
+    local groups = table.deepcopy(M.Data)
     for name, g in pairs(groups) do
         cache[name] = {
             canSpawn = g.vehicleCap ~= 0,
             canSpawnAI = g.vehicleCap == -1,
         }
-        tdeepassign(cache[name], g)
+        table.assign(cache[name], g)
     end
     return cache, M.getCacheHash()
 end

@@ -13,18 +13,18 @@ function _BJCOnVehicleSpawn(playerID, vehID, vehData)
 
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return 1
     end
 
     local group = BJCGroups.Data[player.group]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return 1
     end
 
     if not vehData then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidVehicleData"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidVehicleData"):var({ playerID = playerID }))
         return 1
     end
 
@@ -45,14 +45,14 @@ function _BJCOnVehicleSpawn(playerID, vehID, vehData)
         end
     else
         -- spawning vehicle
-        if group.vehicleCap > -1 and group.vehicleCap <= tlength(player.vehicles) then
+        if group.vehicleCap > -1 and group.vehicleCap <= table.length(player.vehicles) then
             BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
             return 1
         end
 
         local model = vehData.jbm or vehData.vcf.model
 
-        if tincludes(BJCVehicles.Data.ModelBlacklist, model, true) then
+        if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
             if BJCPerm.isStaff(playerID) then
                 BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "players.blacklistedVehicle")
             else
@@ -82,7 +82,7 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
     vehData = JSON.parse(vehData)
 
     if not vehData then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidVehicleData"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidVehicleData"):var({ playerID = playerID }))
     end
 
     if not BJCScenario.canEditVehicle(playerID, vehID, vehData) then
@@ -91,7 +91,7 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
 
     local model = vehData.jbm or vehData.vcf.model
 
-    if tincludes(BJCVehicles.Data.ModelBlacklist, model, true) then
+    if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
         if BJCPerm.isStaff(playerID) then
             BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "players.blacklistedVehicle")
         else
@@ -124,7 +124,7 @@ end
 function _BJCOnVehicleDeleted(playerID, vehID)
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return
     end
 
@@ -148,10 +148,10 @@ local function initHooks()
 end
 
 local function setModelBlacklist(model, state)
-    if state and not tincludes(M.Data.ModelBlacklist, model, true) then
+    if state and not table.includes(M.Data.ModelBlacklist, model) then
         table.insert(M.Data.ModelBlacklist, model)
     elseif not state then
-        local pos = tpos(M.Data.ModelBlacklist, model)
+        local pos = table.indexOf(M.Data.ModelBlacklist, model)
         if pos then
             table.remove(M.Data.ModelBlacklist, pos)
         end
@@ -160,7 +160,7 @@ local function setModelBlacklist(model, state)
 end
 
 local function getCache()
-    return tdeepcopy(M.Data), M.getCacheHash()
+    return table.deepcopy(M.Data), M.getCacheHash()
 end
 
 local function getCacheHash()
@@ -177,8 +177,8 @@ local function onDriftEnded(playerID, driftScore)
         if BJCConfig.Data.Server.DriftBigBroadcast and isBig then
             local player = BJCPlayers.Players[playerID]
             for targetID, target in pairs(BJCPlayers.Players) do
-                BJCChat.onServerChat(targetID, svar(BJCLang.getServerMessage(target.lang, "broadcast.bigDrift"),
-                    { playerName = player.playerName, score = driftScore }))
+                BJCChat.onServerChat(targetID, BJCLang.getServerMessage(target.lang, "broadcast.bigDrift")
+                    :var({ playerName = player.playerName, score = driftScore }))
             end
         end
     end

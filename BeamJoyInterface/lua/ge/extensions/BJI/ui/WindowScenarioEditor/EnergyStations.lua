@@ -23,7 +23,7 @@ local function save()
     for _, station in ipairs(esEdit.stations) do
         table.insert(stations, RoundPositionRotation({
             name = station.name,
-            types = tdeepcopy(station.types),
+            types = table.clone(station.types),
             radius = station.radius,
             pos = {
                 x = station.pos.x,
@@ -84,11 +84,11 @@ local function drawHeader(ctxt)
     local line = LineBuilder()
     local i = 1
     for _, energyType in pairs(BJI_ENERGY_STATION_TYPES) do
-        line:text(svar("{1} : {2}", {
-            BJILang.get(svar("energy.energyTypes.{1}", { energyType })),
+        line:text(string.var("{1} : {2}", {
+            BJILang.get(string.var("energy.energyTypes.{1}", { energyType })),
             stations[energyType] or 0
         }))
-        if i < tlength(BJI_ENERGY_STATION_TYPES) then
+        if i < table.length(BJI_ENERGY_STATION_TYPES) then
             line:text(BJILang.get("common.vSeparator"))
         end
         i = i + 1
@@ -113,14 +113,14 @@ local function drawBody(ctxt)
     end
 
     for i, station in ipairs(esEdit.stations) do
-        local invalidName = #strim(station.name) == 0
+        local invalidName = #station.name:trim() == 0
         if invalidName then
             esEdit.valid = false
         elseif #station.types == 0 then
             esEdit.valid = false
         end
 
-        ColumnsBuilder(svar("BJIScenarioEditorEnergyStation{1}", { i }), { labelWidth, -1 })
+        ColumnsBuilder(string.var("BJIScenarioEditorEnergyStation{1}", { i }), { labelWidth, -1 })
             :addRow({
                 cells = {
                     function()
@@ -132,7 +132,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("nameStation{1}", { i }),
+                                id = string.var("nameStation{1}", { i }),
                                 style = invalidName and INPUT_PRESETS.ERROR or INPUT_PRESETS.DEFAULT,
                                 disabled = esEdit.processSave,
                                 value = station.name,
@@ -158,15 +158,15 @@ local function drawBody(ctxt)
                     function()
                         local line = LineBuilder()
                         for _, energyType in pairs(BJI_ENERGY_STATION_TYPES) do
-                            local label = BJILang.get(svar("energy.energyTypes.{1}", { energyType }))
+                            local label = BJILang.get(string.var("energy.energyTypes.{1}", { energyType }))
                             line:btnSwitch({
-                                id = svar("typeStation{1}{2}", { i, energyType }),
+                                id = string.var("typeStation{1}{2}", { i, energyType }),
                                 labelOn = label,
                                 labelOff = label,
-                                state = tincludes(station.types, energyType, true),
+                                state = table.includes(station.types, energyType),
                                 disabled = esEdit.processSave,
                                 onClick = function()
-                                    local pos = tpos(station.types, energyType)
+                                    local pos = table.indexOf(station.types, energyType)
                                     if pos then
                                         table.remove(station.types, pos)
                                     else
@@ -190,7 +190,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :inputNumeric({
-                                id = svar("radiusStation{1}", { i }),
+                                id = string.var("radiusStation{1}", { i }),
                                 type = "float",
                                 precision = 1,
                                 value = station.radius,
@@ -214,7 +214,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :btnIcon({
-                                id = svar("goToStation{1}", { i }),
+                                id = string.var("goToStation{1}", { i }),
                                 icon = ICONS.cameraFocusTopDown,
                                 style = BTN_PRESETS.INFO,
                                 onClick = function()
@@ -225,7 +225,7 @@ local function drawBody(ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("moveStation{1}", { i }),
+                                id = string.var("moveStation{1}", { i }),
                                 icon = ICONS.crosshair,
                                 style = BTN_PRESETS.WARNING,
                                 disabled = ctxt.camera ~= BJICam.CAMERAS.FREE or esEdit.processSave,
@@ -236,7 +236,7 @@ local function drawBody(ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("deleteStation{1}", { i }),
+                                id = string.var("deleteStation{1}", { i }),
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 disabled = esEdit.processSave,

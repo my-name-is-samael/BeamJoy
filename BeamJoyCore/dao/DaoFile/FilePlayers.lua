@@ -21,7 +21,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/players", { dbPath })
+    M._dbPath = string.var("{1}/players", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         FS.CreateDirectory(M._dbPath)
@@ -44,7 +44,7 @@ end
 
 local function findByPlayerName(playerName)
     local player
-    local file, error = io.open(svar("{1}/{2}.json", { M._dbPath, playerName }), "r")
+    local file, error = io.open(string.var("{1}/{2}.json", { M._dbPath, playerName }), "r")
     if file and not error then
         player = {}
         local data = file:read("*a")
@@ -75,7 +75,7 @@ end
 local function save(player)
     if player then
         local playerName = player.playerName
-        local filePath = svar("{1}/{2}.json", { M._dbPath, playerName })
+        local filePath = string.var("{1}/{2}.json", { M._dbPath, playerName })
         local data = {}
         for k, v in pairs(player) do
             if type(v) == M._fields[k] then

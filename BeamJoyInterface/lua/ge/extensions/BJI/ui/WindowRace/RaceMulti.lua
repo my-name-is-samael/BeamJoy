@@ -5,13 +5,13 @@ local function drawHeader(ctxt)
 
     local line = LineBuilder()
         :text(mgr.raceName)
-        :text(svar(BJILang.get("races.play.by"), { author = mgr.raceAuthor }))
+        :text(BJILang.get("races.play.by"):var({ author = mgr.raceAuthor }))
     if mgr.settings.laps then
-        line:text(svar("({1})",
+        line:text(string.var("({1})",
             {
                 mgr.settings.laps == 1 and
-                svar(BJILang.get("races.settings.lap"), { lap = mgr.settings.laps }) or
-                svar(BJILang.get("races.settings.laps"), { laps = mgr.settings.laps })
+                BJILang.get("races.settings.lap"):var({ lap = mgr.settings.laps }) or
+                BJILang.get("races.settings.laps"):var({ laps = mgr.settings.laps })
             }))
     end
     line:build()
@@ -20,7 +20,7 @@ local function drawHeader(ctxt)
         local modelName = BJIVeh.getModelLabel(mgr.record.model)
         if modelName then
             LineBuilder()
-                :text(svar(BJILang.get("races.play.record"), {
+                :text(BJILang.get("races.play.record"):var({
                     playerName = mgr.record.playerName,
                     model = modelName,
                     time = RaceDelay(mgr.record.time)
@@ -33,8 +33,8 @@ local function drawHeader(ctxt)
         local remaining = math.ceil((mgr.race.startTime - ctxt.now) / 1000)
         if remaining > 0 then
             LineBuilder()
-                :text(svar(BJILang.get("races.play.gameStartsIn"),
-                    { delay = PrettyDelay(remaining) }))
+                :text(BJILang.get("races.play.gameStartsIn")
+                    :var({ delay = PrettyDelay(remaining) }))
                 :build()
         elseif remaining > -3 then
             LineBuilder()
@@ -65,8 +65,8 @@ local function drawHeader(ctxt)
             local remaining = math.ceil((mgr.dnf.targetTime - ctxt.now) / 1000)
             if remaining >= 0 and remaining < mgr.dnf.timeout then
                 LineBuilder()
-                    :text(svar(BJILang.get("races.play.eliminatedIn"),
-                        { delay = PrettyDelay(math.abs(remaining)) }))
+                    :text(BJILang.get("races.play.eliminatedIn")
+                        :var({ delay = PrettyDelay(math.abs(remaining)) }))
                     :build()
             else
                 EmptyLine()
@@ -108,8 +108,8 @@ local function drawRace(ctxt)
                 end
             end
             LineBuilder()
-                :text(svar("{1}/{2}", {
-                    svar(BJILang.get("races.play.WP"), { wp = selfWp }),
+                :text(string.var("{1}/{2}", {
+                    BJILang.get("races.play.WP"):var({ wp = selfWp }),
                     wpPerLap,
                 }))
                 :build()
@@ -141,7 +141,7 @@ local function drawRace(ctxt)
     if mgr.settings.laps and mgr.settings.laps > 1 then
         local lapsWidth = 0
         for l = 1, mgr.settings.laps do
-            local label = svar(BJILang.get("races.play.Lap"), { lap = l })
+            local label = BJILang.get("races.play.Lap"):var({ lap = l })
             local w = GetColumnTextWidth(label)
             if w > lapsWidth then
                 lapsWidth = w
@@ -151,7 +151,7 @@ local function drawRace(ctxt)
     end
     local cpWidth = 0
     for cp = 1, wpPerLap do
-        local label = svar(BJILang.get("races.play.WP"), { wp = cp })
+        local label = BJILang.get("races.play.WP"):var({ wp = cp })
         local w = GetColumnTextWidth(label)
         if w > cpWidth then
             cpWidth = w
@@ -184,10 +184,10 @@ local function drawRace(ctxt)
             table.insert(cells, function()
                 LineBuilder()
                     :btnIcon({
-                        id = svar("watchPlayer{1}", { pos }),
+                        id = string.var("watchPlayer{1}", { pos }),
                         icon = ICONS.visibility,
-                        disabled = tincludes(mgr.race.finished, lb.playerID, true) or
-                            tincludes(mgr.race.eliminated, lb.playerID, true) or
+                        disabled = table.includes(mgr.race.finished, lb.playerID) or
+                            table.includes(mgr.race.eliminated, lb.playerID) or
                             not target,
                         onClick = function()
                             BJIVeh.focus(lb.playerID)
@@ -205,13 +205,13 @@ local function drawRace(ctxt)
         if mgr.settings.laps and mgr.settings.laps > 1 then
             table.insert(cells, function()
                 LineBuilder()
-                    :text(svar(BJILang.get("races.play.Lap"), { lap = lb.lap }), color)
+                    :text(BJILang.get("races.play.Lap"):var({ lap = lb.lap }), color)
                     :build()
             end)
         end
         table.insert(cells, function()
             LineBuilder()
-                :text(svar(BJILang.get("races.play.WP"), { wp = lb.wp }), color)
+                :text(BJILang.get("races.play.WP"):var({ wp = lb.wp }), color)
                 :build()
         end)
         table.insert(cells, function()
@@ -226,8 +226,8 @@ local function drawRace(ctxt)
                 local line = LineBuilder()
                 if playerCurrentWP < firstPlayerCurrentWp then
                     line:text(
-                        svar(BJILang.get("races.play.wpDifference"),
-                            { wpDifference = firstPlayerCurrentWp - playerCurrentWP }),
+                        BJILang.get("races.play.wpDifference")
+                        :var({ wpDifference = firstPlayerCurrentWp - playerCurrentWP }),
                         TEXT_COLORS.ERROR)
                         :text(BJILang.get("common.vSeparator"))
                 end
@@ -235,7 +235,7 @@ local function drawRace(ctxt)
                 if diffVal > 0 then
                     diffColor = TEXT_COLORS.ERROR
                 end
-                line:text(svar("+{1}", { RaceDelay(diffVal) }), diffColor)
+                line:text(string.var("+{1}", { RaceDelay(diffVal) }), diffColor)
                     :build()
             end
         end)
@@ -249,12 +249,12 @@ end
 
 local function drawGrid(ctxt)
     LineBuilder()
-        :text(svar(BJILang.get("races.play.timeout"),
-            { delay = PrettyDelay(math.floor((mgr.grid.timeout - ctxt.now) / 1000)) }))
+        :text(BJILang.get("races.play.timeout")
+            :var({ delay = PrettyDelay(math.floor((mgr.grid.timeout - ctxt.now) / 1000)) }))
         :build()
 
-    if not tincludes(mgr.grid.ready, BJIContext.User.playerID, true) then
-        local participates = tincludes(mgr.grid.participants, BJIContext.User.playerID, true)
+    if not table.includes(mgr.grid.ready, BJIContext.User.playerID) then
+        local participates = table.includes(mgr.grid.participants, BJIContext.User.playerID)
         local line = LineBuilder()
             :btnIconToggle({
                 id = "joinRace",
@@ -269,8 +269,8 @@ local function drawGrid(ctxt)
                 big = true,
             })
         if not participates then
-            line:text(svar(BJILang.get("races.play.placesRemaining"),
-                { places = math.max(#mgr.grid.startPositions - #mgr.grid.participants, 0) }))
+            line:text(BJILang.get("races.play.placesRemaining")
+                :var({ places = math.max(#mgr.grid.startPositions - #mgr.grid.participants, 0) }))
         elseif BJIVeh.isCurrentVehicleOwn() then
             line:btnIcon({
                 id = "raceReady",
@@ -283,8 +283,8 @@ local function drawGrid(ctxt)
                 big = true,
             })
                 :text(ctxt.now < mgr.grid.readyTime and
-                    svar(BJILang.get("races.play.canMarkReadyIn"),
-                        { delay = PrettyDelay(math.floor((mgr.grid.readyTime - ctxt.now) / 1000)) }) or
+                    BJILang.get("races.play.canMarkReadyIn")
+                    :var({ delay = PrettyDelay(math.floor((mgr.grid.readyTime - ctxt.now) / 1000)) }) or
                     "")
         end
         line:build()
@@ -296,15 +296,15 @@ local function drawGrid(ctxt)
 
     if #mgr.grid.participants > 0 then
         LineBuilder()
-            :text(svar("{1}:", { BJILang.get("races.play.players") }))
+            :text(string.var("{1}:", { BJILang.get("races.play.players") }))
             :build()
         Indent(2)
         for _, playerID in ipairs(mgr.grid.participants) do
-            local isReady = tincludes(mgr.grid.ready, playerID, true)
+            local isReady = table.includes(mgr.grid.ready, playerID)
             LineBuilder()
                 :text(BJIContext.Players[playerID].playerName,
                     isReady and TEXT_COLORS.SUCCESS or TEXT_COLORS.DEFAULT)
-                :text(svar("({readyStatus})",
+                :text(string.var("({readyStatus})",
                         {
                             readyStatus = isReady and BJILang.get("races.play.playerReady") or
                                 BJILang.get("races.play.playerNotReady")

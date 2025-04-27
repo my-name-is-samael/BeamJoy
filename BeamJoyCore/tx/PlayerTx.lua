@@ -10,12 +10,12 @@ function BJCTx.player.toast(targetID, type, msgKey, msgData, delay)
     msgData = msgData or {}
     if targetID == BJCTx.ALL_PLAYERS then
         for playerID, player in pairs(BJCPlayers.Players) do
-            local msg = svar(BJCLang.getServerMessage(player.lang, msgKey), msgData)
+            local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
             BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.TOAST, playerID, { type, msg, tonumber(delay) })
         end
     else
         local player = BJCPlayers.Players[targetID]
-        local msg = svar(BJCLang.getServerMessage(player.lang, msgKey), msgData)
+        local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
         BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.TOAST, targetID, { type, msg, tonumber(delay) })
     end
 end
@@ -24,12 +24,12 @@ function BJCTx.player.flash(targetID, msgKey, msgData, delay)
     msgData = msgData or {}
     if targetID == BJCTx.ALL_PLAYERS then
         for playerID, player in pairs(BJCPlayers.Players) do
-            local msg = svar(BJCLang.getServerMessage(player.lang, msgKey), msgData)
+            local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
             BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.FLASH, playerID, { msg, tonumber(delay) })
         end
     else
         local player = BJCPlayers.Players[targetID]
-        local msg = svar(BJCLang.getServerMessage(player.lang, msgKey), msgData)
+        local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
         BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.FLASH, targetID, { msg, tonumber(delay) })
     end
 end

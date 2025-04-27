@@ -29,7 +29,7 @@ local function draw()
         "dropMaxSpeed",
         "precipType",
     }) do
-        local label = BJILang.get(svar("environment.{1}", { key }))
+        local label = BJILang.get(string.var("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -41,7 +41,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.controlWeather") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.controlWeather") }))
                         :build()
                 end,
                 function()
@@ -88,7 +88,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.dropSizeRatio") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.dropSizeRatio") }))
                         :build()
                 end,
                 function()
@@ -132,7 +132,7 @@ local function draw()
                     local line = LineBuilder()
                     for _, p in ipairs(BJIEnv.PRECIP_TYPES) do
                         line:btn({
-                            id = svar("{1}PrecipType", { p }),
+                            id = string.var("{1}PrecipType", { p }),
                             label = BJILang.get("presets.precipType." .. p),
                             disabled = BJIEnv.Data.precipType == p,
                             onClick = function()

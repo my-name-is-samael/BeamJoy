@@ -103,10 +103,10 @@ local function Arrow(pos, rot, radius, shapeColor)
     end
     shapeColor = shapeColor or Color(1, 1, 1, .5)
 
-    local angle = AngleFromQuatRotation(rot)
-    local len = Rotate2DVec(vec3(0, radius, 0), angle)
+    local angle = math.angleFromQuatRotation(rot)
+    local len = math.rotate2DVec(vec3(0, radius, 0), angle)
     local tip = vec3(pos) + len
-    local base = vec3(pos) + Rotate2DVec(len, math.pi)
+    local base = vec3(pos) + math.rotate2DVec(len, math.pi)
     debugDrawer:drawArrow(base, tip, ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
 end
 

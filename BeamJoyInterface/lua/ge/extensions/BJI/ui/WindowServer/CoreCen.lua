@@ -32,8 +32,8 @@ local FAVORITE_NAME_OFFLINE_SUFFIX = "[OFFLINE]"
 local function drawCoreFormattingHints()
     local function renderCode(el)
         LineBuilder()
-            :text(svar("{1} :", { el.code }))
-            :text(BJILang.get(svar("serverConfig.core.formattingHints.{1}", { el.key })), el.color)
+            :text(string.var("{1} :", { el.code }))
+            :text(BJILang.get(string.var("serverConfig.core.formattingHints.{1}", { el.key })), el.color)
             :build()
     end
     AccordionBuilder()
@@ -69,7 +69,7 @@ local function drawCoreTextPreview(cols, value, key)
     local newlineChar = "p"                                      -- NEWLINE CHAR
 
     local str = {}
-    local parts = ssplit(value, "^")
+    local parts = value:split2("^")
     local lastColor = reset.color
 
     local function removeLastSpaceAndAdd(text, color, newline)
@@ -146,7 +146,7 @@ end
 
 local function drawCoreConfig(ctxt)
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.core.title") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.core.title") }))
         :build()
 
     Indent(2)
@@ -154,7 +154,7 @@ local function drawCoreConfig(ctxt)
 
     local labelWidth = 0
     for k in pairs(BJIContext.Core) do
-        local label = svar(BJILang.get(svar("serverConfig.core.{1}", { k })))
+        local label = BJILang.get(string.var("serverConfig.core.{1}", { k }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -166,14 +166,14 @@ local function drawCoreConfig(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { svar(BJILang.get(svar("serverConfig.core.{1}", { k }))) }))
+                        :text(string.var("{1}:", { BJILang.get(string.var("serverConfig.core.{1}", { k })) }))
                         :build()
                 end,
                 function()
-                    if tincludes({ "Tags", "Description" }, k) then
+                    if table.includes({ "Tags", "Description" }, k) then
                         LineBuilder()
                             :inputString({
-                                id = svar("core{1}", { k }),
+                                id = string.var("core{1}", { k }),
                                 value = v,
                                 multiline = true,
                                 autoheight = true,
@@ -225,12 +225,12 @@ local function drawCoreConfig(ctxt)
             }
         })
 
-        if tincludes({ "Name", "Description" }, k) then
+        if table.includes({ "Name", "Description" }, k) then
             if v:find("%^") then
                 local colorFound = false
                 for i = 2, #FORMATTING_CODES do
                     for _, color in ipairs(FORMATTING_CODES[i]) do
-                        if v:find(svar("%{1}", { color.code })) then
+                        if v:find(string.var("%{1}", { color.code })) then
                             colorFound = true
                             break
                         end
@@ -251,13 +251,13 @@ end
 
 local function drawCEN(ctxt)
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.cen.title") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.cen.title") }))
         :helpMarker(BJILang.get("serverConfig.cen.tooltip"))
         :build()
 
     local labelWidth = 0
     for k in pairs(BJIContext.BJC.CEN) do
-        local label = BJILang.get(svar("serverConfig.cen.{1}", { k }))
+        local label = BJILang.get(string.var("serverConfig.cen.{1}", { k }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -270,7 +270,7 @@ local function drawCEN(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get(svar("serverConfig.cen.{1}", { k })) }))
+                        :text(string.var("{1}:", { BJILang.get(string.var("serverConfig.cen.{1}", { k })) }))
                         :build()
                 end,
                 function()

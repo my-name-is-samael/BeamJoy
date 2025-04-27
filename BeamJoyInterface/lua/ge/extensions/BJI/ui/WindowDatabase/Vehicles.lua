@@ -15,7 +15,7 @@ local function draw(data)
             modelWidth = w
         end
 
-        if not tincludes(BJIContext.Database.Vehicles.ModelBlacklist, model, true) then
+        if not table.includes(BJIContext.Database.Vehicles.ModelBlacklist, model) then
             table.insert(addModelOptions, {
                 value = model,
                 label = label,
@@ -53,7 +53,7 @@ local function draw(data)
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("removeBlacklisted-{1}", { model }),
+                            id = string.var("removeBlacklisted-{1}", { model }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             onClick = function()

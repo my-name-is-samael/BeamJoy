@@ -215,7 +215,7 @@ local function getVehIDByGameVehID(gameVehID)
 end
 
 local function getGameVehicleID(playerID, vehID)
-    local srvVehID = svar("{1}-{2}", { playerID, vehID or 0 })
+    local srvVehID = string.var("{1}-{2}", { playerID, vehID or 0 })
     if not M.getMPVehicles()[srvVehID] then
         return nil
     end
@@ -244,7 +244,7 @@ local function getCurrentVehicleOwn()
 end
 
 local function hasVehicle()
-    return tlength(MPVehicleGE.getOwnMap()) > 0
+    return table.length(MPVehicleGE.getOwnMap()) > 0
 end
 
 local function onVehicleSpawned(gameVehID)
@@ -327,7 +327,7 @@ end
 local function deleteAllOwnVehicles()
     M.saveCurrentVehicle()
     local vehs = BJIContext.User.vehicles
-    if tlength(vehs) > 0 then
+    if table.length(vehs) > 0 then
         for _, veh in pairs(vehs) do
             local v = M.getVehicleObject(veh.gameVehID)
             if v then
@@ -366,7 +366,7 @@ local function explodeVehicle(gameVehID)
         veh:queueLuaCommand("fire.explodeVehicle()")
         BJIAsync.delayTask(function()
             veh:queueLuaCommand("beamstate.breakAllBreakgroups()")
-        end, BJI_VEHICLE_EXPLODE_HINGES_DELAY, svar("ExplodeVehicle{1}", { gameVehID }))
+        end, BJI_VEHICLE_EXPLODE_HINGES_DELAY, string.var("ExplodeVehicle{1}", { gameVehID }))
     end
 end
 
@@ -471,7 +471,7 @@ local function freeze(state, gameVehID)
         vehicle = M.getCurrentVehicleOwn()
     end
     if vehicle then
-        vehicle:queueLuaCommand(svar("controller.setFreeze({1})", { state }))
+        vehicle:queueLuaCommand(string.var("controller.setFreeze({1})", { state }))
     end
 end
 
@@ -495,7 +495,7 @@ local function engine(state, gameVehID)
         if state then
             vehicle:queueLuaCommand('controller.mainController.setStarter(true)')
         end
-        vehicle:queueLuaCommand(svar(
+        vehicle:queueLuaCommand(string.var(
             "if controller.mainController.setEngineIgnition then controller.mainController.setEngineIgnition({1}) end",
             { state }
         ))
@@ -504,7 +504,7 @@ local function engine(state, gameVehID)
                 vehicle:queueLuaCommand('controller.mainController.setStarter(false)')
             end, 1000, "BJIEngineStartDelayStarter")
         end
-        -- vehicle:queueLuaCommand(svar("electrics.horn({1})", { state }))
+        -- vehicle:queueLuaCommand(string.var("electrics.horn({1})", { state }))
     end
 end
 
@@ -532,9 +532,9 @@ local function lights(state, gameVehID, allLights)
         else
             vehicle:queueLuaCommand("electrics.setLightsState(0)")
             if allLights then
-                vehicle:queueLuaCommand(svar("electrics.set_warn_signal({1})", { state }))
-                vehicle:queueLuaCommand(svar("electrics.set_lightbar_signal({1})", { state }))
-                vehicle:queueLuaCommand(svar("electrics.set_fog_lights({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_warn_signal({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_lightbar_signal({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_fog_lights({1})", { state }))
             end
         end
     end
@@ -565,7 +565,7 @@ local function setGear(vehID, gearIndex)
         vehicle = M.getCurrentVehicleOwn()
     end
     if vehicle then
-        vehicle:queueLuaCommand(svar("controller.mainController.shiftToGearIndex({1})", { gearIndex }))
+        vehicle:queueLuaCommand(string.var("controller.mainController.shiftToGearIndex({1})", { gearIndex }))
     end
 end
 
@@ -635,11 +635,11 @@ end
 
 local function saveCurrentVehicle()
     local veh = M.getCurrentVehicleOwn() or nil
-    if veh or tlength(BJIContext.User.vehicles) > 0 then
+    if veh or table.length(BJIContext.User.vehicles) > 0 then
         if not veh then
             local gameVehID
             for _, v in pairs(BJIContext.User.vehicles) do
-                if not tincludes({ "Trailer", "Prop" }, M.getType(v.model)) then
+                if not table.includes({ "Trailer", "Prop" }, M.getType(v.model)) then
                     gameVehID = v.gameVehID
                     break
                 end
@@ -676,7 +676,7 @@ local function getModelLabel(model, withTechName)
     elseif not withTechName then
         return label
     else
-        return svar("{1} - {2}", { model, label })
+        return string.var("{1} - {2}", { model, label })
     end
 end
 
@@ -688,12 +688,12 @@ local function isConfigCustom(config)
     end
 
     config = config or veh.partConfig
-    return not config:find("%.pc$")
+    return not config:endswith(".pc")
 end
 
 local function isModelBlacklisted(model)
     return #BJIContext.Database.Vehicles.ModelBlacklist > 0 and
-        tincludes(BJIContext.Database.Vehicles.ModelBlacklist, model)
+        table.includes(BJIContext.Database.Vehicles.ModelBlacklist, model)
 end
 
 --[[
@@ -708,7 +708,7 @@ local function getFullConfig(config)
 
     config = config or veh.partConfig
     if isConfigCustom(config) then
-        local fn = load(svar("return {1}", { config:gsub("'", "") }))
+        local fn = load(string.var("return {1}", { config:gsub("'", "") }))
         if type(fn) == "function" then
             local status, data = pcall(fn)
             return status and data or nil
@@ -743,7 +743,7 @@ local function isUnicycle(gameVehID)
 end
 
 local function getConfigByModelAndKey(model, configKey)
-    return svar("vehicles/{1}/{2}.pc", { model, configKey })
+    return string.var("vehicles/{1}/{2}.pc", { model, configKey })
 end
 
 local function getCurrentConfigKey()
@@ -782,15 +782,15 @@ local INVALID_VEHICLES = {
 local function getAllVehicleConfigs(withTrailers, withProps, forced)
     if not forced and M.allVehicleConfigs then
         -- cached data
-        local configs = tdeepcopy(M.allVehicleConfigs)
+        local configs = table.clone(M.allVehicleConfigs)
         if withTrailers then
             for k, v in pairs(M.allTrailerConfigs) do
-                configs[k] = tdeepcopy(v)
+                configs[k] = table.clone(v)
             end
         end
         if withProps then
             for k, v in pairs(M.allPropConfigs) do
-                configs[k] = tdeepcopy(v)
+                configs[k] = table.clone(v)
             end
         end
         return configs
@@ -808,14 +808,14 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     for _, veh in ipairs(vehs) do
         if veh.model then
             local isVeh = true -- Truck | Car
-            if tincludes({ "Trailer", "Prop" }, veh.model.Type, true) then
+            if table.includes({ "Trailer", "Prop" }, veh.model.Type) then
                 isVeh = false
             end
 
             if isVeh and veh.model.preview == "/ui/images/appDefault.png" then
                 -- not loaded vehicle
                 goto skipVeh
-            elseif tincludes(INVALID_VEHICLES, veh.model.key) then
+            elseif table.includes(INVALID_VEHICLES, veh.model.key) then
                 -- do not use
                 goto skipVeh
             end
@@ -830,16 +830,16 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             end
             local brandPrefix = ""
             if veh.model.Brand then
-                brandPrefix = svar("{1} ", { veh.model.Brand })
+                brandPrefix = string.var("{1} ", { veh.model.Brand })
             end
             local yearsPrefix = ""
             if veh.model.Years and veh.model.Years.min then
-                yearsPrefix = svar(" ({1})", { veh.model.Years.min })
+                yearsPrefix = string.var(" ({1})", { veh.model.Years.min })
             end
 
-            target[veh.model.key] = tdeepcopy(veh.model)
-            tdeepassign(target[veh.model.key], {
-                label = svar("{1}{2}{3}", { brandPrefix, veh.model.Name, yearsPrefix }),
+            target[veh.model.key] = table.clone(veh.model)
+            table.assign(target[veh.model.key], {
+                label = string.var("{1}{2}{3}", { brandPrefix, veh.model.Name, yearsPrefix }),
                 custom = veh.model.aggregates.Source.Mod,
                 paints = target[veh.model.key].paints or {},
                 configs = {},
@@ -851,8 +851,8 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 if config.key then
                     local label = (config.Configuration or config.key):gsub("_", " ")
                     if not label:lower():find("simple traffic") then
-                        configs[key] = tdeepcopy(config)
-                        tdeepassign(configs[key], {
+                        configs[key] = table.clone(config)
+                        table.assign(configs[key], {
                             label = label,
                             custom = not target[veh.model.key].custom and
                                 config.Source ~= "BeamNG - Official",
@@ -893,7 +893,7 @@ local function getAllVehicleLabels(withTrailers, withProps, forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    local labels = tdeepcopy(M.allVehicleLabels)
+    local labels = table.clone(M.allVehicleLabels)
     if withTrailers then
         for k, v in pairs(M.allTrailerLabels) do
             labels[k] = v
@@ -911,14 +911,14 @@ local function getAllTrailerConfigs(forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    return tdeepcopy(M.allTrailerConfigs)
+    return table.clone(M.allTrailerConfigs)
 end
 
 local function getAllPropConfigs(forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    return tdeepcopy(M.allPropConfigs)
+    return table.clone(M.allPropConfigs)
 end
 
 -- return all configs keys and labels for current vehicle
@@ -1040,8 +1040,8 @@ end
 local lastConfig
 local function onVehicleResetted(gameVehID)
     if M.isVehicleOwn(gameVehID) then
-        local config = M.getFullConfig()
-        if not tdeepcompare(config, lastConfig) then
+        local config = M.getFullConfig() or {}
+        if not table.compare(config, lastConfig or {}, true) then
             -- detects veh edition
             for _, v in pairs(BJIContext.User.vehicles) do
                 if v.gameVehID == gameVehID then
@@ -1078,7 +1078,7 @@ local function updateVehFuelState(ctxt, data)
         end
     end
     if not ctxt.vehData.tanks or
-        tlength(tanks) >= tlength(ctxt.vehData.tanks) then
+        table.length(tanks) >= table.length(ctxt.vehData.tanks) then
         ctxt.vehData.tanks = tanks
     end
 end
@@ -1106,7 +1106,7 @@ local function slowTick(ctxt)
 
     -- get current damages
     if ctxt.veh then
-        ctxt.veh:queueLuaCommand(svar([[
+        ctxt.veh:queueLuaCommand(string.var([[
                 obj:queueGameEngineLua(
                     "BJIVeh.updateVehDamages({1}, " ..
                         serialize(beamstate.damage) ..

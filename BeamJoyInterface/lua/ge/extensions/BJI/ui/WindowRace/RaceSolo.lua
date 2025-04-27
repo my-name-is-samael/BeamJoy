@@ -6,13 +6,13 @@ local function drawHeader(ctxt)
 
     local line = LineBuilder()
         :text(mgr.raceName)
-        :text(svar(BJILang.get("races.play.by"), { author = mgr.raceAuthor }))
+        :text(BJILang.get("races.play.by"):var({ author = mgr.raceAuthor }))
     if mgr.settings.laps then
-        line:text(svar("({1})",
+        line:text(string.var("({1})",
             {
                 mgr.settings.laps == 1 and
-                svar(BJILang.get("races.settings.lap"), { lap = mgr.settings.laps }) or
-                svar(BJILang.get("races.settings.laps"), { laps = mgr.settings.laps })
+                BJILang.get("races.settings.lap"):var({ lap = mgr.settings.laps }) or
+                BJILang.get("races.settings.laps"):var({ laps = mgr.settings.laps })
             }))
     end
     line:build()
@@ -21,7 +21,7 @@ local function drawHeader(ctxt)
         local modelName = BJIVeh.getModelLabel(mgr.record.model)
         if modelName then
             LineBuilder()
-                :text(svar(BJILang.get("races.play.record"), {
+                :text(BJILang.get("races.play.record"):var({
                     playerName = mgr.record.playerName,
                     model = modelName,
                     time = RaceDelay(mgr.record.time)
@@ -34,8 +34,8 @@ local function drawHeader(ctxt)
         local remaining = math.ceil((mgr.race.startTime - ctxt.now) / 1000)
         if remaining > 0 then
             LineBuilder()
-                :text(svar(BJILang.get("races.play.gameStartsIn"),
-                    { delay = PrettyDelay(remaining) }))
+                :text(BJILang.get("races.play.gameStartsIn")
+                    :var({ delay = PrettyDelay(remaining) }))
                 :build()
         elseif remaining > -3 then
             LineBuilder()
@@ -92,8 +92,8 @@ local function drawHeader(ctxt)
             local remaining = math.ceil((mgr.dnf.targetTime - ctxt.now) / 1000)
             if remaining >= 0 and remaining < mgr.dnf.timeout then
                 LineBuilder()
-                    :text(svar(BJILang.get("races.play.eliminatedIn"),
-                        { delay = PrettyDelay(math.abs(remaining)) }))
+                    :text(BJILang.get("races.play.eliminatedIn")
+                        :var({ delay = PrettyDelay(math.abs(remaining)) }))
                     :build()
             else
                 EmptyLine()
@@ -116,8 +116,8 @@ local function drawSprint(ctxt)
         currentTime = RaceDelay(time)
     end
     LineBuilder()
-        :text(svar("{1}/{2}", {
-            svar(BJILang.get("races.play.WP"), { wp = lb.wp }),
+        :text(string.var("{1}/{2}", {
+            BJILang.get("races.play.WP"):var({ wp = lb.wp }),
             wpPerLap,
         }))
         :text(BJILang.get("common.vSeparator"))
@@ -127,7 +127,7 @@ local function drawSprint(ctxt)
     local labelWidth = 0
     local currentWp = 1
     for iWp = 1, wpPerLap do
-        local label = svar(BJILang.get("races.play.WP"), { wp = iWp })
+        local label = BJILang.get("races.play.WP"):var({ wp = iWp })
         local w = GetColumnTextWidth(label)
         if w > labelWidth then
             labelWidth = w
@@ -151,7 +151,7 @@ local function drawSprint(ctxt)
                 cells = {
                     function()
                         LineBuilder()
-                            :text(svar(BJILang.get("races.play.WP"), { wp = iWp }), color)
+                            :text(BJILang.get("races.play.WP"):var({ wp = iWp }), color)
                             :build()
                     end,
                     function()
@@ -180,10 +180,10 @@ local function drawLoopable(ctxt)
     local lap = lb.laps and #lb.laps or 0
     local wp = (lap > 0 and lb.laps[lap]) and lb.laps[lap].wp or 0
     LineBuilder()
-        :text(svar(BJILang.get("races.play.Lap"), { lap = lap }))
+        :text(BJILang.get("races.play.Lap"):var({ lap = lap }))
         :text(BJILang.get("common.vSeparator"))
-        :text(svar("{1}/{2}", {
-            svar(BJILang.get("races.play.WP"), { wp = wp }),
+        :text(string.var("{1}/{2}", {
+            BJILang.get("races.play.WP"):var({ wp = wp }),
             wpPerLap,
         }))
         :text(BJILang.get("common.vSeparator"))
@@ -194,7 +194,7 @@ local function drawLoopable(ctxt)
 
     local labelWidth = 0
     for iLap = 1, mgr.race.lap do
-        local label = svar(BJILang.get("races.play.Lap"), { lap = iLap })
+        local label = BJILang.get("races.play.Lap"):var({ lap = iLap })
         local w = GetColumnTextWidth(label)
         if w > labelWidth then
             labelWidth = w
@@ -234,13 +234,13 @@ local function drawLoopable(ctxt)
                 cells = {
                     function()
                         LineBuilder()
-                            :text(svar(BJILang.get("races.play.Lap"), { lap = iLap }))
+                            :text(BJILang.get("races.play.Lap"):var({ lap = iLap }))
                             :build()
                     end,
                     function()
                         LineBuilder()
                             :text(RaceDelay(time))
-                            :text(diff and svar("{1}{2}", { diffSymbol, RaceDelay(diff) }) or "", TEXT_COLORS.ERROR)
+                            :text(diff and string.var("{1}{2}", { diffSymbol, RaceDelay(diff) }) or "", TEXT_COLORS.ERROR)
                             :build()
                     end,
                 }

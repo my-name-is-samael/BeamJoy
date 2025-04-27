@@ -4,11 +4,11 @@ local function draw(ctxt)
     local creatorName = creator and creator.playerName
     if voteSpeed.isEvent then
         LineBuilder()
-            :text(svar(BJILang.get("speed.vote.hasStarted"), { creatorName = creatorName }))
+            :text(BJILang.get("speed.vote.hasStarted"):var({ creatorName = creatorName }))
             :build()
     else
         LineBuilder()
-            :text(svar(BJILang.get("speed.vote.hasStartedVote"), { creatorName = creatorName }))
+            :text(BJILang.get("speed.vote.hasStartedVote"):var({ creatorName = creatorName }))
             :build()
     end
 
@@ -18,8 +18,8 @@ local function draw(ctxt)
         if remainingTime < 1000 then
             labelDelay = BJILang.get("speed.vote.speedAboutToStart")
         else
-            labelDelay = svar(BJILang.get("speed.vote.timeout"),
-                { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+            labelDelay = BJILang.get("speed.vote.timeout")
+                :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
         end
         LineBuilder()
             :text(labelDelay)
@@ -29,8 +29,8 @@ local function draw(ctxt)
         if remainingTime < 1000 then
             labelDelay = BJILang.get("speed.vote.voteAboutToEnd")
         else
-            labelDelay = svar(BJILang.get("speed.vote.voteTimeout"),
-                { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+            labelDelay = BJILang.get("speed.vote.voteTimeout")
+                :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
         end
         LineBuilder()
             :text(labelDelay)
@@ -60,7 +60,7 @@ local function draw(ctxt)
         table.insert(participants, BJIContext.Players[playerID].playerName)
     end
     LineBuilder()
-        :text(svar("{1}: {2}",
+        :text(string.var("{1}: {2}",
             { BJILang.get("speed.vote.participants"), table.concat(participants, ", ") }))
         :build()
 end

@@ -100,7 +100,7 @@ end
 local function tryReplaceOrSpawn(model, config)
     local participant = M.participants[BJIContext.User.playerID]
     if M.state == M.STATES.PREPARATION and participant and not participant.ready then
-        if tlength(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
+        if table.length(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
@@ -173,7 +173,7 @@ local function canVehUpdate()
 end
 
 local function canSpawnNewVehicle()
-    return canVehUpdate() and tlength(BJIContext.User.vehicles) == 0
+    return canVehUpdate() and table.length(BJIContext.User.vehicles) == 0
 end
 
 local function doShowNametag(vehData)
@@ -197,7 +197,7 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     local participant = M.participants[BJIContext.User.playerID]
     if not BJIVeh.isVehicleOwn(newGameVehID) and
         participant and
-        (participant.gameVehID or tlength(BJIContext.User.vehicles) > 0) then
+        (participant.gameVehID or table.length(BJIContext.User.vehicles) > 0) then
         local targetVehID = participant.gameVehID
         if not targetVehID then
             for _, v in pairs(BJIContext.User.vehicles) do
@@ -263,7 +263,7 @@ local function onJoinParticipants(isHunted)
         -- generate start position
         local freepos
         while not M.startpos or not freepos do
-            M.startpos = trandom(BJIContext.Scenario.Data.Hunter.huntedPositions)
+            M.startpos = table.random(BJIContext.Scenario.Data.Hunter.huntedPositions)
             freepos = true
             for _, mpveh in pairs(BJIVeh.getMPVehicles()) do
                 local v = BJIVeh.getVehicleObject(mpveh.gameVehicleID)
@@ -279,7 +279,7 @@ local function onJoinParticipants(isHunted)
         local function findNextWaypoint(pos)
             pos = vec3(pos)
             local wps = {}
-            for _, wp in ipairs(tdeepcopy(BJIContext.Scenario.Data.Hunter.targets)) do
+            for _, wp in ipairs(table.clone(BJIContext.Scenario.Data.Hunter.targets)) do
                 table.insert(wps, {
                     wp = {
                         pos = vec3(wp.pos),
@@ -295,7 +295,7 @@ local function onJoinParticipants(isHunted)
             while wps[thresh] do
                 table.remove(wps, thresh)
             end
-            return trandom(wps).wp
+            return table.random(wps).wp
         end
         local previousPos = M.startpos.pos
         while #M.waypoints < M.settings.waypoints do
@@ -317,7 +317,7 @@ local function onJoinParticipants(isHunted)
         -- generate start position
         local freepos
         while not M.startpos or not freepos do
-            M.startpos = trandom(BJIContext.Scenario.Data.Hunter.hunterPositions)
+            M.startpos = table.random(BJIContext.Scenario.Data.Hunter.hunterPositions)
             freepos = true
             for _, mpveh in pairs(BJIVeh.getMPVehicles()) do
                 local v = BJIVeh.getVehicleObject(mpveh.gameVehicleID)

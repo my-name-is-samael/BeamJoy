@@ -173,7 +173,7 @@ local function updateRaceMarkers(lastWp)
         -- next marker
         for iStep, step in ipairs(M._race._steps) do
             for iWp, wp in ipairs(step) do
-                if tincludes(wp.parents, wpName, true) and           -- is child
+                if table.includes(wp.parents, wpName) and            -- is child
                     not (wp.stand and iStep == #M._race._steps) then -- disable stand if last step
                     table.insert(M._targets, {
                         step = iStep,
@@ -182,8 +182,8 @@ local function updateRaceMarkers(lastWp)
 
                     local normal
                     if not wp.stand then
-                        local angle = AngleFromQuatRotation(wp.rot)
-                        normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                        local angle = math.angleFromQuatRotation(wp.rot)
+                        normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
                         normal = normal:normalized()
                     end
 
@@ -216,13 +216,13 @@ local function updateRaceMarkers(lastWp)
                 local wpPrevious = M._race._steps[target.step][target.wp]
                 for iStep, step in ipairs(M._race._steps) do
                     for _, wp in ipairs(step) do
-                        if tincludes(wp.parents, wpPrevious.name) and
+                        if table.includes(wp.parents, wpPrevious.name) and
                             (not wp.stand or iStep < #M._race._steps) then -- disable stand if last step
                             if M._modes[wp.name] == nil then
                                 local normal
                                 if not wp.stand then
-                                    local angle = AngleFromQuatRotation(wp.rot)
-                                    normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                                    local angle = math.angleFromQuatRotation(wp.rot)
+                                    normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
                                     normal = normal:normalized()
                                 end
 
@@ -276,16 +276,16 @@ local function getVehCorners(ctxt)
     local len = vec3(ctxt.veh:getInitialLength() / 2, 0, 0);
     local vdata = map.objects[ctxt.veh:getID()];
     local dir = vdata.dirVec;
-    local angle = Atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
-    angle = Scale(angle, -math.pi, math.pi, 0, math.pi * 2);
+    local angle = math.atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
+    angle = math.scale(angle, -math.pi, math.pi, 0, math.pi * 2);
     angle = (angle + math.pi / 2) % (math.pi * 2);
 
     local w = vec3(0, ctxt.veh:getInitialWidth() / 2, 0);
     return {
-        fl = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle),
-        fr = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle + math.pi),
-        bl = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle),
-        br = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle + math.pi),
+        fl = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle),
+        fr = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle + math.pi),
+        bl = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle),
+        br = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle + math.pi),
     }
 end
 
@@ -312,10 +312,10 @@ end
 local function checkSegmentCrossed(ctxt, wp, vehCorners)
     if not ctxt.veh then return end
 
-    local angle = AngleFromQuatRotation(wp.rot)
-    local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-    local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
-    local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+    local angle = math.angleFromQuatRotation(wp.rot)
+    local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
+    local wpLeft = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
+    local wpRight = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
 
     for _, segment in ipairs({
         { vehCorners.fl, vehCorners.br },
@@ -357,10 +357,10 @@ local function checkRaceTargetReached(ctxt)
         local wp = M._race._steps[target.step][target.wp]
 
         if BJIDEBUG then
-            local angle = AngleFromQuatRotation(wp.rot)
-            local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-            local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
-            local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+            local angle = math.angleFromQuatRotation(wp.rot)
+            local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
+            local wpLeft = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
+            local wpRight = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
 
             local gateColor = ShapeDrawer.Color(1, 0, 1, .33)
             local a = vec3(wpLeft.x, wpLeft.y, wpLeft.z)
@@ -401,7 +401,7 @@ local function addWaypoint(name, pos, radius, color)
         return
     end
 
-    name = name or svar("raceWaypoint{1}", { GetCurrentTimeMillis() })
+    name = name or string.var("raceWaypoint{1}", { GetCurrentTimeMillis() })
     radius = tonumber(radius) or 1
     color = color or M.COLORS.RED
 

@@ -20,12 +20,12 @@ local function draw(races)
                     cells = {
                         function()
                             LineBuilder()
-                                :text(svar("{1}:", { race.name }), color)
+                                :text(string.var("{1}:", { race.name }), color)
                                 :build()
                         end,
                         function()
                             LineBuilder()
-                                :text(svar("{time} - {playerName} - {model}", {
+                                :text(string.var("{time} - {playerName} - {model}", {
                                         time = RaceDelay(race.record.time),
                                         playerName = race.record.playerName,
                                         model = BJIVeh.getModelLabel(race.record.model)

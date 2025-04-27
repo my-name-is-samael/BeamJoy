@@ -39,21 +39,21 @@ local function drawIndicator(ctxt)
             indicatorColor = TEXT_COLORS.HIGHLIGHT
         end
         local line = LineBuilder()
-            :text(svar("{1}:", { BJILang.get(svar("energy.tankNames.{1}", { energyType })) }))
-            :text(svar("{1}{2}", {
-                Round(BJIVeh.jouleToReadableUnit(energyData.current, energyType), 1),
-                BJILang.get(svar("energy.energyUnits.{1}", { energyType }))
+            :text(string.var("{1}:", { BJILang.get(string.var("energy.tankNames.{1}", { energyType })) }))
+            :text(string.var("{1}{2}", {
+                math.round(BJIVeh.jouleToReadableUnit(energyData.current, energyType), 1),
+                BJILang.get(string.var("energy.energyUnits.{1}", { energyType }))
             }), indicatorColor)
         if BJIScenario.canRefuelAtStation() and
             not BJIStations.station and
             not BJIContext.User.stationProcess then
-            local isEnergyStation = tincludes(BJI_ENERGY_STATION_TYPES, energyType, true)
+            local isEnergyStation = table.includes(BJI_ENERGY_STATION_TYPES, energyType)
             local stationCount = isEnergyStation and
                 (energyStationCounts[energyType] and energyStationCounts[energyType]) or
                 garageCount
             if stationCount > 0 then
                 line:btnIcon({
-                    id = svar("setRouteStation{1}", { i }),
+                    id = string.var("setRouteStation{1}", { i }),
                     icon = ICONS.add_location,
                     style = BTN_PRESETS.SUCCESS,
                     disabled = BJIGPS.getByKey("BJIEnergyStation"),
@@ -62,7 +62,7 @@ local function drawIndicator(ctxt)
                             -- Gas station energy types
                             local stations = {}
                             for _, station in ipairs(BJIContext.Scenario.Data.EnergyStations) do
-                                if tincludes(station.types, energyType, true) then
+                                if table.includes(station.types, energyType) then
                                     local distance = BJIGPS.getRouteLength({ ctxt.vehPosRot.pos, station
                                         .pos })
                                     table.insert(stations, { station = station, distance = distance })
@@ -94,7 +94,7 @@ local function drawIndicator(ctxt)
             not BJIContext.User.stationProcess and
             energyData.current / energyData.max <= .02 then
             line:btn({
-                id = svar("emergencyRefuel{1}", { energyType }),
+                id = string.var("emergencyRefuel{1}", { energyType }),
                 label = BJILang.get("energyStations.emergencyRefuel"),
                 style = BTN_PRESETS.ERROR,
                 onClick = function()

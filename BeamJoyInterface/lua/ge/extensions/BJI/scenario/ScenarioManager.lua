@@ -14,7 +14,7 @@ end
 local function registerSoloScenario(type, module)
     M.TYPES[type] = type
     M.scenarii[type] = module
-    if not tincludes(M.solo, type, true) then
+    if not table.includes(M.solo, type) then
         table.insert(M.solo, type)
     end
 end
@@ -22,7 +22,7 @@ end
 local function registerMultiScenario(type, module)
     M.TYPES[type] = type
     M.scenarii[type] = module
-    if not tincludes(M.multi, type, true) then
+    if not table.includes(M.multi, type) then
         table.insert(M.multi, type)
     end
 end
@@ -58,7 +58,7 @@ BJIAsync.task(
 )
 
 local function onVehicleSpawned(gameVehID)
-    LogDebug(svar("Spawned vehicle {1}", { gameVehID }))
+    LogDebug(string.var("Spawned vehicle {1}", { gameVehID }))
     BJIReputation.onVehicleResetted()
     if _curr().onVehicleSpawned then
         _curr().onVehicleSpawned(gameVehID)
@@ -66,7 +66,7 @@ local function onVehicleSpawned(gameVehID)
 end
 
 local function onVehicleResetted(gameVehID)
-    LogDebug(svar("Resetted vehicle {1}", { gameVehID }))
+    LogDebug(string.var("Resetted vehicle {1}", { gameVehID }))
     if not BJIVeh.isVehicleOwn(gameVehID) then
         return
     end
@@ -78,7 +78,7 @@ local function onVehicleResetted(gameVehID)
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    LogDebug(svar("Switched vehicle from {1} to {2}", { oldGameVehID, newGameVehID }))
+    LogDebug(string.var("Switched vehicle from {1} to {2}", { oldGameVehID, newGameVehID }))
 
     -- assign the real gameVehID
     local finalGameVehID
@@ -324,8 +324,8 @@ local function getAvailableScenarii()
 end
 
 local function switchScenario(newType, ctxt)
-    if not tincludes(M.TYPES, newType, true) then
-        LogError(svar("Invalid scenario {1}", { newType }))
+    if not table.includes(M.TYPES, newType) then
+        LogError(string.var("Invalid scenario {1}", { newType }))
         return
     end
 
@@ -371,11 +371,11 @@ local function getFreeroam()
 end
 
 local function isSoloScenario()
-    return tincludes(M.solo, M.CurrentScenario, true)
+    return table.includes(M.solo, M.CurrentScenario)
 end
 
 local function isServerScenario()
-    return tincludes(M.multi, M.CurrentScenario, true)
+    return table.includes(M.multi, M.CurrentScenario)
 end
 
 local function is(type)

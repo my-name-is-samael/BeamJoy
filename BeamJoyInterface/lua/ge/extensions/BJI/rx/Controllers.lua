@@ -7,7 +7,7 @@ local M = {
 }
 -- route events categories to controller files
 for k, v in pairs(BJI_EVENTS) do
-    if type(v) == "table" and type(v.RX) == "table" and tlength(v.RX) > 0 then
+    if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
         M._ctrls[k] = require("ge/extensions/BJI/rx/" .. k .. "Controller")
     end
 end
@@ -17,7 +17,7 @@ for _, ctrl in pairs(M._ctrls) do
         if fn and type(fn) == "function" then
             fn(data)
         else
-            LogWarn(svar("Event received but not handled : {1}", { endpoint }), self.tag)
+            LogWarn(string.var("Event received but not handled : {1}", { endpoint }), self.tag)
         end
     end
 end
@@ -26,7 +26,7 @@ BJILoaded = {}
 local function initListeners()
     if MPConfig then
         for _, v in pairs(BJI_EVENTS) do
-            if type(v) == "table" and type(v.RX) == "table" and tlength(v.RX) > 0 then
+            if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
                 BJILoaded[v.EVENT] = true
             end
         end
@@ -48,7 +48,7 @@ end
 
 local function dispatchEvent(eventName, endpoint, data)
     if not data or type(data) ~= "table" then
-        LogError(svar("Invalid endpoint {1}.{2}", { eventName, endpoint }), M._name)
+        LogError(string.var("Invalid endpoint {1}.{2}", { eventName, endpoint }), M._name)
         return
     end
     for event, ctrl in pairs(M._ctrls) do
@@ -62,9 +62,9 @@ local function dispatchEvent(eventName, endpoint, data)
                 end
             end
             if not inBlacklist then
-                LogDebug(svar("Event received : {1}.{2}", { eventName, endpoint }), M._name)
-                if BJIContext.DEBUG and tlength(data) > 0 then
-                    PrintObj(data, svar("{1}.{2}", { eventName, endpoint }))
+                LogDebug(string.var("Event received : {1}.{2}", { eventName, endpoint }), M._name)
+                if BJIContext.DEBUG and table.length(data) > 0 then
+                    PrintObj(data, string.var("{1}.{2}", { eventName, endpoint }))
                 end
             end
 
@@ -90,7 +90,7 @@ local function tryFinalizingEvent(id)
     end
 
     retrievingEvents[id] = nil
-    BJIAsync.removeTask(svar("BJIRxEventTimeout-{1}", { id }))
+    BJIAsync.removeTask(string.var("BJIRxEventTimeout-{1}", { id }))
 end
 
 local function retrieveEvent(rawData)
@@ -124,7 +124,7 @@ local function retrieveEvent(rawData)
     if retrievingEvents[data.id] then
         BJIAsync.delayTask(function()
             retrievingEvents[data.id] = nil
-        end, 30000, svar("BJIRxEventTimeout-{1}", { data.id }))
+        end, 30000, string.var("BJIRxEventTimeout-{1}", { data.id }))
     end
 end
 
@@ -153,7 +153,7 @@ local function retrieveEventPart(rawData)
     if retrievingEvents[data.id] then
         BJIAsync.delayTask(function()
             retrievingEvents[data.id] = nil
-        end, 30000, svar("BJIRxEventTimeout-{1}", { data.id }))
+        end, 30000, string.var("BJIRxEventTimeout-{1}", { data.id }))
     end
 end
 

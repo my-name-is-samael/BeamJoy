@@ -32,7 +32,7 @@ local function updateFiltered()
                         end
                     end
                     if #configs > 0 then
-                        local modelCopy = tdeepcopy(model)
+                        local modelCopy = table.clone(model)
                         modelCopy.configs = configs
                         table.insert(M.filtered[modelType], modelCopy)
                     end
@@ -74,7 +74,7 @@ local function drawHeader(ctxt)
     local showDeleteOtherPlayerVehicle = not ctxt.isOwner and ctxt.veh and
         BJIScenario.canDeleteOtherPlayersVehicle()
     local showDeleteOthers = BJIScenario.canDeleteOtherVehicles() and
-        tlength(BJIContext.User.vehicles) > (ctxt.isOwner and 1 or 0)
+        table.length(BJIContext.User.vehicles) > (ctxt.isOwner and 1 or 0)
 
     if showDeleteCurrent or showDeleteOtherPlayerVehicle or showDeleteOthers then
         local line = LineBuilder()
@@ -116,7 +116,7 @@ local function drawConfig(modelKey, config)
     local line = LineBuilder()
     if not limitReached then
         line:btnIcon({
-            id = svar("spawnNew-{1}-{2}", { modelKey, config.key }),
+            id = string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.add,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
@@ -129,7 +129,7 @@ local function drawConfig(modelKey, config)
             line = LineBuilder()
         end
         line:btnIcon({
-            id = svar("replace-{1}-{2}", { modelKey, config.key }),
+            id = string.var("replace-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.carSensors,
             style = BTN_PRESETS.WARNING,
             onClick = function()
@@ -144,7 +144,7 @@ end
 local function drawModel(model)
     local function drawModelButtons(line, withSpawn)
         line:btnIcon({
-            id = svar("preview-{1}", { model.key }),
+            id = string.var("preview-{1}", { model.key }),
             icon = ICONS.ab_asset_image,
             style = BTN_PRESETS.INFO,
             onClick = function()
@@ -154,7 +154,7 @@ local function drawModel(model)
         if withSpawn then
             if not limitReached then
                 line:btnIcon({
-                    id = svar("spawnNew-{1}", { model.key }),
+                    id = string.var("spawnNew-{1}", { model.key }),
                     icon = ICONS.add,
                     style = BTN_PRESETS.SUCCESS,
                     onClick = function()
@@ -164,7 +164,7 @@ local function drawModel(model)
             end
             if ownVeh then
                 line:btnIcon({
-                    id = svar("replace-{1}", { model.key }),
+                    id = string.var("replace-{1}", { model.key }),
                     icon = ICONS.carSensors,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
@@ -175,11 +175,11 @@ local function drawModel(model)
         end
         if #model.configs > 1 and (ownVeh or not limitReached) then
             line:btnIcon({
-                id = svar("spawnRandom-{1}", { model.key }),
+                id = string.var("spawnRandom-{1}", { model.key }),
                 icon = ICONS.casino,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
-                    local config = trandom(model.configs) or {}
+                    local config = table.random(model.configs) or {}
                     BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                 end
             })
@@ -205,7 +205,7 @@ local function drawModel(model)
         drawModelButtons(line, true)
         drawModelTitle(line):build()
         local config = model.configs[1]
-        line:text(svar("({1})", { config.label }))
+        line:text(string.var("({1})", { config.label }))
             :build()
         Indent(-1)
     elseif #model.configs < ACCORDION_THRESHOLD then
@@ -217,7 +217,7 @@ local function drawModel(model)
         Indent(-2)
     else
         AccordionBuilder()
-            :label(svar("##{1}", { model.key }))
+            :label(string.var("##{1}", { model.key }))
             :openedBehavior(function()
                 local line = LineBuilder(true)
                 drawModelButtons(line, false)
@@ -247,12 +247,12 @@ local function drawType(vehs, label, name, icon)
             end
             if #vehs > 0 then
                 line:btnIcon({
-                    id = svar("random-{1}", { name }),
+                    id = string.var("random-{1}", { name }),
                     icon = ICONS.casino,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
-                        local model = trandom(vehs) or {}
-                        local config = trandom(model.configs) or {}
+                        local model = table.random(vehs) or {}
+                        local config = table.random(model.configs) or {}
 
                         if model.key and config.key then
                             BJIScenario.tryReplaceOrSpawn(model.key, config.key)
@@ -313,7 +313,7 @@ local function drawPaints(paints)
         for j = 1, 3 do
             local style = paintToIconStyle(paintData.paint.baseColor)
             line:btnIcon({
-                id = svar("applyPaint-{1}-{2}", { i, j }),
+                id = string.var("applyPaint-{1}-{2}", { i, j }),
                 icon = ICONS.format_color_fill,
                 style = style,
                 onClick = function()
@@ -350,7 +350,7 @@ local function drawPreviousVeh(ctxt)
         local line = LineBuilder()
         if not limitReached then
             line:btnIcon({
-                id = svar("spawnNewPrevious-{1}-{2}", { previousConfig.model, previousConfig }),
+                id = string.var("spawnNewPrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.add,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -360,7 +360,7 @@ local function drawPreviousVeh(ctxt)
         end
         if ownVeh then
             line:btnIcon({
-                id = svar("replacePrevious-{1}-{2}", { previousConfig.model, previousConfig }),
+                id = string.var("replacePrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.carSensors,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
@@ -368,7 +368,7 @@ local function drawPreviousVeh(ctxt)
                 end
             })
         end
-        line:text(svar("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
+        line:text(string.var("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
             :text(modelLabel)
             :build()
     end
@@ -398,7 +398,7 @@ local function drawDefaultVeh(ctxt)
         local line = LineBuilder()
         if not limitReached then
             line:btnIcon({
-                id = svar("spawnNewDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
+                id = string.var("spawnNewDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.add,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -408,7 +408,7 @@ local function drawDefaultVeh(ctxt)
         end
         if ownVeh then
             line:btnIcon({
-                id = svar("replaceDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
+                id = string.var("replaceDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.carSensors,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
@@ -416,7 +416,7 @@ local function drawDefaultVeh(ctxt)
                 end
             })
         end
-        line:text(svar("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
+        line:text(string.var("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
             :text(modelLabel)
             :build()
     end
@@ -424,7 +424,7 @@ end
 
 local function drawBody(ctxt)
     ownVeh = ctxt.isOwner
-    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= tlength(ctxt.user.vehicles)
+    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= table.length(ctxt.user.vehicles)
 
     drawPreviousVeh(ctxt)
     drawDefaultVeh(ctxt)

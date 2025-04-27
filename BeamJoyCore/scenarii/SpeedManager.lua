@@ -33,7 +33,7 @@ local function getCacheHash()
 end
 
 local function start(participants, isEvent)
-    if tlength(participants) < M.MINIMUM_PARTICIPANTS then
+    if table.length(participants) < M.MINIMUM_PARTICIPANTS then
         return
     end
     if isEvent then
@@ -54,7 +54,7 @@ local function start(participants, isEvent)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 1 or M.leaderboard[2] then
+    if table.length(M.participants) == 1 or M.leaderboard[2] then
         for pid in pairs(M.participants) do
             local found = false
             for _, lb in pairs(M.leaderboard) do
@@ -73,7 +73,7 @@ local function checkEnd()
         end
     end
 
-    if tlength(M.participants) == tlength(M.leaderboard) then
+    if table.length(M.participants) == table.length(M.leaderboard) then
         BJCAsync.delayTask(function()
             for i, lb in ipairs(M.leaderboard) do
                 local playerID = lb.playerID
@@ -86,7 +86,7 @@ end
 
 local function fail(playerID, time)
     if M.startTime then
-        for i = tlength(M.participants), 1, -1 do
+        for i = table.length(M.participants), 1, -1 do
             if M.leaderboard[i] and
                 M.leaderboard[i].playerID == playerID then
                 return
@@ -120,7 +120,7 @@ end
 
 local function slowTick(ctxt)
     if M.startTime and M.startTime <= GetCurrentTime() and
-        tlength(M.participants) > tlength(M.leaderboard) then
+        table.length(M.participants) > table.length(M.leaderboard) then
         M.stepCounter = M.stepCounter + 1
         if M.stepCounter >= BJCConfig.Data.Speed.StepDelay then
             M.stepCounter = 0
@@ -139,9 +139,9 @@ local function onPlayerDisconnect(targetID)
         return
     end
 
-    for i = 1, tlength(M.participants) do
+    for i = 1, table.length(M.participants) do
         if M.leaderboard[i] and M.leaderboard[i].playerID == targetID then
-            for j = i, tlength(M.participants) do
+            for j = i, table.length(M.participants) do
                 if M.leaderboard[j + 1] then
                     M.leaderboard[j] = M.leaderboard[j + 1]
                 else
@@ -165,7 +165,7 @@ local function onVehicleDeleted(playerID, vehID)
     end
 
     local eliminated = false
-    for i = 1, tlength(M.participants) do
+    for i = 1, table.length(M.participants) do
         if M.leaderboard[i] and M.leaderboard[i].playerID == playerID then
             eliminated = true
         end

@@ -26,6 +26,7 @@ color = color or function(r, g, b, a) return {} end
 ColorF = ColorF or function(r, g, b, a) return {} end
 ColorI = ColorI or function(r, g, b, a) return {} end
 
+dump = dump or function(obj) end
 log = log or function(type, tag, msg) end
 jsonReadFile = jsonReadFile or function(path) return {} end
 jsonDecode = jsonDecode or function(str) return {} end

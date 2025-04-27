@@ -18,7 +18,7 @@ local function updateMarkers()
     local startPositionColor = ShapeDrawer.Color(1, 1, 0, .5)
     for i, p in ipairs(raceEdit.startPositions) do
         table.insert(waypoints, {
-            name = svar(BJILang.get("races.edit.startPositionLabel"), { index = i }),
+            name = BJILang.get("races.edit.startPositionLabel"):var({ index = i }),
             pos = p.pos,
             rot = p.rot,
             radius = 2,
@@ -78,7 +78,7 @@ local function getNewWPName()
         end
     end
 
-    return svar("wp{1}", { max + 1 })
+    return string.var("wp{1}", { max + 1 })
 end
 
 local function getNewWaypointRadius(iStep, iWp)
@@ -154,7 +154,7 @@ local function saveRace(callback)
         local race = {
             id = raceEdit.id,
             author = raceEdit.author,
-            name = strim(raceEdit.name),
+            name = raceEdit.name:trim(),
             enabled = raceEdit.enabled,
             previewPosition = RoundPositionRotation({
                 pos = _vec3export(raceEdit.previewPosition.pos),
@@ -316,7 +316,7 @@ local function reverseRace()
                                     newFinish.rot = newFinish.rot * quat(0, 0, 1, 0)
                                     if #step > 1 then
                                         -- multiple finishes
-                                        newFinish.name = svar("finish{1}", { iFinish })
+                                        newFinish.name = string.var("finish{1}", { iFinish })
                                     else
                                         -- single finish
                                         newFinish.name = "finish"
@@ -351,10 +351,10 @@ local function reverseRace()
                                 local newIStep = #raceEdit.steps - iStep
                                 if #step > 1 then
                                     -- multiple wps in this step
-                                    wp.name = svar("wp{1}-{2}", { newIStep, iWp })
+                                    wp.name = string.var("wp{1}-{2}", { newIStep, iWp })
                                 else
                                     -- single wp in this step
-                                    wp.name = svar("wp{1}", { newIStep })
+                                    wp.name = string.var("wp{1}", { newIStep })
                                 end
                                 wp.rot = wp.rot * quat(0, 0, 1, 0)
                                 table.insert(newStep, wp)
@@ -401,12 +401,12 @@ local function drawTools(vehpos)
             { value = 10,  icon = ICONS.tb_spiral_right_inside },
         }) do
             line:btnIcon({
-                id = svar("rotate{1}", { r.value }),
+                id = string.var("rotate{1}", { r.value }),
                 icon = r.icon,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
                     local rot = vehpos.rot
-                    rot = rot - quat(0, 0, Round(r.value / 360, 8), 0)
+                    rot = rot - quat(0, 0, math.round(r.value / 360, 8), 0)
                     BJIVeh.setPositionRotation(vehpos.pos, rot, { safe = false, noReset = true })
                 end,
             })
@@ -434,7 +434,7 @@ local function drawNameAndAuthor()
     local validName = #raceEdit.name > 0
     if validName then
         for _, r in pairs(BJIContext.Scenario.Data.Races) do
-            if r.id ~= raceEdit.id and strim(raceEdit.name) == r.name then
+            if r.id ~= raceEdit.id and raceEdit.name:trim() == r.name then
                 validName = false
                 break
             end
@@ -456,7 +456,7 @@ local function drawNameAndAuthor()
         })
         :build()
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("races.edit.author") }))
+        :text(string.var("{1}:", { BJILang.get("races.edit.author") }))
         :text(raceEdit.author,
             raceEdit.author == BJIContext.User.playerName and
             TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
@@ -555,7 +555,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                     :icon({
                         icon = ICONS.simobject_player_spawn_sphere,
                     })
-                    :text(svar("{1}:", { BJILang.get("races.edit.startPositions") }))
+                    :text(string.var("{1}:", { BJILang.get("races.edit.startPositions") }))
                     :text(#raceEdit.startPositions == 0 and "Missing" or "", TEXT_COLORS.ERROR)
                     :build()
             end
@@ -582,8 +582,8 @@ local function drawStartPositions(vehpos, campos, ctxt)
 
                 local nameWidth = 0
                 for i in ipairs(raceEdit.startPositions) do
-                    local label = svar(BJILang.get("races.edit.startPositionLabel"), { index = i })
-                    local w = GetColumnTextWidth(svar("{1}{2}", { label, HELPMARKER_TEXT }))
+                    local label = BJILang.get("races.edit.startPositionLabel"):var({ index = i })
+                    local w = GetColumnTextWidth(string.var("{1}{2}", { label, HELPMARKER_TEXT }))
                     if w > nameWidth then
                         nameWidth = w
                     end
@@ -595,7 +595,7 @@ local function drawStartPositions(vehpos, campos, ctxt)
                         cells = {
                             function()
                                 LineBuilder()
-                                    :text(svar(BJILang.get("races.edit.startPositionLabel"), { index = i }))
+                                    :text(BJILang.get("races.edit.startPositionLabel"):var({ index = i }))
                                     :helpMarker(BJILang.get("races.edit.startPositionsNameTooltip"))
                                     :build()
                             end,
@@ -729,7 +729,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                     :icon({
                         icon = ICONS.simobject_bng_waypoint,
                     })
-                    :text(svar("{1}:", { BJILang.get("races.edit.steps") }))
+                    :text(string.var("{1}:", { BJILang.get("races.edit.steps") }))
                     :text(#raceEdit.steps == 0 and BJILang.get("errors.missing") or "", TEXT_COLORS.ERROR)
                     :build()
             end
@@ -739,9 +739,9 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                 -- STEPS
                 for iStep, step in ipairs(raceEdit.steps) do
                     LineBuilder()
-                        :text(svar("{1} {2}", { BJILang.get("races.edit.step"), iStep }), TEXT_COLORS.HIGHLIGHT)
+                        :text(string.var("{1} {2}", { BJILang.get("races.edit.step"), iStep }), TEXT_COLORS.HIGHLIGHT)
                         :btnIcon({
-                            id = svar("moveupStep{1}", { iStep }),
+                            id = string.var("moveupStep{1}", { iStep }),
                             icon = ICONS.arrow_drop_up,
                             style = BTN_PRESETS.WARNING,
                             disabled = iStep == 1 or raceEdit.processSave,
@@ -763,7 +763,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             end
                         })
                         :btnIcon({
-                            id = svar("movedownStep{1}", { iStep }),
+                            id = string.var("movedownStep{1}", { iStep }),
                             icon = ICONS.arrow_drop_down,
                             style = BTN_PRESETS.WARNING,
                             disabled = iStep == #raceEdit.steps or raceEdit.processSave,
@@ -784,7 +784,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             end
                         })
                         :btnIcon({
-                            id = svar("deleteStep{1}", { iStep }),
+                            id = string.var("deleteStep{1}", { iStep }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             disabled = raceEdit.processSave,
@@ -823,10 +823,10 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                         if #step == 1 then
                             line:text(BJILang.get("races.edit.waypoint"))
                         else
-                            line:text(svar("{1} {2}", { BJILang.get("races.edit.branch"), iWp }))
+                            line:text(string.var("{1} {2}", { BJILang.get("races.edit.branch"), iWp }))
                         end
                         line:btnIcon({
-                            id = svar("goToWP-{1}-{2}", { iStep, iWp }),
+                            id = string.var("goToWP-{1}-{2}", { iStep, iWp }),
                             icon = ICONS.cameraFocusOnVehicle2,
                             style = BTN_PRESETS.INFO,
                             disabled = not vehpos and not campos,
@@ -842,7 +842,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                             end,
                         })
                             :btnIcon({
-                                id = svar("moveWP-{1}-{2}", { iStep, iWp }),
+                                id = string.var("moveWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.crosshair,
                                 style = BTN_PRESETS.WARNING,
                                 disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or
@@ -856,7 +856,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 end,
                             })
                             :btnIconToggle({
-                                id = svar("toggleStandWP-{1}-{2}", { iStep, iWp }),
+                                id = string.var("toggleStandWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.local_gas_station,
                                 state = wp.stand == true,
                                 disabled = raceEdit.processSave,
@@ -868,7 +868,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("deleteWP-{1}-{2}", { iStep, iWp }),
+                                id = string.var("deleteWP-{1}-{2}", { iStep, iWp }),
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 disabled = raceEdit.processSave,
@@ -903,7 +903,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 labelWidth = w
                             end
                         end
-                        ColumnsBuilder(svar("BJIScenarioEditorRaceStep{1}branch{2}", { iStep, iWp }), { labelWidth, -1 })
+                        ColumnsBuilder(string.var("BJIScenarioEditorRaceStep{1}branch{2}", { iStep, iWp }), { labelWidth, -1 })
                             :addRow({
                                 cells = {
                                     function()
@@ -915,7 +915,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                     function()
                                         LineBuilder()
                                             :inputString({
-                                                id = svar("nameWP-{1}-{2}", { iStep, iWp }),
+                                                id = string.var("nameWP-{1}-{2}", { iStep, iWp }),
                                                 value = wp.name,
                                                 style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
                                                 disabled = raceEdit.processSave,
@@ -934,7 +934,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 cells = {
                                     function()
                                         LineBuilder()
-                                            :text(svar("{1}:", {
+                                            :text(string.var("{1}:", {
                                                 wp.stand and
                                                 BJILang.get("races.edit.radius") or
                                                 BJILang.get("races.edit.size")
@@ -944,7 +944,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                     function()
                                         LineBuilder()
                                             :inputNumeric({
-                                                id = svar("radiusWP-{1}-{2}", { iStep, iWp }),
+                                                id = string.var("radiusWP-{1}-{2}", { iStep, iWp }),
                                                 type = "float",
                                                 value = wp.radius,
                                                 min = 1,
@@ -966,13 +966,13 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 cells = {
                                     function()
                                         LineBuilder()
-                                            :text(svar("{1}:", { BJILang.get("races.edit.bottomHeight") }))
+                                            :text(string.var("{1}:", { BJILang.get("races.edit.bottomHeight") }))
                                             :build()
                                     end,
                                     function()
                                         LineBuilder()
                                             :inputNumeric({
-                                                id = svar("bottomHeightWP-{1}-{2}", { iStep, iWp }),
+                                                id = string.var("bottomHeightWP-{1}-{2}", { iStep, iWp }),
                                                 type = "float",
                                                 value = wp.zOffset or 1,
                                                 min = 0,
@@ -1028,7 +1028,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
 
                                                 line = LineBuilder()
                                                     :inputString({
-                                                        id = svar("WPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
+                                                        id = string.var("WPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
                                                         width = parentInputWidth,
                                                         disabled = raceEdit.processSave,
                                                         value = parent,
@@ -1043,7 +1043,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                     })
                                                 if #wp.parents > 1 then
                                                     line:btnIcon({
-                                                        id = svar("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
+                                                        id = string.var("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
                                                         icon = ICONS.delete_forever,
                                                         style = BTN_PRESETS.ERROR,
                                                         disabled = raceEdit.processSave,
@@ -1059,7 +1059,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                             end
                                             LineBuilder()
                                                 :btnIcon({
-                                                    id = svar("addWPParent-{1}-{2}", { iStep, iWp }),
+                                                    id = string.var("addWPParent-{1}-{2}", { iStep, iWp }),
                                                     icon = ICONS.add_box,
                                                     style = BTN_PRESETS.SUCCESS,
                                                     disabled = raceEdit.processSave,
@@ -1080,7 +1080,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                     end
                     LineBuilder()
                         :btnIcon({
-                            id = svar("addStepBranch{1}", { iStep }),
+                            id = string.var("addStepBranch{1}", { iStep }),
                             icon = ICONS.fg_sideways,
                             style = BTN_PRESETS.SUCCESS,
                             disabled = not canSetPos or not vehpos or ctxt.camera == BJICam.CAMERAS.FREE or

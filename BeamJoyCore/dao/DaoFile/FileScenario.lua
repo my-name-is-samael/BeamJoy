@@ -18,7 +18,7 @@ local M = {
 }
 
 function M.init(dbPath)
-    M._dbPath = svar("{1}/scenarii", { dbPath })
+    M._dbPath = string.var("{1}/scenarii", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         FS.CreateDirectory(M._dbPath)
@@ -27,7 +27,7 @@ end
 
 local function _getFilePath(type)
     local mapName = BJCCore.getMap()
-    return svar("{1}/{2}{3}.json", { M._dbPath, mapName, type })
+    return string.var("{1}/{2}{3}.json", { M._dbPath, mapName, type })
 end
 
 -- RACES

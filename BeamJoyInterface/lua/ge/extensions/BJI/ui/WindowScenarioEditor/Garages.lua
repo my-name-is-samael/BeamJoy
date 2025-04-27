@@ -88,12 +88,12 @@ local function drawBody(ctxt)
     end
 
     for i, garage in ipairs(gEdit.garages) do
-        local invalidName = #strim(garage.name) == 0
+        local invalidName = #garage.name:trim() == 0
         if invalidName then
             gEdit.valid = false
         end
 
-        ColumnsBuilder(svar("BJIScenarioEditorGarage{1}", { i }), { labelWidth, -1 })
+        ColumnsBuilder(string.var("BJIScenarioEditorGarage{1}", { i }), { labelWidth, -1 })
             :addRow({
                 cells = {
                     function()
@@ -105,7 +105,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("nameGarage{1}", { i }),
+                                id = string.var("nameGarage{1}", { i }),
                                 style = invalidName and INPUT_PRESETS.ERROR or INPUT_PRESETS.DEFAULT,
                                 disabled = gEdit.processSave,
                                 value = garage.name,
@@ -130,7 +130,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :inputNumeric({
-                                id = svar("radiusGarage{1}", { i }),
+                                id = string.var("radiusGarage{1}", { i }),
                                 type = "float",
                                 precision = 1,
                                 value = garage.radius,
@@ -155,7 +155,7 @@ local function drawBody(ctxt)
                     function()
                         LineBuilder()
                             :btnIcon({
-                                id = svar("goto{1}", { i }),
+                                id = string.var("goto{1}", { i }),
                                 icon = ICONS.cameraFocusTopDown,
                                 style = BTN_PRESETS.INFO,
                                 onClick = function()
@@ -166,7 +166,7 @@ local function drawBody(ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("moveGarage{1}", { i }),
+                                id = string.var("moveGarage{1}", { i }),
                                 icon = ICONS.crosshair,
                                 style = BTN_PRESETS.WARNING,
                                 disabled = ctxt.camera ~= BJICam.CAMERAS.FREE or gEdit.processSave,
@@ -177,7 +177,7 @@ local function drawBody(ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("deleteGarage{1}", { i }),
+                                id = string.var("deleteGarage{1}", { i }),
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 disabled = gEdit.processSave,

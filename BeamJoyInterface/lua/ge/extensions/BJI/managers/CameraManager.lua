@@ -133,7 +133,7 @@ local function forceFreecamPos(pos, rot)
 end
 
 local function isRestrictedCamera(cam)
-    return tincludes(M.restricted, cam)
+    return table.includes(M.restricted, cam)
 end
 
 local function addRestrictedCamera(cam)
@@ -144,7 +144,7 @@ end
 
 local function removeRestrictedCamera(cam)
     if M.isRestrictedCamera(cam) then
-        local pos = tpos(M.restricted, cam)
+        local pos = table.indexOf(M.restricted, cam)
         if pos then
             table.remove(M.restricted, pos)
         end
@@ -229,7 +229,7 @@ end
 
 local function onCameraChange(newCamera)
     if #M.restricted > 0 then
-        if tincludes(M.restricted, newCamera) then
+        if table.includes(M.restricted, newCamera) then
             switchToNextCam()
             return
         end

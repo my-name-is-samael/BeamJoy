@@ -6,7 +6,7 @@ local function reloadMarkers()
     local waypoints = {}
     for i, position in ipairs(dEdit.positions) do
         table.insert(waypoints, {
-            name = svar(BJILang.get("delivery.edit.position"), { index = i }),
+            name = BJILang.get("delivery.edit.position"):var({ index = i }),
             pos = position.pos,
             rot = position.rot,
             radius = position.radius,
@@ -83,15 +83,15 @@ local function drawBody(ctxt)
 
     local labelWidth = GetTextWidth(BJILang.get("delivery.edit.radius") .. ":")
     for i in ipairs(dEdit.positions) do
-        local w = GetColumnTextWidth(svar(BJILang.get("delivery.edit.position"),
-            { index = i })) + GetBtnIconSize()
+        local w = GetColumnTextWidth(BJILang.get("delivery.edit.position")
+            :var({ index = i })) + GetBtnIconSize()
         if w > labelWidth then
             labelWidth = w
         end
     end
 
     for i, position in ipairs(dEdit.positions) do
-        ColumnsBuilder(svar("BJIScenarioEditorDeliveries{1}", { i }), { labelWidth, -1 })
+        ColumnsBuilder(string.var("BJIScenarioEditorDeliveries{1}", { i }), { labelWidth, -1 })
             :addRow({
                 cells = {
                     function()
@@ -99,14 +99,14 @@ local function drawBody(ctxt)
                             :icon({
                                 icon = ICONS.simobject_bng_waypoint,
                             })
-                            :text(svar(BJILang.get("delivery.edit.position"),
-                                { index = i }))
+                            :text(BJILang.get("delivery.edit.position")
+                                :var({ index = i }))
                             :build()
                     end,
                     function()
                         LineBuilder()
                             :btnIcon({
-                                id = svar("goTo{1}", { i }),
+                                id = string.var("goTo{1}", { i }),
                                 icon = ICONS.cameraFocusOnVehicle2,
                                 style = BTN_PRESETS.INFO,
                                 disabled = not ctxt.isOwner,
@@ -118,7 +118,7 @@ local function drawBody(ctxt)
                                 end,
                             })
                             :btnIcon({
-                                id = svar("movePos{1}", { i }),
+                                id = string.var("movePos{1}", { i }),
                                 icon = ICONS.crosshair,
                                 style = BTN_PRESETS.WARNING,
                                 disabled = not vehPos or dEdit.processSave,
@@ -132,7 +132,7 @@ local function drawBody(ctxt)
                                 end,
                             })
                             :btnIcon({
-                                id = svar("delete{1}", { i }),
+                                id = string.var("delete{1}", { i }),
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 disabled = dEdit.processSave,
@@ -150,13 +150,13 @@ local function drawBody(ctxt)
                 cells = {
                     function()
                         LineBuilder()
-                            :text(svar("{1}:", { BJILang.get("delivery.edit.radius") }))
+                            :text(string.var("{1}:", { BJILang.get("delivery.edit.radius") }))
                             :build()
                     end,
                     function()
                         LineBuilder()
                             :inputNumeric({
-                                id = svar("radius{1}", { i }),
+                                id = string.var("radius{1}", { i }),
                                 type = "float",
                                 precision = 1,
                                 value = position.radius,

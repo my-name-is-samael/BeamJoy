@@ -21,13 +21,13 @@ local function draw()
 
     local vehTasklist = "{"
     for i, stopName in ipairs(tasklist) do
-        vehTasklist = svar("{1}{{2}, \'{3}\'}", { vehTasklist, i, stopName })
+        vehTasklist = string.var("{1}{{2}, \'{3}\'}", { vehTasklist, i, stopName })
         if i < #tasklist then
-            vehTasklist = svar("{1},", { vehTasklist })
+            vehTasklist = string.var("{1},", { vehTasklist })
         end
     end
-    vehTasklist = svar("{1}}", { vehTasklist })
-    local strData = svar(
+    vehTasklist = string.var("{1}}", { vehTasklist })
+    local strData = string.var(
         "controller.onGameplayEvent('bus_onRouteChange',{direction='{1}',routeID='{2}',routeId='{2}',routeColor='{3}',tasklist={4}})",
         { direction, M.id, color, vehTasklist })
     local veh = BJIVeh.getCurrentVehicleOwn()

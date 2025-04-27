@@ -10,7 +10,7 @@ return function(ctxt)
 
     local labelWidth = 0
     for _, v in ipairs(fields) do
-        local w = GetColumnTextWidth(BJILang.get(svar("serverConfig.bjc.speed.{1}",
+        local w = GetColumnTextWidth(BJILang.get(string.var("serverConfig.bjc.speed.{1}",
             { v.key })) .. HELPMARKER_TEXT)
         if w > labelWidth then
             labelWidth = w
@@ -23,8 +23,8 @@ return function(ctxt)
             cells = {
                 function()
                     local line = LineBuilder()
-                        :text(BJILang.get(svar("serverConfig.bjc.speed.{1}", { v.key })))
-                    local tooltip = BJILang.get(svar("serverConfig.bjc.speed.{1}Tooltip", { v.key }), "")
+                        :text(BJILang.get(string.var("serverConfig.bjc.speed.{1}", { v.key })))
+                    local tooltip = BJILang.get(string.var("serverConfig.bjc.speed.{1}Tooltip", { v.key }), "")
                     if #tooltip > 0 then
                         line:helpMarker(tooltip)
                     end
@@ -42,7 +42,7 @@ return function(ctxt)
                             stepFast = v.stepFast,
                             onUpdate = function(val)
                                 BJIContext.BJC.Speed[v.key] = val
-                                BJITx.config.bjc(svar("Speed.{1}", { v.key }), val)
+                                BJITx.config.bjc(string.var("Speed.{1}", { v.key }), val)
                             end
                         })
                         :build()

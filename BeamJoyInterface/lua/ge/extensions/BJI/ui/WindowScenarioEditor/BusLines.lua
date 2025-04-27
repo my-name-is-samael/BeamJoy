@@ -113,7 +113,7 @@ end
 
 local function validLineName(iLine)
     local name = blEdit.lines[iLine].name
-    if #strim(name) == 0 then
+    if #name:trim() == 0 then
         return false
     end
     for i, line in ipairs(blEdit.lines) do
@@ -126,7 +126,7 @@ end
 
 local function validStopName(iLine, iStop)
     local name = blEdit.lines[iLine].stops[iStop].name
-    if #strim(name) == 0 then
+    if #name:trim() == 0 then
         return false
     end
     for i, stop in ipairs(blEdit.lines[iLine].stops) do
@@ -154,14 +154,14 @@ local function drawBody(ctxt)
     for iLine, busLine in ipairs(blEdit.lines) do
         local displayed = blEdit.markersLine == iLine
         AccordionBuilder()
-            :label(svar("##{1}", { iLine }))
+            :label(string.var("##{1}", { iLine }))
             :commonStart(function()
                 local line = LineBuilder(true)
-                    :text(svar(BJILang.get("buslines.edit.line"), { index = iLine }),
+                    :text(BJILang.get("buslines.edit.line"):var({ index = iLine }),
                         displayed and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-                    :text(svar("({1})", { busLine.name }))
+                    :text(string.var("({1})", { busLine.name }))
                     :btnIcon({
-                        id = svar("reloadMarkers{1}", { iLine }),
+                        id = string.var("reloadMarkers{1}", { iLine }),
                         icon = ICONS.visibility,
                         style = displayed and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
                         active = displayed,
@@ -172,7 +172,7 @@ local function drawBody(ctxt)
                         end,
                     })
                     :btnIcon({
-                        id = svar("deleteLine{1}", { iLine }),
+                        id = string.var("deleteLine{1}", { iLine }),
                         icon = ICONS.delete_forever,
                         style = BTN_PRESETS.ERROR,
                         disabled = blEdit.processSave,
@@ -197,10 +197,10 @@ local function drawBody(ctxt)
                     blEdit.valid = false
                 end
                 LineBuilder()
-                    :text(svar("{1}:", { BJILang.get("buslines.edit.lineName") }),
+                    :text(string.var("{1}:", { BJILang.get("buslines.edit.lineName") }),
                         validName and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
                     :inputString({
-                        id = svar("lineName{1}", { iLine }),
+                        id = string.var("lineName{1}", { iLine }),
                         value = busLine.name,
                         disabled = blEdit.processSave,
                         style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
@@ -213,7 +213,7 @@ local function drawBody(ctxt)
                 LineBuilder()
                     :text(BJILang.get("buslines.edit.loopable"))
                     :btnIconToggle({
-                        id = svar("lineLoopable{1}", { iLine }),
+                        id = string.var("lineLoopable{1}", { iLine }),
                         icon = ICONS.rotate_90_degrees_ccw,
                         state = busLine.loopable,
                         disabled = blEdit.processSave,
@@ -234,9 +234,9 @@ local function drawBody(ctxt)
                         :icon({
                             icon = ICONS.simobject_bng_waypoint,
                         })
-                        :text(svar(BJILang.get("buslines.edit.stop"), { index = iStop }))
+                        :text(BJILang.get("buslines.edit.stop"):var({ index = iStop }))
                         :btnIcon({
-                            id = svar("busStopMoveUp{1}{2}", { iLine, iStop }),
+                            id = string.var("busStopMoveUp{1}{2}", { iLine, iStop }),
                             icon = ICONS.arrow_drop_up,
                             style = BTN_PRESETS.WARNING,
                             disabled = iStop == 1 or blEdit.processSave,
@@ -248,7 +248,7 @@ local function drawBody(ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("busStopMoveDown{1}{2}", { iLine, iStop }),
+                            id = string.var("busStopMoveDown{1}{2}", { iLine, iStop }),
                             icon = ICONS.arrow_drop_down,
                             style = BTN_PRESETS.WARNING,
                             disabled = iStop == #busLine.stops or blEdit.processSave,
@@ -260,7 +260,7 @@ local function drawBody(ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("busStopGoTo{1}{2}", { iLine, iStop }),
+                            id = string.var("busStopGoTo{1}{2}", { iLine, iStop }),
                             icon = ICONS.cameraFocusOnVehicle2,
                             style = BTN_PRESETS.INFO,
                             disabled = not vehPos,
@@ -269,7 +269,7 @@ local function drawBody(ctxt)
                             end
                         })
                         :btnIcon({
-                            id = svar("busStopMoveHere{1}{2}", { iLine, iStop }),
+                            id = string.var("busStopMoveHere{1}{2}", { iLine, iStop }),
                             icon = ICONS.crosshair,
                             style = BTN_PRESETS.WARNING,
                             disabled = not vehPos or blEdit.processSave,
@@ -284,7 +284,7 @@ local function drawBody(ctxt)
                         })
                     if iStop > 1 then
                         line:btnIcon({
-                            id = svar("busStopDelete{1}{2}", { iLine, iStop }),
+                            id = string.var("busStopDelete{1}{2}", { iLine, iStop }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             disabled = blEdit.processSave,
@@ -297,19 +297,19 @@ local function drawBody(ctxt)
                     end
                     line:build()
                     Indent(1)
-                    ColumnsBuilder(svar("BJIScenarioEditorBusLine{1}-{2}", { iLine, iStop }),
+                    ColumnsBuilder(string.var("BJIScenarioEditorBusLine{1}-{2}", { iLine, iStop }),
                         { stopNameRadiusWidth, -1 })
                         :addRow({
                             cells = {
                                 function()
                                     LineBuilder()
-                                        :text(svar("{1}:", { BJILang.get("buslines.edit.stopName") }))
+                                        :text(string.var("{1}:", { BJILang.get("buslines.edit.stopName") }))
                                         :build()
                                 end,
                                 function()
                                     LineBuilder()
                                         :inputString({
-                                            id = svar("busStopName{1}{2}", { iLine, iStop }),
+                                            id = string.var("busStopName{1}{2}", { iLine, iStop }),
                                             value = stop.name,
                                             disabled = blEdit.processSave,
                                             style = validName and INPUT_PRESETS.DEFAULT or INPUT_PRESETS.ERROR,
@@ -327,13 +327,13 @@ local function drawBody(ctxt)
                             cells = {
                                 function()
                                     LineBuilder()
-                                        :text(svar("{1}:", { BJILang.get("buslines.edit.stopRadius") }))
+                                        :text(string.var("{1}:", { BJILang.get("buslines.edit.stopRadius") }))
                                         :build()
                                 end,
                                 function()
                                     LineBuilder()
                                         :inputNumeric({
-                                            id = svar("busStopRadius{1}{2}", { iLine, iStop }),
+                                            id = string.var("busStopRadius{1}{2}", { iLine, iStop }),
                                             type = "float",
                                             precision = 1,
                                             value = stop.radius,
@@ -356,7 +356,7 @@ local function drawBody(ctxt)
                 end
                 LineBuilder()
                     :btnIcon({
-                        id = svar("addStop{1}", { iLine }),
+                        id = string.var("addStop{1}", { iLine }),
                         icon = ICONS.addListItem,
                         style = TEXT_COLORS.SUCCESS,
                         disabled = not vehPos or blEdit.processSave,

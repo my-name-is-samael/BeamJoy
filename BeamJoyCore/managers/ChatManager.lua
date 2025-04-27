@@ -60,9 +60,9 @@ local function onServerChat(targetID, message, color)
         targetName = BJCLang.getConsoleMessage("common.allPlayers")
     else
         local target = BJCPlayers.Players[targetID]
-        targetName = target and target.playerName or svar("? (id = {1})", { targetID })
+        targetName = target and target.playerName or string.var("? (id = {1})", { targetID })
     end
-    Log(svar(BJCLang.getConsoleMessage("messages.serverBroadcast"), {
+    Log(BJCLang.getConsoleMessage("messages.serverBroadcast"):var({
         targetName = targetName,
         message = message,
     }), "BJCChat")

@@ -18,7 +18,7 @@ local function reloadMarkers(indexArena)
     if arena then
         for i, target in ipairs(arena.startPositions) do
             table.insert(waypoints, {
-                name = svar(BJILang.get("derby.edit.startPositionName"), { index = i }),
+                name = BJILang.get("derby.edit.startPositionName"):var({ index = i }),
                 pos = target.pos,
                 rot = target.rot,
                 radius = 2,
@@ -87,9 +87,9 @@ end
 
 local function drawArena(index, arena, ctxt)
     LineBuilder()
-        :text(svar(BJILang.get("derby.edit.arena"), { index = index }))
+        :text(BJILang.get("derby.edit.arena"):var({ index = index }))
         :btnIcon({
-            id = svar("reloadMarkersArena{1}", { index }),
+            id = string.var("reloadMarkersArena{1}", { index }),
             icon = ICONS.visibility,
             style = BTN_PRESETS.INFO,
             disabled = drawnArena == index or #arena.startPositions == 0,
@@ -98,7 +98,7 @@ local function drawArena(index, arena, ctxt)
             end,
         })
         :btnIcon({
-            id = svar("deleteArena{1}", { index }),
+            id = string.var("deleteArena{1}", { index }),
             icon = ICONS.delete_forever,
             style = BTN_PRESETS.ERROR,
             onClick = function()
@@ -115,13 +115,13 @@ local function drawArena(index, arena, ctxt)
         "derby.edit.previewPosition",
         "derby.edit.startPositions",
     }) do
-        local label = svar(BJILang.get(k))
+        local label = BJILang.get(k)
         local w = GetColumnTextWidth(label .. HELPMARKER_TEXT)
         if w > labelWidth then
             labelWidth = w
         end
     end
-    local cols = ColumnsBuilder(svar("derbyEdit{1}", { index }), { labelWidth, -1 })
+    local cols = ColumnsBuilder(string.var("derbyEdit{1}", { index }), { labelWidth, -1 })
         :addRow({
             cells = {
                 function()
@@ -137,7 +137,7 @@ local function drawArena(index, arena, ctxt)
                     end
                     LineBuilder()
                         :inputString({
-                            id = svar("arenaName{1}", { index }),
+                            id = string.var("arenaName{1}", { index }),
                             value = arena.name,
                             disabled = dEdit.processSave,
                             style = not validName and INPUT_PRESETS.ERROR,
@@ -161,7 +161,7 @@ local function drawArena(index, arena, ctxt)
                 function()
                     LineBuilder()
                         :btnIconToggle({
-                            id = svar("toggleArenaEnabled{1}", { index }),
+                            id = string.var("toggleArenaEnabled{1}", { index }),
                             icon = arena.enabled and ICONS.visibility or ICONS.visibility_off,
                             state = arena.enabled,
                             onClick = function()
@@ -188,7 +188,7 @@ local function drawArena(index, arena, ctxt)
                 function()
                     local line = LineBuilder()
                         :btnIcon({
-                            id = svar("setArenaPreviewPos{1}", { index }),
+                            id = string.var("setArenaPreviewPos{1}", { index }),
                             icon = arena.previewPosition and ICONS.crosshair or ICONS.video_call,
                             style = arena.previewPosition and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
                             disabled = dEdit.processSave,
@@ -203,7 +203,7 @@ local function drawArena(index, arena, ctxt)
                         })
                     if arena.previewPosition then
                         line:btnIcon({
-                            id = svar("showArenaPreviePosition{1}", { index }),
+                            id = string.var("showArenaPreviePosition{1}", { index }),
                             icon = ICONS.visibility,
                             style = BTN_PRESETS.INFO,
                             disabled = not arena.previewPosition,
@@ -236,8 +236,8 @@ local function drawArena(index, arena, ctxt)
                     if not validStartPositions then
                         LineBuilder()
                             :text(
-                                svar(BJILang.get("derby.edit.amountStartPositionsNeeded"),
-                                    { amount = 6 - #arena.startPositions }),
+                                BJILang.get("derby.edit.amountStartPositionsNeeded")
+                                :var({ amount = 6 - #arena.startPositions }),
                                 TEXT_COLORS.ERROR)
                             :build()
                     end
@@ -250,10 +250,10 @@ local function drawArena(index, arena, ctxt)
                 nil,
                 function()
                     LineBuilder()
-                        :text(svar(BJILang.get("derby.edit.startPositionName"), { index = i }))
+                        :text(BJILang.get("derby.edit.startPositionName"):var({ index = i }))
                     -- add up, down, goto, moveHere and delete buttons
                         :btnIcon({
-                            id = svar("upArenaStartPos{1}{2}", { index, i }),
+                            id = string.var("upArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.arrow_drop_up,
                             style = BTN_PRESETS.WARNING,
                             disabled = i == 1 or dEdit.processSave,
@@ -265,7 +265,7 @@ local function drawArena(index, arena, ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("downArenaStartPos{1}{2}", { index, i }),
+                            id = string.var("downArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.arrow_drop_down,
                             style = BTN_PRESETS.WARNING,
                             disabled = i == #arena.startPositions or dEdit.processSave,
@@ -277,7 +277,7 @@ local function drawArena(index, arena, ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("gotoArenaStartPos{1}{2}", { index, i }),
+                            id = string.var("gotoArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.cameraFocusOnVehicle2,
                             style = BTN_PRESETS.INFO,
                             disabled = not ctxt.veh,
@@ -291,7 +291,7 @@ local function drawArena(index, arena, ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("moveHereArenaStartPos{1}{2}", { index, i }),
+                            id = string.var("moveHereArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.crosshair,
                             style = BTN_PRESETS.WARNING,
                             disabled = not ctxt.veh or dEdit.processSave,
@@ -302,7 +302,7 @@ local function drawArena(index, arena, ctxt)
                             end
                         })
                         :btnIcon({
-                            id = svar("deleteArenaStartPos{1}{2}", { index, i }),
+                            id = string.var("deleteArenaStartPos{1}{2}", { index, i }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             disabled = dEdit.processSave,
@@ -323,7 +323,7 @@ local function drawArena(index, arena, ctxt)
             function()
                 LineBuilder()
                     :btnIcon({
-                        id = svar("addStartPos{1}", { index }),
+                        id = string.var("addStartPos{1}", { index }),
                         icon = ICONS.addListItem,
                         style = BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh or dEdit.processSave,

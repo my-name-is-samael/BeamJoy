@@ -87,21 +87,21 @@ end
 
 local function getCacheDeliveries(senderID)
     local cache = {
-        Deliveries = tdeepcopy(M.Deliveries),
-        DeliveryLeaderboard = tdeepcopy(M.DeliveryLeaderboard),
+        Deliveries = table.deepcopy(M.Deliveries),
+        DeliveryLeaderboard = table.deepcopy(M.DeliveryLeaderboard),
     }
 
     return cache, M.getCacheDeliveriesHash()
 end
 
 local function getCacheDeliveriesHash()
-    return Hash({M.Deliveries, M.DeliveryLeaderboard})
+    return Hash({ M.Deliveries, M.DeliveryLeaderboard })
 end
 
 local function getCacheStations(senderID)
     local cache = {
-        EnergyStations = tdeepcopy(M.EnergyStations),
-        Garages = tdeepcopy(M.Garages),
+        EnergyStations = table.deepcopy(M.EnergyStations),
+        Garages = table.deepcopy(M.Garages),
     }
 
     return cache, M.getCacheStationsHash()
@@ -113,7 +113,7 @@ end
 
 local function getCacheBusLines(senderID)
     local cache = {
-        BusLines = tdeepcopy(M.BusLines),
+        BusLines = table.deepcopy(M.BusLines),
     }
 
     return cache, M.getCacheBusLinesHash()
@@ -129,7 +129,7 @@ local function getCacheHunter(senderID)
     }
     if M.Hunter.enabled or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        cache = tdeepcopy(M.Hunter)
+        cache = table.deepcopy(M.Hunter)
     end
 
     return cache, M.getCacheHunterHash()
@@ -144,7 +144,7 @@ local function getCacheDerby(senderID)
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         for _, arena in ipairs(M.Derby) do
-            table.insert(cache, tdeepcopy(arena))
+            table.insert(cache, table.deepcopy(arena))
         end
     end
     return cache, M.getCacheDerbyHash()
@@ -157,7 +157,7 @@ end
 local function getRace(raceID)
     for _, r in ipairs(M.Races) do
         if r.id == raceID then
-            return tdeepcopy(r)
+            return table.deepcopy(r)
         end
     end
     return nil
@@ -178,7 +178,7 @@ end
 
 local function saveRace(race)
     local function checkParents(raceData, wpData, wpStep)
-        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or tincludes(wpData.parents, wpData.name) then
+        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or table.includes(wpData.parents, wpData.name) then
             return false
         end
         if wpStep == 1 then
@@ -234,7 +234,7 @@ local function saveRace(race)
         local names = {}
         for _, steps in ipairs(stepsData) do
             for _, wp in ipairs(steps) do
-                if tincludes(names, wp.name) then
+                if table.includes(names, wp.name) then
                     return false
                 else
                     table.insert(names, wp.name)
@@ -356,7 +356,8 @@ end
 local function broadcastRaceRecord(raceName, playerName, time)
     for playerID in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            svar(BJCLang.getServerMessage(playerID, "broadcast.newRaceRecord"), {
+            BJCLang.getServerMessage(playerID, "broadcast.newRaceRecord")
+            :var({
                 playerName = playerName,
                 raceName = raceName,
                 time = RaceDelay(time),
@@ -367,7 +368,8 @@ end
 local function broadcastRaceTime(raceName, playerName, time)
     for playerID in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            svar(BJCLang.getServerMessage(playerID, "broadcast.raceTime"), {
+            BJCLang.getServerMessage(playerID, "broadcast.raceTime")
+            :var({
                 playerName = playerName,
                 raceName = raceName,
                 time = RaceDelay(time),
@@ -401,7 +403,7 @@ local function saveEnergyStations(stations)
         error({ key = "rx.errors.invalidData" })
     end
     for _, s in ipairs(stations) do
-        if type(s.name) ~= "string" or #strim(s.name) == 0 then
+        if type(s.name) ~= "string" or #s.name:trim() == 0 then
             error({ key = "rx.errors.invalidData" })
         elseif type(s.pos) ~= "table" or
             type(s.pos.x) ~= "number" or
@@ -414,7 +416,7 @@ local function saveEnergyStations(stations)
             error({ key = "rx.errors.invalidData" })
         end
         for _, type in ipairs(s.types) do
-            if not tincludes(M.ENERGY_TYPES, type, true) then
+            if not table.includes(M.ENERGY_TYPES, type) then
                 error({ key = "rx.errors.invalidData" })
             end
         end
@@ -430,7 +432,7 @@ local function saveGarages(garages)
         error({ key = "rx.errors.invalidData" })
     end
     for _, g in ipairs(garages) do
-        if type(g.name) ~= "string" or #strim(g.name) == 0 then
+        if type(g.name) ~= "string" or #g.name:trim() == 0 then
             error({ key = "rx.errors.invalidData" })
         elseif type(g.pos) ~= "table" or
             type(g.pos.x) ~= "number" or
@@ -503,7 +505,7 @@ local function saveBusLines(lines)
         error({ key = "rx.errors.invalidData" })
     end
     for _, line in ipairs(lines) do
-        if type(line.name) ~= "string" or #strim(line.name) == 0 or
+        if type(line.name) ~= "string" or #line.name:trim() == 0 or
             type(line.loopable) ~= "boolean" or
             type(line.stops) ~= "table" or #line.stops < 2 or
             type(line.distance) ~= "number" then
@@ -511,7 +513,7 @@ local function saveBusLines(lines)
         end
 
         for _, stop in ipairs(line.stops) do
-            if type(stop.name) ~= "string" or #strim(stop.name) == 0 or
+            if type(stop.name) ~= "string" or #stop.name:trim() == 0 or
                 type(stop.pos) ~= "table" or
                 type(stop.pos.x) ~= "number" or
                 type(stop.pos.y) ~= "number" or
@@ -608,7 +610,7 @@ local function saveDerbyArenas(arenas)
     else
         for _, arena in ipairs(arenas) do
             if type(arena.name) ~= "string" or
-                #strim(arena.name) == 0 or
+                #arena.name:trim() == 0 or
                 type(arena.enabled) ~= "boolean" or
                 type(arena.previewPosition) ~= "table" or
                 not checkCameraPos(arena.previewPosition) or
@@ -663,10 +665,10 @@ local function canSpawnVehicle(playerID, vehID, vehData)
         -- SPEED IN PROGRESS
         return M.SpeedManager.canSpawnVehicle(playerID, vehID, vehData)
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO SCENARII
             return false
         end
@@ -693,10 +695,10 @@ local function canEditVehicle(playerID, vehID, vehData)
         -- SPEED IN PROGRESS
         return M.SpeedManager.canEditVehicle(playerID, vehID, vehData)
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO DELIVERY
             local self = BJCPlayers.Players[playerID]
             local veh = self and self.vehicles[vehID] or nil
@@ -717,12 +719,12 @@ local function canWalk(playerID)
         -- PLAYER IN DELIVERY MULTI
         return false
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
                 BJCScenario.PLAYER_SCENARII.RACE_SOLO,
                 BJCScenario.PLAYER_SCENARII.BUS_MISSION
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO SCENARII
             return false
         end
@@ -744,10 +746,10 @@ local function onVehicleDeleted(playerID, vehID)
     else
         if BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
             -- SOLO SCENARIO
-            if tincludes({
+            if table.includes({
                     BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                     BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
-                }, BJCPlayers.Players[playerID].scenario, true) then
+                }, BJCPlayers.Players[playerID].scenario) then
                 BJCTx.scenario.DeliveryStop(playerID)
             end
             BJCPlayers.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
