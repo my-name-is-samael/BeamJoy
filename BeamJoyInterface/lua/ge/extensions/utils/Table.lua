@@ -385,8 +385,9 @@ table.unpack = table.unpack or unpack
 
 ---@generic V
 ---@param obj V
+---@param level? integer
 ---@return V
-table.clone = table.clone or function(obj)
+table.clone = table.clone or function(obj, level)
     if type(obj) ~= 'table' then
         return obj
     end

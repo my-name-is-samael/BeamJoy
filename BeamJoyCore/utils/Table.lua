@@ -21,19 +21,19 @@ table.clear = table.clear or function(tab)
     return tab
 end
 
----@generic K, V
----@param tab table<K, V>
----@return table<K, V>
+---@generic V
+---@param obj V
 ---@param level? integer
-table.clone = table.clone or function(tab, level)
-    if type(tab) ~= "table" then return {} end
+---@return V
+table.clone = table.clone or function(obj, level)
+    if type(obj) ~= "table" then return {} end
     if not level then
         level = 1
     elseif level >= 20 then
         return {}
     end
     local res = {}
-    for k, v in pairs(tab) do
+    for k, v in pairs(obj) do
         if type(v) == "table" then
             res[k] = table.clone(v, level + 1)
         elseif type(v) ~= "function" then
@@ -42,14 +42,14 @@ table.clone = table.clone or function(tab, level)
     end
     return res
 end
----@generic K, V
----@param tab table<K, V>
----@return table<K, V>
-table.deepcopy = function(tab) return table.clone(tab) end
----@generic K, V
----@param tab table<K, V>
----@return table<K, V>
-table.shallowcopy = function(tab) return table.clone(tab, 19) end
+---@generic V
+---@param obj V
+---@return V
+table.deepcopy = function(obj) return table.clone(obj) end
+---@generic V
+---@param obj V
+---@return V
+table.shallowcopy = function(obj) return table.clone(obj, 19) end
 
 ---@generic K, V
 ---@param tab table<K, V>

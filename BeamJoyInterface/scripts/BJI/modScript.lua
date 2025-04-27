@@ -1,2 +1,2 @@
-load('BJI')
+_ = load('BJI')
 setExtensionUnloadMode('BJI', 'manual')

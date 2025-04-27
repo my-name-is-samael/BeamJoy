@@ -1,3 +1,6 @@
+playerInfo = playerInfo or {}
+obj = obj or {}
+
 local M = {}
 
 local counter = 0
