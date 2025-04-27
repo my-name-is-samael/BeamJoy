@@ -1,6 +1,7 @@
 local function menuSoloRace(ctxt, scenarioEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJIScenario.get(BJIScenario.TYPES.RACE_SOLO) and
+        BJIContext.Scenario.Data.Races and
         BJIScenario.isFreeroam() and BJIPerm.canSpawnVehicle() then
         local rawRaces = {}
         for _, race in ipairs(BJIContext.Scenario.Data.Races) do
@@ -351,7 +352,8 @@ end
 
 local function menuDerby(ctxt, scenarioEntry)
     if not BJIScenario.isServerScenarioInProgress() and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) then
+        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) and
+        BJIContext.Scenario.Data.Derby then
         local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         local errorMessage = nil

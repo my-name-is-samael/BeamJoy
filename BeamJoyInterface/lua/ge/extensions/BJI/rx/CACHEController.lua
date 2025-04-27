@@ -9,7 +9,7 @@ end
 
 function ctrl.send(data)
     local cacheType, cacheData, cacheHash = data[1], data[2], data[3]
-    BJICache.parseCache(cacheType, cacheData, cacheHash)
+    BJICache.handleRx(cacheType, cacheData, cacheHash)
 end
 
 return ctrl

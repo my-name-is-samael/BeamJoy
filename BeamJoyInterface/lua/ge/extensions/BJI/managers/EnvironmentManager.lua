@@ -61,6 +61,24 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
 }
 
+local function onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.ENVIRONMENT, function(cacheData)
+        for k, v in pairs(cacheData) do
+            M.Data[k] = v
+
+            if k == "shadowTexSize" then
+                local shadowTexVal = 5
+                while 2 ^ shadowTexVal < v do
+                    shadowTexVal = shadowTexVal + 1
+                end
+                M.Data.shadowTexSizeInput = shadowTexVal - 4
+            end
+        end
+
+        M.updateCurrentPreset()
+    end)
+end
+
 local function _getObjectWithCache(category)
     if BJIContext.WorldCache[category] then
         return scenetree.findObjectById(BJIContext.WorldCache[category])
@@ -280,6 +298,8 @@ local function updateCurrentPreset()
         end
     end
 end
+
+M.onLoad = onLoad
 
 M.getTime = getTime
 M.getTemperature = getTemperature

@@ -1,3 +1,14 @@
+---@class BJIGroup
+---@field level integer
+---@field permissions string[]
+---@field staff boolean
+---@field vehicleCap integer
+---@field whitelisted boolean
+---@field muted boolean
+---@field banned boolean
+---@field canSpawn boolean
+---@field canSpawnAI boolean
+
 local M = {
     _name = "BJIPerm",
     PERMISSIONS = {
@@ -42,6 +53,50 @@ local M = {
     Groups = {},
     Permissions = {},
 }
+
+local function onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.PERMISSIONS, function(cacheData)
+        for k, v in pairs(cacheData) do
+            M.Permissions[k] = v
+        end
+    end)
+
+    BJICache.addRxHandler(BJICache.CACHES.GROUPS, function(cacheData)
+        for groupName, group in pairs(cacheData) do
+            if not M.Groups[groupName] then
+                M.Groups[groupName] = {}
+            end
+            -- bind values
+            for k, v in pairs(group) do
+                M.Groups[groupName][k] = v
+            end
+            -- remove obsolete keys
+            for k in pairs(M.Groups[groupName]) do
+                if not table.includes({ "_new" }, k) and
+                    group[k] == nil then
+                    M.Groups[groupName][k] = nil
+                end
+            end
+            -- new permission input
+            if not M.Groups[groupName]._new then
+                M.Groups[groupName]._new = ""
+            end
+        end
+        -- remove obsolete groups
+        for k in pairs(M.Groups) do
+            if not table.includes({ "_new", "_newLevel" }, k) and
+                cacheData[k] == nil then
+                M.Groups[k] = nil
+            end
+        end
+
+        -- new group inputs
+        if not M.Groups._new then
+            M.Groups._new = ""
+            M.Groups._newLevel = 0
+        end
+    end)
+end
 
 local function hasMinimumGroup(targetGroupName, playerID)
     if not BJICache.areBaseCachesFirstLoaded() then
@@ -214,6 +269,8 @@ local function getCountPlayersCanSpawnVehicle()
     end
     return count
 end
+
+M.onLoad = onLoad
 
 M.hasMinimumGroup = hasMinimumGroup
 M.hasPermission = hasPermission

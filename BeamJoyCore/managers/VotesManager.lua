@@ -124,16 +124,12 @@ local function mapStarted()
     return M.Map.targetMap ~= nil
 end
 
-local function getMapTotalPlayers()
-    return table.length(BJCPlayers.Players)
-end
-
 local function getMapThreshold()
     if not mapStarted() then
         return 0
     end
     local thresholdRatio = BJCConfig.Data.VoteMap.ThresholdRatio
-    return math.max(math.ceil(getMapTotalPlayers() * thresholdRatio), 2)
+    return math.max(math.ceil(table.length(BJCPlayers.Players) * thresholdRatio), 2)
 end
 
 function M.Map.start(senderID, mapName)
@@ -147,11 +143,10 @@ function M.Map.start(senderID, mapName)
         error({ key = "rx.errors.invalidData" })
     end
 
-    local countPotentialVoters = getMapTotalPlayers()
-    if countPotentialVoters == 1 then
+    if table.length(BJCPlayers.Players) == 1 then
         -- only 1 player can vote, allowing direct map switch
         BJCCore.setMap(mapName)
-    elseif countPotentialVoters > 1 then
+    else
         M.Map.creatorID = senderID
         M.Map.targetMap = mapName
         M.Map.endsAt = GetCurrentTime() + BJCConfig.Data.VoteMap.Timeout
@@ -159,8 +154,6 @@ function M.Map.start(senderID, mapName)
         BJCAsync.programTask(M.Map.endVote, M.Map.endsAt, "BJCVoteMap")
 
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
-    else
-        error({ key = "rx.errors.insufficientPermissions" })
     end
 end
 

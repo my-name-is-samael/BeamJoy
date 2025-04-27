@@ -328,8 +328,10 @@
       },
       "vote": {
         "title": "Votar",
-        "map": "Mapa",
-        "mapCustom": "costumbre",
+        "map": {
+          "title": "Mapa",
+          "custom": "costumbre"
+        },
         "race": {
           "title": "Carrera",
           "noRace": "No hay carrera disponible",

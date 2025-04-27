@@ -57,6 +57,63 @@ BJIAsync.task(
     init, "BJIScenarioInit"
 )
 
+local function onLoad()
+    local function getScenarioWhenReady(scenarioType, callback)
+        local sc = M.get(scenarioType)
+        if sc then
+            callback(sc)
+        else
+            BJIAsync.task(function()
+                return M.get(scenarioType) ~= nil
+            end, function()
+                callback(M.get(scenarioType))
+            end, string.var("GetScenarioWhenReady-{1}", { scenarioType }))
+        end
+    end
+
+    -- race_multi data
+    BJICache.addRxHandler(BJICache.CACHES.RACE, function(cacheData)
+        getScenarioWhenReady(M.TYPES.RACE_MULTI, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+
+    -- delivery_multi data
+    BJICache.addRxHandler(BJICache.CACHES.DELIVERY_MULTI, function(cacheData)
+        getScenarioWhenReady(M.TYPES.DELIVERY_MULTI, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+
+    -- speed data
+    BJICache.addRxHandler(BJICache.CACHES.SPEED, function(cacheData)
+        getScenarioWhenReady(M.TYPES.SPEED, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+
+    -- hunter data
+    BJICache.addRxHandler(BJICache.CACHES.HUNTER, function(cacheData)
+        getScenarioWhenReady(M.TYPES.HUNTER, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+
+    -- derby data
+    BJICache.addRxHandler(BJICache.CACHES.DERBY, function(cacheData)
+        getScenarioWhenReady(M.TYPES.DERBY, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+
+    -- tag_duo data
+    BJICache.addRxHandler(BJICache.CACHES.TAG_DUO, function(cacheData)
+        getScenarioWhenReady(M.TYPES.TAG_DUO, function(scenario)
+            scenario.rxData(cacheData)
+        end)
+    end)
+end
+
 local function onVehicleSpawned(gameVehID)
     LogDebug(string.var("Spawned vehicle {1}", { gameVehID }))
     BJIReputation.onVehicleResetted()
@@ -385,6 +442,8 @@ end
 local function get(type)
     return M.scenarii[type]
 end
+
+M.onLoad = onLoad
 
 M.onVehicleSpawned = onVehicleSpawned
 M.onVehicleResetted = onVehicleResetted
