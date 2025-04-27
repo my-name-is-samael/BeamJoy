@@ -158,7 +158,7 @@ local function drawModel(model)
                     icon = ICONS.add,
                     style = BTN_PRESETS.SUCCESS,
                     onClick = function()
-                        BJIScenario.trySpawnNew(model.key)
+                        BJIScenario.trySpawnNew(model.key, #model.configs == 1 and model.configs[1].key or nil)
                     end
                 })
             end
@@ -168,7 +168,7 @@ local function drawModel(model)
                     icon = ICONS.carSensors,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
-                        BJIScenario.tryReplaceOrSpawn(model.key)
+                        BJIScenario.tryReplaceOrSpawn(model.key, #model.configs == 1 and model.configs[1].key or nil)
                     end
                 })
             end
