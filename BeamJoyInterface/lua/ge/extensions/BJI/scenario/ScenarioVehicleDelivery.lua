@@ -51,11 +51,11 @@ local function initVehicle()
     for _, name in ipairs(BJIContext.BJC.VehicleDelivery.ModelBlacklist) do
         models[name] = nil
     end
-    if tlength(models) == 0 then
+    if table.length(models) == 0 then
         BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
         return
     end
-    local model = trandom(models)
+    local model = table.random(models)
     if model then
         M.model = model.key
         M.modelLabel = BJIVeh.getModelLabel(M.model)
@@ -63,7 +63,7 @@ local function initVehicle()
         -- config
         local config
         while not config or config.label:find("Traffic") do
-            config = trandom(model.configs)
+            config = table.random(model.configs)
         end
         if config then
             local configFile = BJIVeh.getConfigByModelAndKey(model.key, config.key)
@@ -73,7 +73,7 @@ local function initVehicle()
 
         -- paint
         for i = 1, 3 do
-            local paint = trandom(model.paints)
+            local paint = table.random(model.paints)
             if paint then
                 M.paints[i] = paint
             end
@@ -82,7 +82,7 @@ local function initVehicle()
 end
 
 local function initPositions()
-    M.startPosition = trandom(BJIContext.Scenario.Data.Deliveries)
+    M.startPosition = table.random(BJIContext.Scenario.Data.Deliveries)
 
     local targets = {}
     for _, position in ipairs(BJIContext.Scenario.Data.Deliveries) do
@@ -105,7 +105,7 @@ local function initPositions()
             table.remove(targets, threhsholdPos)
         end
     end
-    M.targetPosition = trandom(targets)
+    M.targetPosition = table.random(targets)
     M.targetPosition.distance = nil
 end
 
@@ -116,7 +116,7 @@ local function initDelivery()
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
 
-    if not tincludes({
+    if not table.includes({
             BJICam.CAMERAS.FREE,
             BJICam.CAMERAS.EXTERNAL,
             BJICam.CAMERAS.BIG_MAP
@@ -159,7 +159,7 @@ local function onLoad(ctxt)
 
         BJIAsync.task(function(ctxt2)
                 return ctxt2.isOwner and
-                    tshallowcompare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig))
+                    table.compare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig) or {})
             end,
             function(ctxt2)
                 BJITx.scenario.DeliveryVehicleStart()
@@ -208,10 +208,10 @@ end
 local function drawDeliveryUI(ctxt)
     if M.distance then
         LineBuilder()
-            :text(svar("{1}: {2}", {
+            :text(string.var("{1}: {2}", {
                 BJILang.get("delivery.currentDelivery"),
-                svar(BJILang.get("delivery.distanceLeft"),
-                    { distance = PrettyDistance(M.distance) })
+                BJILang.get("delivery.distanceLeft")
+                    :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
 
@@ -221,9 +221,9 @@ local function drawDeliveryUI(ctxt)
         })
     end
 
-    local configLabel = M.configLabel and svar(" {1}", { M.configLabel }) or ""
+    local configLabel = M.configLabel and string.var(" {1}", { M.configLabel }) or ""
     LineBuilder()
-        :text(svar("{1}: {2}{3}", {
+        :text(string.var("{1}: {2}{3}", {
             BJILang.get("vehicleDelivery.vehicle"),
             M.modelLabel,
             configLabel,
@@ -329,7 +329,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)

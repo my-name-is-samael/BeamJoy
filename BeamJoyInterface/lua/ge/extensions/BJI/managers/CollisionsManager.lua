@@ -51,7 +51,7 @@ local function getAlphaByDistance(distance, maxDistance)
     if distance > maxDistance then
         return M.playerAlpha
     else
-        local alpha = Round(Scale(distance, maxDistance, 2, M.playerAlpha, M.ghostAlpha), 2)
+        local alpha = math.round(math.scale(distance, maxDistance, 2, M.playerAlpha, M.ghostAlpha), 2)
         if alpha < M.ghostAlpha then
             alpha = M.ghostAlpha
         end
@@ -71,7 +71,7 @@ local function areCloseVehicles(selfVehID)
 
     local attachedVehs = core_vehicle_partmgmt.findAttachedVehicles(veh:getID())
     for _, v in pairs(BJIVeh.getMPVehicles()) do
-        if not tincludes(attachedVehs, v.gameVehicleID, true) and
+        if not table.includes(attachedVehs, v.gameVehicleID) and
             v.gameVehicleID ~= veh:getID() then
             local target = BJIVeh.getVehicleObject(v.gameVehicleID)
             if target then
@@ -94,7 +94,7 @@ local function addGhostSelf(gameVehID)
     end
 
     M.selfGhost = true
-    local eventNameTimeout = svar("BJIGhostSelfTimeout{1}", { gameVehID })
+    local eventNameTimeout = string.var("BJIGhostSelfTimeout{1}", { gameVehID })
     BJIAsync.removeTask(eventNameTimeout)
     local timeout = GetCurrentTimeMillis() + M.ghostDelay
     BJIAsync.task(function(ctxt)
@@ -114,7 +114,7 @@ end
 
 local function addGhostOther(gameVehID)
     M.ghosts[gameVehID] = true
-    local eventNameTimeout = svar("BJIGhostOtherTimeout{1}", { gameVehID })
+    local eventNameTimeout = string.var("BJIGhostOtherTimeout{1}", { gameVehID })
     BJIAsync.removeTask(eventNameTimeout)
     BJIAsync.delayTask(function()
         M.ghosts[gameVehID] = nil

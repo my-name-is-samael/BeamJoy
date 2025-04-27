@@ -28,7 +28,7 @@ local function onLoad(ctxt)
 end
 
 local function isLobbyFilled()
-    return M.selfLobby and tlength(M.selfLobby.players) == 2
+    return M.selfLobby and table.length(M.selfLobby.players) == 2
 end
 
 local function isChasing()
@@ -71,7 +71,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -90,7 +90,7 @@ end
 
 local function slowTick(ctxt)
     if M.waitForSpread and not M.selfLobby.players[ctxt.user.playerID].ready then
-        local vehPositions = tmap(M.selfLobby.players, function(p)
+        local vehPositions = table.map(M.selfLobby.players, function(p)
             local veh = BJIVeh.getVehicleObject(p.gameVehID)
             return BJIVeh.getPositionRotation(veh).pos
         end)
@@ -104,7 +104,7 @@ local function onDataUpdate(ctxt, newLobby)
     -- TODO checks for updates
     local tagger
     local previousReadyCount, readyCount = 0, 0
-    if tlength(newLobby.players) == 2 then
+    if table.length(newLobby.players) == 2 then
         for _, p in pairs(M.selfLobby.players) do
             if p.ready then
                 previousReadyCount = previousReadyCount + 1

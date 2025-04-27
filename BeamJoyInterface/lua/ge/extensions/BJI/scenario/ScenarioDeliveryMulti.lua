@@ -43,7 +43,7 @@ local function stop()
 end
 
 local function getRadiusMultiplier()
-    return Clamp(tlength(M.participants), 1, 4)
+    return math.clamp(table.length(M.participants), 1, 4)
 end
 
 -- can switch to scenario hook
@@ -128,7 +128,7 @@ local function onGarageRepair()
         end
     end
     if veh then
-        M.tanksSaved = tdeepcopy(veh.tanks)
+        M.tanksSaved = table.clone(veh.tanks)
     end
 end
 
@@ -198,7 +198,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -232,7 +232,7 @@ local function rxData(data)
     local wasParticipant = not not M.participants[BJIContext.User.playerID]
     local previousRadius = getRadiusMultiplier()
     M.participants = data.participants
-    local previousTarget = M.target and TryParsePosRot(tdeepcopy(M.target)) or nil
+    local previousTarget = M.target and TryParsePosRot(table.clone(M.target)) or nil
     M.target = TryParsePosRot(data.target)
 
     updateUI()

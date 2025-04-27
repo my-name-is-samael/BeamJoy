@@ -104,7 +104,7 @@ local function hasPermission(permissionName, playerID)
         return false
     end
 
-    if tincludes(group.permissions, permissionName, true) then
+    if table.includes(group.permissions, permissionName) then
         -- has specific permission
         return true
     end

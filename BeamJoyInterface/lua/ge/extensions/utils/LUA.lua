@@ -1,28 +1,24 @@
+---@return integer
 function GetCurrentTime()
-    --[[
-    local timezone = tostring(os.date('%z')) -- "+0200"
-    local signum, hours, minutes = timezone:match('([+-])(%d%d)(%d%d)')
-
-    local offset = (tonumber(signum .. hours) * 3600 + tonumber(signum .. minutes) * 60)
-    ]]
     return os.time(os.date("!*t")) -- - offset
 end
 
+---@return integer
 function GetCurrentTimeMillis()
-    --[[local time = GetCurrentTime() + os.clock() % 1
-    return Round(time * 1000)]]
     local ms = require "socket".gettime() % 1
     local time = GetCurrentTime() + ms
-    return Round(time * 1000)
+    return math.round(time * 1000)
 end
 
+---@param str string
+---@return any
 function GetSubobject(str)
-    local parts = ssplit(str, ".")
+    local parts = str:split2(".")
     local obj = _G
     for i = 1, #parts do
         obj = obj[parts[i]]
         if obj == nil and i < #parts then
-            error(svar("Subobject has reached nil in {1}", { parts[i] }))
+            error(string.var("Subobject has reached nil in {1}", { parts[i] }))
             return nil
         end
     end
@@ -31,6 +27,9 @@ end
 
 local PRINTOBJ_MAX_TABLE_CHILDREN = 20
 local PRINTOBJ_MAX_TABLE_CHILDREN_SHOW = 3
+---@param name string
+---@param obj any
+---@param indent? integer
 function _PrintObj(name, obj, indent)
     if indent == nil then
         indent = 0
@@ -41,10 +40,10 @@ function _PrintObj(name, obj, indent)
     end
 
     if type(obj) == "table" then
-        if tlength(obj) == 0 then
-            print(svar("{1}{2} ({3}) = empty table", { strIndent, name, type(name) }))
-        elseif tlength(obj) > PRINTOBJ_MAX_TABLE_CHILDREN then
-            print(svar("{1}{2} ({3}, {4} children)", { strIndent, name, type(name), tlength(obj) }))
+        if table.length(obj) == 0 then
+            print(string.var("{1}{2} ({3}) = empty table", { strIndent, name, type(name) }))
+        elseif table.length(obj) > PRINTOBJ_MAX_TABLE_CHILDREN then
+            print(string.var("{1}{2} ({3}, {4} children)", { strIndent, name, type(name), table.length(obj) }))
             local i = 1
             for k in pairs(obj) do
                 if i <= PRINTOBJ_MAX_TABLE_CHILDREN_SHOW then
@@ -52,44 +51,49 @@ function _PrintObj(name, obj, indent)
                     i = i + 1
                 end
             end
-            print(svar("{1}    ...", { strIndent }))
+            print(string.var("{1}    ...", { strIndent }))
         else
-            print(svar("{1}{2} ({3}) =", { strIndent, name, type(name) }))
+            print(string.var("{1}{2} ({3}) =", { strIndent, name, type(name) }))
             for k in pairs(obj) do
                 _PrintObj(k, obj[k], indent + 1)
             end
         end
     elseif type(obj) == "function" then
-        print(svar("{1}{2} ({3}) = function", { strIndent, name, type(name) }))
+        print(string.var("{1}{2} ({3}) = function", { strIndent, name, type(name) }))
     elseif type(obj) == "string" then
-        print(svar("{1}{2} ({3}) = \"{4}\" ({5})", { strIndent, name, type(name), sescape(obj), type(obj) }))
+        print(string.var("{1}{2} ({3}) = \"{4}\" ({5})", { strIndent, name, type(name), tostring(obj):escape(), type(obj) }))
     else
-        print(svar("{1}{2} ({3}) = {4} ({5})", { strIndent, name, type(name), tostring(obj), type(obj) }))
+        print(string.var("{1}{2} ({3}) = {4} ({5})", { strIndent, name, type(name), tostring(obj), type(obj) }))
     end
 end
 
+---@param obj any
+---@param name? string
 function PrintObj(obj, name)
     if name == nil then
         name = "data"
     end
     _PrintObj(name, obj)
 end
+dump = dump or PrintObj
 
+---@param obj any
+---@param str? string
 function PrintObj1Level(obj, str)
     if type(obj) ~= "table" then
         print("Not a table")
         return
     end
-    if tlength(obj) == 0 then
+    if table.length(obj) == 0 then
         print("empty table")
     else
         local i = 1
         for k, v in pairs(obj) do
             if not str or k:upper():find(str:upper()) then
                 if type(v) == "table" then
-                    print(svar("{1}-{2} ({3} children)", { i, k, tlength(v) }))
+                    print(string.var("{1}-{2} ({3} children)", { i, k, table.length(v) }))
                 else
-                    print(svar("{1}-{2} = {3} ({4})", { i, k, v, type(v) }))
+                    print(string.var("{1}-{2} = {3} ({4})", { i, k, v, type(v) }))
                 end
                 i = i + 1
             end

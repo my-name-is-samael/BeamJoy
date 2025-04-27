@@ -24,7 +24,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    if tlength(M.baseFunctions) > 0 then
+    if table.length(M.baseFunctions) > 0 then
         core_modmanager.activateAllMods = M.baseFunctions.activateAll
         core_modmanager.deactivateAllMods = M.baseFunctions.deactivateAllMods
         core_modmanager.deleteAllMods = M.baseFunctions.deleteAllMods
@@ -44,10 +44,10 @@ local function update(state)
         BJIVeh.getAllVehicleConfigs(false, false, true)
     end
 
-    if tlength(M.baseFunctions) == 0 then
+    if table.length(M.baseFunctions) == 0 then
         BJIAsync.removeTask("BJIModsUpdate")
         BJIAsync.task(function()
-            return tlength(M.baseFunctions) > 0
+            return table.length(M.baseFunctions) > 0
         end, function()
             update(state)
         end, "BJIModsUpdate")
@@ -117,15 +117,15 @@ local function update(state)
         core_repository.modUnsubscribe = stopProcess
         local mods = core_modmanager.getMods()
         for name, mod in pairs(mods) do
-            local fileName = ssplit(mod.fullpath, "/")
+            local fileName = mod.fullpath:split2("/")
             fileName = fileName[#fileName]
-            if not tincludes(BJIContext.BJC.Server.ClientMods, mod.fileName, true) and
+            if not table.includes(BJIContext.BJC.Server.ClientMods, mod.fileName) and
                 not name:find("^multiplayer") then
-                LogError(svar("Disabling user mod {1}", { name }))
+                LogError(string.var("Disabling user mod {1}", { name }))
                 core_modmanager.deactivateMod(name, true)
             end
         end
-        if tlength(mods) > 0 then
+        if table.length(mods) > 0 then
             updateVehicles()
         end
         if previousCam then

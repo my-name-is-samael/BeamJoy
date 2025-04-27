@@ -2,7 +2,7 @@ return function(ctxt)
     local minTime = BJIContext.BJC.TempBan.minTime
     local maxTime = BJIContext.BJC.TempBan.maxTime
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.tempban.minTime") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.tempban.minTime") }))
         :helpMarker(BJILang.get("serverConfig.bjc.tempban.zeroTooltip"))
         :inputNumeric({
             id = "tempbanMinTime",
@@ -23,7 +23,7 @@ return function(ctxt)
     end)
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.tempban.maxTime") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.tempban.maxTime") }))
         :helpMarker(BJILang.get("serverConfig.bjc.tempban.zeroTooltip"))
         :inputNumeric({
             id = "tempbanMaxTime",

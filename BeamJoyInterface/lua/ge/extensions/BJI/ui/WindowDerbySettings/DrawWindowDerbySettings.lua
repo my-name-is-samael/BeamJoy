@@ -20,7 +20,7 @@ local function drawHeader(ctxt)
 
     LineBuilder()
         :text(ds.arena.name)
-        :text(svar("({1})", { svar(BJILang.get("derby.settings.places"), { places = #ds.arena.startPositions }) }))
+        :text(string.var("({1})", { BJILang.get("derby.settings.places"):var({ places = #ds.arena.startPositions }) }))
         :build()
 end
 
@@ -76,9 +76,9 @@ local function drawBody(ctxt)
         return {
             model = ctxt.veh.jbeam,
             label = BJIVeh.isConfigCustom(ctxt.veh.partConfig) and
-                svar(BJILang.get("derby.settings.specificConfig"),
-                    { model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
-                svar("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
+                BJILang.get("derby.settings.specificConfig")
+                :var({ model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
+                string.var("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
             config = BJIVeh.getFullConfig(ctxt.veh.partConfig),
         }
     end
@@ -103,7 +103,7 @@ local function drawBody(ctxt)
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("showDerbyConfig{1}", { i }),
+                            id = string.var("showDerbyConfig{1}", { i }),
                             icon = ICONS.visibility,
                             style = BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
@@ -112,7 +112,7 @@ local function drawBody(ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("removeDerbyConfig{1}", { i }),
+                            id = string.var("removeDerbyConfig{1}", { i }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             onClick = function()
@@ -143,9 +143,9 @@ local function drawBody(ctxt)
                             style = BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh,
                             onClick = function()
-                                local config = getConfig()
+                                local config = getConfig() or {}
                                 for _, c in ipairs(ds.configs) do
-                                    if tdeepcompare(config, c) then
+                                    if table.compare(config, c, true) then
                                         BJIToast.error(BJILang.get("derby.settings.toastConfigAlreadySaved"))
                                         return
                                     end

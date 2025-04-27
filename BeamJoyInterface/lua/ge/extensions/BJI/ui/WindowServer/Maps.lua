@@ -4,7 +4,7 @@ local function drawNewMap(ctxt)
         #BJIContext.Maps.newArchive > 0
     if canCreate then
         for mapName in pairs(BJIContext.Maps.Data) do
-            if not tincludes({ "new", "newLabel" }, mapName) and mapName:lower() == BJIContext.Maps.new:lower() then
+            if not table.includes({ "new", "newLabel" }, mapName) and mapName:lower() == BJIContext.Maps.new:lower() then
                 canCreate = false
                 break
             end
@@ -48,7 +48,7 @@ local function drawNewMap(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.maps.new.name") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.maps.new.name") }))
                         :helpMarker(BJILang.get("serverConfig.maps.new.nameTooltip"))
                         :build()
                 end,
@@ -70,7 +70,7 @@ local function drawNewMap(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.maps.label") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.maps.label") }))
                         :build()
                 end,
                 function()
@@ -90,7 +90,7 @@ local function drawNewMap(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.maps.archive") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.maps.archive") }))
                         :build()
                 end,
                 function()
@@ -123,7 +123,7 @@ local function drawMapsList(ctxt)
     end
     local mapsList = {}
     for name, map in pairs(BJIContext.Maps.Data) do
-        if not tincludes({ "new", "newLabel" }, name) then
+        if not table.includes({ "new", "newLabel" }, name) then
             table.insert(mapsList, {
                 name = name,
                 map = map
@@ -136,12 +136,12 @@ local function drawMapsList(ctxt)
     for _, data in ipairs(mapsList) do
         local valid = #data.map.label > 0 and (not data.map.custom or #data.map.archive > 0)
         local line = LineBuilder()
-            :text(svar("{1}:", { data.name }))
+            :text(string.var("{1}:", { data.name }))
             :text(data.map.custom and
-                svar("({1})", { BJILang.get("votemap.targetMapCustom") }) or
+                string.var("({1})", { BJILang.get("votemap.targetMapCustom") }) or
                 "", TEXT_COLORS.HIGHLIGHT)
             :btnIconToggle({
-                id = svar("map{1}State", { data.name }),
+                id = string.var("map{1}State", { data.name }),
                 icon = data.map.enabled and ICONS.visibility or ICONS.visibility_off,
                 state = data.map.enabled == true,
                 disabled = BJIContext.UI.mapName == data.name,
@@ -152,7 +152,7 @@ local function drawMapsList(ctxt)
             })
         if data.map.changed then
             line:btnIcon({
-                id = svar("map{1}save", { data.name }),
+                id = string.var("map{1}save", { data.name }),
                 icon = ICONS.save,
                 style = BTN_PRESETS.SUCCESS,
                 disabled = not valid,
@@ -164,7 +164,7 @@ local function drawMapsList(ctxt)
         end
         if data.map.custom then
             line:btnIcon({
-                id = svar("map{1}delete", { data.name }),
+                id = string.var("map{1}delete", { data.name }),
                 icon = ICONS.delete_forever,
                 style = BTN_PRESETS.ERROR,
                 disabled = data.name == BJIContext.UI.mapName,
@@ -181,13 +181,13 @@ local function drawMapsList(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.maps.label") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.maps.label") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :inputString({
-                            id = svar("map{1}label", { data.name }),
+                            id = string.var("map{1}label", { data.name }),
                             value = data.map.label,
                             onUpdate = function(val)
                                 data.map.label = val
@@ -205,13 +205,13 @@ local function drawMapsList(ctxt)
                 cells = {
                     function()
                         LineBuilder()
-                            :text(svar("{1}:", { BJILang.get("serverConfig.maps.archive") }))
+                            :text(string.var("{1}:", { BJILang.get("serverConfig.maps.archive") }))
                             :build()
                     end,
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("map{1}archive", { data.name }),
+                                id = string.var("map{1}archive", { data.name }),
                                 value = data.map.archive,
                                 onUpdate = function(val)
                                     data.map.archive = val

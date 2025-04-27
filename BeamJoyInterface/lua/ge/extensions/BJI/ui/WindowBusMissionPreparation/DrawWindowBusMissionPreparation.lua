@@ -31,13 +31,13 @@ local function drawBody(ctxt)
                     local lines = {}
                     local selected
                     for i, line in ipairs(BJIContext.Scenario.Data.BusLines) do
-                        local stops = tdeepcopy(line.stops)
+                        local stops = table.clone(line.stops)
                         if line.loopable then
-                            table.insert(stops, tdeepcopy(stops[1]))
+                            table.insert(stops, table.clone(stops[1]))
                         end
                         table.insert(lines, {
                             id = i,
-                            label = svar("{1} ({2})", { line.name, PrettyDistance(line.distance) }),
+                            label = string.var("{1} ({2})", { line.name, PrettyDistance(line.distance) }),
                             stops = stops,
                             loopable = line.loopable,
                         })
@@ -89,9 +89,9 @@ local function drawBody(ctxt)
                     local items = {}
                     local selected
                     for _, config in pairs(configs) do
-                        local label = svar("{1} {2}", { modelLabel, config.label })
+                        local label = string.var("{1} {2}", { modelLabel, config.label })
                         if config.custom then
-                            label = svar("{1} ({2})", { label, BJILang.get("buslines.preparation.customConfig") })
+                            label = string.var("{1} ({2})", { label, BJILang.get("buslines.preparation.customConfig") })
                         end
                         table.insert(items, {
                             key = config.key,

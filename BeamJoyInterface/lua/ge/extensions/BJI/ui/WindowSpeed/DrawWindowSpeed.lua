@@ -9,18 +9,18 @@ local function drawHeader(ctxt)
         :build()
 
     local now = GetCurrentTimeMillis()
-    local minSpeedLabel = svar("{1}{2}", {
+    local minSpeedLabel = string.var("{1}{2}", {
         sm.minSpeed,
         BJILang.get("speed.speedUnit"),
     })
     LineBuilder()
-        :text(svar(BJILang.get("speed.minimumSpeed"), { speed = minSpeedLabel }))
+        :text(BJILang.get("speed.minimumSpeed"):var({ speed = minSpeedLabel }))
         :build()
 
     if sm.processCheck and sm.processCheck - now >= 0 then
-        local remaining = Round((sm.processCheck - now) / 1000)
+        local remaining = math.round((sm.processCheck - now) / 1000)
         LineBuilder()
-            :text(svar(BJILang.get("speed.counterWarning"), { seconds = remaining }),
+            :text(BJILang.get("speed.counterWarning"):var({ seconds = remaining }),
                 TEXT_COLORS.HIGHLIGHT)
             :build()
     end
@@ -33,7 +33,7 @@ local function drawBody(ctxt)
         :build()
 
     local leaderboard = {}
-    for i = 1, tlength(sm.participants) do
+    for i = 1, table.length(sm.participants) do
         local lb = sm.leaderboard[i]
         if lb then
             leaderboard[i] = {
@@ -45,8 +45,8 @@ local function drawBody(ctxt)
     end
 
     local indexWidth = 0
-    for i = 1, tlength(sm.participants) do
-        local w = GetColumnTextWidth(svar("{1} - ", { i }))
+    for i = 1, table.length(sm.participants) do
+        local w = GetColumnTextWidth(string.var("{1} - ", { i }))
         if w > indexWidth then
             indexWidth = w
         end
@@ -60,7 +60,7 @@ local function drawBody(ctxt)
         end
     end
     local cols = ColumnsBuilder("BJISpeedLeaderboard", { indexWidth, nameWidth, -1 })
-    for i = 1, tlength(sm.participants) do
+    for i = 1, table.length(sm.participants) do
         local lb = leaderboard[i]
         local textColor = TEXT_COLORS.DEFAULT
         if lb and BJIContext.isSelf(lb.player.playerID) then
@@ -70,7 +70,7 @@ local function drawBody(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1} - ", { i }), textColor)
+                        :text(string.var("{1} - ", { i }), textColor)
                         :build()
                 end,
                 lb and function()
@@ -81,10 +81,10 @@ local function drawBody(ctxt)
                 lb and function()
                     local time = ""
                     if lb.time then
-                        time = svar(", {1}", { RaceDelay(lb.time) })
+                        time = string.var(", {1}", { RaceDelay(lb.time) })
                     end
                     LineBuilder()
-                        :text(svar("({1}{2}{3})", {
+                        :text(string.var("({1}{2}{3})", {
                             lb.speed,
                             BJILang.get("speed.speedUnit"),
                             time,

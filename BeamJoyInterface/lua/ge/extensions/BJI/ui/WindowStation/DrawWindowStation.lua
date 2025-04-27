@@ -45,16 +45,16 @@ local function commonDrawEnergyLines(ctxt, energyStation)
         local qty = BJIVeh.jouleToReadableUnit(energyData.currentEnergy, energyType)
         local max = BJIVeh.jouleToReadableUnit(energyData.maxEnergy, energyType)
         local line = LineBuilder()
-            :text(svar("{1} : {2}{4}/{3}{4}", {
-                BJILang.get(svar("energy.tankNames.{1}", { energyType })),
-                Round(qty, 2),
-                Round(max, 2),
-                BJILang.get(svar("energy.energyUnits.{1}", { energyType }))
+            :text(string.var("{1} : {2}{4}/{3}{4}", {
+                BJILang.get(string.var("energy.tankNames.{1}", { energyType })),
+                math.round(qty, 2),
+                math.round(max, 2),
+                BJILang.get(string.var("energy.energyUnits.{1}", { energyType }))
             }))
         if energyData.amount > 1 then
-            line:text(svar(" ({1})", {
-                svar(BJILang.get("energyStations.tanksAmount"),
-                    { amount = energyData.amount })
+            line:text(string.var(" ({1})", {
+                BJILang.get("energyStations.tanksAmount")
+                    :var({ amount = energyData.amount })
             }))
         end
         local icon = ICONS.local_gas_station
@@ -63,7 +63,7 @@ local function commonDrawEnergyLines(ctxt, energyStation)
             icon = ICONS.ev_station
         end
         line:btnIcon({
-            id = svar("refill{1}", { energyType }),
+            id = string.var("refill{1}", { energyType }),
             icon = icon,
             style = BTN_PRESETS.SUCCESS,
             disabled = energyData.currentEnergy / energyData.maxEnergy > .95,
@@ -83,8 +83,8 @@ local function commonDrawEnergyLines(ctxt, energyStation)
     for _, tank in pairs(ctxt.vehData.tanks) do
         if energyStation then
             -- Energy station
-            if tincludes(BJI_ENERGY_STATION_TYPES, tank.energyType, true) and
-                tincludes(energyStation.types, tank.energyType, true) then
+            if table.includes(BJI_ENERGY_STATION_TYPES, tank.energyType) and
+                table.includes(energyStation.types, tank.energyType) then
                 if not tankGroups[tank.energyType] then
                     tankGroups[tank.energyType] = {
                         currentEnergy = 0,
@@ -99,7 +99,7 @@ local function commonDrawEnergyLines(ctxt, energyStation)
             end
         else
             -- Garage
-            if not tincludes(BJI_ENERGY_STATION_TYPES, tank.energyType, true) then
+            if not table.includes(BJI_ENERGY_STATION_TYPES, tank.energyType) then
                 if not tankGroups[tank.energyType] then
                     tankGroups[tank.energyType] = {
                         currentEnergy = 0,
@@ -182,22 +182,22 @@ local function drawHeader(ctxt)
         if station.isEnergy then
             local stationEnergyNames = {}
             for _, energyType in ipairs(station.types) do
-                local label = BJILang.get(svar("energy.stationNames.{1}", { energyType }))
-                if not tincludes(stationEnergyNames, label, true) then
+                local label = BJILang.get(string.var("energy.stationNames.{1}", { energyType }))
+                if not table.includes(stationEnergyNames, label) then
                     table.insert(stationEnergyNames, label)
                 end
             end
             local stationNamesLabel = table.concat(stationEnergyNames,
-                svar(" {1} ", { BJILang.get("common.and") }))
+                string.var(" {1} ", { BJILang.get("common.and") }))
             LineBuilder()
                 :icon({
                     icon = ICONS.local_gas_station,
                 })
-                :text(svar("{1} \"{2}\"", { stationNamesLabel, station.name }))
+                :text(string.var("{1} \"{2}\"", { stationNamesLabel, station.name }))
                 :build()
         else
             LineBuilder()
-                :text(svar("{1} \"{2}\"", { BJILang.get("garages.garage"), station.name }))
+                :text(string.var("{1} \"{2}\"", { BJILang.get("garages.garage"), station.name }))
                 :build()
         end
     end

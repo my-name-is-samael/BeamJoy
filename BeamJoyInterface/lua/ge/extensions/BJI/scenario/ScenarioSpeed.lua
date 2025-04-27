@@ -34,7 +34,7 @@ local function switchToRandomParticipant()
             table.insert(vehs, gameVehID)
         end
     end
-    local gameVehID = trandom(vehs)
+    local gameVehID = table.random(vehs)
     if gameVehID then
         BJIVeh.focusVehicle(gameVehID)
     end
@@ -71,7 +71,7 @@ local function getPlayerListActions(player, ctxt)
         local finalGameVehID = BJIVeh.getVehicleObject(M.participants[player.playerID])
         finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
         table.insert(actions, {
-            id = svar("focus{1}", { player.playerID }),
+            id = string.var("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
             style = BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
@@ -84,7 +84,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -97,9 +97,9 @@ end
 
 -- each frame tick hook
 local function renderTick(ctxt)
-    local speedLabel = svar("{1}{2}", { M.minSpeed, BJILang.get("speed.speedUnit") })
-    BJIMessage.realtimeDisplay("minspeed", svar(BJILang.get("speed.realtimeMinSpeed"),
-        { speed = speedLabel }))
+    local speedLabel = string.var("{1}{2}", { M.minSpeed, BJILang.get("speed.speedUnit") })
+    BJIMessage.realtimeDisplay("minspeed", BJILang.get("speed.realtimeMinSpeed")
+        :var({ speed = speedLabel }))
 
     if M.isParticipant() and not M.isEliminated() then
         if not ctxt.isOwner then
@@ -121,7 +121,7 @@ local function renderTick(ctxt)
                         BJILang.get("speed.flashFailed"), nil, function()
                             local time = ctxt.now - M.startTime
                             BJITx.scenario.SpeedFail(time)
-                            for i = tlength(M.participants), 1, -1 do
+                            for i = table.length(M.participants), 1, -1 do
                                 if not M.leaderboard[i] then
                                     -- manual elimination
                                     M.leaderboard[i] = {
@@ -173,7 +173,7 @@ local function stop()
             playerName = BJILang.get("common.unknown")
         end
         BJIMessage.flash("BJISpeedWinner",
-            svar(BJILang.get("speed.flashWinner"), { playerName = playerName }),
+            BJILang.get("speed.flashWinner"):var({ playerName = playerName }),
             5, false)
     end
 
@@ -209,7 +209,7 @@ end
 local function isEliminated(playerID)
     playerID = playerID or BJIContext.User.playerID
     if not M.isParticipant(playerID) or
-        tlength(M.leaderboard) == 0 then
+        table.length(M.leaderboard) == 0 then
         return false
     end
     local inLeaderboard = false

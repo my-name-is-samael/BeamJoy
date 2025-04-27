@@ -21,7 +21,7 @@ local function menuSoloRace(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.soloRace.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -31,7 +31,7 @@ local function menuSoloRace(ctxt, scenarioEntry)
                 local strategies = BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).RESPAWN_STRATEGIES
                 local respawnStrategies = {}
                 for _, rs in pairs(strategies) do
-                    if race.hasStand or not tincludes({ strategies.STAND }, rs) then
+                    if race.hasStand or not table.includes({ strategies.STAND }, rs) then
                         table.insert(respawnStrategies, rs)
                     end
                 end
@@ -85,7 +85,7 @@ local function menuVehicleDelivery(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.vehicleDelivery.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -123,7 +123,7 @@ local function menuPackageDelivery(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.packageDelivery.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -162,7 +162,7 @@ local function menuDeliveryMulti(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.deliveryMulti.join"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -197,9 +197,9 @@ local function menuTagDuo(ctxt, scenarioEntry)
             end,
         })
         for i, l in ipairs(BJIScenario.get(BJIScenario.TYPES.TAG_DUO).lobbies) do
-            if tlength(l.players) < 2 then
+            if table.length(l.players) < 2 then
                 table.insert(lobbies, {
-                    label = svar("Join {1}'s lobby", { BJIContext.Players[l.host].playerName }),
+                    label = string.var("Join {1}'s lobby", { BJIContext.Players[l.host].playerName }),
                     onClick = function()
                         BJITx.scenario.TagDuoJoin(i, ctxt.veh:getID())
                     end,
@@ -236,7 +236,7 @@ local function menuBusMission(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.busMission.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -266,7 +266,7 @@ local function menuSpeedGame(ctxt, scenarioEntry)
         local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
-            errorMessage = svar(BJILang.get("menu.scenario.speed.missingPlayers"), {
+            errorMessage = BJILang.get("menu.scenario.speed.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -276,7 +276,7 @@ local function menuSpeedGame(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.speed.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -308,7 +308,7 @@ local function menuHunter(ctxt, scenarioEntry)
             not BJIContext.Scenario.Data.Hunter.enabled then
             errorMessage = BJILang.get("menu.scenario.hunter.modeDisabled")
         elseif potentialPlayers < minimumParticipants then
-            errorMessage = svar(BJILang.get("menu.scenario.hunter.missingPlayers"), {
+            errorMessage = BJILang.get("menu.scenario.hunter.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -318,7 +318,7 @@ local function menuHunter(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.hunter.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -333,8 +333,8 @@ local function menuHunter(ctxt, scenarioEntry)
                         local scHunter = BJIScenario.get(BJIScenario.TYPES.HUNTER)
                         BJIContext.Scenario.HunterSettings = {
                             waypoints = scHunter.settings.waypoints,
-                            huntedConfig = tdeepcopy(scHunter.settings.huntedConfig),
-                            hunterConfigs = tdeepcopy(scHunter.settings.hunterConfigs),
+                            huntedConfig = table.clone(scHunter.settings.huntedConfig),
+                            hunterConfigs = table.clone(scHunter.settings.hunterConfigs),
                         }
                     end
                 end,
@@ -358,7 +358,7 @@ local function menuDerby(ctxt, scenarioEntry)
         if #BJIContext.Scenario.Data.Derby == 0 then
             errorMessage = BJILang.get("menu.scenario.derby.noArena")
         elseif potentialPlayers < minimumParticipants then
-            errorMessage = svar(BJILang.get("menu.scenario.derby.missingPlayers"), {
+            errorMessage = BJILang.get("menu.scenario.derby.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -368,7 +368,7 @@ local function menuDerby(ctxt, scenarioEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.scenario.derby.start"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -377,10 +377,10 @@ local function menuDerby(ctxt, scenarioEntry)
             for i, arena in ipairs(BJIContext.Scenario.Data.Derby) do
                 if arena.enabled then
                     table.insert(arenas, {
-                        label = svar("{1} ({2})", {
+                        label = string.var("{1} ({2})", {
                             arena.name,
-                            svar(BJILang.get("derby.settings.places"),
-                                { places = #arena.startPositions }),
+                            BJILang.get("derby.settings.places")
+                                :var({ places = #arena.startPositions }),
                         }),
                         onClick = function()
                             BJIContext.Scenario.DerbyEdit = nil

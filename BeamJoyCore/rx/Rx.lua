@@ -37,7 +37,7 @@ local function logAndToastError(sender, key, data)
     local srvLang = BJCConfig.Data.Server.Lang
 
     -- srv log
-    LogError(svar(BJCLang.getServerMessage(srvLang, key), data), logTag)
+    LogError(BJCLang.getServerMessage(srvLang, key):var(data), logTag)
     -- player toast
     if sender then
         BJCTx.player.toast(sender.playerID, BJC_TOAST_TYPES.ERROR, key, data)
@@ -47,7 +47,7 @@ end
 local ctrls = {}
 -- route events categories to controller files
 for k, v in pairs(BJC_EVENTS) do
-    if type(v) == "table" and type(v.RX) == "table" and tlength(v.RX) > 0 then
+    if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
         ctrls[k] = require("rx/" .. k .. "Rx")
         ctrls[k].dispatchEvent = controllerDispatch
     end
@@ -83,17 +83,15 @@ local function tryFinalizeEvent(id)
         end
         if ctrl then
             if BJCCore.Data.General.Debug then
-                Log(
-                    svar(
-                        BJCLang.getConsoleMessage("rx.eventReceived"),
-                        {
-                            eventName = ctxt.event,
-                            endpoint = ctxt.endpoint,
-                            playerName = ctxt.sender.playerName,
-                        }),
+                Log(BJCLang.getConsoleMessage("rx.eventReceived")
+                    :var({
+                        eventName = ctxt.event,
+                        endpoint = ctxt.endpoint,
+                        playerName = ctxt.sender.playerName,
+                    }),
                     logTag)
-                if tlength(ctxt.data) > 0 then
-                    PrintObj(ctxt.data, svar("{1}.{2} ({3} parts data)",
+                if table.length(ctxt.data) > 0 then
+                    PrintObj(ctxt.data, string.var("{1}.{2} ({3} parts data)",
                         { ctxt.event, ctxt.endpoint, event.parts }))
                 end
             end
@@ -109,7 +107,7 @@ local function tryFinalizeEvent(id)
         else
             logAndToastError(ctxt.sender, "rx.errors.invalidEvent", { eventName = ctxt.event })
         end
-        BJCAsync.removeTask(svar("BJCRxEventTimeout-{1}", { id }))
+        BJCAsync.removeTask(string.var("BJCRxEventTimeout-{1}", { id }))
     end
 
     retrievingEvents[id] = nil
@@ -148,7 +146,7 @@ function _BJCRxEvent(senderID, dataSent)
     if retrievingEvents[data.id] then
         BJCAsync.delayTask(function()
             retrievingEvents[data.id] = nil
-        end, 30, svar("BJCRxEventTimeout-{1}", { data.id }))
+        end, 30, string.var("BJCRxEventTimeout-{1}", { data.id }))
     end
 end
 
@@ -178,7 +176,7 @@ function _BJCRxEventParts(senderID, dataSent)
     if retrievingEvents[data.id] then
         BJCAsync.delayTask(function()
             retrievingEvents[data.id] = nil
-        end, 30, svar("BJCRxEventTimeout-{1}", { data.id }))
+        end, 30, string.var("BJCRxEventTimeout-{1}", { data.id }))
     end
 end
 

@@ -1,9 +1,9 @@
 local filter = ""
-local filtered = tdeepcopy(ICONS_FLAT)
+local filtered = table.clone(ICONS_FLAT)
 local function updateFilter()
     local query = filter:lower()
     if #query == 0 then
-        filtered = tdeepcopy(ICONS_FLAT)
+        filtered = table.clone(ICONS_FLAT)
     else
         filtered = {}
         for _, icon in ipairs(ICONS_FLAT) do

@@ -7,7 +7,7 @@ local function menuMap(ctxt, votesEntry)
         for mapName, map in pairs(BJIContext.Maps.Data) do
             if map.enabled then
                 table.insert(maps, {
-                    label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                    label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
                     active = BJIContext.UI.mapName == mapName,
                     onClick = function()
                         if BJIContext.UI.mapName ~= mapName then
@@ -86,8 +86,8 @@ local function menuRace(ctxt, votesEntry)
         if #rawRaces == 0 then
             raceErrorMessage = BJILang.get("menu.vote.race.noRace")
         elseif potentialPlayers < minParticipants then
-            raceErrorMessage = svar(BJILang.get("menu.vote.race.missingPlayers"),
-                { amount = minParticipants - potentialPlayers })
+            raceErrorMessage = BJILang.get("menu.vote.race.missingPlayers")
+                :var({ amount = minParticipants - potentialPlayers })
         end
 
         if raceErrorMessage then
@@ -95,7 +95,7 @@ local function menuRace(ctxt, votesEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.race.title"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { raceErrorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { raceErrorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -104,13 +104,13 @@ local function menuRace(ctxt, votesEntry)
             for _, race in ipairs(rawRaces) do
                 local disabledSuffix = ""
                 if race.enabled == false then
-                    disabledSuffix = svar(", {1}", { BJILang.get("common.disabled") })
+                    disabledSuffix = string.var(", {1}", { BJILang.get("common.disabled") })
                 end
                 table.insert(races, {
-                    label = svar("{1} ({2}{3})", {
+                    label = string.var("{1} ({2}{3})", {
                         race.name,
-                        svar(BJILang.get("races.preparation.places"),
-                            { places = race.places }),
+                        BJILang.get("races.preparation.places")
+                            :var({ places = race.places }),
                         disabledSuffix,
                     }),
                     onClick = function()
@@ -135,7 +135,7 @@ local function menuSpeed(ctxt, votesEntry)
         local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
-            errorMessage = svar(BJILang.get("menu.vote.speed.missingPlayers"), {
+            errorMessage = BJILang.get("menu.vote.speed.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -145,7 +145,7 @@ local function menuSpeed(ctxt, votesEntry)
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.speed.title"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })

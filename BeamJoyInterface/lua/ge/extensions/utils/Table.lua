@@ -1,314 +1,395 @@
-function tlength(table)
-    local length = 0
-    for _ in pairs(table) do length = length + 1 end
-    return length
+-- ALREADY PRESENT FUNCTIONS
+
+table.clear = table.clear
+table.concat = table.concat
+table.deepcopy = table.deepcopy
+table.foreach = table.foreach
+table.foreachi = table.foreachi
+table.getn = table.getn
+table.insert = table.insert
+table.maxn = table.maxn
+table.move = table.move
+table.new = table.new
+table.remove = table.remove
+table.shallowcopy = table.shallowcopy
+table.sort = table.sort
+
+-- ADD-ONS
+
+
+-- TABLE/ARRAY UTILS
+
+---@param tab table<any, any>
+---@return boolean
+table.isArray = table.isArray or function(tab)
+    return type(tab) == "table" and #tab == table.length(tab)
 end
 
-function tincludes(table, value, inValues)
-    for k, v in pairs(table) do
-        if (not inValues and k == value) or v == value then
-            return true
+---@param tab table<any, any>
+---@return boolean
+table.isObject = table.isObject or function(tab)
+    return type(tab) == "table" and #tab ~= table.length(tab)
+end
+
+---@param tab table<any, any>
+---@param distinct? boolean
+---@return table<any, any>
+table.duplicates = table.duplicates or function(tab, distinct)
+    if type(tab) ~= "table" then return {} end
+    if type(distinct) ~= "boolean" then distinct = false end
+    local saw = {}
+    local res = {}
+    for _, v in pairs(tab) do
+        if not saw[v] then
+            saw[v] = true
+        elseif not table.includes(res, v) or not distinct then
+            table.insert(res, v)
         end
     end
-    return false
+    return res
 end
 
-function tpos(table, value)
-    for i in ipairs(table) do
-        if table[i] == value then
-            return i
+---@param tab table<any, any>
+---@return any|nil
+table.random = table.random or function(tab)
+    if type(tab) ~= "table" then return nil end
+    if table.length(tab) == 0 then return nil end
+    local picked = math.random(1, table.length(tab))
+    local i = 1
+    for _, v in pairs(tab) do
+        if i == picked then
+            return v
+        end
+        i = i + 1
+    end
+end
+
+---@param tab table<any, any>
+---@param index any
+---@return integer|string|nil
+table.nextIndex = table.nextIndex or function(tab, index)
+    if type(tab) ~= "table" then return nil end
+    if table.isArray(tab) then
+        return index + 1 <= #tab and index + 1 or nil
+    else
+        local next = false
+        for k in pairs(tab) do
+            if not next and k == index then
+                next = true
+            elseif next then
+                return k
+            end
         end
     end
-    for k in pairs(table) do
-        if table[k] == value then
-            return k
-        end
-    end
-    return nil
-end
-
-function tconcat(arr, separator)
-    if tlength(arr) < 1 then
-        return ""
-    end
-    local out = arr[1]
-    for i = 2, tlength(arr) do
-        out = out .. separator .. arr[i]
-    end
-    return out
-end
-
-function tisarray(obj)
-    if type(obj) ~= 'table' then return false end
-    return #obj == tlength(obj)
-end
-
-function tnextindex(table, index)
-    local next = index + 1 % tlength(table) + 1
+    local next = index + 1 % table.length(tab) + 1
     if next == 0 then
         next = 1
     end
     return next
 end
 
-T_SORT_DIRS = { ASC = 1, DESC = 2 }
-
-function tsortarray(arr, dir)
-    if type(arr) == "table" and tlength(arr) == 0 then
-        return
-    elseif not tisarray(arr) then
-        error("Tried to sort an array that is not an array")
-        return arr
-    end
-    if dir == nil then
-        dir = T_SORT_DIRS.ASC
-    end
-    if not tincludes(T_SORT_DIRS, dir) then
-        error()
-    end
-    local types = {}
-    for _, v in ipairs(arr) do
-        if not tincludes(types, type(v)) then
-            types[#types + 1] = type(v)
-        end
-    end
-    if #types > 1 then
-        error("multi types array")
-        return
-    end
-
-    table.sort(arr, function(a, b)
-        if dir == T_SORT_DIRS.ASC then
-            return a:upper() < b:upper()
+-- table.concat only works on arrays, table.join is working on objects too
+---@param tab table<any, any>
+---@param sep? string
+---@param keys? boolean
+table.join = table.join or function(tab, sep, keys)
+    if type(tab) ~= "table" then return "" end
+    if type(sep) ~= "string" then sep = "" end
+    if table.isArray(tab) then
+        if keys then
+            local str = "";
+            for i, v in ipairs(tab) do
+                str = ("%s%d:%s"):format(str, i, tostring(v))
+                if i ~= table.length(tab) then
+                    str = str .. sep
+                end
+                i = i + 1
+            end
+            return str
         else
-            return a:upper() > b:upper()
+            return table.concat(tab, sep)
         end
-    end)
+    else
+        local str = "";
+        local i = 1
+        for k, v in pairs(tab) do
+            str = ("%s%s%s"):format(str, keys and (tostring(k) .. ":") or "", tostring(v))
+            if i ~= table.length(tab) then
+                str = str .. sep
+            end
+            i = i + 1
+        end
+        return str
+    end
 end
 
-function tsortbykey(arr, key, dir)
-    if type(arr) ~= "table" or tisarray(arr) then
-        return {}
-    end
-    if key == nil or type(key) ~= "string" or #key == 0 then
-        return {}
-    end
-    if dir == nil then
-        dir = T_SORT_DIRS.ASC
-    end
-    if not tincludes(T_SORT_DIRS, dir) then
-        error()
-    end
-
-    local keys = {}
-    for _, v in pairs(arr) do
-        if v[key] == nil then
-            return {}
-        end
-        table.insert(keys, type(v[key]) == "number" and v[key] or tostring(v[key]))
-    end
-    tsortarray(keys, dir)
-
-
+---@param tab1 table<any, any>
+---@param tab2 table<any, any>
+---@return table<any, any>
+table.concat = table.concat or function(tab1, tab2)
+    if type(tab1) ~= "table" or type(tab2) ~= "table" then return {} end
     local res = {}
-    for _, s in ipairs(keys) do
-        for k, v in pairs(arr) do
-            if v[key] == s then
-                table.insert(res, { k, v })
-            end
-        end
-    end
+    table.forEach(tab1, function(v) table.insert(res, v) end)
+    table.forEach(tab2, function(v) table.insert(res, v) end)
     return res
 end
 
-function tfind(arr, findFn)
-    if arr == nil or type(arr) ~= "table" then
-        return nil
-    end
+---@param tab table<any, any>
+---@return table<any, any>
+table.flat = table.flat or function(tab)
+    if type(tab) ~= "table" then return {} end
+    local res = {}
+    table.forEach(tab, function(v)
+        if type(v) == "table" then
+            table.forEach(table.flat(v), function(v) table.insert(res, v) end)
+        else
+            table.insert(res, v)
+        end
+    end)
+    return res
+end
 
-    for k, v in pairs(arr) do
-        if findFn(v) then
-            return { k, v }
+---@param tab table<any, any>
+---@param val any
+---@return any result nil if not found
+table.indexOf = table.indexOf or function(tab, val)
+    for k, v in pairs(tab) do
+        if v == val then
+            return k
         end
     end
-    return nil
 end
 
-function tdeepcopy(obj, seen)
-    if type(obj) ~= 'table' then
-        return obj
+---@param target table<any, any>
+---@param source table<any, any>
+---@param level? integer
+table.assign = table.assign or function(target, source, level)
+    if type(target) ~= "table" or type(source) ~= "table" then return target end
+    if type(level) ~= "number" then
+        level = 1
+    else
+        level = math.round(level)
+        if level >= 20 then
+            return {}
+        end
     end
-    if seen and seen[obj] then
-        return seen[obj]
-    end
-    seen = seen or {}
-    local res = {}
-    seen[obj] = res
-    for k, v in pairs(obj) do
-        res[tdeepcopy(k, seen)] = tdeepcopy(v, seen)
-    end
-    return setmetatable(res, getmetatable(obj))
-end
-
-function tdeepassign(target, source)
-    if type(target) ~= 'table' or type(source) ~= 'table' then
-        return target
-    end
-
     for k, v in pairs(source) do
         if type(v) == "table" then
-            if type(target[k]) == "table" then
-                tdeepassign(target[k], v)
-            else
-                target[k] = tdeepcopy(v)
+            if type(target[k]) ~= "table" then
+                target[k] = {}
             end
-        elseif tincludes({ "string", "boolean", "number" }, type(v)) then
+            table.assign(target[k], v, level + 1)
+        else
             target[k] = v
         end
     end
-
-    return target
 end
 
-function tkeys(arr)
+---@generic K, V, T
+---@param tab table<K, V>
+---@param mapFn fun(el: V, index: K, tab: table<K, V>): T
+---@return table<K, T>
+table.map = table.map or function(tab, mapFn)
+    if type(tab) ~= "table" then return {} end
+    if type(mapFn) ~= "function" then return {} end
+    local status
     local res = {}
-    if type(arr) ~= "table" then
-        return res
-    end
-    for k in pairs(arr) do
-        table.insert(res, k)
+    for k, v in pairs(tab) do
+        status, res[k] = pcall(mapFn, v, k, tab)
+        if not status then
+            res[k] = nil
+        end
     end
     return res
 end
 
-function tisduplicates(arr)
-    if not tisarray(arr) then
-        return false
-    end
-    for i = 1, #arr do
-        for j = i + 1, #arr do
-            if arr[i] == arr[j] then
-                return true
-            end
+---@generic K, V
+---@param tab table<K, V>
+---@param filterFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@return table<K, V>
+table.filter = table.filter or function(tab, filterFn)
+    if type(tab) ~= "table" then return {} end
+    if type(filterFn) ~= "function" then return {} end
+    local res = {}
+    for k, v in pairs(tab) do
+        local status, cond = pcall(filterFn, v, k, tab)
+        if status and cond then
+            res[k] = v
         end
     end
-    return false
+    return res
 end
 
-function trandom(arr)
-    local iTarget = math.random(1, tlength(arr))
-    for _, elem in pairs(arr) do
-        if iTarget == 1 then
-            return elem
-        end
-        iTarget = iTarget - 1
-    end
-    return nil
-end
-
-function tunpack(arr)
-    if type(table.unpack) == "function" then
-        return table.unpack(arr)
-    else
-        -- table.unpack not available yet in current beamng implem :'(
-        return unpack(arr)
-    end
-end
-
-table.clear = table.clear or function(t)
-    for k in pairs(t) do
-        t[k] = nil
-    end
-end
-
-function tdeepcompare(table1, table2)
-    local avoid_loops = {}
-    local function recurse(t1, t2)
-        if type(t1) ~= type(t2) then return false end
-        if type(t1) ~= "table" then
-            if type(t1) == "number" and type(t2) == "number" then
-                return math.abs(t1 - t2) < 0.00001
-            end
-            return t1 == t2
-        end
-        if avoid_loops[t1] then return avoid_loops[t1] == t2 end
-        avoid_loops[t1] = t2
-        local t2keys = {}
-        local t2tablekeys = {}
-        for k, _ in pairs(t2) do
-            if type(k) == "table" then table.insert(t2tablekeys, k) end
-            t2keys[k] = true
-        end
-        for k1, v1 in pairs(t1) do
-            local v2 = t2[k1]
-            if type(k1) == "table" then
-                local ok = false
-                for i, tk in ipairs(t2tablekeys) do
-                    if tdeepcompare(k1, tk) and recurse(v1, t2[tk]) then
-                        table.remove(t2tablekeys, i)
-                        t2keys[tk] = nil
-                        ok = true
-                        break
-                    end
-                end
-                if not ok then return false end
-            else
-                if v2 == nil then return false end
-                t2keys[k1] = nil
-                if not recurse(v1, v2) then return false end
-            end
-        end
-        if next(t2keys) then return false end
-        return true
-    end
-    return recurse(table1, table2)
-end
-
-function tshallowcompare(table1, table2)
-    if type(table1) ~= type(table2) then
-        return false
-    end
-
-    if type(table1) ~= "table" then
-        return table1 == table2
-    else
-        for k, v in pairs(table1) do
-            if type(v) == "table" then
-                if type(table2[k]) ~= "table" then
-                    return false
-                elseif tlength(table2[k]) ~= tlength(v) then
-                    return false
-                end
-            elseif table2[k] ~= v then
-                return false
-            end
-        end
-    end
-    return true
-end
-
-function tevery(arr, fn)
-    for i, val in pairs(arr) do
-        if not fn(val, i, arr) then
-            return false
-        end
-    end
-    return true
-end
-
-function tsome(arr, fn)
-    for i, val in pairs(arr) do
-        if fn(val, i, arr) then
+---@generic K, V
+---@param tab table<K, V>
+---@param someFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@return boolean
+table.some = table.some or function(tab, someFn)
+    if type(tab) ~= "table" then return false end
+    if type(someFn) ~= "function" then return false end
+    for k, v in pairs(tab) do
+        local status, cond = pcall(someFn, v, k, tab)
+        if status and cond then
             return true
         end
     end
     return false
 end
+table.any = table.any or table.some
 
-function tmap(arr, fn)
-    local res = {}
-    for i, v in pairs(arr) do
-        res[i] = fn(v, i, arr)
+---@generic K, V
+---@param tab table<K, V>
+---@param everyFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@return boolean
+table.every = table.every or function(tab, everyFn)
+    if type(tab) ~= "table" then return false end
+    if type(everyFn) ~= "function" then return false end
+    for k, v in pairs(tab) do
+        local status, cond = pcall(everyFn, v, k, tab)
+        if not status or not cond then
+            return false
+        end
+    end
+    return true
+end
+table.all = table.all or table.every
+
+---@generic K, V, T
+---@param tab table<K, V>
+---@param reduceFn fun(value: T, el: V, index: K, tab: table<K, V>): T
+---@param initialValue T
+---@return T
+table.reduce = table.reduce or function(tab, reduceFn, initialValue)
+    if initialValue == nil then return initialValue end
+    if type(tab) ~= "table" then return initialValue end
+    if type(reduceFn) ~= "function" then return initialValue end
+    local res = initialValue
+    for k, v in pairs(tab) do
+        local status, value = pcall(reduceFn, res, v, k, tab)
+        if status then
+            res = value
+        end
     end
     return res
+end
+
+---@generic K, V
+---@param tab table<K, V>
+---@param foreachFn fun(el: V, index: K, tab: table<K, V>)
+table.forEach = table.forEach or function(tab, foreachFn)
+    if type(tab) ~= "table" then return end
+    if type(foreachFn) ~= "function" then return end
+    for k, v in pairs(tab) do
+        foreachFn(v, k, tab)
+    end
+end
+
+---@generic K, V
+---@param tab table<K, V>
+---@param findFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@return V, K | nil
+table.find = table.find or function(tab, findFn)
+    if type(tab) ~= "table" then return nil end
+    if type(findFn) ~= "function" then return nil end
+    for k, v in pairs(tab) do
+        local status, cond = pcall(findFn, v, k, tab)
+        if status and cond then
+            return v, k
+        end
+    end
+    return nil
+end
+
+---@param tab table<any, any>
+---@return integer
+table.length = table.length or function(tab)
+    if type(tab) ~= "table" then return 0 end
+    local sum = 0
+    table.forEach(tab, function() sum = sum + 1 end)
+    return sum
+end
+
+---@generic K
+---@param tab table<K, any>
+---@return K[]
+table.keys = table.keys or function(tab)
+    if type(tab) ~= "table" then return {} end
+    local res = {}
+    for k in pairs(tab) do
+        table.insert(res, k)
+    end
+    table.sort(res)
+    return res
+end
+
+---@generic V
+---@param tab table<any, V>
+---@return V[]
+table.values = table.values or function(tab)
+    if type(tab) ~= "table" then return {} end
+    local res = {}
+    for _, v in pairs(tab) do
+        table.insert(res, v)
+    end
+    table.sort(res)
+    return res
+end
+
+---@param tab table<any, any>
+---@param el any
+---@return boolean
+table.includes = table.includes or function(tab, el)
+    if type(tab) ~= "table" then return false end
+    for _, v in pairs(tab) do
+        if v == el then
+            return true
+        end
+    end
+    return false
+end
+table.contains = table.contains or table.includes
+
+---@param tab1 table<any, any>
+---@param tab2 table<any, any>
+---@param deep? boolean DEFAULT to false
+---@return boolean
+table.compare = table.compare or function(tab1, tab2, deep)
+    if type(tab1) ~= "table" or type(tab2) ~= "table" then return tab1 == tab2 end
+    if #tab1 ~= #tab2 then return false end
+    for i = 1, #tab1 do
+        if deep and type(tab1[i]) == "table" and type(tab2[i]) == "table" then
+            if not table.compare(tab1[i], tab2[i], deep) then
+                return false
+            end
+        elseif tab1[i] ~= tab2[i] then
+            return false
+        end
+    end
+    return true
+end
+---@param tab1 table<any, any>
+---@param tab2 table<any, any>
+---@return boolean
+table.deepcompare = table.deepcompare or function(tab1, tab2)
+    return table.compare(tab1, tab2, true)
+end
+---@param tab1 table<any, any>
+---@param tab2 table<any, any>
+---@return boolean
+table.shallowcompare = table.shallowcompare or function(tab1, tab2)
+    return table.compare(tab1, tab2)
+end
+
+-- Depends on Lua version
+table.unpack = table.unpack or unpack
+
+---@generic V
+---@param obj V
+---@return V
+table.clone = table.clone or function(obj)
+    if type(obj) ~= 'table' then
+        return obj
+    end
+    -- table.deepcopy does not handle userdata and cdata types
+    return table.deepcopy(obj)
 end

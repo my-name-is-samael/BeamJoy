@@ -69,7 +69,7 @@ local function drawColorLine(data)
         local line = LineBuilder()
         if data.toggle then
             line:btnIconToggle({
-                id = svar("{1}-toggle", { data.id }),
+                id = string.var("{1}-toggle", { data.id }),
                 state = not not data.toggle.state,
                 coloredIcon = true,
                 onClick = data.toggle.onClick,
@@ -77,7 +77,7 @@ local function drawColorLine(data)
         end
         if not data.toggle or data.toggle.state then
             line:colorPicker({
-                id = svar("{1}-color", { data.id }),
+                id = string.var("{1}-color", { data.id }),
                 value = data.color.value,
                 alpha = true,
                 onChange = data.color.onChange
@@ -85,7 +85,7 @@ local function drawColorLine(data)
         end
         if data.reset then
             line:btnIcon({
-                id = svar("{1}-reset", { data.id }),
+                id = string.var("{1}-reset", { data.id }),
                 icon = ICONS.refresh,
                 style = BTN_PRESETS.WARNING,
                 onClick = data.reset,
@@ -111,7 +111,7 @@ local function compareColorToDefault(color, default)
     end
     for i = 1, 4 do
         -- forced to round because direct comparison returns false after a database save :(
-        if Round(color[i], RGBA_PRECISION) ~= Round(default[i], RGBA_PRECISION) then
+        if math.round(color[i], RGBA_PRECISION) ~= math.round(default[i], RGBA_PRECISION) then
             return false
         end
     end
@@ -120,12 +120,12 @@ end
 
 local function drawThemeCategory(cat)
     AccordionBuilder()
-        :label(BJILang.get(svar("themeEditor.{1}.title", { cat })))
+        :label(BJILang.get(string.var("themeEditor.{1}.title", { cat })))
         :commonStart(Separator)
         :openedBehavior(function()
             local listInputs = {}
             for key, value in pairs(te.data[cat]) do
-                local label = BJILang.get(svar("themeEditor.{1}.{2}", { cat, key }))
+                local label = BJILang.get(string.var("themeEditor.{1}.{2}", { cat, key }))
                 table.insert(listInputs, {
                     key = key,
                     value = value,
@@ -139,7 +139,7 @@ local function drawThemeCategory(cat)
                     te.changed = true
                 end
                 drawColorLine({
-                    id = svar("{1}-{2}", { cat, data.key }),
+                    id = string.var("{1}-{2}", { cat, data.key }),
                     label = data.label,
                     reverse = true,
                     color = {
@@ -150,7 +150,7 @@ local function drawThemeCategory(cat)
                         end
                     },
                     reset = changed and function()
-                        te.data[cat][data.key] = tdeepcopy(BJIContext.BJC.Server.Theme[cat][data.key])
+                        te.data[cat][data.key] = table.clone(BJIContext.BJC.Server.Theme[cat][data.key])
                         updateTheme()
                     end
                 })
@@ -186,7 +186,7 @@ local function drawButtonsPresets()
                     key = key,
                     value = value,
                     default = BJIContext.BJC.Server.Theme.Button[key],
-                    label = BJILang.get(svar("themeEditor.Button.{1}", { key })),
+                    label = BJILang.get(string.var("themeEditor.Button.{1}", { key })),
                 })
             end
             table.sort(btnPresets, function(a, b) return a.label < b.label end)
@@ -201,7 +201,7 @@ local function drawButtonsPresets()
                     "overrideTextColor",
                     "preview",
                 }) do
-                    local label = BJILang.get(svar("themeEditor.Button.{1}", { k }))
+                    local label = BJILang.get(string.var("themeEditor.Button.{1}", { k }))
                     local w = GetColumnTextWidth(label)
                     if w > labelWidth then
                         labelWidth = w
@@ -219,19 +219,19 @@ local function drawButtonsPresets()
                     :openedBehavior(function()
                         -- Preview
                         drawPreview(
-                            svar("Button-{1}-cols-preview", { btnPreset.key }),
+                            string.var("Button-{1}-cols-preview", { btnPreset.key }),
                             labelWidth,
                             btnTypes[5].label,
                             function()
                                 LineBuilder()
                                     :btn({
-                                        id = svar("Button-{1}-preview-text", { btnPreset.key }),
+                                        id = string.var("Button-{1}-preview-text", { btnPreset.key }),
                                         label = "ABC123",
                                         style = BTN_PRESETS[btnPreset.key],
                                         onClick = function() end,
                                     })
                                     :btnIcon({
-                                        id = svar("Button-{1}-preview-icon", { btnPreset.key }),
+                                        id = string.var("Button-{1}-preview-icon", { btnPreset.key }),
                                         icon = ICONS.bug_report,
                                         style = BTN_PRESETS[btnPreset.key],
                                         onClick = function() end,
@@ -248,7 +248,7 @@ local function drawButtonsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Button-{1}-{2}", { btnPreset.key, btnTypes[1].key }),
+                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[1].key }),
                             label = btnTypes[1].label,
                             labelWidth = labelWidth,
                             color = {
@@ -259,7 +259,7 @@ local function drawButtonsPresets()
                                 end,
                             },
                             reset = changed and function()
-                                te.data.Button[btnPreset.key][1] = tdeepcopy(default)
+                                te.data.Button[btnPreset.key][1] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -272,7 +272,7 @@ local function drawButtonsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Button-{1}-{2}", { btnPreset.key, btnTypes[2].key }),
+                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[2].key }),
                             label = btnTypes[2].label,
                             labelWidth = labelWidth,
                             color = {
@@ -283,7 +283,7 @@ local function drawButtonsPresets()
                                 end,
                             },
                             reset = changed and function()
-                                te.data.Button[btnPreset.key][2] = tdeepcopy(default)
+                                te.data.Button[btnPreset.key][2] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -296,7 +296,7 @@ local function drawButtonsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Button-{1}-{2}", { btnPreset.key, btnTypes[3].key }),
+                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[3].key }),
                             label = btnTypes[3].label,
                             labelWidth = labelWidth,
                             color = {
@@ -307,7 +307,7 @@ local function drawButtonsPresets()
                                 end,
                             },
                             reset = changed and function()
-                                te.data.Button[btnPreset.key][3] = tdeepcopy(default)
+                                te.data.Button[btnPreset.key][3] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -324,7 +324,7 @@ local function drawButtonsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Button-{1}-{2}", { btnPreset.key, btnTypes[4].key }),
+                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[4].key }),
                             label = btnTypes[4].label,
                             labelWidth = labelWidth,
                             toggle = {
@@ -333,7 +333,7 @@ local function drawButtonsPresets()
                                     if value then
                                         te.data.Button[btnPreset.key][4] = nil
                                     else
-                                        te.data.Button[btnPreset.key][4] = tdeepcopy(te.data.Text.DEFAULT)
+                                        te.data.Button[btnPreset.key][4] = table.clone(te.data.Text.DEFAULT)
                                     end
                                     updateTheme()
                                 end
@@ -346,7 +346,7 @@ local function drawButtonsPresets()
                                 end,
                             } or nil,
                             reset = changed and function()
-                                te.data.Button[btnPreset.key][4] = tdeepcopy(default)
+                                te.data.Button[btnPreset.key][4] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -367,7 +367,7 @@ local function drawInputsPresets()
                 table.insert(inputPresets, {
                     key = key,
                     value = value,
-                    label = BJILang.get(svar("themeEditor.Input.{1}", { key })),
+                    label = BJILang.get(string.var("themeEditor.Input.{1}", { key })),
                 })
             end
             table.sort(inputPresets, function(a, b) return a.label < b.label end)
@@ -381,7 +381,7 @@ local function drawInputsPresets()
                     "previewString",
                     "previewNumeric",
                 }) do
-                    local label = BJILang.get(svar("themeEditor.Input.{1}", { k }))
+                    local label = BJILang.get(string.var("themeEditor.Input.{1}", { k }))
                     local w = GetColumnTextWidth(label)
                     if w > labelWidth then
                         labelWidth = w
@@ -399,13 +399,13 @@ local function drawInputsPresets()
                     :openedBehavior(function()
                         -- Preview String
                         drawPreview(
-                            svar("Input-{1}-cols-preview", { inputPreset.key }),
+                            string.var("Input-{1}-cols-preview", { inputPreset.key }),
                             labelWidth,
                             inputTypes[3].label,
                             function()
                                 LineBuilder()
                                     :inputString({
-                                        id = svar("Input-{1}-string-preview", { inputPreset.key }),
+                                        id = string.var("Input-{1}-string-preview", { inputPreset.key }),
                                         value = "ABC123",
                                         style = INPUT_PRESETS[inputPreset.key],
                                         onChange = function() end,
@@ -416,13 +416,13 @@ local function drawInputsPresets()
 
                         -- Preview Numeric
                         drawPreview(
-                            svar("Input-{1}-cols-preview", { inputPreset.key }),
+                            string.var("Input-{1}-cols-preview", { inputPreset.key }),
                             labelWidth,
                             inputTypes[4].label,
                             function()
                                 LineBuilder()
                                     :inputNumeric({
-                                        id = svar("Input-{1}-numeric-preview", { inputPreset.key }),
+                                        id = string.var("Input-{1}-numeric-preview", { inputPreset.key }),
                                         type = "float",
                                         value = 123.456,
                                         precision = 3,
@@ -441,7 +441,7 @@ local function drawInputsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Input-{1}-{2}", { inputPreset.key, inputTypes[1].key }),
+                            id = string.var("Input-{1}-{2}", { inputPreset.key, inputTypes[1].key }),
                             label = inputTypes[1].label,
                             labelWidth = labelWidth,
                             color = {
@@ -452,7 +452,7 @@ local function drawInputsPresets()
                                 end,
                             },
                             reset = changed and function()
-                                te.data.Input[inputPreset.key][1] = tdeepcopy(default)
+                                te.data.Input[inputPreset.key][1] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -469,7 +469,7 @@ local function drawInputsPresets()
                             te.changed = true
                         end
                         drawColorLine({
-                            id = svar("Input-{1}-{2}", { inputPreset.key, inputTypes[2].key }),
+                            id = string.var("Input-{1}-{2}", { inputPreset.key, inputTypes[2].key }),
                             label = inputTypes[2].label,
                             labelWidth = labelWidth,
                             toggle = {
@@ -478,7 +478,7 @@ local function drawInputsPresets()
                                     if value then
                                         te.data.Input[inputPreset.key][2] = nil
                                     else
-                                        te.data.Input[inputPreset.key][2] = tdeepcopy(te.data.Text.DEFAULT)
+                                        te.data.Input[inputPreset.key][2] = table.clone(te.data.Text.DEFAULT)
                                     end
                                     updateTheme()
                                 end
@@ -491,7 +491,7 @@ local function drawInputsPresets()
                                 end,
                             } or nil,
                             reset = changed and function()
-                                te.data.Input[inputPreset.key][2] = tdeepcopy(default)
+                                te.data.Input[inputPreset.key][2] = table.clone(default)
                                 updateTheme()
                             end
                         })
@@ -531,7 +531,7 @@ local function drawFooter(ctxt)
             icon = ICONS.refresh,
             style = BTN_PRESETS.WARNING,
             onClick = function()
-                te.data = tdeepcopy(BJIContext.BJC.Server.Theme)
+                te.data = table.clone(BJIContext.BJC.Server.Theme)
                 te.changed = false
                 updateTheme()
             end,

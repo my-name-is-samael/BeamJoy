@@ -96,7 +96,7 @@ local function slowTick(ctxt)
         end
         table.sort(listVehs)
         table.sort(BJIContext.Players[ctxt.user.playerID].ai)
-        if not tshallowcompare(listVehs, BJIContext.Players[ctxt.user.playerID].ai) then
+        if not table.compare(listVehs, BJIContext.Players[ctxt.user.playerID].ai) then
             BJITx.player.UpdateAI(listVehs)
         end
     elseif BJIContext.Players[ctxt.user.playerID] and
@@ -128,7 +128,7 @@ local function updateVehicles()
 end
 
 local function isAIVehicle(gameVehID)
-    return tincludes(M.aiCars, gameVehID, true)
+    return table.includes(M.aiCars, gameVehID)
 end
 
 M.onLoad = onLoad

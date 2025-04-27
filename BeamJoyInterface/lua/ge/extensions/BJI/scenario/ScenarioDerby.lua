@@ -89,13 +89,13 @@ local function findFreeStartPosition(ownGameVehID)
             })
         end
     end
-    return trandom(positions)
+    return table.random(positions)
 end
 
 local function tryReplaceOrSpawn(model, config)
     local participant = M.getParticipant()
     if M.state == M.STATES.PREPARATION and participant and not participant.ready then
-        if tlength(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
+        if table.length(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
@@ -164,7 +164,7 @@ local function switchToRandomParticipant()
             end
         end
     end
-    local gameVehID = trandom(vehIDs)
+    local gameVehID = table.random(vehIDs)
     if gameVehID then
         BJIVeh.focusVehicle(gameVehID)
     end
@@ -222,7 +222,7 @@ local function getPlayerListActions(player, ctxt)
             end
         end
         table.insert(actions, {
-            id = svar("focus{1}", { player.playerID }),
+            id = string.var("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
             style = BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
@@ -235,7 +235,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -265,7 +265,7 @@ local function onVehicleResetted(gameVehID)
             local participant = M.getParticipant()
             if participant then
                 BJIMessage.cancelFlash("BJIDerbyDestroy")
-                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, Round(ctxt.now - M.startTime))
+                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - M.startTime))
                 if participant.lives == 1 then
                     BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
                 end
@@ -303,9 +303,9 @@ local function renderTick(ctxt)
                         if participant.lives == 1 then
                             msg = BJILang.get("derby.play.flashNoLifeRemaining")
                         elseif participant.lives == 2 then
-                            msg = svar(BJILang.get("derby.play.flashLifeRemaining"), { lives = participant.lives - 1 })
+                            msg = BJILang.get("derby.play.flashLifeRemaining"):var({ lives = participant.lives - 1 })
                         else
-                            msg = svar(BJILang.get("derby.play.flashLivesRemaining"), { lives = participant.lives - 1 })
+                            msg = BJILang.get("derby.play.flashLivesRemaining"):var({ lives = participant.lives - 1 })
                         end
                     end
                     BJIMessage.cancelFlash("BJIDerbyDestroy")
@@ -318,7 +318,7 @@ local function renderTick(ctxt)
                                 end
                                 BJIVeh.setPositionRotation(M.startPos.pos, M.startPos.rot)
                             else
-                                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, Round(ctxt.now - M.startTime))
+                                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - M.startTime))
                             end
                             M.destroy.process = false
                             M.destroy.targetTime = nil

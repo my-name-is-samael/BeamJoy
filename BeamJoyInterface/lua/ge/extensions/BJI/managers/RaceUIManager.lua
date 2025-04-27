@@ -76,7 +76,7 @@ local function drawHotlap()
             symbol = "+"
         end
         if diff ~= 0 then
-            diffLabel = svar("{1}{2}", { symbol, RaceDelay(math.abs(diff)) })
+            diffLabel = string.var("{1}{2}", { symbol, RaceDelay(math.abs(diff)) })
         end
         table.insert(rows, {
             lap = row.lap,
@@ -148,7 +148,7 @@ local function setRaceTime(diffMs, recordDiffMs, timeoutMS)
 
     if (diffMs or recordDiffMs) and type(timeoutMS) == "number" and timeoutMS > 0 then
         BJIAsync.delayTask(M.clearRaceTime, timeoutMS,
-            svar("BJIRaceUIRaceTimeClear{1}{2}", { GetCurrentTimeMillis(), math.random(100) }))
+            string.var("BJIRaceUIRaceTimeClear{1}{2}", { GetCurrentTimeMillis(), math.random(100) }))
     end
 end
 

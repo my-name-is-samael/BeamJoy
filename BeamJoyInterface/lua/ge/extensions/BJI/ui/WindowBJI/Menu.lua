@@ -33,13 +33,13 @@ local function drawMenu(ctxt)
 
     menu:addEntry(BJILang.get("menu.about.title"), {
         {
-            label = svar("BeamJoy v{1}", { BJIVERSION }),
+            label = string.var("BeamJoy v{1}", { BJIVERSION }),
         },
         {
-            label = svar(BJILang.get("menu.about.createdBy"), { author = "TontonSamael" }),
+            label = BJILang.get("menu.about.createdBy"):var({ author = "TontonSamael" }),
         },
         {
-            label = svar("{1} : {2}", { BJILang.get("menu.about.computerTime"), math.floor(ctxt.now / 1000) })
+            label = string.var("{1} : {2}", { BJILang.get("menu.about.computerTime"), math.floor(ctxt.now / 1000) })
         }
     })
         :build()

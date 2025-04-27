@@ -162,7 +162,7 @@ local function initDrive(ctxt)
     BJIAsync.task(function(ctxt2)
         return ctxt2.isOwner and
             not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
-            ctxt2.veh.partConfig:find(svar("/{1}.", { M.config }))
+            ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
     end, function(ctxt2)
         M.state = M.STATES.DRIVE
         initCornerMarkers()
@@ -213,11 +213,11 @@ end
 local function drawMissionUI(ctxt)
     if M.state == M.STATES.DRIVE then
         LineBuilder()
-            :text(svar(BJILang.get("buslines.play.line"), { name = M.line.name }))
+            :text(BJILang.get("buslines.play.line"):var({ name = M.line.name }))
             :build()
         LineBuilder()
-            :text(svar(BJILang.get("buslines.play.stopCount"),
-                { current = M.nextStop - 1, total = #M.line.stops }))
+            :text(BJILang.get("buslines.play.stopCount")
+                :var({ current = M.nextStop - 1, total = #M.line.stops }))
             :build()
         ProgressBar({
             floatPercent = M.progression,
@@ -332,7 +332,7 @@ local function getPlayerListActions(player, ctxt)
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
         BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)

@@ -24,7 +24,7 @@ return function(ctxt)
                     BJIVehSelector.tryClose()
                 else
                     local models = BJIScenario.getModelList()
-                    if tlength(models) > 0 then
+                    if table.length(models) > 0 then
                         BJIVehSelector.open(models, true)
                     end
                 end

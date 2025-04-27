@@ -10,7 +10,7 @@ local M = {
 
 local function updateReputationSmooth(value)
     if type(value) ~= "number" then
-        LogError(svar("Invalid reputation value '{1}'", { value or "" }))
+        LogError(string.var("Invalid reputation value '{1}'", { value or "" }))
         return
     end
 

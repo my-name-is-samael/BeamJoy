@@ -4,7 +4,7 @@ local function draw(ctxt)
     -- LANG / Settings / UIScale
     if BJICache.areBaseCachesFirstLoaded() and #BJILang.Langs > 1 then
         local buttonsWidth = GetBtnIconSize() * 2
-        ColumnsBuilder("headerLangUIScale", { -1, Round(buttonsWidth) })
+        ColumnsBuilder("headerLangUIScale", { -1, math.round(buttonsWidth) })
             :addRow({
                 cells = {
                     function()
@@ -30,7 +30,7 @@ local function draw(ctxt)
                                         BJIVehSelector.tryClose()
                                     else
                                         local models = BJIScenario.getModelList()
-                                        if tlength(models) > 0 then
+                                        if table.length(models) > 0 then
                                             BJIVehSelector.open(models, true)
                                         end
                                     end
@@ -73,7 +73,7 @@ local function draw(ctxt)
                                 id = "uiScaleZoomOut",
                                 icon = ICONS.zoom_out,
                                 onClick = function()
-                                    local scale = Clamp(BJIContext.UserSettings.UIScale - 0.05, minScale, maxScale)
+                                    local scale = math.clamp(BJIContext.UserSettings.UIScale - 0.05, minScale, maxScale)
                                     if scale ~= BJIContext.UserSettings.UIScale then
                                         BJIContext.UserSettings.UIScale = scale
                                         BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
@@ -84,7 +84,7 @@ local function draw(ctxt)
                                 id = "uiScaleZoomIn",
                                 icon = ICONS.zoom_in,
                                 onClick = function()
-                                    local scale = Clamp(BJIContext.UserSettings.UIScale + 0.05, minScale, maxScale)
+                                    local scale = math.clamp(BJIContext.UserSettings.UIScale + 0.05, minScale, maxScale)
                                     if scale ~= BJIContext.UserSettings.UIScale then
                                         BJIContext.UserSettings.UIScale = scale
                                         BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
@@ -125,15 +125,15 @@ local function draw(ctxt)
                         if temp then
                             local tempUnit = settings.getValue("uiUnitTemperature")
                             if tempUnit == "k" then
-                                table.insert(labels, svar("{1}K", { Round(temp, 2) }))
+                                table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
                             elseif tempUnit == "c" then
-                                table.insert(labels, svar("{1}°C", { Round(KelvinToCelsius(temp) or 0, 2) }))
+                                table.insert(labels, string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
                             elseif tempUnit == "f" then
-                                table.insert(labels, svar("{1}°F", { Round(KelvinToFahrenheit(temp) or 0, 2) }))
+                                table.insert(labels, string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
                             end
                         end
                         if #labels > 0 then
-                            line:text(svar("{1}", { tconcat(labels, svar(" {1} ", { vSeparator })) }))
+                            line:text(string.var("{1}", { table.join(labels, string.var(" {1} ", { vSeparator })) }))
                         end
                         line:build()
                     end,
@@ -173,12 +173,12 @@ local function draw(ctxt)
         local line = LineBuilder()
         -- GRAVITY
         if showGravity then
-            line:text(svar("{1}:", { BJILang.get("header.gravity") }))
+            line:text(string.var("{1}:", { BJILang.get("header.gravity") }))
             if BJIContext.UI.gravity.key then
-                line:text(BJILang.get(svar("presets.gravity.{1}", { BJIContext.UI.gravity.key })))
-                    :text(svar("({1})", { BJIContext.UI.gravity.value }))
+                line:text(BJILang.get(string.var("presets.gravity.{1}", { BJIContext.UI.gravity.key })))
+                    :text(string.var("({1})", { BJIContext.UI.gravity.value }))
             else
-                line:text(svar("{1}", { BJIContext.UI.gravity.value }))
+                line:text(string.var("{1}", { BJIContext.UI.gravity.value }))
             end
         end
 
@@ -187,12 +187,12 @@ local function draw(ctxt)
             if showGravity then
                 line:text(vSeparator)
             end
-            line:text(svar("{1}:", { BJILang.get("header.speed") }))
+            line:text(string.var("{1}:", { BJILang.get("header.speed") }))
             if BJIContext.UI.speed.key then
-                line:text(BJILang.get(svar("presets.speed.{1}", { BJIContext.UI.speed.key })))
-                    :text(svar("(x{1})", { BJIContext.UI.speed.value }))
+                line:text(BJILang.get(string.var("presets.speed.{1}", { BJIContext.UI.speed.key })))
+                    :text(string.var("(x{1})", { BJIContext.UI.speed.value }))
             else
-                line:text(svar("x{1}", { BJIContext.UI.speed.value }))
+                line:text(string.var("x{1}", { BJIContext.UI.speed.value }))
             end
         end
         line:build()
@@ -206,9 +206,9 @@ local function draw(ctxt)
         local nextLevel = BJIReputation.getReputationLevelAmount(level + 1)
 
         LineBuilder()
-            :text(svar("{1}:", { BJILang.get("header.reputation") }))
+            :text(string.var("{1}:", { BJILang.get("header.reputation") }))
             :text(level, TEXT_COLORS.HIGHLIGHT)
-            :helpMarker(svar("{1}/{2}", { reputation, nextLevel }))
+            :helpMarker(string.var("{1}/{2}", { reputation, nextLevel }))
             :build()
 
         ProgressBar({
@@ -229,8 +229,8 @@ local function draw(ctxt)
             if showReset then
                 local resetDelay = BJIAsync.getRemainingDelay(BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER)
                 if resetDelay then
-                    line:text(svar("{1}:", { BJILang.get("header.nextReset") }))
-                        :text(PrettyDelay(Round(resetDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
+                    line:text(string.var("{1}:", { BJILang.get("header.nextReset") }))
+                        :text(PrettyDelay(math.round(resetDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(BJILang.get("header.resetAvailable"))
                 end
@@ -242,8 +242,8 @@ local function draw(ctxt)
                 end
                 local teleportDelay = BJIAsync.getRemainingDelay(BJIAsync.KEYS.RESTRICTIONS_TELEPORT_TIMER)
                 if teleportDelay then
-                    line:text(svar("{1}:", { BJILang.get("header.nextTeleport") }))
-                        :text(PrettyDelay(Round(teleportDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
+                    line:text(string.var("{1}:", { BJILang.get("header.nextTeleport") }))
+                        :text(PrettyDelay(math.round(teleportDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(BJILang.get("header.teleportAvailable"))
                 end

@@ -23,7 +23,7 @@ local function getVehEnergyTypes(ctxt)
 
     local energyTypes = {}
     for _, tank in pairs(ctxt.vehData.tanks) do
-        if not tincludes(energyTypes, tank.energyType, true) then
+        if not table.includes(energyTypes, tank.energyType) then
             table.insert(energyTypes, tank.energyType)
         end
     end
@@ -56,7 +56,7 @@ local function detectChunk(ctxt)
                 return
             end
             for _, type in ipairs(s.types) do
-                if tincludes(energyTypes, type, true) then
+                if table.includes(energyTypes, type) then
                     M.station = s
                     M.detectionProcess = nil
                     return
@@ -106,7 +106,7 @@ local function renderStations(ctxt)
                 if ownPos:distance(s.pos) <= M.renderStationDistance then
                     local compatible = false
                     for _, type in ipairs(s.types) do
-                        if tincludes(energyTypes, type, true) then
+                        if table.includes(energyTypes, type) then
                             compatible = true
                             break
                         end
@@ -168,7 +168,7 @@ local function renderTick(ctxt)
                     name = s.name,
                     pos = vec3(s.pos),
                     radius = tonumber(s.radius),
-                    types = tdeepcopy(s.types),
+                    types = table.clone(s.types),
                     isEnergy = true,
                 })
             end
@@ -184,16 +184,16 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
 
     -- no values = emergency refill
     fillDuration = fillDuration or BJIContext.BJC.Freeroam.EmergencyRefuelDuration
-    fillPercent = fillPercent or Round(BJIContext.BJC.Freeroam.EmergencyRefuelPercent / 100, 2)
+    fillPercent = fillPercent or math.round(BJIContext.BJC.Freeroam.EmergencyRefuelPercent / 100, 2)
 
 
     local tanksToRefuel = {}
     for tankName, tank in pairs(ctxt.vehData.tanks) do
-        if tincludes(energyTypes, tank.energyType, true) then
+        if table.includes(energyTypes, tank.energyType) then
             tanksToRefuel[tankName] = tank
         end
     end
-    if tlength(tanksToRefuel) == 0 then return end
+    if table.length(tanksToRefuel) == 0 then return end
 
     -- start process
     BJIVeh.stopCurrentVehicle()
@@ -208,7 +208,7 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     ctxt.vehData.engineStation = false
     BJIVeh.engine(false, ctxt.vehData.vehGameID)
 
-    local completedKey = tlength(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
+    local completedKey = table.length(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
         "energyStations.flashTankFilled"
     if #energyTypes == 1 and energyTypes[1] == BJI_ENERGY_STATION_TYPES.ELECTRIC then
         completedKey = "energyStations.flashBatteryFilled"
@@ -217,7 +217,7 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
         BJILang.get(completedKey), fillDuration)
     BJIAsync.delayTask(function()
         for tankName, t in pairs(tanksToRefuel) do
-            local targetEnergy = Round(t.maxEnergy * fillPercent)
+            local targetEnergy = math.round(t.maxEnergy * fillPercent)
             BJIVeh.setFuel(tankName, targetEnergy)
         end
     end, fillDuration * 1000 - 1000, "BJIStationRefillFuel")

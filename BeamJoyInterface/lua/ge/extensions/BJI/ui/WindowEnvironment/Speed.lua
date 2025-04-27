@@ -2,8 +2,8 @@ local common = require("ge/extensions/BJI/ui/WindowEnvironment/Common")
 
 local function drawSpeedPresets(presets)
     for _, p in ipairs(presets) do
-        local value = Round(p.value, 2)
-        local selected = Round(BJIEnv.Data.simSpeed, 3) == value
+        local value = math.round(p.value, 2)
+        local selected = math.round(BJIEnv.Data.simSpeed, 3) == value
         local style = BTN_PRESETS.INFO
         if not selected and p.default then
             style = BTN_PRESETS.SUCCESS
@@ -11,8 +11,8 @@ local function drawSpeedPresets(presets)
         LineBuilder()
             :btn({
                 id = p.key,
-                label = svar("{1} (x{2})", {
-                    BJILang.get(svar("presets.speed.{1}", { p.key })),
+                label = string.var("{1} (x{2})", {
+                    BJILang.get(string.var("presets.speed.{1}", { p.key })),
                     value
                 }),
                 style = style,
@@ -41,7 +41,7 @@ local function draw()
         "controlSpeed",
         "simSpeed",
     }) do
-        local label = BJILang.get(svar("environment.{1}", { key }))
+        local label = BJILang.get(string.var("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -53,7 +53,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.controlSpeed") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.controlSpeed") }))
                         :build()
                 end,
                 function()

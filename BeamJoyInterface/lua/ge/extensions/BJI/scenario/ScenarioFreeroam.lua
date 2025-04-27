@@ -169,10 +169,10 @@ end
 local function tryTeleportToPlayer(targetID, forced)
     local target = BJIContext.Players[targetID]
     if target == nil then
-        LogError(svar("Invalid player {1}", { targetID }))
+        LogError(string.var("Invalid player {1}", { targetID }))
         return
-    elseif tlength(target.vehicles) == 0 or not target.currentVehicle then
-        LogError(svar("Player {1} has no vehicle", { targetID }))
+    elseif table.length(target.vehicles) == 0 or not target.currentVehicle then
+        LogError(string.var("Player {1} has no vehicle", { targetID }))
         return
     end
 
@@ -208,7 +208,7 @@ end
 
 local function trySpawnNew(model, config)
     local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJIContext.User.vehicles)
     if BJIPerm.canSpawnVehicle() and not limitReached then
         M.exemptNextReset()
         BJIVeh.spawnNewVehicle(model, config)
@@ -218,7 +218,7 @@ end
 local function tryReplaceOrSpawn(model, config)
     local replacing = BJIVeh.isCurrentVehicleOwn()
     local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJIContext.User.vehicles)
     if BJIPerm.canSpawnVehicle() and (replacing or not limitReached) then
         M.exemptNextReset()
         BJIVeh.replaceOrSpawnVehicle(model, config)
@@ -279,17 +279,17 @@ local function getPlayerListActions(player, ctxt)
 
     local isSelf = BJIContext.isSelf(player.playerID)
 
-    if tlength(player.vehicles) > 0 then
+    if table.length(player.vehicles) > 0 then
         local disabled = false
         if isSelf then
-            disabled = ctxt.isOwner and tlength(ctxt.user.vehicles) == 1
+            disabled = ctxt.isOwner and table.length(ctxt.user.vehicles) == 1
         else
             local finalGameVehID = BJIVeh.getVehicleObject(player.currentVehicle)
             finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
             disabled = finalGameVehID and ctxt.veh and ctxt.veh:getID() == finalGameVehID or false
         end
         table.insert(actions, {
-            id = svar("focus{1}", { player.playerID }),
+            id = string.var("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
             style = BTN_PRESETS.INFO,
             disabled = disabled,
@@ -330,9 +330,9 @@ local function getPlayerListActions(player, ctxt)
             })
         end
 
-        if not isSelf and tlength(player.vehicles) > 0 then
+        if not isSelf and table.length(player.vehicles) > 0 then
             table.insert(actions, {
-                id = svar("gpsPlayer{1}", { player.playerID }),
+                id = string.var("gpsPlayer{1}", { player.playerID }),
                 icon = ICONS.add_location,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -342,7 +342,7 @@ local function getPlayerListActions(player, ctxt)
 
             if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.TELEPORT_TO) then
                 table.insert(actions, {
-                    id = svar("teleportTo{1}", { player.playerID }),
+                    id = string.var("teleportTo{1}", { player.playerID }),
                     icon = ICONS.tb_height_higher,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
@@ -356,7 +356,7 @@ local function getPlayerListActions(player, ctxt)
                 finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
                 if finalGameVehID and BJIVeh.getVehOwnerID(finalGameVehID) == player.playerID then
                     table.insert(actions, {
-                        id = svar("teleportFrom{1}", { player.playerID }),
+                        id = string.var("teleportFrom{1}", { player.playerID }),
                         icon = ICONS.tb_height_lower,
                         style = BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
@@ -375,7 +375,7 @@ local function getPlayerListActions(player, ctxt)
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
         BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             icon = ICONS.event_busy,
             style = BTN_PRESETS.ERROR,
             onClick = function()

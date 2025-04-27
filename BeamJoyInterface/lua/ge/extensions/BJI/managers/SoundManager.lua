@@ -1,5 +1,5 @@
 local function _baseSoundsPath(filename)
-    return svar("/art/sound/{1}.ogg", { filename })
+    return string.var("/art/sound/{1}.ogg", { filename })
 end
 
 local M = {
@@ -18,8 +18,8 @@ local function addSound(name, filePath)
 end
 
 local function play(sound)
-    if not tincludes(M.SOUNDS, sound) then
-        LogError(svar("Cannot play sound {1}", { sound }))
+    if not table.includes(M.SOUNDS, sound) then
+        LogError(string.var("Unknown sound \"{1}\"", { sound }))
     end
 
     Engine.Audio.playOnce('AudioGui', sound)

@@ -10,7 +10,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/maps.json", { dbPath })
+    M._dbPath = string.var("{1}/maps.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.maps())

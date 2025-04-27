@@ -13,7 +13,7 @@ local function reloadMarkers()
 
     for i, target in ipairs(hEdit.targets) do
         table.insert(waypoints, {
-            name = svar(BJILang.get("hunter.edit.targetName"), { index = i }),
+            name = BJILang.get("hunter.edit.targetName"):var({ index = i }),
             pos = target.pos,
             radius = target.radius,
             type = BJIWaypointEdit.TYPES.CYLINDER,
@@ -23,7 +23,7 @@ local function reloadMarkers()
     local hunterColor = ShapeDrawer.Color(1, 1, 0, .5)
     for i, hunter in ipairs(hEdit.hunterPositions) do
         table.insert(waypoints, {
-            name = svar(BJILang.get("hunter.edit.hunterPositionName"), { index = i }),
+            name = BJILang.get("hunter.edit.hunterPositionName"):var({ index = i }),
             pos = hunter.pos,
             rot = hunter.rot,
             radius = 2,
@@ -37,7 +37,7 @@ local function reloadMarkers()
     local huntedColor = ShapeDrawer.Color(1, 0, 0, .5)
     for i, hunted in ipairs(hEdit.huntedPositions) do
         table.insert(waypoints, {
-            name = svar(BJILang.get("hunter.edit.huntedPositionName"), { index = i }),
+            name = BJILang.get("hunter.edit.huntedPositionName"):var({ index = i }),
             pos = hunted.pos,
             rot = hunted.rot,
             radius = 2,
@@ -129,7 +129,7 @@ local function drawHeader(ctxt)
         :build()
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("hunter.edit.enabled") }))
+        :text(string.var("{1}:", { BJILang.get("hunter.edit.enabled") }))
         :btnIconToggle({
             id = "toggleEnabled",
             icon = hEdit.enabled and ICONS.visibility or ICONS.visibility_off,
@@ -157,9 +157,9 @@ local function drawHunters(ctxt)
     local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
     for i, hunterPoint in ipairs(hEdit.hunterPositions) do
         LineBuilder()
-            :text(svar(BJILang.get("hunter.edit.hunterPositionName"), { index = i }))
+            :text(BJILang.get("hunter.edit.hunterPositionName"):var({ index = i }))
             :btnIcon({
-                id = svar("gotoHunter{1}", { i }),
+                id = string.var("gotoHunter{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
                 style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
@@ -171,7 +171,7 @@ local function drawHunters(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("moveHunter{1}", { i }),
+                id = string.var("moveHunter{1}", { i }),
                 icon = ICONS.crosshair,
                 style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
@@ -182,7 +182,7 @@ local function drawHunters(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("deleteHunter{1}", { i }),
+                id = string.var("deleteHunter{1}", { i }),
                 icon = ICONS.delete_forever,
                 style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
@@ -213,9 +213,9 @@ local function drawHunted(ctxt)
     local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
     for i, huntedPoint in ipairs(hEdit.huntedPositions) do
         LineBuilder()
-            :text(svar(BJILang.get("hunter.edit.huntedPositionName"), { index = i }))
+            :text(BJILang.get("hunter.edit.huntedPositionName"):var({ index = i }))
             :btnIcon({
-                id = svar("gotoHunted{1}", { i }),
+                id = string.var("gotoHunted{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
                 style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
@@ -227,7 +227,7 @@ local function drawHunted(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("moveHunted{1}", { i }),
+                id = string.var("moveHunted{1}", { i }),
                 icon = ICONS.crosshair,
                 style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
@@ -238,7 +238,7 @@ local function drawHunted(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("deleteHunted{1}", { i }),
+                id = string.var("deleteHunted{1}", { i }),
                 icon = ICONS.delete_forever,
                 style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
@@ -269,9 +269,9 @@ local function drawWaypoints(ctxt)
     local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
     for i, waypoint in ipairs(hEdit.targets) do
         LineBuilder()
-            :text(svar(BJILang.get("hunter.edit.targetName"), { index = i }))
+            :text(BJILang.get("hunter.edit.targetName"):var({ index = i }))
             :btnIcon({
-                id = svar("gotoWaypoint{1}", { i }),
+                id = string.var("gotoWaypoint{1}", { i }),
                 icon = ICONS.cameraFocusTopDown,
                 style = BTN_PRESETS.INFO,
                 disabled = not ctxt.isOwner,
@@ -283,7 +283,7 @@ local function drawWaypoints(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("moveWaypoint{1}", { i }),
+                id = string.var("moveWaypoint{1}", { i }),
                 icon = ICONS.crosshair,
                 style = BTN_PRESETS.WARNING,
                 disabled = not ctxt.veh or freecaming or hEdit.processSave,
@@ -294,7 +294,7 @@ local function drawWaypoints(ctxt)
                 end,
             })
             :btnIcon({
-                id = svar("deleteWaypoint{1}", { i }),
+                id = string.var("deleteWaypoint{1}", { i }),
                 icon = ICONS.delete_forever,
                 style = BTN_PRESETS.ERROR,
                 disabled = hEdit.processSave,
@@ -309,7 +309,7 @@ local function drawWaypoints(ctxt)
         LineBuilder()
             :text(BJILang.get("hunter.edit.radius"))
             :inputNumeric({
-                id = svar("radiusWaypoint{1}", { i }),
+                id = string.var("radiusWaypoint{1}", { i }),
                 type = "float",
                 precision = 1,
                 value = waypoint.radius,
@@ -350,9 +350,9 @@ local function drawBody(ctxt)
         :label(BJILang.get("hunter.edit.hunters"))
         :commonStart(function()
             local line = LineBuilder(true)
-                :text(svar("({1})", { #hEdit.hunterPositions }))
+                :text(string.var("({1})", { #hEdit.hunterPositions }))
             if #hEdit.hunterPositions < 5 then
-                line:text(svar(BJILang.get("hunter.edit.missingPoints"), { amount = 5 - #hEdit.hunterPositions }),
+                line:text(BJILang.get("hunter.edit.missingPoints"):var({ amount = 5 - #hEdit.hunterPositions }),
                     TEXT_COLORS.ERROR)
             end
             line:build()
@@ -366,9 +366,9 @@ local function drawBody(ctxt)
         :label(BJILang.get("hunter.edit.hunted"))
         :commonStart(function()
             local line = LineBuilder(true)
-                :text(svar("({1})", { #hEdit.huntedPositions }))
+                :text(string.var("({1})", { #hEdit.huntedPositions }))
             if #hEdit.huntedPositions < 2 then
-                line:text(svar(BJILang.get("hunter.edit.missingPoints"), { amount = 2 - #hEdit.huntedPositions }),
+                line:text(BJILang.get("hunter.edit.missingPoints"):var({ amount = 2 - #hEdit.huntedPositions }),
                     TEXT_COLORS.ERROR)
             end
             line:build()
@@ -382,9 +382,9 @@ local function drawBody(ctxt)
         :label(BJILang.get("hunter.edit.waypoints"))
         :commonStart(function()
             local line = LineBuilder(true)
-                :text(svar("({1})", { #hEdit.targets }))
+                :text(string.var("({1})", { #hEdit.targets }))
             if #hEdit.targets < 2 then
-                line:text(svar(BJILang.get("hunter.edit.missingPoints"), { amount = 2 - #hEdit.targets }),
+                line:text(BJILang.get("hunter.edit.missingPoints"):var({ amount = 2 - #hEdit.targets }),
                     TEXT_COLORS.ERROR)
             end
             line:build()

@@ -43,29 +43,29 @@ local M = {
 
 local function init()
     M.Data = BJCDefaults.permissions()
-    tdeepassign(M.Data, BJCDao.permissions.findAll())
+    table.assign(M.Data, BJCDao.permissions.findAll())
 end
 
 local function hasPermission(playerID, permissionName)
     if type(permissionName) ~= "string" or #permissionName == 0 or
-        not tincludes(M.PERMISSIONS, permissionName, true) then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPermission"), { playerID = playerID }))
+        not table.includes(M.PERMISSIONS, permissionName) then
+        LogError(BJCLang.getConsoleMessage("players.invalidPermission"):var({ playerID = playerID }))
         return false
     end
 
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return false
     end
 
     local group = BJCGroups.Data[player.group]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return false
     end
 
-    if tincludes(group.permissions, permissionName, true) then
+    if table.includes(group.permissions, permissionName) then
         -- group has specific permission
         return true
     end
@@ -77,19 +77,19 @@ end
 local function hasMinimumGroup(playerID, minimumGroupName)
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return false
     end
 
     local playerGroup = BJCGroups.Data[player.group]
     if not playerGroup then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return false
     end
 
     local group = BJCGroups.Data[minimumGroupName]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = minimumGroupName }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = minimumGroupName }))
         return false
     end
 
@@ -103,12 +103,12 @@ end
 local function canSpawnVehicle(playerID)
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return false
     end
     local group = BJCGroups.Data[player.group]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return false
     end
     return group.vehicleCap ~= 0
@@ -137,13 +137,13 @@ end
 local function isStaff(playerID)
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return false
     end
 
     local group = BJCGroups.Data[player.group]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return false
     end
 
@@ -152,7 +152,7 @@ end
 
 local function setPermission(permName, level)
     if type(permName) ~= "string" or #permName == 0 or
-        not tincludes(M.PERMISSIONS, permName, true) then
+        not table.includes(M.PERMISSIONS, permName) then
         error({ key = "rx.errors.invalidData" })
     elseif BJCPerm.Data[permName] and (not tonumber(level) or tonumber(level) < 0) then
         error({ key = "rx.errors.invalidValue", data = { value = level } })
@@ -178,7 +178,7 @@ local function setPermission(permName, level)
 end
 
 local function getCache()
-    return tdeepcopy(M.Data), M.getCacheHash()
+    return table.deepcopy(M.Data), M.getCacheHash()
 end
 
 local function getCacheHash()

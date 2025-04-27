@@ -23,7 +23,7 @@ local function drawVehicleSettings(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("userSettings.vehicles.automaticLights") }))
+                        :text(string.var("{1}:", { BJILang.get("userSettings.vehicles.automaticLights") }))
                         :helpMarker(BJILang.get("userSettings.vehicles.automaticLightsTooltip"))
                         :build()
                 end,
@@ -59,7 +59,7 @@ local nametagsFields = {
             local nameColor = BJINametags.getNametagColor(1)
             local bgColor = BJINametags.getNametagBgColor(1)
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
                 :bgText("UserSettingsNametagsBasePreview", " Joel123", nameColor, bgColor)
                 :build()
         end
@@ -122,7 +122,7 @@ local nametagsFields = {
             local nameColor = BJINametags.getNametagColor(alpha)
             local bgColor = BJINametags.getNametagBgColor(alpha)
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
                 :bgText("UserSettingsNametagsDontFullyHidePreview", " Joel123", nameColor, bgColor)
                 :build()
         end
@@ -141,8 +141,8 @@ local nametagsFields = {
 
             local name = settings.getValue("shortenNametags", true) and "StarryNeb..." or "StarryNebulaSkyx0"
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
-                :bgText("UserSettingsNametagsShortenBasePreview", svar(" {1}", { name }), nameColor, bgColor)
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :bgText("UserSettingsNametagsShortenBasePreview", string.var(" {1}", { name }), nameColor, bgColor)
                 :build()
         end
     },
@@ -166,11 +166,11 @@ local nametagsFields = {
             local name = "StarryNebulaSkyx0"
             local nameLength = settings.getValue("nametagCharLimit", 50)
             local short = name:sub(1, nameLength)
-            if #short ~= #name then short = svar("{1}...", { short }) end
+            if #short ~= #name then short = string.var("{1}...", { short }) end
             name = short
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
-                :bgText("UserSettingsNametagsShortenPrecisePreview", svar(" {1}", { name }), nameColor, bgColor)
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :bgText("UserSettingsNametagsShortenPrecisePreview", string.var(" {1}", { name }), nameColor, bgColor)
                 :build()
         end
     },
@@ -196,7 +196,7 @@ local nametagsBeamjoyFields = {
             local nameColor = BJINametags.getNametagColor(1)
             local bgColor = BJINametags.getNametagBgColor(1)
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
                 :bgText("UserSettingsNametagsPlayerColors", " Joel123", nameColor, bgColor)
                 :build()
         end,
@@ -220,7 +220,7 @@ local nametagsBeamjoyFields = {
             local nameColor = BJINametags.getNametagColor(1, false, true)
             local bgColor = BJINametags.getNametagBgColor(1, false, true)
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
                 :bgText("UserSettingsNametagsIdleColors", " Joel123", nameColor, bgColor)
                 :build()
         end,
@@ -245,7 +245,7 @@ local nametagsBeamjoyFields = {
             local nameColor = BJINametags.getNametagColor(1, true)
             local bgColor = BJINametags.getNametagBgColor(1, true)
             LineBuilder()
-                :text(svar("{1}:", { BJILang.get("userSettings.nametags.preview") }))
+                :text(string.var("{1}:", { BJILang.get("userSettings.nametags.preview") }))
                 :bgText("UserSettingsNametagsSpecColors", " Joel123", nameColor, bgColor)
                 :build()
         end,
@@ -271,7 +271,7 @@ local function drawNametagsSettings(ctxt)
     -- setup
     local labelWidth = 0
     for _, sc in ipairs(nametagsFields) do
-        local label = svar("{1}:", { MPTranslate(sc.label) })
+        local label = string.var("{1}:", { MPTranslate(sc.label) })
         local tooltip
         tooltip = sc.tooltip and #MPTranslate(sc.tooltip, "") > 0
         local w = GetColumnTextWidth(label .. (tooltip and HELPMARKER_TEXT or ""))
@@ -280,7 +280,7 @@ local function drawNametagsSettings(ctxt)
         end
     end
     for _, bjf in ipairs(nametagsBeamjoyFields) do
-        local label = BJILang.get(svar("userSettings.nametags.{1}", { bjf.label }))
+        local label = BJILang.get(string.var("userSettings.nametags.{1}", { bjf.label }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -351,7 +351,7 @@ local function drawNametagsSettings(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get(svar("userSettings.nametags.{1}", { bjf.label })) }),
+                        :text(string.var("{1}:", { BJILang.get(string.var("userSettings.nametags.{1}", { bjf.label })) }),
                             disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT)
                         :build()
                 end,
@@ -369,12 +369,12 @@ local function drawNametagsSettings(ctxt)
                                 end
                             })
                             :btnIcon({
-                                id = svar("{1}-reset", { bjf.obj.key }),
+                                id = string.var("{1}-reset", { bjf.obj.key }),
                                 icon = ICONS.refresh,
                                 style = BTN_PRESETS.WARNING,
-                                disabled = disabled or tdeepcompare(bjf.obj.value, bjf.obj.default),
+                                disabled = disabled or table.compare(bjf.obj.value, bjf.obj.default, true),
                                 onClick = function()
-                                    local col = tdeepcopy(bjf.obj.default)
+                                    local col = table.clone(bjf.obj.default)
                                     settings.setValue(bjf.obj.key, jsonEncode(col))
                                     bjf.obj.value = col
                                 end
@@ -416,7 +416,7 @@ local function drawFreecamSettings(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("userSettings.freecam.smoothed") }))
+                        :text(string.var("{1}:", { BJILang.get("userSettings.freecam.smoothed") }))
                         :build()
                 end,
                 function()
@@ -438,7 +438,7 @@ local function drawFreecamSettings(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("userSettings.freecam.fov") }))
+                        :text(string.var("{1}:", { BJILang.get("userSettings.freecam.fov") }))
                         :build()
                 end,
                 function()
@@ -491,7 +491,7 @@ local function drawUserStats(ctxt)
     Indent(2)
     local labelWidth = 0
     for k in pairs(BJIContext.UserStats) do
-        local w = GetColumnTextWidth(BJILang.get(svar("userSettings.stats.{1}", { k })) .. ":")
+        local w = GetColumnTextWidth(BJILang.get(string.var("userSettings.stats.{1}", { k })) .. ":")
         if w > labelWidth then
             labelWidth = w
         end
@@ -502,8 +502,8 @@ local function drawUserStats(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", {
-                            BJILang.get(svar("userSettings.stats.{1}", { k }))
+                        :text(string.var("{1}:", {
+                            BJILang.get(string.var("userSettings.stats.{1}", { k }))
                         }))
                         :build()
                 end,

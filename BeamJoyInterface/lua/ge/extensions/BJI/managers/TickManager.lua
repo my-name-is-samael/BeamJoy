@@ -28,19 +28,16 @@ local function getContext()
     }
 end
 
+-- ClientTick (each render tick)
 local function client()
-    -- ClientTick (each render tick)
-
     if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
         TriggerBJIEvent("renderTick", getContext())
     end
 end
 
+-- ServerTick (~1s)
 local function server(serverData)
-    -- ServerTick (~1s)
-
     if type(serverData.serverTime) == "number" then
-        -- local offsetMs = (serverData.serverTime - GetCurrentTime()) * 1000
         table.insert(M.timeOffsets, serverData.serverTime - GetCurrentTime())
         if #M.timeOffsets > 100 then
             table.remove(M.timeOffsets, 1)
@@ -48,7 +45,7 @@ local function server(serverData)
     end
 
     local ctxt = getContext()
-    tdeepassign(ctxt, serverData or {})
+    table.assign(ctxt, serverData or {})
     TriggerBJIEvent("slowTick", ctxt)
 end
 
@@ -62,7 +59,7 @@ local function getAvgOffsetMs()
         count = count + offset
     end
     local avgSec = count / #M.timeOffsets
-    return Round(avgSec * 1000, 3)
+    return math.round(avgSec * 1000, 3)
 end
 
 local function applyTimeOffset(timeSec)

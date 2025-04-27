@@ -17,11 +17,11 @@ local function draw(ctxt)
     if remainingTime < 1000 then
         delayLabel = BJILang.get("votekick.voteAboutToEnd")
     else
-        delayLabel = svar(BJILang.get("votekick.voteTimeout"),
-            { delay = PrettyDelay(math.floor(remainingTime / 1000)) })
+        delayLabel = BJILang.get("votekick.voteTimeout")
+            :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
     end
     LineBuilder()
-        :text(svar("{1}/{2}", { vk.amountVotes, vk.threshold }))
+        :text(string.var("{1}/{2}", { vk.amountVotes, vk.threshold }))
         :text(delayLabel)
         :build()
     local line = LineBuilder()

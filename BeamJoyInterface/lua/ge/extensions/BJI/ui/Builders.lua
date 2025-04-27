@@ -6,7 +6,7 @@ local ffi = require('ffi')
 function InputInt(val)
     return ({
         _value = nil,
-        get = function(self) return Round(self._value[0]) end,
+        get = function(self) return math.round(self._value[0]) end,
         set = function(self, value)
             self._value = im.IntPtr(value)
             return self
@@ -27,7 +27,7 @@ function InputFloat(val, precision)
     precision = tonumber(precision) or 3
     return ({
         _value = nil,
-        get = function(self) return Round(self._value[0], precision) end,
+        get = function(self) return math.round(self._value[0], precision) end,
         set = function(self, value)
             self._value = im.FloatPtr(value)
             return self
@@ -52,7 +52,7 @@ function InputString(size, defaultValue)
         set = function(self, value)
             if type(value) == "string" then
                 self._value = im.ArrayChar(self._size, value)
-            elseif tincludes({ "number", "boolean" }, type(value)) then
+            elseif table.includes({ "number", "boolean" }, type(value)) then
                 self._value = im.ArrayChar(self._size, tostring(value))
             else
                 self._value = im.ArrayChar(self._size)
@@ -156,7 +156,7 @@ WindowBuilder = function(name, flags)
             local footerHeight = self._footerLines == 0 and 0 or
                 (self._footerLines * lineHeight + 2) * BJIContext.UserSettings.UIScale
             local bodyHeight = im.GetContentRegionAvail().y - math.ceil(footerHeight)
-            im.BeginChild1(svar("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
+            im.BeginChild1(string.var("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
             im.SetWindowFontScale(1) -- must scale to 1 in children
             self._bodyBehavior()
             im.EndChild()
@@ -514,13 +514,13 @@ LineBuilder = function(startSameLine)
             return self
         end
         self:_commonStartElem()
-        data.style = data.style and tdeepcopy(data.style) or nil
+        data.style = data.style and table.clone(data.style) or nil
 
         if data.disabled == true then
-            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
+            data.style = table.clone(BTN_PRESETS.DISABLED)
         end
         if not data.style then
-            data.style = tdeepcopy(BTN_PRESETS.INFO)
+            data.style = table.clone(BTN_PRESETS.INFO)
         end
         if data.active then
             data.style[4] = TEXT_COLORS.HIGHLIGHT
@@ -528,7 +528,7 @@ LineBuilder = function(startSameLine)
             data.style[4] = TEXT_COLORS.DEFAULT
         end
         btnStylePreset(data.style)
-        if im.SmallButton(svar("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
+        if im.SmallButton(string.var("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
             data.onClick()
         end
         resetBtnStyle()
@@ -642,7 +642,7 @@ LineBuilder = function(startSameLine)
         if not data or not data.id or not data.type or type(data.value) ~= "number" then
             LogError("inputNumeric requires id, type and value", logTag)
             return self
-        elseif not tincludes({ "int", "float" }, data.type) then
+        elseif not table.includes({ "int", "float" }, data.type) then
             LogError("inputNumeric requires type to be 'int' or 'float'", logTag)
             return self
         end
@@ -678,14 +678,14 @@ LineBuilder = function(startSameLine)
         end
         inputStylePreset(data.style, true)
 
-        local input = InputInt(Round(data.value))
+        local input = InputInt(math.round(data.value))
         local drawFn = im.InputInt
         if data.type == "float" then
             input = InputFloat(data.value, data.precision)
             drawFn = im.InputFloat
         end
 
-        if drawFn(svar("##{1}", { data.id }), input._value, data.step, data.stepFast) and
+        if drawFn(string.var("##{1}", { data.id }), input._value, data.step, data.stepFast) and
             not data.disabled then
             local valid = true
             if data.min or data.max then
@@ -751,17 +751,17 @@ LineBuilder = function(startSameLine)
         local input = InputString(data.size or 100, data.value)
         if not data.multiline then
             --[[im.InputTextWithHint(
-                svar("##{1}", { data.id }),
+                string.var("##{1}", { data.id }),
                 data.placeholder,
                 input._value,
                 input._size
             )]]
             -- TODO wait for fix answer
-            if data.placeholder and #strim(data.placeholder) > 0 then
+            if data.placeholder and #data.placeholder:trim() > 0 then
                 im.ShowHelpMarker(data.placeholder)
                 im.SameLine()
             end
-            if im.InputText(svar("##{1}", { data.id }), input._value, input._size) and
+            if im.InputText(string.var("##{1}", { data.id }), input._value, input._size) and
                 not data.disabled and type(data.onUpdate) == "function" then
                 data.onUpdate(input:get())
             end
@@ -784,7 +784,7 @@ LineBuilder = function(startSameLine)
             end
             im.SetWindowFontScale(BJIContext.UserSettings.UIScale) -- update scale for multiline inputs
             if im.InputTextMultiline(
-                    svar("##{1}", { data.id }),
+                    string.var("##{1}", { data.id }),
                     input._value,
                     input._size,
                     im.ImVec2(w, h)
@@ -826,7 +826,7 @@ LineBuilder = function(startSameLine)
 
         local valuePos = 1
         if stringValues then
-            valuePos = tpos(data.items, data.value) or valuePos
+            valuePos = table.indexOf(data.items, data.value) or valuePos
         else
             for i, v in ipairs(data.items) do
                 if data.getLabelFn(v) == data.getLabelFn(data.value) then
@@ -837,7 +837,7 @@ LineBuilder = function(startSameLine)
         end
         local input = InputInt(valuePos - 1)
 
-        local parsedValues = tdeepcopy(data.items)
+        local parsedValues = table.clone(data.items)
         if not stringValues then
             for i, v in ipairs(parsedValues) do
                 parsedValues[i] = data.getLabelFn(v)
@@ -851,7 +851,7 @@ LineBuilder = function(startSameLine)
             im.PushItemWidth(-1)
         end
 
-        if im.Combo1(svar("{1}##{2}", { data.label, data.id }), input._value, im.ArrayCharPtrByTbl(parsedValues)) and
+        if im.Combo1(string.var("{1}##{2}", { data.label, data.id }), input._value, im.ArrayCharPtrByTbl(parsedValues)) and
             type(data.onChange) == "function" then
             local newString = parsedValues[input:get() + 1]
             local newValue
@@ -898,13 +898,13 @@ LineBuilder = function(startSameLine)
         local size = GetIconSize(data.big)
         local border = data.border or nil
 
-        data.style = data.style and tdeepcopy(data.style) or tdeepcopy(BTN_PRESETS.INFO)
+        data.style = data.style and table.clone(data.style) or table.clone(BTN_PRESETS.INFO)
         local iconColor
         if data.coloredIcon then
             iconColor = data.style[1]
         else
             if not data.style[4] then
-                data.style[4] = tdeepcopy(TEXT_COLORS.DEFAULT)
+                data.style[4] = table.clone(TEXT_COLORS.DEFAULT)
             end
             iconColor = data.style[4]
         end
@@ -931,22 +931,22 @@ LineBuilder = function(startSameLine)
             return self
         end
         self:_commonStartElem()
-        data.style = data.style and tdeepcopy(data.style) or nil
+        data.style = data.style and table.clone(data.style) or nil
 
         local size = GetIconSize(data.big)
         if data.disabled then
-            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
+            data.style = table.clone(BTN_PRESETS.DISABLED)
         end
-        data.style = data.style or tdeepcopy(BTN_PRESETS.INFO)
+        data.style = data.style or table.clone(BTN_PRESETS.INFO)
         local iconColor
         if data.active then
-            iconColor = tdeepcopy(TEXT_COLORS.HIGHLIGHT)
+            iconColor = table.clone(TEXT_COLORS.HIGHLIGHT)
         else
-            iconColor = data.style[4] and tdeepcopy(data.style[4]) or tdeepcopy(TEXT_COLORS.DEFAULT)
+            iconColor = data.style[4] and table.clone(data.style[4]) or table.clone(TEXT_COLORS.DEFAULT)
         end
-        local bgColor = tdeepcopy(data.style[1])
-        local hoveredColor = tdeepcopy(data.style[2])
-        local activeColor = tdeepcopy(data.style[3])
+        local bgColor = table.clone(data.style[1])
+        local hoveredColor = table.clone(data.style[2])
+        local activeColor = table.clone(data.style[3])
         if data.coloredIcon then
             iconColor = bgColor
             bgColor = BTN_PRESETS.TRANSPARENT[1]
@@ -1016,12 +1016,12 @@ LineBuilder = function(startSameLine)
         if data.alpha then
             fn = im.ColorEdit4
         end
-        if fn(svar("##{1}", { data.id }), color, im.flags(tunpack(flags))) and not data.disabled then
+        if fn(string.var("##{1}", { data.id }), color, im.flags(table.unpack(flags))) and not data.disabled then
             data.onChange({
-                Round(color[0], RGBA_PRECISION),
-                Round(color[1], RGBA_PRECISION),
-                Round(color[2], RGBA_PRECISION),
-                Round(color[3], RGBA_PRECISION),
+                math.round(color[0], RGBA_PRECISION),
+                math.round(color[1], RGBA_PRECISION),
+                math.round(color[2], RGBA_PRECISION),
+                math.round(color[3], RGBA_PRECISION),
             })
         end
         self._elemCount = self._elemCount + 1
@@ -1062,7 +1062,7 @@ ColumnsBuilder = function(name, colsWidths, borders)
     local builder = {
         _name = name,
         _cols = #colsWidths,
-        _widths = tdeepcopy(colsWidths),
+        _widths = table.clone(colsWidths),
         _currentCol = 0,
         _rows = {},
         _borders = borders == true,

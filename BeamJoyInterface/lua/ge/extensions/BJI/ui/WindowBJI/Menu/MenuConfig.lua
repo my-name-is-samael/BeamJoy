@@ -51,7 +51,7 @@ local function menuTheme(ctxt, configEntry)
                     end
                 else
                     BJIContext.ThemeEditor = {
-                        data = tdeepcopy(BJIContext.BJC.Server.Theme),
+                        data = table.clone(BJIContext.BJC.Server.Theme),
                     }
                 end
             end

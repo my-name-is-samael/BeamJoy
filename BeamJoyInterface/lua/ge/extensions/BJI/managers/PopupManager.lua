@@ -4,7 +4,7 @@ local M = {
 }
 
 local function createCallback(fn)
-    local callbackName = svar("_{1}{2}{3}", {
+    local callbackName = string.var("_{1}{2}{3}", {
         GetCurrentTimeMillis(),
         math.random(100),
         math.random(100),
@@ -43,7 +43,7 @@ local function createModal(text, buttons)
         if type(btn.label) ~= "string" or
             #btn.label == 0 or
             (btn.onClick and type(btn.onClick) ~= "function") then
-            LogError(svar("Invalid modal button {1} data", { i }))
+            LogError(string.var("Invalid modal button {1} data", { i }))
             return
         end
     end
@@ -51,7 +51,7 @@ local function createModal(text, buttons)
     local btns = {}
     for i, btn in ipairs(buttons) do
         local callbackName = createCallback(btn.onClick)
-        local cmd = svar("BJIPopup.callbacks.{1}()", { callbackName })
+        local cmd = string.var("BJIPopup.callbacks.{1}()", { callbackName })
         table.insert(btns, {
             action = tostring(i), -- mandatory
             text = btn.label,

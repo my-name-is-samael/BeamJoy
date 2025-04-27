@@ -57,8 +57,8 @@ function M.Kick.endVote()
         BJCInitContext(ctxt)
         local targetName = BJCPlayers.Players[M.Kick.targetID].playerName
         BJCPlayers.kick(ctxt, M.Kick.targetID,
-            svar(BJCLang.getServerMessage(M.Kick.targetID, "voteKick.beenVoteKick"),
-                { votersAmount = #M.Kick.voters }))
+            BJCLang.getServerMessage(M.Kick.targetID, "voteKick.beenVoteKick")
+            :var({ votersAmount = #M.Kick.voters }))
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.INFO, "voteKick.playerKicked", { playerName = targetName })
     end
     kickReset()
@@ -71,7 +71,7 @@ function M.Kick.vote(senderID)
         error({ key = "rx.errors.invalidData" })
     end
 
-    local pos = tpos(M.Kick.voters, senderID)
+    local pos = table.indexOf(M.Kick.voters, senderID)
     if pos then
         table.remove(M.Kick.voters, pos)
     else
@@ -102,7 +102,7 @@ function M.Kick.onPlayerDisconnect(playerID)
         return
     end
 
-    local pos = tpos(M.Kick.voters, playerID)
+    local pos = table.indexOf(M.Kick.voters, playerID)
     if pos then
         table.remove(M.Kick.voters, pos)
         if #M.Kick.voters == 0 then
@@ -125,7 +125,7 @@ local function mapStarted()
 end
 
 local function getMapTotalPlayers()
-    return tlength(BJCPlayers.Players)
+    return table.length(BJCPlayers.Players)
 end
 
 local function getMapThreshold()
@@ -185,7 +185,7 @@ function M.Map.vote(senderID)
         error({ key = "rx.errors.invalidData" })
     end
 
-    local pos = tpos(M.Map.voters, senderID)
+    local pos = table.indexOf(M.Map.voters, senderID)
     if pos then
         table.remove(M.Map.voters, pos)
     else
@@ -210,7 +210,7 @@ function M.Map.onPlayerDisconnect(playerID)
         return
     end
 
-    local pos = tpos(M.Map.voters, playerID)
+    local pos = table.indexOf(M.Map.voters, playerID)
     if pos then
         table.remove(M.Map.voters, pos)
         if #M.Map.voters == 0 then
@@ -287,7 +287,7 @@ local function raceVoteTimeout()
     end
 
     if M.Race.isVote then
-        if tlength(M.Race.voters) >= getRaceThreshold() then
+        if table.length(M.Race.voters) >= getRaceThreshold() then
             BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings, M.Race.time, M.Race.weather)
         end
     else
@@ -303,9 +303,9 @@ local function raceValidateSettings(race, settings)
 
     local RS = BJCScenario.RaceManager.RESPAWN_STRATEGIES
 
-    if not race.hasStand and tincludes({ RS.STAND }, settings.respawnStrategy) then
+    if not race.hasStand and table.includes({ RS.STAND }, settings.respawnStrategy) then
         error({ key = "rx.errors.invalidData" })
-    elseif settings.respawnStrategy and not tincludes(RS, settings.respawnStrategy) then
+    elseif settings.respawnStrategy and not table.includes(RS, settings.respawnStrategy) then
         error({ key = "rx.errors.invalidData" })
     end
 
@@ -368,7 +368,7 @@ function M.Race.vote(playerID)
     end
 
     if M.Race.isVote then
-        local pos = tpos(M.Race.voters, playerID)
+        local pos = table.indexOf(M.Race.voters, playerID)
         if pos then
             table.remove(M.Race.voters, pos)
         else
@@ -397,10 +397,13 @@ function M.Race.onPlayerDisconnect(playerID)
 
     if M.Race.creatorID == playerID then
         raceReset()
-    elseif tpos(M.Race.voters, playerID) then
-        table.remove(M.Race.voters, tpos(M.Race.voters, playerID))
-        if #M.Race.voters == 0 then
-            raceReset()
+    else
+        local pos = table.indexOf(M.Race.voters, playerID)
+        if pos then
+            table.remove(M.Race.voters, pos)
+            if #M.Race.voters == 0 then
+                raceReset()
+            end
         end
     end
 end
@@ -431,7 +434,7 @@ local function speedVoteTimeout()
         return
     end
 
-    if tlength(M.Speed.participants) >= BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS then
+    if table.length(M.Speed.participants) >= BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS then
         BJCScenario.SpeedManager.start(M.Speed.participants, M.Speed.isVote)
     end
     resetSpeed()

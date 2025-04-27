@@ -13,7 +13,7 @@ local function getRawPoiListByLevel(level)
         local i = 1
         while i < #list do
             while type(list[i].data) == "table" and
-                tincludes(M.POI_TYPES_BLACKLIST, list[i].data.type, true) do
+                table.includes(M.POI_TYPES_BLACKLIST, list[i].data.type) do
                 table.remove(list, i)
             end
             i = i + 1

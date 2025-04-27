@@ -67,7 +67,7 @@ local function onPreparationTimeout()
     -- remove no vehicle players from participants, and add vehIDs
     for playerID, participant in pairs(M.participants) do
         local p = BJCPlayers.Players[playerID]
-        if tlength(p.vehicles) == 0 then
+        if table.length(p.vehicles) == 0 then
             M.participants[playerID] = nil
         else
             if not participant.gameVehID then
@@ -81,7 +81,7 @@ local function onPreparationTimeout()
     end
 
     -- check players amount
-    if tlength(M.participants) < M.MINIMUM_PARTICIPANTS then
+    if table.length(M.participants) < M.MINIMUM_PARTICIPANTS then
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "rx.errors.insufficientPlayers")
         stop()
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
@@ -142,7 +142,7 @@ local function onStart(settings)
 end
 
 local function sanitizePreparationHunted()
-    if tlength(M.participants) > 0 then
+    if table.length(M.participants) > 0 then
         local hunted, firstID = false, nil
         for playerID, p in pairs(M.participants) do
             if not firstID then
@@ -167,7 +167,7 @@ local function onJoin(senderID)
         -- leave participants
         M.participants[senderID] = nil
         sanitizePreparationHunted()
-    elseif tlength(M.participants) == 0 then
+    elseif table.length(M.participants) == 0 then
         -- first to join is hunted
         M.participants[senderID] = {
             hunted = true,
@@ -187,7 +187,7 @@ end
 local function onReady(senderID, gameVehID)
     M.participants[senderID].ready = true
     M.participants[senderID].gameVehID = gameVehID
-    if tlength(M.participants) >= M.MINIMUM_PARTICIPANTS then
+    if table.length(M.participants) >= M.MINIMUM_PARTICIPANTS then
         local allReady = true
         for _, p in pairs(M.participants) do
             if not p.ready then
@@ -206,7 +206,7 @@ end
 local function onLeave(senderID)
     local needStop = M.participants[senderID].hunted
     M.participants[senderID] = nil
-    if needStop or tlength(M.participants) < 3 then
+    if needStop or table.length(M.participants) < 3 then
         stop()
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
@@ -234,7 +234,7 @@ local function onRx(senderID, event, data)
             if participant.hunted then
                 -- hunters win
                 onGameEnd(false)
-            elseif tlength(M.participants) < 3 then
+            elseif table.length(M.participants) < 3 then
                 -- hunted win
                 onGameEnd(true)
             else
@@ -263,7 +263,7 @@ local function onPlayerDisconnect(playerID)
         local needStop = M.state == M.STATES.GAME and M.participants[playerID].hunted
         M.participants[playerID] = nil
         if M.state == M.STATES.GAME then
-            if needStop or tlength(M.participants) < 3 then
+            if needStop or table.length(M.participants) < 3 then
                 stop()
             end
         else
@@ -277,7 +277,7 @@ local function postVehicleDeleted(playerID, vehID)
     if M.state and M.participants[playerID] then
         local needStop = M.state == M.STATES.GAME and M.participants[playerID].hunted
         M.participants[playerID] = nil
-        if needStop or tlength(M.participants) < 3 then
+        if needStop or table.length(M.participants) < 3 then
             stop()
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)

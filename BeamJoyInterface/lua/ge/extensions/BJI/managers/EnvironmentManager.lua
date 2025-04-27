@@ -66,7 +66,7 @@ local function _getObjectWithCache(category)
         return scenetree.findObjectById(BJIContext.WorldCache[category])
     end
     local names = scenetree.findClassObjects(category)
-    if names and tlength(names) > 0 then
+    if names and table.length(names) > 0 then
         for _, name in pairs(names) do
             local obj = scenetree.findObject(name)
             if obj then
@@ -158,7 +158,7 @@ local function _tryApplyWeather()
             precipitation.dropSize = M.Data.dropSize * (BJIContext.UI.dropSizeRatio or 1)
             precipitation.minSpeed = M.Data.dropMinSpeed
             precipitation.maxSpeed = M.Data.dropMaxSpeed
-            if tincludes(M.PRECIP_TYPES, M.Data.precipType) then
+            if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
                 precipitation.dataBlock = scenetree.findObject(M.Data.precipType)
             end
         end
@@ -188,7 +188,7 @@ end
 
 local function _tryApplyGravity()
     if M.Data.controlGravity then
-        local g = Round(core_environment.getGravity(), 3)
+        local g = math.round(core_environment.getGravity(), 3)
         if g ~= M.Data.gravityRate then
             core_environment.setGravity(M.Data.gravityRate)
         end
@@ -263,7 +263,7 @@ local function updateCurrentPreset()
         local allMatch = true
         for k, v in pairs(preset.keys) do
             if type(v) == "number" then
-                if Round(M.Data[k], 4) ~= Round(v, 4) then
+                if math.round(M.Data[k], 4) ~= math.round(v, 4) then
                     allMatch = false
                     break
                 end

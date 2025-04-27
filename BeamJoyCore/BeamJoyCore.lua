@@ -23,10 +23,10 @@ BJCVERSION = "1.2.0"
 BJCPluginPath = debug.getinfo(1).source:gsub("\\", "/")
 BJCPluginPath = BJCPluginPath:sub(1, (BJCPluginPath:find("BeamJoyCore.lua")) - 2)
 
+require("utils/Lua")
+require("utils/Math")
 require("utils/String")
 require("utils/Table")
-require("utils/LUA")
-require("utils/MATH")
 SHA = require("utils/sha2")
 JSON = require("utils/JSON")
 TOML = require("utils/TOML")
@@ -50,7 +50,7 @@ function TriggerBJCManagers(eventName, ...)
 end
 
 function _G.onInit()
-    Log(svar("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
+    Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
 
     BJCAsync = require("managers/AsyncManager")
     BJCDefaults = require("managers/Defaults")
@@ -77,5 +77,5 @@ function _G.onInit()
 
     require("rx/Rx")
 
-    Log(svar("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
+    Log(string.var("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
 end

@@ -6,7 +6,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
     local targetGroup = BJIPerm.Groups[target.group] or { level = 0 }
     local isGroupLower = selfGroup.level > targetGroup.level
     local isStaff = targetGroup.staff
-    local nbVehicles = tlength(target.vehicles)
+    local nbVehicles = table.length(target.vehicles)
 
     -- base actions
     local actions = BJIScenario.getPlayerListActions(target, ctxt)
@@ -17,7 +17,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
         (isSelf or (isGroupLower and not isStaff and
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.DELETE_VEHICLE))) then
         table.insert(actions, {
-            id = svar("deleteVehicles{1}", { playerID }),
+            id = string.var("deleteVehicles{1}", { playerID }),
             icon = ICONS.directions_car,
             style = BTN_PRESETS.ERROR,
             onClick = function()
@@ -38,7 +38,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
         if not isAccordionOpen then
             if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.MUTE) then
                 table.insert(actions, {
-                    id = svar("toggleMute{1}", { playerID }),
+                    id = string.var("toggleMute{1}", { playerID }),
                     icon = ICONS.speaker_notes_off,
                     style = target.muted and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                     onClick = function()
@@ -49,13 +49,13 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
 
             if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.KICK) then
                 table.insert(actions, {
-                    id = svar("kick{1}", { playerID }),
+                    id = string.var("kick{1}", { playerID }),
                     label = BJILang.get("moderationBlock.buttons.kick"),
                     style = BTN_PRESETS.ERROR,
                     onClick = function()
                         BJIPopup.createModal(
-                            svar(BJILang.get("moderationBlock.kickModal"),
-                                { playerName = target.playerName }),
+                            BJILang.get("moderationBlock.kickModal")
+                            :var({ playerName = target.playerName }),
                             {
                                 {
                                     label = BJILang.get("common.buttons.cancel"),
@@ -77,7 +77,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
     if isGroupLower and not isStaff then
         if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.FREEZE_PLAYERS) then
             table.insert(actions, {
-                id = svar("toggleFreeze{1}", { playerID }),
+                id = string.var("toggleFreeze{1}", { playerID }),
                 icon = ICONS.ac_unit,
                 style = target.freeze and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                 onClick = function()
@@ -88,7 +88,7 @@ local function getHeaderActions(playerID, isAccordionOpen, ctxt)
 
         if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.ENGINE_PLAYERS) then
             table.insert(actions, {
-                id = svar("toggleEngine{1}", { playerID }),
+                id = string.var("toggleEngine{1}", { playerID }),
                 icon = ICONS.cogs,
                 style = target.engine and BTN_PRESETS.SUCCESS or BTN_PRESETS.ERROR,
                 onClick = function()
@@ -104,14 +104,14 @@ end
 local function drawPlayerVehicles(playerID, ctxt)
     local target = BJIContext.Players[playerID]
 
-    if tlength(target.vehicles) > 0 then
+    if table.length(target.vehicles) > 0 then
         local isSelf = BJIContext.isSelf(playerID)
         local targetGroup = BJIPerm.Groups[target.group]
         local isGroupLower = ctxt.group.level > targetGroup.level
 
         LineBuilder()
-            :text(svar("{1} ({2}):",
-                { BJILang.get("moderationBlock.vehicles"), tlength(target.vehicles) }))
+            :text(string.var("{1} ({2}):",
+                { BJILang.get("moderationBlock.vehicles"), table.length(target.vehicles) }))
             :build()
 
         Indent(1)
@@ -127,7 +127,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                 :text(vehicle.model)
             if isSelf or isGroupLower then
                 line:btnIcon({
-                    id = svar("focus{1}-{2}", { playerID, vehID }),
+                    id = string.var("focus{1}-{2}", { playerID, vehID }),
                     icon = ICONS.cameraFocusOnVehicle2,
                     style = BTN_PRESETS.INFO,
                     disabled = not finalGameVehID or
@@ -137,7 +137,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                     end
                 })
                     :btnIconToggle({
-                        id = svar("toggleFreeze{1}-{2}", { playerID, vehID }),
+                        id = string.var("toggleFreeze{1}-{2}", { playerID, vehID }),
                         icon = ICONS.ac_unit,
                         state = not not vehicle.freeze,
                         disabled = not finalGameVehID,
@@ -146,7 +146,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                         end
                     })
                     :btnIconToggle({
-                        id = svar("toggleEngine{1}-{2}", { playerID, vehID }),
+                        id = string.var("toggleEngine{1}-{2}", { playerID, vehID }),
                         icon = ICONS.cogs,
                         state = not not vehicle.engine,
                         disabled = not finalGameVehID,
@@ -155,7 +155,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                         end
                     })
                     :btnIcon({
-                        id = svar("delete{1}-{2}", { playerID, vehID }),
+                        id = string.var("delete{1}-{2}", { playerID, vehID }),
                         icon = ICONS.delete_forever,
                         style = BTN_PRESETS.ERROR,
                         onClick = function()
@@ -163,7 +163,7 @@ local function drawPlayerVehicles(playerID, ctxt)
                         end
                     })
                     :btnIcon({
-                        id = svar("explode{1}-{2}", { playerID, vehID }),
+                        id = string.var("explode{1}-{2}", { playerID, vehID }),
                         icon = ICONS.whatshot,
                         style = BTN_PRESETS.ERROR,
                         disabled = not finalGameVehID,
@@ -206,7 +206,7 @@ local function drawPlayerDetails(playerID, ctxt)
             buttonsWidth = GetColumnTextWidth(labelKickButton)
         end
 
-        ColumnsBuilder(svar("moderation{1}", { playerID }), { labelWidth, -1, buttonsWidth })
+        ColumnsBuilder(string.var("moderation{1}", { playerID }), { labelWidth, -1, buttonsWidth })
             :addRow({
                 cells = {
                     function()
@@ -217,7 +217,7 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("muteReason{1}", { playerID }),
+                                id = string.var("muteReason{1}", { playerID }),
                                 value = target.muteReason,
                                 onUpdate = function(val)
                                     target.muteReason = val
@@ -228,7 +228,7 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :btnIconToggle({
-                                id = svar("toggleMute{1}", { playerID }),
+                                id = string.var("toggleMute{1}", { playerID }),
                                 icon = ICONS.speaker_notes_off,
                                 state = target.muted == true,
                                 onClick = function()
@@ -249,7 +249,7 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("kickReason{1}", { playerID }),
+                                id = string.var("kickReason{1}", { playerID }),
                                 value = target.kickReason,
                                 onUpdate = function(val)
                                     target.kickReason = val
@@ -260,13 +260,13 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :btn({
-                                id = svar("kick{1}", { playerID }),
+                                id = string.var("kick{1}", { playerID }),
                                 label = labelKickButton,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
-                                        svar(BJILang.get("moderationBlock.kickModal"),
-                                            { playerName = target.playerName }),
+                                        BJILang.get("moderationBlock.kickModal")
+                                        :var({ playerName = target.playerName }),
                                         {
                                             {
                                                 label = BJILang.get("common.buttons.cancel"),
@@ -295,7 +295,7 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :inputString({
-                                id = svar("banReason{1}", { playerID }),
+                                id = string.var("banReason{1}", { playerID }),
                                 value = target.banReason,
                                 onUpdate = function(val)
                                     target.banReason = val
@@ -306,13 +306,13 @@ local function drawPlayerDetails(playerID, ctxt)
                     BJIPerm.hasPermission(BJIPerm.PERMISSIONS.BAN) and function()
                         LineBuilder()
                             :btnIcon({
-                                id = svar("ban{1}", { playerID }),
+                                id = string.var("ban{1}", { playerID }),
                                 icon = ICONS.gavel,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
-                                        svar(BJILang.get("moderationBlock.banModal"),
-                                            { playerName = target.playerName }),
+                                        BJILang.get("moderationBlock.banModal")
+                                        :var({ playerName = target.playerName }),
                                         {
                                             {
                                                 label = BJILang.get("common.buttons.cancel"),
@@ -347,13 +347,13 @@ local function drawPlayerDetails(playerID, ctxt)
                     function()
                         LineBuilder()
                             :btnIcon({
-                                id = svar("tempBan{1}", { playerID }),
+                                id = string.var("tempBan{1}", { playerID }),
                                 icon = ICONS.av_timer,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
-                                        svar(BJILang.get("moderationBlock.tempBanModal"),
-                                            { playerName = target.playerName }),
+                                        BJILang.get("moderationBlock.tempBanModal")
+                                        :var({ playerName = target.playerName }),
                                         {
                                             {
                                                 label = BJILang.get("common.buttons.cancel"),
@@ -383,19 +383,19 @@ local function drawPlayerDetails(playerID, ctxt)
             end)
 
         local showDemote = isGroupLower and
-            not tincludes({ BJI_GROUP_NAMES.NONE, BJI_GROUP_NAMES.OWNER },
+            not table.includes({ BJI_GROUP_NAMES.NONE, BJI_GROUP_NAMES.OWNER },
                 target.group)
         local showPromote = isGroupLower and
-            not tincludes({ BJI_GROUP_NAMES.OWNER },
+            not table.includes({ BJI_GROUP_NAMES.OWNER },
                 BJIPerm.getNextGroup(target.group))
         if showDemote or showPromote then
             local line = LineBuilder()
             if showDemote then
                 local previous = BJIPerm.getPreviousGroup(target.group)
                 line:btn({
-                    id = svar("demote{1}", { playerID }),
-                    label = svar(BJILang.get("moderationBlock.buttons.demoteTo"),
-                        { groupName = BJILang.get("groups." .. previous, previous) }),
+                    id = string.var("demote{1}", { playerID }),
+                    label = BJILang.get("moderationBlock.buttons.demoteTo")
+                        :var({ groupName = BJILang.get("groups." .. previous, previous) }),
                     style = BTN_PRESETS.ERROR,
                     onClick = function()
                         BJITx.moderation.setGroup(target.playerName, previous)
@@ -405,9 +405,9 @@ local function drawPlayerDetails(playerID, ctxt)
             local next = BJIPerm.getNextGroup(target.group)
             if showPromote and next then
                 line:btn({
-                    id = svar("promote{1}", { playerID }),
-                    label = svar(BJILang.get("moderationBlock.buttons.promoteTo"),
-                        { groupName = BJILang.get("groups." .. next, next) }),
+                    id = string.var("promote{1}", { playerID }),
+                    label = BJILang.get("moderationBlock.buttons.promoteTo")
+                        :var({ groupName = BJILang.get("groups." .. next, next) }),
                     style = BTN_PRESETS.SUCCESS,
                     onClick = function()
                         BJITx.moderation.setGroup(target.playerName, next)
@@ -427,18 +427,18 @@ local function drawWaitingPlayers(players)
     end
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("moderationBlock.waitingPlayers") }))
+        :text(string.var("{1}:", { BJILang.get("moderationBlock.waitingPlayers") }))
         :build()
     Indent(1)
     for _, player in ipairs(players) do
         local nextGroup = BJIPerm.getNextGroup(player.group)
         LineBuilder()
             :text(player.playerName)
-            :text(svar("({1})", { player.group }))
+            :text(string.var("({1})", { player.group }))
             :btn({
-                id = svar("promotewaiting{1}", { player.playerID }),
-                label = svar(BJILang.get("moderationBlock.buttons.promoteTo"),
-                    { groupName = BJILang.get("groups." .. nextGroup, nextGroup) }),
+                id = string.var("promotewaiting{1}", { player.playerID }),
+                label = BJILang.get("moderationBlock.buttons.promoteTo")
+                    :var({ groupName = BJILang.get("groups." .. nextGroup, nextGroup) }),
                 onClick = function()
                     BJITx.moderation.setGroup(player.playerName, nextGroup)
                 end
@@ -475,21 +475,21 @@ local function drawListPlayers(players, ctxt)
     end
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("moderationBlock.players") }))
+        :text(string.var("{1}:", { BJILang.get("moderationBlock.players") }))
         :build()
     for _, player in ipairs(players) do
         local isSelf = BJIContext.isSelf(player.playerID)
         local targetGroup = BJIPerm.Groups[player.group] or { level = 0 }
         local isGroupLower = ctxt.group.level > targetGroup.level
 
-        local groupLabel = BJILang.get(svar("groups.{1}", { player.group }), player.group)
+        local groupLabel = BJILang.get(string.var("groups.{1}", { player.group }), player.group)
 
-        if isSelf and tlength(player.vehicles) == 0 then
+        if isSelf and table.length(player.vehicles) == 0 then
             -- self without vehicles
             Indent(1)
             LineBuilder()
                 :text(player.playerName, TEXT_COLORS.HIGHLIGHT)
-                :text(svar("({1})", { groupLabel }), TEXT_COLORS.HIGHLIGHT)
+                :text(string.var("({1})", { groupLabel }), TEXT_COLORS.HIGHLIGHT)
                 :build()
             drawHeaderActions(player.playerID, false)
             Indent(-1)
@@ -498,20 +498,20 @@ local function drawListPlayers(players, ctxt)
             Indent(1)
             LineBuilder()
                 :text(player.playerName)
-                :text(svar("({1})", { groupLabel }))
+                :text(string.var("({1})", { groupLabel }))
                 :build()
             drawHeaderActions(player.playerID, false)
             Indent(-1)
         else
             -- players and lower staff members
             local reputationLabel = not player.staff and
-                svar("{1}{2}", {
+                string.var("{1}{2}", {
                     BJILang.get("chat.reputationTag"),
                     BJIReputation.getReputationLevel(player.reputation)
                 }) or nil
             local nameSuffix = reputationLabel and
-                svar("({1} | {2})", { groupLabel, reputationLabel }) or
-                svar("({1})", { groupLabel })
+                string.var("({1} | {2})", { groupLabel, reputationLabel }) or
+                string.var("({1})", { groupLabel })
             AccordionBuilder()
                 :label("##" .. player.playerName)
                 :commonStart(
@@ -541,7 +541,7 @@ local function drawListPlayers(players, ctxt)
 end
 
 local function drawModeration(ctxt)
-    if tlength(BJIContext.Players) == 0 then
+    if table.length(BJIContext.Players) == 0 then
         LineBuilder()
             :text(BJILang.get("common.loading"))
             :build()

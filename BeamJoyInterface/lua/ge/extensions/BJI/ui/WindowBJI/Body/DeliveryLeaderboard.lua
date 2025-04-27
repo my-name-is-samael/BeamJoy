@@ -5,7 +5,7 @@ local function draw()
             local labelWidth = 0
             local labels = {}
             for i, lb in ipairs(BJIContext.Scenario.Data.DeliveryLeaderboard) do
-                labels[i] = svar("#{1} {2} :", { i, lb.playerName })
+                labels[i] = string.var("#{1} {2} :", { i, lb.playerName })
                 local w = GetColumnTextWidth(labels[i])
                 if w > labelWidth then
                     labelWidth = w
@@ -27,7 +27,7 @@ local function draw()
                         function()
                             LineBuilder()
                                 :text(
-                                    svar("{1} {2}",
+                                    string.var("{1} {2}",
                                         { lb.delivery, BJILang.get("delivery.leaderboard.delivered") }),
                                     lb.playerName == BJIContext.User.playerName and
                                     TEXT_COLORS.HIGHLIGHT or

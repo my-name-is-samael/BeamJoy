@@ -182,8 +182,8 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
         -- finished or eliminated player spec switch
         local ownerID = BJIVeh.getVehOwnerID(newGameVehID)
 
-        if tincludes(M.race.finished, ownerID, true) or
-            tincludes(M.race.eliminated, ownerID, true) then
+        if table.includes(M.race.finished, ownerID) or
+            table.includes(M.race.eliminated, ownerID) then
             BJIVeh.focusNextVehicle()
         end
     end
@@ -195,7 +195,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -245,7 +245,7 @@ local function initGrid(data)
     M.preRaceCam = BJICam.CAMERAS.ORBIT
     if veh then
         M.preRaceCam = BJICam.getCamera()
-        if tincludes({
+        if table.includes({
                 BJICam.CAMERAS.FREE,
                 BJICam.CAMERAS.BIG_MAP,
                 BJICam.CAMERAS.EXTERNAL,
@@ -263,11 +263,11 @@ end
 
 local function tryReplaceOrSpawn(model, config)
     if M.state == M.STATES.GRID and M.isParticipant() and not M.isReady() then
-        if tlength(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
+        if table.length(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
-        local pos = tpos(M.grid.participants, BJIContext.User.playerID)
+        local pos = table.indexOf(M.grid.participants, BJIContext.User.playerID)
         local posrot = M.grid.startPositions[pos]
         BJIVeh.replaceOrSpawnVehicle(model, config, posrot)
         BJIAsync.task(function(ctxt)
@@ -371,14 +371,14 @@ local function initSteps(steps)
                         else
                             -- point from last lap finishes
                             for _, lastWP in ipairs(steps[#steps]) do
-                                table.insert(parents, svar("{1}-{2}", { lastWP.name, iLap - 1 }))
+                                table.insert(parents, string.var("{1}-{2}", { lastWP.name, iLap - 1 }))
                             end
                         end
                     else
-                        table.insert(parents, svar("{1}-{2}", { parent, iLap }))
+                        table.insert(parents, string.var("{1}-{2}", { parent, iLap }))
                     end
                 end
-                local name = svar("{1}-{2}", { wp.name, iLap })
+                local name = string.var("{1}-{2}", { wp.name, iLap })
                 table.insert(nStep, {
                     name = name,
                     pos = wp.pos,
@@ -412,13 +412,13 @@ local function specRandomRacer()
     local players = {}
     for _, playerID in ipairs(M.grid.participants) do
         if playerID ~= BJIContext.User.playerID and
-            not tincludes(M.race.eliminated, playerID, true) and
-            not tincludes(M.race.finished, playerID, true) then
+            not table.includes(M.race.eliminated, playerID) and
+            not table.includes(M.race.finished, playerID) then
             table.insert(players, playerID)
         end
     end
     if #players > 0 then
-        BJIVeh.focus(trandom(players))
+        BJIVeh.focus(table.random(players))
     end
 end
 
@@ -578,7 +578,7 @@ local function onCheckpointReached(wp, remainingSteps)
                 if M.race.lap == M.settings.laps then
                     lapMessage = BJILang.get("races.play.finalLapFlash")
                 else
-                    lapMessage = svar(BJILang.get("races.play.Lap"), { lap = M.race.lap })
+                    lapMessage = BJILang.get("races.play.Lap"):var({ lap = M.race.lap })
                 end
                 BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
             else
@@ -623,8 +623,8 @@ local function onFinishReached()
             for i = racePosition + 1, #M.race.leaderboard do
                 local lb = M.race.leaderboard[i]
                 if not BJIContext.isSelf(lb.playerID) and
-                    not tincludes(M.race.eliminated, lb.playerID, true) and
-                    not tincludes(M.race.finished, lb.playerID, true) then
+                    not table.includes(M.race.eliminated, lb.playerID) and
+                    not table.includes(M.race.finished, lb.playerID) then
                     if lb.lap < M.settings.laps then
                         isLappedRacer = true
                         break
@@ -632,8 +632,8 @@ local function onFinishReached()
                 end
             end
         end
-        BJIMessage.flash("BJIRaceEndSelf", svar(BJILang.get("races.play.finishFlashMulti"),
-            { place = racePosition }), 3, false)
+        BJIMessage.flash("BJIRaceEndSelf", BJILang.get("races.play.finishFlashMulti")
+            :var({ place = racePosition }), 3, false)
         BJIAsync.delayTask(function()
             if isLappedRacer then
                 BJIVeh.deleteAllOwnVehicles()
@@ -713,7 +713,7 @@ local function initRace(data)
     BJIAsync.programTask(function(ctxt)
         if M.state then
             M.race.timers.race = TimerCreate()
-            M.race.timers.raceOffset = Round(ctxt.now - M.race.startTime)
+            M.race.timers.raceOffset = math.round(ctxt.now - M.race.startTime)
             if math.abs(M.race.timers.raceOffset) < 100 then
                 M.race.timers.raceOffset = 0
             end
@@ -752,7 +752,7 @@ local function initRaceFinish()
 
         if target then
             BJIMessage.flash("BJIRaceFinish",
-                svar(BJILang.get("races.play.flashWinner"), { playerName = target.playerName }),
+                BJILang.get("races.play.flashWinner"):var({ playerName = target.playerName }),
                 5, false)
         end
     end
@@ -771,8 +771,8 @@ local function rxData(data)
         M.settings.config = data.config
         M.settings.respawnStrategy = data.respawnStrategy
         -- grid
-        local wasParticipant = tincludes(M.grid.participants, BJIContext.User.playerID, true)
-        local wasReady = tincludes(M.grid.ready, BJIContext.User.playerID, true)
+        local wasParticipant = table.includes(M.grid.participants, BJIContext.User.playerID)
+        local wasReady = table.includes(M.grid.ready, BJIContext.User.playerID)
         M.grid.participants = data.participants
         M.grid.ready = data.ready
         -- race
@@ -787,8 +787,8 @@ local function rxData(data)
             if not M.state then
                 initGrid(data)
             elseif M.state == data.state then
-                local isParticipant = tincludes(data.participants, BJIContext.User.playerID, true)
-                local isReady = tincludes(data.ready, BJIContext.User.playerID, true)
+                local isParticipant = table.includes(data.participants, BJIContext.User.playerID)
+                local isReady = table.includes(data.ready, BJIContext.User.playerID)
 
                 if not wasParticipant and isParticipant then
                     onJoinGridParticipants()
@@ -817,19 +817,19 @@ local function rxData(data)
 end
 
 local function isParticipant()
-    return tincludes(M.grid.participants, BJIContext.User.playerID, true)
+    return table.includes(M.grid.participants, BJIContext.User.playerID)
 end
 
 local function isFinished()
-    return tincludes(M.race.finished, BJIContext.User.playerID, true)
+    return table.includes(M.race.finished, BJIContext.User.playerID)
 end
 
 local function isEliminated()
-    return tincludes(M.race.eliminated, BJIContext.User.playerID, true)
+    return table.includes(M.race.eliminated, BJIContext.User.playerID)
 end
 
 local function isReady()
-    return M.isParticipant() and tincludes(M.grid.ready, BJIContext.User.playerID, true)
+    return M.isParticipant() and table.includes(M.grid.ready, BJIContext.User.playerID)
 end
 
 local function isSpec()
@@ -865,7 +865,7 @@ local function onVehicleResetted(gameVehID)
             M.exemptNextReset = true
             local wp = M.race.lastWaypoint
             if not wp then
-                wp = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
+                wp = M.grid.startPositions[table.indexOf(M.grid.participants, BJIContext.User.playerID)]
             end
             BJIVeh.setPositionRotation(wp.pos, wp.rot)
         elseif rs == M.RESPAWN_STRATEGIES.STAND then
@@ -881,7 +881,7 @@ local function onVehicleResetted(gameVehID)
             end
             if not pastStand then
                 -- no past stand then start pos
-                local sp = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
+                local sp = M.grid.startPositions[table.indexOf(M.grid.participants, BJIContext.User.playerID)]
                 pastStand = {
                     pos = sp.pos,
                     rot = sp.rot,
@@ -902,10 +902,10 @@ local function renderTick(ctxt)
             if M.race.timers.raceOffset then
                 time = time + M.race.timers.raceOffset
             end
-            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
+            guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
         elseif M.isParticipant() and not M.isFinished() and not M.isEliminated() then
             local time = M.race.timers.lap and M.race.timers.lap:get() or 0
-            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
+            guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
         elseif BJIMessage.realtimeData.context == "race" then
             guihooks.trigger('ScenarioResetTimer')
         end
@@ -914,7 +914,7 @@ local function renderTick(ctxt)
     if ctxt.isOwner and isStateGridOrRace() and not M.isRaceStarted(ctxt) and M.isParticipant() then
         -- fix vehicle position / damages on grid
         if not M.race.startTime or ctxt.now < M.race.startTime - 1000 then
-            local startPos = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
+            local startPos = M.grid.startPositions[table.indexOf(M.grid.participants, BJIContext.User.playerID)]
             local moved = GetHorizontalDistance(
                 startPos.pos,
                 ctxt.vehPosRot.pos
@@ -944,8 +944,8 @@ local function renderTick(ctxt)
     if M.isSpec() and M.isRaceStarted(ctxt) and not M.isRaceFinished() then
         if ctxt.veh then
             local ownerID = BJIVeh.getVehOwnerID(ctxt.veh:getID())
-            if tincludes(M.race.finished, ownerID, true) or
-                tincludes(M.race.eliminated, ownerID, true) then
+            if table.includes(M.race.finished, ownerID) or
+                table.includes(M.race.eliminated, ownerID) then
                 BJIVeh.focusNextVehicle()
             end
         end
@@ -995,7 +995,7 @@ local function canVehUpdate()
 end
 
 local function canSpawnNewVehicle()
-    return canVehUpdate() and tlength(BJIContext.User.vehicles) == 0
+    return canVehUpdate() and table.length(BJIContext.User.vehicles) == 0
 end
 
 local function getCollisionsType(ctxt)

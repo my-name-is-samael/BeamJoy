@@ -16,7 +16,7 @@ local function draw()
         "tempCurveMidnight",
         "tempCurveDawn",
     }) do
-        local label = BJILang.get(svar("environment.{1}", { key }))
+        local label = BJILang.get(string.var("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -28,7 +28,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.controlTemperature") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.controlTemperature") }))
                         :build()
                 end,
                 function()
@@ -57,14 +57,14 @@ local function draw()
             "tempCurveDawn",
         }) do
             common.drawNumericWithReset(cols, k, function()
-                local kelvin = CelsiusToKelvin(BJIEnv.Data[k])
+                local kelvin = math.celsiusToKelvin(BJIEnv.Data[k])
                 local labels = {
-                    svar("{1}°C", { Round(BJIEnv.Data[k] or 0, 2) }),
-                    svar("{1}°F", { Round(KelvinToFahrenheit(kelvin or 0) or 0, 2) }),
-                    svar("{1}K", { Round(kelvin or 0, 2) }),
+                    string.var("{1}°C", { math.round(BJIEnv.Data[k] or 0, 2) }),
+                    string.var("{1}°F", { math.round(math.kelvinToFahrenheit(kelvin or 0) or 0, 2) }),
+                    string.var("{1}K", { math.round(kelvin or 0, 2) }),
                 }
                 LineBuilder(true)
-                    :text(tconcat(labels, svar(" {1} ", { vSeparator })))
+                    :text(table.join(labels, string.var(" {1} ", { vSeparator })))
                     :build()
             end)
         end

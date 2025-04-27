@@ -329,11 +329,11 @@ local function initWindows()
                 local totalLines = 0
                 local function display(obj, key)
                     local line = LineBuilder()
-                        :text(key and svar("{1} ({2}) =", { key, type(key) }) or "")
+                        :text(key and string.var("{1} ({2}) =", { key, type(key) }) or "")
                     if type(obj) == "table" then
-                        line:text(svar("({1}, {2} child.ren)", {
+                        line:text(string.var("({1}, {2} child.ren)", {
                             type(obj),
-                            tlength(obj)
+                            table.length(obj)
                         }))
                         Indent(1)
                         local objs = {}
@@ -352,9 +352,9 @@ local function initWindows()
                         Indent(-1)
                     else
                         local val = type(obj) == "string" and
-                            svar("\"{1}\"", { obj }) or
+                            string.var("\"{1}\"", { obj }) or
                             tostring(obj)
-                        line:text(svar("{1} ({2})", { val, type(obj) }))
+                        line:text(string.var("{1} ({2})", { val, type(obj) }))
                     end
                     line:build()
                     totalLines = totalLines + 1
@@ -453,7 +453,7 @@ local function renderTick(ctxt)
         end
 
         local title = w.name and
-            BJILang.get(svar("windows.{1}", { w.name }), w.name) or
+            BJILang.get(string.var("windows.{1}", { w.name }), w.name) or
             nil
         if w.show then
             local draw = w.draw
@@ -471,7 +471,7 @@ local function renderTick(ctxt)
                 im.SetNextWindowPos(im.ImVec2(w.x, w.y))
             end
 
-            local flagsToApply = tdeepcopy(M._baseFlags)
+            local flagsToApply = table.clone(M._baseFlags)
             local flags = draw.flags or {}
             if type(flags) == "function" then
                 flags = flags(ctxt)
@@ -480,18 +480,18 @@ local function renderTick(ctxt)
                 flags = {}
             end
             for _, winFlag in pairs(flags) do
-                if not tincludes(flagsToApply, winFlag, true) then
+                if not table.includes(flagsToApply, winFlag) then
                     table.insert(flagsToApply, winFlag)
                 end
             end
 
             if type(draw.menu) == "function" and
-                not tincludes(flagsToApply, WINDOW_FLAGS.MENU_BAR, true) then
+                not table.includes(flagsToApply, WINDOW_FLAGS.MENU_BAR) then
                 table.insert(flagsToApply, WINDOW_FLAGS.MENU_BAR)
             end
             BJIContext.GUI.setupWindow(w.name)
             local alpha = BJIStyles[STYLE_COLS.WINDOW_BG] and BJIStyles[STYLE_COLS.WINDOW_BG].w or .5
-            local window = WindowBuilder(w.name, im.flags(tunpack(flagsToApply)))
+            local window = WindowBuilder(w.name, im.flags(table.unpack(flagsToApply)))
                 :title(title)
                 :opacity(alpha)
 
@@ -530,7 +530,7 @@ local function renderTick(ctxt)
             end
             window:build()
         elseif not title then
-            LogError(svar("Invalid name for window {1}", { w.name }))
+            LogError(string.var("Invalid name for window {1}", { w.name }))
         end
     end
     ResetStyles()

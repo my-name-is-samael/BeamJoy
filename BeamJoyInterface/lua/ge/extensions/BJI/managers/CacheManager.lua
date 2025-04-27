@@ -61,7 +61,7 @@ end
 
 local function _markCacheReady(cacheType)
     M._states[cacheType] = M.CACHE_STATES.READY
-    if not tincludes(M._firstLoaded, cacheType) then
+    if not table.includes(M._firstLoaded, cacheType) then
         table.insert(M._firstLoaded, cacheType)
     end
 end
@@ -71,7 +71,7 @@ local function isCacheReady(cacheType)
 end
 
 local function isFirstLoaded(cacheType)
-    return tincludes(M._firstLoaded, cacheType)
+    return table.includes(M._firstLoaded, cacheType)
 end
 
 local function areBaseCachesFirstLoaded()
@@ -95,13 +95,13 @@ local function _tryRequestCache(cacheType)
     local permissionName = M.CACHE_PERMISSIONS[cacheType]
     if permissionName then
         if BJIPerm.hasPermission(permissionName) then
-            LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
+            LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
             BJITx.cache.require(cacheType)
         end
     else
         -- no permission on this cache
-        LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
+        LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
         M._states[cacheType] = M.CACHE_STATES.PROCESSING
         BJITx.cache.require(cacheType)
     end
@@ -112,7 +112,7 @@ local function invalidate(cacheType)
 end
 
 local function parseCache(cacheType, cacheData, cacheHash)
-    LogDebug(svar("Received cache {1}", { cacheType }), M._name)
+    LogDebug(string.var("Received cache {1}", { cacheType }), M._name)
     local foundCache = true
     if cacheType == M.CACHES.USER then
         BJIContext.User.playerID = cacheData.playerID
@@ -140,7 +140,7 @@ local function parseCache(cacheType, cacheData, cacheHash)
                     engineStation = true,
                 }
             end
-            tdeepassign(BJIContext.User.vehicles[vehID], vehicle)
+            table.assign(BJIContext.User.vehicles[vehID], vehicle)
         end
         -- remove obsolete vehicles
         for vehID in pairs(BJIContext.User.vehicles) do
@@ -179,8 +179,8 @@ local function parseCache(cacheType, cacheData, cacheHash)
             end
             -- remove obsolete keys
             for k in pairs(BJIPerm.Groups[groupName]) do
-                if not tincludes({ "_new" }, k, true) and
-                    not tincludes(tkeys(group), k, true) then
+                if not table.includes({ "_new" }, k) and
+                    group[k] == nil then
                     BJIPerm.Groups[groupName][k] = nil
                 end
             end
@@ -191,8 +191,8 @@ local function parseCache(cacheType, cacheData, cacheHash)
         end
         -- remove obsolete groups
         for k in pairs(BJIPerm.Groups) do
-            if not tincludes({ "_new", "_newLevel" }, k) and
-                not tincludes(tkeys(cacheData), k, true) then
+            if not table.includes({ "_new", "_newLevel" }, k) and
+                cacheData[k] == nil then
                 BJIPerm.Groups[k] = nil
             end
         end
@@ -237,14 +237,14 @@ local function parseCache(cacheType, cacheData, cacheHash)
         }
         if BJIEnv.Data.gravityRate ~= nil then
             for _, p in ipairs(presetsUtils.gravityPresets()) do
-                if Round(p.value, 3) == Round(BJIEnv.Data.gravityRate, 3) then
+                if math.round(p.value, 3) == math.round(BJIEnv.Data.gravityRate, 3) then
                     BJIContext.UI.gravity.key = p.key
                     BJIContext.UI.gravity.default = p.default
                 end
             end
             if previous.gravityRate ~= BJIEnv.Data.gravityRate and BJIContext.UI.gravity.key then
-                local label = BJILang.get(svar("presets.gravity.{1}", { BJIContext.UI.gravity.key }))
-                BJIToast.info(svar("Gravity changed to {1}", { label }))
+                local label = BJILang.get(string.var("presets.gravity.{1}", { BJIContext.UI.gravity.key }))
+                BJIToast.info(string.var("Gravity changed to {1}", { label }))
             end
         end
 
@@ -252,14 +252,14 @@ local function parseCache(cacheType, cacheData, cacheHash)
             value = BJIEnv.Data.simSpeed,
         }
         for _, p in ipairs(presetsUtils.speedPresets()) do
-            if Round(p.value, 3) == Round(BJIEnv.Data.simSpeed, 3) then
+            if math.round(p.value, 3) == math.round(BJIEnv.Data.simSpeed, 3) then
                 BJIContext.UI.speed.key = p.key
                 BJIContext.UI.speed.default = p.default
             end
         end
         if previous.simSpeed ~= BJIEnv.Data.simSpeed and BJIContext.UI.speed.key then
-            local label = BJILang.get(svar("presets.speed.{1}", { BJIContext.UI.speed.key }))
-            BJIToast.info(svar("Speed changed to {1}", { label }))
+            local label = BJILang.get(string.var("presets.speed.{1}", { BJIContext.UI.speed.key }))
+            BJIToast.info(string.var("Speed changed to {1}", { label }))
         end
     elseif cacheType == M.CACHES.PLAYERS then
         for _, pData in pairs(cacheData) do
@@ -309,9 +309,9 @@ local function parseCache(cacheType, cacheData, cacheHash)
             BJIVote.Kick.creatorID = cacheData.Kick.creatorID
             BJIVote.Kick.targetID = cacheData.Kick.targetID
             BJIVote.Kick.endsAt = BJITick.applyTimeOffset(cacheData.Kick.endsAt)
-            BJIVote.Kick.amountVotes = cacheData.Kick.voters and tlength(cacheData.Kick.voters) or 0
+            BJIVote.Kick.amountVotes = cacheData.Kick.voters and table.length(cacheData.Kick.voters) or 0
             BJIVote.Kick.selfVoted = cacheData.Kick.voters and
-                tincludes(cacheData.Kick.voters, BJIContext.User.playerID, true) or false
+                table.includes(cacheData.Kick.voters, BJIContext.User.playerID) or false
         end
         if cacheData.Map then
             BJIVote.Map.threshold = cacheData.Map.threshold
@@ -319,9 +319,9 @@ local function parseCache(cacheType, cacheData, cacheHash)
             BJIVote.Map.mapLabel = cacheData.Map.mapLabel
             BJIVote.Map.mapCustom = cacheData.Map.mapCustom == true
             BJIVote.Map.endsAt = BJITick.applyTimeOffset(cacheData.Map.endsAt)
-            BJIVote.Map.amountVotes = cacheData.Map.voters and tlength(cacheData.Map.voters) or 0
+            BJIVote.Map.amountVotes = cacheData.Map.voters and table.length(cacheData.Map.voters) or 0
             BJIVote.Map.selfVoted = cacheData.Map.voters and
-                tincludes(cacheData.Map.voters, BJIContext.User.playerID, true) or false
+                table.includes(cacheData.Map.voters, BJIContext.User.playerID) or false
         end
         if cacheData.Race then
             BJIVote.Race.threshold = cacheData.Race.threshold
@@ -337,9 +337,9 @@ local function parseCache(cacheType, cacheData, cacheHash)
             BJIVote.Race.model = cacheData.Race.model
             BJIVote.Race.specificConfig = cacheData.Race.specificConfig == true
             BJIVote.Race.respawnStrategy = cacheData.Race.respawnStrategy
-            BJIVote.Race.amountVotes = cacheData.Race.voters and tlength(cacheData.Race.voters) or 0
+            BJIVote.Race.amountVotes = cacheData.Race.voters and table.length(cacheData.Race.voters) or 0
             BJIVote.Race.selfVoted = cacheData.Race.voters and
-                tincludes(cacheData.Race.voters, BJIContext.User.playerID, true) or false
+                table.includes(cacheData.Race.voters, BJIContext.User.playerID) or false
         end
         if cacheData.Speed then
             BJIVote.Speed.creatorID = cacheData.Speed.creatorID
@@ -615,14 +615,14 @@ local function slowTick(ctxt)
     for _, cacheType in pairs(M.BASE_CACHES) do
         if M._states[cacheType] == M.CACHE_STATES.EMPTY then
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
-            LogDebug(svar("Requesting cache {1}", { cacheType }), M._name)
+            LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
             BJITx.cache.require(cacheType)
         end
     end
 
     if M.areBaseCachesFirstLoaded() then
         for _, cacheType in pairs(M.CACHES) do
-            if not tincludes(M.BASE_CACHES, cacheType, true) then
+            if not table.includes(M.BASE_CACHES, cacheType) then
                 if M._states[cacheType] == M.CACHE_STATES.EMPTY then
                     _tryRequestCache(cacheType)
                 end

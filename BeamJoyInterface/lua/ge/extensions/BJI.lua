@@ -38,17 +38,17 @@ function TriggerBJIEvent(eventName, ...)
         if type(manager[eventName]) == "function" then
             local status, err = pcall(manager[eventName], ...)
             if not status then
-                LogError(svar("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
+                LogError(string.var("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
             end
         end
     end
 end
 
 require("log")
+require("ge/extensions/utils/Lua")
+require("ge/extensions/utils/Math")
 require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
-require("ge/extensions/utils/LUA")
-require("ge/extensions/utils/MATH")
 require("ge/extensions/utils/Constants")
 require("ge/extensions/utils/Icons")
 ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
@@ -124,7 +124,7 @@ function M.onExtensionLoaded()
         end
     end
 
-    LogInfo(svar("BJI v{1} Extension Loaded", { BJIVERSION }), tag)
+    LogInfo(string.var("BJI v{1} Extension Loaded", { BJIVERSION }), tag)
 end
 
 M.onInit = function()
@@ -164,7 +164,7 @@ M.onVehicleResetted = function(gameVehID)
     BJIAsync.delayTask(function()
         -- delay execution or else vehicle can't be own
         TriggerBJIEvent("onVehicleResetted", gameVehID)
-    end, 100, svar("BJIVehReset{1}", { gameVehID }))
+    end, 100, string.var("BJIVehReset{1}", { gameVehID }))
 end
 M.onVehicleDestroyed = function(...)
     TriggerBJIEvent("onVehicleDestroyed", ...)
@@ -182,7 +182,7 @@ function M.onExtensionUnloaded()
             manager.onUnload()
         end
     end
-    LogInfo(svar("BJI v{1} Extension Unloaded", { BJIVERSION }), tag)
+    LogInfo(string.var("BJI v{1} Extension Unloaded", { BJIVERSION }), tag)
 end
 
 return M

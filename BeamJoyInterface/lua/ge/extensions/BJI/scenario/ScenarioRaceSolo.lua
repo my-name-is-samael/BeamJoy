@@ -149,7 +149,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -209,14 +209,14 @@ local function initSteps(steps)
                         else
                             -- point from last lap finishes
                             for _, lastWP in ipairs(steps[#steps]) do
-                                table.insert(parents, svar("{1}-{2}", { lastWP.name, iLap - 1 }))
+                                table.insert(parents, string.var("{1}-{2}", { lastWP.name, iLap - 1 }))
                             end
                         end
                     else
-                        table.insert(parents, svar("{1}-{2}", { parent, iLap }))
+                        table.insert(parents, string.var("{1}-{2}", { parent, iLap }))
                     end
                 end
-                local name = svar("{1}-{2}", { wp.name, iLap })
+                local name = string.var("{1}-{2}", { wp.name, iLap })
                 table.insert(nStep, {
                     name = name,
                     pos = wp.pos,
@@ -460,7 +460,7 @@ local function onCheckpointReached(wp, remainingSteps)
             if M.race.lap == M.settings.laps then
                 lapMessage = BJILang.get("races.play.finalLapFlash")
             else
-                lapMessage = svar(BJILang.get("races.play.Lap"), { lap = M.race.lap })
+                lapMessage = BJILang.get("races.play.Lap"):var({ lap = M.race.lap })
             end
             BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
 
@@ -569,15 +569,15 @@ local function findFreeStartPosition(startPositions)
             end
         end
         if positionFree then
-            return TryParsePosRot(tdeepcopy(sp))
+            return TryParsePosRot(table.clone(sp))
         end
     end
-    return TryParsePosRot(tdeepcopy(startPositions[1]))
+    return TryParsePosRot(table.clone(startPositions[1]))
 end
 
 local function initRace(ctxt, settings, raceData, testingCallback)
-    M.baseSettings = tdeepcopy(settings)
-    M.baseRaceData = tdeepcopy(raceData)
+    M.baseSettings = table.clone(settings)
+    M.baseRaceData = table.clone(raceData)
 
     if testingCallback then
         M.testing = true
@@ -607,7 +607,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     local previousCam = ctxt.camera
     BJIVeh.setPositionRotation(M.startPosition.pos, M.startPosition.rot)
     BJIVeh.freeze(true)
-    if tincludes({
+    if table.includes({
             BJICam.CAMERAS.FREE,
             BJICam.CAMERAS.BIG_MAP,
             BJICam.CAMERAS.PASSENGER,
@@ -662,7 +662,7 @@ local function renderTick(ctxt)
     elseif M.race.timers.lap then
         time = M.race.timers.lap:get()
     end
-    guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
+    guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
 
     -- fix vehicle position / damages on grid
     if not M.gridResetProcess and

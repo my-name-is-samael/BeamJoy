@@ -16,7 +16,7 @@ local function drawRespawnStrategies(cols)
     for _, rs in ipairs(settings.respawnStrategies) do
         table.insert(comboRespawnStrategies, {
             value = rs,
-            label = BJILang.get(svar("races.settings.respawnStrategies.{1}", { rs })),
+            label = BJILang.get(string.var("races.settings.respawnStrategies.{1}", { rs })),
         })
         if rs == settings.respawnStrategy then
             selected = comboRespawnStrategies[#comboRespawnStrategies]
@@ -106,7 +106,7 @@ local function drawVehicleSelector(cols, ctxt)
                                         settings.vehicleLabel = BJIVeh.getModelLabel(settings.vehicleModel)
                                     else
                                         settings.vehicleConfig = BJIVeh.getFullConfig(ctxt.veh.partConfig)
-                                        settings.vehicleLabel = svar("{1} {2}",
+                                        settings.vehicleLabel = string.var("{1} {2}",
                                             { BJIVeh.getModelLabel(settings.vehicleModel), BJIVeh
                                                 .getCurrentConfigLabel() })
                                     end
@@ -138,7 +138,7 @@ local function drawVehicleSelector(cols, ctxt)
                                     settings.vehicleLabel = BJIVeh.getModelLabel(settings.vehicleModel)
                                 else
                                     settings.vehicleConfig = BJIVeh.getFullConfig()
-                                    settings.vehicleLabel = svar("{1} {2}",
+                                    settings.vehicleLabel = string.var("{1} {2}",
                                         { BJIVeh.getModelLabel(settings.vehicleModel), BJIVeh
                                             .getCurrentConfigLabel() })
                                 end
@@ -178,7 +178,7 @@ local function drawTimeOfDaySelector(cols)
                         id = "timePreset",
                         items = presets,
                         getLabelFn = function(v)
-                            return BJILang.get(svar("presets.time.{1}", { v.label }))
+                            return BJILang.get(string.var("presets.time.{1}", { v.label }))
                         end,
                         value = selected,
                         onChange = function(v)
@@ -216,7 +216,7 @@ local function drawWeatherSelector(cols)
                         id = "weatherPreset",
                         items = presets,
                         getLabelFn = function(v)
-                            return BJILang.get(svar("presets.weather.{1}", { v.label }))
+                            return BJILang.get(string.var("presets.weather.{1}", { v.label }))
                         end,
                         value = selected,
                         onChange = function(v)
@@ -234,8 +234,8 @@ local function getPayloadSettings()
         laps = settings.loopable and settings.laps or nil,
         model = settings.vehicle ~= nil and settings.vehicleModel or nil,
         config = settings.vehicle == "config" and settings.vehicleConfig or nil,
-        time = tdeepcopy(settings.time),
-        weather = tdeepcopy(settings.weather),
+        time = table.clone(settings.time),
+        weather = table.clone(settings.weather),
         respawnStrategy = settings.respawnStrategy,
     }
 end
@@ -258,7 +258,7 @@ local function drawHeader(ctxt)
         :build()
 
     LineBuilder()
-        :text(svar("{1} \"{2}\"", { BJILang.get("races.play.race"), settings and settings.raceName }))
+        :text(string.var("{1} \"{2}\"", { BJILang.get("races.play.race"), settings and settings.raceName }))
         :build()
 end
 

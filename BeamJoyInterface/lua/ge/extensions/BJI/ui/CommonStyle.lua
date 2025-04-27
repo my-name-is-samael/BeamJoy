@@ -66,7 +66,7 @@ function SetStyleColor(col, color)
         end
     end
     if not found then
-        error(svar("Invalid style column: {1}", { col }))
+        error(string.var("Invalid style column: {1}", { col }))
         return
     end
 
@@ -126,5 +126,5 @@ function InitDefaultStyles()
 end
 
 function ResetStyles()
-    PopStyleColor(tlength(BJIStyles) + 1)
+    PopStyleColor(table.length(BJIStyles) + 1)
 end

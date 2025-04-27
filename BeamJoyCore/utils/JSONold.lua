@@ -112,14 +112,14 @@ function json.stringify(obj, level, key)
     if key then
         s[#s + 1] = "\"" .. key .. "\": "
     end
-    if tincludes({ "boolean", "number" }, type(obj)) then
+    if table.includes({ "boolean", "number" }, type(obj)) then
         s[#s + 1] = tostring(obj)
     elseif type(obj) == "string" then
-        s[#s + 1] = "\"" .. sescape(obj) .. "\""
+        s[#s + 1] = "\"" .. obj:escape() .. "\""
     elseif type(obj) == "nil" then
         s[#s + 1] = "null"
     elseif type(obj) == "table" then
-        if tisarray(obj) then
+        if table.isArray(obj) then
             s[#s + 1] = "[\n"
             for i, v in ipairs(obj) do
                 if i > 1 then
@@ -155,14 +155,14 @@ function json.stringifyRaw(obj, key)
     if key then
         s[#s + 1] = "\"" .. key .. "\":"
     end
-    if tincludes({ "boolean", "number" }, type(obj)) then
+    if table.includes({ "boolean", "number" }, type(obj)) then
         s[#s + 1] = tostring(obj)
     elseif type(obj) == "string" then
-        s[#s + 1] = "\"" .. sescape(obj) .. "\""
+        s[#s + 1] = "\"" .. obj:escape() .. "\""
     elseif type(obj) == "nil" then
         s[#s + 1] = "null"
     elseif type(obj) == "table" then
-        --[[if tisarray(obj) then
+        --[[if table.isArray(obj) then
             s[#s + 1] = "["
             for i, v in ipairs(obj) do
                 if i > 1 then

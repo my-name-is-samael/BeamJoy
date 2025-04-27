@@ -5,7 +5,7 @@ local function drawHeader(ctxt)
 
     local line = LineBuilder()
         :text("Tag Duo")
-    if tlength(mgr.selfLobby.players) == 1 then
+    if table.length(mgr.selfLobby.players) == 1 then
         opponentID = nil
         line:text("(Waiting for an opponent)")
     else
@@ -17,7 +17,7 @@ local function drawHeader(ctxt)
                 end
             end
         end
-        line:text(svar("with {1}", { BJIContext.Players[opponentID].playerName }))
+        line:text(string.var("with {1}", { BJIContext.Players[opponentID].playerName }))
     end
     line:build()
     EmptyLine()
@@ -58,7 +58,7 @@ local function drawBody(ctxt)
 
     local lobbies = {}
     for i, l in pairs(mgr.lobbies) do
-        if not l.players[ctxt.user.playerID] and tlength(l.players) < 2 then
+        if not l.players[ctxt.user.playerID] and table.length(l.players) < 2 then
             table.insert(lobbies, {
                 id = i,
                 host = l.host,
@@ -72,7 +72,7 @@ local function drawBody(ctxt)
         for i, l in ipairs(lobbies) do
             LineBuilder()
                 :btnIcon({
-                    id = svar("joinLobby-{1}", { i }),
+                    id = string.var("joinLobby-{1}", { i }),
                     icon = ICONS.videogame_asset,
                     style = BTN_PRESETS.SUCCESS,
                     onClick = function()

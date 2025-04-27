@@ -49,7 +49,7 @@ local function onClientJoin(senderID, lobbyIndex, gameVehID)
         local lobby = M.lobbies[lobbyIndex]
         if not lobby or
             lobby.host == senderID or
-            tlength(lobby.players) > 1 then -- invalid lobby or already host or already 2 players in lobby
+            table.length(lobby.players) > 1 then -- invalid lobby or already host or already 2 players in lobby
             error({ key = "rx.errors.invalidData" })
         end
 
@@ -89,7 +89,7 @@ local function onClientReady(senderID, lobby)
     if readyCount == 2 then -- both players ready > start tag
         local tagger
         if not lobby.lastTagger then
-            tagger = trandom(tkeys(lobby.players))
+            tagger = table.random(table.keys(lobby.players))
         else
             for id in pairs(lobby.players) do
                 if id ~= lobby.lastTagger then
