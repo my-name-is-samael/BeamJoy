@@ -218,6 +218,7 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt SlowTickContext
 local function slowTick(ctxt)
     if M.type == M.TYPES.GHOSTS then
         -- clear invalid ghosts
@@ -241,7 +242,7 @@ local function slowTick(ctxt)
         end
     end
 
-    if ctxt.veh then
+    if ctxt.veh and not BJIVeh.isUnicycle(ctxt.veh:getID()) then
         local vehID = ctxt.veh:getID()
         if M.alphas[vehID] ~= M.playerAlpha then
             M.alphas[vehID] = nil
