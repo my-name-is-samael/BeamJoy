@@ -328,8 +328,10 @@
       },
       "vote": {
         "title": "Abstimmung",
-        "map": "Karte",
-        "mapCustom": "Brauch",
+        "map": {
+          "title": "Karte",
+          "custom": "Brauch"
+        },
         "race": {
           "title": "Wettrennen",
           "noRace": "Kein Rennen verfügbar",

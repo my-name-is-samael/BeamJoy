@@ -33,7 +33,7 @@ end
 
 require("ge/extensions/utils/Bench")
 
-function TriggerBJIEvent(eventName, ...)
+function TriggerBJIManagerEvent(eventName, ...)
     for i, manager in ipairs(managers) do
         if type(manager[eventName]) == "function" then
             local status, err = pcall(manager[eventName], ...)
@@ -120,7 +120,10 @@ function M.onExtensionLoaded()
     _initGUI()
     for _, manager in ipairs(managers) do
         if type(manager.onLoad) == "function" then
-            manager.onLoad()
+            local status, err = pcall(manager.onLoad)
+            if not status then
+                LogError(string.var("Error during {1} onLoad : {2}", {manager._name, err}), tag)
+            end
         end
     end
 
@@ -149,29 +152,29 @@ M.onUpdate = function(...)
 end
 
 commands.dropPlayerAtCamera = function(...)
-    TriggerBJIEvent("onDropPlayerAtCamera", ...)
+    TriggerBJIManagerEvent("onDropPlayerAtCamera", ...)
 end
 commands.dropPlayerAtCameraNoReset = function(...)
-    TriggerBJIEvent("onDropPlayerAtCameraNoReset", ...)
+    TriggerBJIManagerEvent("onDropPlayerAtCameraNoReset", ...)
 end
 M.onVehicleSpawned = function(...)
-    TriggerBJIEvent("onVehicleSpawned", ...)
+    TriggerBJIManagerEvent("onVehicleSpawned", ...)
 end
 M.onVehicleSwitched = function(...)
-    TriggerBJIEvent("onVehicleSwitched", ...)
+    TriggerBJIManagerEvent("onVehicleSwitched", ...)
 end
 M.onVehicleResetted = function(gameVehID)
     BJIAsync.delayTask(function()
         -- delay execution or else vehicle can't be own
-        TriggerBJIEvent("onVehicleResetted", gameVehID)
+        TriggerBJIManagerEvent("onVehicleResetted", gameVehID)
     end, 100, string.var("BJIVehReset{1}", { gameVehID }))
 end
 M.onVehicleDestroyed = function(...)
-    TriggerBJIEvent("onVehicleDestroyed", ...)
+    TriggerBJIManagerEvent("onVehicleDestroyed", ...)
 end
 
 function M.onDriftCompletedScored(...)
-    TriggerBJIEvent("onDriftCompletedScored", ...)
+    TriggerBJIManagerEvent("onDriftCompletedScored", ...)
 end
 
 M.setPhysicsSpeed = BJIContext.setPhysicsSpeed
@@ -179,7 +182,10 @@ M.setPhysicsSpeed = BJIContext.setPhysicsSpeed
 function M.onExtensionUnloaded()
     for _, manager in ipairs(managers) do
         if type(manager.onUnload) == "function" then
-            manager.onUnload()
+            local status, err = pcall(manager.onUnload)
+            if not status then
+                LogError(string.var("Error during {1} onUnload : {2}", {manager._name, err}), tag)
+            end
         end
     end
     LogInfo(string.var("BJI v{1} Extension Unloaded", { BJIVERSION }), tag)

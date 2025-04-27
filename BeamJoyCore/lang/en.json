@@ -329,8 +329,10 @@
       },
       "vote": {
         "title": "Vote",
-        "map": "Map",
-        "mapCustom": "custom",
+        "map": {
+          "title": "Map",
+          "custom": "custom"
+        },
         "race": {
           "title": "Race",
           "noRace": "No race available",

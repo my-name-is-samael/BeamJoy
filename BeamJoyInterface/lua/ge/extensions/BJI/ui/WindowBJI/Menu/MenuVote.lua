@@ -1,9 +1,7 @@
 local function menuMap(ctxt, votesEntry)
-    if BJIVote.Map.canStartVote() and
-        BJIScenario.isFreeroam() and
-        BJIContext.Maps then
+    if BJIVote.Map.canStartVote() then
         local maps = {}
-        local customMapLabel = BJILang.get("menu.vote.mapCustom")
+        local customMapLabel = BJILang.get("menu.vote.map.custom")
         for mapName, map in pairs(BJIContext.Maps.Data) do
             if map.enabled then
                 table.insert(maps, {
@@ -21,7 +19,7 @@ local function menuMap(ctxt, votesEntry)
             return a.label < b.label
         end)
         table.insert(votesEntry.elems, {
-            label = BJILang.get("menu.vote.map"),
+            label = BJILang.get("menu.vote.map.title"),
             elems = maps
         })
     end

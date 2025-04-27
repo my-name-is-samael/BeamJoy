@@ -30,6 +30,8 @@ function GetHorizontalDistance(pos1, pos2)
     return p1:distance(p2)
 end
 
+---@param obj table
+---@return BJIPositionRotation
 function TryParsePosRot(obj)
     if type(obj) ~= "table" then
         return obj
@@ -46,6 +48,8 @@ function TryParsePosRot(obj)
     return obj
 end
 
+---@param posRot BJIPositionRotation
+---@return BJIPositionRotation
 function RoundPositionRotation(posRot)
     if posRot and posRot.pos then
         posRot.pos.x = math.round(posRot.pos.x, 3)

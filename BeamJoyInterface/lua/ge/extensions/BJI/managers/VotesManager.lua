@@ -12,6 +12,20 @@ M.Kick = {
     selfVoted = false,
 }
 
+function M.Kick.onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.VOTE, function(cacheData)
+        if cacheData.Kick then
+            M.Kick.threshold = cacheData.Kick.threshold
+            M.Kick.creatorID = cacheData.Kick.creatorID
+            M.Kick.targetID = cacheData.Kick.targetID
+            M.Kick.endsAt = BJITick.applyTimeOffset(cacheData.Kick.endsAt)
+            M.Kick.amountVotes = cacheData.Kick.voters and table.length(cacheData.Kick.voters) or 0
+            M.Kick.selfVoted = cacheData.Kick.voters and
+                table.includes(cacheData.Kick.voters, BJIContext.User.playerID) or false
+        end
+    end)
+end
+
 function M.Kick.started()
     return M.Kick.targetID ~= nil
 end
@@ -53,6 +67,21 @@ M.Map = {
     selfVoted = false,
 }
 
+function M.Map.onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.VOTE, function(cacheData)
+        if cacheData.Map then
+            M.Map.threshold = cacheData.Map.threshold
+            M.Map.creatorID = cacheData.Map.creatorID
+            M.Map.mapLabel = cacheData.Map.mapLabel
+            M.Map.mapCustom = cacheData.Map.mapCustom == true
+            M.Map.endsAt = BJITick.applyTimeOffset(cacheData.Map.endsAt)
+            M.Map.amountVotes = cacheData.Map.voters and table.length(cacheData.Map.voters) or 0
+            M.Map.selfVoted = cacheData.Map.voters and
+                table.includes(cacheData.Map.voters, BJIContext.User.playerID) or false
+        end
+    end)
+end
+
 function M.Map.started()
     return M.Map.mapLabel ~= nil
 end
@@ -68,13 +97,10 @@ function M.Map.getTotalPlayers()
 end
 
 function M.Map.canStartVote()
-    -- Rule in https://github.com/my-name-is-samael/BeamJoy/issues/14
     return not M.Map.started() and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_MAP) and
-        (
-            M.Map.getTotalPlayers() > 1 or
-            not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP)
-        )
+        BJIScenario.isFreeroam() and
+        not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP)
 end
 
 function M.Map.start(mapName)
@@ -101,6 +127,29 @@ M.Race = {
     amountVotes = 0,
     selfVoted = false,
 }
+
+function M.Race.onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.VOTE, function(cacheData)
+        if cacheData.Race then
+            M.Race.threshold = cacheData.Race.threshold
+            M.Race.creatorID = cacheData.Race.creatorID
+            M.Race.endsAt = BJITick.applyTimeOffset(cacheData.Race.endsAt)
+            M.Race.isVote = cacheData.Race.isVote
+            M.Race.raceName = cacheData.Race.raceName
+            M.Race.places = cacheData.Race.places
+            M.Race.record = cacheData.Race.record
+            M.Race.timeLabel = cacheData.Race.timeLabel
+            M.Race.weatherLabel = cacheData.Race.weatherLabel
+            M.Race.laps = cacheData.Race.laps
+            M.Race.model = cacheData.Race.model
+            M.Race.specificConfig = cacheData.Race.specificConfig == true
+            M.Race.respawnStrategy = cacheData.Race.respawnStrategy
+            M.Race.amountVotes = cacheData.Race.voters and table.length(cacheData.Race.voters) or 0
+            M.Race.selfVoted = cacheData.Race.voters and
+                table.includes(cacheData.Race.voters, BJIContext.User.playerID) or false
+        end
+    end)
+end
 
 function M.Race.started()
     return M.Race.creatorID ~= nil
@@ -129,6 +178,17 @@ M.Speed = {
     participants = {},
 }
 
+function M.Speed.onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.VOTE, function(cacheData)
+        if cacheData.Speed then
+            M.Speed.creatorID = cacheData.Speed.creatorID
+            M.Speed.isEvent = not cacheData.Speed.isVote
+            M.Speed.endsAt = cacheData.Speed.endsAt
+            M.Speed.participants = cacheData.Speed.participants
+        end
+    end)
+end
+
 function M.Speed.started()
     return M.Speed.endsAt ~= nil
 end
@@ -138,6 +198,14 @@ function M.Speed.canStartVote()
         not BJIScenario.isServerScenarioInProgress() and
         BJIScenario.isFreeroam() and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+end
+
+local function onLoad()
+    table.forEach({ M.Kick, M.Map, M.Race, M.Speed }, function(el)
+        if el.onLoad then
+            el.onLoad()
+        end
+    end)
 end
 
 local function slowTick(ctxt)
@@ -160,6 +228,7 @@ local function slowTick(ctxt)
     end
 end
 
+M.onLoad = onLoad
 M.slowTick = slowTick
 
 RegisterBJIManager(M)

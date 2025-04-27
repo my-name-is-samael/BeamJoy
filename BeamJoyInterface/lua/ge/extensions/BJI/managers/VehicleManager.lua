@@ -1,3 +1,18 @@
+---@class BJIVehicleData
+---@field vehID integer
+---@field gameVehID integer
+---@field model string
+---@field damageState number
+---@field engine boolean
+---@field engineStation boolean
+---@field freeze boolean
+---@field freezeStation boolean
+---@field tanks table<string, {energyType: string, storageType: string, maxEnergy: number, currentEnergy: number}>
+
+---@class BJIPositionRotation
+---@field pos vec3
+---@field rot quat
+
 local M = {
     _name = "BJIVeh",
     baseFunctions = {},
@@ -40,6 +55,19 @@ end
 local function isGEInit()
     return MPVehicleGE ~= nil
 end
+
+---@class BJIMPVehicle
+---@field gameVehicleID string
+---@field isDeleted boolean
+---@field isLocal boolean
+---@field isSpawned boolean
+---@field jbeam string
+---@field ownerID string
+---@field ownerName string
+---@field remoteVehID string
+---@field serverVehicleID string
+---@field serverVehicleString string
+---@field spectators integer[]
 
 local function getMPVehicles()
     local vehs = {}
@@ -117,18 +145,6 @@ local function dropPlayerAtCamera(withReset)
             core_camera.resetCamera(0)
         end
     end
-
-    --[[    _getPlayerVehicleAndPosAndRotation(
-        function(vehicle, pos, camRot)
-            vehicle:setPositionRotation(pos.x, pos.y, pos.z, camRot.x, camRot.y, camRot.z, camRot.w)
-            setGameCamera()
-
-            if BJICam.getCamera() == BJICam.CAMERAS.BIG_MAP then
-                BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-            end
-            core_camera.resetCamera(0)
-        end
-    )]]
 end
 
 local function dropPlayerAtCameraNoReset()
@@ -370,6 +386,8 @@ local function explodeVehicle(gameVehID)
     end
 end
 
+---@param veh? userdata
+---@return BJIPositionRotation|nil
 local function getPositionRotation(veh)
     if not veh then
         veh = M.getCurrentVehicle()
@@ -389,16 +407,14 @@ end
 
 --[[
 <ul>
-    <li>pos: vec3</li>
-    <li>rot: quat DEFAULT veh:rot</li>
-    <li>options = NULLABLE</li>
-    <ul>
-        <li>safe: boolean DEFAULT true</li>
-        <li>saveHome: boolean NULLABLE</li>
-        <li>noReset: boolean DEFAULT false</li>
-    </ul>
+    <li>safe?: boolean DEFAULT true</li>
+    <li>saveHome?: boolean NULLABLE</li>
+    <li>noReset?: boolean DEFAULT false</li>
 </ul>
 ]]
+---@param pos vec3
+---@param rot? quat DEFAULT to currentVeh:rot
+---@param options? { safe?: boolean, saveHome?: boolean, noReset?: boolean }
 local function setPositionRotation(pos, rot, options)
     if not pos then
         return
@@ -541,17 +557,16 @@ local function lights(state, gameVehID, allLights)
 end
 
 --[[
+gearIndex:
 <ul>
-    <li>vehID: number</li>
-    <li>gearIndex: number</li>
-    <ul>
-        <li>-1 : R</li>
-        <li>0 : N</li>
-        <li>1 : 1 or D</li>
-        <li>...</li>
-    </ul>
+    <li>-1 : R</li>
+    <li>0 : N</li>
+    <li>1 : 1 or D</li>
+    <li>...</li>
 </ul>
 ]]
+---@param vehID? integer DEFAULT to currentVeh:getID()
+---@param gearIndex integer
 local function setGear(vehID, gearIndex)
     local vehicle
     if vehID then
@@ -696,10 +711,9 @@ local function isModelBlacklisted(model)
         table.includes(BJIContext.Database.Vehicles.ModelBlacklist, model)
 end
 
---[[
-config is optionnal<br>
-return the full config raw data
-]]
+--- return the full config raw data
+---@param config? string|table
+---@return table|nil
 local function getFullConfig(config)
     local veh = M.getCurrentVehicle()
     if not config and not veh then

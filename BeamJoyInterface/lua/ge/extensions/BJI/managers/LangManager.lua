@@ -4,6 +4,14 @@ local M = {
     Messages = {},
 }
 
+local function onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.LANG, function(cacheData)
+        BJILang.Langs = cacheData.langs
+        table.sort(BJILang.Langs, function(a, b) return a:lower() < b:lower() end)
+        BJILang.Messages = cacheData.messages
+    end)
+end
+
 local function initClient()
     local lang = Lua:getSelectedLanguage()
     if lang and type(lang) == "string" and lang:find("_") then
@@ -71,6 +79,8 @@ local function drawSelector(data)
     end
     line:build()
 end
+
+M.onLoad = onLoad
 
 M.initClient = initClient
 M.get = get

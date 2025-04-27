@@ -1,9 +1,25 @@
+---@class TickContext
+---@field now integer
+---@field user BJIUser
+---@field group BJIGroup
+---@field veh? userdata|any
+---@field vehPosRot? BJIPositionRotation
+---@field isOwner boolean
+---@field vehData? BJIVehicleData
+---@field camera string
+
+---@class SlowTickContext : TickContext
+---@field serverTime integer
+---@field cachesHashes table<string, string>
+---@field ToD? number
+
 local M = {
     _name = "BJITick",
     timeOffsets = {}, -- time offsets in sec
 }
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
+---@return TickContext
 local function getContext()
     local veh = BJIVeh.getCurrentVehicle()
     local isOwner = veh and BJIVeh.isVehicleOwn(veh:getID())
@@ -31,7 +47,7 @@ end
 -- ClientTick (each render tick)
 local function client()
     if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
-        TriggerBJIEvent("renderTick", getContext())
+        TriggerBJIManagerEvent("renderTick", getContext())
     end
 end
 
@@ -44,9 +60,10 @@ local function server(serverData)
         end
     end
 
+    ---@type SlowTickContext|any
     local ctxt = getContext()
     table.assign(ctxt, serverData or {})
-    TriggerBJIEvent("slowTick", ctxt)
+    TriggerBJIManagerEvent("slowTick", ctxt)
 end
 
 local function getAvgOffsetMs()
