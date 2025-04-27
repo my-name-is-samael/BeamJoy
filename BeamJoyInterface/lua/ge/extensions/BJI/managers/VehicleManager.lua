@@ -1029,10 +1029,14 @@ local factorMJToReadable = {
     n2o = 8.3,
     electricEnergy = 3.6,
 }
+---@param value number
+---@param energyType string
+---@return number
 local function jouleToReadableUnit(value, energyType)
     if not energyType then
-        LogError("jouleToReadableUnit requires energyType")
-        return
+        error("jouleToReadableUnit requires energyType")
+    elseif not factorMJToReadable[energyType] then
+        error("jouleToReadableUnit unknown energyType " .. energyType)
     end
     return value / 1000000 / factorMJToReadable[energyType]
 end

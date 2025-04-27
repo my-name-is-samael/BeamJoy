@@ -44,7 +44,7 @@ local function drawGroupNewPermission(groupName, cols)
             function()
                 LineBuilder()
                     :btnIcon({
-                        id = string.var("newPerm" .. groupName),
+                        id = string.var("newPerm{1}", {groupName}),
                         icon = ICONS.done,
                         style = BTN_PRESETS.SUCCESS,
                         disabled = group._new == "",

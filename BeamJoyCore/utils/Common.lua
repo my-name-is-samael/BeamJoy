@@ -38,6 +38,7 @@ FS = FS or {
     Copy = function(srcPath, destPath) end,
     Remove = function(path) end,
 }
+Util = Util or {}
 Exit = exit or function() end
 -------------------------------------------------------------------------
 

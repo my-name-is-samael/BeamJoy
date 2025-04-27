@@ -116,7 +116,7 @@ local function commonDrawEnergyLines(ctxt, energyStation)
     end
 
     for energyType, energyData in pairs(tankGroups) do
-        drawEnergyLine(energyType, energyData)
+        pcall(drawEnergyLine, energyType, energyData)
     end
 end
 
