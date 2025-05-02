@@ -69,6 +69,175 @@ local C = {
     DatabaseEditorOpen = false,
 }
 
+local function loadUser()
+    BJICache.addRxHandler(BJICache.CACHES.USER, function(cacheData)
+        local previous = table.clone(C.User) or {}
+
+        C.User.playerID = cacheData.playerID
+        C.User.playerName = cacheData.playerName
+        C.User.group = cacheData.group
+        C.User.lang = cacheData.lang
+        C.User.freeze = cacheData.freeze == true
+        C.User.engine = cacheData.engine == true
+        BJIAsync.task(function()
+            return BJICache.areBaseCachesFirstLoaded()
+        end, function()
+            local group = BJIPerm.Groups[C.User.group]
+            BJIAI.update(group.canSpawnAI)
+            if not group.canSpawn and BJIVeh.hasVehicle() then
+                BJIVeh.deleteAllOwnVehicles()
+            end
+        end, "BJIUpdateUserByGroup")
+
+        -- vehicles
+        C.User.currentVehicle = cacheData.currentVehicle
+        for vehID, vehicle in pairs(cacheData.vehicles) do
+            if not C.User.vehicles[vehID] then
+                C.User.vehicles[vehID] = {
+                    freezeStation = false,
+                    engineStation = true,
+                }
+            end
+            table.assign(C.User.vehicles[vehID], vehicle)
+        end
+        -- remove obsolete vehicles
+        for vehID in pairs(C.User.vehicles) do
+            if not cacheData.vehicles[vehID] then
+                C.User.vehicles[vehID] = nil
+            end
+        end
+        BJIScenario.updateVehicles()
+
+        BJIReputation.updateReputationSmooth(cacheData.reputation)
+
+        for k, v in pairs(cacheData.settings) do
+            C.UserSettings[k] = v
+        end
+        C.UserStats = cacheData.stats
+
+        BJIAsync.task(function()
+            return not not C.BJC.Freeroam
+        end, function()
+            -- update quick travel
+            if BJIScenario.isFreeroam() then
+                BJIQuickTravel.toggle(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
+            end
+            -- update nametags
+            BJINametags.tryUpdate()
+        end, "BJICacheFreeroamReady")
+
+        -- events detection
+        local previousVehCount = table.length(previous.vehicles)
+        local currentVehCount = table.length(C.User.vehicles)
+        if previousVehCount ~= currentVehCount then
+            if previousVehCount < currentVehCount then
+                -- new veh
+                table.find(C.User.vehicles, function(_, vehID)
+                    return not previous.vehicles[vehID]
+                end, function(veh)
+                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_SPAWNED, {
+                        self = true,
+                        playerID = C.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            else
+                -- removed veh
+                table.find(previous.vehicles, function(_, vehID)
+                    return not C.User.vehicles[vehID]
+                end, function(veh)
+                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_REMOVED, {
+                        self = true,
+                        playerID = C.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            end
+        end
+
+        if previous.group ~= C.User.group then
+            BJIEvents.trigger(BJIEvents.EVENTS.PERMISSION_CHANGED, {
+                self = true,
+                type = "group_assign",
+            })
+        end
+    end)
+end
+
+local function loadPlayers()
+    BJICache.addRxHandler(BJICache.CACHES.PLAYERS, function(cacheData)
+        local previousPlayers = table.clone(C.Players)
+        for _, p in pairs(cacheData) do
+            if not C.Players[p.playerID] then
+                C.Players[p.playerID] = {
+                    playerID = p.playerID,
+                    playerName = p.playerName,
+                    guest = true,
+                    muteReason = "",
+                    kickReason = "",
+                    banReason = "",
+                    tempBanDuration = C.BJC.TempBan and C.BJC.TempBan.minTime or 0, -- input for mods+
+                    hideNametag = false,
+                    currentVehicle = nil,
+                    vehicles = {},
+                    ai = {},
+                }
+            end
+            local player = C.Players[p.playerID]
+            for k, v in pairs(p) do
+                player[k] = v
+            end
+        end
+
+        -- remove obsolete players
+        for k, v in pairs(C.Players) do
+            local found = false
+            for _, v2 in pairs(cacheData) do
+                if v.playerName == v2.playerName then
+                    found = true
+                end
+            end
+            if not found then
+                C.Players[k] = nil
+            end
+        end
+
+        -- update AI vehicles (to hide their nametags)
+        BJIAI.updateVehicles()
+
+        -- events detection
+        local previousPlayersCount = table.length(previousPlayers)
+        local currentPlayersCount = table.length(C.Players)
+        if previousPlayersCount ~= currentPlayersCount then
+            if previousPlayersCount < currentPlayersCount then
+                -- player connected
+                table.find(C.Players, function(_, playerID)
+                    return not previousPlayers[playerID]
+                end, function(player)
+                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_CONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            else
+                -- player disconnected
+                table.find(previousPlayers, function(_, playerID)
+                    return not C.Players[playerID]
+                end, function(player)
+                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_DISCONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            end
+        end
+    end)
+end
+
 local previousUI = {}
 local function loadUI()
     -- env data for UI
@@ -354,173 +523,8 @@ local function loadScenarii()
 end
 
 function C.onLoad()
-    -- user data
-    BJICache.addRxHandler(BJICache.CACHES.USER, function(cacheData)
-        local previous = table.clone(C.User) or {}
-
-        C.User.playerID = cacheData.playerID
-        C.User.playerName = cacheData.playerName
-        C.User.group = cacheData.group
-        C.User.lang = cacheData.lang
-        C.User.freeze = cacheData.freeze == true
-        C.User.engine = cacheData.engine == true
-        BJIAsync.task(function()
-            return BJICache.areBaseCachesFirstLoaded()
-        end, function()
-            local group = BJIPerm.Groups[C.User.group]
-            BJIAI.update(group.canSpawnAI)
-            if not group.canSpawn and BJIVeh.hasVehicle() then
-                BJIVeh.deleteAllOwnVehicles()
-            end
-        end, "BJIUpdateUserByGroup")
-
-        -- vehicles
-        C.User.currentVehicle = cacheData.currentVehicle
-        for vehID, vehicle in pairs(cacheData.vehicles) do
-            if not C.User.vehicles[vehID] then
-                C.User.vehicles[vehID] = {
-                    freezeStation = false,
-                    engineStation = true,
-                }
-            end
-            table.assign(C.User.vehicles[vehID], vehicle)
-        end
-        -- remove obsolete vehicles
-        for vehID in pairs(C.User.vehicles) do
-            if not cacheData.vehicles[vehID] then
-                C.User.vehicles[vehID] = nil
-            end
-        end
-        BJIScenario.updateVehicles()
-
-        BJIReputation.updateReputationSmooth(cacheData.reputation)
-
-        for k, v in pairs(cacheData.settings) do
-            C.UserSettings[k] = v
-        end
-        C.UserStats = cacheData.stats
-
-        BJIAsync.task(function()
-            return not not C.BJC.Freeroam
-        end, function()
-            -- update quick travel
-            if BJIScenario.isFreeroam() then
-                BJIQuickTravel.toggle(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
-            end
-            -- update nametags
-            BJINametags.tryUpdate()
-        end, "BJICacheFreeroamReady")
-
-        -- events detection
-        local previousVehCount = table.length(previous.vehicles)
-        local currentVehCount = table.length(C.User.vehicles)
-        if previousVehCount ~= currentVehCount then
-            if previousVehCount < currentVehCount then
-                -- new veh
-                table.find(C.User.vehicles, function(_, vehID)
-                    return not previous.vehicles[vehID]
-                end, function(veh)
-                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_SPAWNED, {
-                        self = true,
-                        playerID = C.User.playerID,
-                        vehID = veh.vehID,
-                        gameVehID = veh.gameVehID,
-                        vehData = veh,
-                    })
-                end)
-            else
-                -- removed veh
-                table.find(previous.vehicles, function(_, vehID)
-                    return not C.User.vehicles[vehID]
-                end, function(veh)
-                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_REMOVED, {
-                        self = true,
-                        playerID = C.User.playerID,
-                        vehID = veh.vehID,
-                        gameVehID = veh.gameVehID,
-                        vehData = veh,
-                    })
-                end)
-            end
-        end
-
-        if previous.group ~= C.User.group then
-            BJIEvents.trigger(BJIEvents.EVENTS.PERMISSION_CHANGED, {
-                self = true,
-                type = "group_assign",
-            })
-        end
-    end)
-
-    -- players list data
-    BJICache.addRxHandler(BJICache.CACHES.PLAYERS, function(cacheData)
-        local previousPlayers = table.clone(C.Players)
-        for _, p in pairs(cacheData) do
-            if not C.Players[p.playerID] then
-                C.Players[p.playerID] = {
-                    playerID = p.playerID,
-                    playerName = p.playerName,
-                    guest = true,
-                    muteReason = "",
-                    kickReason = "",
-                    banReason = "",
-                    tempBanDuration = C.BJC.TempBan and C.BJC.TempBan.minTime or 0, -- input for mods+
-                    hideNametag = false,
-                    currentVehicle = nil,
-                    vehicles = {},
-                    ai = {},
-                }
-            end
-            local player = C.Players[p.playerID]
-            for k, v in pairs(p) do
-                player[k] = v
-            end
-        end
-
-        -- remove obsolete players
-        for k, v in pairs(C.Players) do
-            local found = false
-            for _, v2 in pairs(cacheData) do
-                if v.playerName == v2.playerName then
-                    found = true
-                end
-            end
-            if not found then
-                C.Players[k] = nil
-            end
-        end
-
-        -- update AI vehicles (to hide their nametags)
-        BJIAI.updateVehicles()
-
-        -- events detection
-        local previousPlayersCount = table.length(previousPlayers)
-        local currentPlayersCount = table.length(C.Players)
-        if previousPlayersCount ~= currentPlayersCount then
-            if previousPlayersCount < currentPlayersCount then
-                -- player connected
-                table.find(C.Players, function(_, playerID)
-                    return not previousPlayers[playerID]
-                end, function(player)
-                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_CONNECT, {
-                        playerID = player.playerID,
-                        playerName = player.playerName,
-                    })
-                end)
-            else
-                -- player disconnected
-                table.find(previousPlayers, function(_, playerID)
-                    return not C.Players[playerID]
-                end, function(player)
-                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_DISCONNECT, {
-                        playerID = player.playerID,
-                        playerName = player.playerName,
-                    })
-                end)
-            end
-        end
-    end)
-
+    loadUser()
+    loadPlayers()
     loadUI()
     loadConfig()
     loadDatabase()

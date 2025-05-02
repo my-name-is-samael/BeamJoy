@@ -210,14 +210,12 @@ local function onLoad()
                         return not M.Groups[groupName]
                     end, function(_, groupName)
                         BJIEvents.trigger(BJIEvents.EVENTS.PERMISSION_CHANGED, {
-                            self = true,
                             type = "group_remove",
                             group = groupName,
                         })
                     end)
                 else
                     BJIEvents.trigger(BJIEvents.EVENTS.PERMISSION_CHANGED, {
-                        self = true,
                         type = "group_change",
                         added = true,
                     })
