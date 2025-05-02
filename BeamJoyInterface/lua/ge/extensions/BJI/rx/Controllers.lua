@@ -64,7 +64,7 @@ local function dispatchEvent(eventName, endpoint, data)
             if not inBlacklist then
                 LogDebug(string.var("Event received : {1}.{2}", { eventName, endpoint }), M._name)
                 if BJIContext.DEBUG and table.length(data) > 0 then
-                    PrintObj(data, string.var("{1}.{2}", { eventName, endpoint }))
+                    PrintObj(data)
                 end
             end
 
@@ -98,7 +98,7 @@ local function retrieveEvent(rawData)
     if not data or type(data) ~= "table" or
         not data.id or not data.parts or
         not data.controller or not data.endpoint then
-        PrintObj(data, "Invalid event")
+        PrintObj("Invalid event", data)
         return
     end
 
@@ -133,7 +133,7 @@ local function retrieveEventPart(rawData)
     if not data or type(data) ~= "table" or
         not data.id or not data.part or
         not data.data then
-        PrintObj(data, "Invalid event part")
+        PrintObj("Invalid event part", data)
         return
     end
 

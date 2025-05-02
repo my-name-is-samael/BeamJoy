@@ -16,8 +16,47 @@ table.sort = table.sort
 
 -- ADD-ONS
 
+---@generic K, V
+---@class tablelib<any, any> : table
+---@field isArray fun(tab: table<any, any>): boolean
+---@field isObject fun(tab: table<any, any>): boolean
+---@field nextIndex fun(tab: table<any, any>, index: any): any
+---@field flat fun(tab: table<any, any>): tablelib<any, any>
+---@field assign fun(tab: table<any, any>, source: table<any, any>, level?: integer): tablelib<any, any>
+---@field keys fun(tab: table<any, any>): tablelib<any, any>
+---@field values fun(tab: table<any, any>): tablelib<any, any>
+---@field clear fun(tab: table<any, any>): tablelib<any, any>
+---@field concat fun(tab: table<any, any>, sep: string, keys: boolean): string
+---@field join fun(tab: table<any, any>, sep: string, keys: boolean): string
+---@field duplicates fun(tab: table<any, any>, distinct: boolean): tablelib<any, any>
+---@field includes fun(tab: table<any, any>, el: any): boolean
+---@field contains fun(tab: table<any, any>, el: any): boolean
+---@field indexOf fun(tab: table<any, any>, el: any): integer
+---@field length fun(tab: table<any, any>): integer
+---@field random fun(tab: table<any, any>): any
+---@field filter fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): tablelib<any, any>
+---@field forEach fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>))
+---@field map fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): any): tablelib<any, any>
+---@field reduce fun(tab: table<any, any>, func: fun(acc: any, el: any, index: any, tab: table<any, any>)): any
+---@field every fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
+---@field all fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>)): boolean
+---@field some fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
+---@field any fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
+---@field find fun(tab: table<any, any>, func: (fun(el: any, index: any, tab: table<any, any>): boolean), callbackFn: fun(el: any, index: any)?): any, integer
+---@field compare fun(tab1: table<any, any>, tab2: table<any, any>, deep?: boolean): boolean
+---@field shallowcompare fun(tab1: table<any, any>, tab2: table<any, any>): tablelib<any, any>
+---@field deepcompare fun(tab1: table<any, any>, tab2: table<any, any>): tablelib<any, any>
+---@field clone fun(tab: table<any, any>, level?: integer): tablelib<any, any>
+---@field unpack fun(tab: table<any, any>): ...
+---@field sort fun(tab: table<any, any>, func: fun(el1: any, el2: any): boolean)
 
--- TABLE/ARRAY UTILS
+
+--- allow to chain "stream" function (ig table.filter({}, function()  end):forEach(function() end))
+---@param tab table<any, any>
+---@return tablelib<any, any>
+local function metatable(tab)
+    return setmetatable(tab, { __index = table })
+end
 
 ---@param tab table<any, any>
 ---@return boolean
@@ -33,9 +72,9 @@ end
 
 ---@param tab table<any, any>
 ---@param distinct? boolean
----@return table<any, any>
+---@return tablelib<any, any>
 table.duplicates = table.duplicates or function(tab, distinct)
-    if type(tab) ~= "table" then return {} end
+    if type(tab) ~= "table" then return metatable({}) end
     if type(distinct) ~= "boolean" then distinct = false end
     local saw = {}
     local res = {}
@@ -46,7 +85,7 @@ table.duplicates = table.duplicates or function(tab, distinct)
             table.insert(res, v)
         end
     end
-    return res
+    return metatable(res)
 end
 
 ---@param tab table<any, any>
@@ -58,7 +97,11 @@ table.random = table.random or function(tab)
     local i = 1
     for _, v in pairs(tab) do
         if i == picked then
-            return v
+            if type(v) == "table" then
+                return metatable(v)
+            else
+                return v
+            end
         end
         i = i + 1
     end
@@ -125,19 +168,19 @@ end
 
 ---@param tab1 table<any, any>
 ---@param tab2 table<any, any>
----@return table<any, any>
+---@return tablelib<any, any>
 table.concat = table.concat or function(tab1, tab2)
-    if type(tab1) ~= "table" or type(tab2) ~= "table" then return {} end
+    if type(tab1) ~= "table" or type(tab2) ~= "table" then return metatable({}) end
     local res = {}
     table.forEach(tab1, function(v) table.insert(res, v) end)
     table.forEach(tab2, function(v) table.insert(res, v) end)
-    return res
+    return metatable(res)
 end
 
 ---@param tab table<any, any>
----@return table<any, any>
+---@return tablelib<any, any>
 table.flat = table.flat or function(tab)
-    if type(tab) ~= "table" then return {} end
+    if type(tab) ~= "table" then return metatable({}) end
     local res = {}
     table.forEach(tab, function(v)
         if type(v) == "table" then
@@ -146,7 +189,7 @@ table.flat = table.flat or function(tab)
             table.insert(res, v)
         end
     end)
-    return res
+    return metatable(res)
 end
 
 ---@param tab table<any, any>
@@ -188,11 +231,11 @@ end
 ---@generic K, V, T
 ---@param tab table<K, V>
 ---@param mapFn fun(el: V, index: K, tab: table<K, V>): T
----@return table<K, T>
+---@return tablelib<K, T>
 table.map = table.map or function(tab, mapFn)
-    if type(tab) ~= "table" then return {} end
-    if type(mapFn) ~= "function" then return {} end
-    local status
+    if type(tab) ~= "table" then return metatable({}) end
+    if type(mapFn) ~= "function" then return metatable({}) end
+    local status, mapped
     local res = {}
     for k, v in pairs(tab) do
         status, res[k] = pcall(mapFn, v, k, tab)
@@ -200,16 +243,16 @@ table.map = table.map or function(tab, mapFn)
             res[k] = nil
         end
     end
-    return res
+    return metatable(res)
 end
 
 ---@generic K, V
 ---@param tab table<K, V>
 ---@param filterFn fun(el: V, index: K, tab: table<K, V>): boolean
----@return table<K, V>
+---@return tablelib<K, V>
 table.filter = table.filter or function(tab, filterFn)
-    if type(tab) ~= "table" then return {} end
-    if type(filterFn) ~= "function" then return {} end
+    if type(tab) ~= "table" then return metatable({}) end
+    if type(filterFn) ~= "function" then return metatable({}) end
     local res = {}
     for k, v in pairs(tab) do
         local status, cond = pcall(filterFn, v, k, tab)
@@ -217,7 +260,7 @@ table.filter = table.filter or function(tab, filterFn)
             res[k] = v
         end
     end
-    return res
+    return metatable(res)
 end
 
 ---@generic K, V
@@ -287,13 +330,17 @@ end
 ---@generic K, V
 ---@param tab table<K, V>
 ---@param findFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@param callbackFn? fun(el: V, index: K)
 ---@return V, K | nil
-table.find = table.find or function(tab, findFn)
+table.find = table.find or function(tab, findFn, callbackFn)
     if type(tab) ~= "table" then return nil end
     if type(findFn) ~= "function" then return nil end
     for k, v in pairs(tab) do
         local status, cond = pcall(findFn, v, k, tab)
         if status and cond then
+            if callbackFn then
+                callbackFn(v, k)
+            end
             return v, k
         end
     end
@@ -313,26 +360,26 @@ end
 ---@param tab table<K, any>
 ---@return K[]
 table.keys = table.keys or function(tab)
-    if type(tab) ~= "table" then return {} end
+    if type(tab) ~= "table" then return metatable({}) end
     local res = {}
     for k in pairs(tab) do
         table.insert(res, k)
     end
     table.sort(res)
-    return res
+    return metatable(res)
 end
 
 ---@generic V
 ---@param tab table<any, V>
 ---@return V[]
 table.values = table.values or function(tab)
-    if type(tab) ~= "table" then return {} end
+    if type(tab) ~= "table" then return metatable({}) end
     local res = {}
     for _, v in pairs(tab) do
         table.insert(res, v)
     end
     table.sort(res)
-    return res
+    return metatable(res)
 end
 
 ---@param tab table<any, any>
@@ -356,12 +403,19 @@ table.contains = table.contains or table.includes
 table.compare = table.compare or function(tab1, tab2, deep)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return tab1 == tab2 end
     if #tab1 ~= #tab2 then return false end
-    for i = 1, #tab1 do
-        if deep and type(tab1[i]) == "table" and type(tab2[i]) == "table" then
-            if not table.compare(tab1[i], tab2[i], deep) then
+    local saw = {}
+    for k, v in pairs(tab1) do
+        if type(v) == "table" and type(tab2[k]) == "table" then
+            if deep and not table.compare(v, tab2[k], deep) then
                 return false
             end
-        elseif tab1[i] ~= tab2[i] then
+        elseif v ~= tab2[k] then
+            return false
+        end
+        saw[k] = true
+    end
+    for k in pairs(tab2) do
+        if not saw[k] then
             return false
         end
     end
@@ -392,5 +446,5 @@ table.clone = table.clone or function(obj, level)
         return obj
     end
     -- table.deepcopy does not handle userdata and cdata types
-    return table.deepcopy(obj)
+    return metatable(table.deepcopy(obj))
 end

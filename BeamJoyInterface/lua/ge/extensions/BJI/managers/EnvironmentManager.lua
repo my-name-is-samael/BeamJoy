@@ -63,6 +63,7 @@ local M = {
 
 local function onLoad()
     BJICache.addRxHandler(BJICache.CACHES.ENVIRONMENT, function(cacheData)
+        local previous = table.clone(M.Data)
         for k, v in pairs(cacheData) do
             M.Data[k] = v
 
@@ -76,6 +77,23 @@ local function onLoad()
         end
 
         M.updateCurrentPreset()
+
+        -- events detection
+        local keysChanged = {}
+        for k, v in pairs(M.Data) do
+            if v ~= previous[k] then
+                keysChanged[k] = {
+                    previousValue = previous[k],
+                    currentValue = v,
+                }
+            end
+        end
+
+        if table.length(keysChanged) > 0 then
+            BJIEvents.trigger(BJIEvents.EVENTS.ENV_CHANGED, {
+                keys = keysChanged
+            })
+        end
     end)
 end
 
@@ -108,6 +126,7 @@ end
 local function _tryApplyTimeFromServer(ToD)
     if ToD ~= nil and M.Data.controlSun and M.Data.timePlay then
         M.Data.ToD = ToD
+        -- no event fired because can flood too much
     end
 end
 

@@ -182,7 +182,7 @@ local function spawnNewVehicle(model, opts)
         BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
         return
     elseif model ~= "unicycle" then
-        -- maximum vehs reached
+        -- check maximum vehs reached
         local group = BJIPerm.Groups[BJIContext.User.group]
         if group and
             group.vehicleCap > -1 and

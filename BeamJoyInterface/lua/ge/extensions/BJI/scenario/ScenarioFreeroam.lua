@@ -121,7 +121,7 @@ local function onVehicleResetted(gameVehID)
 
     -- ResetTimer restriction
     local isResetDelay = BJIContext.BJC.Freeroam.ResetDelay > 0
-    local bypass = BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.MOD) or M.reset.nextExempt
+    local bypass = BJIPerm.isStaff() or M.reset.nextExempt
     if isResetDelay and not bypass then
         M.reset.restricted = true
         BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
@@ -226,9 +226,7 @@ local function tryReplaceOrSpawn(model, config)
 end
 
 local function tryPaint(paint, paintNumber)
-    PrintObj("tryPaint FREEROAM")
     if BJIVeh.isCurrentVehicleOwn() then
-        PrintObj("tryPaint FREEROAM own")
         M.exemptNextReset()
         BJIVeh.paintVehicle(paint, paintNumber)
     end
@@ -277,11 +275,9 @@ end
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    local isSelf = BJIContext.isSelf(player.playerID)
-
-    if table.length(player.vehicles) > 0 then
+    if player.vehiclesCount > 0 then
         local disabled = false
-        if isSelf then
+        if player.self then
             disabled = ctxt.isOwner and table.length(ctxt.user.vehicles) == 1
         else
             local finalGameVehID = BJIVeh.getVehicleObject(player.currentVehicle)
@@ -294,7 +290,7 @@ local function getPlayerListActions(player, ctxt)
             style = BTN_PRESETS.INFO,
             disabled = disabled,
             onClick = function()
-                if isSelf then
+                if player.self then
                     local selfVehs = {}
                     local currentOwnIndex
                     for _, v in pairs(BJIContext.User.vehicles) do
@@ -321,7 +317,7 @@ local function getPlayerListActions(player, ctxt)
     end
 
     if ctxt.isOwner then
-        if isSelf and BJIVeh.isUnicycle(ctxt.veh:getID()) then
+        if player.self and BJIVeh.isUnicycle(ctxt.veh:getID()) then
             table.insert(actions, {
                 id = "stopWalking",
                 icon = ICONS.directions_run,
@@ -330,7 +326,7 @@ local function getPlayerListActions(player, ctxt)
             })
         end
 
-        if not isSelf and table.length(player.vehicles) > 0 then
+        if not player.self and player.vehiclesCount > 0 then
             table.insert(actions, {
                 id = string.var("gpsPlayer{1}", { player.playerID }),
                 icon = ICONS.add_location,
@@ -371,7 +367,7 @@ local function getPlayerListActions(player, ctxt)
         end
     end
 
-    if not BJIPerm.isStaff() and not isSelf and
+    if not BJIPerm.isStaff() and not player.self and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
         BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {

@@ -417,6 +417,12 @@ local function switchScenario(newType, ctxt)
             error(err)
         end
     end
+
+    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_CHANGED, {
+        previousScenario = previousScenario,
+        newScenario = newType,
+        type = M.solo[newType] and "solo" or M.multi[newType] and "multi" or "other",
+    })
 end
 
 local function isFreeroam()

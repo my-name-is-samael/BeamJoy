@@ -1,4 +1,11 @@
-local function menuMap(ctxt, votesEntry)
+local M = {
+    cache = {
+        label = "",
+        elems = {},
+    },
+}
+
+local function menuMap(ctxt)
     if BJIVote.Map.canStartVote() then
         local maps = {}
         local customMapLabel = BJILang.get("menu.vote.map.custom")
@@ -18,14 +25,14 @@ local function menuMap(ctxt, votesEntry)
         table.sort(maps, function(a, b)
             return a.label < b.label
         end)
-        table.insert(votesEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.vote.map.title"),
             elems = maps
         })
     end
 end
 
-local function menuRace(ctxt, votesEntry)
+local function menuRace(ctxt)
     local function openRaceVote(raceID)
         local race
         for _, r in ipairs(BJIContext.Scenario.Data.Races) do
@@ -71,7 +78,7 @@ local function menuRace(ctxt, votesEntry)
     end
     if BJIVote.Race.canStartVote() then
         local raceErrorMessage = nil
-        local minParticipants = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
+        local minParticipants = (BJIScenario.get(BJIScenario.TYPES.RACE_MULTI) or {}).MINIMUM_PARTICIPANTS
         local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
         local rawRaces = {}
         if BJIContext.Scenario.Data.Races then
@@ -89,7 +96,7 @@ local function menuRace(ctxt, votesEntry)
         end
 
         if raceErrorMessage then
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.race.title"), TEXT_COLORS.DISABLED)
@@ -119,7 +126,7 @@ local function menuRace(ctxt, votesEntry)
             table.sort(races, function(a, b)
                 return a.label < b.label
             end)
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = BJILang.get("menu.vote.race.title"),
                 elems = races
             })
@@ -127,10 +134,10 @@ local function menuRace(ctxt, votesEntry)
     end
 end
 
-local function menuSpeed(ctxt, votesEntry)
+local function menuSpeed(ctxt)
     if BJIVote.Speed.canStartVote() then
         local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
+        local minimumParticipants = (BJIScenario.get(BJIScenario.TYPES.SPEED) or {}).MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
             errorMessage = BJILang.get("menu.vote.speed.missingPlayers"):var({
@@ -139,7 +146,7 @@ local function menuSpeed(ctxt, votesEntry)
         end
 
         if errorMessage then
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.speed.title"), TEXT_COLORS.DISABLED)
@@ -148,7 +155,7 @@ local function menuSpeed(ctxt, votesEntry)
                 end
             })
         else
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = BJILang.get("menu.vote.speed.title"),
                 onClick = function()
                     BJITx.scenario.SpeedStart(true)
@@ -158,15 +165,43 @@ local function menuSpeed(ctxt, votesEntry)
     end
 end
 
-return function(ctxt)
-    local votesEntry = {
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache = {
         label = BJILang.get("menu.vote.title"),
-        elems = {}
+        elems = {},
     }
 
-    menuMap(ctxt, votesEntry)
-    menuRace(ctxt, votesEntry)
-    menuSpeed(ctxt, votesEntry)
-
-    return #votesEntry.elems > 0 and votesEntry or nil
+    menuMap(ctxt)
+    menuRace(ctxt)
+    menuSpeed(ctxt)
 end
+
+local listeners = {}
+function M.onLoad()
+    updateCache()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+
+    ---@param data {cache: string}
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if table.includes({
+                BJICache.CACHES.VOTE,
+            }, data.cache) then
+            updateCache(ctxt)
+        end
+    end))
+end
+
+function M.onUnload()
+    for _, id in ipairs(listeners) do
+        BJIEvents.removeListener(id)
+    end
+end
+
+return M

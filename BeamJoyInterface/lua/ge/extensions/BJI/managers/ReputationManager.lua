@@ -35,6 +35,9 @@ local function renderTick(ctxt)
             if newLevel > lastLevel then
                 -- ON LEVEL UP
                 BJISound.play(BJISound.SOUNDS.LEVEL_UP)
+                BJIEvents.trigger(BJIEvents.EVENTS.LEVEL_UP, {
+                    level = newLevel
+                })
             end
         end
     end

@@ -85,6 +85,15 @@ local function initWindows()
         h = BJIVehSelectorPreview.imageSize.y + BJIVehSelectorPreview.windowSizeOffset.y,
     })
 
+    -- RACES LEADERBOARD
+    M.register({
+        name = "BJIRacesLeaderboard",
+        showConditionFn = function() return BJIRacesLeaderboardWindow.show end,
+        draw = BJIRacesLeaderboardWindow,
+        w = 530,
+        h = 320,
+    })
+
     -- RACE SETTINGS
     M.register({
         name = "BJIRaceSettings",
@@ -385,25 +394,13 @@ local function initWindows()
     })
 end
 
-local function exists(name)
-    return M._windows[name] ~= nil
-end
-
---[[
-data: object
-<ul>
-    <li>name: string</li>
-    <li>draw: function(): nil</li>
-    <li>showConditionFn: function() : boolean</li>
-    <li>x: number NULLABLE</li>
-    <li>y: number NULLABLE</li>
-]]
+---@param data { name: string, draw: function|table, showConditionFn: function, w?: number, h?: number, x?: number, y?: number }
 local function register(data)
     if not data.draw or not data.showConditionFn then
         LogError("Window requires name, draw and showConditionFn")
         return
     end
-    if M.exists(data.name) then
+    if M._windows[data.name] ~= nil then
         -- already exists
         return
     end
@@ -442,25 +439,39 @@ local function renderTick(ctxt)
 
     InitDefaultStyles()
     for _, w in pairs(M._windows) do
+        local draw = w.draw
+        if type(draw) == "function" then
+            draw = draw()
+        end
+
         if (w.show and not w.showConditionFn()) or
             not M.loaded or
             not MPGameNetwork.launcherConnected() then
+            if draw.onUnload then
+                draw.onUnload()
+            end
             w.show = false
             BJIContext.GUI.hideWindow(w.name)
+            BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+                name = w.name,
+                state = false,
+            })
         elseif not w.show and w.showConditionFn() then
+            if draw.onLoad then
+                draw.onLoad()
+            end
             w.show = true
             BJIContext.GUI.showWindow(w.name)
+            BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+                name = w.name,
+                state = true,
+            })
         end
 
         local title = w.name and
             BJILang.get(string.var("windows.{1}", { w.name }), w.name) or
             nil
         if w.show then
-            local draw = w.draw
-            if type(draw) == "function" then
-                draw = draw()
-            end
-
             if w.w and w.h then
                 im.SetNextWindowSize(im.ImVec2(
                     math.floor(w.w * BJIContext.UserSettings.UIScale),
@@ -526,6 +537,7 @@ local function renderTick(ctxt)
             if draw.onClose then
                 window:onClose(function()
                     draw.onClose(ctxt)
+                    BJISound.play(BJISound.SOUNDS.MAIN_CANCEL)
                 end)
             end
             window:build()
@@ -546,10 +558,22 @@ local function onLoad()
 end
 
 local function onUnload()
+    for _, w in pairs(M._windows) do
+        if w.show then
+            local draw = w.draw
+            if type(draw) == "function" then
+                draw = draw()
+            end
+            if draw.onUnload then
+                draw.onUnload()
+            end
+            w.show = false
+            BJIContext.GUI.hideWindow(w.name)
+        end
+    end
     M.loaded = false
 end
 
-M.exists = exists
 M.register = register
 M.renderTick = renderTick
 

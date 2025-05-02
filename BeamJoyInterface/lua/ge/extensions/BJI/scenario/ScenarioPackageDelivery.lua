@@ -142,12 +142,12 @@ local function onStopDelivery()
     onDeliveryEnded()
 end
 
-local function drawDeliveryUI(ctxt)
+local function drawUI(ctxt, cache)
     if M.distance then
         LineBuilder()
             :text(string.var("{1}: {2}", {
-                BJILang.get("delivery.currentDelivery"),
-                BJILang.get("delivery.distanceLeft")
+                cache.labels.delivery.current,
+                cache.labels.delivery.distanceLeft
                     :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
@@ -159,8 +159,8 @@ local function drawDeliveryUI(ctxt)
     end
 
     LineBuilder()
-        :text(BJILang.get("packageDelivery.currentStreak"):var({ streak = M.streak }))
-        :helpMarker(BJILang.get("packageDelivery.streakTooltip"))
+        :text(cache.labels.delivery.package.streak:var({ streak = M.streak }))
+        :helpMarker(cache.labels.delivery.package.streakTooltip)
         :build()
 
     LineBuilder()
@@ -275,7 +275,7 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.drawDeliveryUI = drawDeliveryUI
+M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
 M.onVehicleSwitched = onVehicleSwitched

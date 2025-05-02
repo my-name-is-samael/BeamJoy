@@ -369,13 +369,17 @@ end
 ---@generic K, V
 ---@param tab table<K, V>
 ---@param findFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@param callbackFn? fun(el: V, index: K)
 ---@return V, K | nil
-table.find = table.find or function(tab, findFn)
+table.find = table.find or function(tab, findFn, callbackFn)
     if type(tab) ~= "table" then return nil end
     if type(findFn) ~= "function" then return nil end
     for k, v in pairs(tab) do
         local status, cond = pcall(findFn, v, k, tab)
         if status and cond then
+            if callbackFn then
+                callbackFn(v, k)
+            end
             return v, k
         end
     end
@@ -438,12 +442,19 @@ table.contains = table.contains or table.includes
 table.compare = table.compare or function(tab1, tab2, deep)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return tab1 == tab2 end
     if #tab1 ~= #tab2 then return false end
-    for i = 1, #tab1 do
-        if deep and type(tab1[i]) == "table" and type(tab2[i]) == "table" then
-            if not table.compare(tab1[i], tab2[i], deep) then
+    local saw = {}
+    for k, v in pairs(tab1) do
+        if type(v) == "table" and type(tab2[k]) == "table" then
+            if deep and not table.compare(v, tab2[k], deep) then
                 return false
             end
-        elseif tab1[i] ~= tab2[i] then
+        elseif v ~= tab2[k] then
+            return false
+        end
+        saw[k] = true
+    end
+    for k in pairs(tab2) do
+        if not saw[k] then
             return false
         end
     end

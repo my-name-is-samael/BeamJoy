@@ -1,5 +1,6 @@
 local im = ui_imgui
 local ffi = require('ffi')
+BTN_NO_SOUND = "no_sound"
 
 -- INPUTS
 
@@ -240,19 +241,33 @@ MenuBarBuilder = function()
                         elseif subElem.separator then
                             table.insert(subElems, { separator = true })
                         else
+                            if subElem.sound == BTN_NO_SOUND then
+                                subElem.sound = nil
+                            else
+                                subElem.sound = subElem.sound or BJISound.SOUNDS.BIGMAP_HOVER
+                            end
+
                             table.insert(subElems, {
                                 label = subElem.label,
                                 onClick = type(subElem.onClick) == "function" and subElem.onClick or nil,
+                                sound = subElem.sound,
                                 color = subElem.color,
                                 active = subElem.active,
                                 disabled = subElem.disabled,
                             })
                         end
                     end
+                else
+                    if elem.sound == BTN_NO_SOUND then
+                        elem.sound = nil
+                    else
+                        elem.sound = elem.sound or BJISound.SOUNDS.BIGMAP_HOVER
+                    end
                 end
                 table.insert(entry.elems, {
                     label = elem.label,
                     onClick = type(elem.onClick) == "function" and elem.onClick or nil,
+                    sound = elem.sound,
                     color = elem.color,
                     active = elem.active,
                     disabled = elem.disabled,
@@ -270,7 +285,7 @@ MenuBarBuilder = function()
                 level = level or 0
                 if im.BeginMenu(label) then
                     im.SetWindowFontScale(level == 0 and 1 or BJIContext.UserSettings.UIScale)
-                    for i, elem in ipairs(elems) do
+                    for _, elem in ipairs(elems) do
                         if elem.separator then
                             Separator()
                         elseif elem.render then
@@ -283,6 +298,9 @@ MenuBarBuilder = function()
                             end
                             local enabled = elem.disabled and im.BoolFalse() or im.BoolTrue()
                             if im.MenuItem1(elem.label, nil, im.BoolFalse(), enabled) then
+                                if elem.sound then
+                                    BJISound.play(elem.sound)
+                                end
                                 elem.onClick()
                             end
                             if elem.active then
@@ -528,7 +546,17 @@ LineBuilder = function(startSameLine)
             data.style[4] = TEXT_COLORS.DEFAULT
         end
         btnStylePreset(data.style)
+
+        if data.sound == BTN_NO_SOUND then
+            data.sound = nil
+        else
+            data.sound = data.sound or BJISound.SOUNDS.BIGMAP_HOVER
+        end
+
         if im.SmallButton(string.var("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
+            if data.sound then
+                BJISound.play(data.sound)
+            end
             data.onClick()
         end
         resetBtnStyle()
@@ -557,7 +585,7 @@ LineBuilder = function(startSameLine)
             LogError("btnToggle requires id, state and onClick", logTag)
             return self
         end
-        local label = "Toggle"
+        local label = BJILang.get("common.buttons.toggle")
         -- invert state to print in Red when active
         return self:btnSwitch({
             id = data.id,
@@ -565,7 +593,8 @@ LineBuilder = function(startSameLine)
             labelOff = label,
             state = not data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchAllowBlocked = function(self, data)
@@ -579,7 +608,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.buttons.blocked"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchEnabledDisabled = function(self, data)
@@ -593,7 +623,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.disabled"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchPlayStop = function(self, data)
@@ -608,7 +639,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.buttons.stop"),
             state = not data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchYesNo = function(self, data)
@@ -622,7 +654,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.no"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
 
@@ -954,6 +987,12 @@ LineBuilder = function(startSameLine)
             activeColor = BTN_PRESETS.TRANSPARENT[3]
         end
 
+        if data.sound == BTN_NO_SOUND then
+            data.sound = nil
+        else
+            data.sound = data.sound or BJISound.SOUNDS.BIGMAP_HOVER
+        end
+
         SetStyleColor(STYLE_COLS.BUTTON_HOVERED, hoveredColor)
         SetStyleColor(STYLE_COLS.BUTTON_ACTIVE, activeColor)
         if BJIContext.GUI.uiIconImageButton(icon, -- ICON
@@ -967,6 +1006,9 @@ LineBuilder = function(startSameLine)
                 false,                            -- ON RELEASE
                 nil                               -- HIGHLIGHT TEXT
             ) and not data.disabled then
+            if data.sound then
+                BJISound.play(data.sound)
+            end
             data.onClick()
         end
         im.PopStyleColor(2)

@@ -127,16 +127,18 @@ local function drawBody(ctxt)
         :build()
 end
 
+local function onClose()
+    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    configs = nil
+end
+
 local function drawFooter(ctxt)
     LineBuilder()
         :btnIcon({
             id = "cancelBusMission",
             icon = ICONS.exit_to_app,
             style = BTN_PRESETS.ERROR,
-            onClick = function()
-                BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
-                configs = nil
-            end,
+            onClick = onClose,
         })
         :btnIcon({
             id = "startBusMission",
@@ -156,8 +158,5 @@ return {
     },
     body = drawBody,
     footer = drawFooter,
-    onClose = function()
-        BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
-        configs = nil
-    end,
+    onClose = onClose,
 }

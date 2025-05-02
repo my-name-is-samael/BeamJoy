@@ -1,44 +1,65 @@
-local function draw(races)
-    AccordionBuilder()
-        :label(BJILang.get("races.leaderboard.title"))
-        :openedBehavior(function()
-            local labelWidth = 0
-            for _, race in ipairs(races) do
-                local w = GetColumnTextWidth(race.name .. ":")
-                if w > labelWidth then
-                    labelWidth = w
-                end
-            end
+local function newCache()
+    return {
+        title = "",
+        raceNamesWidth = 0,
+        cols = {},
+    }
+end
 
-            local cols = ColumnsBuilder("BJIRaceLeaderboard", { labelWidth, -1 })
-            for _, race in ipairs(races) do
-                local color = TEXT_COLORS.DEFAULT
-                if race.record.playerName == BJIContext.User.playerName then
-                    color = TEXT_COLORS.HIGHLIGHT
+local cache = newCache()
+
+---@param ctxt TickContext
+local function updateCache(ctxt, cacheIn)
+    cache = newCache()
+
+    cache.title = cacheIn.labels.raceLeaderboard.title
+    for _, race in ipairs(cacheIn.data.raceLeaderboard.races) do
+        local w = GetColumnTextWidth(race.name .. ":")
+        if w > cache.raceNamesWidth then
+            cache.raceNamesWidth = w
+        end
+
+        table.insert(cache.cols, {
+            cells = {
+                function()
+                    LineBuilder()
+                        :text(string.var("{1}:", { race.name }),
+                            race.record.playerName == ctxt.user.playerName and
+                            TEXT_COLORS.HIGHLIGHT or
+                            TEXT_COLORS.DEFAULT)
+                        :build()
+                end,
+                function()
+                    LineBuilder()
+                        :text(string.var("{time} - {playerName} - {model}", {
+                                time = RaceDelay(race.record.time),
+                                playerName = race.record.playerName,
+                                model = BJIVeh.getModelLabel(race.record.model)
+                            }),
+                            race.record.playerName == ctxt.user.playerName and
+                            TEXT_COLORS.HIGHLIGHT or
+                            TEXT_COLORS.DEFAULT)
+                        :build()
                 end
-                cols:addRow({
-                    cells = {
-                        function()
-                            LineBuilder()
-                                :text(string.var("{1}:", { race.name }), color)
-                                :build()
-                        end,
-                        function()
-                            LineBuilder()
-                                :text(string.var("{time} - {playerName} - {model}", {
-                                        time = RaceDelay(race.record.time),
-                                        playerName = race.record.playerName,
-                                        model = BJIVeh.getModelLabel(race.record.model)
-                                    }),
-                                    color)
-                                :build()
-                        end
-                    }
-                })
-            end
+            }
+        })
+    end
+end
+
+local function draw()
+    AccordionBuilder()
+        :label(cache.title)
+        :openedBehavior(function()
+            local cols = ColumnsBuilder("BJIRacesLeaderboard", { cache.raceNamesWidth, -1 })
+            table.forEach(cache.cols, function(el)
+                cols:addRow(el)
+            end)
             cols:build()
         end)
         :build()
 end
 
-return draw
+return {
+    updateCache = updateCache,
+    draw = draw,
+}

@@ -150,26 +150,30 @@ local function onLoad(ctxt)
     reset()
     BJIVehSelector.tryClose()
 
-    initPositions()
+    BJIUI.applyLoading(true, function()
+        initPositions()
 
-    initVehicle()
+        initVehicle()
 
-    if M.startPosition and M.targetPosition and M.model then
-        initDelivery()
+        if M.startPosition and M.targetPosition and M.model then
+            initDelivery()
 
-        BJIAsync.task(function(ctxt2)
-                return ctxt2.isOwner and
-                    table.compare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig) or {})
-            end,
-            function(ctxt2)
-                BJITx.scenario.DeliveryVehicleStart()
-                M.init = true
-                M.gameVehID = ctxt2.veh:getID()
-                BJIMessage.flash("BJIDeliveryVehicleStart", BJILang.get("vehicleDelivery.flashStart"), 5, false)
-            end, "BJIDeliveryVehicleInit")
-    else
-        BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
-    end
+            BJIAsync.task(function(ctxt2)
+                    return ctxt2.isOwner and
+                        table.compare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig) or {})
+                end,
+                function(ctxt2)
+                    BJITx.scenario.DeliveryVehicleStart()
+                    M.init = true
+                    M.gameVehID = ctxt2.veh:getID()
+                    BJIMessage.flash("BJIDeliveryVehicleStart", BJILang.get("vehicleDelivery.flashStart"), 5, false)
+                    BJIUI.applyLoading(false)
+                end, "BJIDeliveryVehicleInit")
+        else
+            BJIUI.applyLoading(false)
+            BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
+        end
+    end)
 end
 
 local function onDeliveryFailed()
@@ -205,12 +209,12 @@ local function onStopDelivery()
     onDeliveryFailed()
 end
 
-local function drawDeliveryUI(ctxt)
+local function drawUI(ctxt, cache)
     if M.distance then
         LineBuilder()
             :text(string.var("{1}: {2}", {
-                BJILang.get("delivery.currentDelivery"),
-                BJILang.get("delivery.distanceLeft")
+                cache.labels.delivery.current,
+                cache.labels.delivery.distanceLeft
                     :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
@@ -221,14 +225,11 @@ local function drawDeliveryUI(ctxt)
         })
     end
 
-    local configLabel = M.configLabel and string.var(" {1}", { M.configLabel }) or ""
-    LineBuilder()
-        :text(string.var("{1}: {2}{3}", {
-            BJILang.get("vehicleDelivery.vehicle"),
-            M.modelLabel,
-            configLabel,
-        }))
-
+    LineBuilder():text(string.var("{1}: {2}{3}", {
+        cache.labels.delivery.vehicle.currentConfig, M.modelLabel, M.configLabel and
+    string.var(" {1}", { M.configLabel }) or
+    "",
+    })):build()
     LineBuilder()
         :btnIconToggle({
             id = "vehicleDeliveryLoop",
@@ -351,7 +352,7 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.drawDeliveryUI = drawDeliveryUI
+M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
 M.onVehicleSwitched = onVehicleSwitched

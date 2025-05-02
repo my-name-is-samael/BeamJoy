@@ -123,7 +123,8 @@
         "confirm": "Подтверждать",
         "start": "Начинать",
         "explode": "Взорваться",
-        "leave": "Оставлять"
+        "leave": "Оставлять",
+        "toggle": "Переключать"
       },
       "durationModifiers": {
         "minute": "м",
@@ -175,6 +176,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Мои настройки",
       "BJIEvents": "События",
+      "BJIRacesLeaderboard": "Таблица лидеров гонок",
       "BJIRaceSettings": "Настройки гонки",
       "BJIRace": "Раса",
       "BJIDeliveryMulti": "Доставка вместе",

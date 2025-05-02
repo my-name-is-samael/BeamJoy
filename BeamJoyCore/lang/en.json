@@ -250,7 +250,8 @@
         "confirm": "Confirm",
         "start": "Start",
         "explode": "Explode",
-        "leave": "Leave"
+        "leave": "Leave",
+        "toggle": "Toggle"
       },
       "durationModifiers": {
         "minute": "m",
@@ -302,6 +303,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "My Settings",
       "BJIEvents": "Events",
+      "BJIRacesLeaderboard": "Races Leaderboard",
       "BJIRaceSettings": "Race Settings",
       "BJIRace": "Race",
       "BJIDeliveryMulti": "Delivery Together",

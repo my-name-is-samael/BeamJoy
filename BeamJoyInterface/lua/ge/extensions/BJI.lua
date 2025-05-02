@@ -56,6 +56,8 @@ ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
 local function loadManagers()
     BJISound = require("ge/extensions/BJI/managers/SoundManager")
     BJIAsync = require("ge/extensions/BJI/managers/AsyncManager")
+    BJIUI = require("ge/extensions/BJI/managers/UIManager")
+    BJIEvents = require("ge/extensions/BJI/managers/EventManager")
     BJIPerm = require("ge/extensions/BJI/managers/PermissionManager")
     BJIContext = require("ge/extensions/BJI/Context")
     require("ge/extensions/BJI/ui/CommonStyle")
@@ -95,6 +97,7 @@ local function loadManagers()
 
     BJIVehSelector = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelector")
     BJIVehSelectorPreview = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelectorPreview")
+    BJIRacesLeaderboardWindow = require("ge/extensions/BJI/ui/WindowRacesLeaderboard/DrawWindowRacesLeaderboard")
 
     BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
 end

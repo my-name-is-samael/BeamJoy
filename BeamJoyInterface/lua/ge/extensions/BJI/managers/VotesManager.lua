@@ -156,8 +156,8 @@ function M.Race.started()
 end
 
 function M.Race.canStartVote()
-    return not BJIScenario.isServerScenarioInProgress() and
-        not M.Race.started() and
+    return not M.Race.started() and
+        BJIScenario.isFreeroam() and
         (
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
             BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
@@ -195,9 +195,11 @@ end
 
 function M.Speed.canStartVote()
     return not M.Speed.started() and
-        not BJIScenario.isServerScenarioInProgress() and
         BJIScenario.isFreeroam() and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+        (
+            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
+        )
 end
 
 local function onLoad()

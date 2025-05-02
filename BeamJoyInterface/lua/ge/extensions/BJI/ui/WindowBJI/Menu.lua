@@ -1,34 +1,49 @@
-local function drawMenu(ctxt)
+local menuMe = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuMe")
+local menuVote = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuVote")
+local menuScenario = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuScenario")
+local menuEdit = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuEdit")
+local menuConfig = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuConfig")
+local allMenus = {
+    menuMe,
+    menuVote,
+    menuScenario,
+    menuEdit,
+    menuConfig
+}
+
+local function onLoad()
+    table.forEach(allMenus, function(menu) return menu.onLoad() end)
+end
+local function onUnload()
+    table.forEach(allMenus, function(menu) return menu.onUnload() end)
+end
+
+local function draw(ctxt)
     local menu = MenuBarBuilder()
 
     -- ME
-    local meEntry = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuMe")(ctxt)
-    if meEntry then
-        menu:addEntry(meEntry.label, meEntry.elems)
+    if #menuMe.cache.elems > 0 then
+        menu:addEntry(menuMe.cache.label, menuMe.cache.elems)
     end
 
     -- VOTES
-    local voteEntry = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuVote")(ctxt)
-    if voteEntry then
-        menu:addEntry(voteEntry.label, voteEntry.elems)
+    if #menuVote.cache.elems > 0 then
+        menu:addEntry(menuVote.cache.label, menuVote.cache.elems)
     end
 
     -- SCENARIO
-    local scenarioEntry = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuScenario")(ctxt)
-    if scenarioEntry then
-        menu:addEntry(scenarioEntry.label, scenarioEntry.elems)
+    if #menuScenario.cache.elems > 0 then
+        menu:addEntry(menuScenario.cache.label, menuScenario.cache.elems)
     end
 
     -- EDIT
-    local editEntry = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuEdit")(ctxt)
-    if editEntry then
-        menu:addEntry(editEntry.label, editEntry.elems)
+    if #menuEdit.cache.elems > 0 then
+        menu:addEntry(menuEdit.cache.label, menuEdit.cache.elems)
     end
 
     -- CONFIG
-    local configEntry = require("ge/extensions/BJI/ui/WindowBJI/Menu/MenuConfig")(ctxt)
-    if configEntry then
-        menu:addEntry(configEntry.label, configEntry.elems)
+    if #menuConfig.cache.elems > 0 then
+        menu:addEntry(menuConfig.cache.label, menuConfig.cache.elems)
     end
 
     menu:addEntry(BJILang.get("menu.about.title"), {
@@ -44,4 +59,9 @@ local function drawMenu(ctxt)
     })
         :build()
 end
-return drawMenu
+
+return {
+    onLoad = onLoad,
+    onUnload = onUnload,
+    draw = draw,
+}

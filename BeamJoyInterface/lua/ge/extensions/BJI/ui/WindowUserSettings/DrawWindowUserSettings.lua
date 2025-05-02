@@ -529,15 +529,17 @@ local function drawBody(ctxt)
     drawUserStats(ctxt)
 end
 
+local function onClose()
+    BJIContext.UserSettings.open = false
+end
+
 local function drawFooter(ctxt)
     LineBuilder()
         :btnIcon({
             id = "closeUserSettings",
             icon = ICONS.exit_to_app,
             style = BTN_PRESETS.ERROR,
-            onClick = function()
-                BJIContext.UserSettings.open = false
-            end
+            onClick = onClose,
         })
 end
 
@@ -547,7 +549,5 @@ return {
     },
     body = drawBody,
     footer = drawFooter,
-    onClose = function()
-        BJIContext.UserSettings.open = false
-    end,
+    onClose = onClose,
 }

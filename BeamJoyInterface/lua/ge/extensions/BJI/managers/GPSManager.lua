@@ -106,6 +106,7 @@ local function renderTargets()
         end
         core_groundMarkers.setFocus(waypoints, nil, nil, nil, nil, nil, color)
     end
+    BJIEvents.trigger(BJIEvents.EVENTS.GPS_CHANGED)
 end
 
 local function reset()
@@ -153,7 +154,7 @@ local function _insertWaypoint(index, previousIndex, target)
     table.insert(M.targets, index, target)
 
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
 end
 
 local function _commonCreateWaypoint(key, pos, radius, callback, playerName, prepend)
@@ -312,7 +313,7 @@ local function checkNextTargetReached(ctxt)
         if distance < wp.radius then
             table.remove(M.targets, 1)
             renderTargets()
-            BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+            BJISound.play(BJISound.SOUNDS.INFO_OPEN)
             pcall(wp.callback, ctxt)
         end
     end
@@ -320,7 +321,7 @@ end
 
 local function _onLastTargetReached()
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
 end
 
 local function updatePlayerTarget()

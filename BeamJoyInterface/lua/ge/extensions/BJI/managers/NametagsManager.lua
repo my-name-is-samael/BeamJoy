@@ -331,8 +331,20 @@ local function renderVehicle(ctxt, veh)
     end
 end
 
+local lastHideNametags = nil
+local function detectVisibilityEvent()
+    local val = settings.getValue("hideNameTags", false)
+    if val ~= lastHideNametags then
+        BJIEvents.trigger(BJIEvents.EVENTS.NAMETAGS_VISIBILITY_CHANGED, {
+            visible = not val
+        })
+        lastHideNametags = val
+    end
+end
+
 local function renderTick(ctxt)
-    if true then return end
+    detectVisibilityEvent()
+
     MPVehicleGE.hideNicknames(true)
 
     if settings.getValue("hideNameTags", false) then

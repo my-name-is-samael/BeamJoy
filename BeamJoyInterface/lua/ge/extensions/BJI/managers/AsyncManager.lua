@@ -92,7 +92,7 @@ local function renderTick(ctxt)
         local status, err = pcall(ctask.taskFn, ctxt)
         if not status then
             LogError(string.var("Error executing delayed task {1} :", { key }))
-            PrintObj(err, "Stack trace")
+            PrintObj(err)
         end
         M.delayedTasks[key] = nil
     end
@@ -102,7 +102,7 @@ local function renderTick(ctxt)
             local status, err = pcall(ctask.taskFn, ctxt)
             if not status then
                 LogError(string.var("Error executing programmed task {1} :", { key }))
-                PrintObj(err, "Stack trace")
+                PrintObj(err)
             end
             M.tasks[key] = nil
         end
