@@ -371,6 +371,7 @@ local function initWindows()
 
                 local data = BJIDEBUG
                 if type(data) == "function" then
+                    local _
                     _, data = pcall(data, ctxt)
                 end
                 display(data)

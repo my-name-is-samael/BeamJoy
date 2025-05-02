@@ -220,7 +220,7 @@ local function updateCachePlayers(ctxt)
         local promoteLabel = showPromote and BJILang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJILang.get("groups." .. promoteGroup, promoteGroup) }) or nil
 
-        local vehicleCursor = "@ =>"
+        local vehicleCursor = "@ => "
         local vehiclesLabelWidth = 0
         if selfStaff and vehiclesCount > 0 then
             table.forEach(p.vehicles, function(veh)
@@ -285,6 +285,7 @@ local function onLoad()
         BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
         BJIEvents.EVENTS.VEHDATA_UPDATED,
         BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, updateCache))
