@@ -9,7 +9,6 @@ local cache = {
 }
 
 function M.onClose()
-    LogError("CLOSE")
     M.show = false
 end
 
@@ -21,8 +20,7 @@ local function updateCache(ctxt)
     cache.cols = table.filter(BJIContext.Scenario.Data.Races, function(race)
         return race.record
     end):map(function(race)
-        local name = string.var("{1}:", { race.name })
-        local w = GetColumnTextWidth(name)
+        local w = GetColumnTextWidth(race.name)
         if w > cache.namesWidth then
             cache.namesWidth = w
         end
@@ -30,7 +28,7 @@ local function updateCache(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(name,
+                        :text(race.name,
                             race.record.playerName == ctxt.user.playerName and
                             TEXT_COLORS.HIGHLIGHT or
                             TEXT_COLORS.DEFAULT)
@@ -49,7 +47,7 @@ local function updateCache(ctxt)
                         :build()
                 end
             },
-            name = name,
+            name = race.name,
         }
     end)
 
