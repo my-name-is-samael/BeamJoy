@@ -80,9 +80,9 @@ local function updateCacheRaces()
         end):map(function(race) return { name = race.name, record = race.record } end)
         if #cache.data.raceLeaderboard.races > 0 then
             cache.data.raceLeaderboard.races:sort(function(a, b)
-                if a:find(b) then
+                if a.name:find(b.name) then
                     return false
-                elseif b:find(a) then
+                elseif b.name:find(a.name) then
                     return true
                 end
                 return a.name < b.name

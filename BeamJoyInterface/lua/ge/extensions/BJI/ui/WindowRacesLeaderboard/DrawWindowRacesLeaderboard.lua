@@ -54,9 +54,9 @@ local function updateCache(ctxt)
     end)
 
     table.sort(cache.cols, function(a, b)
-        if a:find(b) then
+        if a.name:find(b.name) then
             return false
-        elseif b:find(a) then
+        elseif b.name:find(a.name) then
             return true
         end
         return a.name < b.name
