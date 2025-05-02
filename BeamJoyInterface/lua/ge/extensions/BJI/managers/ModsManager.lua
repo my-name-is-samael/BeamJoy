@@ -97,42 +97,46 @@ local function update(state)
         end
     elseif not state and M.state then
         -- disabling
-        local previousCam
-        if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-            previousCam = BJICam.getPositionRotation(true)
-        end
-        local function stopProcess()
-            BJIToast.error(BJILang.get("errors.modManagementDisabled"))
-            guihooks.trigger("app:waiting", false)
-        end
-        core_modmanager.activateAllMods = stopProcess
-        core_modmanager.deactivateAllMods = stopProcess
-        core_modmanager.deleteAllMods = stopProcess
-        -- core_modmanager.deleteMod = stopProcess
-        -- core_modmanager.deactivateMod = stopProcess
-        -- core_modmanager.deactivateModId = stopProcess
-        -- core_modmanager.activateMod = stopProcess
-        -- core_modmanager.activateModId = stopProcess
-        core_repository.modSubscribe = stopProcess
-        core_repository.modUnsubscribe = stopProcess
-        local mods = core_modmanager.getMods()
-        for name, mod in pairs(mods) do
-            local fileName = mod.fullpath:split2("/")
-            fileName = fileName[#fileName]
-            if not table.includes(BJIContext.BJC.Server.ClientMods, mod.fileName) and
-                not name:find("^multiplayer") then
-                LogError(string.var("Disabling user mod {1}", { name }))
-                core_modmanager.deactivateMod(name, true)
+        BJIUI.applyLoading(true, function()
+            local previousCam
+            if BJICam.getCamera() == BJICam.CAMERAS.FREE then
+                previousCam = BJICam.getPositionRotation(true)
             end
-        end
-        if table.length(mods) > 0 then
-            updateVehicles()
-        end
-        if previousCam then
-            BJIAsync.delayTask(function()
-                BJICam.setPositionRotation(previousCam.pos, previousCam.rot)
-            end, 200, "BJIModsDisablingCameraRestore")
-        end
+            local function stopProcess()
+                BJIToast.error(BJILang.get("errors.modManagementDisabled"))
+                guihooks.trigger("app:waiting", false)
+            end
+            core_modmanager.activateAllMods = stopProcess
+            core_modmanager.deactivateAllMods = stopProcess
+            core_modmanager.deleteAllMods = stopProcess
+            -- core_modmanager.deleteMod = stopProcess
+            -- core_modmanager.deactivateMod = stopProcess
+            -- core_modmanager.deactivateModId = stopProcess
+            -- core_modmanager.activateMod = stopProcess
+            -- core_modmanager.activateModId = stopProcess
+            core_repository.modSubscribe = stopProcess
+            core_repository.modUnsubscribe = stopProcess
+
+            local mods = core_modmanager.getMods()
+            for name, mod in pairs(mods) do
+                local fileName = mod.fullpath:split2("/")
+                fileName = fileName[#fileName]
+                if not table.includes(BJIContext.BJC.Server.ClientMods, mod.fileName) and
+                    not name:find("^multiplayer") then
+                    LogError(string.var("Disabling user mod {1}", { name }))
+                    core_modmanager.deactivateMod(name, true)
+                end
+            end
+            if table.length(mods) > 0 then
+                updateVehicles()
+            end
+            if previousCam then
+                BJIAsync.delayTask(function()
+                    BJICam.setPositionRotation(previousCam.pos, previousCam.rot)
+                end, 200, "BJIModsDisablingCameraRestore")
+            end
+            BJIUI.applyLoading(false)
+        end)
     end
 
     M.state = state
