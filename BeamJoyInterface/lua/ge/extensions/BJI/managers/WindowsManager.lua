@@ -390,7 +390,10 @@ local function initWindows()
                         end
                     })
                     :build()
-            end
+            end,
+            onClose = function()
+                BJIDEBUG = nil
+            end,
         },
     })
 end
