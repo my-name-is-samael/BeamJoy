@@ -7,23 +7,24 @@ local M = {
         trailers = {},
         props = {},
     },
-    sumConfigs = 0,
     vehFilter = "",
-    filtered = nil,
-    paints = {},
+    cache = {
+        vehicles = {},
+        paints = {}
+    },
 }
 local ownVeh, limitReached = false, false
 
-local function updateFiltered()
-    M.filtered = {}
+local function updateCacheVehicles()
+    M.cache.vehicles = {}
     if #M.vehFilter == 0 then
-        M.filtered = M.models
+        M.cache.vehicles = M.models
     else
         for modelType, models in pairs(M.models) do
-            M.filtered[modelType] = {}
+            M.cache.vehicles[modelType] = {}
             for _, model in ipairs(models) do
                 if model.label:lower():find(M.vehFilter:lower()) then
-                    table.insert(M.filtered[modelType], model)
+                    table.insert(M.cache.vehicles[modelType], model)
                 else
                     local configs = {}
                     for _, config in ipairs(model.configs) do
@@ -34,7 +35,7 @@ local function updateFiltered()
                     if #configs > 0 then
                         local modelCopy = table.clone(model)
                         modelCopy.configs = configs
-                        table.insert(M.filtered[modelType], modelCopy)
+                        table.insert(M.cache.vehicles[modelType], modelCopy)
                     end
                 end
             end
@@ -42,8 +43,41 @@ local function updateFiltered()
     end
 end
 
+---@param ctxt? TickContext
+local function updateCachePaints(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache.paints = {}
+
+    if ctxt.isOwner then
+        M.cache.paints = table.map(BJIVeh.getAllPaintsForModel(ctxt.veh.jbeam),
+            function(paintData, paintLabel)
+                return {
+                    label = paintLabel,
+                    paint = paintData,
+                }
+            end):values()
+        table.sort(M.cache.paints, function(a, b)
+            return a.label < b.label
+        end)
+    end
+end
+
+local listeners = {}
+local function onLoad()
+    updateCachePaints()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.VEHICLE_SPAWNED,
+        BJIEvents.EVENTS.VEHICLE_REMOVED,
+        BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
+    }, updateCachePaints))
+end
+local function onUnload()
+    table.forEach(listeners, BJIEvents.removeListener)
+end
+
 local function drawHeader(ctxt)
-    if M.sumConfigs > 0 then
+    if #M.models.cars + #M.models.trucks +
+        #M.models.trailers + #M.models.props > 0 then
         local line = LineBuilder()
         if M.onClose then
             line:btnIcon({
@@ -64,7 +98,7 @@ local function drawHeader(ctxt)
                 value = M.vehFilter,
                 onUpdate = function(val)
                     M.vehFilter = val
-                    updateFiltered()
+                    updateCacheVehicles()
                 end
             })
             :build()
@@ -429,27 +463,25 @@ local function drawBody(ctxt)
     drawPreviousVeh(ctxt)
     drawDefaultVeh(ctxt)
 
-    if M.filtered.cars then
-        drawType(M.filtered.cars, "Cars", "car", ICONS.fg_vehicle_suv)
+    if M.cache.vehicles.cars then
+        drawType(M.cache.vehicles.cars, "Cars", "car", ICONS.fg_vehicle_suv)
     end
 
-    if M.filtered.trucks then
-        drawType(M.filtered.trucks, "Trucks", "truck", ICONS.fg_vehicle_truck)
+    if M.cache.vehicles.trucks then
+        drawType(M.cache.vehicles.trucks, "Trucks", "truck", ICONS.fg_vehicle_truck)
     end
 
-    if M.filtered.trailers then
-        drawType(M.filtered.trailers, "Trailers", "trailer", ICONS.fg_vehicle_tanker_trailer)
+    if M.cache.vehicles.trailers then
+        drawType(M.cache.vehicles.trailers, "Trailers", "trailer", ICONS.fg_vehicle_tanker_trailer)
     end
 
-    if M.filtered.props then
-        drawType(M.filtered.props, "Props", "prop", ICONS.fg_traffic_cone)
+    if M.cache.vehicles.props then
+        drawType(M.cache.vehicles.props, "Props", "prop", ICONS.fg_traffic_cone)
     end
 
     local veh = BJIVeh.getCurrentVehicleOwn()
     -- must get a new instance of current vehicle or else crash
-    if veh and veh.jbeam and
-        M.paints[veh.jbeam] and
-        #M.paints[veh.jbeam] > 0 then
+    if #M.cache.paints > 0 then
         AccordionBuilder()
             :label(BJILang.get("vehicleSelector.paints"))
             :commonStart(function()
@@ -461,7 +493,7 @@ local function drawBody(ctxt)
             end)
             :openedBehavior(
                 function()
-                    drawPaints(M.paints[ctxt.veh.jbeam])
+                    drawPaints(M.cache.paints)
                 end)
             :build()
     end
@@ -495,10 +527,11 @@ local function updateOnClose(state)
                 trailers = {},
                 props = {},
             }
-            M.sumConfigs = 0
             M.vehFilter = ""
-            M.filtered = nil
-            M.paints = {}
+            M.cache = {
+                vehicles = {},
+                paints = {},
+            }
         end
     elseif not state and M.onClose then
         M.onClose = nil
@@ -569,28 +602,11 @@ local function open(models, canClose)
     M.models.trailers = trailers
     M.models.props = props
 
-    for model, modelData in pairs(BJIVeh.getAllVehicleConfigs(true, true)) do
-        M.paints[model] = {}
-        for paintLabel, paintData in pairs(modelData.paints) do
-            table.insert(M.paints[model], {
-                label = paintLabel,
-                paint = paintData,
-            })
-        end
-        table.sort(M.paints[model], function(a, b)
-            return a.label < b.label
-        end)
-    end
-
-    M.sumConfigs = 0
-    for _, typeModels in pairs(M.models) do
-        for _, model in pairs(typeModels) do
-            M.sumConfigs = M.sumConfigs + #model.configs
-        end
-    end
-
-    M.filtered = {}
-    updateFiltered()
+    M.cache = {
+        vehicles = {},
+        paints = {},
+    }
+    updateCacheVehicles()
 
     M.state = true
 end
@@ -603,6 +619,9 @@ local function tryClose(force)
         M.onClose()
     end
 end
+
+M.onLoad = onLoad
+M.onUnload = onUnload
 
 M.header = drawHeader
 M.body = drawBody
