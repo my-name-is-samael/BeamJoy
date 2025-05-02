@@ -527,7 +527,6 @@ local function updateOnClose(state)
                 trailers = {},
                 props = {},
             }
-            M.vehFilter = ""
             M.cache = {
                 vehicles = {},
                 paints = {},
