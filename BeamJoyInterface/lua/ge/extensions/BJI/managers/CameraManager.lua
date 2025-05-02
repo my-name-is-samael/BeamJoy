@@ -189,13 +189,6 @@ local function renderTick(ctxt)
         M.onCameraChange(ctxt.camera)
     end
 
-    if M.lastCamera == M.CAMERAS.FREE and
-        ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJIContext.UserSettings.freecamFov then
-        -- update FOV
-        BJIContext.UserSettings.freecamFov = M.getFOV()
-        BJITx.player.settings("freecamFov", BJIContext.UserSettings.freecamFov)
-    end
     ctxt.camera = M.getCamera()
 
     -- Update forced camera
@@ -221,6 +214,15 @@ local function renderTick(ctxt)
         end
     end
     M.lastCamera = ctxt.camera
+end
+
+local function slowTick(ctxt)
+    if ctxt.camera == M.CAMERAS.FREE and
+        M.getFOV() ~= BJIContext.UserSettings.freecamFov then
+        -- update FOV
+        BJIContext.UserSettings.freecamFov = M.getFOV()
+        BJITx.player.settings("freecamFov", BJIContext.UserSettings.freecamFov)
+    end
 end
 
 local function switchToNextCam()
@@ -271,6 +273,7 @@ M.getFOV = getFOV
 M.setFOV = setFOV
 
 M.renderTick = renderTick
+M.slowTick = slowTick
 M.onCameraChange = onCameraChange
 
 RegisterBJIManager(M)

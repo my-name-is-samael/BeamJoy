@@ -61,25 +61,24 @@ function _PrintObj(name, obj, indent)
     elseif type(obj) == "function" then
         print(string.var("{1}{2} ({3}) = function", { strIndent, name, type(name) }))
     elseif type(obj) == "string" then
-        print(string.var("{1}{2} ({3}) = \"{4}\" ({5})", { strIndent, name, type(name), tostring(obj):escape(), type(obj) }))
+        print(string.var("{1}{2} ({3}) = \"{4}\" ({5})",
+            { strIndent, name, type(name), tostring(obj):escape(), type(obj) }))
     else
         print(string.var("{1}{2} ({3}) = {4} ({5})", { strIndent, name, type(name), tostring(obj), type(obj) }))
     end
 end
 
----@param obj any
----@param name? string
-function PrintObj(obj, name)
-    if name == nil then
-        name = "data"
-    end
-    _PrintObj(name, obj)
+---@param ... any
+function PrintObj(...)
+    table.forEach({ ... }, function(el)
+        _PrintObj("data", el)
+    end)
 end
 dump = dump or PrintObj
 
 ---@param obj any
----@param str? string
-function PrintObj1Level(obj, str)
+---@param filterStr? string
+function PrintObj1Level(obj, filterStr)
     if type(obj) ~= "table" then
         print("Not a table")
         return
@@ -89,7 +88,7 @@ function PrintObj1Level(obj, str)
     else
         local i = 1
         for k, v in pairs(obj) do
-            if not str or k:upper():find(str:upper()) then
+            if not filterStr or k:upper():find(filterStr:upper()) then
                 if type(v) == "table" then
                     print(string.var("{1}-{2} ({3} children)", { i, k, table.length(v) }))
                 else

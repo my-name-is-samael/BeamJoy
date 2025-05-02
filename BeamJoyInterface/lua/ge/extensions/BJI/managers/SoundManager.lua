@@ -6,10 +6,16 @@ local M = {
     _name = "BJISound",
     SOUNDS = {
         LEVEL_UP = _baseSoundsPath("levelup"),
-        NAV_CHANGE = _baseSoundsPath("nav_change"),
-        RACE_COUNTDOWN = _baseSoundsPath("race_countdown"),
-        RACE_START = _baseSoundsPath("race_start"),
-        RACE_WAYPOINT = _baseSoundsPath("race_waypoint"),
+        RACE_COUNTDOWN = "event:UI_Countdown1",
+        RACE_START = "event:UI_CountdownGo",
+        RACE_WAYPOINT = "event:UI_Checkpoint",          -- same as "event:>UI>Missions>Checkpoint"
+        BIGMAP_HOVER = "event:>UI>Bigmap>Hover_Icon",   -- slight click sound
+        BIGMAP_SELECT = "event:>UI>Bigmap>Select_Icon", -- switch sound
+        BIGMAP_ROUTE = "event:>UI>Bigmap>Route",        -- ting sound
+        WOOSH_IN = "event:>UI>Bigmap>Whoosh_In",        -- click sound, same as "event:>UI>Bigmap>Whoosh_Out"
+        FUEL_LOW = "event:>UI>Career>Fuel_Low",         -- 4x tings sound
+        MAIN_CANCEL = "event:>UI>Main>Cancel",          -- boop sound
+        INFO_OPEN = "event:>UI>Missions>Info_Open",     -- ting sound
     }
 }
 
@@ -17,12 +23,23 @@ local function addSound(name, filePath)
     M.SOUNDS[name] = filePath
 end
 
-local function play(sound)
+---@param sound string
+---@param pos? vec3
+local function play(sound, pos)
     if not table.includes(M.SOUNDS, sound) then
         LogError(string.var("Unknown sound \"{1}\"", { sound }))
     end
 
-    Engine.Audio.playOnce('AudioGui', sound)
+    local _
+    _, pos = pos and pcall(vec3, pos) or nil, nil
+    local data = nil
+    if pos then
+        data = {
+            position = pos
+        }
+    end
+
+    Engine.Audio.playOnce('AudioGui', sound, data)
 end
 
 M.addSound = addSound

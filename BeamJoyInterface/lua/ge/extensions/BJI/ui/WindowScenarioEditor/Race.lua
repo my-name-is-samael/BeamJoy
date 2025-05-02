@@ -83,7 +83,6 @@ end
 
 local function getNewWaypointRadius(iStep, iWp)
     local previousStep = raceEdit.steps[iStep - 1]
-    PrintObj(previousStep, iStep - 1)
     if previousStep then
         if previousStep[iWp] then
             return previousStep[iWp].radius

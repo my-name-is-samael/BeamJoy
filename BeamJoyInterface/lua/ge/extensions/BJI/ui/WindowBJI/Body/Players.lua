@@ -1,12 +1,16 @@
-local function drawWaiting(players)
+local function drawWaiting(cache)
+    if table.length(cache.data.players.waiting) == 0 then
+        return
+    end
+
     LineBuilder()
-        :text(BJILang.get("playersBlock.waitingPlayers"))
-        :text(string.var("({1}):", { table.length(players) }))
+        :text(cache.labels.players.waiting)
+        :text(string.var("({1}):", { table.length(cache.data.players.waiting) }))
         :build()
     local playerList = ""
     local length = 0
     local maxLineLength = 60
-    for i, player in ipairs(players) do
+    for i, player in ipairs(cache.data.players.waiting) do
         local playerName = player.playerName
         if i > 1 then
             if length + #playerName + 2 > maxLineLength then
@@ -19,7 +23,7 @@ local function drawWaiting(players)
         playerList = string.var("{1} {2}", { playerList, playerName })
         length = length + 1 + #playerName
 
-        if i < table.length(players) then
+        if i < table.length(cache.data.players.waiting) then
             playerList = string.var("{1},", { playerList })
         end
     end
@@ -28,22 +32,14 @@ local function drawWaiting(players)
         :build()
 end
 
-local function drawPlayers(players, ctxt)
-    LineBuilder()
-        :text(string.var("{1}:", { BJILang.get("playersBlock.players") }))
-        :build()
+local function drawPlayers(cache, ctxt)
+    LineBuilder():text(cache.labels.players.list):build()
     Indent(1)
-    for _, player in ipairs(players) do
-        local playerTag = player.staff and
-            BJILang.get("chat.staffTag") or
-            string.var("{1}{2}", {
-                BJILang.get("chat.reputationTag"),
-                BJIReputation.getReputationLevel(player.reputation)
-            })
-        local playerColor = BJIContext.isSelf(player.playerID) and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT
+    for _, player in ipairs(cache.data.players.list) do
+        local playerColor = player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT
         LineBuilder()
             :text(player.playerName, playerColor)
-            :text(string.var("({1})", { playerTag }), playerColor)
+            :text(player.nameSuffix, playerColor)
             :build()
 
         Indent(1)
@@ -67,7 +63,7 @@ local function drawPlayers(players, ctxt)
     Indent(-1)
 end
 
-local function draw(ctxt)
+local function draw(ctxt, cache)
     local waitingPlayers, players = {}, {}
     for playerID, player in pairs(BJIContext.Players) do
         if BJIPerm.canSpawnVehicle(playerID) then
@@ -83,12 +79,7 @@ local function draw(ctxt)
         return a.playerName < b.playerName
     end)
 
-    if #waitingPlayers > 0 then
-        drawWaiting(waitingPlayers)
-    end
-
-    if #players > 0 then
-        drawPlayers(players, ctxt)
-    end
+    drawWaiting(cache)
+    drawPlayers(cache, ctxt)
 end
 return draw

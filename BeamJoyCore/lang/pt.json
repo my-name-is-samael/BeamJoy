@@ -249,7 +249,8 @@
         "confirm": "Confirmar",
         "start": "Começar",
         "explode": "Explodir",
-        "leave": "Deixar"
+        "leave": "Deixar",
+        "toggle": "Alternar"
       },
       "durationModifiers": {
         "minute": "eu",
@@ -301,6 +302,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Minhas configurações",
       "BJIEvents": "Eventos",
+      "BJIRacesLeaderboard": "Tabela de classificação das corridas",
       "BJIRaceSettings": "Configurações de corrida",
       "BJIRace": "Corrida",
       "BJIDeliveryMulti": "Entrega Juntos",

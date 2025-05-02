@@ -68,13 +68,11 @@ function _PrintObj(name, obj, indent)
     end
 end
 
----@param obj any
----@param name? string
-function PrintObj(obj, name)
-    if name == nil then
-        name = "data"
-    end
-    _PrintObj(name, obj)
+---@param ... any
+function PrintObj(...)
+    table.forEach({...}, function (el)
+        _PrintObj("data", el)
+    end)
 end
 dump = dump or PrintObj
 

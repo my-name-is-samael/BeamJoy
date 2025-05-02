@@ -137,8 +137,12 @@ local function handleRx(cacheType, cacheData, cacheHash)
         end
     end
     M._hashes[cacheType] = cacheHash
-
     _markCacheReady(cacheType)
+
+    BJIEvents.trigger(BJIEvents.EVENTS.CACHE_LOADED, {
+        cache = cacheType,
+        hash = cacheHash,
+    })
 end
 
 ---@param ctxt SlowTickContext

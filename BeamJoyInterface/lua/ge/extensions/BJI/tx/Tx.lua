@@ -33,7 +33,7 @@ function BJITx._send(controller, endpoint, data)
 
     LogDebug(string.var("Event {1}.{2} sent ({3} parts data)", { controller, endpoint, #parts }), BJITx._name)
     if logData then
-        PrintObj(data, endpoint)
+        PrintObj(data)
     end
 end
 

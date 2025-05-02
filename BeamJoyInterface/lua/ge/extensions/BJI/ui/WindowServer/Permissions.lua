@@ -61,8 +61,7 @@ end
 
 local function _isLevelAssignedToAnotherGroup(groupName, level)
     for g2Name, g2 in pairs(BJIPerm.Groups) do
-        if not table.includes({ "_new", "_newLevel" }, g2Name) and
-            groupName ~= g2Name and
+        if groupName ~= g2Name and
             g2.level == level then
             return true
         end
@@ -290,12 +289,10 @@ local function drawGroupData(groupName)
 end
 
 local function drawNewGroup()
-    local canCreate = #BJIPerm.Groups._new > 0 and
-        not table.includes({ "_new", "_newLevel" }, BJIPerm.Groups._new)
+    local canCreate = #BJIPerm.Inputs.newGroupName > 0
     if canCreate then
         for k, v in pairs(BJIPerm.Groups) do
-            if not table.includes({ "_new", "_newLevel" }, k) and
-                (k == BJIPerm.Groups._new or v.level == BJIPerm.Groups._newLevel) then
+            if (k == BJIPerm.Inputs.newGroupName or v.level == BJIPerm.Inputs.newGroupLevel) then
                 canCreate = false
                 break
             end
@@ -328,9 +325,9 @@ local function drawNewGroup()
                     LineBuilder()
                         :inputString({
                             id = "newGroup",
-                            value = BJIPerm.Groups._new,
+                            value = BJIPerm.Inputs.newGroupName,
                             onUpdate = function(val)
-                                BJIPerm.Groups._new = val
+                                BJIPerm.Inputs.newGroupName = val
                             end
                         })
                         :build()
@@ -349,11 +346,11 @@ local function drawNewGroup()
                         :inputNumeric({
                             id = "newGroupLevel",
                             type = "int",
-                            value = BJIPerm.Groups._newLevel,
+                            value = BJIPerm.Inputs.newGroupLevel,
                             step = 1,
                             min = 0,
                             onUpdate = function(val)
-                                BJIPerm.Groups._newLevel = val
+                                BJIPerm.Inputs.newGroupLevel = val
                             end
                         })
                         :build()
@@ -368,10 +365,10 @@ local function drawNewGroup()
             style = BTN_PRESETS.SUCCESS,
             disabled = not canCreate,
             onClick = function()
-                if not _isLevelAssignedToAnotherGroup(BJIPerm.Groups._new, BJIPerm.Groups._newLevel) then
-                    BJITx.config.permissionsGroup(BJIPerm.Groups._new, "level", BJIPerm.Groups._newLevel)
-                    BJIPerm.Groups._new = ""
-                    BJIPerm.Groups._newLevel = 0
+                if not _isLevelAssignedToAnotherGroup(BJIPerm.Inputs.newGroupName, BJIPerm.Inputs.newGroupLevel) then
+                    BJITx.config.permissionsGroup(BJIPerm.Inputs.newGroupName, "level", BJIPerm.Inputs.newGroupLevel)
+                    BJIPerm.Inputs.newGroupName = ""
+                    BJIPerm.Inputs.newGroupLevel = 0
                 end
             end
         })

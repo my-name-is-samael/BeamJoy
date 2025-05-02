@@ -122,7 +122,22 @@ end
 local function loadConfig()
     -- core data
     BJICache.addRxHandler(BJICache.CACHES.CORE, function(cacheData)
+        local previous = table.clone(C.Core) or {}
         C.Core = cacheData
+
+        -- events detection
+        local keyChanged = {}
+        for k, v in pairs(C.Core) do
+            if v ~= previous[k] then
+                keyChanged[k] = {
+                    previousValue = previous[k],
+                    currentValue = v,
+                }
+            end
+        end
+        if table.length(keyChanged) > 0 then
+            BJIEvents.trigger(BJIEvents.EVENTS.CORE_CHANGED, keyChanged)
+        end
     end)
 
     -- bjc data
@@ -341,6 +356,8 @@ end
 function C.onLoad()
     -- user data
     BJICache.addRxHandler(BJICache.CACHES.USER, function(cacheData)
+        local previous = table.clone(C.User) or {}
+
         C.User.playerID = cacheData.playerID
         C.User.playerName = cacheData.playerName
         C.User.group = cacheData.group
@@ -393,10 +410,51 @@ function C.onLoad()
             -- update nametags
             BJINametags.tryUpdate()
         end, "BJICacheFreeroamReady")
+
+        -- events detection
+        local previousVehCount = table.length(previous.vehicles)
+        local currentVehCount = table.length(C.User.vehicles)
+        if previousVehCount ~= currentVehCount then
+            if previousVehCount < currentVehCount then
+                -- new veh
+                table.find(C.User.vehicles, function(_, vehID)
+                    return not previous.vehicles[vehID]
+                end, function(veh)
+                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_SPAWNED, {
+                        self = true,
+                        playerID = C.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            else
+                -- removed veh
+                table.find(previous.vehicles, function(_, vehID)
+                    return not C.User.vehicles[vehID]
+                end, function(veh)
+                    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_REMOVED, {
+                        self = true,
+                        playerID = C.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            end
+        end
+
+        if previous.group ~= C.User.group then
+            BJIEvents.trigger(BJIEvents.EVENTS.PERMISSION_CHANGED, {
+                self = true,
+                type = "group_assign",
+            })
+        end
     end)
 
     -- players list data
     BJICache.addRxHandler(BJICache.CACHES.PLAYERS, function(cacheData)
+        local previousPlayers = table.clone(C.Players)
         for _, p in pairs(cacheData) do
             if not C.Players[p.playerID] then
                 C.Players[p.playerID] = {
@@ -434,6 +492,33 @@ function C.onLoad()
 
         -- update AI vehicles (to hide their nametags)
         BJIAI.updateVehicles()
+
+        -- events detection
+        local previousPlayersCount = table.length(previousPlayers)
+        local currentPlayersCount = table.length(C.Players)
+        if previousPlayersCount ~= currentPlayersCount then
+            if previousPlayersCount < currentPlayersCount then
+                -- player connected
+                table.find(C.Players, function(_, playerID)
+                    return not previousPlayers[playerID]
+                end, function(player)
+                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_CONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            else
+                -- player disconnected
+                table.find(previousPlayers, function(_, playerID)
+                    return not C.Players[playerID]
+                end, function(player)
+                    BJIEvents.trigger(BJIEvents.EVENTS.PLAYER_DISCONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            end
+        end
     end)
 
     loadUI()

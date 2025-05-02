@@ -16,6 +16,10 @@
 local M = {
     _name = "BJIVeh",
     baseFunctions = {},
+
+    tankEmergencyRefuelThreshold = .02, -- threshold for when emergency refuel button appears
+    tankLowThreshold = .05,             -- threshold for when fuel amount becomes critical + warning sound
+    tankMedThreshold = .15,             -- threshold for when fuel amount becomes warning
 }
 
 --gameplay_walk.toggleWalkingMode()
@@ -1071,33 +1075,54 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
+local function onVehicleSwitched(oldGameVehID, newGameVehID)
+    if oldGameVehID ~= -1 or newGameVehID ~= -1 then
+        BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED, {
+            self = true,
+            playerID = BJIContext.User.playerID,
+            previousGameVehID = oldGameVehID,
+            previousOwner = M.getVehOwnerID(oldGameVehID),
+            currentGameVehID = newGameVehID,
+            currentOwner = M.getVehOwnerID(newGameVehID),
+        })
+    end
+end
+
 local function updateVehFuelState(ctxt, data)
     local tanks = {}
     for _, tank in ipairs(data[1]) do
         if tank.energyType ~= "air" then
-            if BJIScenario.isFreeroam() and
-                BJIContext.BJC.Freeroam.PreserveEnergy and
-                ctxt.vehData.tanks and
-                ctxt.vehData.tanks[tank.name] and
-                ctxt.vehData.tanks[tank.name].storageType == tank.storageType and
-                ctxt.vehData.tanks[tank.name].maxEnergy == tank.maxEnergy and
-                ctxt.vehData.tanks[tank.name].currentEnergy < tank.currentEnergy and
-                not BJIContext.User.stationProcess then
-                -- fix freeroam preservefuel desync when resetting vehicle
-                M.setFuel(tank.name, ctxt.vehData.tanks[tank.name].currentEnergy)
-            else
-                tanks[tank.name] = {
-                    energyType = tank.energyType,
-                    storageType = tank.storageType,
-                    currentEnergy = tank.currentEnergy,
-                    maxEnergy = tank.maxEnergy,
-                }
+            if ctxt.vehData.tanks and
+                ctxt.vehData.tanks[tank.name] then
+                if BJIScenario.isFreeroam() and
+                    BJIContext.BJC.Freeroam.PreserveEnergy and
+                    ctxt.vehData.tanks[tank.name].currentEnergy < tank.currentEnergy and
+                    not BJIContext.User.stationProcess then
+                    -- keep fuel amount after reset
+                    M.setFuel(tank.name, ctxt.vehData.tanks[tank.name].currentEnergy)
+                else
+                    -- critical fuel amount trigger
+                    if ctxt.vehData.tanks[tank.name].currentEnergy and
+                        ctxt.vehData.tanks[tank.name].currentEnergy > tank.maxEnergy * M.tankLowThreshold and
+                        tank.currentEnergy < tank.maxEnergy * M.tankLowThreshold then
+                        BJISound.play(BJISound.FUEL_LOW)
+                    end
+
+                    ctxt.vehData.tanks[tank.name].currentEnergy = tank.currentEnergy
+                end
             end
+            tanks[tank.name] = {
+                energyType = tank.energyType,
+                storageType = tank.storageType,
+                currentEnergy = tank.currentEnergy,
+                maxEnergy = tank.maxEnergy,
+            }
         end
     end
     if not ctxt.vehData.tanks or
-        table.length(tanks) >= table.length(ctxt.vehData.tanks) then
+        not table.compare(table.keys(tanks), table.keys(ctxt.vehData.tanks)) then
         ctxt.vehData.tanks = tanks
+        BJIEvents.trigger(BJIEvents.EVENTS.VEHDATA_UPDATED, ctxt.vehData)
     end
 end
 
@@ -1261,6 +1286,7 @@ M.jouleToReadableUnit = jouleToReadableUnit
 M.setFuel = setFuel
 
 M.onVehicleResetted = onVehicleResetted
+M.onVehicleSwitched = onVehicleSwitched
 M.slowTick = slowTick
 M.updateVehDamages = updateVehDamages
 

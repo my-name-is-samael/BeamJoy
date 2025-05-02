@@ -1,10 +1,144 @@
-local function draw(ctxt)
-    local vSeparator = BJILang.get("common.vSeparator")
+local cache = {
+    data = {
+        firstRowRightButtonsWidth = 0,
+        nametagsVisible = false,
 
+        secondRowRightButtonsWidth = 0,
+        showTime = false,
+        showTemp = false,
+        time = nil,
+        temp = nil,
+        showCorePublic = false,
+
+        gravity = nil,
+        speed = nil,
+
+        showLevel = false,
+        level = 1,
+
+        vehResetBypass = false,
+    },
+    labels = {
+        vSeparator = "",
+        resetCooldownLabel = "",
+        resetCooldownAvailable = "",
+        teleportCooldownLabel = "",
+        teleportCooldownAvailable = "",
+    }
+}
+
+local function updateGravitySpeedLabel()
+    if BJIContext.UI.gravity and not BJIContext.UI.gravity.default then
+        cache.data.gravity = string.var("{1}: {2}", {
+            BJILang.get("header.gravity"),
+            BJIContext.UI.gravity.key and
+            string.var("{1} ({2})", {
+                BJILang.get(string.var("presets.gravity.{1}", { BJIContext.UI.gravity.key })),
+                BJIContext.UI.gravity.value,
+            }) or
+            string.var("{1}", { BJIContext.UI.gravity.value }),
+        })
+    else
+        cache.data.gravity = nil
+    end
+    if BJIContext.UI.speed and not BJIContext.UI.speed.default then
+        cache.data.speed = string.var("{1}: {2}", {
+            BJILang.get("header.speed"),
+            BJIContext.UI.speed.key and
+            string.var("{1} (x{2})", {
+                BJILang.get(string.var("presets.speed.{1}", { BJIContext.UI.speed.key })),
+                BJIContext.UI.speed.value,
+            }) or
+            string.var("x{1}", { BJIContext.UI.speed.value }),
+        })
+    else
+        cache.data.speed = nil
+    end
+end
+
+---@param ctxt TickContext
+local function updateCacheData(ctxt)
+    cache.data.nametagsVisible = not settings.getValue("hideNameTags", false)
+
+    cache.data.showTime = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and not not BJIEnv.getTime()
+    cache.data.showTemp = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and not not BJIEnv.getTemperature()
+    if BJIEnv.Data.timePlay then
+        -- moving time, not cached
+        cache.data.time = nil
+        cache.data.temp = nil
+    elseif cache.data.showTimeAndTemp then
+        -- static time, cached
+        cache.data.time = PrettyTime(BJIEnv.getTime().time)
+        local temp = BJIEnv.getTemperature()
+        local tempUnit = settings.getValue("uiUnitTemperature")
+        if tempUnit == "k" then
+            cache.data.temp = string.var("{1}K", { math.round(math.round(temp, 2)) })
+        elseif tempUnit == "c" then
+            cache.data.temp = string.var("{1}°C", { math.round(math.round(math.kelvinToCelsius(temp) or 0, 2)) })
+        elseif tempUnit == "f" then
+            cache.data.temp = string.var("{1}°F", { math.round(math.round(math.kelvinToFahrenheit(temp) or 0, 2)) })
+        end
+    end
+    cache.data.showCorePublic = BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) and BJIContext.Core
+
+    updateGravitySpeedLabel()
+
+    cache.data.showLevel = BJICache.isFirstLoaded(BJICache.CACHES.USER)
+
+    cache.data.vehResetBypass = BJIPerm.isStaff()
+end
+
+local function updateWidths()
+    cache.data.firstRowRightButtonsWidth = math.round(GetBtnIconSize() * 2)
+    cache.data.secondRowRightButtonsWidth = math.round(GetBtnIconSize() *
+        (BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) and 2 or 1))
+end
+
+local function updateLabels()
+    cache.labels.vSeparator = BJILang.get("common.vSeparator")
+    updateGravitySpeedLabel()
+    cache.labels.resetCooldownLabel = string.var("{1}:", { BJILang.get("header.nextReset") })
+    cache.labels.resetCooldownAvailable = BJILang.get("header.resetAvailable")
+    cache.labels.teleportCooldownLabel = string.var("{1}:", { BJILang.get("header.nextTeleport") })
+    cache.labels.teleportCooldownAvailable = BJILang.get("header.teleportAvailable")
+end
+
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+
+    updateCacheData(ctxt)
+    updateWidths()
+    updateLabels()
+end
+
+local listeners = {}
+local function onLoad()
+    updateCache()
+
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.LANG_CHANGED, updateLabels))
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.CACHE_LOADED,
+        BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJIEvents.EVENTS.NAMETAGS_VISIBILITY_CHANGED,
+        BJIEvents.EVENTS.ENV_CHANGED,
+        BJIEvents.EVENTS.CORE_CHANGED,
+        BJIEvents.EVENTS.LEVEL_UP,
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+    }, updateCacheData))
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.UI_UPDATE_REQUEST, updateCache))
+end
+
+local function onUnload()
+    table.forEach(listeners, BJIEvents.removeListener)
+end
+
+local function draw(ctxt)
     -- LANG / Settings / UIScale
     if BJICache.areBaseCachesFirstLoaded() and #BJILang.Langs > 1 then
-        local buttonsWidth = GetBtnIconSize() * 2
-        ColumnsBuilder("headerLangUIScale", { -1, math.round(buttonsWidth) })
+        ColumnsBuilder("headerLangUIScale", { -1, cache.data.firstRowRightButtonsWidth })
             :addRow({
                 cells = {
                     function()
@@ -39,12 +173,11 @@ local function draw(ctxt)
                         end
                         line:btnIconToggle({
                             id = "togleNametags",
-                            icon = settings.getValue("hideNameTags", false) and ICONS.speaker_notes_off or
-                                ICONS.speaker_notes,
-                            state = not settings.getValue("hideNameTags", false),
+                            icon = cache.data.nametagsVisible and ICONS.speaker_notes or ICONS.speaker_notes_off,
+                            state = cache.data.nametagsVisible,
                             coloredIcon = true,
                             onClick = function()
-                                settings.setValue("hideNameTags", not settings.getValue("hideNameTags", false))
+                                settings.setValue("hideNameTags", cache.data.nametagsVisible)
                                 BJINametags.tryUpdate()
                             end,
                         })
@@ -55,6 +188,7 @@ local function draw(ctxt)
                                 style = BTN_PRESETS.ERROR,
                                 coloredIcon = true,
                                 onClick = BJIGPS.clear,
+                                sound = BTN_NO_SOUND,
                             })
                         end
                         line:build()
@@ -77,6 +211,9 @@ local function draw(ctxt)
                                     if scale ~= BJIContext.UserSettings.UIScale then
                                         BJIContext.UserSettings.UIScale = scale
                                         BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
+                                        BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
+                                            scale = scale
+                                        })
                                     end
                                 end
                             })
@@ -88,6 +225,9 @@ local function draw(ctxt)
                                     if scale ~= BJIContext.UserSettings.UIScale then
                                         BJIContext.UserSettings.UIScale = scale
                                         BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
+                                        BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
+                                            scale = scale
+                                        })
                                     end
                                 end
                             })
@@ -99,13 +239,8 @@ local function draw(ctxt)
     end
 
     -- MAP / TIME / TEMPERATURE
-    local showMap = BJICache.isFirstLoaded(BJICache.CACHES.MAP)
-    if showMap then
-        local btnWidth = GetBtnIconSize()
-        if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) then
-            btnWidth = GetBtnIconSize() * 2
-        end
-        ColumnsBuilder("headerMapTimeTempPrivate", { -1, btnWidth })
+    if BJICache.isFirstLoaded(BJICache.CACHES.MAP) then
+        ColumnsBuilder("headerMapTimeTempPrivate", { -1, cache.data.secondRowRightButtonsWidth })
             :addRow({
                 cells = {
                     function()
@@ -115,25 +250,30 @@ local function draw(ctxt)
 
                         -- TIME & TEMPERATURE
                         local labels = {}
-                        local time = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and BJIEnv.getTime() and
-                            BJIEnv.getTime().time
-                        if time then
-                            table.insert(labels, PrettyTime(time))
+                        if cache.data.showTime then
+                            table.insert(labels, cache.data.time or PrettyTime(BJIEnv.getTime().time))
                         end
 
-                        local temp = BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) and BJIEnv.getTemperature()
-                        if temp then
-                            local tempUnit = settings.getValue("uiUnitTemperature")
-                            if tempUnit == "k" then
-                                table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
-                            elseif tempUnit == "c" then
-                                table.insert(labels, string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
-                            elseif tempUnit == "f" then
-                                table.insert(labels, string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
+                        if cache.data.showTemp then
+                            if cache.data.temp then
+                                table.insert(labels, cache.data.temp)
+                            else
+                                local temp = BJIEnv.getTemperature()
+                                local tempUnit = settings.getValue("uiUnitTemperature")
+                                if tempUnit == "k" then
+                                    table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
+                                elseif tempUnit == "c" then
+                                    table.insert(labels,
+                                        string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
+                                elseif tempUnit == "f" then
+                                    table.insert(labels,
+                                        string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
+                                end
                             end
                         end
                         if #labels > 0 then
-                            line:text(string.var("{1}", { table.join(labels, string.var(" {1} ", { vSeparator })) }))
+                            line:text(string.var("{1}",
+                                { table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })) }))
                         end
                         line:build()
                     end,
@@ -148,7 +288,7 @@ local function draw(ctxt)
                                     guihooks.trigger("app:waiting", false)
                                 end,
                             })
-                        if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) and BJIContext.Core then
+                        if cache.data.showCorePublic then
                             local state = BJIContext.Core.Private
                             line:btnIconToggle({
                                 id = "toggleCorePrivate",
@@ -167,39 +307,24 @@ local function draw(ctxt)
     end
 
     -- GRAVITY / SPEED
-    local showGravity = BJIContext.UI.gravity.key and not BJIContext.UI.gravity.default
-    local showSpeed = BJIContext.UI.speed and not BJIContext.UI.speed.default
-    if showGravity or showSpeed then
-        local line = LineBuilder()
+    if cache.data.gravity or cache.data.speed then
+        local labels = {}
         -- GRAVITY
-        if showGravity then
-            line:text(string.var("{1}:", { BJILang.get("header.gravity") }))
-            if BJIContext.UI.gravity.key then
-                line:text(BJILang.get(string.var("presets.gravity.{1}", { BJIContext.UI.gravity.key })))
-                    :text(string.var("({1})", { BJIContext.UI.gravity.value }))
-            else
-                line:text(string.var("{1}", { BJIContext.UI.gravity.value }))
-            end
+        if cache.data.gravity then
+            table.insert(labels, cache.data.gravity)
         end
 
         -- SPEED
-        if showSpeed then
-            if showGravity then
-                line:text(vSeparator)
-            end
-            line:text(string.var("{1}:", { BJILang.get("header.speed") }))
-            if BJIContext.UI.speed.key then
-                line:text(BJILang.get(string.var("presets.speed.{1}", { BJIContext.UI.speed.key })))
-                    :text(string.var("(x{1})", { BJIContext.UI.speed.value }))
-            else
-                line:text(string.var("x{1}", { BJIContext.UI.speed.value }))
-            end
+        if cache.data.speed then
+            table.insert(labels, cache.data.speed)
         end
-        line:build()
+        LineBuilder()
+            :text(table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })))
+            :build()
     end
 
     -- REPUTATION
-    if BJICache.isFirstLoaded(BJICache.CACHES.USER) then
+    if cache.data.showLevel then
         local level = BJIReputation.getReputationLevel()
         local levelReputation = BJIReputation.getReputationLevelAmount(level)
         local reputation = BJIReputation.reputation
@@ -218,7 +343,8 @@ local function draw(ctxt)
     end
 
     -- TELEPORT DELAY / RESET DELAY
-    if BJICache.isFirstLoaded(BJICache.CACHES.BJC) and
+    if not cache.data.vehResetBypass and
+        BJICache.isFirstLoaded(BJICache.CACHES.BJC) and
         BJIScenario.isFreeroam() and
         ctxt.isOwner then
         local showReset = BJIContext.BJC.Freeroam.ResetDelay > 0
@@ -229,23 +355,23 @@ local function draw(ctxt)
             if showReset then
                 local resetDelay = BJIAsync.getRemainingDelay(BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER)
                 if resetDelay then
-                    line:text(string.var("{1}:", { BJILang.get("header.nextReset") }))
+                    line:text(cache.labels.resetCooldownLabel)
                         :text(PrettyDelay(math.round(resetDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
                 else
-                    line:text(BJILang.get("header.resetAvailable"))
+                    line:text(cache.labels.resetCooldownAvailable)
                 end
             end
 
             if showTeleport then
                 if showReset then
-                    line:text(vSeparator)
+                    line:text(cache.labels.vSeparator)
                 end
                 local teleportDelay = BJIAsync.getRemainingDelay(BJIAsync.KEYS.RESTRICTIONS_TELEPORT_TIMER)
                 if teleportDelay then
-                    line:text(string.var("{1}:", { BJILang.get("header.nextTeleport") }))
+                    line:text(cache.labels.teleportCooldownLabel)
                         :text(PrettyDelay(math.round(teleportDelay / 1000)), TEXT_COLORS.HIGHLIGHT)
                 else
-                    line:text(BJILang.get("header.teleportAvailable"))
+                    line:text(cache.labels.teleportCooldownAvailable)
                 end
             end
 
@@ -256,4 +382,8 @@ local function draw(ctxt)
     Separator()
 end
 
-return draw
+return {
+    onLoad = onLoad,
+    onUnload = onUnload,
+    draw = draw,
+}

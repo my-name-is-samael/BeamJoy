@@ -157,25 +157,28 @@ local function initDrive(ctxt)
     end
     M.line.totalDistance = BJIGPS.getRouteLength(points)
 
-    local startPosRot = M.line.stops[1]
-    BJIVeh.replaceOrSpawnVehicle(M.model, M.config, startPosRot)
-    BJIAsync.task(function(ctxt2)
-        return ctxt2.isOwner and
-            not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
-            ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
-    end, function(ctxt2)
-        M.state = M.STATES.DRIVE
-        initCornerMarkers()
-        updateTarget(ctxt2)
-        BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
-        BJIAsync.delayTask(function()
-            BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
-            BJIBusUI.requestStop(true)
-        end, 300, "BJIBusMissionInitBusUI")
+    BJIUI.applyLoading(true, function()
+        local startPosRot = M.line.stops[1]
+        BJIVeh.replaceOrSpawnVehicle(M.model, M.config, startPosRot)
+        BJIAsync.task(function(ctxt2)
+            return ctxt2.isOwner and
+                not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
+                ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
+        end, function(ctxt2)
+            M.state = M.STATES.DRIVE
+            initCornerMarkers()
+            updateTarget(ctxt2)
+            BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
+            BJIAsync.delayTask(function()
+                BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
+                BJIBusUI.requestStop(true)
+            end, 300, "BJIBusMissionInitBusUI")
 
-        BJITx.scenario.BusMissionStart()
-        M.init = true
-    end, "BJIBusMissionInitVehicle")
+            BJITx.scenario.BusMissionStart()
+            M.init = true
+            BJIUI.applyLoading(false)
+        end, "BJIBusMissionInitVehicle")
+    end)
 end
 
 local function onMissionFailed()
@@ -210,13 +213,13 @@ local function onStopBusMission()
     onMissionFailed()
 end
 
-local function drawMissionUI(ctxt)
+local function drawUI(ctxt, cache)
     if M.state == M.STATES.DRIVE then
         LineBuilder()
-            :text(BJILang.get("buslines.play.line"):var({ name = M.line.name }))
+            :text(cache.labels.busMission.line:var({ name = M.line.name }))
             :build()
         LineBuilder()
-            :text(BJILang.get("buslines.play.stopCount")
+            :text(cache.labels.busMission.stopCount
                 :var({ current = M.nextStop - 1, total = #M.line.stops }))
             :build()
         ProgressBar({
@@ -326,9 +329,7 @@ end
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    local isSelf = BJIContext.isSelf(player.playerID)
-
-    if not BJIPerm.isStaff() and not isSelf and
+    if not BJIPerm.isStaff() and not player.self and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
         BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
@@ -367,7 +368,7 @@ M.onLoad = onLoad
 
 M.initDrive = initDrive
 
-M.drawMissionUI = drawMissionUI
+M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
 M.onVehicleSwitched = onVehicleSwitched

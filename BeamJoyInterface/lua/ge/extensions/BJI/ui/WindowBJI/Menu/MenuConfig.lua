@@ -1,10 +1,17 @@
-local function menuServer(ctxt, configEntry)
+local M = {
+    cache = {
+        label = nil,
+        elems = {},
+    },
+}
+
+local function menuServer(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CEN) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_MAPS) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_PERMISSIONS) then
-        table.insert(configEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.config.server"),
             active = BJIContext.ServerEditorOpen,
             onClick = function()
@@ -14,9 +21,9 @@ local function menuServer(ctxt, configEntry)
     end
 end
 
-local function menuEnvironment(ctxt, configEntry)
+local function menuEnvironment(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) then
-        table.insert(configEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.config.environment"),
             active = BJIContext.EnvironmentEditorOpen,
             onClick = function()
@@ -26,9 +33,9 @@ local function menuEnvironment(ctxt, configEntry)
     end
 end
 
-local function menuTheme(ctxt, configEntry)
+local function menuTheme(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) then
-        table.insert(configEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.config.theme"),
             active = BJIContext.ThemeEditor,
             onClick = function()
@@ -59,10 +66,10 @@ local function menuTheme(ctxt, configEntry)
     end
 end
 
-local function menuDatabase(ctxt, configEntry)
+local function menuDatabase(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.DATABASE_PLAYERS) or
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.DATABASE_VEHICLES) then
-        table.insert(configEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.config.database"),
             active = BJIContext.DatabaseEditorOpen,
             onClick = function()
@@ -72,9 +79,9 @@ local function menuDatabase(ctxt, configEntry)
     end
 end
 
-local function menuStopServer(ctxt, configEntry)
+local function menuStopServer(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CORE) then
-        table.insert(configEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.config.stop"),
             onClick = function()
                 BJIPopup.createModal(BJILang.get("menu.config.stopModal"), {
@@ -91,17 +98,36 @@ local function menuStopServer(ctxt, configEntry)
     end
 end
 
-return function(ctxt)
-    local configEntry = {
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache = {
         label = BJILang.get("menu.config.title"),
         elems = {},
     }
 
-    menuServer(ctxt, configEntry)
-    menuEnvironment(ctxt, configEntry)
-    menuTheme(ctxt, configEntry)
-    menuDatabase(ctxt, configEntry)
-    menuStopServer(ctxt, configEntry)
-
-    return #configEntry.elems > 0 and configEntry or nil
+    menuServer(ctxt)
+    menuEnvironment(ctxt)
+    menuTheme(ctxt)
+    menuDatabase(ctxt)
+    menuStopServer(ctxt)
 end
+
+local listeners = {}
+function M.onLoad()
+    updateCache()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+end
+
+function M.onUnload()
+    for _, id in ipairs(listeners) do
+        BJIEvents.removeListener(id)
+    end
+end
+
+return M
