@@ -378,7 +378,6 @@ table.values = table.values or function(tab)
     for _, v in pairs(tab) do
         table.insert(res, v)
     end
-    table.sort(res)
     return metatable(res)
 end
 
