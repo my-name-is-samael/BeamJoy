@@ -332,6 +332,7 @@ local function onLoad()
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, function(ctxt2, data)
         if data._event ~= BJIEvents.EVENTS.CACHE_LOADED or

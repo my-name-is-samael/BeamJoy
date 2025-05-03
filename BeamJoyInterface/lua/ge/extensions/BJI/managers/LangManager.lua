@@ -6,9 +6,6 @@ local M = {
 
 local function onLoad()
     BJICache.addRxHandler(BJICache.CACHES.LANG, function(cacheData)
-        local previousLangs = table.clone(M.Langs)
-        local previousMessages = table.clone(M.Messages)
-
         BJILang.Langs = cacheData.langs
         table.sort(BJILang.Langs, function(a, b) return a:lower() < b:lower() end)
         BJILang.Messages = cacheData.messages
