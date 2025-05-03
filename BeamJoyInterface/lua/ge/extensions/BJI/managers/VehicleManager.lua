@@ -1104,7 +1104,8 @@ local function updateVehFuelState(ctxt, data)
                     M.setFuel(tank.name, ctxt.vehData.tanks[tank.name].currentEnergy)
                 else
                     -- critical fuel amount trigger
-                    if ctxt.vehData.tanks[tank.name].currentEnergy and
+                    if table.includes(BJI_ENERGY_STATION_TYPES, ctxt.vehData.tanks[tank.name].energyType) and
+                        ctxt.vehData.tanks[tank.name].currentEnergy and
                         ctxt.vehData.tanks[tank.name].currentEnergy > tank.maxEnergy * M.tankLowThreshold and
                         tank.currentEnergy < tank.maxEnergy * M.tankLowThreshold then
                         BJISound.play(BJISound.FUEL_LOW)
