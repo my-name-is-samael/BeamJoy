@@ -24,6 +24,11 @@ local cache = {
         resetCooldownAvailable = "",
         teleportCooldownLabel = "",
         teleportCooldownAvailable = "",
+        collisions = {
+            title = "",
+            enabled = "",
+            disabled = "",
+        },
     }
 }
 
@@ -101,6 +106,9 @@ local function updateLabels()
     cache.labels.resetCooldownAvailable = BJILang.get("header.resetAvailable")
     cache.labels.teleportCooldownLabel = string.var("{1}:", { BJILang.get("header.nextTeleport") })
     cache.labels.teleportCooldownAvailable = BJILang.get("header.teleportAvailable")
+    cache.labels.collisions.title = string.var("{1}:", { BJILang.get("header.collisions") })
+    cache.labels.collisions.enabled = BJILang.get("common.enabled")
+    cache.labels.collisions.disabled = BJILang.get("common.disabled")
 end
 
 ---@param ctxt? TickContext
@@ -323,25 +331,6 @@ local function draw(ctxt)
             :build()
     end
 
-    -- REPUTATION
-    if cache.data.showLevel then
-        local level = BJIReputation.getReputationLevel()
-        local levelReputation = BJIReputation.getReputationLevelAmount(level)
-        local reputation = BJIReputation.reputation
-        local nextLevel = BJIReputation.getReputationLevelAmount(level + 1)
-
-        LineBuilder()
-            :text(string.var("{1}:", { BJILang.get("header.reputation") }))
-            :text(level, TEXT_COLORS.HIGHLIGHT)
-            :helpMarker(string.var("{1}/{2}", { reputation, nextLevel }))
-            :build()
-
-        ProgressBar({
-            floatPercent = (reputation - levelReputation) / (nextLevel - levelReputation),
-            width = 250,
-        })
-    end
-
     -- TELEPORT DELAY / RESET DELAY
     if not cache.data.vehResetBypass and
         BJICache.isFirstLoaded(BJICache.CACHES.BJC) and
@@ -377,6 +366,32 @@ local function draw(ctxt)
 
             line:build()
         end
+    end
+
+    -- COLLISIONS INDICATOR
+    LineBuilder()
+        :text(cache.labels.collisions.title)
+        :text(BJICollisions.state and cache.labels.collisions.enabled or cache.labels.collisions.disabled,
+            TEXT_COLORS.HIGHLIGHT)
+        :build()
+
+    -- REPUTATION
+    if cache.data.showLevel then
+        local level = BJIReputation.getReputationLevel()
+        local levelReputation = BJIReputation.getReputationLevelAmount(level)
+        local reputation = BJIReputation.reputation
+        local nextLevel = BJIReputation.getReputationLevelAmount(level + 1)
+
+        LineBuilder()
+            :text(string.var("{1}:", { BJILang.get("header.reputation") }))
+            :text(level, TEXT_COLORS.HIGHLIGHT)
+            :helpMarker(string.var("{1}/{2}", { reputation, nextLevel }))
+            :build()
+
+        ProgressBar({
+            floatPercent = (reputation - levelReputation) / (nextLevel - levelReputation),
+            width = 250,
+        })
     end
 
     Separator()
