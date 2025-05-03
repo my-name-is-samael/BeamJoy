@@ -4,6 +4,7 @@
 ---@field x number
 ---@field y number
 ---@field z number
+---@field distance fun(self: vec3, target: vec3): number|nil
 
 ---@class quat
 ---@field x number
