@@ -8,14 +8,11 @@ local M = {
     type = 1,     -- forced by default (collisions on, no one is transparent)
     state = true, -- default state when joining
     ghosts = {},
-    selfGhost = false,
 
     ghostsRadius = 5,
-    ghostDelay = 3000,
-    ghostAlpha = .1,
+    ghostDelay = 5000,
+    ghostAlpha = .5,
     playerAlpha = 1,
-
-    alphas = {},
 }
 
 local function getVehAlpha(gameVehID)
@@ -40,23 +37,13 @@ local function setCollisions(state)
 end
 
 local function setAlpha(gameVehID, alpha)
-    core_vehicle_partmgmt.setHighlightedPartsVisiblity(alpha, gameVehID)
+    if BJIVeh.getVehicleObject(gameVehID) then
+        core_vehicle_partmgmt.setHighlightedPartsVisiblity(alpha, gameVehID)
+    end
 end
 
 local function getGhostDistance(selfVeh, targetVeh)
     return selfVeh:getInitialLength() / 2 + targetVeh:getInitialLength() / 2 + M.ghostsRadius
-end
-
-local function getAlphaByDistance(distance, maxDistance)
-    if distance > maxDistance then
-        return M.playerAlpha
-    else
-        local alpha = math.round(math.scale(distance, maxDistance, 2, M.playerAlpha, M.ghostAlpha), 2)
-        if alpha < M.ghostAlpha then
-            alpha = M.ghostAlpha
-        end
-        return alpha
-    end
 end
 
 local function areCloseVehicles(selfVehID)
@@ -87,135 +74,112 @@ local function areCloseVehicles(selfVehID)
     return false
 end
 
-local function addGhostSelf(gameVehID)
-    local selfVeh = BJIVeh.getVehicleObject(gameVehID)
-    if not selfVeh then
-        return
-    end
-
-    M.selfGhost = true
-    local eventNameTimeout = string.var("BJIGhostSelfTimeout{1}", { gameVehID })
-    BJIAsync.removeTask(eventNameTimeout)
-    local timeout = GetCurrentTimeMillis() + M.ghostDelay
-    BJIAsync.task(function(ctxt)
-        -- collision type has changed
-        if M.type ~= M.TYPES.GHOSTS then
-            return true
-        end
-        -- first delay
-        if ctxt.now < timeout then
-            return false
-        end
-        return true
-    end, function()
-        M.selfGhost = false
-    end, eventNameTimeout)
-end
-
-local function addGhostOther(gameVehID)
-    M.ghosts[gameVehID] = true
-    local eventNameTimeout = string.var("BJIGhostOtherTimeout{1}", { gameVehID })
-    BJIAsync.removeTask(eventNameTimeout)
-    BJIAsync.delayTask(function()
-        M.ghosts[gameVehID] = nil
-    end, M.ghostDelay, eventNameTimeout)
-end
-
 -- on spawn or reset
 local function onVehicleResetted(gameVehID)
-    if M.type ~= M.TYPES.GHOSTS or
-        gameVehID == -1 or
-        not BJIVeh.getVehicleObject(gameVehID) or
-        BJIAI.isAIVehicle(gameVehID) or
-        BJIVeh.isUnicycle(gameVehID) then
+    if gameVehID == -1 then
         return
     end
-    if BJIVeh.isVehicleOwn(gameVehID) then
-        addGhostSelf(gameVehID)
-    else
-        addGhostOther(gameVehID)
+
+    local function applyTransparencyAfterReset(g)
+        -- apply 3 times to prevent desyncs
+        table.forEach({ 0, 300, 600 }, function(delay)
+            -- apply alpha if not my current veh
+            BJIAsync.delayTask(function(ctxt)
+                if BJIVeh.getVehicleObject(g) and
+                    not (ctxt.isOwner and ctxt.veh:getID() == g) then
+                    setAlpha(g, M.ghostAlpha)
+                end
+            end, delay)
+        end)
+    end
+
+    if M.type == M.TYPES.GHOSTS then
+        if gameVehID == -1 or
+            not BJIVeh.getVehicleObject(gameVehID) or
+            BJIAI.isAIVehicle(gameVehID) or
+            BJIVeh.isUnicycle(gameVehID) then
+            return
+        end
+
+        M.ghosts[gameVehID] = true
+        local minTime = GetCurrentTimeMillis() + M.ghostDelay
+        local eventName = string.var("BJIGhostAlpha-{1}", { gameVehID })
+        BJIAsync.removeTask(eventName)
+        BJIAsync.task(function(ctxt)
+            -- collision type has changed
+            if M.type ~= M.TYPES.GHOSTS or not BJIVeh.getVehicleObject(gameVehID) then
+                return true
+            end
+            -- delay passed and not close to another vehicle
+            return ctxt.now >= minTime and not areCloseVehicles(gameVehID)
+        end, function(ctxt)
+            if BJIVeh.getVehicleObject(gameVehID) then
+                setAlpha(gameVehID, M.playerAlpha)
+            end
+            M.ghosts[gameVehID] = nil
+            if ctxt.veh and ctxt.veh:getID() == gameVehID then
+                setCollisions(true)
+            end
+        end, eventName)
+
+        local ctxt = BJITick.getContext()
+        if ctxt.isOwner and ctxt.veh:getID() == gameVehID then
+            setCollisions(false)
+        else
+            applyTransparencyAfterReset(gameVehID)
+        end
+    elseif M.type == M.TYPES.DISABLED then
+        local ctxt = BJITick.getContext()
+        if not (ctxt.isOwner and ctxt.veh:getID() == gameVehID) then
+            applyTransparencyAfterReset(gameVehID)
+        end
     end
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if M.type == M.TYPES.GHOSTS then
-        setCollisions(true)
+        if oldGameVehID ~= -1 then
+            -- previous vehicle actions
+            if M.ghosts[oldGameVehID] then
+                setAlpha(oldGameVehID, M.ghostAlpha)
+            end
+        end
+        if newGameVehID ~= -1 then
+            -- new vehicle actions
+            if M.ghosts[newGameVehID] then
+                setAlpha(newGameVehID, M.playerAlpha)
+                setCollisions(false)
+            else
+                local veh = BJIVeh.getPositionRotation(BJIVeh.getVehicleObject(newGameVehID))
+                if veh then
+                    setCollisions(table.any(M.ghosts, function(_, gameVehID)
+                        local target = BJIVeh.getPositionRotation(BJIVeh.getVehicleObject(gameVehID))
+                        return target and veh.pos:distance(target.pos) < M.ghostsRadius or false
+                    end))
+                else
+                    setCollisions(true)
+                end
+            end
+        end
+    elseif M.type == M.TYPES.DISABLED then
+        if oldGameVehID ~= -1 then
+            setAlpha(oldGameVehID, M.ghostAlpha)
+        end
+        if newGameVehID ~= -1 then
+            setAlpha(newGameVehID, M.playerAlpha)
+        end
     end
 end
 
 local function renderTick(ctxt)
-    local nextType = BJIScenario.getCollisionsType(ctxt)
-    if nextType ~= M.type then
-        if nextType ~= M.TYPES.GHOSTS then
-            M.ghosts = {}
-            setCollisions(nextType == M.TYPES.FORCED)
-        else
-            if M.type == M.TYPES.DISABLED then
-                setCollisions(not areCloseVehicles(ctxt.isOwner and ctxt.veh:getID() or nil))
-            else
-                setCollisions(true)
-            end
-        end
-        M.type = nextType
-    end
-
-    -- GHOST RULES
-    if M.type == M.TYPES.GHOSTS then
-        if ctxt.isOwner then
-            if M.ghosts[ctxt.veh:getID()] then
-                -- remove self from ghosts
-                M.ghosts[ctxt.veh:getID()] = nil
-            end
-            if M.state then
-                if M.selfGhost then
-                    setCollisions(false)
-                else
-                    -- check if ghosts near
-                    for g in pairs(M.ghosts) do
-                        local target = BJIVeh.getVehicleObject(g)
-                        local distance = ctxt.vehPosRot.pos:distance(BJIVeh.getPositionRotation(target).pos)
-                        if distance < M.ghostsRadius then
-                            setCollisions(false)
-                        end
-                    end
-                end
-            elseif not M.selfGhost then
-                -- check if far enough from any vehicle
-                if not areCloseVehicles(ctxt.veh:getID()) then
-                    setCollisions(true)
-                end
-            end
-        elseif not M.state then
-            setCollisions(true)
-        end
-    end
-
-    if ctxt.isOwner then
-        for _, veh in pairs(BJIVeh.getMPVehicles()) do
-            if veh.gameVehicleID ~= -1 and veh.gameVehicleID ~= ctxt.veh:getID() then
-                local alpha = M.playerAlpha
-                if not M.state then
-                    local target = BJIVeh.getVehicleObject(veh.gameVehicleID)
-                    local posRot = target and BJIVeh.getPositionRotation(target) or nil
-                    if posRot then
-                        local dist = ctxt.vehPosRot.pos:distance(posRot.pos)
-                        local maxDist = getGhostDistance(ctxt.veh, target)
-                        alpha = getAlphaByDistance(dist, maxDist)
-                    end
-                end
-                local alphaNeedsChange = false
-                if alpha == 1 and M.alphas[veh.gameVehicleID] then
-                    alphaNeedsChange = true
-                elseif math.abs(alpha - (M.alphas[veh.gameVehicleID] or 1)) > .1 then
-                    alphaNeedsChange = true
-                end
-                if alphaNeedsChange then
-                    local targetAlpha = alpha ~= M.playerAlpha and alpha or nil
-                    M.alphas[veh.gameVehicleID] = targetAlpha
-                    setAlpha(veh.gameVehicleID, alpha)
-                end
-            end
-        end
+    -- check if a ghost is near the current veh
+    if M.type == M.TYPES.GHOSTS and ctxt.veh and M.state and
+        table.any(M.ghosts, function(_, gameVehID)
+            local target = BJIVeh.getVehicleObject(gameVehID)
+            local distance = ctxt.vehPosRot.pos:distance(BJIVeh.getPositionRotation(target).pos)
+            return distance < M.ghostsRadius
+        end) then
+        setCollisions(false)
     end
 end
 
@@ -223,35 +187,51 @@ end
 local function slowTick(ctxt)
     if M.type == M.TYPES.GHOSTS then
         -- clear invalid ghosts
-        for g in pairs(M.ghosts) do
-            if not BJIVeh.getVehicleObject(g) or
-                BJIAI.isAIVehicle(g) then
-                M.ghosts[g] = nil
+        table.forEach(M.ghosts, function(_, gameVehID)
+            if not BJIVeh.getVehicleObject(gameVehID) or
+                BJIAI.isAIVehicle(gameVehID) then
+                M.ghosts[gameVehID] = nil
             end
+        end)
+    end
+end
+
+local function onTypeChanged(ctxt, nextType)
+    table.forEach(M.ghosts, function(_, gameVehID)
+        BJIAsync.removeTask(string.var("BJIGhostAlpha-{1}", { gameVehID }))
+        setAlpha(gameVehID, M.playerAlpha)
+    end)
+    table.clear(M.ghosts)
+    if nextType ~= M.TYPES.GHOSTS then
+        if nextType == M.TYPES.DISABLED then
+            table.forEach(BJIVeh.getMPVehicles(), function(veh)
+                if veh.gameVehicleID ~= ctxt.veh:getID() then
+                    setAlpha(veh.gameVehicleID, M.ghostAlpha)
+                end
+            end)
+        end
+        setCollisions(nextType == M.TYPES.FORCED)
+    else
+        if M.type == M.TYPES.DISABLED then
+            setCollisions(not areCloseVehicles(ctxt.isOwner and ctxt.veh:getID() or nil))
+        else
+            setCollisions(true)
         end
     end
+end
 
-    -- invalid alpha target fix
-    if M.alphas[-1] then
-        M.alphas[-1] = nil
-    end
-
-    -- clear invalid alphas
-    for g in pairs(M.alphas) do
-        if not BJIVeh.getVehicleObject(g) then
-            M.alphas[g] = nil
+local listeners = {}
+local function onLoad()
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.SCENARIO_CHANGED, function(ctxt)
+        local nextType = BJIScenario.getCollisionsType(ctxt)
+        if nextType ~= M.type then
+            onTypeChanged(ctxt, nextType)
+            M.type = nextType
         end
-    end
-
-    if ctxt.veh and not BJIVeh.isUnicycle(ctxt.veh:getID()) then
-        local vehID = ctxt.veh:getID()
-        if M.alphas[vehID] ~= M.playerAlpha then
-            M.alphas[vehID] = nil
-            setAlpha(vehID, M.playerAlpha)
-        elseif getVehAlpha(vehID) ~= M.playerAlpha then
-            setAlpha(vehID, M.playerAlpha)
-        end
-    end
+    end))
+end
+local function onUnload()
+    table.forEach(listeners, BJIEvents.removeListener)
 end
 
 M.onVehicleResetted = onVehicleResetted
@@ -259,6 +239,9 @@ M.onVehicleSwitched = onVehicleSwitched
 
 M.renderTick = renderTick
 M.slowTick = slowTick
+
+M.onLoad = onLoad
+M.onUnload = onUnload
 
 RegisterBJIManager(M)
 return M

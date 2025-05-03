@@ -22,6 +22,7 @@ local M = {
         model = nil,
         respawnStrategy = nil,
     },
+    raceVeh = nil,
 
     gridResetProcess = false,
 
@@ -130,8 +131,9 @@ end
 
 -- player vehicle switch hook
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if newGameVehID ~= -1 then
-        BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    if newGameVehID ~= -1 and
+        newGameVehID ~= M.raceVeh then
+        BJIVeh.focusVehicle(newGameVehID)
     end
 end
 
@@ -516,6 +518,9 @@ end
 
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
+    if gameVehID ~= M.raceVeh then
+        return
+    end
     if M.exemptNextReset then
         M.exemptNextReset = false
         return
@@ -585,6 +590,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     end
 
     BJIVeh.deleteOtherOwnVehicles()
+    M.raceVeh = ctxt.veh
     BJIScenario.switchScenario(BJIScenario.TYPES.RACE_SOLO, ctxt)
     M.settings.model = BJIVeh.getCurrentModel()
     M.settings.laps = settings.laps
