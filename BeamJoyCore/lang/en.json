@@ -612,14 +612,15 @@
     },
     "header": {
       "gamemode": "Gamemode",
-      "reputation": "Reputation Level",
       "gravity": "Gravity",
       "speed": "Speed",
       "resetDisabled": "Reset is disabled",
       "nextReset": "Next reset",
       "resetAvailable": "Reset available",
       "nextTeleport": "Next teleportation",
-      "teleportAvailable": "Teleportation available"
+      "teleportAvailable": "Teleportation available",
+      "collisions": "Collisions",
+      "reputation": "Reputation Level"
     },
     "userSettings": {
       "uiScale": "UI scale",
