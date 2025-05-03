@@ -398,6 +398,8 @@
         "freeroamSettings": "Paramètres du Freeroam",
         "time": "Heure",
         "weather": "Météo",
+        "gravity": "Gravité",
+        "speed": "Vitesse de sim.",
         "map": "Changer de Carte",
         "mapCustom": "custom",
         "energyStations": "Stations-Services ({amount})",

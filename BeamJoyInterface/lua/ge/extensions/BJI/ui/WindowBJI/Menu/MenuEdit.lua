@@ -102,6 +102,58 @@ local function menuWeatherPresets(ctxt)
     end
 end
 
+local function menuGravityPresets(ctxt)
+    if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) and BJIEnv.Data.controlGravity then
+        local presets = require("ge/extensions/utils/EnvironmentUtils").gravityPresets()
+        local elems = {}
+        table.forEach(presets, function(preset)
+            local value = math.round(preset.value, 3)
+            local disabled = value == math.round(BJIEnv.Data.gravityRate, 3)
+            table.insert(elems, {
+                label = string.var("{1} ({2})", {
+                    BJILang.get(string.var("presets.gravity.{1}", { preset.key })),
+                    value,
+                }),
+                disabled = disabled,
+                active = disabled,
+                onClick = function()
+                    BJITx.config.env("gravityRate", value)
+                end
+            })
+        end)
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.gravity"),
+            elems = elems,
+        })
+    end
+end
+
+local function menuSpeedPresets(ctxt)
+    if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) then
+        local presets = require("ge/extensions/utils/EnvironmentUtils").speedPresets()
+        local elems = {}
+        table.forEach(presets, function(preset)
+            local value = math.round(preset.value, 3)
+            local disabled = value == math.round(BJIEnv.Data.simSpeed, 3)
+            table.insert(elems, {
+                label = string.var("{1} (x{2})", {
+                    BJILang.get(string.var("presets.speed.{1}", { preset.key })),
+                    value,
+                }),
+                disabled = disabled,
+                active = disabled,
+                onClick = function()
+                    BJITx.config.env("simSpeed", value)
+                end
+            })
+        end)
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.speed"),
+            elems = elems,
+        })
+    end
+end
+
 local function menuSwitchMap(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP) and
         BJIContext.Maps then
@@ -111,11 +163,10 @@ local function menuSwitchMap(ctxt)
             if map.enabled then
                 table.insert(maps, {
                     label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
-                    active = BJIContext.UI.mapName == mapName,
+                    disabled = mapName == BJIContext.UI.mapName,
+                    active = mapName == BJIContext.UI.mapName,
                     onClick = function()
-                        if BJIContext.UI.mapName ~= mapName then
-                            BJITx.config.switchMap(mapName)
-                        end
+                        BJITx.config.switchMap(mapName)
                     end
                 })
             end
@@ -447,15 +498,6 @@ local function menuDerby(ctxt)
     end
 end
 
-function _(ctxt)
-    local editEntry = {
-        label = BJILang.get("menu.edit.title"),
-        elems = {},
-    }
-
-    return #editEntry.elems > 0 and editEntry or nil
-end
-
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
     ctxt = ctxt or BJITick.getContext()
@@ -467,6 +509,8 @@ local function updateCache(ctxt)
     menuFreeroamSettings(ctxt)
     menuTimePresets(ctxt)
     menuWeatherPresets(ctxt)
+    menuGravityPresets(ctxt)
+    menuSpeedPresets(ctxt)
     menuSwitchMap(ctxt)
 
     -- scenario editors

@@ -398,6 +398,8 @@
         "freeroamSettings": "Impostazioni di freeroam",
         "time": "Ora del giorno",
         "weather": "Tempo atmosferico",
+        "gravity": "Gravità",
+        "speed": "Velocità di sim.",
         "map": "Cambia mappa",
         "mapCustom": "costume",
         "energyStations": "Stazioni energetiche ({amount})",

@@ -399,6 +399,8 @@
         "freeroamSettings": "Freeroam Settings",
         "time": "Time of day",
         "weather": "Weather",
+        "gravity": "Gravity",
+        "speed": "Sim. speed",
         "map": "Switch Map",
         "mapCustom": "custom",
         "energyStations": "Energy stations ({amount})",
