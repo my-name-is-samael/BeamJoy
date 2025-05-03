@@ -61,7 +61,7 @@ local function isGEInit()
 end
 
 ---@class BJIMPVehicle
----@field gameVehicleID string
+---@field gameVehicleID integer
 ---@field isDeleted boolean
 ---@field isLocal boolean
 ---@field isSpawned boolean
@@ -73,6 +73,7 @@ end
 ---@field serverVehicleString string
 ---@field spectators integer[]
 
+---@return BJIMPVehicle[]
 local function getMPVehicles()
     local vehs = {}
     local mpVehs = MPVehicleGE.getVehicles()
@@ -94,6 +95,7 @@ local function getMPVehicles()
     return vehs
 end
 
+---@return BJIMPVehicle[]
 local function getMPOwnVehicles()
     local vehs = {}
     local mpVehs = MPVehicleGE.getOwnMap()
