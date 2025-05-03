@@ -11,6 +11,10 @@ local cache = newCache()
 local function updateCache(ctxt)
     cache = newCache()
 
+    if not BJIContext.Scenario.Data.DeliveryLeaderboard then
+        return
+    end
+
     local labels = {}
     local scores = {}
     for i, lb in ipairs(BJIContext.Scenario.Data.DeliveryLeaderboard) do
