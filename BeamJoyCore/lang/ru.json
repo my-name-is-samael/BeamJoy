@@ -485,14 +485,15 @@
     },
     "header": {
       "gamemode": "Режим игры",
-      "reputation": "Уровень репутации",
       "gravity": "Гравитация",
       "speed": "Скорость",
       "resetDisabled": "Сброс отключен",
       "nextReset": "Следующий сброс",
       "resetAvailable": "Сброс доступен",
       "nextTeleport": "Следующая телепортация",
-      "teleportAvailable": "Доступна телепортация"
+      "teleportAvailable": "Доступна телепортация",
+      "collisions": "Коллизии",
+      "reputation": "Уровень репутации"
     },
     "userSettings": {
       "uiScale": "Масштаб пользовательского интерфейса",
