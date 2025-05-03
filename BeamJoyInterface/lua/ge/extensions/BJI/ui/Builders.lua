@@ -531,6 +531,15 @@ LineBuilder = function(startSameLine)
             LogError("btn requires id, label and onClick", logTag)
             return self
         end
+
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) btn.style has invalid type", { data.id }))
+                return self
+            end
+        end
+
         self:_commonStartElem()
         data.style = data.style and table.clone(data.style) or nil
 
@@ -923,6 +932,14 @@ LineBuilder = function(startSameLine)
             return self
         end
 
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) icon.style has invalid type", { data.id }))
+                return self
+            end
+        end
+
         local icon = GetIcon(data.icon)
         if not icon then
             return self
@@ -956,6 +973,14 @@ LineBuilder = function(startSameLine)
         if not data.id or not data.icon or type(data.onClick) ~= "function" then
             LogError("btnIcon requires id, icon and onClick", logTag)
             return self
+        end
+
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) btnIcon.style has invalid type", { data.id }))
+                return self
+            end
         end
 
         local icon = GetIcon(data.icon)

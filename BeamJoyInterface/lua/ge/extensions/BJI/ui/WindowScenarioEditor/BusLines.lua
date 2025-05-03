@@ -358,7 +358,7 @@ local function drawBody(ctxt)
                     :btnIcon({
                         id = string.var("addStop{1}", { iLine }),
                         icon = ICONS.addListItem,
-                        style = TEXT_COLORS.SUCCESS,
+                        style = BTN_PRESETS.SUCCESS,
                         disabled = not vehPos or blEdit.processSave,
                         onClick = function()
                             if vehPos then
