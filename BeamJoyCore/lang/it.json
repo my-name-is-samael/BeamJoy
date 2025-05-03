@@ -611,14 +611,15 @@
     },
     "header": {
       "gamemode": "Modalità di gioco",
-      "reputation": "Livello di reputazione",
       "gravity": "Gravità",
       "speed": "Velocità",
       "resetDisabled": "Il ripristino è disabilitato",
       "nextReset": "Prossimo ripristino",
       "resetAvailable": "Ripristina disponibile",
       "nextTeleport": "Prossimo teletrasporto",
-      "teleportAvailable": "Teletrasporto disponibile"
+      "teleportAvailable": "Teletrasporto disponibile",
+      "collisions": "Collisioni",
+      "reputation": "Livello di reputazione"
     },
     "userSettings": {
       "uiScale": "Scala dell'interfaccia utente",
