@@ -37,7 +37,7 @@ table.sort = table.sort
 ---@field filter fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): tablelib<any, any>
 ---@field forEach fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>))
 ---@field map fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): any): tablelib<any, any>
----@field reduce fun(tab: table<any, any>, func: fun(acc: any, el: any, index: any, tab: table<any, any>)): any
+---@field reduce fun(tab: table<any, any>, func: (fun(acc: any, el: any, index: any, tab: table<any, any>): any), initialValue: any): any
 ---@field every fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
 ---@field all fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>)): boolean
 ---@field some fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean

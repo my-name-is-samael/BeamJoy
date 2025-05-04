@@ -143,8 +143,9 @@ WindowBuilder = function(name, flags)
         im.SetNextWindowBgAlpha(self._opacity)
         local closeable = type(self._onClose) == "function"
         local open = closeable and im.BoolPtr(true) or nil
+        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
         if im.Begin(self._title, open, self._flags) then
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
 
             if self._menuBehavior then
                 self._menuBehavior()
@@ -155,13 +156,13 @@ WindowBuilder = function(name, flags)
             end
 
             local footerHeight = self._footerLines == 0 and 0 or
-                (self._footerLines * lineHeight + 2) * BJIContext.UserSettings.UIScale
+                (self._footerLines * lineHeight + 2) * scale
             local bodyHeight = im.GetContentRegionAvail().y - math.ceil(footerHeight)
             im.BeginChild1(string.var("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
             im.SetWindowFontScale(1) -- must scale to 1 in children
             self._bodyBehavior()
             im.EndChild()
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
 
             if self._footerBehavior then
                 self._footerBehavior()
@@ -281,10 +282,11 @@ MenuBarBuilder = function()
 
     builder.build = function(self)
         if #self._entries > 0 then
+            local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
             local function drawMenu(label, elems, level)
                 level = level or 0
                 if im.BeginMenu(label) then
-                    im.SetWindowFontScale(level == 0 and 1 or BJIContext.UserSettings.UIScale)
+                    im.SetWindowFontScale(level == 0 and 1 or scale)
                     for _, elem in ipairs(elems) do
                         if elem.separator then
                             Separator()
@@ -329,7 +331,7 @@ MenuBarBuilder = function()
                 drawMenu(entry.label, entry.elems)
             end
             im.EndMenuBar()
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
         end
     end
 
@@ -472,6 +474,7 @@ LineBuilder = function(startSameLine)
         end
     end
 
+    ---@return vec4
     local function convertColorToVec4(color)
         if type(color) == "table" then
             if color.r then
@@ -502,13 +505,14 @@ LineBuilder = function(startSameLine)
         bgColor = bgColor and convertColorToVec4(bgColor)
         color = color and convertColorToVec4(color)
         local size = im.CalcTextSize(text)
-        size.x = size.x + 4 * BJIContext.UserSettings.UIScale
-        size.y = size.y + 4 * BJIContext.UserSettings.UIScale
+        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        size.x = size.x + 4 * scale
+        size.y = size.y + 4 * scale
 
-        SetStyleColor(STYLE_COLS.HEADER, RGBA(1, 0, 0, 1))
-        SetStyleColor(STYLE_COLS.CHILD_BG, convertColorToVec4(bgColor))
+        SetStyleColor(STYLE_COLS.HEADER, RGBA(0, 0, 0, 0))
+        SetStyleColor(STYLE_COLS.CHILD_BG, bgColor)
         im.BeginChild1(id, size)
-        im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+        im.SetWindowFontScale(scale)
         im.TextColored(color, tostring(text))
         im.EndChild()
         PopStyleColor(2)
@@ -697,7 +701,7 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
@@ -764,9 +768,11 @@ LineBuilder = function(startSameLine)
         end
         self:_commonStartElem()
 
+        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * scale)
         else
             im.PushItemWidth(-1)
         end
@@ -810,7 +816,7 @@ LineBuilder = function(startSameLine)
         else
             local w = -1
             if data.width then
-                w = data.width * BJIContext.UserSettings.UIScale
+                w = data.width * scale
             end
 
             local lines = 3
@@ -820,11 +826,11 @@ LineBuilder = function(startSameLine)
             elseif data.lines then
                 lines = data.lines
             end
-            local h = (lineHeight * BJIContext.UserSettings.UIScale * lines) + 2
+            local h = (lineHeight * scale * lines) + 2
             if h < 0 then
                 h = -1
             end
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale) -- update scale for multiline inputs
+            im.SetWindowFontScale(scale) -- update scale for multiline inputs
             if im.InputTextMultiline(
                     string.var("##{1}", { data.id }),
                     input._value,
@@ -888,7 +894,7 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
@@ -1112,7 +1118,7 @@ ProgressBar = function(data)
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
-    local size = im.ImVec2(data.width * BJIContext.UserSettings.UIScale, height)
+    local size = im.ImVec2(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE), height)
 
     im.ProgressBar(data.floatPercent, size, text)
 end

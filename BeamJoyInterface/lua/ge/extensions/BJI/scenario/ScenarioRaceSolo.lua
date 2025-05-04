@@ -56,8 +56,6 @@ local M = {
         lastPos = nil,
         targetTime = nil,
     },
-
-    loop = false,
 }
 
 local function stopRace()
@@ -483,11 +481,10 @@ end
 
 local function stopWithLoop()
     local settings, raceData = M.baseSettings, M.baseRaceData
-    local loop = not M.testing and M.loop
+    local loop = not M.testing and BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP)
     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
     if loop then
         M.initRace(BJITick.getContext(), settings, raceData)
-        M.loop = true
     end
 end
 
@@ -590,7 +587,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     end
 
     BJIVeh.deleteOtherOwnVehicles()
-    M.raceVeh = ctxt.veh
+    M.raceVeh = ctxt.veh:getID()
     BJIScenario.switchScenario(BJIScenario.TYPES.RACE_SOLO, ctxt)
     M.settings.model = BJIVeh.getCurrentModel()
     M.settings.laps = settings.laps

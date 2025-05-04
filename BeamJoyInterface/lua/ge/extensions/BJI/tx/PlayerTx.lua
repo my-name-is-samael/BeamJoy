@@ -6,10 +6,6 @@ function BJITx.player.connected()
     BJITx._send(event.EVENT, event.TX.CONNECTED)
 end
 
-function BJITx.player.settings(key, value)
-    BJITx._send(event.EVENT, event.TX.SETTINGS, { key, value })
-end
-
 function BJITx.player.switchVehicle(gameVehID)
     BJITx._send(event.EVENT, event.TX.SWITCH_VEHICLE, { gameVehID })
 end

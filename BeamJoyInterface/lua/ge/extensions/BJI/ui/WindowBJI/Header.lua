@@ -155,9 +155,9 @@ local function draw(ctxt)
                                 id = "toggleUserSettings",
                                 icon = ICONS.settings,
                                 style = BTN_PRESETS.INFO,
-                                active = BJIContext.UserSettings.open,
+                                active = BJIUserSettingsWindow.show,
                                 onClick = function()
-                                    BJIContext.UserSettings.open = not BJIContext.UserSettings.open
+                                    BJIUserSettingsWindow.show = not BJIUserSettingsWindow.show
                                 end
                             })
                         if BJIPerm.canSpawnVehicle() and
@@ -210,15 +210,15 @@ local function draw(ctxt)
                     function()
                         local minScale = 0.85
                         local maxScale = 2
+                        local value =  BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
                         LineBuilder()
                             :btnIcon({
                                 id = "uiScaleZoomOut",
                                 icon = ICONS.zoom_out,
                                 onClick = function()
-                                    local scale = math.clamp(BJIContext.UserSettings.UIScale - 0.05, minScale, maxScale)
-                                    if scale ~= BJIContext.UserSettings.UIScale then
-                                        BJIContext.UserSettings.UIScale = scale
-                                        BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
+                                    local scale = math.clamp(value - 0.05, minScale, maxScale)
+                                    if scale ~= value then
+                                        BJILocalStorage.set(BJILocalStorage.VALUES.UI_SCALE, scale)
                                         BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })
@@ -229,10 +229,9 @@ local function draw(ctxt)
                                 id = "uiScaleZoomIn",
                                 icon = ICONS.zoom_in,
                                 onClick = function()
-                                    local scale = math.clamp(BJIContext.UserSettings.UIScale + 0.05, minScale, maxScale)
-                                    if scale ~= BJIContext.UserSettings.UIScale then
-                                        BJIContext.UserSettings.UIScale = scale
-                                        BJITx.player.settings("UIScale", BJIContext.UserSettings.UIScale)
+                                    local scale = math.clamp(value + 0.05, minScale, maxScale)
+                                    if scale ~= value then
+                                        BJILocalStorage.set(BJILocalStorage.VALUES.UI_SCALE, scale)
                                         BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })

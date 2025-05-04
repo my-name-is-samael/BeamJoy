@@ -15,9 +15,32 @@ local M = {
     _lastDatabaseUpdate = GetCurrentTime(),
 }
 
+local function sanitizeDBPlayer(player)
+    player = type(player) == "table" and player or {}
+    return {
+        ip = player.ip,
+        beammp = player.beammp,
+        playerName = player.playerName,
+        group = BJCGroups.Data[player.group] and player.group or BJCGroups.GROUPS.NONE,
+        lang = player.lang or BJCLang.FallbackLang,
+        reputation = player.reputation or 0,
+        stats = {
+            delivery = player.stats and player.stats.delivery or 0,
+            race = player.stats and player.stats.race or 0,
+            bus = player.stats and player.stats.bus or 0,
+        },
+        muted = player.muted,
+        muteReason = player.muteReason,
+        kickReason = player.kickReason,
+        banReason = player.banReason,
+        tempBanUntil = player.tempBanUntil,
+        banned = player.banned,
+    }
+end
+
 local function savePlayer(player)
     if not player.guest then
-        BJCDao.players.save(player)
+        BJCDao.players.save(sanitizeDBPlayer(player))
         M._lastDatabaseUpdate = GetCurrentTime()
     end
 end
@@ -52,79 +75,20 @@ local function bindAuthPlayer(playerID, playerName)
     end
 end
 
-local function sanitizePlayer(player)
-    if not BJCGroups.Data[player.group] then
-        player.group = BJCGroups.GROUPS.NONE
-    end
-    if BJCLang.Langs[player.lang] == nil then
-        player.lang = BJCLang.FallbackLang
-    end
-    player.reputation = player.reputation or 0
-
-    player.settings = player.settings or {}
-    player.settings.UIScale = player.settings.UIScale or 1
-    player.settings.freecamFov = player.settings.freecamFov or 65
-    if type(player.settings.automaticLights) ~= "boolean" then
-        player.settings.automaticLights = true
-    end
-    if type(player.settings.freecamSmooth) ~= "boolean" then
-        player.settings.freecamSmooth = false
-    end
-    if player.settings.nametags then
-        player.settings.nametags = nil
-    end
-
-    player.stats = player.stats or {}
-    if type(player.stats.delivery) ~= "number" then
-        player.stats.delivery = 0
-    end
-    if type(player.stats.race) ~= "number" then
-        player.stats.race = 0
-    end
-    if type(player.stats.bus) ~= "number" then
-        player.stats.bus = 0
-    end
-
-    return player
-end
-
 local function instantiatePlayer(playerID)
     local player = M.Players[playerID]
 
     local data = BJCDao.players.findByPlayerName(player.playerName)
 
     -- DB PLAYER DATA
-    if data then
-        -- existing player
-        table.assign(player, sanitizePlayer(data))
-    else
+    if not data then
         -- new player
-        player.playerID = playerID
-        player.group = BJCGroups.GROUPS.NONE
-        player.muted = false
-        player.muteReason = nil
-        player.tempBanUntil = nil
-        player.banned = false
-        player.banReason = nil
-        player.lang = BJCLang.FallbackLang
-
-        player.reputation = 0
-
-        player.settings = {
-            UIScale = 1,
-            automaticLights = true,
-            freecamFov = 65,
-            freecamSmooth = false,
-        }
-
-        player.stats = {
-            delivery = 0,
-            race = 0,
-            bus = 0,
-        }
+        data = {}
     end
+    table.assign(player, sanitizeDBPlayer(data))
 
     -- GAME PLAYER DATA
+    player.playerID = playerID
     player.hideNametag = false
     player.currentVehicle = nil
     player.freeze = false
@@ -323,7 +287,6 @@ local function getCacheUser(playerID)
 
             reputation = player.reputation,
 
-            settings = table.deepcopy(player.settings),
             stats = table.deepcopy(player.stats),
         }
         for vehID, vehicle in pairs(player.vehicles) do
@@ -855,12 +818,6 @@ local function changeLang(targetID, lang)
     BJCTx.cache.invalidate(targetID, BJCCache.CACHES.LANG)
 end
 
-local function settings(targetID, key, value)
-    local self = M.Players[targetID]
-    self.settings[key] = value
-    M.savePlayer(self)
-end
-
 local function updateAI(playerID, listVehIDs)
     local player = M.Players[playerID]
     if not player then
@@ -1356,7 +1313,6 @@ M.teleportFrom = teleportFrom
 M.deleteVehicle = deleteVehicle
 
 M.changeLang = changeLang
-M.settings = settings
 M.updateAI = updateAI
 
 M.setPlayerScenario = setPlayerScenario

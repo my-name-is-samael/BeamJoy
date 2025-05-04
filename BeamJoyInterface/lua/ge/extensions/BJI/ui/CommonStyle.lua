@@ -1,5 +1,6 @@
 local im = ui_imgui
 
+---@return vec4
 function RGBA(r, g, b, a)
     return im.ImVec4(r, g, b, a)
 end

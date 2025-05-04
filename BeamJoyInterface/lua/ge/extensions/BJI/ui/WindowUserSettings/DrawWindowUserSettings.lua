@@ -1,3 +1,10 @@
+local M = {
+    flags = {
+        WINDOW_FLAGS.NO_COLLAPSE
+    },
+    show = false,
+}
+
 local function drawVehicleSettings(ctxt)
     LineBuilder()
         :icon({
@@ -28,15 +35,15 @@ local function drawVehicleSettings(ctxt)
                         :build()
                 end,
                 function()
+                    local state = BJILocalStorage.get(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS)
                     LineBuilder()
                         :btnIconToggle({
                             id = "automaticLightsToggle",
-                            icon = BJIContext.UserSettings.automaticLights and ICONS.brightness_high or
+                            icon = state and ICONS.brightness_high or
                                 ICONS.brightness_low,
-                            state = BJIContext.UserSettings.automaticLights,
+                            state = state,
                             onClick = function()
-                                BJIContext.UserSettings.automaticLights = not BJIContext.UserSettings.automaticLights
-                                BJITx.player.settings("automaticLights", BJIContext.UserSettings.automaticLights)
+                                BJILocalStorage.set(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS, not state)
                             end,
                         })
                         :build()
@@ -186,7 +193,7 @@ local nametagsFields = {
 }
 local nametagsBeamjoyFields = {
     {
-        obj = BJINametags.COLORS.PLAYER.TEXT,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_TEXT,
         label = "colors.player.text",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -202,7 +209,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        obj = BJINametags.COLORS.PLAYER.BG,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_BG,
         label = "colors.player.bg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -210,7 +217,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        obj = BJINametags.COLORS.IDLE.TEXT,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_TEXT,
         label = "colors.idle.text",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -226,7 +233,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        obj = BJINametags.COLORS.IDLE.BG,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_BG,
         label = "colors.idle.bg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -234,7 +241,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        obj = BJINametags.COLORS.SPEC.TEXT,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_TEXT,
         label = "colors.spec.text",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -251,7 +258,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        obj = BJINametags.COLORS.SPEC.BG,
+        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_BG,
         label = "colors.spec.bg",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -351,32 +358,36 @@ local function drawNametagsSettings(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(string.var("{1}:", { BJILang.get(string.var("userSettings.nametags.{1}", { bjf.label })) }),
+                        :text(
+                        string.var("{1}:", { BJILang.get(string.var("userSettings.nametags.{1}", { bjf.label })) }),
                             disabled and TEXT_COLORS.DISABLED or TEXT_COLORS.DEFAULT)
                         :build()
                 end,
                 function()
+                    if not bjf.value then
+                        bjf.value = BJILocalStorage.get(bjf.key)
+                    end
                     if bjf.type == "color" then
                         LineBuilder()
                             :colorPicker({
-                                id = bjf.obj.key,
-                                value = bjf.obj.value,
+                                id = bjf.key.key,
+                                value = bjf.value,
                                 disabled = disabled,
                                 onChange = function(newColor)
                                     local col = ShapeDrawer.Color(newColor[1], newColor[2], newColor[3])
-                                    settings.setValue(bjf.obj.key, jsonEncode(col))
-                                    bjf.obj.value = col
+                                    BJILocalStorage.set(bjf.key, col)
+                                    bjf.value = col
                                 end
                             })
                             :btnIcon({
-                                id = string.var("{1}-reset", { bjf.obj.key }),
+                                id = string.var("{1}-reset", { bjf.key.key }),
                                 icon = ICONS.refresh,
                                 style = BTN_PRESETS.WARNING,
-                                disabled = disabled or table.compare(bjf.obj.value, bjf.obj.default, true),
+                                disabled = disabled or table.compare(bjf.value, bjf.key.default),
                                 onClick = function()
-                                    local col = table.clone(bjf.obj.default)
-                                    settings.setValue(bjf.obj.key, jsonEncode(col))
-                                    bjf.obj.value = col
+                                    local col = table.clone(bjf.key.default)
+                                    BJILocalStorage.set(bjf.key, col)
+                                    bjf.value = col
                                 end
                             })
                             :build()
@@ -420,14 +431,14 @@ local function drawFreecamSettings(ctxt)
                         :build()
                 end,
                 function()
+                    local state = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_SMOOTH)
                     LineBuilder()
                         :btnIconToggle({
                             id = "toggleSmooth",
-                            state = BJIContext.UserSettings.freecamSmooth,
+                            state = state,
                             coloredIcon = true,
                             onClick = function()
-                                BJIContext.UserSettings.freecamSmooth = not BJIContext.UserSettings.freecamSmooth
-                                BJITx.player.settings("freecamSmooth", BJIContext.UserSettings.freecamSmooth)
+                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_SMOOTH, not state)
                             end
                         })
                         :build()
@@ -442,34 +453,33 @@ local function drawFreecamSettings(ctxt)
                         :build()
                 end,
                 function()
+                    local fov = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV)
                     LineBuilder()
                         :btnIcon({
                             id = "fovReset",
                             icon = ICONS.refresh,
                             style = BTN_PRESETS.WARNING,
-                            disabled = BJIContext.UserSettings.freecamFov == BJICam.DEFAULT_FREECAM_FOV,
+                            disabled = fov == BJICam.DEFAULT_FREECAM_FOV,
                             onClick = function()
-                                BJIContext.UserSettings.freecamFov = BJICam.DEFAULT_FREECAM_FOV
+                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, BJICam.DEFAULT_FREECAM_FOV)
                                 if ctxt.camera == BJICam.CAMERAS.FREE then
                                     BJICam.setFOV(BJICam.DEFAULT_FREECAM_FOV)
                                 end
-                                BJITx.player.settings("freecamFov", BJIContext.UserSettings.freecamFov)
                             end
                         })
                         :inputNumeric({
                             id = "freecamFov",
                             type = "float",
-                            value = BJIContext.UserSettings.freecamFov,
+                            value = fov,
                             min = 10,
                             max = 120,
                             step = 1,
                             stepFast = 5,
                             onUpdate = function(val)
-                                BJIContext.UserSettings.freecamFov = val
+                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, val)
                                 if ctxt.camera == BJICam.CAMERAS.FREE then
                                     BJICam.setFOV(val)
                                 end
-                                BJITx.player.settings("freecamFov", val)
                             end,
                         })
                         :build()
@@ -530,24 +540,10 @@ local function drawBody(ctxt)
 end
 
 local function onClose()
-    BJIContext.UserSettings.open = false
+    M.show = false
 end
 
-local function drawFooter(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "closeUserSettings",
-            icon = ICONS.exit_to_app,
-            style = BTN_PRESETS.ERROR,
-            onClick = onClose,
-        })
-end
+M.body = drawBody
+M.onClose = onClose
 
-return {
-    flags = {
-        WINDOW_FLAGS.NO_COLLAPSE
-    },
-    body = drawBody,
-    footer = drawFooter,
-    onClose = onClose,
-}
+return M

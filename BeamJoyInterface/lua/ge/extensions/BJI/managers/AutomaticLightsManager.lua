@@ -9,7 +9,7 @@ local function isNight()
 end
 
 local function updatePreviousVeh(gameVehID)
-    if BJIContext.UserSettings.automaticLights and
+    if BJILocalStorage.get(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS) and
         gameVehID and gameVehID ~= -1 and
         BJIVeh.isVehicleOwn(gameVehID) then
         BJIVeh.lights(false, gameVehID)
@@ -19,7 +19,7 @@ local function updatePreviousVeh(gameVehID)
 end
 
 local function updateCurrentVeh(gameVehID)
-    if BJIContext.UserSettings.automaticLights and
+    if BJILocalStorage.get(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS) and
         gameVehID and gameVehID ~= -1 and
         BJIVeh.isVehicleOwn(gameVehID) then
         -- switch lights once if needed

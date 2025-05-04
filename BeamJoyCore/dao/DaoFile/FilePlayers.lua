@@ -15,7 +15,6 @@ local M = {
 
         reputation = "number",
 
-        settings = "table",
         stats = "table",
     }
 }

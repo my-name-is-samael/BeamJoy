@@ -40,10 +40,6 @@ local C = {
         vehicles = {},
     },
 
-    UserSettings = {
-        open = false,
-    },
-
     UserStats = {},
 
     -- CONFIG DATA
@@ -110,9 +106,6 @@ local function loadUser()
 
         BJIReputation.updateReputationSmooth(cacheData.reputation)
 
-        for k, v in pairs(cacheData.settings) do
-            C.UserSettings[k] = v
-        end
         C.UserStats = cacheData.stats
 
         BJIAsync.task(function()

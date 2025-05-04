@@ -207,9 +207,10 @@ local function renderTick(ctxt)
 
     if ctxt.camera == M.CAMERAS.FREE then
         local isSmoothed = M.isFreeCamSmooth()
-        if BJIContext.UserSettings.freecamSmooth and not isSmoothed then
+        local state = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_SMOOTH)
+        if state and not isSmoothed then
             M.setFreeCamSmooth(true)
-        elseif BJIContext.UserSettings.freecamSmooth == false and isSmoothed then
+        elseif not state and isSmoothed then
             M.setFreeCamSmooth(false)
         end
     end
@@ -218,10 +219,9 @@ end
 
 local function slowTick(ctxt)
     if ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJIContext.UserSettings.freecamFov then
+        M.getFOV() ~= BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV) then
         -- update FOV
-        BJIContext.UserSettings.freecamFov = M.getFOV()
-        BJITx.player.settings("freecamFov", BJIContext.UserSettings.freecamFov)
+        BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, M.getFOV())
     end
 end
 
@@ -245,8 +245,14 @@ local function onCameraChange(newCamera)
         return
     end
 
-    if newCamera == M.CAMERAS.FREE and BJIContext.UserSettings.freecamFov then
-        M.setFOV(BJIContext.UserSettings.freecamFov)
+    if newCamera == M.CAMERAS.FREE then
+        M.setFOV(BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV))
+    end
+end
+
+local function onLoad()
+    if M.getCamera() == M.CAMERAS.FREE then
+        M.setFOV(BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV))
     end
 end
 
@@ -275,6 +281,7 @@ M.setFOV = setFOV
 M.renderTick = renderTick
 M.slowTick = slowTick
 M.onCameraChange = onCameraChange
+M.onLoad = onLoad
 
 RegisterBJIManager(M)
 return M

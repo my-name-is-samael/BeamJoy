@@ -9,70 +9,7 @@ local M = {
         selfTrailer = nil,
         trailer = nil,
     },
-
-    COLORS = {
-        PLAYER = {
-            TEXT = {
-                key = "beamjoy.nametags.colors.player.text",
-                value = ShapeDrawer.Color(1, 1, 1),
-                default = ShapeDrawer.Color(1, 1, 1),
-            },
-            BG = {
-                key = "beamjoy.nametags.colors.player.bg",
-                value = ShapeDrawer.Color(0, 0, 0),
-                default = ShapeDrawer.Color(0, 0, 0),
-            },
-        },
-        IDLE = {
-            TEXT = {
-                key = "beamjoy.nametags.colors.idle.text",
-                value = ShapeDrawer.Color(1, .6, 0),
-                default = ShapeDrawer.Color(1, .6, 0),
-            },
-            BG = {
-                key = "beamjoy.nametags.colors.idle.bg",
-                value = ShapeDrawer.Color(0, 0, 0),
-                default = ShapeDrawer.Color(0, 0, 0),
-            },
-        },
-        SPEC = {
-            TEXT = {
-                key = "beamjoy.nametags.colors.spec.text",
-                value = ShapeDrawer.Color(.6, .6, 1),
-                default = ShapeDrawer.Color(.6, .6, 1),
-            },
-            BG = {
-                key = "beamjoy.nametags.colors.spec.bg",
-                value = ShapeDrawer.Color(0, 0, 0),
-                default = ShapeDrawer.Color(0, 0, 0),
-            },
-        },
-    },
 }
-
-local function onLoad()
-    local function applyDefaultSettings(obj)
-        if type(obj) ~= "table" then
-            return
-        end
-        for _, el in pairs(obj) do
-            if not el.key then
-                applyDefaultSettings(el)
-            else
-                local stored = settings.getValue(el.key)
-                if stored == nil then
-                    local value = jsonEncode(el.default)
-                    LogDebug(string.var("Assigning default setting value \"{1}\" to \"{2}\"", { el.key, value }))
-                    settings.setValue(el.key, value)
-                else
-                    el.value = jsonDecode(stored)
-                end
-            end
-        end
-    end
-
-    applyDefaultSettings(M.COLORS)
-end
 
 local function getAlphaByDistance(distance)
     local alpha = 1
@@ -106,11 +43,11 @@ end
 local function getNametagColor(alpha, spec, idle)
     local color
     if spec then
-        color = table.clone(M.COLORS.SPEC.TEXT.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_TEXT)
     elseif idle then
-        color = table.clone(M.COLORS.IDLE.TEXT.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_TEXT)
     else
-        color = table.clone(M.COLORS.PLAYER.TEXT.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_TEXT)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 
@@ -120,11 +57,11 @@ end
 local function getNametagBgColor(alpha, spec, idle)
     local color
     if spec then
-        color = table.clone(M.COLORS.SPEC.BG.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_BG)
     elseif idle then
-        color = table.clone(M.COLORS.IDLE.BG.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_BG)
     else
-        color = table.clone(M.COLORS.PLAYER.BG.value)
+        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_BG)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 

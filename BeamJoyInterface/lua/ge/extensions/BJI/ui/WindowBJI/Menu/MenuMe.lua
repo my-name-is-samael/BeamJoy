@@ -16,9 +16,9 @@ local function updateCache(ctxt)
     -- SETTINGS
     table.insert(M.cache.elems, {
         label = BJILang.get("menu.me.settings"),
-        active = BJIContext.UserSettings.open,
+        active = BJIUserSettingsWindow.show,
         onClick = function()
-            BJIContext.UserSettings.open = not BJIContext.UserSettings.open
+            BJIUserSettingsWindow.show = not BJIUserSettingsWindow.show
         end
     })
 

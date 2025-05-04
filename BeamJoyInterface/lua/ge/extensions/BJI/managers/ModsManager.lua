@@ -98,9 +98,10 @@ local function update(state)
     elseif not state and M.state then
         -- disabling
         BJIUI.applyLoading(true, function()
-            local previousCam
+            local previousCam, previousFov
             if BJICam.getCamera() == BJICam.CAMERAS.FREE then
                 previousCam = BJICam.getPositionRotation(true)
+                previousFov = BJICam.getFOV()
             end
             local function stopProcess()
                 BJIToast.error(BJILang.get("errors.modManagementDisabled"))
@@ -133,6 +134,7 @@ local function update(state)
             if previousCam then
                 BJIAsync.delayTask(function()
                     BJICam.setPositionRotation(previousCam.pos, previousCam.rot)
+                    BJICam.setFOV(previousFov)
                 end, 200, "BJIModsDisablingCameraRestore")
             end
             BJIUI.applyLoading(false)

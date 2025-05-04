@@ -15,7 +15,6 @@ local M = {
     },
     nextStop = 1,
     progression = nil,
-    nextLoop = false,
 
     init = false,
     nextResetExempt = true,     -- exempt reset fail for vehicle creation
@@ -37,7 +36,6 @@ local function reset()
     }
     M.nextStop           = 1
     M.progression        = nil
-    M.nextLoop           = false
 
     M.nextResetExempt    = true
     M.init               = false
@@ -228,12 +226,13 @@ local function drawUI(ctxt, cache)
         })
         local line = LineBuilder()
         if M.line.loopable then
+            local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP)
             line:btnIconToggle({
                 id = "toggleBusLoop",
                 icon = ICONS.all_inclusive,
-                state = M.nextLoop,
+                state = loop,
                 onClick = function()
-                    M.nextLoop = not M.nextLoop
+                    BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
                 end,
                 big = true,
             })
@@ -255,7 +254,7 @@ local function onTargetReached(ctxt)
     local flashMsg = BJILang.get("buslines.play.flashDriveNext")
     if M.nextStop == #M.line.stops then
         BJITx.scenario.BusMissionReward(M.line.id)
-        if M.line.loopable and M.nextLoop then
+        if M.line.loopable and BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP) then
             -- trigger next loop
             M.nextStop = 2
             updateTarget(ctxt)
