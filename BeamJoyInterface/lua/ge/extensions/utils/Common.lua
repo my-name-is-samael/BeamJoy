@@ -2,7 +2,7 @@ function GetTextWidth(text)
     if type(text) ~= "string" then
         return 0
     end
-    return math.round(ui_imgui.CalcTextSize(text).x * (BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE) or 1))
+    return math.round(ui_imgui.CalcTextSize(text).x * (BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
 end
 
 local COLUMNS_MARGIN = GetTextWidth("  ")

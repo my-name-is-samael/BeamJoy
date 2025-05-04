@@ -163,7 +163,7 @@ local function drawVehicleSettings(ctxt)
                         :build()
                 end,
                 function()
-                    local state = BJILocalStorage.get(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS)
+                    local state = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
                     LineBuilder()
                         :btnIconToggle({
                             id = "automaticLightsToggle",
@@ -171,7 +171,7 @@ local function drawVehicleSettings(ctxt)
                                 ICONS.brightness_low,
                             state = state,
                             onClick = function()
-                                BJILocalStorage.set(BJILocalStorage.VALUES.AUTOMATIC_LIGHTS, not state)
+                                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS, not state)
                             end,
                         })
                         :build()
@@ -321,7 +321,7 @@ local nametagsFields = {
 }
 local nametagsBeamjoyFields = {
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_TEXT,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT,
         label = "colorsPlayerText",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -337,7 +337,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_BG,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG,
         label = "colorsPlayerBg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -345,7 +345,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_TEXT,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT,
         label = "colorsIdleText",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -361,7 +361,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_BG,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG,
         label = "colorsIdleBg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -369,7 +369,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_TEXT,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT,
         label = "colorsSpecText",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -386,7 +386,7 @@ local nametagsBeamjoyFields = {
         end,
     },
     {
-        key = BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_BG,
+        key = BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG,
         label = "colorsSpecBg",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -526,14 +526,14 @@ local function drawFreecamSettings(ctxt)
                         :build()
                 end,
                 function()
-                    local state = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_SMOOTH)
+                    local state = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
                     LineBuilder()
                         :btnIconToggle({
                             id = "toggleSmooth",
                             state = state,
                             coloredIcon = true,
                             onClick = function()
-                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_SMOOTH, not state)
+                                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH, not state)
                             end
                         })
                         :build()
@@ -548,7 +548,7 @@ local function drawFreecamSettings(ctxt)
                         :build()
                 end,
                 function()
-                    local fov = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV)
+                    local fov = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV)
                     LineBuilder()
                         :btnIcon({
                             id = "fovReset",
@@ -556,7 +556,7 @@ local function drawFreecamSettings(ctxt)
                             style = BTN_PRESETS.WARNING,
                             disabled = fov == BJICam.DEFAULT_FREECAM_FOV,
                             onClick = function()
-                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, BJICam.DEFAULT_FREECAM_FOV)
+                                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV, BJICam.DEFAULT_FREECAM_FOV)
                                 if ctxt.camera == BJICam.CAMERAS.FREE then
                                     BJICam.setFOV(BJICam.DEFAULT_FREECAM_FOV)
                                 end
@@ -571,7 +571,7 @@ local function drawFreecamSettings(ctxt)
                             step = 1,
                             stepFast = 5,
                             onUpdate = function(val)
-                                BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, val)
+                                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV, val)
                                 if ctxt.camera == BJICam.CAMERAS.FREE then
                                     BJICam.setFOV(val)
                                 end

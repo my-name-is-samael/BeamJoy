@@ -36,6 +36,12 @@ LuaProfiler = LuaProfiler or function(msg) return {} end
 createObject = createObject or function(name) return {} end
 hptimer = hptimer or function() return {} end
 setExtensionUnloadMode = setExtensionUnloadMode or function(module, type) end
+getMissionFilename = getMissionFilename or function() return "/levels//[(main.level)|(info)].json" end
+GetMapName = function()
+    local mission = getMissionFilename()
+    local map = mission:gsub("/levels/", ""):gsub("/.+%.json", "")
+    return #map > 0 and map or nil
+end
 
 nop = nop or {}
 be = be or {}
@@ -77,3 +83,4 @@ MPConfig = MPConfig or {}
 MPVehicleGE = MPVehicleGE or {}
 MPGameNetwork = MPGameNetwork or {}
 MPHelpers = MPHelpers or {}
+MPCoreNetwork = MPCoreNetwork or {}

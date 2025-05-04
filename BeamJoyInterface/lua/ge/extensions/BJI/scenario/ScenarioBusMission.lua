@@ -226,13 +226,13 @@ local function drawUI(ctxt, cache)
         })
         local line = LineBuilder()
         if M.line.loopable then
-            local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP)
+            local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
             line:btnIconToggle({
                 id = "toggleBusLoop",
                 icon = ICONS.all_inclusive,
                 state = loop,
                 onClick = function()
-                    BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
+                    BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
                 end,
                 big = true,
             })
@@ -254,7 +254,7 @@ local function onTargetReached(ctxt)
     local flashMsg = BJILang.get("buslines.play.flashDriveNext")
     if M.nextStop == #M.line.stops then
         BJITx.scenario.BusMissionReward(M.line.id)
-        if M.line.loopable and BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_BUS_MISSION_LOOP) then
+        if M.line.loopable and BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP) then
             -- trigger next loop
             M.nextStop = 2
             updateTarget(ctxt)

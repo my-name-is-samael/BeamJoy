@@ -432,7 +432,7 @@ local function renderTick(ctxt)
     local function drawWrap(fn, w)
         -- apply min height (fixes moved out collapsed size issue)
         local size = im.GetWindowSize()
-        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
         if w.h and size.y < w.h * scale then
             im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
         end
@@ -478,7 +478,7 @@ local function renderTick(ctxt)
             nil
         if w.show then
             if w.w and w.h then
-                local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+                local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
                 im.SetNextWindowSize(im.ImVec2(
                     math.floor(w.w * scale),
                     math.floor(w.h * scale)

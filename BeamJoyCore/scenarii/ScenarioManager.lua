@@ -31,6 +31,16 @@ local M = {
     TagDuoManager = require("scenarii/TagDuoManager")
 }
 
+local function checkRacesData()
+    table.forEach(M.Races, function(race)
+        if not race.hash then
+            race.hash = Hash({ race.loopable, race.startPositions, race.steps })
+            BJCDao.scenario.Races.save(race)
+            LogDebug(string.var("Added hash to race \"{1}\"({2}): {3}", { race.name, race.id, race.hash }))
+        end
+    end)
+end
+
 local function reload()
     M.Races = BJCDao.scenario.Races.findAll()
     M.EnergyStations = BJCDao.scenario.EnergyStations.findAll()
@@ -45,6 +55,8 @@ local function reload()
             M.updateDeliveryLeaderboard()
         end
     end, 0)
+
+    checkRacesData()
 end
 
 local function getCacheRaces(senderID)
@@ -71,12 +83,14 @@ local function getCacheRaces(senderID)
                         hasStand = race.hasStand == true,
                         loopable = race.loopable == true,
                         places = #race.startPositions,
-                        record = record
+                        record = record,
+                        hash = race.hash,
                     })
                 end
             end
         end
     end
+    cache.mapName = BJCCore.getMap()
 
     return cache, M.getCacheRacesHash()
 end
@@ -246,6 +260,7 @@ local function saveRace(race)
 
     local baseRace = race.id and M.getRace(race.id) or nil
     if race.id then
+        -- should be an existing race
         if not baseRace then
             error({ key = "rx.errors.invalidData" })
         end
@@ -288,6 +303,9 @@ local function saveRace(race)
                 end
             end
         end
+
+        -- update hash
+        race.hash = Hash({ race.loopable, race.startPositions, race.steps })
     elseif race.keepRecord == true then
         if not baseRace then
             error({ key = "rx.errors.invalidData" })
@@ -301,7 +319,7 @@ local function saveRace(race)
 
     race.enabled = race.enabled == true
 
-    -- sanitizing
+    -- removing unwanted values
     race.keepRecord = nil
 
     BJCDao.scenario.Races.save(race)

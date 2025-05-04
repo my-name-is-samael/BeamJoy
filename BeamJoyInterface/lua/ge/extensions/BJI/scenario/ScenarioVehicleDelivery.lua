@@ -229,14 +229,14 @@ local function drawUI(ctxt, cache)
     string.var(" {1}", { M.configLabel }) or
     "",
     })):build()
-    local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
+    local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     LineBuilder()
         :btnIconToggle({
             id = "vehicleDeliveryLoop",
             icon = ICONS.all_inclusive,
             state = loop,
             onClick = function()
-                BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP, not loop)
+                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP, not loop)
             end,
             big = true,
         })
@@ -260,7 +260,7 @@ local function onTargetReached(ctxt)
         ctxt.vehData.damageState <= BJIContext.physics.VehiclePristineThreshold
     BJITx.scenario.DeliveryVehicleSuccess(pristine)
 
-    if BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
+    if BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
         BJIAsync.delayTask(function()
             if BJIScenario.isFreeroam() then
                 BJIScenario.switchScenario(BJIScenario.TYPES.VEHICLE_DELIVERY, ctxt)
