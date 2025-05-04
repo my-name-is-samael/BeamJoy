@@ -207,7 +207,7 @@ local function renderTick(ctxt)
 
     if ctxt.camera == M.CAMERAS.FREE then
         local isSmoothed = M.isFreeCamSmooth()
-        local state = BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_SMOOTH)
+        local state = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
         if state and not isSmoothed then
             M.setFreeCamSmooth(true)
         elseif not state and isSmoothed then
@@ -219,9 +219,9 @@ end
 
 local function slowTick(ctxt)
     if ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV) then
+        M.getFOV() ~= BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
         -- update FOV
-        BJILocalStorage.set(BJILocalStorage.VALUES.FREECAM_FOV, M.getFOV())
+        BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV, M.getFOV())
     end
 end
 
@@ -246,13 +246,13 @@ local function onCameraChange(newCamera)
     end
 
     if newCamera == M.CAMERAS.FREE then
-        M.setFOV(BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV))
+        M.setFOV(BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV))
     end
 end
 
 local function onLoad()
     if M.getCamera() == M.CAMERAS.FREE then
-        M.setFOV(BJILocalStorage.get(BJILocalStorage.VALUES.FREECAM_FOV))
+        M.setFOV(BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV))
     end
 end
 

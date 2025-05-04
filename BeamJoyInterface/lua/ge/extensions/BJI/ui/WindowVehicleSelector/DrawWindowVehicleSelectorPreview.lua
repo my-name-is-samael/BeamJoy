@@ -51,7 +51,7 @@ end
 local function drawBody(ctxt)
     -- forced window size
     local size = im.GetWindowSize()
-    local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+    local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
     if size.x ~= math.floor((M.imageSize.x + M.windowSizeOffset.x) * scale) or
         size.y ~= math.floor((M.imageSize.y + M.windowSizeOffset.y) * scale) then
         im.SetWindowSize2(BJILang.get("windows.BJIVehicleSelectorPreview"), im.ImVec2(

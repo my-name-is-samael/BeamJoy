@@ -83,7 +83,8 @@ local function consoleSetLang(args)
 end
 
 local function getMap()
-    return M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
+    local mapName = M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
+    return mapName
 end
 
 local function setMap(mapName)

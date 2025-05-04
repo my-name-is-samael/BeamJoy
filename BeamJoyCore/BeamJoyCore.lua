@@ -27,7 +27,7 @@ require("utils/Lua")
 require("utils/Math")
 require("utils/String")
 require("utils/Table")
-SHA = require("utils/sha2")
+SHA = require("utils/SHA")
 JSON = require("utils/JSON")
 TOML = require("utils/TOML")
 

@@ -1415,10 +1415,10 @@ function GetIcon(icon)
 end
 
 function GetIconSize(big)
-    return math.round((big and 32 or 20) * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
+    return math.round((big and 32 or 20) * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
 end
 
 ICON_BTN_MARGIN = 10
 function GetBtnIconSize(big)
-    return GetIconSize(big) + math.round(ICON_BTN_MARGIN * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
+    return GetIconSize(big) + math.round(ICON_BTN_MARGIN * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
 end

@@ -43,11 +43,11 @@ end
 local function getNametagColor(alpha, spec, idle)
     local color
     if spec then
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_TEXT)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT)
     elseif idle then
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_TEXT)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT)
     else
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_TEXT)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 
@@ -57,11 +57,11 @@ end
 local function getNametagBgColor(alpha, spec, idle)
     local color
     if spec then
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_SPEC_BG)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG)
     elseif idle then
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_IDLE_BG)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG)
     else
-        color = BJILocalStorage.get(BJILocalStorage.VALUES.NAMETAGS_COLOR_PLAYER_BG)
+        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG)
     end
     if not color then return ShapeDrawer.Color(0, 0, 0) end
 

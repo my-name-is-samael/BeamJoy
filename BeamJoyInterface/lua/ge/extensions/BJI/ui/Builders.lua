@@ -143,7 +143,7 @@ WindowBuilder = function(name, flags)
         im.SetNextWindowBgAlpha(self._opacity)
         local closeable = type(self._onClose) == "function"
         local open = closeable and im.BoolPtr(true) or nil
-        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
         if im.Begin(self._title, open, self._flags) then
             im.SetWindowFontScale(scale)
 
@@ -282,7 +282,7 @@ MenuBarBuilder = function()
 
     builder.build = function(self)
         if #self._entries > 0 then
-            local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+            local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
             local function drawMenu(label, elems, level)
                 level = level or 0
                 if im.BeginMenu(label) then
@@ -505,7 +505,7 @@ LineBuilder = function(startSameLine)
         bgColor = bgColor and convertColorToVec4(bgColor)
         color = color and convertColorToVec4(color)
         local size = im.CalcTextSize(text)
-        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
         size.x = size.x + 4 * scale
         size.y = size.y + 4 * scale
 
@@ -701,7 +701,7 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
@@ -768,7 +768,7 @@ LineBuilder = function(startSameLine)
         end
         self:_commonStartElem()
 
-        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
 
         -- WIDTH
         if data.width then
@@ -894,7 +894,7 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE))
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
@@ -1118,7 +1118,7 @@ ProgressBar = function(data)
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
-    local size = im.ImVec2(data.width * BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE), height)
+    local size = im.ImVec2(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE), height)
 
     im.ProgressBar(data.floatPercent, size, text)
 end

@@ -1,3 +1,15 @@
+---@class MapRacePBWP
+---@field time integer time in ms since lap start
+---@field speed number speed in km/h
+
+---@class MapRacePB
+---@field raceHash string
+---@field wps MapRacePBWP[]
+
+---@class MapRacesPB
+---@field mapName string
+---@field pbs MapRacePB[]
+
 local M = {
     RESPAWN_STRATEGIES = {
         NO_RESPAWN = "norespawn",
@@ -481,7 +493,7 @@ end
 
 local function stopWithLoop()
     local settings, raceData = M.baseSettings, M.baseRaceData
-    local loop = not M.testing and BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP)
+    local loop = not M.testing and BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
     if loop then
         M.initRace(BJITick.getContext(), settings, raceData)

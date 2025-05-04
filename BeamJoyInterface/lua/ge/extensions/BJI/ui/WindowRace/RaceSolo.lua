@@ -50,13 +50,13 @@ local function drawHeader(ctxt)
 
     line = LineBuilder()
     if not mgr.testing then
-        local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP)
+        local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
         line:btnIconToggle({
             id = "toggleRaceLoop",
             icon = ICONS.all_inclusive,
             state = loop,
             onClick = function()
-                BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
+                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
             end,
             big = true,
         })

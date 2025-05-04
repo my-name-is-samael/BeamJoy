@@ -210,7 +210,7 @@ local function draw(ctxt)
                     function()
                         local minScale = 0.85
                         local maxScale = 2
-                        local value =  BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+                        local value =  BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
                         LineBuilder()
                             :btnIcon({
                                 id = "uiScaleZoomOut",
@@ -218,7 +218,7 @@ local function draw(ctxt)
                                 onClick = function()
                                     local scale = math.clamp(value - 0.05, minScale, maxScale)
                                     if scale ~= value then
-                                        BJILocalStorage.set(BJILocalStorage.VALUES.UI_SCALE, scale)
+                                        BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
                                         BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })
@@ -231,7 +231,7 @@ local function draw(ctxt)
                                 onClick = function()
                                     local scale = math.clamp(value + 0.05, minScale, maxScale)
                                     if scale ~= value then
-                                        BJILocalStorage.set(BJILocalStorage.VALUES.UI_SCALE, scale)
+                                        BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
                                         BJIEvents.trigger(BJIEvents.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })
