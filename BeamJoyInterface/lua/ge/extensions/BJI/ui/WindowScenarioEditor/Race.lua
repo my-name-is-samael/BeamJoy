@@ -1007,7 +1007,7 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                 :helpMarker(BJILang.get("races.edit.parentStartTooltip"))
                                                 :build()
                                         else
-                                            local btnWidth = GetIconSize() + 10 * BJIContext.UserSettings.UIScale
+                                            local btnWidth = GetBtnIconSize()
                                             local parentInputWidth = ui_imgui.GetContentRegionAvail().x -
                                                 (labelWidth + btnWidth)
                                             for iParent, parent in ipairs(wp.parents) do

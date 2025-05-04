@@ -1,7 +1,7 @@
 local drawer = {}
 
 local function Color(r, g, b, a)
-    return { r = r, g = g, b = b, a = a }
+    return { r = r, g = g, b = b, a = a or 1 }
 end
 
 local function ColorContrasted(r, g, b, a)

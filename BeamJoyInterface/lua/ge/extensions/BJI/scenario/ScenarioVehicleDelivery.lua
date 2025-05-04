@@ -14,7 +14,6 @@ local M = {
     gameVehID = nil,
     baseDistance = nil,
     distance = nil,
-    nextLoop = false,
 
     nextResetExempt = true,     -- exempt reset fail for vehicle creation
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
@@ -230,13 +229,14 @@ local function drawUI(ctxt, cache)
     string.var(" {1}", { M.configLabel }) or
     "",
     })):build()
+    local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     LineBuilder()
         :btnIconToggle({
             id = "vehicleDeliveryLoop",
             icon = ICONS.all_inclusive,
-            state = M.nextLoop,
+            state = loop,
             onClick = function()
-                M.nextLoop = not M.nextLoop
+                BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP, not loop)
             end,
             big = true,
         })
@@ -260,7 +260,7 @@ local function onTargetReached(ctxt)
         ctxt.vehData.damageState <= BJIContext.physics.VehiclePristineThreshold
     BJITx.scenario.DeliveryVehicleSuccess(pristine)
 
-    if M.nextLoop then
+    if BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
         BJIAsync.delayTask(function()
             if BJIScenario.isFreeroam() then
                 BJIScenario.switchScenario(BJIScenario.TYPES.VEHICLE_DELIVERY, ctxt)

@@ -6,6 +6,12 @@
 ---@field z number
 ---@field distance fun(self: vec3, target: vec3): number|nil
 
+---@class vec4
+---@field x number
+---@field y number
+---@field z number
+---@field w number
+
 ---@class quat
 ---@field x number
 ---@field y number

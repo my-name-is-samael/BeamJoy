@@ -51,11 +51,12 @@ end
 local function drawBody(ctxt)
     -- forced window size
     local size = im.GetWindowSize()
-    if size.x ~= math.floor((M.imageSize.x + M.windowSizeOffset.x) * BJIContext.UserSettings.UIScale) or
-        size.y ~= math.floor((M.imageSize.y + M.windowSizeOffset.y) * BJIContext.UserSettings.UIScale) then
+    local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+    if size.x ~= math.floor((M.imageSize.x + M.windowSizeOffset.x) * scale) or
+        size.y ~= math.floor((M.imageSize.y + M.windowSizeOffset.y) * scale) then
         im.SetWindowSize2(BJILang.get("windows.BJIVehicleSelectorPreview"), im.ImVec2(
-            math.floor((M.imageSize.x + M.windowSizeOffset.x) * BJIContext.UserSettings.UIScale),
-            math.floor((M.imageSize.y + M.windowSizeOffset.y) * BJIContext.UserSettings.UIScale)
+            math.floor((M.imageSize.x + M.windowSizeOffset.x) * scale),
+            math.floor((M.imageSize.y + M.windowSizeOffset.y) * scale)
         ), im.Cond_Always)
     end
 
@@ -64,8 +65,8 @@ local function drawBody(ctxt)
         im.Image(
             M.cached.texId,
             im.ImVec2(
-                math.floor(M.imageSize.x * BJIContext.UserSettings.UIScale),
-                math.floor(M.imageSize.y * BJIContext.UserSettings.UIScale)
+                math.floor(M.imageSize.x * scale),
+                math.floor(M.imageSize.y * scale)
             ),
             im.ImVec2Zero,
             im.ImVec2One,

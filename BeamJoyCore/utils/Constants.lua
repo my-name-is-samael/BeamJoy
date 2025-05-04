@@ -26,7 +26,6 @@ BJC_EVENTS = {
         },
         RX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",

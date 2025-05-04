@@ -26,9 +26,9 @@ local function initWindows()
     M.register({
         name = "BJIUserSettings",
         showConditionFn = function()
-            return BJIContext.UserSettings.open
+            return BJIUserSettingsWindow.show
         end,
-        draw = require("ge/extensions/BJI/ui/WindowUserSettings/DrawWindowUserSettings"),
+        draw = BJIUserSettingsWindow,
         w = 330,
         h = 330,
     })
@@ -432,8 +432,9 @@ local function renderTick(ctxt)
     local function drawWrap(fn, w)
         -- apply min height (fixes moved out collapsed size issue)
         local size = im.GetWindowSize()
-        if w.h and size.y < w.h * BJIContext.UserSettings.UIScale then
-            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * BJIContext.UserSettings.UIScale)), im.Cond_Always)
+        local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
+        if w.h and size.y < w.h * scale then
+            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
         end
         local _, err = pcall(fn, ctxt)
         if err then
@@ -477,9 +478,10 @@ local function renderTick(ctxt)
             nil
         if w.show then
             if w.w and w.h then
+                local scale = BJILocalStorage.get(BJILocalStorage.VALUES.UI_SCALE)
                 im.SetNextWindowSize(im.ImVec2(
-                    math.floor(w.w * BJIContext.UserSettings.UIScale),
-                    math.floor(w.h * BJIContext.UserSettings.UIScale)
+                    math.floor(w.w * scale),
+                    math.floor(w.h * scale)
                 ))
             end
             if w.x and w.y then

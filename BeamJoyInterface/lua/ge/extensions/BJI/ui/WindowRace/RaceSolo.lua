@@ -50,12 +50,13 @@ local function drawHeader(ctxt)
 
     line = LineBuilder()
     if not mgr.testing then
+        local loop = BJILocalStorage.get(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP)
         line:btnIconToggle({
             id = "toggleRaceLoop",
             icon = ICONS.all_inclusive,
-            state = mgr.loop,
+            state = loop,
             onClick = function()
-                mgr.loop = not mgr.loop
+                BJILocalStorage.set(BJILocalStorage.VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
             end,
             big = true,
         })
@@ -66,7 +67,6 @@ local function drawHeader(ctxt)
             icon = ICONS.exit_to_app,
             style = BTN_PRESETS.ERROR,
             onClick = function()
-                mgr.loop = false
                 BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
             end,
             big = true,
@@ -240,7 +240,8 @@ local function drawLoopable(ctxt)
                     function()
                         LineBuilder()
                             :text(RaceDelay(time))
-                            :text(diff and string.var("{1}{2}", { diffSymbol, RaceDelay(diff) }) or "", TEXT_COLORS.ERROR)
+                            :text(diff and string.var("{1}{2}", { diffSymbol, RaceDelay(diff) }) or "", TEXT_COLORS
+                            .ERROR)
                             :build()
                     end,
                 }
