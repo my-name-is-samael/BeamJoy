@@ -206,6 +206,7 @@ local function initWindows()
         name = "BJIDerby",
         showConditionFn = function()
             return BJICache.areBaseCachesFirstLoaded() and
+                BJIScenario.get(BJIScenario.TYPES.DERBY) and
                 BJIScenario.is(BJIScenario.TYPES.DERBY)
         end,
         draw = require("ge/extensions/BJI/ui/WindowDerby/DrawWindowDerby"),

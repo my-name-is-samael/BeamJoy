@@ -147,6 +147,10 @@ end
 
 ---@param ctxt SlowTickContext
 local function slowTick(ctxt)
+    if not BJICONNECTED then
+        return
+    end
+
     if ctxt.cachesHashes then
         for cacheType, hash in pairs(ctxt.cachesHashes) do
             if M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash then

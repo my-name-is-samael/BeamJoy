@@ -18,72 +18,13 @@ local M = {
         FINISH_REACHED = "FinishReached",         -- race
     },
 
-    testing = false,
-    testingCallback = nil,
-
-    state = nil,
-
-    exemptNextReset = false,
-    preRaceCam = nil,
-
-    raceName = nil,
-    record = nil,
-
-    settings = {
-        laps = nil,
-        model = nil,
-        config = nil,
-        respawnStrategy = nil,
-    },
-
-    grid = {
-        timeout = nil,
-        readyTime = nil,
-        previewPosition = nil,
-        startPositions = {},
-        participants = {},
-        ready = {},
-    },
-
-    race = {
-        startTime = nil,
-        raceData = {
-            -- loopable
-            -- wpPerLap
-            -- steps
-        },
-        leaderboard = {},
-        lap = 1,
-        waypoint = 0,
-        stands = {},
-        lastWaypoint = nil,
-        timers = {
-            race = nil,
-            raceOffset = 0,
-            lap = nil,
-        },
-        finished = {},
-        eliminated = {},
-    },
-
     dnf = {
         minDistance = .5,
-        timeout = 10,    -- +1 during first check
-        process = false, -- true if countdown is launched
-        targetTime = nil,
-
-        standExempt = false,
-        lastPos = nil,
+        timeout = 10,
     },
 }
 
-local function stopRace()
-    M.testing = false
-    if type(M.testingCallback) == "function" then
-        M.testingCallback()
-        M.testingCallback = nil
-    end
-
+local function initManagerData()
     M.state = nil
     M.exemptNextReset = false
     M.preRaceCam = nil
@@ -124,14 +65,21 @@ local function stopRace()
         eliminated = {},
     }
 
+    M.currentSpeed = 0
+    ---@type MapRacePBWP[]
+    M.lapData = {}
+
     M.dnf = {
-        minDistance = .5,
-        timeout = 10,
         process = false,
         targetTime = nil,
 
         lastPos = nil,
     }
+end
+initManagerData()
+
+local function stopRace()
+    initManagerData()
 
     BJIVehSelector.tryClose(true)
     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
@@ -159,6 +107,7 @@ local function onLoad(ctxt)
     BJIRestrictions.apply(BJIRestrictions.TYPES.ResetRace, true)
     BJIQuickTravel.toggle(false)
     BJIRaceWaypoint.resetAll()
+    BJIWaypointEdit.reset()
     BJIGPS.reset()
     BJICam.addRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
     BJIRaceUI.clear()
@@ -309,21 +258,21 @@ end
 
 local function onJoinGridParticipants()
     -- join participants
-    if not M.testing then
-        -- prepare vehicle selector
-        local models = BJIVeh.getAllVehicleConfigs()
-        if M.settings.model then
-            models = { [M.settings.model] = models[M.settings.model] }
-            if not models[M.settings.model] then
-                LogError("No model available after race filter")
-            else
-                if M.settings.config then
-                    models = {}
-                end
+
+    -- prepare vehicle selector
+    local models = BJIVeh.getAllVehicleConfigs()
+    if M.settings.model then
+        models = { [M.settings.model] = models[M.settings.model] }
+        if not models[M.settings.model] then
+            LogError("No model available after race filter")
+        else
+            if M.settings.config then
+                models = {}
             end
         end
-        BJIVehSelector.open(models, false)
     end
+    BJIVehSelector.open(models, false)
+
     if M.settings.config then
         -- if forced config, then no callback from vehicle selector
         tryReplaceOrSpawn(M.settings.model, M.settings.config)
@@ -422,58 +371,6 @@ local function specRandomRacer()
     end
 end
 
-local function updateTestingLeaderBoard(remainingSteps, raceTime, lapTime)
-    local reachedWp
-    if not M.settings.laps or M.settings.laps == 1 then
-        -- sprint
-        reachedWp = #M.race.raceData.steps - remainingSteps
-
-        M.race.leaderboard[1].wp = reachedWp
-        M.race.leaderboard[1].waypoints[reachedWp] = raceTime
-    else
-        -- loopable
-        local remainingLaps = M.settings.laps - M.race.lap
-        local remainingWp = remainingSteps - (remainingLaps * M.race.raceData.wpPerLap)
-        reachedWp = M.race.raceData.wpPerLap - remainingWp
-
-        if not M.race.leaderboard[1].laps[M.race.lap] then
-            M.race.leaderboard[1].laps[M.race.lap] = {
-                wp = reachedWp,
-                time = nil,
-                diff = nil,
-            }
-        else
-            M.race.leaderboard[1].laps[M.race.lap].wp = reachedWp
-        end
-        if reachedWp == M.race.raceData.wpPerLap then
-            M.race.leaderboard[1].laps[M.race.lap].time = lapTime
-        end
-
-        local finishedLaps = #M.race.leaderboard[1].laps
-        while finishedLaps > 1 and not M.race.leaderboard[1].laps[finishedLaps].time do
-            finishedLaps = finishedLaps - 1
-        end
-        if finishedLaps > 1 then
-            local bestLap, bestLapTime = 1, M.race.leaderboard[1].laps[1].time
-            for iLap, lap in ipairs(M.race.leaderboard[1].laps) do
-                if lap.time then
-                    if lap.time < bestLapTime then
-                        bestLap = iLap
-                        bestLapTime = lap.time
-                    end
-                    lap.diff = nil
-                end
-            end
-
-            for iLap, lap in ipairs(M.race.leaderboard[1].laps) do
-                if iLap ~= bestLap then
-                    lap.diff = lap.time - bestLapTime
-                end
-            end
-        end
-    end
-end
-
 local function onStandStop(delayMs, wp, callback)
     BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
     M.dnf.standExempt = true
@@ -514,64 +411,60 @@ local function onStandStop(delayMs, wp, callback)
     end, delayMs, "BJIRaceStart")
 end
 
-local function drawTimeDiff(lap, wp)
-    BJIAsync.task(function()
-        for _, lb in ipairs(M.race.leaderboard) do
-            if BJIContext.isSelf(lb.playerID) then
-                return lb.lap == lap and lb.wp == wp
-            end
-        end
-        return false
-    end, function()
-        for _, lb in ipairs(M.race.leaderboard) do
-            if BJIContext.isSelf(lb.playerID) then
-                local recordDiff
-                if lb.lapTime and M.record then
-                    -- lap / finish
-                    recordDiff = lb.lapTime - M.record.time
-                    BJIRaceUI.addHotlapRow(lb.lap, lb.lapTime)
-                end
-                BJIRaceUI.setRaceTime(lb.diff ~= 0 and lb.diff or nil, recordDiff, 2000)
-                break
-            end
-        end
-    end, "BJIRaceUIWpDiff")
-end
-
 local function onCheckpointReached(wp, remainingSteps)
     local currentWaypoint = #M.race.raceData.steps - remainingSteps
-    if not M.testing then BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.CHECKPOINT_REACHED, currentWaypoint) end
-    M.race.waypoint = currentWaypoint
+
+    local function waitForServerWp(lap, waypoint, callback)
+        BJIAsync.removeTask("BJIRaceMultiWaitForServerWp")
+        local target
+        BJIAsync.task(function()
+            target = table.find(M.race.leaderboard, function(lb)
+                return BJIContext.isSelf(lb.playerID) and not lb.desync and lb.lap == lap and lb.wp == waypoint
+            end)
+            return not not target
+        end, function() callback(target) end, "BJIRaceMultiWaitForServerWp")
+    end
 
     local function wpTrigger()
+        local previousRecordTime = M.record and M.record.time
+        BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.CHECKPOINT_REACHED, currentWaypoint)
+        M.race.waypoint = currentWaypoint
+
         local raceTime = M.race.timers.race:get()
         local lapTime = M.race.timers.lap:get()
 
-        BJIRaceUI.setWaypoint(M.race.waypoint % M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
-
-        if M.testing then
-            updateTestingLeaderBoard(remainingSteps, raceTime, lapTime)
+        local lastWp = {
+            lap = M.race.lap,
+            wp = currentWaypoint % M.race.raceData.wpPerLap > 0 and currentWaypoint % M.race.raceData.wpPerLap or
+                M.race.raceData.wpPerLap,
+        }
+        M.race.lap = lastWp.wp == M.race.raceData.wpPerLap and lastWp.lap + 1 or lastWp.lap
+        M.race.waypoint = lastWp.wp % M.race.raceData.wpPerLap
+        if M.race.lap > (M.settings.laps or 1) then
+            -- finish case
+            M.race.lap = M.settings.laps or 1
+            M.race.waypoint = M.race.raceData.wpPerLap
         end
 
+        M.lapData[lastWp.wp] = {
+            time = lapTime,
+            speed = math.round(M.currentSpeed * 3.6, 2),
+        }
+
+        BJIRaceUI.setWaypoint(M.race.waypoint % M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
         BJISound.play(BJISound.SOUNDS.RACE_WAYPOINT)
+
         if remainingSteps == 0 then
-            -- finish
             M.race.timers.lap = nil
-            if M.testing then
-                M.race.timers.race = nil
-            end
-            if M.settings.laps and M.settings.laps > 1 then
-                drawTimeDiff(M.race.lap, M.race.waypoint % M.race.raceData.wpPerLap)
-            end
         else
             if M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.LAST_CHECKPOINT then
                 M.race.lastWaypoint = { pos = wp.pos, rot = wp.rot }
+                -- todo save home
+            elseif M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.STAND then
+                -- todo save home if stand here
             end
 
-            drawTimeDiff(M.race.lap, M.race.waypoint % M.race.raceData.wpPerLap)
             if wp.lap then
-                -- lap
-                M.race.lap = M.race.lap + 1
                 M.race.timers.lap:reset()
 
                 local lapMessage
@@ -582,10 +475,82 @@ local function onCheckpointReached(wp, remainingSteps)
                 end
                 BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
             else
-                -- regular checkpoint
                 BJIMessage.flash("BJIRaceCheckpoint", RaceDelay(lapTime), 2, false)
             end
         end
+
+        -- temp leaderboard assign
+        table.find(M.race.leaderboard, function(lb)
+            return BJIContext.isSelf(lb.playerID)
+        end, function(lb)
+            lb.desync = true
+            lb.lap = M.race.lap
+            lb.wp = M.race.waypoint
+            lb.time = raceTime
+            lb.lapTime = wp.lap and raceTime or nil
+        end)
+
+        waitForServerWp(M.race.lap, M.race.waypoint, function(lb)
+            M.lapData[lastWp.wp].time = lb.wpTime
+
+            -- detect new pb
+            ---@type MapRacePBWP[]?
+            local pb = BJIRaceWaypoint.getPB(M.raceHash)
+
+            if wp.lap or remainingSteps == 0 then
+                -- pb process
+                local newPb = false
+                if not pb then
+                    pb = M.lapData
+                    newPb = true
+                else
+                    local pbTime = pb[lastWp.wp] and pb[lastWp.wp].time or nil
+                    if pbTime and M.lapData[lastWp.wp].time < pbTime then
+                        pb = M.lapData
+                        newPb = true
+                    end
+                end
+                if newPb then
+                    BJIRaceWaypoint.setPB(M.raceHash, pb)
+                    BJIEvents.trigger(BJIEvents.EVENTS.RACE_NEW_PB, {
+                        raceName = M.race.raceData.name,
+                        raceID = M.settings.raceID,
+                        raceHash = M.raceHash,
+                        time = M.lapData[lastWp.wp].time,
+                    })
+                end
+            end
+
+            -- UI update
+            local diff, recordDiff
+            if lb.diff ~= 0 then
+                -- not first position => compare to first racer
+                diff = lb.diff
+            elseif pb and pb[lastWp.wp] then
+                -- if first pos and pb exists => compare to pb
+                diff = M.lapData[lastWp.wp].time - pb[lastWp.wp].time
+            end
+            if wp.lap or remainingSteps == 0 then
+                if previousRecordTime then
+                    -- lap / finish record diff
+                    recordDiff = M.lapData[lastWp.wp].time - previousRecordTime
+                end
+
+                BJIRaceUI.addHotlapRow(M.raceName, lb.lap, M.lapData[lastWp.wp].time)
+            end
+            dump({
+                diff = diff,
+                recordDiff = recordDiff,
+                lap = wp.lap,
+                remainingSteps = remainingSteps,
+                record = previousRecordTime
+            })
+            BJIRaceUI.setRaceTime(diff, recordDiff, 3000)
+
+            if wp.lap then
+                M.lapData = {}
+            end
+        end)
     end
 
     if wp.stand then
@@ -596,7 +561,7 @@ local function onCheckpointReached(wp, remainingSteps)
 end
 
 local function onFinishReached()
-    if not M.testing then BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.FINISH_REACHED) end
+    BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.FINISH_REACHED)
 
     local racePosition
     for i, lb in ipairs(M.race.leaderboard) do
@@ -608,12 +573,7 @@ local function onFinishReached()
     local isLast = racePosition == #M.race.leaderboard
 
     local postFinishTimeout = BJIContext.BJC.Race.FinishTimeout * 1000
-    if M.testing then
-        -- solo testing
-        table.insert(M.race.finished, BJIContext.User.playerID)
-        BJIMessage.flash("BJIRaceEndSelf", BJILang.get("races.play.finishFlashSolo"), 3, false)
-        BJIAsync.delayTask(M.stopRace, postFinishTimeout, "BJIRacePostFinish")
-    elseif not isLast then
+    if not isLast then
         -- multiplayer and not last
         BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
         BJIVeh.freeze(true)
@@ -664,6 +624,7 @@ local function initRace(data)
     end
     M.race.lap = 1
     M.race.waypoint = 0
+    M.lapData = {}
 
     if M.settings.laps and M.settings.laps > 1 then
         BJIRaceUI.setLap(M.race.lap, M.settings.laps)
@@ -763,6 +724,7 @@ local function rxData(data)
     M.MINIMUM_PARTICIPANTS = data.minimumParticipants
     if data.state then
         M.raceName = data.raceName
+        M.raceHash = data.raceHash
         M.raceAuthor = data.raceAuthor
         M.record = data.record
         -- settings
@@ -814,6 +776,7 @@ local function rxData(data)
     elseif M.state then
         M.stopRace()
     end
+    BJIEvents.trigger(BJIEvents.EVENTS.RACE_MULTI_UPDATED)
 end
 
 local function isParticipant()
@@ -895,6 +858,12 @@ end
 
 -- each frame tick hook
 local function renderTick(ctxt)
+    if ctxt.isOwner and M.isRaceStarted(ctxt) and not M.isFinished() and not M.isEliminated() then
+        ctxt.veh:queueLuaCommand([[
+            obj:queueGameEngineLua("BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).currentSpeed = " .. obj:getAirflowSpeed())
+        ]])
+    end
+
     -- lap realtimeDisplay
     if M.isRaceOrCountdownStarted() then
         if M.isSpec() and not M.isRaceFinished() then

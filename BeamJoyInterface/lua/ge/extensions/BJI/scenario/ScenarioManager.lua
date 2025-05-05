@@ -27,7 +27,7 @@ local function registerMultiScenario(type, module)
     end
 end
 
-local function init()
+local function initScenarii()
     M.TYPES.FREEROAM = "FREEROAM"
     M.scenarii[M.TYPES.FREEROAM] = require("ge/extensions/BJI/scenario/ScenarioFreeroam")
 
@@ -48,68 +48,28 @@ local function init()
         _curr().onLoad()
     end
 end
-BJIAsync.task(
-    function()
-        return BJICache.areBaseCachesFirstLoaded() and
-            BJICache.isFirstLoaded(BJICache.CACHES.MAP) and
-            BJICache.isFirstLoaded(BJICache.CACHES.BJC)
-    end,
-    init, "BJIScenarioInit"
-)
 
 local function onLoad()
-    local function getScenarioWhenReady(scenarioType, callback)
-        local sc = M.get(scenarioType)
-        if sc then
-            callback(sc)
-        else
-            BJIAsync.task(function()
-                return M.get(scenarioType) ~= nil
-            end, function()
-                callback(M.get(scenarioType))
-            end, string.var("GetScenarioWhenReady-{1}", { scenarioType }))
-        end
-    end
+    initScenarii()
 
-    -- race_multi data
-    BJICache.addRxHandler(BJICache.CACHES.RACE, function(cacheData)
-        getScenarioWhenReady(M.TYPES.RACE_MULTI, function(scenario)
-            scenario.rxData(cacheData)
-        end)
-    end)
-
-    -- delivery_multi data
-    BJICache.addRxHandler(BJICache.CACHES.DELIVERY_MULTI, function(cacheData)
-        getScenarioWhenReady(M.TYPES.DELIVERY_MULTI, function(scenario)
-            scenario.rxData(cacheData)
-        end)
-    end)
-
-    -- speed data
-    BJICache.addRxHandler(BJICache.CACHES.SPEED, function(cacheData)
-        getScenarioWhenReady(M.TYPES.SPEED, function(scenario)
-            scenario.rxData(cacheData)
-        end)
-    end)
-
-    -- hunter data
-    BJICache.addRxHandler(BJICache.CACHES.HUNTER, function(cacheData)
-        getScenarioWhenReady(M.TYPES.HUNTER, function(scenario)
-            scenario.rxData(cacheData)
-        end)
-    end)
-
-    -- derby data
-    BJICache.addRxHandler(BJICache.CACHES.DERBY, function(cacheData)
-        getScenarioWhenReady(M.TYPES.DERBY, function(scenario)
-            scenario.rxData(cacheData)
-        end)
-    end)
-
-    -- tag_duo data
-    BJICache.addRxHandler(BJICache.CACHES.TAG_DUO, function(cacheData)
-        getScenarioWhenReady(M.TYPES.TAG_DUO, function(scenario)
-            scenario.rxData(cacheData)
+    -- init cache handlers
+    table.forEach({
+        [BJICache.CACHES.RACE] = M.TYPES.RACE_MULTI,
+        [BJICache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
+        [BJICache.CACHES.SPEED] = M.TYPES.SPEED,
+        [BJICache.CACHES.HUNTER] = M.TYPES.HUNTER,
+        [BJICache.CACHES.DERBY] = M.TYPES.DERBY,
+        --[BJICache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
+    }, function(scenarioType, cacheName)
+        BJICache.addRxHandler(cacheName, function(cacheData)
+            local sc = M.get(scenarioType)
+            if type(sc.rxData) == "function" then
+                local ok, err = pcall(sc.rxData, cacheData)
+                if not ok then
+                    LogError(string.var("RxCache failed (cache {1}, scenario {2}): {3}",
+                        { cacheName, scenarioType, err }))
+                end
+            end
         end)
     end)
 end
@@ -350,6 +310,7 @@ local function renderTick(ctxt)
     if _curr().renderTick then
         local status, err = pcall(_curr().renderTick, ctxt or BJITick.getContext())
         if not status then
+            LogError(string.var("Error during scenario tick : {1}", { err }))
             if not renderTickErrorLimitTime then
                 renderTickErrorLimitTime = ctxt.now + 3000
             elseif ctxt.now >= renderTickErrorLimitTime then

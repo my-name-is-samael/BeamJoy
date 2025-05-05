@@ -9,10 +9,14 @@ local M = {
     delayedTasks = {},
 }
 
+---@param key string|integer
+---@return boolean
 local function exists(key)
     return M.tasks[key] ~= nil or M.delayedTasks[key] ~= nil
 end
 
+---@param key string|integer
+---@return integer|nil
 local function getRemainingDelay(key)
     local task = M.delayedTasks[key]
     if task then
@@ -21,6 +25,9 @@ local function getRemainingDelay(key)
     return nil
 end
 
+---@param conditionFn fun(ctxt: TickContext): boolean
+---@param taskFn fun(ctxt: TickContext)
+---@param key? string|integer
 local function task(conditionFn, taskFn, key)
     if conditionFn == nil or taskFn == nil or
         type(conditionFn) ~= "function" or type(conditionFn) ~= type(taskFn) then
@@ -35,18 +42,23 @@ local function task(conditionFn, taskFn, key)
             conditionFn = conditionFn,
             taskFn = taskFn,
         }
+    else
+        LogWarn("Task " .. key .. " already exists")
     end
 end
 
+---@param taskFn fun(ctxt: TickContext)
+---@param delayMs integer|number
+---@param key? string|integer
 local function delayTask(taskFn, delayMs, key)
-    delayMs = tonumber(delayMs)
-    if taskFn == nil or delayMs == nil or type(taskFn) ~= "function" then
+    if taskFn == nil or type(delayMs) ~= "number" or type(taskFn) ~= "function" then
         error("Delayed tasks need taskFn and delay")
     end
     key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
     local existingTask = M.delayedTasks[key]
     if existingTask then
         existingTask.time = GetCurrentTimeMillis() + delayMs
+        existingTask.taskFn = taskFn
     else
         M.delayedTasks[key] = {
             taskFn = taskFn,
@@ -55,15 +67,18 @@ local function delayTask(taskFn, delayMs, key)
     end
 end
 
+---@param taskFn fun(ctxt: TickContext)
+---@param targetMs integer|number
+---@param key? string|integer
 local function programTask(taskFn, targetMs, key)
-    targetMs = tonumber(targetMs)
-    if taskFn == nil or targetMs == nil or type(taskFn) ~= "function" then
+    if taskFn == nil or type(targetMs) ~= "number" or type(taskFn) ~= "function" then
         error("Programmed tasks need taskFn and target time")
     end
     key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
     local existingTask = M.delayedTasks[key]
     if existingTask then
         existingTask.time = targetMs
+        existingTask.taskFn = taskFn
     else
         M.delayedTasks[key] = {
             taskFn = taskFn,
@@ -72,6 +87,7 @@ local function programTask(taskFn, targetMs, key)
     end
 end
 
+---@param key string
 local function removeTask(key)
     M.tasks[key] = nil
     M.delayedTasks[key] = nil

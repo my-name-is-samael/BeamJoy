@@ -27,7 +27,7 @@ local M = {
 local function onLoad()
     -- update configs cache when saving/overwriting/deleting a config
     BJIAsync.task(function()
-        return extensions.core_vehicle_partmgmt and extensions.util_screenshotCreator
+        return not not extensions.core_vehicle_partmgmt and not not extensions.util_screenshotCreator
     end, function()
         M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
         M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal

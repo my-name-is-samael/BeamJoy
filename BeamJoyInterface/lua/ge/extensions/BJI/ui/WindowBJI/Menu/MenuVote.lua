@@ -185,6 +185,7 @@ function M.onLoad()
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.RACE_MULTI_UPDATED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, updateCache))
 
@@ -192,6 +193,11 @@ function M.onLoad()
     table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({
                 BJICache.CACHES.VOTE,
+                BJICache.CACHES.PLAYERS,
+                BJICache.CACHES.RACE,
+                BJICache.CACHES.RACES,
+                BJICache.CACHES.SPEED,
+                BJICache.CACHES.MAP,
             }, data.cache) then
             updateCache(ctxt)
         end

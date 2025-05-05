@@ -23,7 +23,9 @@ local C = {
     WorldCache = {},
 
     UI = {
-        map = "",
+        mapName = "",
+        mapLabel = "",
+        dropSizeRatio = 1,
         gravity = nil, -- save current gravity preset if there is one
         speed = nil,   -- save current speed preset if not default
     },

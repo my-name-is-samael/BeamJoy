@@ -30,6 +30,16 @@ local function drawHeader(ctxt)
         end
     end
 
+    local _, pbTime = BJIRaceWaypoint.getPB(mgr.raceHash)
+    if pbTime and (not mgr.record or mgr.record.time ~= pbTime) then
+        LineBuilder()
+            :text("PB :")
+            :text(RaceDelay(pbTime))
+            :build()
+    else
+        EmptyLine()
+    end
+
     if mgr.race.startTime then
         local remaining = math.ceil((mgr.race.startTime - ctxt.now) / 1000)
         if remaining > 0 then

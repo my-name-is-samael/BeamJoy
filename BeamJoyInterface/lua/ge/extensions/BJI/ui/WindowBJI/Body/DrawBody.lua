@@ -77,7 +77,7 @@ local function updateCacheRaces()
     if cache.data.raceLeaderboard.show then
         cache.data.raceLeaderboard.races = table.filter(BJIContext.Scenario.Data.Races, function(race)
             return race.record
-        end):map(function(race) return { name = race.name, record = race.record } end)
+        end):map(function(race) return { name = race.name, record = race.record } end):values()
         if #cache.data.raceLeaderboard.races > 0 then
             cache.data.raceLeaderboard.races:sort(function(a, b)
                 if a.name:find(b.name) then
