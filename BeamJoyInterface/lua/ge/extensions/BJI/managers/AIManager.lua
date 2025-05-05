@@ -30,7 +30,7 @@ local function onLoad()
     end
 
     BJIAsync.task(function()
-        return core_multiSpawn.spawnGroup
+        return not not core_multiSpawn.spawnGroup
     end, function()
         M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
         core_multiSpawn.spawnGroup = function(...)

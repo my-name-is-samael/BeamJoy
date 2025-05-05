@@ -256,13 +256,19 @@ end
 
 local function onRaceWaypointReached(waypoint)
     if M._race._onWaypoint then
-        pcall(M._race._onWaypoint, waypoint, #M._race._steps)
+        local ok, err = pcall(M._race._onWaypoint, waypoint, #M._race._steps)
+        if not ok then
+            LogError(string.var("Error while handling waypoint : {1}", {err}))
+        end
     end
 end
 
 local function onRaceFinishReached()
     if M._race._onFinish then
-        pcall(M._race._onFinish)
+        local ok, err = pcall(M._race._onFinish)
+        if not ok then
+            LogError(string.var("Error while handling finish : {1}", {err}))
+        end
     end
 
     M.resetAll()
@@ -441,6 +447,47 @@ local function onUnload()
     M.resetAll()
 end
 
+---@param raceHash string
+---@return MapRacePBWP[]|nil, integer?
+local function getPB(raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("getPB invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)[GetMapName() or BJIContext.UI.mapName]
+    if pbs then
+        local pb = pbs[raceHash]
+        local time
+        if pb then
+            time = pb[table.maxn(pb)].time
+        end
+        return pb, time
+    end
+end
+
+---@param raceHash string
+---@param newPb MapRacePBWP[]
+local function setPB(raceHash, newPb)
+    if type(raceHash) ~= "string" then
+        LogError("setPB invalid raceHash ")
+        dump(raceHash)
+        return
+    elseif type(newPb) ~= "table" then
+        LogError("setPB invalid newPb ")
+        dump(newPb)
+        return
+    end
+    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)
+    local mapPbs = pbs[GetMapName() or BJIContext.UI.mapName]
+    if not mapPbs then
+        mapPbs = {}
+        pbs[GetMapName() or BJIContext.UI.mapName] = mapPbs
+    end
+    mapPbs[raceHash] = newPb
+    BJILocalStorage.set(BJILocalStorage.VALUES.RACES_PB, pbs)
+end
+
 M.resetAll = resetAll
 
 M.setRaceWaypointHandler = setRaceWaypointHandler
@@ -454,6 +501,9 @@ M.addWaypoint = addWaypoint
 M.renderTick = renderTick
 
 M.onUnload = onUnload
+
+M.getPB = getPB
+M.setPB = setPB
 
 RegisterBJIManager(M)
 return M

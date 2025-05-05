@@ -27,6 +27,18 @@ local function drawHeader(ctxt)
                 }))
                 :build()
         end
+    else
+        EmptyLine()
+    end
+
+    local _, pbTime = BJIRaceWaypoint.getPB(mgr.raceHash)
+    if pbTime and (not mgr.record or mgr.record.time ~= pbTime) then
+        LineBuilder()
+            :text("PB :")
+            :text(RaceDelay(pbTime))
+            :build()
+    else
+        EmptyLine()
     end
 
     if mgr.race.startTime then
@@ -161,7 +173,7 @@ local function drawRace(ctxt)
     table.insert(colWidths, -1)
 
     local firstPlayerCurrentWp = mgr.race.leaderboard[1].wp
-    local firstPlayerLap = mgr.race.leaderboard[1].lap
+    local firstPlayerLap = mgr.race.leaderboard[1].lap or 1
     if firstPlayerCurrentWp > 0 then
         firstPlayerLap = firstPlayerLap - 1
     end

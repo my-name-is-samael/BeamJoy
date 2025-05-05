@@ -257,7 +257,11 @@ table.filter = table.filter or function(tab, filterFn)
     for k, v in pairs(tab) do
         local status, cond = pcall(filterFn, v, k, tab)
         if status and cond then
-            res[k] = v
+            if table.isArray(tab) then
+                table.insert(res, v)
+            else
+                res[k] = v
+            end
         end
     end
     return metatable(res)

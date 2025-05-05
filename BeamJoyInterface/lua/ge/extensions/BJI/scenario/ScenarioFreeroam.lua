@@ -21,7 +21,11 @@ local function onLoad(ctxt)
     M.reset.nextExempt = false
     M.teleport.restricted = false
 
-    BJIQuickTravel.toggle(BJIContext.BJC.Freeroam.QuickTravel)
+    BJIAsync.task(function()
+        return not not BJIContext.BJC.Freeroam
+    end, function()
+        BJIQuickTravel.toggle(BJIContext.BJC.Freeroam.QuickTravel)
+    end, "BJIScenarioFreeroamLoadUpdateQuickTravel")
     BJINametags.tryUpdate()
 end
 

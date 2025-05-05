@@ -49,7 +49,7 @@ local function updateCache(ctxt)
             },
             name = race.name,
         }
-    end)
+    end):values()
 
     table.sort(cache.cols, function(a, b)
         if a.name:find(b.name) then

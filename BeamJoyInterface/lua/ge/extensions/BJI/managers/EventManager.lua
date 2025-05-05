@@ -19,6 +19,8 @@ local M = {
         NAMETAGS_VISIBILITY_CHANGED = "nametags_visibility_changed",
         CORE_CHANGED = "core_changed",
         LEVEL_UP = "level_up",
+        RACE_MULTI_UPDATED = "race_multi_updated",
+        RACE_NEW_PB = "race_new_pb",
 
         UI_UPDATE_REQUEST = "ui_update_request",
     },
@@ -97,7 +99,11 @@ local function renderTick(ctxt)
         ---@type {event: string, data: table|nil}
         local el = table.remove(M.queued, 1)
         if M.listeners[el.event] then
-            LogInfo(string.var("Event triggered : {1}", { el.event }), M._name)
+            LogInfo(string.var("Event triggered : {1}{2}", {
+                el.event,
+                el.event == M.EVENTS.CACHE_LOADED and
+                string.var(" ({1})", { el.data.cache }) or ""
+            }), M._name)
             table.forEach(M.listeners[el.event], function(callback)
                 local data = el.data or {}
                 data._event = el.event

@@ -1,5 +1,5 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 2,
+    MINIMUM_PARTICIPANTS = 1,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",                            -- grid
@@ -315,12 +315,18 @@ local function parseLeaderboard()
             end
         end
 
+        local wpTime = time
+        if lap > 1 and wp > 0 then
+            wpTime = wpTime - lb[2][lap].start
+        end
+
         table.insert(res, {
             playerID = lb[1],
             lap = lap,
             wp = wp,
             time = time,
             lapTime = lapTime,
+            wpTime = wpTime,
             diff = diff,
         })
     end
@@ -398,14 +404,14 @@ local function checkNewRecord(raceID, time, player, model)
     end
 end
 
+---@param playerID integer
+---@param currentWp integer
+---@param time integer
 local function onClientReachedWaypoint(playerID, currentWp, time)
-    local pos
-    for i, lbData in ipairs(M.race.leaderboard) do
-        if lbData[1] == playerID then
-            pos = i
-            break
-        end
-    end
+    local pos = table.indexOf(M.race.leaderboard,
+        table.find(M.race.leaderboard, function(lb, i)
+            return lb[1] == playerID
+        end))
     if not pos then
         -- not a participant
         error({ key = "rx.errors.insufficientPermissions" })
@@ -413,15 +419,20 @@ local function onClientReachedWaypoint(playerID, currentWp, time)
 
     -- determining current lap and wp
     local wpPerLap = M.race.raceData.wpPerLap
+    local lastWp = {
+        lap = math.ceil(currentWp / wpPerLap),
+        wp = currentWp % wpPerLap > 0 and currentWp % wpPerLap or wpPerLap,
+    }
+
     local lap, wp = 1, currentWp
     if M.baseRace.loopable and M.settings.laps and M.settings.laps > 1 then
         while wp >= wpPerLap do
             wp = wp - wpPerLap
             lap = lap + 1
         end
-        if lap > M.settings.laps then
+        if lap > (M.settings.laps or 1) then
             -- finished
-            lap = M.settings.laps
+            lap = M.settings.laps or 1
             wp = wpPerLap
         end
     end
@@ -451,16 +462,16 @@ local function onClientReachedWaypoint(playerID, currentWp, time)
     end
 
     -- on lap / finish
-    if wp == wpPerLap then
+    if lastWp.wp == wpPerLap then
         -- prepare player next lap in leaderboard
-        if lap < (M.settings.laps or 1) then
-            M.race.leaderboard[pos][2][lap + 1] = {
+        if not M.race.leaderboard[pos][2][lap] then
+            M.race.leaderboard[pos][2][lap] = {
                 start = time,
                 waypoints = {},
             }
         end
 
-        local lapTime = time - M.race.leaderboard[pos][2][lap].start
+        local lapTime = time - (M.race.leaderboard[pos][2][lastWp.lap].start or 0)
         -- check race record
         if not M.baseRace.record or M.baseRace.record.time > lapTime then
             local player = BJCPlayers.Players[playerID]
@@ -472,7 +483,7 @@ local function onClientReachedWaypoint(playerID, currentWp, time)
                         break
                     end
                     checkNewRecord(M.baseRace.id, lapTime, player, model)
-                end, 1)
+                end, 0)
             end
         end
     end
@@ -553,21 +564,26 @@ local function compareVehicle(required, spawned)
     end
 
     -- remove blank parts (causing compare to fail)
-    for _, arr in ipairs({required, spawned}) do
-        for k, v in pairs(arr) do
-            if #v:trim() == 0 then
-                arr[k] = nil
+    table.forEach({ required, spawned }, function(parts, i)
+        table.forEach(parts, function(part, k)
+            if #(part:trim()) == 0 then
+                parts[k] = nil
             end
+        end)
+    end)
+
+    -- some spawned config parts won't show up, then remove them
+    table.forEach(required, function(_, k)
+        if not spawned[k] then
+            required[k] = nil
         end
-    end
+    end)
 
     return table.compare(required, spawned)
 end
 
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
-    if not M.state then
-        return true
-    elseif M.state == M.STATES.GRID and
+    if M.state == M.STATES.GRID and
         table.includes(M.grid.participants, playerID) and
         not table.includes(M.grid.ready, playerID) then
         local function onWrongVehicleAtGrid()
@@ -585,7 +601,7 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
                 -- forced config
                 M.settings.config = M.settings.config or {}
                 local sameConfig = vehData.vcf.model == M.settings.config.model and
-                compareVehicle(M.settings.config.parts, vehData.vcf.parts)
+                    compareVehicle(table.clone(M.settings.config.parts), vehData.vcf.parts)
                 if not sameConfig then
                     onWrongVehicleAtGrid()
                 end
@@ -691,6 +707,7 @@ local function getCache()
         minimumParticipants = M.MINIMUM_PARTICIPANTS,
         state = M.state,
         raceName = M.baseRace and M.baseRace.name or nil,
+        raceHash = M.baseRace and M.baseRace.hash or nil,
         raceAuthor = M.baseRace and M.baseRace.author or nil,
         record = M.baseRace and M.baseRace.record or nil,
         -- settings

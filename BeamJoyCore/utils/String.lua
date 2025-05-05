@@ -132,7 +132,7 @@ end
 ---@return string
 string.trim = string.trim or function(str)
     if type(str) ~= "string" then return "" end
-    return string.stripcharsFrontBack(str, " ")
+    return #str == 0 and "" or string.stripcharsFrontBack(str, " ")
 end
 
 ---@param str string

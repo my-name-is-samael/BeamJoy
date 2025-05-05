@@ -69,20 +69,17 @@ local M = {
     VALUES = {
         RACES_PB = {
             key = "races_hashes_pb",
-            ---@type table<string, table<string, MapRacesPB>> table<mapName, table<raceHash, mapRacesPBs>>
+            ---@type table<string, table<string, MapRacePBWP[]>> table<mapName, table<raceHash, MapRacePBWP[]>>
             default = {
                 --[[
                 italy = {
                     ["e8f2f5b2-b2c0-4c2f-8a2f-5b2b2c0e8f2f"] = {
-                        raceHash = "e8f2f5b2-b2c0-4c2f-8a2f-5b2b2c0e8f2f",
-                        wps = {
-                            { time = 4251, speed = 73.77 },
-                            { time = 12897, speed = 122.01 },
-                            nil, -- each wp is linked to race, and then can be optional
-                            { time = 45887, speed = 89.45 },
-                            ...
-                        }
-                    }
+                        { time = 4251, speed = 73.77 },
+                        { time = 12897, speed = 122.01 },
+                        nil, -- each wp is linked to race, and then can be optional
+                        { time = 45887, speed = 89.45 },
+                        ...
+                    },
                 }
                 ]]
             },
@@ -107,15 +104,17 @@ local function sanitizeMapRacesPBs()
     if not mapName then
         BJIAsync.delayTask(sanitizeMapRacesPBs, 500)
         LogDebug("LocalStorage Races PBs sanitizer waiting for map : looping...")
+        return
     elseif mapName ~= BJIContext.Scenario.Data.Races.mapName then
         LogError("LocalStorage Races PBs sanitizer : current map not matching races map, skipping...")
+        return
     end
-    local pbRaces = M.data.values[M.VALUES.RACES_PB.key][BJIContext.UI.mapName]
+    local pbRaces = M.data.values[M.VALUES.RACES_PB.key][mapName]
     local srvRaces = BJIContext.Scenario.Data.Races
     local changes = false
     if #srvRaces > 0 then
         if not pbRaces then
-            M.data.values[M.VALUES.RACES_PB.key][BJIContext.UI.mapName] = {}
+            M.data.values[M.VALUES.RACES_PB.key][mapName] = {}
             changes = true
         else
             table.forEach(pbRaces, function(_, pbHash)
@@ -129,7 +128,7 @@ local function sanitizeMapRacesPBs()
             end)
         end
     elseif pbRaces > 0 then
-        M.data.values[M.VALUES.RACES_PB.key][BJIContext.UI.mapName] = {}
+        M.data.values[M.VALUES.RACES_PB.key][mapName] = {}
         changes = true
     end
     if changes then
@@ -179,7 +178,7 @@ local function onLoad()
     end
 
     BJIAsync.task(function()
-        return BJIContext.Scenario.Data.Races
+        return not not BJIContext.Scenario.Data.Races
     end, sanitizeMapRacesPBs)
     table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({ BJICache.CACHES.RACES }, data.cache) then

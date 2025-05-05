@@ -79,7 +79,7 @@ local function onLoad()
             end
 
             BJIAsync.task(function()
-                return M.Groups[BJIContext.User.group]
+                return not not M.Groups[BJIContext.User.group]
             end, function()
                 local selfLevel = M.Groups[BJIContext.User.group].level
                 local selfImpact = false
