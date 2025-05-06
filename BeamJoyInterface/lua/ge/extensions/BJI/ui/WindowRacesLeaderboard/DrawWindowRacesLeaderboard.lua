@@ -35,7 +35,7 @@ local function updateCache(ctxt)
 
     cache.hasPBs = false
     cache.amountPBs = 0
-    table.forEach(BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)[GetMapName() or BJIContext.UI.mapName] or {},
+    table.forEach(BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB) or {},
         ---@param mapPBs table<string, MapRacePBWP[]>
         function(mapPBs)
             cache.amountPBs = cache.amountPBs + table.length(mapPBs)
