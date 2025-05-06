@@ -1018,7 +1018,12 @@
         "flashDnfOut": "ELIMINADO"
       },
       "leaderboard": {
-        "title": "Tabela de classificação das corridas"
+        "title": "Tabela de classificação das corridas",
+        "amountPBs": "Total de melhores tempos",
+        "removeAllPBsButton": "Remover todos os melhores tempos",
+        "removeAllPBsModal": "Tens a certeza que queres remover todos os teus melhores tempos do servidor?",
+        "pb": "MT",
+        "removePBModal": "Tens a certeza que queres remover o teu melhor tempo em {raceName}?"
       }
     },
     "energy": {

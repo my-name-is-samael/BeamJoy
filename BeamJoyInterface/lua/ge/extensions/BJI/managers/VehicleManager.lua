@@ -392,6 +392,44 @@ local function explodeVehicle(gameVehID)
     end
 end
 
+---@param posRot? BJIPositionRotation
+local function saveHome(posRot)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        local pointStr = ""
+        if posRot then
+            local angle = math.angleFromQuatRotation(posRot.rot)
+            local dirFront = vec3(math.rotate2DVec(vec3(0, 1, 0), angle))
+            local dirUp = vec3(0, 0, 1)
+            pointStr = string.var([[{
+                pos = vec3({1}, {2}, {3}),
+                dirFront = vec3({4}, {5}, {6}),
+                dirUp = vec3({7}, {8}, {9}),
+            }]], {
+                posRot.pos.x, posRot.pos.y, posRot.pos.z,
+                dirFront.x, dirFront.y, dirFront.z,
+                dirUp.x, dirUp.y, dirUp.z
+            })
+        end
+        veh:queueLuaCommand(string.var("recovery.saveHome({1})", { pointStr }))
+    end
+end
+
+---@param callback? fun(ctxt: TickContext)
+local function loadHome(callback)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        veh:queueLuaCommand("recovery.loadHome()")
+        if type(callback) == "function" then
+            local delay = GetCurrentTimeMillis() + 100
+            BJIAsync.task(function(ctxt)
+                return ctxt.now > delay and ui_imgui.GetIO().Framerate > 5 and
+                    ctxt.vehData.damageState < BJIContext.physics.VehiclePristineThreshold
+            end, callback, "BJIVehLoadHomeCallback")
+        end
+    end
+end
+
 ---@param veh? userdata
 ---@return BJIPositionRotation|nil
 local function getPositionRotation(veh)
@@ -1266,6 +1304,8 @@ M.deleteCurrentOwnVehicle = deleteCurrentVehicle
 M.deleteVehicle = deleteVehicle
 M.deleteOtherPlayerVehicle = deleteOtherPlayerVehicle
 M.explodeVehicle = explodeVehicle
+M.saveHome = saveHome
+M.loadHome = loadHome
 
 M.getPositionRotation = getPositionRotation
 M.setPositionRotation = setPositionRotation

@@ -1018,7 +1018,12 @@
         "flashDnfOut": "ELIMINADO"
       },
       "leaderboard": {
-        "title": "Clasificación de carreras"
+        "title": "Clasificación de carreras",
+        "amountPBs": "Total de marcas personales",
+        "removeAllPBsButton": "Eliminar todas las marcas personales",
+        "removeAllPBsModal": "¿Seguro que deseas eliminar todas tus marcas personales del servidor?",
+        "pb": "MP",
+        "removePBModal": "¿Seguro que deseas eliminar tu marca personal en {raceName}?"
       }
     },
     "energy": {

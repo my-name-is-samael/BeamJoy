@@ -60,7 +60,7 @@ local function initPositions(ctxt)
 end
 
 local function initDelivery()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     BJIQuickTravel.toggle(false)
     BJINametags.tryUpdate()
     BJIGPS.reset()
@@ -265,7 +265,7 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIQuickTravel.toggle(true)
     BJINametags.toggle(true)
     BJIGPS.reset()

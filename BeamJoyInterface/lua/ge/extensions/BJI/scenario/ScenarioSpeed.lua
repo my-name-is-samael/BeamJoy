@@ -148,7 +148,7 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetSpeed, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIMessage.stopRealtimeDisplay()
     BJIMessage.cancelFlash("BJISpeedCheck")
 end
@@ -158,7 +158,7 @@ local function initScenario(data)
     BJIScenario.switchScenario(BJIScenario.TYPES.SPEED)
 
     if M.isParticipant() then
-        BJIRestrictions.apply(BJIRestrictions.TYPES.ResetSpeed, true)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
         BJIMessage.flash("BJISpeedStart", BJILang.get("speed.flashStart"), 3, false)
     end
 end

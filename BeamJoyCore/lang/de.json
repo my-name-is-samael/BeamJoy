@@ -1018,7 +1018,12 @@
         "flashDnfOut": "BESEITIGT"
       },
       "leaderboard": {
-        "title": "Rennen-Rangliste"
+        "title": "Rennen-Rangliste",
+        "amountPBs": "Gesamtanzahl Bestergebnisse",
+        "removeAllPBsButton": "Alle Bestergebnisse entfernen",
+        "removeAllPBsModal": "Möchtest du wirklich alle Bestergebnisse auf dem Server entfernen?",
+        "pb": "BE",
+        "removePBModal": "Möchtest du wirklich dein Bestergebnis auf {raceName} entfernen?"
       }
     },
     "energy": {

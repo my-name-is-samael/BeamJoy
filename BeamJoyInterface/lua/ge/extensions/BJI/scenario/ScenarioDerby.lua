@@ -267,7 +267,7 @@ local function onVehicleResetted(gameVehID)
                 BJIMessage.cancelFlash("BJIDerbyDestroy")
                 BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - M.startTime))
                 if participant.lives == 1 then
-                    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+                    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
                 end
             end
         end
@@ -342,8 +342,7 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetDerby, false)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIMessage.cancelFlash("BJIDerbyDestroy")
     if ctxt.isOwner then
         BJIVeh.freeze(false)
@@ -357,8 +356,7 @@ end
 local function initPreparation(data)
     M.startTime = BJITick.applyTimeOffset(data.startTime)
     BJIScenario.switchScenario(BJIScenario.TYPES.DERBY)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetDerby, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
 
     M.state = data.state
     M.baseArena = data.baseArena
@@ -423,7 +421,7 @@ local function initGame(data)
         if participant then
             BJIVeh.freeze(false)
             if participant.lives > 0 then
-                BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+                BJIRestrictions.updateReset(BJIRestrictions.TYPES.LOAD_HOME)
             end
         end
     end

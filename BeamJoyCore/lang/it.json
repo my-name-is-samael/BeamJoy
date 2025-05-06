@@ -1018,7 +1018,12 @@
         "flashDnfOut": "ELIMINATO"
       },
       "leaderboard": {
-        "title": "Classifica delle gare"
+        "title": "Classifica delle gare",
+        "amountPBs": "Totale migliori tempi",
+        "removeAllPBsButton": "Rimuovi tutti i tempi migliori",
+        "removeAllPBsModal": "Sei sicuro di voler rimuovere tutti i tuoi tempi migliori dal server?",
+        "pb": "MT",
+        "removePBModal": "Sei sicuro di voler rimuovere il tuo miglior tempo su {raceName}?"
       }
     },
     "energy": {

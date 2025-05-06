@@ -1,9 +1,9 @@
 local function onRepair(ctxt)
     BJIVeh.stopCurrentVehicle()
     BJIContext.User.stationProcess = true
-    local wasResetRestricted = BJIRestrictions.getState(BJIRestrictions.TYPES.Reset)
+    local wasResetRestricted = BJIRestrictions.isRestricted(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     if not wasResetRestricted then
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
     end
     BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
@@ -30,7 +30,7 @@ local function onRepair(ctxt)
         end
         BJICam.resetForceCamera()
         if not wasResetRestricted then
-            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
         end
         BJIContext.User.stationProcess = false
     end, 5000, "BJIStationRepair")

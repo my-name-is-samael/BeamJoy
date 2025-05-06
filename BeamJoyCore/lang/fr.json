@@ -1018,7 +1018,12 @@
         "flashDnfOut": "ÉLIMINÉ"
       },
       "leaderboard": {
-        "title": "Classement des courses"
+        "title": "Classement des courses",
+        "amountPBs": "Total de PBs",
+        "removeAllPBsButton": "Supprimer tous les PBs",
+        "removeAllPBsModal": "Es-tu sûr de vouloir supprimer tous tes PBs sur le serveur ?",
+        "pb": "PB",
+        "removePBModal": "Es-tu sûr de vouloir supprimer ton PB sur {raceName} ?"
       }
     },
     "energy": {

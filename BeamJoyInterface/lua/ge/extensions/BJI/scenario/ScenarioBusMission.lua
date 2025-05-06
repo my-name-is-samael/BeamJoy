@@ -95,7 +95,7 @@ local function onLoad(ctxt)
 
     M.state = M.STATES.PREPARATION
 
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetBusMission, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     BJIQuickTravel.toggle(false)
     BJINametags.tryUpdate()
     BJIGPS.reset()
@@ -355,7 +355,7 @@ end
 local function onUnload(ctxt)
     removeCornerMarkers()
     reset()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetBusMission, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIQuickTravel.toggle(true)
     BJINametags.toggle(true)
     BJIGPS.reset()

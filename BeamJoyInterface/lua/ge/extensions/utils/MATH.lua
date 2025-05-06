@@ -105,6 +105,7 @@ end
 
 ---@param vec vec3
 ---@param rad number
+---@return vec3
 math.rotate2DVec = math.rotate2DVec or function(vec, rad)
     local cosrad, sinrad = math.cos(rad), math.sin(rad)
     local res = vec3()

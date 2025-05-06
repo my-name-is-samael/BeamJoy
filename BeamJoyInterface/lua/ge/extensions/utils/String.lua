@@ -4,10 +4,21 @@ string.byte = string.byte
 string.c_str = string.c_str
 string.char = string.char
 string.dump = string.dump
-string.endswith = string.endswith
-string.find = string.find
+---@param str string
+---@param seq string
+---@param init? integer
+---@param pattern? boolean
+---@return boolean
+string.endswith = string.endswith or function(str, seq, init, pattern) return false end
+---@param str string
+---@param seq string
+---@return integer?, integer?
+string.find = string.find or function(str, seq) return nil end
 string.format = string.format
-string.gmatch = string.gmatch
+---@param str string
+---@param pattern string
+---@return fun(): string, ...unknown
+string.gmatch = string.gmatch or function(str, pattern) return function() return "" end end
 string.gsub = string.gsub
 string.len = string.len
 string.lower = string.lower
@@ -17,7 +28,10 @@ string.reverse = string.reverse
 -- string.rstripchars = string.rstripchars -- ISSUE (trims only one char)
 -- string.sentenceCase = string.sentenceCase -- ISSUE (adds space before already upper chars in string)
 -- string.split = string.split -- ISSUE (returns the delimiters only, but cannot be fixed)
-string.startswith = string.startswith
+---@param str string
+---@param seq string
+---@return boolean
+string.startswith = string.startswith or function(str, seq) return false end
 string.stripchars = string.stripchars
 string.stripcharsFrontBack = string.stripcharsFrontBack
 string.sub = string.sub

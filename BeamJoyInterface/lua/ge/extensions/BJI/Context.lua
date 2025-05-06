@@ -381,7 +381,22 @@ local function loadConfig()
 
         if cacheData.CEN then
             C.BJC.CEN = cacheData.CEN
-            BJIRestrictions.updateCEN()
+            local restrictions = {}
+            if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
+                not BJIContext.BJC.CEN.Console then
+                table.insert(restrictions, BJIRestrictions.TYPES.CONSOLE)
+            end
+            if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
+                not BJIContext.BJC.CEN.Editor then
+                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR)
+                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR_SAFE_MODE)
+                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR_OBJECT)
+            end
+            if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
+                not BJIContext.BJC.CEN.NodeGrabber then
+                table.insert(restrictions, BJIRestrictions.TYPES.NODEGRABBER)
+            end
+            BJIRestrictions.updateCEN(restrictions)
         end
 
         if cacheData.Race then
