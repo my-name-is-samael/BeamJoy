@@ -63,7 +63,7 @@ table.duplicates = table.duplicates or function(tab, distinct)
             acc.saw:insert(el)
         end
         return acc
-    end, {saw = Table(), dup = Table()}).dup
+    end, { saw = Table(), dup = Table() }).dup
 end
 
 ---@param tab table<any, any>
@@ -102,22 +102,22 @@ table.nextIndex = table.nextIndex or function(tab, index)
     end, { next = false, found = nil }).found
 end
 
-
 ---@param tab1 table<any, any>
 ---@param tab2 table<any, any>
+---@param distinct? boolean
 ---@return tablelib<any, any>
-table.addAll = table.addAll or function(tab1, tab2)
+table.addAll = table.addAll or function(tab1, tab2, distinct)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return Table() end
-    return Table({ tab1, tab2 }):reduce(function(acc, tab)
-        Table(tab):forEach(function(el, k)
-            if type(k) == "number" then
-                acc:insert(el)
-            else
-                acc[k] = el
-            end
-        end)
-        return acc
-    end, Table())
+    return Table({ tab1, tab2 })
+        :map(function(tab) return Table(tab):values() end)
+        :reduce(function(acc, tab)
+            Table(tab):forEach(function(el, k)
+                if not distinct or not acc:includes(el) then
+                    acc:insert(el)
+                end
+            end)
+            return acc
+        end, Table())
 end
 
 -- table.concat only works on arrays, table.join is working on objects too

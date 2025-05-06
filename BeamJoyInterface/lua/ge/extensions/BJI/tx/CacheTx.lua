@@ -2,6 +2,7 @@ local event = BJI_EVENTS.CACHE
 
 BJITx.cache = {}
 
-function BJITx.cache.require(cacheType)
-    BJITx._send(event.EVENT, event.TX.REQUIRE, cacheType)
+---@param caches string[]
+function BJITx.cache.require(caches)
+    BJITx._send(event.EVENT, event.TX.REQUIRE, caches)
 end

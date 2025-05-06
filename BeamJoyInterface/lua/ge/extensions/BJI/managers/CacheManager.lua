@@ -59,23 +59,17 @@ for _, cacheType in pairs(M.CACHES) do
     M._states[cacheType] = M.CACHE_STATES.EMPTY
 end
 
+---@type table<string, tablelib<function>>
 M.CACHE_HANDLERS = {}
 
 local function addRxHandler(cacheType, callback)
-    if not table.includes(M.CACHES, cacheType) then
+    if not Table(M.CACHES):includes(cacheType) then
         error(string.var("Invalid cache type: {1}", { cacheType }))
     end
     if not M.CACHE_HANDLERS[cacheType] then
-        M.CACHE_HANDLERS[cacheType] = {}
+        M.CACHE_HANDLERS[cacheType] = Table()
     end
-    table.insert(M.CACHE_HANDLERS[cacheType], callback)
-end
-
-local function _markCacheReady(cacheType)
-    M._states[cacheType] = M.CACHE_STATES.READY
-    if not table.includes(M._firstLoaded, cacheType) then
-        table.insert(M._firstLoaded, cacheType)
-    end
+    M.CACHE_HANDLERS[cacheType]:insert(callback)
 end
 
 local function isCacheReady(cacheType)
@@ -103,19 +97,20 @@ local function areBaseCachesFirstLoaded()
     return loaded
 end
 
-local function _tryRequestCache(cacheType)
-    local permissionName = M.CACHE_PERMISSIONS[cacheType]
-    if permissionName then
-        if BJIPerm.hasPermission(permissionName) then
-            LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
+---@param cachesToRequest tablelib<string>
+local function _tryRequestCaches(cachesToRequest)
+    ---@type tablelib<string>
+    local finalCaches = cachesToRequest:filter(function(cacheType)
+        return not M.CACHE_PERMISSIONS[cacheType] or BJIPerm.hasPermission(M.CACHE_PERMISSIONS[cacheType])
+    end)
+
+    if finalCaches:length() > 0 then
+        dump(finalCaches)
+        finalCaches:forEach(function(cacheType)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
-            BJITx.cache.require(cacheType)
-        end
-    else
-        -- no permission on this cache
-        LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
-        M._states[cacheType] = M.CACHE_STATES.PROCESSING
-        BJITx.cache.require(cacheType)
+        end)
+        LogDebug(string.var("Requesting caches : {1}", { finalCaches:join(", ") }), M._name)
+        BJITx.cache.require(finalCaches)
     end
 end
 
@@ -134,15 +129,18 @@ local function handleRx(cacheType, cacheData, cacheHash)
     })
 
     if M.CACHE_HANDLERS[cacheType] then
-        for _, handler in ipairs(M.CACHE_HANDLERS[cacheType]) do
+        M.CACHE_HANDLERS[cacheType]:forEach(function(handler)
             local status, err = pcall(handler, cacheData)
             if not status then
                 LogError(string.var("Error handling cache {1} : {2}", { cacheType, err }))
             end
-        end
+        end)
     end
     M._hashes[cacheType] = cacheHash
-    _markCacheReady(cacheType)
+    M._states[cacheType] = M.CACHE_STATES.READY
+    if not table.includes(M._firstLoaded, cacheType) then
+        table.insert(M._firstLoaded, cacheType)
+    end
 end
 
 ---@param ctxt SlowTickContext
@@ -151,31 +149,41 @@ local function slowTick(ctxt)
         return
     end
 
+    -- Table:addAll doesn't work here for a mystical reason Ô_Ô
+
+    local cachesToRequest = Table()
     if ctxt.cachesHashes then
-        for cacheType, hash in pairs(ctxt.cachesHashes) do
+        -- if a hash has changed
+        Table(ctxt.cachesHashes):forEach(function(hash, cacheType)
             if M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash then
-                _tryRequestCache(cacheType)
+                cachesToRequest:insert(cacheType)
             end
-        end
+        end)
     end
 
-    for _, cacheType in pairs(M.BASE_CACHES) do
+    -- base caches
+    Table(M.BASE_CACHES):forEach(function(cacheType)
         if M._states[cacheType] == M.CACHE_STATES.EMPTY then
-            M._states[cacheType] = M.CACHE_STATES.PROCESSING
-            LogDebug(string.var("Requesting cache {1}", { cacheType }), M._name)
-            BJITx.cache.require(cacheType)
+            cachesToRequest:insert(cacheType)
         end
-    end
+    end)
 
     if M.areBaseCachesFirstLoaded() then
-        for _, cacheType in pairs(M.CACHES) do
-            if not table.includes(M.BASE_CACHES, cacheType) then
-                if M._states[cacheType] == M.CACHE_STATES.EMPTY then
-                    _tryRequestCache(cacheType)
-                end
+        -- post base caches load, other caches
+        Table(M.CACHES):forEach(function(cacheType)
+            if not table.includes(M.BASE_CACHES, cacheType) and
+                M._states[cacheType] == M.CACHE_STATES.EMPTY then
+                cachesToRequest:insert(cacheType)
             end
-        end
+        end)
     end
+
+    if not BJIDEBUG then
+        BJIDEBUG = Table():addAll(Table({"user", "groups", "permissions", "lang"}):filter(function() return 1 == 1 end))
+        dump(BJIDEBUG)
+    end
+
+    _tryRequestCaches(cachesToRequest)
 end
 
 M.addRxHandler = addRxHandler
