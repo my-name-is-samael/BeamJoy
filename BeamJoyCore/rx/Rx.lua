@@ -20,7 +20,7 @@ local function checkSenderAndData(senderID, data)
         error({ key = "rx.errors.invalidData" })
     elseif data.parts and (not data.controller or not data.endpoint) then
         error({ key = "rx.errors.invalidData" })
-    elseif data.parts and not data.data then
+    elseif data.part and not data.data then
         error({ key = "rx.errors.invalidData" })
     end
     local sender = BJCPlayers.Players[senderID]
@@ -30,7 +30,7 @@ local function checkSenderAndData(senderID, data)
     return sender
 end
 
-local function logAndToastError(sender, key, data)
+local function logAndToastError(senderID, key, data)
     key = key or "rx.errors.serverError"
     data = data or {}
 
@@ -39,8 +39,8 @@ local function logAndToastError(sender, key, data)
     -- srv log
     LogError(BJCLang.getServerMessage(srvLang, key):var(data), logTag)
     -- player toast
-    if sender then
-        BJCTx.player.toast(sender.playerID, BJC_TOAST_TYPES.ERROR, key, data)
+    if senderID then
+        BJCTx.player.toast(senderID, BJC_TOAST_TYPES.ERROR, key, data)
     end
 end
 
@@ -115,10 +115,9 @@ end
 
 function _BJCRxEvent(senderID, dataSent)
     local data = JSON.parse(dataSent)
-    local _, sender, err = pcall(checkSenderAndData, senderID, data)
-    if err then
-        err = type(err) == "table" and err or {}
-        logAndToastError(sender, err.key, err.data)
+    local ok, err = pcall(checkSenderAndData, senderID, data)
+    if not ok then
+        logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)
         return
     end
 
@@ -152,10 +151,9 @@ end
 
 function _BJCRxEventParts(senderID, dataSent)
     local data = JSON.parse(dataSent)
-    local _, sender, err = pcall(checkSenderAndData, senderID, data)
-    if err then
-        err = type(err) == "table" and err or {}
-        logAndToastError(sender, err.key, err.data)
+    local ok, err = pcall(checkSenderAndData, senderID, data)
+    if not ok then
+        logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)
         return
     end
 
