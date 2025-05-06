@@ -179,6 +179,9 @@ M.onVehicleReplaced = function(...)
     TriggerBJIManagerEvent("onVehicleReplaced", ...)
     BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_UPDATED)
 end
+M.onAiModeChange = function(gameVehID, aiState)
+    BJIAI.updateVehicle(gameVehID, aiState ~= "disabled")
+end
 M.onVehicleDestroyed = function(...)
     TriggerBJIManagerEvent("onVehicleDestroyed", ...)
 end

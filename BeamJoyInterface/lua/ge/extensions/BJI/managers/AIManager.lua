@@ -4,7 +4,13 @@ local M = {
     baseFunctions = {},
 
     -- cache
-    aiCars = {},
+
+    ---@type tablelib<integer[]>
+    aiCars = Table(),      -- all ai cars on the server to prevent nametags
+    ---@type tablelib<integer[]>
+    addedCars = Table(),   -- user cars the player toggled auto drive on
+    ---@type tablelib<integer[]>
+    removedCars = Table(), -- traffic cars the player toggled auto drive off
 }
 
 local function onLoad()
@@ -54,8 +60,28 @@ local function canToggleAI()
     return M.state and BJIScenario.canSpawnAI()
 end
 
+---@return tablelib<integer[]>
+local function getSelfTrafficCars()
+    return table.filter(getAllVehicles(), function(v)
+        return v.isTraffic == "true" or v.isParked == "true"
+    end):map(function(v)
+        return v:getId()
+    end)
+end
+
+---@return tablelib<integer[]>
+local function getAllSelfAICars()
+    local vehs = getSelfTrafficCars():filter(function(id)
+        return not M.removedCars:includes(id)
+    end)
+    M.addedCars:forEach(function(v)
+        vehs:insert(v)
+    end)
+    return vehs:sort()
+end
+
 local function isTrafficSpawned()
-    return gameplay_traffic and gameplay_traffic.getState() == "on"
+    return gameplay_traffic and #getAllSelfAICars() > 0
 end
 
 local function removeVehicles()
@@ -88,15 +114,9 @@ end
 
 local function slowTick(ctxt)
     if BJIPerm.canSpawnVehicle() and M.isTrafficSpawned() then
-        local listVehs = {}
-        for _, v in ipairs(getAllVehicles()) do
-          if v.isTraffic == "true" or v.isParked == "true" then
-            table.insert(listVehs, v:getId())
-          end
-        end
-        table.sort(listVehs)
+        local listVehs = getAllSelfAICars()
         table.sort(BJIContext.Players[ctxt.user.playerID].ai)
-        if not table.compare(listVehs, BJIContext.Players[ctxt.user.playerID].ai) then
+        if not listVehs:compare(BJIContext.Players[ctxt.user.playerID].ai) then
             BJITx.player.UpdateAI(listVehs)
         end
     elseif BJIContext.Players[ctxt.user.playerID] and
@@ -107,19 +127,19 @@ local function slowTick(ctxt)
 end
 
 local function updateVehicles()
-    M.aiCars = {}
+    M.aiCars = Table()
     for playerID, player in pairs(BJIContext.Players) do
         local isSelf = BJIContext.isSelf(playerID)
         if #player.ai > 0 then
             for _, aiVehID in ipairs(player.ai) do
                 if isSelf then
                     if BJIVeh.getVehicleObject(aiVehID) then
-                        table.insert(M.aiCars, aiVehID)
+                        M.aiCars:insert(aiVehID)
                     end
                 else
                     local gameVehID = BJIVeh.getGameVehIDByRemoteVehID(aiVehID)
                     if BJIVeh.getVehicleObject(gameVehID) then
-                        table.insert(M.aiCars, gameVehID)
+                        M.aiCars:insert(gameVehID)
                     end
                 end
             end
@@ -128,7 +148,28 @@ local function updateVehicles()
 end
 
 local function isAIVehicle(gameVehID)
-    return table.includes(M.aiCars, gameVehID)
+    return M.aiCars:includes(gameVehID)
+end
+
+--- Change vehicle manual AI state
+---@param gameVehID integer
+---@param aiState boolean
+local function updateVehicle(gameVehID, aiState)
+    local trafficCars = getSelfTrafficCars()
+    if aiState then
+        if M.removedCars:includes(gameVehID) then
+            M.removedCars:remove(M.removedCars:indexOf(gameVehID))
+        elseif not trafficCars:includes(gameVehID) and not M.addedCars:includes(gameVehID) then
+            M.addedCars:insert(gameVehID)
+        end
+    else
+        if M.addedCars:includes(gameVehID) then
+            M.addedCars:remove(M.addedCars:indexOf(gameVehID))
+        elseif trafficCars:includes(gameVehID) and
+            not M.removedCars:includes(gameVehID) then
+            M.removedCars:insert(gameVehID)
+        end
+    end
 end
 
 M.onLoad = onLoad
@@ -144,6 +185,7 @@ M.slowTick = slowTick
 
 M.updateVehicles = updateVehicles
 M.isAIVehicle = isAIVehicle
+M.updateVehicle = updateVehicle
 
 RegisterBJIManager(M)
 return M
