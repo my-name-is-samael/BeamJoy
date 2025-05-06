@@ -62,7 +62,7 @@ local function tryFinalizeEvent(id)
             return
         end
 
-        local rawData = table.concat(event.data)
+        local rawData = table.join(event.data)
         rawData = #rawData > 0 and JSON.parse(rawData) or {}
         local ctxt = {
             senderID = event.senderID,

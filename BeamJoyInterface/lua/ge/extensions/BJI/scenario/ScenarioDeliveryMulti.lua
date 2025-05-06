@@ -60,7 +60,6 @@ local function onLoad(ctxt)
     BJIVehSelector.tryClose()
     BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     BJIQuickTravel.toggle(false)
-    BJIAI.toggle(false)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
 end
@@ -213,7 +212,6 @@ end
 local function onUnload(ctxt)
     BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIQuickTravel.toggle(true)
-    BJIAI.toggle(true)
     BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
     BJIMessage.stopRealtimeDisplay()
     BJIRaceWaypoint.resetAll()
@@ -232,7 +230,7 @@ local function rxData(data)
     local wasParticipant = not not M.participants[BJIContext.User.playerID]
     local previousRadius = getRadiusMultiplier()
     M.participants = data.participants
-    local previousTarget = M.target and TryParsePosRot(table.clone(M.target)) or nil
+    local previousTarget = M.target and TryParsePosRot(M.target) or nil
     M.target = TryParsePosRot(data.target)
 
     updateUI()

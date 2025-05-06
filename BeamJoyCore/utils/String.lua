@@ -123,7 +123,7 @@ string.capitalizeWords = string.capitalizeWords or function(str)
         for i in ipairs(words) do
             words[i] = words[i]:capitalize()
         end
-        str = table.concat(words, d)
+        str = table.join(words, d)
     end)
     return str
 end

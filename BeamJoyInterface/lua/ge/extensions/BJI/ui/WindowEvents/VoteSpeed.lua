@@ -61,7 +61,7 @@ local function draw(ctxt)
     end
     LineBuilder()
         :text(string.var("{1}: {2}",
-            { BJILang.get("speed.vote.participants"), table.concat(participants, ", ") }))
+            { BJILang.get("speed.vote.participants"), table.join(participants, ", ") }))
         :build()
 end
 return draw

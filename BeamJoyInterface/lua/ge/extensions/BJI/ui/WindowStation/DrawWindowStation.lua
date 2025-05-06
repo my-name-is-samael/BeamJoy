@@ -1,10 +1,8 @@
 local function onRepair(ctxt)
     BJIVeh.stopCurrentVehicle()
     BJIContext.User.stationProcess = true
-    local wasResetRestricted = BJIRestrictions.isRestricted(BJIRestrictions.TYPES.RECOVER_VEHICLE)
-    if not wasResetRestricted then
-        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
-    end
+    local previousRestrictions = table.clone(BJIRestrictions.currentResets)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
     BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
     BJIVeh.freeze(true, ctxt.vehData.vehGameID)
@@ -29,8 +27,10 @@ local function onRepair(ctxt)
             BJIVeh.engine(true, ctxt.vehData.vehGameID)
         end
         BJICam.resetForceCamera()
-        if not wasResetRestricted then
+        if #previousRestrictions == 0 then
             BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
+        else
+            BJIRestrictions.updateReset(previousRestrictions)
         end
         BJIContext.User.stationProcess = false
     end, 5000, "BJIStationRepair")
@@ -187,7 +187,7 @@ local function drawHeader(ctxt)
                     table.insert(stationEnergyNames, label)
                 end
             end
-            local stationNamesLabel = table.concat(stationEnergyNames,
+            local stationNamesLabel = table.join(stationEnergyNames,
                 string.var(" {1} ", { BJILang.get("common.and") }))
             LineBuilder()
                 :icon({

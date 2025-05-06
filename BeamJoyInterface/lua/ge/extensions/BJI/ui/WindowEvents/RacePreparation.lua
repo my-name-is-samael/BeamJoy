@@ -40,7 +40,7 @@ local function draw(ctxt)
     table.insert(settings, string.var("{1}: {2}", { BJILang.get("races.settings.respawnStrategies.respawns"), rs }))
 
     LineBuilder()
-        :text(table.concat(settings, ", "))
+        :text(table.join(settings, ", "))
         :build()
 
     local time = voteRace.timeLabel

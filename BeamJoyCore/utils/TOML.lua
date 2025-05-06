@@ -173,7 +173,7 @@ TOML.parse = function(toml, options)
                                 break
                             end
                         end
-                        return table.concat(charbytes)
+                        return table.join(charbytes)
                     end
 
                     if escape[char(1)] then
@@ -604,7 +604,7 @@ TOML.encode = function(tbl)
                         -- double bracket syntax go!
                         table.insert(cache, k)
                         for kk, vv in pairs(v) do
-                            toml = toml .. "[[" .. table.concat(cache, ".") .. "]]\n"
+                            toml = toml .. "[[" .. table.join(cache, ".") .. "]]\n"
                             for k3, v3 in pairs(vv) do
                                 if type(v3) ~= "table" then
                                     vv[k3] = nil
@@ -626,7 +626,7 @@ TOML.encode = function(tbl)
                 else
                     -- just a key/value table, folks
                     table.insert(cache, k)
-                    toml = toml .. "[" .. table.concat(cache, ".") .. "]\n"
+                    toml = toml .. "[" .. table.join(cache, ".") .. "]\n"
                     parse(first)
                     parse(v)
                     table.remove(cache)

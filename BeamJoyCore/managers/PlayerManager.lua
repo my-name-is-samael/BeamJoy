@@ -974,7 +974,7 @@ local function consoleSetGroup(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     end
     local target = matches[1]
 
@@ -988,7 +988,7 @@ local function consoleSetGroup(args)
         table.sort(list, function(a, b) return a:lower() < b:lower() end)
         return BJCLang.getConsoleMessage("command.errors.invalidGroupWithList"):var({
             groupName = groupName,
-            groupList = table.concat(list, ", ")
+            groupList = table.join(list, ", ")
         })
     end
 
@@ -1039,7 +1039,7 @@ local function consoleKick(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     end
 
     local ctxt = {}
@@ -1087,7 +1087,7 @@ local function consoleBan(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     end
 
     local ctxt = {}
@@ -1141,7 +1141,7 @@ local function consoleTempBan(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     end
 
     local ctxt = {}
@@ -1220,7 +1220,7 @@ local function consoleMute(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     elseif matches[1].muted then
         return BJCLang.getConsoleMessage("command.playerAlreadyMuted")
             :var({ playerName = matches[1].playerName })
@@ -1265,7 +1265,7 @@ local function consoleUnmute(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.concat(matches, ", ") })
+            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
     elseif not matches[1].muted then
         return BJCLang.getConsoleMessage("command.playerNotMuted")
             :var({ playerName = matches[1].playerName })
