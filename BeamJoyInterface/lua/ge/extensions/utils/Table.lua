@@ -28,6 +28,14 @@ local function metatable(tab)
     return setmetatable(tab, { __index = table })
 end
 
+--- Create a table with chained functions
+---@param tab? table<any, any>
+---@return tablelib<any, any>
+function Table(tab)
+    tab = tab or {}
+    return metatable(tab)
+end
+
 ---@param tab table<any, any>
 ---@return boolean
 table.isArray = table.isArray or function(tab)
@@ -427,9 +435,13 @@ local baseSort = table.sort
 ---@param tab T[]
 ---@param sortFn? fun(a: T, b: T): boolean
 table.sort = function(tab, sortFn) ---@diagnostic disable-line
+    tab = tab or {}
     if table.isObject(tab) then
         tab = table.values(tab)
     end
-    baseSort(tab, sortFn)
+    local ok, err = pcall(baseSort, tab, sortFn)
+    if not ok then
+        LogError(string.var("Error while sorting table : {1}", { err }))
+    end
     return metatable(tab)
 end
