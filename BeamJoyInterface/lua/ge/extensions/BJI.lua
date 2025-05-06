@@ -100,6 +100,7 @@ local function loadManagers()
     BJIVehSelector = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelector")
     BJIVehSelectorPreview = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelectorPreview")
     BJIRacesLeaderboardWindow = require("ge/extensions/BJI/ui/WindowRacesLeaderboard/DrawWindowRacesLeaderboard")
+    BJIRaceSettingsWindow = require("ge/extensions/BJI/ui/WindowRaceSettings/DrawWindowRaceSettings")
 
     BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
 end
@@ -173,6 +174,10 @@ M.onVehicleResetted = function(gameVehID)
         -- delay execution or else vehicle can't be own
         TriggerBJIManagerEvent("onVehicleResetted", gameVehID)
     end, 100, string.var("BJIVehReset{1}", { gameVehID }))
+end
+M.onVehicleReplaced = function(...)
+    TriggerBJIManagerEvent("onVehicleReplaced", ...)
+    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_UPDATED)
 end
 M.onVehicleDestroyed = function(...)
     TriggerBJIManagerEvent("onVehicleDestroyed", ...)

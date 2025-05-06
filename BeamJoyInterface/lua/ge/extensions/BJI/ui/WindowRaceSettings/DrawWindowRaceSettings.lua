@@ -1,46 +1,349 @@
-local settings
-local envUtils = require("ge/extensions/utils/EnvironmentUtils")
+---@class RaceSettings
+---@field multi boolean
+---@field raceID string
+---@field raceName string
+---@field loopable boolean
+---@field laps integer
+---@field defaultRespawnStrategy? string
+---@field respawnStrategies string[]
+---@field vehicleMode string|nil
+---@field time? {label?: string, ToD?: integer}
+---@field weather? {label?: string, keys?: table}
 
-local function onClose()
-    BJIContext.Scenario.RaceSettings = nil
-    settings = nil
+local envUtils = require("ge/extensions/utils/EnvironmentUtils")
+local M = {
+    VEHICLE_MODES = {
+        ALL = nil,
+        MODEL = "model",
+        CONFIG = "config",
+    },
+    show = false,
+
+    ---@type RaceSettings
+    settings = {
+        multi = false,
+        raceID = "",
+        raceName = "",
+        loopable = false,
+        laps = 1,
+        defaultRespawnStrategy = nil,
+        respawnStrategies = {},
+        vehicleMode = nil,
+        time = nil,
+        weather = nil,
+    },
+
+    cache = {
+        data = {
+            currentVeh = {
+                model = nil,
+                modelLabel = nil,
+                config = nil,
+            },
+
+            comboRespawnStrategies = {},
+            respawnStrategySelected = nil,
+
+            ---@type {value?: string, label: string}[]
+            comboVehicle = {},
+            ---@type {value?: string, label: string}?
+            vehicleSelected = nil,
+
+            ---@type {ToD?: string, label: string, key: string}[]
+            comboTime = {},
+            ---@type {ToD?: string, label: string, key: string}?
+            timeSelected = nil,
+
+            ---@type {keys?: string[], label: string, key: string}[]
+            comboWeather = {},
+            ---@type {keys?: string[], label: string, key: string}?
+            weatherSelected = nil,
+
+            showVoteBtn = false,
+            showStartBtn = false,
+        },
+        labels = {
+            unknown = "",
+            title = "",
+            raceName = "",
+            laps = "",
+            manyLapsWarning = "",
+            respawnStrategies = {
+                title = "",
+                all = "",
+                norespawn = "",
+                lastcheckpoint = "",
+                stand = "",
+            },
+            vehicle = {
+                title = "",
+                all = "",
+                currentModel = "",
+                currentConfig = "",
+            },
+            time = "",
+            weather = "",
+        },
+        widths = {
+            labels = 0,
+        },
+    },
+}
+
+local function updateLabels()
+    M.cache.labels.unknown = BJILang.get("common.unknown")
+
+    M.cache.labels.title = M.settings.multi and
+        BJILang.get("races.preparation.multiplayer") or
+        BJILang.get("races.preparation.singleplayer")
+    M.cache.labels.raceName = string.var("{1} \"{2}\"", { BJILang.get("races.play.race"), M.settings.raceName })
+
+    M.cache.labels.laps = BJILang.get("races.edit.laps")
+    M.cache.labels.manyLapsWarning = BJILang.get("races.settings.manyLapsWarning")
+
+    M.cache.labels.respawnStrategies.title = BJILang.get("races.settings.respawnStrategies.title")
+    M.cache.labels.respawnStrategies.all = BJILang.get("races.settings.respawnStrategies.all")
+    M.cache.labels.respawnStrategies.norespawn = BJILang.get("races.settings.respawnStrategies.norespawn")
+    M.cache.labels.respawnStrategies.lastcheckpoint = BJILang.get("races.settings.respawnStrategies.lastcheckpoint")
+    M.cache.labels.respawnStrategies.stand = BJILang.get("races.settings.respawnStrategies.stand")
+
+    M.cache.labels.vehicle.title = BJILang.get("races.settings.vehicles.playerVehicle")
+    M.cache.labels.vehicle.all = BJILang.get("races.settings.vehicles.all")
+    M.cache.labels.vehicle.currentModel = BJILang.get("races.settings.vehicles.currentModel")
+    M.cache.labels.vehicle.currentConfig = BJILang.get("races.settings.vehicles.currentConfig")
+
+    M.cache.labels.time = BJILang.get("races.settings.time")
+    M.cache.labels.weather = BJILang.get("races.settings.weather")
 end
 
-local function drawRespawnStrategies(cols)
-    local comboRespawnStrategies = {}
-    table.insert(comboRespawnStrategies, {
-        value = nil,
-        label = BJILang.get("races.settings.respawnStrategies.all"),
-    })
-    local selected
-    for _, rs in ipairs(settings.respawnStrategies) do
-        table.insert(comboRespawnStrategies, {
-            value = rs,
-            label = BJILang.get(string.var("races.settings.respawnStrategies.{1}", { rs })),
+local function updateWidths()
+    M.cache.widths.labels = 0
+    table.forEach({
+        M.cache.labels.laps,
+        M.cache.labels.respawnStrategies.title,
+        M.settings.multi and M.cache.labels.vehicle.title or nil,
+        M.settings.multi and M.cache.labels.time or nil,
+        M.settings.multi and M.cache.labels.weather or nil,
+    }, function(label)
+        local w = GetColumnTextWidth(label)
+        if w > M.cache.widths.labels then
+            M.cache.widths.labels = w
+        end
+    end)
+end
+
+---@param ctxt? TickContext
+local function updatePresets(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+
+    M.cache.data.comboTime = {}
+    M.cache.data.comboWeather = {}
+
+    if M.settings.multi then
+        -- time presets
+        table.insert(M.cache.data.comboTime, {
+            label = BJILang.get("presets.time.currentTime"),
         })
-        if rs == settings.respawnStrategy then
-            selected = comboRespawnStrategies[#comboRespawnStrategies]
+        table.forEach(envUtils.timePresets(), function(p)
+            local comboElem = {
+                key = p.label,
+                label = BJILang.get(string.var("presets.time.{1}", { p.label })),
+                ToD = p.ToD,
+            }
+            table.insert(M.cache.data.comboTime, comboElem)
+            if not M.cache.data.timeSelected and M.settings.time and
+                M.settings.time.ToD == p.ToD then
+                M.cache.data.timeSelected = comboElem
+            end
+        end)
+        if not M.cache.data.timeSelected then
+            M.cache.data.timeSelected = M.cache.data.comboTime[1]
+        end
+
+        -- weather presets
+        table.insert(M.cache.data.comboWeather, {
+            label = BJILang.get("presets.weather.currentWeather"),
+        })
+        table.forEach(envUtils.weatherPresets(), function(p)
+            local comboElem = {
+                key = p.label,
+                label = BJILang.get(string.var("presets.weather.{1}", { p.label })),
+                keys = p.keys,
+            }
+            table.insert(M.cache.data.comboWeather, comboElem)
+            if not M.cache.data.weatherSelected and M.settings.weather and
+                M.settings.weather.label == p.label then
+                M.cache.data.weatherSelected = comboElem
+            end
+        end)
+        if not M.cache.data.weatherSelected then
+            M.cache.data.weatherSelected = M.cache.data.comboWeather[1]
+        end
+    end
+end
+
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+
+    M.cache.data.currentVeh.model = nil
+    M.cache.data.currentVeh.modelLabel = nil
+    M.cache.data.currentVeh.config = nil
+    M.cache.data.comboRespawnStrategies = {}
+    M.cache.data.comboVehicle = {}
+    M.cache.data.showVoteBtn = false
+    M.cache.data.showStartBtn = false
+
+    -- autoclose checks
+    if M.show and (not BJIScenario.isFreeroam() or (
+            not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) and
+            not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) and
+            not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO)
+        )) then
+        M.onClose()
+        return
+    elseif not M.settings.multi and not ctxt.isOwner then
+        M.onClose()
+        return
+    elseif M.settings.multi and BJIPerm.getCountPlayersCanSpawnVehicle() < BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS then
+        -- when a player leaves then there are not enough players to start
+        BJIToast.warning(BJILang.get("races.preparation.notEnoughPlayers"))
+        M.onClose()
+        return
+    end
+
+    -- respawn strategies
+    for _, rs in ipairs(M.settings.respawnStrategies) do
+        local comboElem = {
+            value = rs,
+            label = M.cache.labels.respawnStrategies[rs],
+        }
+        table.insert(M.cache.data.comboRespawnStrategies, comboElem)
+        if not M.cache.data.respawnStrategySelected and rs == M.settings.defaultRespawnStrategy then
+            M.cache.data.respawnStrategySelected = comboElem
+        end
+    end
+    if not M.cache.data.respawnStrategySelected or not table.find(M.cache.data.comboRespawnStrategies, function(crs)
+            return crs.value == M.cache.data.respawnStrategySelected.value
+        end) then
+        M.cache.data.respawnStrategySelected = M.cache.data.comboRespawnStrategies[1]
+    end
+
+    if M.settings.multi then
+        -- vehicle combo
+        table.insert(M.cache.data.comboVehicle, {
+            value = M.VEHICLE_MODES.ALL,
+            label = M.cache.labels.vehicle.all,
+        })
+        if ctxt.veh and not BJIVeh.isUnicycle(ctxt.veh:getID()) and not BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
+            table.insert(M.cache.data.comboVehicle, {
+                value = M.VEHICLE_MODES.MODEL,
+                label = M.cache.labels.vehicle.currentModel,
+            })
+            table.insert(M.cache.data.comboVehicle, {
+                value = M.VEHICLE_MODES.CONFIG,
+                label = M.cache.labels.vehicle.currentConfig,
+            })
+            if not M.cache.data.vehicleSelected then
+                if M.settings.vehicleMode then
+                    M.cache.data.vehicleSelected = table.find(M.cache.data.comboVehicle, function(v)
+                        return v.value == M.settings.vehicleMode
+                    end) or M.cache.data.comboVehicle[1]
+                end
+            elseif not table.find(M.cache.data.comboVehicle, function(v)
+                    return v.value == M.cache.data.vehicleSelected.value
+                end) then
+                M.cache.data.vehicleSelected = M.cache.data.comboVehicle[1]
+            end
+        end
+        if not M.cache.data.vehicleSelected or not table.find(M.cache.data.comboVehicle, function(vm)
+                return vm.value == M.cache.data.vehicleSelected.value
+            end) then
+            M.cache.data.vehicleSelected = M.cache.data.comboVehicle[1]
         end
     end
 
+    -- current veh
+    if ctxt.veh then
+        M.cache.data.currentVeh.model = ctxt.veh.jbeam
+        M.cache.data.currentVeh.modelLabel = BJIVeh.getModelLabel(M.cache.data.currentVeh.model) or
+            M.cache.labels.unknown
+
+        M.cache.data.currentVeh.config = BJIVeh.getFullConfig(ctxt.veh.partConfig)
+        local configLabel = BJIVeh.getCurrentConfigLabel()
+        M.cache.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
+            { M.cache.data.currentVeh.modelLabel, configLabel }) or M.cache.labels.unknown
+    else
+        M.cache.data.currentVeh.model = nil
+        M.cache.data.currentVeh.modelLabel = nil
+        M.cache.data.currentVeh.config = nil
+        M.cache.data.currentVeh.configLabel = nil
+    end
+
+    M.cache.data.showVoteBtn = M.settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    M.cache.data.showStartBtn = (M.settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)) or
+        (not M.settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO))
+end
+
+local listeners = {}
+local function onLoad()
+    updatePresets()
+    updateLabels()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST,
+    }, function(ctxt)
+        updateLabels()
+        updateWidths()
+        updatePresets(ctxt)
+    end))
+
+    updateWidths()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.UI_SCALE_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST,
+    }, updateWidths))
+
+    updateCache()
+    table.insert(listeners, BJIEvents.addListener({
+        BJIEvents.EVENTS.VEHICLE_SPAWNED,
+        BJIEvents.EVENTS.VEHICLE_UPDATED,
+        BJIEvents.EVENTS.VEHICLE_REMOVED,
+        BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST,
+    }, updateCache))
+    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if data.cache == BJICache.CACHES.RACES or data.cache == BJICache.CACHES.PLAYERS then
+            updateCache(ctxt)
+        end
+    end))
+end
+
+local function onUnload()
+    table.forEach(listeners, BJIEvents.removeListener)
+end
+
+local function drawRespawnStrategies(cols)
     cols:addRow({
         cells = {
             function()
                 LineBuilder()
-                    :text(BJILang.get("races.settings.respawnStrategies.title"))
+                    :text(M.cache.labels.respawnStrategies.title)
                     :build()
             end,
             function()
                 LineBuilder()
                     :inputCombo({
                         id = "respawnStrategies",
-                        items = comboRespawnStrategies,
+                        items = M.cache.data.comboRespawnStrategies,
                         getLabelFn = function(v)
                             return v.label
                         end,
-                        value = selected,
+                        value = M.cache.data.respawnStrategySelected,
                         onChange = function(v)
-                            settings.respawnStrategy = v.value
+                            M.cache.data.respawnStrategySelected = v
                         end,
                     })
                     :build()
@@ -50,139 +353,65 @@ local function drawRespawnStrategies(cols)
 end
 
 local function drawVehicleSelector(cols, ctxt)
-    local comboVehicle = {}
-    table.insert(comboVehicle, {
-        value = nil,
-        label = BJILang.get("races.settings.vehicles.all"),
-    })
-    local selected
-    if ctxt.veh and not BJIVeh.isUnicycle(ctxt.veh:getID()) then
-        table.insert(comboVehicle, {
-            value = "model",
-            label = BJILang.get("races.settings.vehicles.currentModel"),
-        })
-        table.insert(comboVehicle, {
-            value = "config",
-            label = BJILang.get("races.settings.vehicles.currentConfig"),
-        })
-        for _, v in ipairs(comboVehicle) do
-            if v.value == settings.vehicle then
-                selected = v
-                break
-            end
-        end
-    end
-    if not selected then
-        selected = comboVehicle[1]
-    end
-    if settings.vehicle ~= selected.value then
-        settings.vehicle = selected.value
-    end
-
     cols:addRow({
         cells = {
             function()
                 LineBuilder()
-                    :text(BJILang.get("races.settings.vehicles.playerVehicle"))
+                    :text(M.cache.labels.vehicle.title)
                     :build()
             end,
             function()
                 LineBuilder()
                     :inputCombo({
                         id = "settingsVehicle",
-                        items = comboVehicle,
+                        items = M.cache.data.comboVehicle,
                         getLabelFn = function(v)
                             return v.label
                         end,
-                        value = selected,
+                        value = M.cache.data.vehicleSelected,
                         onChange = function(v)
-                            settings.vehicle = v.value
-                            if settings.vehicle and ctxt.veh then
-                                if BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
-                                    BJIToast.error(BJILang.get("errors.toastModelBlacklisted"))
-                                else
-                                    settings.vehicleModel = ctxt.veh.jbeam
-                                    if settings.vehicle == "model" then
-                                        settings.vehicleLabel = BJIVeh.getModelLabel(settings.vehicleModel)
-                                    else
-                                        settings.vehicleConfig = BJIVeh.getFullConfig(ctxt.veh.partConfig)
-                                        settings.vehicleLabel = string.var("{1} {2}",
-                                            { BJIVeh.getModelLabel(settings.vehicleModel), BJIVeh
-                                                .getCurrentConfigLabel() })
-                                    end
-                                end
-                            else
-                                settings.vehicleLabel = nil
-                                settings.vehicleConfig = nil
-                            end
+                            M.cache.data.vehicleSelected = v
                         end,
                     })
                     :build()
-            end,
-            settings.vehicle and function()
-                LineBuilder()
-                    :btnIcon({
-                        id = "raceSettingsVehicleRefresh",
-                        icon = ICONS.refresh,
-                        style = BTN_PRESETS.INFO,
-                        disabled = not ctxt.veh,
-                        onClick = function()
-                            if BJIVeh.isModelBlacklisted(ctxt.veh.jbeam) then
-                                BJIToast.error(BJILang.get("errors.toastModelBlacklisted"))
-                                if settings.vehicle then
-                                    settings.vehicle = nil
-                                end
-                            else
-                                settings.vehicleModel = BJIVeh.getCurrentModel()
-                                if settings.vehicle == "model" then
-                                    settings.vehicleLabel = BJIVeh.getModelLabel(settings.vehicleModel)
-                                else
-                                    settings.vehicleConfig = BJIVeh.getFullConfig()
-                                    settings.vehicleLabel = string.var("{1} {2}",
-                                        { BJIVeh.getModelLabel(settings.vehicleModel), BJIVeh
-                                            .getCurrentConfigLabel() })
-                                end
-                            end
-                        end
-                    })
-                    :text(settings.vehicleLabel and settings.vehicleLabel or
-                        BJILang.get("common.unknown"))
-                    :build()
-            end or nil
+            end
         }
     })
+    if M.cache.data.vehicleSelected.value ~= M.VEHICLE_MODES.ALL then
+        cols:addRow({
+            cells = {
+                nil,
+                function()
+                    LineBuilder()
+                        :text(M.cache.data.vehicleSelected.value == M.VEHICLE_MODES.MODEL and
+                            M.cache.data.currentVeh.modelLabel or
+                            M.cache.data.currentVeh.configLabel)
+                        :build()
+                end
+            }
+        })
+    end
 end
 
 local function drawTimeOfDaySelector(cols)
-    local presets = envUtils.timePresets()
-    table.insert(presets, 1, { label = "currentTime" })
-
-    local selected = presets[1]
-    for _, p in ipairs(presets) do
-        if p.label == settings.time.label then
-            selected = p
-            break
-        end
-    end
-
     cols:addRow({
         cells = {
             function()
                 LineBuilder()
-                    :text(BJILang.get("races.settings.time"))
+                    :text(M.cache.labels.time)
                     :build()
             end,
             function()
                 LineBuilder()
                     :inputCombo({
                         id = "timePreset",
-                        items = presets,
+                        items = M.cache.data.comboTime,
                         getLabelFn = function(v)
-                            return BJILang.get(string.var("presets.time.{1}", { v.label }))
+                            return v.label
                         end,
-                        value = selected,
+                        value = M.cache.data.timeSelected,
                         onChange = function(v)
-                            settings.time = v
+                            M.cache.data.timeSelected = v
                         end,
                     })
                     :build()
@@ -192,35 +421,24 @@ local function drawTimeOfDaySelector(cols)
 end
 
 local function drawWeatherSelector(cols)
-    local presets = envUtils.weatherPresets()
-    table.insert(presets, 1, { label = "currentWeather" })
-
-    local selected = presets[1]
-    for _, p in ipairs(presets) do
-        if p.label == settings.weather.label then
-            selected = p
-            break
-        end
-    end
-
     cols:addRow({
         cells = {
             function()
                 LineBuilder()
-                    :text(BJILang.get("races.settings.weather"))
+                    :text(M.cache.labels.weather)
                     :build()
             end,
             function()
                 LineBuilder()
                     :inputCombo({
                         id = "weatherPreset",
-                        items = presets,
+                        items = M.cache.data.comboWeather,
                         getLabelFn = function(v)
-                            return BJILang.get(string.var("presets.weather.{1}", { v.label }))
+                            return v.label
                         end,
-                        value = selected,
+                        value = M.cache.data.weatherSelected,
                         onChange = function(v)
-                            settings.weather = v
+                            M.cache.data.weatherSelected = v
                         end,
                     })
                     :build()
@@ -229,104 +447,51 @@ local function drawWeatherSelector(cols)
     })
 end
 
-local function getPayloadSettings()
-    return {
-        laps = settings.loopable and settings.laps or nil,
-        model = settings.vehicle ~= nil and settings.vehicleModel or nil,
-        config = settings.vehicle == "config" and settings.vehicleConfig or nil,
-        time = table.clone(settings.time),
-        weather = table.clone(settings.weather),
-        respawnStrategy = settings.respawnStrategy,
-    }
-end
-
-local function drawHeader(ctxt)
-    settings = BJIContext.Scenario.RaceSettings or {}
-    local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
-    local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
-    if settings.multi and potentialPlayers < minimumParticipants then
-        -- when a player leaves then there are not enough players to start
-        BJIToast.warning(BJILang.get("races.preparation.notEnoughPlayers"))
-        onClose()
-    end
-
-    LineBuilder()
-        :text((settings and settings.multi) and
-            BJILang.get("races.preparation.multiplayer") or
-            BJILang.get("races.preparation.singleplayer"),
-            TEXT_COLORS.HIGHLIGHT)
-        :build()
-
-    LineBuilder()
-        :text(string.var("{1} \"{2}\"", { BJILang.get("races.play.race"), settings and settings.raceName }))
-        :build()
+local function drawHeader()
+    LineBuilder():text(M.cache.labels.title, TEXT_COLORS.HIGHLIGHT):build()
+    LineBuilder():text(M.cache.labels.raceName):build()
 end
 
 local function drawBody(ctxt)
-    if not settings then
-        return
-    end
-    local labelWidth = 0
-    local labels = {
-        "races.edit.laps",
-        "races.settings.respawnStrategies.title",
-    }
-    if settings.multi then
-        table.insert(labels, "races.settings.vehicles.playerVehicle")
-        table.insert(labels, "races.settings.time")
-        table.insert(labels, "races.settings.weather")
-    end
-    for _, key in ipairs(labels) do
-        local label = BJILang.get(key)
-        local w = GetColumnTextWidth(label)
-        if w > labelWidth then
-            labelWidth = w
-        end
-    end
+    local cols = ColumnsBuilder("BJIRaceSettings", { M.cache.widths.labels, -1 })
 
-    local thirdColumnWidth = nil
-    if settings.vehicle then
-        thirdColumnWidth = -1
-    elseif settings.laps >= 20 then
-        thirdColumnWidth = GetColumnTextWidth(BJILang.get("races.settings.manyLapsWarning"))
-    end
-
-    local cols = ColumnsBuilder("BJIRaceSettings", { labelWidth, -1, thirdColumnWidth })
-
-    if settings.loopable then
+    if M.settings.loopable then
         cols:addRow({
             cells = {
                 function()
-                    LineBuilder()
-                        :text(BJILang.get("races.edit.laps"))
-                        :build()
+                    LineBuilder():text(M.cache.labels.laps):build()
                 end,
                 function()
                     LineBuilder()
                         :inputNumeric({
                             id = "raceSettingsLaps",
                             type = "int",
-                            value = settings.laps,
+                            value = M.settings.laps,
                             min = 1,
                             max = 50,
                             step = 1,
                             onUpdate = function(val)
-                                settings.laps = val
+                                M.settings.laps = val
                             end,
                         })
                         :build()
-                end,
-                settings.laps >= 20 and function()
-                    LineBuilder()
-                        :text(BJILang.get("races.settings.manyLapsWarning"), TEXT_COLORS.HIGHLIGHT)
-                        :build()
-                end or nil
+                end
             }
         })
+        if M.settings.laps >= 20 then
+            cols:addRow({
+                cells = {
+                    nil,
+                    function()
+                        LineBuilder():text(M.cache.labels.manyLapsWarning, TEXT_COLORS.HIGHLIGHT):build()
+                    end
+                }
+            })
+        end
     end
 
     drawRespawnStrategies(cols)
-    if settings.multi then
+    if M.settings.multi then
         drawVehicleSelector(cols, ctxt)
         drawTimeOfDaySelector(cols)
         drawWeatherSelector(cols)
@@ -335,8 +500,19 @@ local function drawBody(ctxt)
     cols:build()
 end
 
+local function getPayloadSettings()
+    return {
+        laps = M.settings.loopable and M.settings.laps or nil,
+        model = M.cache.data.vehicleSelected.value ~= M.VEHICLE_MODES.ALL and M.cache.data.currentVeh.model or nil,
+        config = M.cache.data.vehicleSelected.value == M.VEHICLE_MODES.CONFIG and M.cache.data.currentVeh.config or nil,
+        time = table.clone(M.cache.data.timeSelected),
+        weather = table.clone(M.cache.data.weatherSelected),
+        respawnStrategy = M.cache.data.respawnStrategySelected.value,
+    }
+end
+
 local function drawFooter(ctxt)
-    if not settings then
+    if not M.settings then
         return
     end
     local line = LineBuilder()
@@ -345,32 +521,31 @@ local function drawFooter(ctxt)
             icon = ICONS.exit_to_app,
             style = BTN_PRESETS.ERROR,
             onClick = function()
-                BJIContext.Scenario.RaceSettings = nil
+                M.onClose()
             end
         })
-    if settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
+    if M.cache.data.showVoteBtn then
         line:btnIcon({
             id = "voteRaceStart",
             icon = ICONS.event_available,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                BJITx.voterace.start(settings.raceID, true, getPayloadSettings())
-                BJIContext.Scenario.RaceSettings = nil
+                BJITx.voterace.start(M.settings.raceID, true, getPayloadSettings())
+                M.onClose()
             end
         })
     end
-    if (settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)) or
-        (not settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO)) then
+    if M.cache.data.showStartBtn then
         line:btnIcon({
             id = "raceStart",
             icon = ICONS.videogame_asset,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                if settings.multi then
-                    BJITx.voterace.start(settings.raceID, false, getPayloadSettings())
-                    BJIContext.Scenario.RaceSettings = nil
+                if M.settings.multi then
+                    BJITx.voterace.start(M.settings.raceID, false, getPayloadSettings())
+                    M.onClose()
                 else
-                    BJITx.scenario.RaceDetails(settings.raceID)
+                    BJITx.scenario.RaceDetails(M.settings.raceID)
                     BJIAsync.task(function()
                         return BJIContext.Scenario.RaceDetails ~= nil
                     end, function()
@@ -380,14 +555,14 @@ local function drawFooter(ctxt)
                                 BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).initRace(
                                     ctxt,
                                     {
-                                        laps = raceData.loopable and settings.laps or nil,
-                                        respawnStrategy = settings.respawnStrategy,
+                                        laps = raceData.loopable and M.settings.laps or nil,
+                                        respawnStrategy = M.cache.data.respawnStrategySelected.value,
                                     },
                                     raceData
                                 )
                             end
                             BJIContext.Scenario.RaceDetails = nil
-                            BJIContext.Scenario.RaceSettings = nil
+                            M.onClose()
                         else
                             BJIToast.error(BJILang.get("errors.invalidData"))
                         end
@@ -399,9 +574,44 @@ local function drawFooter(ctxt)
     line:build()
 end
 
-return {
-    header = drawHeader,
-    body = drawBody,
-    footer = drawFooter,
-    onClose = onClose,
-}
+local function onClose()
+    M.show = false
+end
+
+---@param raceSettings RaceSettings
+local function open(raceSettings)
+    if #raceSettings.respawnStrategies == 0 then
+        LogError("No respawn strategies found")
+        return
+    end
+
+    M.settings = raceSettings
+
+    if BJIScenario.isFreeroam() and
+        (BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) or
+            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO)) then
+        if M.show then
+            --if already open, update data
+            updateLabels()
+            updateWidths()
+            updatePresets()
+            updateCache()
+        end
+        M.show = true
+    else
+        onClose()
+    end
+end
+
+M.onLoad = onLoad
+M.onUnload = onUnload
+
+M.header = drawHeader
+M.body = drawBody
+M.footer = drawFooter
+
+M.onClose = onClose
+M.open = open
+
+return M

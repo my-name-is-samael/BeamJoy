@@ -343,11 +343,11 @@ function M.Race.start(creatorID, isVote, raceID, settings)
         respawnStrategy = settings.respawnStrategy,
     }
     M.Race.time = {
-        label = settings.time.label and settings.time.label or nil,
+        label = settings.time.ToD and settings.time.key or nil,
         ToD = settings.time.ToD or nil,
     }
     M.Race.weather = {
-        label = settings.weather.label and settings.weather.label or nil,
+        label = settings.weather.keys  and settings.weather.key or nil,
         keys = settings.weather.keys or nil,
     }
     M.Race.voters = { creatorID }

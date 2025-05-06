@@ -1,3 +1,8 @@
+---@class tablelib<any, any> : table
+
+---@type tablelib
+table = table
+
 -- ALREADY PRESENT FUNCTIONS
 
 table.clear = table.clear
@@ -12,44 +17,9 @@ table.move = table.move
 table.new = table.new
 table.remove = table.remove
 table.shallowcopy = table.shallowcopy
-table.sort = table.sort
+--table.sort = table.sort -- Rewrite to handle object tables and chain result
 
 -- ADD-ONS
-
----@generic K, V
----@class tablelib<any, any> : table
----@field isArray fun(tab: table<any, any>): boolean
----@field isObject fun(tab: table<any, any>): boolean
----@field nextIndex fun(tab: table<any, any>, index: any): any
----@field flat fun(tab: table<any, any>): tablelib<any, any>
----@field assign fun(tab: table<any, any>, source: table<any, any>, level?: integer): tablelib<any, any>
----@field keys fun(tab: table<any, any>): tablelib<any, any>
----@field values fun(tab: table<any, any>): tablelib<any, any>
----@field clear fun(tab: table<any, any>): tablelib<any, any>
----@field concat fun(tab: table<any, any>, sep: string, keys: boolean): string
----@field join fun(tab: table<any, any>, sep: string, keys: boolean): string
----@field duplicates fun(tab: table<any, any>, distinct: boolean): tablelib<any, any>
----@field includes fun(tab: table<any, any>, el: any): boolean
----@field contains fun(tab: table<any, any>, el: any): boolean
----@field indexOf fun(tab: table<any, any>, el: any): integer
----@field length fun(tab: table<any, any>): integer
----@field random fun(tab: table<any, any>): any
----@field filter fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): tablelib<any, any>
----@field forEach fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>))
----@field map fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): any): tablelib<any, any>
----@field reduce fun(tab: table<any, any>, func: (fun(acc: any, el: any, index: any, tab: table<any, any>): any), initialValue: any): any
----@field every fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
----@field all fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>)): boolean
----@field some fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
----@field any fun(tab: table<any, any>, func: fun(el: any, index: any, tab: table<any, any>): boolean): boolean
----@field find fun(tab: table<any, any>, func: (fun(el: any, index: any, tab: table<any, any>): boolean), callbackFn: fun(el: any, index: any)?): any, integer
----@field compare fun(tab1: table<any, any>, tab2: table<any, any>, deep?: boolean): boolean
----@field shallowcompare fun(tab1: table<any, any>, tab2: table<any, any>): tablelib<any, any>
----@field deepcompare fun(tab1: table<any, any>, tab2: table<any, any>): tablelib<any, any>
----@field clone fun(tab: table<any, any>, level?: integer): tablelib<any, any>
----@field unpack fun(tab: table<any, any>): ...
----@field sort fun(tab: table<any, any>, func: fun(el1: any, el2: any): boolean)
-
 
 --- allow to chain "stream" function (ig table.filter({}, function()  end):forEach(function() end))
 ---@param tab table<any, any>
@@ -304,7 +274,7 @@ table.all = table.all or table.every
 ---@generic K, V, T
 ---@param tab table<K, V>
 ---@param reduceFn fun(value: T, el: V, index: K, tab: table<K, V>): T
----@param initialValue T
+---@param initialValue? T
 ---@return T
 table.reduce = table.reduce or function(tab, reduceFn, initialValue)
     if type(tab) ~= "table" then return initialValue end
@@ -437,7 +407,8 @@ table.shallowcompare = table.shallowcompare or function(tab1, tab2)
 end
 
 -- Depends on Lua version
-table.unpack = table.unpack or unpack
+table.unpack = table.unpack or
+    unpack ---@diagnostic disable-line
 
 ---@generic V
 ---@param obj V
@@ -449,4 +420,16 @@ table.clone = table.clone or function(obj, level)
     end
     -- table.deepcopy does not handle userdata and cdata types
     return metatable(table.deepcopy(obj))
+end
+
+local baseSort = table.sort
+---@generic T
+---@param tab T[]
+---@param sortFn? fun(a: T, b: T): boolean
+table.sort = function(tab, sortFn) ---@diagnostic disable-line
+    if table.isObject(tab) then
+        tab = table.values(tab)
+    end
+    baseSort(tab, sortFn)
+    return metatable(tab)
 end

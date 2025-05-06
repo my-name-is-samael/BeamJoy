@@ -853,6 +853,9 @@ LineBuilder = function(startSameLine)
         return self
     end
 
+    ---@generic V
+    ---@param data {id: string, label?: string, items: V[], value: V, (getLabelFn?: fun(v: V): string), onChange: fun(v: V), width?: integer}
+    --- data.items: string[]|table[]
     builder.inputCombo = function(self, data)
         if not data or not data.id or type(data.items) ~= "table" then
             LogError("combo requires id, items", logTag)

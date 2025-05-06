@@ -6,6 +6,7 @@ local M = {
         PLAYER_CONNECT = "player_connect",
         PLAYER_DISCONNECT = "player_disconnect",
         VEHICLE_SPAWNED = "vehicle_spawned",
+        VEHICLE_UPDATED = "vehicle_updated",
         VEHICLE_REMOVED = "vehicle_removed",
         VEHICLE_SPEC_CHANGED = "vehicle_spec_changed",
         VEHDATA_UPDATED = "vehdata_updated",

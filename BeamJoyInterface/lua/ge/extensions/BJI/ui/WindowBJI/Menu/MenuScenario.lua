@@ -36,26 +36,24 @@ local function menuSoloRace(ctxt)
         else
             local races = {}
             for _, race in ipairs(rawRaces) do
-                local strategies = BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).RESPAWN_STRATEGIES
-                local respawnStrategies = {}
-                for _, rs in pairs(strategies) do
-                    if race.hasStand or not table.includes({ strategies.STAND }, rs) then
-                        table.insert(respawnStrategies, rs)
-                    end
-                end
+                local respawnStrategies = table.filter(BJI_RACES_RESPAWN_STRATEGIES, function(rs)
+                        return race.hasStand or rs.key ~= BJI_RACES_RESPAWN_STRATEGIES.STAND.key
+                    end)
+                    :sort(function(a, b) return a.order < b.order end)
+                    :map(function(el) return el.key end)
+
                 table.insert(races, {
                     label = race.name,
                     onClick = function()
-                        BJIContext.Scenario.RaceSettings = {
+                        BJIRaceSettingsWindow.open({
                             multi = false,
                             raceID = race.id,
                             raceName = race.name,
                             loopable = race.loopable,
                             laps = 1,
-                            respawnStrategy = BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).RESPAWN_STRATEGIES
-                                .LAST_CHECKPOINT,
+                            defaultRespawnStrategy = BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
                             respawnStrategies = respawnStrategies,
-                        }
+                        })
                     end
                 })
             end

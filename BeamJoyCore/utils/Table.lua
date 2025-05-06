@@ -1,3 +1,8 @@
+---@class tablelib<any, any> : table
+
+---@type tablelib
+table = table
+
 -- ALREADY PRESENT FUNCTIONS
 
 table.concat = table.concat
@@ -5,9 +10,10 @@ table.insert = table.insert
 table.move = table.move
 table.pack = table.pack
 -- Depends on Lua version
-table.unpack = table.unpack or unpack
+table.unpack = table.unpack or
+    unpack ---@diagnostic disable-line
 table.remove = table.remove
-table.sort = table.sort
+-- table.sort = table.sort -- Rewrite to handle object tables and chain result
 
 -- RECOVER FROM CLIENT FUNCTIONS
 
@@ -343,7 +349,7 @@ table.all = table.all or table.every
 ---@generic K, V, T
 ---@param tab table<K, V>
 ---@param reduceFn fun(value: T, el: V, index: K, tab: table<K, V>): T
----@param initialValue T
+---@param initialValue? T
 ---@return T
 table.reduce = table.reduce or function(tab, reduceFn, initialValue)
     if type(tab) ~= "table" then return initialValue end
@@ -473,4 +479,16 @@ end
 ---@return boolean
 table.shallowcompare = table.shallowcompare or function(tab1, tab2)
     return table.compare(tab1, tab2)
+end
+
+local baseSort = table.sort
+---@generic T
+---@param tab T[]
+---@param sortFn? fun(a: T, b: T): boolean
+table.sort = function(tab, sortFn) ---@diagnostic disable-line
+    if table.isObject(tab) then
+        tab = table.values(tab)
+    end
+    baseSort(tab, sortFn)
+    return tab
 end

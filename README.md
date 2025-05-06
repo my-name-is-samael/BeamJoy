@@ -252,13 +252,19 @@ You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server ro
 Scenarios have their own rules, here is the complete respawns guide by scenario :
   - `Freeroam` : All respawn are allowed by default. If staff member(s) configured respawn delay and/or teleport delay, you will have a countdown (visible in the header of the main beamjoy window) before you can do it again.
   - `Races (solo/multi)` : the allowed respawns mode is defined by the player who launched the race. There are multiple mode:
-    - All respawns / No respawns : self explanatory
-    - Last checkpoint / Stand : only the __LoadHome__ respawn wil be enabled and will bring you back to the last checkpoint/stand. (Keyboard : `Home` by default - Controller : none by default)
-  - `Delivery (solo, package/vehicle)` : only the __RecoverVehicle__ respawn is enabled, but will bring you to Freeroam if you use it. (Keyboard : `R` by default - Controller : `Dpad left` by default)
-  - `DeliveryTogether` : As the other delivery modes, the __RecoverVehicle__ respawn is allowed, but this time it does not bring you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or driving more carefully to keep it). (Keyboard : `R` by default - Controller : `Dpad left` by default)
+    - All respawns : __RecoverVehicle__ and __RecoverVehicleAlt__ are the only respawns allowed because they are fast and in-place. Other respawns are teleporting or reloading game physic (provokes a stutter).
+    - No respawns : self explanatory
+    - Last checkpoint / Stand : only the __LoadHome__ respawn wil be enabled and will bring you back to the last checkpoint/stand (the home is automatically defined by the scenario).
+  - `Delivery (solo, package/vehicle)` : only the __RecoverVehicle__ respawn is enabled, but will bring you to Freeroam if you use it.
+  - `DeliveryTogether` : As the other delivery modes, the __RecoverVehicle__ respawn is allowed, but this time it does not bring you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or driving more carefully to keep it).
   - `Hunter` : The hunted player cannot respawn (its skills are valued in this mode). Hunters can use the __RecoverVehicle__ respawn but will then have a freeze countdown before they can drive again.
-  - `Destruction Derby` : Participants have lives, and until they have, thay can use the __LoadHome__ respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned). (Keyboard : `R` by default - Controller : `Dpad left` by default)
+  - `Destruction Derby` : Participants have lives, and until they have, thay can use the __LoadHome__ respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned).
   - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to become the last player alive.
+
+For reference, here is the BeamJoy handled respawns list with default bindings:
+- __RecoverVehicle__ : Keyboard `R` by default | Controller `Dpad left` by default
+- __RecoverVehicleAlt__ : Keyboard `Ctrl + Insert` by default | not assigned by default on Controller
+- __LoadHome__ : Keyboard `Home` by default | not assigned by default on Controller
 
 If you are mainly `playing with a controller`, I suggest you to remove all respawn bindings and then to assign:
 - __Recover Vehicle__ : `DPad left`
