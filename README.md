@@ -26,11 +26,12 @@ In addition, it includes a built-in framework to make it modular, allowing devel
       - [Bus Mission](#bus-mission)
       - [Speed Game](#speed-game)
       - [Destruction Derby](#destruction-derby)
-    - [Tech](#tech)
-  - [How to install](#how-to-install)
-  - [How to add a modded map to your server](#how-to-add-a-modded-map-to-your-server)
-  - [How to install basegame maps data](#how-to-install-basegame-maps-data)
-  - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
+    - [Tech (for developers)](#tech-for-developers)
+  - [How To](#how-to)
+    - [How to install](#how-to-install)
+    - [How to add a modded map to your server](#how-to-add-a-modded-map-to-your-server)
+    - [How to install basegame maps data](#how-to-install-basegame-maps-data)
+    - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
   - [FAQ](#faq)
     - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
     - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
@@ -69,29 +70,28 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Reworked in-game chat with Rank or Reputation level indicators.
 - Toggleable automatic headlights based on the day-night cycle.
 - Toggleable smooth free camera.
-- Precise FoV selector.
+- Precise free camera FoV selector.
 - Ghost mode to prevent speeding players from crashing into newly spawned players.
-- Toggleable on-screen drift indicator.
 - Toggleable broadcast for big drifts.
 - Reputation rewards based on drift length.
-- Almost all base game UI applications work for each scenario.
+- Almost all base game UI-Apps work for each scenario.
 - BigMap missions are removed since they are unavailable on BeamMP.
 - Traffic spawning is managed with a per-group VehicleCap permission to prevent game softlock when permission is missing.
 - Prevent users from activating their own mods and disrupting the server experience.
-- A secondary, highly responsive vehicle selector with all the base functionalities with preview images (works with modded vehicles).
-- Complete theme editor for windows for admins and selected players.
+- A secondary, highly responsive vehicle selector with all the base functionalities and a nema filter (works with modded vehicles).
+- Complete theme editor for windows for staff.
 - Vehicle model blacklist to prevent their usage on your server (only staff can see and spawn them).
 - Specific permissions for spawning trailers and props. Vehicles in categories for which you lack permissions will be hidden in both vehicle selectors.
 - Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
 - Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
-- Customizable emergency refuel system when players vehicles are running out of gas.
+- Highly customizable emergency refuel system when players vehicles are running out of gas.
 
 ### Facilities
 
 - Gas Stations and Charging Stations, with independent fuel types.
-- Complete station editor for admins and selected players.
+- Complete station editor for staff.
 - Garages to repair vehicles and refill NOS.
-- Complete garage editor for admins and selected players.
+- Complete garage editor for staff.
 - Working GPS to find gas stations, garages, and players (and more within scenarios).
 
 ### Moderation
@@ -125,6 +125,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Players can use any vehicle, a specific model, or a specified configuration set at race launch.
 - Dynamic branching race mapping allows shortcuts or reroutes.
 - Persistent race records.
+- Best personal times stored on the game cache and kept between game restarts.
 - Reputation rewards for participation, winning races, and breaking records, highly customizable.
 - Real-time race time counter with flashing time when reaching a checkpoint (UI applications).
 - Toggleable broadcasting solo race times.
@@ -171,7 +172,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Complete arena and starting positions editor for admins and selected players.
 - Reputation rewards for participation and winning, highly customizable.
 
-### Tech
+### Tech (for developers)
 
 - Built-in developer-friendly framework for scenarios and events.
 - Improved communication limits between server and clients.
@@ -180,10 +181,14 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Per-model cache system with auto-requesting on changes.
 - Internationalization system for clients, server, and server-client communications.
 - File-system DAO layer easily replaceable to migrate to (No)SQL database systems.
+- Global beamjoy settings cache & per-server cookies-like systems
+- On events triggering system
 
 </details>
 
-## How to install
+## How To
+
+### How to install
 
 - Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*).
 - Launch your server once to initialize files.
@@ -194,7 +199,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 (*your_playername* is not case-sensitive and can be a subpart of your actual playername).
 
-## How to add a modded map to your server
+### How to add a modded map to your server
 
 - Ensure to have the permission *SetMaps*.
 - Place the map archive in your server's *Resources* folder (not in *Client* or *Server* folders).
@@ -207,14 +212,14 @@ The optimized map switcher only sends the current modded map to joining players,
 
 **Caution** : When switching to or from a modded map, the server will restart. Ensure you have an active reboot system for your server.
 
-## How to install basegame maps data
+### How to install basegame maps data
 
 - Download the data archive ([available here](https://github.com/my-name-is-samael/BeamJoy/releases/tag/datapack-2024-12-20)).
 - Extract it to the *Resources/Server/BeamJoyData/db/scenarii/* folder.
 - Restart the server.
 - All basegame maps, scenarios, and facilities will now be available for players.
 
-## How to set or add a language to your server
+### How to set or add a language to your server
 
 The mod is packed with EN, FR, DE, IT, ES, PT and RU languages.
 
