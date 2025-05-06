@@ -33,7 +33,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
   - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
   - [FAQ](#faq)
     - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
-    - [I cannot respawn my vehicle in scenarios, it this broken ?](#i-cannot-respawn-my-vehicle-in-scenarios-it-this-broken-)
+    - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
     - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
@@ -243,17 +243,22 @@ To update labels:
 ### I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?
 You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server root folder), the value cannot be set to `-1` (I recommand you to set it between 50 and 500).
 
-### I cannot respawn my vehicle in scenarios, it this broken ?
+### I cannot respawn my vehicle, it this broken ?
 Scenarios have their own rules, here is the complete respawns guide by scenario :
   - `Freeroam` : All respawn are allowed by default. If staff member(s) configured respawn delay and/or teleport delay, you will have a countdown (visible in the header of the main beamjoy window) before you can do it again.
   - `Races (solo/multi)` : the allowed respawns mode is defined by the player who launched the race. There are multiple mode:
     - All respawns / No respawns : self explanatory
-    - Last checkpoint / Stand : only the `LoadHome` respawn wil be enabled and will bring you back to the last checkpoint/stand. (Keyboard : default to `Home` - Controller : none by default)
-  - `Delivery (solo, package/vehicle)` : only the `RecoverVehicle` respawn is enabled, but will bring you to Freeroam if you use it. (Keyboard : default to `R` - Controller : `Dpad` left by default)
-  - `DeliveryTogether` : As the other delivery modes, the `RecoverVehicle` respawn is allowed, but this time it will not brings you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or be more careful to keep it). (Keyboard : default to `R` - Controller : `Dpad` left by default)
-  - `Hunter` : The hunted player cannot respawn (its skills are valued in this mode). Hunters can use the `RecoverVehicle` respawn but will then have a freeze countdown before they can drive again.
-  - `Destruction Derby` : Participants have lives, and until they have, thay can use the `LoadHome` respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned). (Keyboard : default to `R` - Controller : `Dpad` left by default)
+    - Last checkpoint / Stand : only the __LoadHome__ respawn wil be enabled and will bring you back to the last checkpoint/stand. (Keyboard : `Home` by default - Controller : none by default)
+  - `Delivery (solo, package/vehicle)` : only the __RecoverVehicle__ respawn is enabled, but will bring you to Freeroam if you use it. (Keyboard : `R` by default - Controller : `Dpad left` by default)
+  - `DeliveryTogether` : As the other delivery modes, the __RecoverVehicle__ respawn is allowed, but this time it does not bring you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or driving more carefully to keep it). (Keyboard : `R` by default - Controller : `Dpad left` by default)
+  - `Hunter` : The hunted player cannot respawn (its skills are valued in this mode). Hunters can use the __RecoverVehicle__ respawn but will then have a freeze countdown before they can drive again.
+  - `Destruction Derby` : Participants have lives, and until they have, thay can use the __LoadHome__ respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned). (Keyboard : `R` by default - Controller : `Dpad left` by default)
   - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to become the last player alive.
+
+If you are mainly `playing with a controller`, I suggest you to remove all respawn bindings and then to assign:
+- __Recover Vehicle__ : `DPad left`
+- __Save Home__ : `DPad left`
+- __Load Home__ : `DPad Right`
 
 ### My game crashes during the join process or randomly with the following error
 
