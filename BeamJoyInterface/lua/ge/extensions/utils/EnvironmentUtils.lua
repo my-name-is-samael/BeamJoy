@@ -53,7 +53,7 @@ function utils.numericData()
     }
 end
 
----@return {key: string, value: number}[]
+---@return {key: string, value: number, default?: boolean}[]
 function utils.gravityPresets()
     return {
         { key = "zero",    value = 0, },
@@ -70,7 +70,7 @@ function utils.gravityPresets()
     }
 end
 
----@return {key: string, value: number}[]
+---@return {key: string, value: number, default?: boolean}[]
 function utils.speedPresets()
     return {
         { key = "slowextreme", value = 0.01 },

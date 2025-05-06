@@ -6,19 +6,20 @@ local M = {
     -- cache
 
     ---@type tablelib<integer[]>
-    aiCars = Table(),      -- all ai cars on the server to prevent nametags
+    aiVehs = Table(),     -- all ai cars on the server to prevent nametags
     ---@type tablelib<integer[]>
-    addedCars = Table(),   -- user cars the player toggled auto drive on
+    selfVehs = Table(),   -- traffic vehs and manually toggled ones
     ---@type tablelib<integer[]>
-    removedCars = Table(), -- traffic cars the player toggled auto drive off
+    parkedVehs = Table(), -- parked vehs (since they are not firing the onAiModeChange event)
 }
 
+local listeners = Table()
 local function onLoad()
     -- ge/extensions/core/quickAccess.lua:registerDefaultMenus()
 
     M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
     gameplay_traffic.setupTrafficWaitForUi = function(...)
-        if M.canToggleAI() then
+        if M.canSpawnAI() then
             return M.baseFunctions.setupTrafficWaitForUi(...)
         else
             BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -27,7 +28,7 @@ local function onLoad()
 
     M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
     gameplay_traffic.createTrafficGroup = function(...)
-        if M.canToggleAI() then
+        if M.canSpawnAI() then
             return M.baseFunctions.createTrafficGroup(...)
         else
             -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -40,7 +41,7 @@ local function onLoad()
     end, function()
         M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
         core_multiSpawn.spawnGroup = function(...)
-            if M.canToggleAI() then
+            if M.canSpawnAI() then
                 return M.baseFunctions.spawnGroup(...)
             else
                 BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -48,40 +49,32 @@ local function onLoad()
             end
         end
     end, "BJIAsyncInitMultispawn")
+
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.VEHICLE_REMOVED, function()
+        M.selfVehs = M.selfVehs:filter(function(gameVehID)
+            return BJIVeh.getVehicleObject(gameVehID) ~= nil
+        end)
+
+        M.parkedVehs = M.parkedVehs:filter(function(gameVehID)
+            return BJIVeh.getVehicleObject(gameVehID) ~= nil
+        end)
+    end))
 end
 
 local function onUnload()
     gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
     gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
     core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
+
+    listeners:forEach(BJIEvents.removeListener)
 end
 
-local function canToggleAI()
+local function canSpawnAI()
     return M.state and BJIScenario.canSpawnAI()
 end
 
----@return tablelib<integer[]>
-local function getSelfTrafficCars()
-    return table.filter(getAllVehicles(), function(v)
-        return v.isTraffic == "true" or v.isParked == "true"
-    end):map(function(v)
-        return v:getId()
-    end)
-end
-
----@return tablelib<integer[]>
-local function getAllSelfAICars()
-    local vehs = getSelfTrafficCars():filter(function(id)
-        return not M.removedCars:includes(id)
-    end)
-    M.addedCars:forEach(function(v)
-        vehs:insert(v)
-    end)
-    return vehs:sort()
-end
-
 local function isTrafficSpawned()
-    return gameplay_traffic and #getAllSelfAICars() > 0
+    return gameplay_traffic and #M.selfVehs > 0 or #M.parkedVehs > 0
 end
 
 local function removeVehicles()
@@ -89,32 +82,28 @@ local function removeVehicles()
     gameplay_traffic.deleteVehicles()
 end
 
-local function update(state)
-    if state ~= M.state then
-        local previous = M.state
-        M.state = state
-        if previous and not M.state and M.isTrafficSpawned() then
-            M.removeVehicles()
-        end
-    end
-end
-
 local function toggle(state)
-    state = state ~= nil and state or not M.isTrafficSpawned()
-    if state then
-        if M.canToggleAI() and not M.isTrafficSpawned() then
-            M.baseFunctions()
-        end
-    else
-        if M.isTrafficSpawned() then
-            M.removeVehicles()
-        end
+    M.state = state ~= nil and state or not M.state
+    if not M.state and M.isTrafficSpawned() then
+        M.removeVehicles()
     end
 end
 
 local function slowTick(ctxt)
+    -- update parked vehs
+    M.parkedVehs = table.filter(getAllVehicles(), function(v)
+        return v.isParked == "true"
+    end):map(function(v)
+        return v:getId()
+    end)
+
+    --detect changes and update if needed
     if BJIPerm.canSpawnVehicle() and M.isTrafficSpawned() then
-        local listVehs = getAllSelfAICars()
+        local listVehs = M.parkedVehs:clone()
+        M.selfVehs:forEach(function(v)
+            listVehs:insert(v)
+        end)
+        listVehs:sort()
         table.sort(BJIContext.Players[ctxt.user.playerID].ai)
         if not listVehs:compare(BJIContext.Players[ctxt.user.playerID].ai) then
             BJITx.player.UpdateAI(listVehs)
@@ -126,64 +115,38 @@ local function slowTick(ctxt)
     end
 end
 
-local function updateVehicles()
-    M.aiCars = Table()
-    for playerID, player in pairs(BJIContext.Players) do
-        local isSelf = BJIContext.isSelf(playerID)
-        if #player.ai > 0 then
-            for _, aiVehID in ipairs(player.ai) do
-                if isSelf then
-                    if BJIVeh.getVehicleObject(aiVehID) then
-                        M.aiCars:insert(aiVehID)
-                    end
-                else
-                    local gameVehID = BJIVeh.getGameVehIDByRemoteVehID(aiVehID)
-                    if BJIVeh.getVehicleObject(gameVehID) then
-                        M.aiCars:insert(gameVehID)
-                    end
-                end
-            end
-        end
-    end
+local function updateAllAIVehicles(aiVehs)
+    M.aiVehs = aiVehs
 end
 
 local function isAIVehicle(gameVehID)
-    return M.aiCars:includes(gameVehID)
+    return M.aiVehs:includes(gameVehID) or
+        M.selfVehs:includes(gameVehID) or
+        M.parkedVehs:includes(gameVehID)
 end
 
 --- Change vehicle manual AI state
 ---@param gameVehID integer
 ---@param aiState boolean
 local function updateVehicle(gameVehID, aiState)
-    local trafficCars = getSelfTrafficCars()
-    if aiState then
-        if M.removedCars:includes(gameVehID) then
-            M.removedCars:remove(M.removedCars:indexOf(gameVehID))
-        elseif not trafficCars:includes(gameVehID) and not M.addedCars:includes(gameVehID) then
-            M.addedCars:insert(gameVehID)
-        end
-    else
-        if M.addedCars:includes(gameVehID) then
-            M.addedCars:remove(M.addedCars:indexOf(gameVehID))
-        elseif trafficCars:includes(gameVehID) and
-            not M.removedCars:includes(gameVehID) then
-            M.removedCars:insert(gameVehID)
-        end
+    if aiState and not M.selfVehs:includes(gameVehID) then
+        M.selfVehs:insert(gameVehID)
+    elseif not aiState and M.selfVehs:includes(gameVehID) then
+        M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
 end
 
 M.onLoad = onLoad
 M.onUnload = onUnload
 
-M.canToggleAI = canToggleAI
+M.canSpawnAI = canSpawnAI
 M.isTrafficSpawned = isTrafficSpawned
 M.removeVehicles = removeVehicles
-M.update = update
 M.toggle = toggle
 
 M.slowTick = slowTick
 
-M.updateVehicles = updateVehicles
+M.updateVehicles = updateAllAIVehicles
 M.isAIVehicle = isAIVehicle
 M.updateVehicle = updateVehicle
 

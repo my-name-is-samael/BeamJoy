@@ -81,7 +81,7 @@ local function loadUser()
             return BJICache.areBaseCachesFirstLoaded()
         end, function()
             local group = BJIPerm.Groups[C.User.group]
-            BJIAI.update(group.canSpawnAI)
+            BJIAI.toggle(group.canSpawnAI)
             if not group.canSpawn and BJIVeh.hasVehicle() then
                 BJIVeh.deleteAllOwnVehicles()
             end
@@ -202,7 +202,19 @@ local function loadPlayers()
         end
 
         -- update AI vehicles (to hide their nametags)
-        BJIAI.updateVehicles()
+        BJIAI.updateVehicles(Table(C.Players)
+            :filter(function(player) return #player.ai > 0 end)
+            :map(function(player)
+                local self = C.isSelf(player.playerID)
+                player.ai = Table(player.ai):map(function(vid)
+                    if not self then
+                        vid = BJIVeh.getGameVehIDByRemoteVehID(vid)
+                    end
+                    return BJIVeh.getVehicleObject(vid) and vid or nil
+                end):values()
+                return player.ai
+            end)
+            :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table()))
 
         -- events detection
         local previousPlayersCount = table.length(previousPlayers)

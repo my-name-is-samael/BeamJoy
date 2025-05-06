@@ -83,7 +83,7 @@ local function tryFinalizingEvent(id)
             return
         end
 
-        local dataStr = table.concat(event.data)
+        local dataStr = table.join(event.data)
         local data = #dataStr > 0 and jsonDecode(dataStr) or {}
         data = parsePayload(data)
         dispatchEvent(event.controller, event.endpoint, data)

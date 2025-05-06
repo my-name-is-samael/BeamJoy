@@ -146,7 +146,7 @@ function json.stringify(obj, level, key)
         end
     end
 
-    return table.concat(s)
+    return table.join(s)
 end
 
 function json.stringifyRaw(obj, key)
@@ -185,7 +185,7 @@ function json.stringifyRaw(obj, key)
         --end
     end
 
-    return table.concat(s)
+    return table.join(s)
 end
 
 json.null = {} -- This is a one-off table to represent the null value.

@@ -3,6 +3,21 @@
 ---@type tablelib
 table = table
 
+--- allow to chain "stream" function (ig table.filter({}, function()  end):forEach(function() end))
+---@param tab table<any, any>
+---@return tablelib<any, any>
+local function metatable(tab)
+    return setmetatable(tab, { __index = table })
+end
+
+--- Create a table with chained functions
+---@param tab? table<any, any>
+---@return tablelib<any, any>
+function Table(tab)
+    tab = tab or {}
+    return metatable(tab)
+end
+
 -- ALREADY PRESENT FUNCTIONS
 
 table.concat = table.concat
@@ -18,12 +33,11 @@ table.remove = table.remove
 -- RECOVER FROM CLIENT FUNCTIONS
 
 ---@param tab table<any, any>
----@return table<any, any>
+---@return tablelib<any, any>
 table.clear = table.clear or function(tab)
-    if type(tab) ~= "table" then return {} end
-    for k in pairs(tab) do
-        tab[k] = nil
-    end
+    if type(tab) ~= "table" then return Table() end
+    tab = Table(tab)
+    tab:forEach(function(_, k, t) t[k] = nil end)
     return tab
 end
 
@@ -32,21 +46,21 @@ end
 ---@param level? integer
 ---@return V
 table.clone = table.clone or function(obj, level)
-    if type(obj) ~= "table" then return {} end
+    if type(obj) ~= "table" then return Table() end
     if not level then
         level = 1
     elseif level >= 20 then
-        return {}
+        return Table()
     end
-    local res = {}
+    local res = Table()
     for k, v in pairs(obj) do
         if type(v) == "table" then
-            res[k] = table.clone(v, level + 1)
+            res[k] = Table(v):clone(level + 1)
         elseif type(v) ~= "function" then
             res[k] = v
         end
     end
-    return res
+    return type(res) == "table" and Table(res) or res
 end
 ---@generic V
 ---@param obj V
@@ -86,22 +100,16 @@ end
 ---@param tab table<any, any>
 ---@return integer|nil
 table.maxn = table.maxn or function(tab)
-    local highest = 0
-    for i in pairs(tab) do
-        if type(i) == "number" and i > highest then
-            highest = i
-        end
-    end
-    return highest
+    return Table(tab)
+        :filter(function(_, k) return type(k) == "number" end)
+        :reduce(function(acc, _, i) return (not acc or i > acc) and i or acc end)
 end
 
 ---@param narr integer
 ---@param nrec? integer
----@return nil[]
+---@return tablelib<nil>
 table.new = table.new or function(narr, nrec)
-    if type(narr) ~= "number" then return {} end
-    if type(nrec) ~= "number" then nrec = 0 end
-    return setmetatable({}, { __index = function() return table.new(narr, nrec + 1) end })
+    return Table()
 end
 
 -- ADD-ONS
@@ -109,31 +117,31 @@ end
 ---@param tab table<any, any>
 ---@return boolean
 table.isArray = table.isArray or function(tab)
-    return type(tab) == "table" and #tab == table.length(tab)
+    return type(tab) == "table" and #tab == Table(tab):length()
 end
 
 ---@param tab table<any, any>
 ---@return boolean
 table.isObject = table.isObject or function(tab)
-    return type(tab) == "table" and #tab ~= table.length(tab)
+    return type(tab) == "table" and #tab ~= Table(tab):length()
 end
 
 ---@param tab table<any, any>
 ---@param distinct? boolean
----@return table<any, any>
+---@return tablelib<any, any>
 table.duplicates = table.duplicates or function(tab, distinct)
-    if type(tab) ~= "table" then return {} end
+    if type(tab) ~= "table" then return Table() end
     if type(distinct) ~= "boolean" then distinct = false end
-    local saw = {}
-    local res = {}
-    for _, v in pairs(tab) do
-        if not saw[v] then
-            saw[v] = true
-        elseif not table.includes(res, v) or not distinct then
-            table.insert(res, v)
+    return Table(tab):reduce(function(acc, el)
+        if acc.saw:includes(el) then
+            if not distinct or not acc.dup:includes(el) then
+                acc.dup:insert(el)
+            end
+        else
+            acc.saw:insert(el)
         end
-    end
-    return res
+        return acc
+    end, {saw = Table(), dup = Table()}).dup
 end
 
 ---@param tab table<any, any>
@@ -141,14 +149,15 @@ end
 table.random = table.random or function(tab)
     if type(tab) ~= "table" then return nil end
     if table.length(tab) == 0 then return nil end
-    local picked = math.random(1, table.length(tab))
-    local i = 1
-    for _, v in pairs(tab) do
-        if i == picked then
-            return v
+    tab = Table(tab)
+    local picked = math.random(1, tab:length())
+    return tab:reduce(function(acc, el)
+        if acc.i == picked then
+            acc.found = el
         end
-        i = i + 1
-    end
+        acc.i = acc.i + 1
+        return acc
+    end, { found = nil, i = 1 }).found
 end
 
 ---@param tab table<any, any>
@@ -158,33 +167,35 @@ table.nextIndex = table.nextIndex or function(tab, index)
     if type(tab) ~= "table" then return nil end
     if table.isArray(tab) then
         return index + 1 <= #tab and index + 1 or nil
-    else
-        local next = false
-        for k in pairs(tab) do
-            if not next and k == index then
-                next = true
-            elseif next then
-                return k
+    end
+    return Table(tab):reduce(function(acc, _, k)
+        if not acc.next then
+            if k == index then
+                acc.next = true
             end
+        elseif not acc.found then
+            acc.found = k
         end
-    end
-    local next = index + 1 % table.length(tab) + 1
-    if next == 0 then
-        next = 1
-    end
-    return next
+        return acc
+    end, { next = false, found = nil }).found
 end
 
 
 ---@param tab1 table<any, any>
 ---@param tab2 table<any, any>
----@return table<any, any>
+---@return tablelib<any, any>
 table.addAll = table.addAll or function(tab1, tab2)
-    if type(tab1) ~= "table" or type(tab2) ~= "table" then return {} end
-    local res = {}
-    table.forEach(tab1, function(v) table.insert(res, v) end)
-    table.forEach(tab2, function(v) table.insert(res, v) end)
-    return res
+    if type(tab1) ~= "table" or type(tab2) ~= "table" then return Table() end
+    return Table({ tab1, tab2 }):reduce(function(acc, tab)
+        Table(tab):forEach(function(el, k)
+            if type(k) == "number" then
+                acc:insert(el)
+            else
+                acc[k] = el
+            end
+        end)
+        return acc
+    end, Table())
 end
 
 --- table.concat only works on arrays, table.join is working on objects too
@@ -194,58 +205,37 @@ end
 table.join = table.join or function(tab, sep, keys)
     if type(tab) ~= "table" then return "" end
     if type(sep) ~= "string" then sep = "" end
-    if table.isArray(tab) then
+    return Table(tab):reduce(function(acc, el, k)
+        if #acc > 0 then
+            acc = acc .. sep
+        end
         if keys then
-            local str = "";
-            for i, v in ipairs(tab) do
-                str = ("%s%d:%s"):format(str, i, tostring(v))
-                if i ~= table.length(tab) then
-                    str = str .. sep
-                end
-                i = i + 1
-            end
-            return str
-        else
-            return table.concat(tab, sep)
+            acc = acc .. tostring(k) .. ":"
         end
-    else
-        local str = "";
-        local i = 1
-        for k, v in pairs(tab) do
-            str = ("%s%s%s"):format(str, keys and (tostring(k) .. ":") or "", tostring(v))
-            if i ~= table.length(tab) then
-                str = str .. sep
-            end
-            i = i + 1
-        end
-        return str
-    end
+        acc = acc .. tostring(el)
+        return acc
+    end, "")
 end
 
 ---@param tab table<any, any>
----@return table<any, any>
+---@return tablelib<any, any>
 table.flat = table.flat or function(tab)
-    if type(tab) ~= "table" then return {} end
-    local res = {}
-    table.forEach(tab, function(v)
-        if type(v) == "table" then
-            table.forEach(table.flat(v), function(v) table.insert(res, v) end)
+    if type(tab) ~= "table" then return Table() end
+    return Table(tab):reduce(function(acc, el)
+        if type(el) == "table" then
+            acc:addAll(Table(el):flat())
         else
-            table.insert(res, v)
+            acc:insert(el)
         end
-    end)
-    return res
+        return acc
+    end, Table())
 end
 
 ---@param tab table<any, any>
 ---@param val any
 ---@return any result nil if not found
 table.indexOf = table.indexOf or function(tab, val)
-    for k, v in pairs(tab) do
-        if v == val then
-            return k
-        end
-    end
+    return Table(tab):reduce(function(acc, el, k) return el == val and k or acc end)
 end
 
 ---@param target table<any, any>
@@ -258,13 +248,13 @@ table.assign = table.assign or function(target, source, level)
     else
         level = math.round(level)
         if level >= 20 then
-            return {}
+            return Table()
         end
     end
     for k, v in pairs(source) do
         if type(v) == "table" then
             if type(target[k]) ~= "table" then
-                target[k] = {}
+                target[k] = Table()
             end
             table.assign(target[k], v, level + 1)
         else
@@ -276,29 +266,29 @@ end
 ---@generic K, V, T
 ---@param tab table<K, V>
 ---@param mapFn fun(el: V, index: K, tab: table<K, V>): T
----@return table<K, T>
+---@return tablelib<K, T>
 table.map = table.map or function(tab, mapFn)
-    if type(tab) ~= "table" then return {} end
-    if type(mapFn) ~= "function" then return {} end
+    if type(tab) ~= "table" then return Table() end
+    if type(mapFn) ~= "function" then return Table() end
     local status
-    local res = {}
+    local res = Table()
     for k, v in pairs(tab) do
         status, res[k] = pcall(mapFn, v, k, tab)
         if not status then
             res[k] = nil
         end
     end
-    return res
+    return Table(res)
 end
 
 ---@generic K, V
 ---@param tab table<K, V>
 ---@param filterFn fun(el: V, index: K, tab: table<K, V>): boolean
----@return table<K, V>
+---@return tablelib<K, V>
 table.filter = table.filter or function(tab, filterFn)
-    if type(tab) ~= "table" then return {} end
-    if type(filterFn) ~= "function" then return {} end
-    local res = {}
+    if type(tab) ~= "table" then return Table() end
+    if type(filterFn) ~= "function" then return Table() end
+    local res = Table()
     for k, v in pairs(tab) do
         local status, cond = pcall(filterFn, v, k, tab)
         if status and cond then
@@ -309,7 +299,7 @@ table.filter = table.filter or function(tab, filterFn)
             end
         end
     end
-    return res
+    return Table(res)
 end
 
 ---@generic K, V
@@ -399,34 +389,29 @@ end
 ---@return integer
 table.length = table.length or function(tab)
     if type(tab) ~= "table" then return 0 end
-    local sum = 0
-    for _ in pairs(tab) do sum = sum + 1 end
-    return sum
+    return Table(tab):reduce(function(acc) return acc + 1 end, 0)
 end
 
 ---@generic K
 ---@param tab table<K, any>
----@return K[]
+---@return tablelib<K>
 table.keys = table.keys or function(tab)
-    if type(tab) ~= "table" then return {} end
-    local res = {}
-    for k in pairs(tab) do
-        table.insert(res, k)
-    end
-    table.sort(res)
-    return res
+    if type(tab) ~= "table" then return Table() end
+    return Table(tab):reduce(function(acc, _, k)
+        acc:insert(k)
+        return acc
+    end, Table())
 end
 
 ---@generic V
 ---@param tab table<any, V>
----@return V[]
+---@return tablelib<V>
 table.values = table.values or function(tab)
-    if type(tab) ~= "table" then return {} end
-    local res = {}
-    for _, v in pairs(tab) do
-        table.insert(res, v)
-    end
-    return res
+    if type(tab) ~= "table" then return Table() end
+    return Table(tab):reduce(function(acc, el)
+        acc:insert(el)
+        return acc
+    end, Table())
 end
 
 ---@param tab table<any, any>
@@ -434,12 +419,9 @@ end
 ---@return boolean
 table.includes = table.includes or function(tab, el)
     if type(tab) ~= "table" then return false end
-    for _, v in pairs(tab) do
-        if v == el then
-            return true
-        end
-    end
-    return false
+    return Table(tab):any(function(v)
+        return v == el
+    end)
 end
 table.contains = table.contains or table.includes
 
@@ -450,7 +432,7 @@ table.contains = table.contains or table.includes
 table.compare = table.compare or function(tab1, tab2, deep)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return tab1 == tab2 end
     if #tab1 ~= #tab2 then return false end
-    local saw = {}
+    local saw = Table()
     for k, v in pairs(tab1) do
         if type(v) == "table" and type(tab2[k]) == "table" then
             if deep and not table.compare(v, tab2[k], deep) then
@@ -485,10 +467,11 @@ local baseSort = table.sort
 ---@generic T
 ---@param tab T[]
 ---@param sortFn? fun(a: T, b: T): boolean
+---@return tablelib<T>
 table.sort = function(tab, sortFn) ---@diagnostic disable-line
     if table.isObject(tab) then
-        tab = table.values(tab)
+        tab = Table(tab):values()
     end
     baseSort(tab, sortFn)
-    return tab
+    return Table(tab)
 end
