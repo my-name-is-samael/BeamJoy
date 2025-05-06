@@ -75,14 +75,22 @@ local function renderTick()
     local time = GetCurrentTime()
     for key, ctask in pairs(M.delayedTasks) do
         if ctask.time <= time then
-            pcall(ctask.taskFn)
+            local ok, err = pcall(ctask.taskFn)
+            if not ok then
+                LogError(string.var("Error executing delayed task {1} :", { key }))
+                dump(err)
+            end
             M.delayedTasks[key] = nil
         end
     end
 
     for key, ctask in pairs(M.tasks) do
         if ctask.conditionFn() then
-            pcall(ctask.taskFn)
+            local ok, err = pcall(ctask.taskFn)
+            if not ok then
+                LogError(string.var("Error executing programmed task {1} :", { key }))
+                dump(err)
+            end
             M.tasks[key] = nil
         end
     end

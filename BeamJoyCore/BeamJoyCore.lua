@@ -44,7 +44,10 @@ end
 function TriggerBJCManagers(eventName, ...)
     for _, manager in ipairs(_bjcManagers) do
         if type(manager[eventName]) == "function" then
-            manager[eventName](...)
+            local ok, err = pcall(manager[eventName], ...)
+            if not ok then
+                LogError(string.var("Error triggering {1} : {3}", {eventName, err}), "BJC")
+            end
         end
     end
 end
