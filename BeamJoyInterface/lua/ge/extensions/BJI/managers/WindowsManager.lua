@@ -98,10 +98,7 @@ local function initWindows()
     M.register({
         name = "BJIRaceSettings",
         showConditionFn = function()
-            return BJIContext.Scenario.RaceSettings and BJIScenario.isFreeroam() and
-                (BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-                    BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) or
-                    BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO))
+            return BJIRaceSettingsWindow.show
         end,
         draw = require("ge/extensions/BJI/ui/WindowRaceSettings/DrawWindowRaceSettings"),
         w = 390,

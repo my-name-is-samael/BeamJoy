@@ -46,26 +46,21 @@ local function menuRace(ctxt)
             return
         end
 
-        local strategies = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).RESPAWN_STRATEGIES
-        local respawnStrategies = {}
-        for _, rs in pairs(strategies) do
-            if race.hasStand or rs ~= strategies.STAND then
-                table.insert(respawnStrategies, rs)
-            end
-        end
+        local respawnStrategies = table.filter(BJI_RACES_RESPAWN_STRATEGIES, function(rs)
+                return race.hasStand or rs.key ~= BJI_RACES_RESPAWN_STRATEGIES.STAND.key
+            end)
+            :sort(function(a, b) return a.order < b.order end)
+            :map(function(el) return el.key end)
 
-        BJIContext.Scenario.RaceSettings = {
+        BJIRaceSettingsWindow.open({
             multi = true,
             raceID = race.id,
             raceName = race.name,
             loopable = race.loopable,
             laps = 1,
-            respawnStrategy = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).RESPAWN_STRATEGIES.LAST_CHECKPOINT,
+            defaultRespawnStrategy = BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
             respawnStrategies = respawnStrategies,
-            vehicle = nil,
-            vehicleModel = ctxt.veh and ctxt.veh.jbeam or nil,
-            vehicleConfig = BJIVeh.getFullConfig(ctxt.veh and ctxt.veh.partConfig or nil),
-            vehicleLabel = nil,
+            vehicleMode = nil,
             time = {
                 label = nil,
                 ToD = nil,
@@ -74,7 +69,7 @@ local function menuRace(ctxt)
                 label = nil,
                 keys = nil,
             },
-        }
+        })
     end
     if BJIVote.Race.canStartVote() then
         local raceErrorMessage = nil

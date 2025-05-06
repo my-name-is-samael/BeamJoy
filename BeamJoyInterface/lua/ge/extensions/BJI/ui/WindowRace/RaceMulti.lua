@@ -72,7 +72,7 @@ local function drawHeader(ctxt)
             :build()
     end
 
-    if mgr.settings.respawnStrategy == mgr.RESPAWN_STRATEGIES.NO_RESPAWN then
+    if mgr.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
         if mgr.dnf.process and mgr.dnf.targetTime then
             local remaining = math.ceil((mgr.dnf.targetTime - ctxt.now) / 1000)
             if remaining >= 0 and remaining < mgr.dnf.timeout then

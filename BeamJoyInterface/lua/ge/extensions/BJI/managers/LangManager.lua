@@ -30,6 +30,9 @@ local function initClient()
     end
 end
 
+---@param key string
+---@param defaultValue? string
+---@return string|"invalid"
 local function get(key, defaultValue)
     if not defaultValue then
         defaultValue = key

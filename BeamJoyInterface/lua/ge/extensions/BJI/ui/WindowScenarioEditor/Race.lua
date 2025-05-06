@@ -266,7 +266,7 @@ local function tryRace(ctxt)
             ctxt,
             {
                 laps = raceEdit.loopable and raceEdit.laps or nil,
-                respawnStrategy = nil,
+                respawnStrategy = BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
             },
             {
                 name = raceEdit.name,
@@ -470,7 +470,8 @@ local function drawPreviewPosition(isFreeCam, campos)
             icon = ICONS.simobject_camera,
             style = raceEdit.previewPosition and BTN_PRESETS.INFO or BTN_PRESETS.ERROR
         })
-        :text(BJILang.get("races.edit.previewPosition"), raceEdit.previewPosition and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
+        :text(BJILang.get("races.edit.previewPosition"),
+            raceEdit.previewPosition and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
         :helpMarker(BJILang.get("races.edit.previewPositionTooltip"))
         :btnIcon({
             id = "setPreviewPos",
@@ -902,7 +903,8 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                 labelWidth = w
                             end
                         end
-                        ColumnsBuilder(string.var("BJIScenarioEditorRaceStep{1}branch{2}", { iStep, iWp }), { labelWidth, -1 })
+                        ColumnsBuilder(string.var("BJIScenarioEditorRaceStep{1}branch{2}", { iStep, iWp }),
+                            { labelWidth, -1 })
                             :addRow({
                                 cells = {
                                     function()
@@ -1042,7 +1044,8 @@ local function drawSteps(canSetPos, vehpos, campos, ctxt)
                                                     })
                                                 if #wp.parents > 1 then
                                                     line:btnIcon({
-                                                        id = string.var("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
+                                                        id = string.var("deleteWPParent-{1}-{2}-{3}",
+                                                            { iStep, iWp, iParent }),
                                                         icon = ICONS.delete_forever,
                                                         style = BTN_PRESETS.ERROR,
                                                         disabled = raceEdit.processSave,

@@ -2,18 +2,10 @@
 ---@field time integer time in ms since lap start
 ---@field speed number speed in km/h
 
----@class RaceStand
+---@class RaceStand : BJIPositionRotation
 ---@field step integer
----@field pos vec3
----@field rot quat
 
 local M = {
-    RESPAWN_STRATEGIES = {
-        NO_RESPAWN = "norespawn",
-        LAST_CHECKPOINT = "lastcheckpoint",
-        STAND = "stand",
-    },
-
     dnf = {
         minDistance = .5,
         timeout = 10, -- +1 during first check
@@ -331,7 +323,7 @@ local function onStandStop(delayMs, wp, lastWp, callback)
     BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
     BJIVeh.stopCurrentVehicle()
     BJIVeh.freeze(true)
-    M.race.lastStand = {step = lastWp.wp, pos = BJIVeh.getPositionRotation().pos, rot = wp.rot}
+    M.race.lastStand = { step = lastWp.wp, pos = BJIVeh.getPositionRotation().pos, rot = wp.rot }
     BJIVeh.saveHome(M.race.lastStand)
 
     BJIAsync.delayTask(function()
@@ -351,11 +343,17 @@ local function onStandStop(delayMs, wp, lastWp, callback)
 
     BJIAsync.delayTask(function()
         BJIVeh.freeze(false)
-        if not M.settings.respawnStrategy ~= M.RESPAWN_STRATEGIES.NO_RESPAWN then
+        if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJIAsync.delayTask(function()
                 -- delays reset restriction remove
-                BJIRestrictions.updateReset(M.settings.respawnStrategy and
-                    BJIRestrictions.TYPES.LOAD_HOME or BJIRestrictions.TYPES.RESET_ALL)
+                local restrictions = BJIRestrictions.TYPES.LOAD_HOME
+                if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+                    restrictions = {
+                        BJIRestrictions.TYPES.RECOVER_VEHICLE,
+                        BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
+                    }
+                end
+                BJIRestrictions.updateReset(restrictions)
                 M.dnf.standExempt = false
             end, 1000, "BJIRaceStandEndRestrictionReset")
         end
@@ -412,10 +410,10 @@ local function onCheckpointReached(wp, remainingSteps)
         local lapTime = M.race.timers.lap:get()
 
         if not wp.stand and M.settings.respawnStrategy and
-            M.settings.respawnStrategy ~= M.RESPAWN_STRATEGIES.NO_RESPAWN then
-            if M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.LAST_CHECKPOINT then
+            M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
                 BJIVeh.saveHome({ pos = wp.pos, rot = wp.rot })
-            elseif M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.STAND then
+            elseif M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
                 -- check if current or previous stand is different than last
                 ---@param stand RaceStand
                 local latestStand = table.filter(M.race.stands, function(stand)
@@ -640,7 +638,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         if ctxt2.camera == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(previousCam)
         end
-        if M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.STAND then
+        if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
             M.race.lastStand = { step = 0, pos = M.startPosition.pos, rot = M.startPosition.rot }
         end
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
@@ -654,9 +652,15 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         M.race.timers.race = TimerCreate()
         M.race.timers.lap = TimerCreate()
         BJIVeh.freeze(false)
-        if M.settings.respawnStrategy ~= M.RESPAWN_STRATEGIES.NO_RESPAWN then
-            BJIRestrictions.updateReset(M.settings.respawnStrategy and
-                BJIRestrictions.TYPES.LOAD_HOME or BJIRestrictions.TYPES.RESET_ALL)
+        if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            local restrictions = BJIRestrictions.TYPES.LOAD_HOME
+            if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+                restrictions = {
+                    BJIRestrictions.TYPES.RECOVER_VEHICLE,
+                    BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
+                }
+            end
+            BJIRestrictions.updateReset(restrictions)
         end
     end, M.race.startTime, "BJIRaceStartTime")
 end
@@ -720,7 +724,7 @@ end
 local function slowTick(ctxt)
     -- DNF PROCESS
     if ctxt.isOwner and M.isRaceStarted(ctxt) and not M.isRaceFinished() and
-        M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.NO_RESPAWN and
+        M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
         not M.dnf.standExempt then
         if not M.dnf.lastPos then
             -- first check

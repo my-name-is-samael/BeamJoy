@@ -766,7 +766,7 @@ local function getFullConfig(config)
 
     config = config or veh.partConfig
     if isConfigCustom(config) then
-        local fn = load(string.var("return {1}", { config:gsub("'", "") }))
+        local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
         if type(fn) == "function" then
             local status, data = pcall(fn)
             return status and data or nil

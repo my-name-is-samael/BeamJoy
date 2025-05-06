@@ -14,6 +14,7 @@ local M = {
         FINISHED = 3, -- spectate while others are finishing
     },
     RESPAWN_STRATEGIES = {
+        ALL_RESPAWNS = "all",
         NO_RESPAWN = "norespawn",
         LAST_CHECKPOINT = "lastcheckpoint",
         STAND = "stand",

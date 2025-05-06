@@ -36,7 +36,7 @@ local function draw(ctxt)
     end
 
     local rs = BJILang.get(string.var("races.settings.respawnStrategies.{1}",
-        { voteRace.respawnStrategy or "all" }))
+        { voteRace.respawnStrategy }))
     table.insert(settings, string.var("{1}: {2}", { BJILang.get("races.settings.respawnStrategies.respawns"), rs }))
 
     LineBuilder()
