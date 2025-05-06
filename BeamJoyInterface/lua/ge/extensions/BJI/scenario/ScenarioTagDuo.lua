@@ -18,7 +18,7 @@ end
 
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetTag, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     BJIQuickTravel.toggle(false)
     BJIRaceWaypoint.resetAll()
     BJIWaypointEdit.reset()
@@ -47,10 +47,10 @@ local function onVehicleResetted(gameVehID)
         isChasing() and
         not isTagger() then
         BJIVeh.freeze(true, gameVehID)
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
         BJIMessage.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, true, "FLEE !", nil, function()
             BJIVeh.freeze(false, gameVehID)
-            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
         end, false)
     end
 end
@@ -124,10 +124,12 @@ local function onDataUpdate(ctxt, newLobby)
         BJIGPS.removeByKey(BJIGPS.KEYS.TAGGED)
         M.tagMessage = true
 
-        -- cancel reset countdown
-        BJIMessage.cancelFlash("BJITagDuoTaggedReset")
-        BJIVeh.freeze(false, M.selfLobby.players[ctxt.user.playerID].gameVehID)
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+        -- cancel reset process
+        if BJIRestrictions.isRestricted(BJIRestrictions.TYPES.RECOVER_VEHICLE) then
+            BJIMessage.cancelFlash("BJITagDuoTaggedReset")
+            BJIVeh.freeze(false, M.selfLobby.players[ctxt.user.playerID].gameVehID)
+            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_RECOVER_VEHICLE)
+        end
 
         -- flash
         BJIMessage.flash("BJITagDuoTagged", "TAGGED !", 3, true, ctxt.now, function()
@@ -190,9 +192,7 @@ local function onUnload(ctxt)
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.FREE)
     BJIGPS.reset()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetTag, false)
-
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
 end
 
 local function fnTrue()

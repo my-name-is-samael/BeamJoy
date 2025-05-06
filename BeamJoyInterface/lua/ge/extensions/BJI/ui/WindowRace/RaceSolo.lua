@@ -33,7 +33,7 @@ local function drawHeader(ctxt)
     local _, pbTime = BJIRaceWaypoint.getPB(mgr.raceHash)
     if pbTime and (not mgr.record or mgr.record.time ~= pbTime) then
         LineBuilder()
-            :text("PB :")
+            :text(string.var("{1} :", { BJILang.get("races.leaderboard.pb") }))
             :text(RaceDelay(pbTime))
             :build()
     else

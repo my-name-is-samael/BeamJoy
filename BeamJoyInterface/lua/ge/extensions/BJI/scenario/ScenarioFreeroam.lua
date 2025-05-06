@@ -128,11 +128,11 @@ local function onVehicleResetted(gameVehID)
     local bypass = BJIPerm.isStaff() or M.reset.nextExempt
     if isResetDelay and not bypass then
         M.reset.restricted = true
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
         BJIAsync.delayTask(
             function()
                 M.reset.restricted = false
-                BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+                BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
             end,
             BJIContext.BJC.Freeroam.ResetDelay * 1000,
             BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER
@@ -388,7 +388,7 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
 
     BJIQuickTravel.toggle(true)
     BJINametags.toggle(true)

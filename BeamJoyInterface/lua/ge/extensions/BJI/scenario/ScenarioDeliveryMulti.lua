@@ -58,7 +58,7 @@ end
 -- load hook
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
     BJIQuickTravel.toggle(false)
     BJIAI.toggle(false)
     BJIGPS.reset()
@@ -211,7 +211,7 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIQuickTravel.toggle(true)
     BJIAI.toggle(true)
     BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)

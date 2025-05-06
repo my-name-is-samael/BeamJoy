@@ -1,7 +1,6 @@
 local energyIndicator = require("ge/extensions/BJI/ui/WindowBJI/Body/VehicleEnergyIndicator")
 local healthIndicator = require("ge/extensions/BJI/ui/WindowBJI/Body/VehicleHealthIndicator")
 local deliveryLeaderboard = require("ge/extensions/BJI/ui/WindowBJI/Body/DeliveryLeaderBoard")
-local raceLeaderboard = require("ge/extensions/BJI/ui/WindowBJI/Body/RaceLeaderboard")
 
 local cache = {
     data = {
@@ -72,24 +71,10 @@ local function updateCacheRaces()
         }, function(type) return BJIScenario.is(type) end) and
         BJIContext.Scenario.Data.Races and
         #BJIContext.Scenario.Data.Races > 0
-    cache.data.raceLeaderboard.races = {}
 
-    if cache.data.raceLeaderboard.show then
-        cache.data.raceLeaderboard.races = table.filter(BJIContext.Scenario.Data.Races, function(race)
-            return race.record
-        end):map(function(race) return { name = race.name, record = race.record } end):values()
-        if #cache.data.raceLeaderboard.races > 0 then
-            cache.data.raceLeaderboard.races:sort(function(a, b)
-                if a.name:find(b.name) then
-                    return false
-                elseif b.name:find(a.name) then
-                    return true
-                end
-                return a.name < b.name
-            end)
-        else
-            cache.data.raceLeaderboard.show = false
-        end
+    if cache.data.raceLeaderboard.show and
+        #table.filter(BJIContext.Scenario.Data.Races, function(race) return race.record end):values() == 0 then
+        cache.data.raceLeaderboard.show = false
     end
 end
 
@@ -311,16 +296,13 @@ local function onLoad()
     end))
 
     updateCacheRaces()
-    raceLeaderboard.updateCache(ctxt, cache)
     table.insert(listeners, BJIEvents.addListener({
-        BJIEvents.EVENTS.UI_SCALE_CHANGED,
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, function(ctxt2, data)
         if data._event ~= BJIEvents.EVENTS.CACHE_LOADED or
             data.cache == BJICache.CACHES.RACES then
             updateCacheRaces()
-            raceLeaderboard.updateCache(ctxt2, cache)
         end
     end))
 
@@ -360,21 +342,17 @@ local function draw(ctxt)
     end
 
     if cache.data.raceLeaderboard.show then
-        if #cache.data.raceLeaderboard.races <= BJIRacesLeaderboardWindow.AMOUNT_THRESHOLD then
-            raceLeaderboard.draw()
-        else
-            LineBuilder()
-                :btnSwitch({
-                    id = "toggleRacesLeaderboardWindow",
-                    labelOn = cache.labels.raceLeaderboard.title,
-                    labelOff = cache.labels.raceLeaderboard.title,
-                    state = not BJIRacesLeaderboardWindow.show,
-                    onClick = function()
-                        BJIRacesLeaderboardWindow.show = not BJIRacesLeaderboardWindow.show
-                    end
-                })
-                :build()
-        end
+        LineBuilder()
+            :btnSwitch({
+                id = "toggleRacesLeaderboardWindow",
+                labelOn = cache.labels.raceLeaderboard.title,
+                labelOff = cache.labels.raceLeaderboard.title,
+                state = not BJIRacesLeaderboardWindow.show,
+                onClick = function()
+                    BJIRacesLeaderboardWindow.show = not BJIRacesLeaderboardWindow.show
+                end
+            })
+            :build()
     end
 
     if type(cache.data.scenarioUIFn) == "function" then

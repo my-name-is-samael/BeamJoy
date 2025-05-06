@@ -346,7 +346,6 @@ table.all = table.all or table.every
 ---@param initialValue T
 ---@return T
 table.reduce = table.reduce or function(tab, reduceFn, initialValue)
-    if initialValue == nil then return initialValue end
     if type(tab) ~= "table" then return initialValue end
     if type(reduceFn) ~= "function" then return initialValue end
     local res = initialValue

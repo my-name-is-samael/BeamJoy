@@ -258,7 +258,7 @@ local function onRaceWaypointReached(waypoint)
     if M._race._onWaypoint then
         local ok, err = pcall(M._race._onWaypoint, waypoint, #M._race._steps)
         if not ok then
-            LogError(string.var("Error while handling waypoint : {1}", {err}))
+            LogError(string.var("Error while handling waypoint : {1}", { err }))
         end
     end
 end
@@ -267,7 +267,7 @@ local function onRaceFinishReached()
     if M._race._onFinish then
         local ok, err = pcall(M._race._onFinish)
         if not ok then
-            LogError(string.var("Error while handling finish : {1}", {err}))
+            LogError(string.var("Error while handling finish : {1}", { err }))
         end
     end
 
@@ -467,14 +467,14 @@ local function getPB(raceHash)
 end
 
 ---@param raceHash string
----@param newPb MapRacePBWP[]
+---@param newPb MapRacePBWP[]|nil
 local function setPB(raceHash, newPb)
     if type(raceHash) ~= "string" then
-        LogError("setPB invalid raceHash ")
+        LogError("setPB invalid raceHash")
         dump(raceHash)
         return
-    elseif type(newPb) ~= "table" then
-        LogError("setPB invalid newPb ")
+    elseif not table.includes({ "table", "nil" }, type(newPb)) then
+        LogError("setPB invalid newPb")
         dump(newPb)
         return
     end

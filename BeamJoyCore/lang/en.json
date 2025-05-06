@@ -1019,7 +1019,12 @@
         "flashDnfOut": "ELIMINATED"
       },
       "leaderboard": {
-        "title": "Races Leaderboard"
+        "title": "Races Leaderboard",
+        "amountPBs": "Total PBs",
+        "removeAllPBsButton": "Remove all PBs",
+        "removeAllPBsModal": "Are your sure you want to remove all your PBs on the server ?",
+        "pb": "PB",
+        "removePBModal": "Are your sure you want to remove your PB on {raceName} ?"
       }
     },
     "energy": {

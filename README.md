@@ -12,15 +12,33 @@ The purpose of this mod is to provide easy access to moderation tools and activi
 In addition, it includes a built-in framework to make it modular, allowing developers to easily add new features.
 
 ## Summary
-1. [Features](#features)
-2. [How to Install](#how-to-install)
-3. [How to Add a Modded Map](#how-to-add-a-modded-map-to-your-server)
-4. [How to Install Basegame Data (Gas Stations, Garages, Delivery points, Races, ...)](#how-to-install-basegame-maps-data)
-5. [How to Set Or Add a Language](#how-to-set-or-add-a-language-to-your-server)
-6. [Video Tutorials](#video-tutorials)
-7. [Participating](#participating)
-8. [Roadmap](#roadmap)
-9. [Credits](#credits)
+- [BeamJoy](#beamjoy)
+  - [Summary](#summary)
+  - [Features](#features)
+    - [Global and Sync](#global-and-sync)
+    - [QoL](#qol)
+    - [Facilities](#facilities)
+    - [Moderation](#moderation)
+    - [Scenarios](#scenarios)
+      - [Races](#races)
+      - [Hunter / CarHunt](#hunter--carhunt)
+      - [Deliveries](#deliveries)
+      - [Bus Mission](#bus-mission)
+      - [Speed Game](#speed-game)
+      - [Destruction Derby](#destruction-derby)
+    - [Tech](#tech)
+  - [How to install](#how-to-install)
+  - [How to add a modded map to your server](#how-to-add-a-modded-map-to-your-server)
+  - [How to install basegame maps data](#how-to-install-basegame-maps-data)
+  - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
+  - [FAQ](#faq)
+    - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
+    - [I cannot respawn my vehicle in scenarios, it this broken ?](#i-cannot-respawn-my-vehicle-in-scenarios-it-this-broken-)
+    - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
+  - [Video tutorials](#video-tutorials)
+  - [Participating](#participating)
+  - [Roadmap](#roadmap)
+  - [Credits](#credits)
 
 ## Features
 
@@ -220,9 +238,32 @@ To update labels:
 - Find your language file in *Resources/Server/BeamJoyCore/lang*.
 - As mentioned earlier, do not change keys or variables between braces (**{** and **}**) in values.
 
+## FAQ
+
+### I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?
+You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server root folder), the value cannot be set to `-1` (I recommand you to set it between 50 and 500).
+
+### I cannot respawn my vehicle in scenarios, it this broken ?
+Scenarios have their own rules, here is the complete respawns guide by scenario :
+  - `Freeroam` : All respawn are allowed by default. If staff member(s) configured respawn delay and/or teleport delay, you will have a countdown (visible in the header of the main beamjoy window) before you can do it again.
+  - `Races (solo/multi)` : the allowed respawns mode is defined by the player who launched the race. There are multiple mode:
+    - All respawns / No respawns : self explanatory
+    - Last checkpoint / Stand : only the `LoadHome` respawn wil be enabled and will bring you back to the last checkpoint/stand. (Keyboard : default to `Home` - Controller : none by default)
+  - `Delivery (solo, package/vehicle)` : only the `RecoverVehicle` respawn is enabled, but will bring you to Freeroam if you use it. (Keyboard : default to `R` - Controller : `Dpad` left by default)
+  - `DeliveryTogether` : As the other delivery modes, the `RecoverVehicle` respawn is allowed, but this time it will not brings you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or be more careful to keep it). (Keyboard : default to `R` - Controller : `Dpad` left by default)
+  - `Hunter` : The hunted player cannot respawn (its skills are valued in this mode). Hunters can use the `RecoverVehicle` respawn but will then have a freeze countdown before they can drive again.
+  - `Destruction Derby` : Participants have lives, and until they have, thay can use the `LoadHome` respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned). (Keyboard : default to `R` - Controller : `Dpad` left by default)
+  - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to become the last player alive.
+
+### My game crashes during the join process or randomly with the following error
+
+![Image](https://github.com/user-attachments/assets/fc667d0e-45e4-4ee4-ac9e-ec9c7d364c84)
+
+Unfortunately, I have no exact solution for now, since I never did experience this myself. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket.](https://github.com/my-name-is-samael/BeamJoy/issues/100).
+
 ## Video tutorials
 
-Coming soon ..
+Coming soon (maybe) ...
 
 ## Participating
 

@@ -68,8 +68,7 @@ local function onLoad(ctxt)
     BJIVeh.saveCurrentVehicle()
     BJIVeh.deleteAllOwnVehicles()
     BJIAI.removeVehicles()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunter, true)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunted, true)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
     BJIQuickTravel.toggle(false)
     BJIRaceWaypoint.resetAll()
     BJIGPS.reset()
@@ -92,8 +91,7 @@ local function onUnload()
     end
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.FREE)
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunter, false)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunted, false)
+    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
     BJIVehSelector.tryClose(true)
 end
 
@@ -235,13 +233,13 @@ local function onVehicleResetted(gameVehID)
             M.huntersRespawnDelay > 0 then -- minimum stuck delay configured
             BJIVeh.freeze(true, gameVehID)
             BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
-            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
             local targetTime = GetCurrentTimeMillis() + (M.huntersRespawnDelay * 1000) + 50
             BJIMessage.flashCountdown("BJIHunterReset", targetTime,
                 false, BJILang.get("hunter.play.flashHunterResume"), M.huntersRespawnDelay, function()
                     BJICam.resetForceCamera()
                     BJIVeh.freeze(false, gameVehID)
-                    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+                    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
                 end)
         end
     end
@@ -401,7 +399,7 @@ local function initGameHunted(participant)
 
         BJIMessage.flash("BJIHuntedStart", BJILang.get("hunter.play.flashHuntedStart"), 5, false)
         BJIVeh.freeze(false, participant.gameVehID)
-        BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunter, false)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
         BJICam.resetForceCamera()
         if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(BJICam.CAMERAS.ORBIT)
@@ -420,7 +418,7 @@ local function initGameHunter(participant)
     local function start()
         BJIMessage.flash("BJIHunterStart", BJILang.get("hunter.play.flashHunterResume"), 5, false)
         BJIVeh.freeze(false, participant.gameVehID)
-        BJIRestrictions.apply(BJIRestrictions.TYPES.ResetHunted, false)
+        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
         BJICam.resetForceCamera()
         if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
             BJICam.setCamera(BJICam.CAMERAS.ORBIT)
