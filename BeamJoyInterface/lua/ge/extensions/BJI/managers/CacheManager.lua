@@ -105,7 +105,6 @@ local function _tryRequestCaches(cachesToRequest)
     end)
 
     if finalCaches:length() > 0 then
-        dump(finalCaches)
         finalCaches:forEach(function(cacheType)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
         end)
