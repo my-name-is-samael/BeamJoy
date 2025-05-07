@@ -813,7 +813,7 @@ local function rxData(data)
     elseif M.state then
         M.stopRace()
     end
-    BJIEvents.trigger(BJIEvents.EVENTS.RACE_MULTI_UPDATED)
+    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
 end
 
 local function isParticipant()

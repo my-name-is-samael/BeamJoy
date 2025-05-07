@@ -210,7 +210,7 @@ local function draw(ctxt)
                     function()
                         local minScale = 0.85
                         local maxScale = 2
-                        local value =  BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+                        local value = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
                         LineBuilder()
                             :btnIcon({
                                 id = "uiScaleZoomOut",
@@ -293,6 +293,7 @@ local function draw(ctxt)
                                 coloredIcon = true,
                                 onClick = function()
                                     guihooks.trigger("app:waiting", false)
+                                    BJIEvents.trigger(BJIEvents.EVENTS.UI_UPDATE_REQUEST)
                                 end,
                             })
                         if cache.data.showCorePublic then

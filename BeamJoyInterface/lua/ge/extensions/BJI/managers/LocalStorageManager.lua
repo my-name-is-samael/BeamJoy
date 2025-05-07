@@ -62,7 +62,11 @@ local M = {
         SCENARIO_BUS_MISSION_LOOP = {
             key = "beamjoy.scenario.bus_mission.loop",
             default = false,
-        }
+        },
+        SCENARIO_RACE_SHOW_ALL_DATA = {
+            key = "beamjoy.scenario.race.show_all_data",
+            default = true,
+        },
     },
 
     -- values are specific to a server

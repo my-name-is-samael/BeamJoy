@@ -516,6 +516,7 @@ local function onCheckpointReached(wp, remainingSteps)
         if wp.lap then
             M.lapData = {}
         end
+        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
     end
 
     if wp.stand then
@@ -626,6 +627,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
     end)
     M.race.startTime = GetCurrentTimeMillis() + 5500
+    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
 
     M.lapData = {}
 
@@ -662,6 +664,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
             end
             BJIRestrictions.updateReset(restrictions)
         end
+        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
     end, M.race.startTime, "BJIRaceStartTime")
 end
 

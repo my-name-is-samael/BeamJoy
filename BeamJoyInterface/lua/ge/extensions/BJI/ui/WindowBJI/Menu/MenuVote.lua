@@ -180,7 +180,7 @@ function M.onLoad()
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.LANG_CHANGED,
-        BJIEvents.EVENTS.RACE_MULTI_UPDATED,
+        BJIEvents.EVENTS.SCENARIO_UPDATED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, updateCache))
 

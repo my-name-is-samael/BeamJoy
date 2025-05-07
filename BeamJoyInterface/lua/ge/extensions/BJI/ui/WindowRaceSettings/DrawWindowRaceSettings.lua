@@ -49,14 +49,14 @@ local M = {
             ---@type {value?: string, label: string}?
             vehicleSelected = nil,
 
-            ---@type {ToD?: string, label: string, key: string}[]
+            ---@type {ToD?: string, label: string, key?: string}[]
             comboTime = {},
-            ---@type {ToD?: string, label: string, key: string}?
+            ---@type {ToD?: string, label: string, key?: string}?
             timeSelected = nil,
 
-            ---@type {keys?: string[], label: string, key: string}[]
+            ---@type {keys?: string[], label: string, key?: string}[]
             comboWeather = {},
-            ---@type {keys?: string[], label: string, key: string}?
+            ---@type {keys?: string[], label: string, key?: string}?
             weatherSelected = nil,
 
             showVoteBtn = false,
