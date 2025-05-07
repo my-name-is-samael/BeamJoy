@@ -178,11 +178,6 @@ local function slowTick(ctxt)
         end)
     end
 
-    if not BJIDEBUG then
-        BJIDEBUG = Table():addAll(Table({"user", "groups", "permissions", "lang"}):filter(function() return 1 == 1 end))
-        dump(BJIDEBUG)
-    end
-
     _tryRequestCaches(cachesToRequest)
 end
 
