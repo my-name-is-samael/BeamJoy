@@ -711,20 +711,19 @@ local function initRace(data)
         end
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
-    if M.state then
-        if M.isParticipant() then
-            -- players
-            initWaypoints()
-            -- enable waypoints before start to avoid stutter
-            BJIAsync.programTask(function()
-                if M.isParticipant() and M.state then
-                    -- players
-                    BJIRaceWaypoint.startRace()
-                end
-            end, M.race.startTime - 500, "BJIRaceStartWaypoints")
-        else
-            showSpecWaypoints()
-        end
+    if M.state and M.isParticipant() then
+        -- players
+        initWaypoints()
+        -- enable waypoints before start to avoid stutter
+        BJIAsync.programTask(function()
+            if M.isParticipant() and M.state then
+                -- players
+                BJIRaceWaypoint.startRace()
+            end
+        end, M.race.startTime - 500, "BJIRaceStartWaypoints")
+    else
+        -- specs and freshly joined players (specs too)
+        showSpecWaypoints()
     end
 
     -- on start
