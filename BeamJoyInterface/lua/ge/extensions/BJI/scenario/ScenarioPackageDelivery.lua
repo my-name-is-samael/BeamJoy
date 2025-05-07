@@ -70,8 +70,12 @@ local function initDelivery()
     BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.targetPosition.pos,
         M.targetPosition.radius, nil, nil, false)
     M.baseDistance = BJIGPS.getCurrentRouteLength()
-    BJIRaceWaypoint.addWaypoint("BJIVehicleDelivery", M.targetPosition.pos, M.targetPosition.radius,
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJIRaceWaypoint.addWaypoint({
+        name = "BJIVehicleDelivery",
+        pos = M.targetPosition.pos,
+        radius = M.targetPosition.radius,
+        color = BJIRaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function onLoad(ctxt)

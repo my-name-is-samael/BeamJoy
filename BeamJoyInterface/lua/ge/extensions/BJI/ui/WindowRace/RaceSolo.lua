@@ -13,13 +13,16 @@ local M = {
             hasStartTime = false,
             startTime = 0,
 
-            ---@type Timer?
+            ---@type Timer
             raceTimer = nil,
-            ---@type Timer?
+            ---@type Timer
             lapTimer = nil,
             baseTime = RaceDelay(0),
             showFinalTime = false,
             finalTime = "",
+            showLoopBtn = false,
+            showForfeitBtn = false,
+            showRestartBtn = false,
             ---@type boolean
             showAll = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
@@ -92,18 +95,20 @@ local function updateCache(ctxt)
     local _, pbTime = BJIRaceWaypoint.getPB(M.mgr.raceHash)
     M.cache.data.showPb = pbTime and (not M.mgr.record or M.mgr.record.time ~= pbTime)
     M.cache.data.pbTime = M.cache.data.showPb and RaceDelay(pbTime) or ""
-    M.cache.data.hasStartTime = not not M.mgr.hasStartTime
-    M.cache.data.startTime = M.cache.data.hasStartTime and tonumber(M.mgr.race.startTime) or 0
-    M.cache.data.showAllWidth = GetColumnTextWidth(M.cache.labels.showAll) + GetBtnIconSize()
+    M.cache.data.showLoopBtn = not M.mgr.testing
+    M.cache.data.showForfeitBtn = M.mgr.isRaceStarted()
+    M.cache.data.showRestartBtn = M.mgr.isRaceStarted() and not M.mgr.testing and not M.mgr.isRaceFinished()
+    M.cache.data.startTime = M.mgr.race.startTime
+    M.cache.data.hasStartTime = not not M.cache.data.startTime
+    M.cache.data.DNFEnabled = M.mgr.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
+    M.cache.data.DNFData = M.mgr.dnf
 
     -- common
-    M.cache.data.raceTimer = M.mgr.race.timers.race
-    M.cache.data.lapTimer = M.mgr.race.timers.lap
+    M.cache.data.raceTimer = M.mgr.race.timers.race or { get = function() return 0 end }
+    M.cache.data.lapTimer = M.mgr.race.timers.lap or { get = function() return 0 end }
     M.cache.data.showFinalTime = not not M.mgr.race.timers.finalTime
     M.cache.data.finalTime = M.cache.data.showFinalTime and RaceDelay(M.mgr.race.timers.finalTime)
     M.cache.data.showRaceTimer = not not M.mgr.race.timers.race and M.mgr.isRaceStarted()
-    M.cache.data.DNFEnabled = M.mgr.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
-    M.cache.data.DNFData = M.mgr.dnf
 
     local leaderboard = M.mgr.race.leaderboard or {}
     local wpPerLap = M.mgr.race.raceData.wpPerLap
@@ -230,8 +235,7 @@ local function updateCache(ctxt)
                     cells = {
                         function() LineBuilder():text(lapLabel):build() end,
                         function()
-                            local finalTimeLabel = timeLabel or RaceDelay(M.cache.data.lapTimer and
-                                M.cache.data.lapTimer:get() or 0)
+                            local finalTimeLabel = timeLabel or RaceDelay(M.cache.data.lapTimer:get())
                             LineBuilder():text(finalTimeLabel):text(diffLabel, TEXT_COLORS.ERROR):build()
                         end,
                     }
@@ -239,6 +243,8 @@ local function updateCache(ctxt)
             end
         end)
     end
+    M.cache.data.showAllWidth = M.cache.data.showBtnShowAll and
+        GetColumnTextWidth(M.cache.labels.showAll) + GetBtnIconSize() or 0
 end
 
 local listeners = Table()
@@ -336,7 +342,7 @@ local function header(ctxt)
             cells = {
                 function()
                     line = LineBuilder()
-                    if not M.mgr.testing then
+                    if M.cache.data.showLoopBtn then
                         local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
                         line:btnIconToggle({
                             id = "toggleRaceLoop",
@@ -348,7 +354,7 @@ local function header(ctxt)
                             big = true,
                         })
                     end
-                    if M.mgr.isRaceStarted() then
+                    if M.cache.data.showForfeitBtn then
                         line:btnIcon({
                             id = "leaveRace",
                             icon = ICONS.exit_to_app,
@@ -358,19 +364,19 @@ local function header(ctxt)
                             end,
                             big = true,
                         })
-                        if not M.mgr.testing and not M.mgr.isRaceFinished() then
-                            line:btnIcon({
-                                id = "restartRace",
-                                icon = ICONS.restart,
-                                style = BTN_PRESETS.WARNING,
-                                onClick = function()
-                                    local settings, raceData = M.mgr.baseSettings, M.mgr.baseRaceData
-                                    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
-                                    BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).initRace(ctxt, settings, raceData)
-                                end,
-                                big = true,
-                            })
-                        end
+                    end
+                    if M.cache.data.showRestartBtn then
+                        line:btnIcon({
+                            id = "restartRace",
+                            icon = ICONS.restart,
+                            style = BTN_PRESETS.WARNING,
+                            onClick = function()
+                                local settings, raceData = M.mgr.baseSettings, M.mgr.baseRaceData
+                                BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
+                                BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).initRace(ctxt, settings, raceData)
+                            end,
+                            big = true,
+                        })
                     end
                     line:build()
                 end,
@@ -409,25 +415,24 @@ local function header(ctxt)
         })
 
     if M.cache.data.hasStartTime then
-        local remaining = getDiffTime(M.cache.data.hasStartTime, ctxt.now)
+        local remaining = getDiffTime(M.cache.data.startTime, ctxt.now)
         if remaining > 0 then
             line:text(M.cache.labels.gameStartsIn:var({ delay = PrettyDelay(remaining) }))
         elseif remaining > -3 then
             line:text(M.cache.labels.flashCountdownZero)
-        end
-    end
-
-    if M.cache.data.DNFEnabled and M.cache.data.DNFData.process and M.cache.data.DNFData.targetTime then
-        local remaining = getDiffTime(M.cache.data.DNFData.targetTime, ctxt.now)
-        if remaining < M.cache.data.DNFData.timeout then
-            local color = remaining > 3 and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.ERROR
-            if remaining > 0 then
-                line:text(M.cache.labels.eliminatedIn:var({ delay = PrettyDelay(math.abs(remaining)) }))
-            else
-                line:text(M.cache.labels.eliminated, color)
+        elseif M.cache.data.DNFEnabled and M.cache.data.DNFData.process and M.cache.data.DNFData.targetTime then
+            remaining = getDiffTime(M.cache.data.DNFData.targetTime, ctxt.now)
+            if remaining < M.cache.data.DNFData.timeout then
+                local color = remaining > 3 and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.ERROR
+                if remaining > 0 then
+                    line:text(M.cache.labels.eliminatedIn:var({ delay = PrettyDelay(math.abs(remaining)) }))
+                else
+                    line:text(M.cache.labels.eliminated, color)
+                end
             end
         end
     end
+
 
     line:build()
 end

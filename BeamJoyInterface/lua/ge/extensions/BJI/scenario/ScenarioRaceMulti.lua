@@ -286,69 +286,6 @@ local function onJoinGridReady()
     BJIVehSelector.tryClose(true)
 end
 
--- prepare complete race steps list
-local function initSteps(steps)
-    -- parse vectors data
-    for _, step in ipairs(steps or {}) do
-        for _, wp in ipairs(step) do
-            local parsed = TryParsePosRot(wp)
-            wp.pos = parsed.pos
-            wp.rot = parsed.rot
-        end
-    end
-
-    local nSteps = {}
-
-    -- parse for each lap
-    for iLap = 1, M.settings.laps or 1 do
-        for iStep, step in ipairs(steps) do
-            local nStep = {}
-            for _, wp in ipairs(step) do
-                local parents = {}
-                for _, parent in ipairs(wp.parents) do
-                    if parent == "start" then
-                        if iLap == 1 then
-                            table.insert(parents, parent)
-                        else
-                            -- point from last lap finishes
-                            for _, lastWP in ipairs(steps[#steps]) do
-                                table.insert(parents, string.var("{1}-{2}", { lastWP.name, iLap - 1 }))
-                            end
-                        end
-                    else
-                        table.insert(parents, string.var("{1}-{2}", { parent, iLap }))
-                    end
-                end
-                local name = string.var("{1}-{2}", { wp.name, iLap })
-                table.insert(nStep, {
-                    name = name,
-                    pos = wp.pos,
-                    zOffset = wp.zOffset,
-                    rot = wp.rot,
-                    radius = wp.radius,
-                    parents = parents,
-                    lap = iStep == #steps,
-                    stand = wp.stand,
-                })
-            end
-            table.insert(nSteps, nStep)
-        end
-    end
-    M.race.raceData.steps = nSteps
-end
-
-local function parseRaceData(steps)
-    M.race.raceData.wpPerLap = #steps
-    initSteps(steps)
-    for iStep, step in ipairs(steps or {}) do
-        for _, wp in ipairs(step) do
-            if wp.stand then
-                table.insert(M.race.stands, { step = iStep, pos = wp.pos, rot = wp.rot })
-            end
-        end
-    end
-end
-
 local function specRandomRacer()
     local players = {}
     for _, playerID in ipairs(M.grid.participants) do
@@ -572,7 +509,9 @@ local function onCheckpointReached(wp, remainingSteps)
             if wp.lap then
                 M.lapData = {}
             end
+            BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED) -- server wp reached
         end)
+        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)     -- local wp reached
     end
 
     if wp.stand then
@@ -629,6 +568,69 @@ local function onFinishReached()
     end
 end
 
+-- prepare complete race steps list
+local function initSteps(steps, withLaps)
+    -- parse vectors data
+    for _, step in ipairs(steps or {}) do
+        for _, wp in ipairs(step) do
+            local parsed = TryParsePosRot(wp)
+            wp.pos = parsed.pos
+            wp.rot = parsed.rot
+        end
+    end
+
+    local nSteps = {}
+
+    -- parse for each lap
+    for iLap = 1, withLaps and M.settings.laps or 1 do
+        for iStep, step in ipairs(steps) do
+            local nStep = {}
+            for _, wp in ipairs(step) do
+                local parents = {}
+                for _, parent in ipairs(wp.parents) do
+                    if parent == "start" then
+                        if iLap == 1 then
+                            table.insert(parents, parent)
+                        else
+                            -- point from last lap finishes
+                            for _, lastWP in ipairs(steps[#steps]) do
+                                table.insert(parents, string.var("{1}-{2}", { lastWP.name, iLap - 1 }))
+                            end
+                        end
+                    else
+                        table.insert(parents, string.var("{1}-{2}", { parent, iLap }))
+                    end
+                end
+                local name = string.var("{1}-{2}", { wp.name, iLap })
+                table.insert(nStep, {
+                    name = name,
+                    pos = wp.pos,
+                    zOffset = wp.zOffset,
+                    rot = wp.rot,
+                    radius = wp.radius,
+                    parents = parents,
+                    lap = iStep == #steps,
+                    stand = wp.stand,
+                })
+            end
+            table.insert(nSteps, nStep)
+        end
+    end
+    M.race.raceData.steps = nSteps
+end
+
+local function parseRaceData(steps)
+    M.race.raceData.wpPerLap = #steps
+    initSteps(steps, not M.isSpec())
+    for iStep, step in ipairs(steps or {}) do
+        for _, wp in ipairs(step) do
+            if wp.stand then
+                table.insert(M.race.stands, { step = iStep, pos = wp.pos, rot = wp.rot })
+            end
+        end
+    end
+end
+
 local function initWaypoints()
     BJIRaceWaypoint.resetAll()
     for _, step in ipairs(M.race.raceData.steps) do
@@ -639,11 +641,32 @@ local function initWaypoints()
     BJIRaceWaypoint.setRaceFinishHandler(onFinishReached)
 end
 
+local function showSpecWaypoints()
+    BJIRaceWaypoint.resetAll()
+    Table(M.race.raceData.steps):forEach(function(step)
+        Table(step):forEach(function(wp)
+            local color = BJIRaceWaypoint.COLORS.RED
+            local rot = wp.rot
+            if wp.stand then
+                color = BJIRaceWaypoint.COLORS.ORANGE
+                rot = nil
+            elseif wp.lap then
+                color = BJIRaceWaypoint.COLORS.BLUE
+            end
+            BJIRaceWaypoint.addWaypoint({
+                name = wp.name,
+                pos = wp.pos,
+                radius = wp.radius,
+                rot = rot,
+                color = color,
+            })
+        end)
+    end)
+end
+
 local function initRace(data)
     BJIVehSelector.tryClose(true)
-    if not M.isSpec() then
-        parseRaceData(data.steps)
-    end
+    parseRaceData(data.steps)
     M.race.lap = 1
     M.race.waypoint = 0
     M.lapData = {}
@@ -688,16 +711,20 @@ local function initRace(data)
         end
     end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
-    if M.isParticipant() and M.state then
-        -- players
-        initWaypoints()
-        -- enable waypoints before start to avoid stutter
-        BJIAsync.programTask(function()
-            if M.isParticipant() and M.state then
-                -- players
-                BJIRaceWaypoint.startRace()
-            end
-        end, M.race.startTime - 500, "BJIRaceStartWaypoints")
+    if M.state then
+        if M.isParticipant() then
+            -- players
+            initWaypoints()
+            -- enable waypoints before start to avoid stutter
+            BJIAsync.programTask(function()
+                if M.isParticipant() and M.state then
+                    -- players
+                    BJIRaceWaypoint.startRace()
+                end
+            end, M.race.startTime - 500, "BJIRaceStartWaypoints")
+        else
+            showSpecWaypoints()
+        end
     end
 
     -- on start
@@ -723,6 +750,7 @@ local function initRace(data)
                 end
             end
         end
+        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
     end, M.race.startTime, "BJIRaceStartTime")
 end
 
@@ -921,37 +949,46 @@ end
 local function slowTick(ctxt)
     -- DNF PROCESS
     if ctxt.isOwner and M.isRaceStarted(ctxt) and not M.isRaceFinished() and M.isParticipant() and
-        M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN and
+        M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
         not M.dnf.standExempt then
         if not M.dnf.lastPos then
             -- first check
             M.dnf.lastPos = ctxt.vehPosRot.pos
         else
-            if GetHorizontalDistance(ctxt.vehPosRot.pos, M.dnf.lastPos) < M.dnf.minDistance then
-                -- distance isn't enough
-                if not M.dnf.process then
-                    M.dnf.targetTime = ctxt.now + (M.dnf.timeout * 1000)
-                    -- start countdown process
-                    BJIMessage.flashCountdown("BJIRaceDNF", M.dnf.targetTime, true,
-                        BJILang.get("races.play.flashDnfOut"), nil,
-                        function()
-                            BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.LEAVE)
-                            BJIVeh.deleteCurrentOwnVehicle()
-                            BJIRaceWaypoint.resetAll()
-                            specRandomRacer()
-                        end)
-                    M.dnf.process = true
-                end
+            if M.isEliminated() or M.isFinished() then
+                M.dnf.targetTime = nil
+                M.dnf.process = false
             else
-                -- good distance, remove countdown if there is one
-                if M.dnf.process then
-                    BJIMessage.cancelFlash("BJIRaceDNF")
-                    M.dnf.process = false
-                    M.dnf.targetTime = nil
+                if GetHorizontalDistance(ctxt.vehPosRot.pos, M.dnf.lastPos) < M.dnf.minDistance then
+                    -- distance isn't enough
+                    if not M.dnf.process then
+                        M.dnf.targetTime = ctxt.now + (M.dnf.timeout * 1000)
+                        -- start countdown process
+                        BJIMessage.flashCountdown("BJIRaceDNF", M.dnf.targetTime, true,
+                            BJILang.get("races.play.flashDnfOut"), nil,
+                            function()
+                                BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.LEAVE)
+                                BJIVeh.deleteCurrentOwnVehicle()
+                                BJIRaceWaypoint.resetAll()
+                                specRandomRacer()
+                            end)
+                        M.dnf.process = true
+                    end
+                else
+                    -- good distance, remove countdown if there is one
+                    if M.dnf.process then
+                        BJIMessage.cancelFlash("BJIRaceDNF")
+                        M.dnf.process = false
+                        M.dnf.targetTime = nil
+                    end
+                    M.dnf.lastPos = ctxt.vehPosRot.pos
                 end
-                M.dnf.lastPos = ctxt.vehPosRot.pos
             end
         end
+    end
+
+    if M.isSpec() then
+        --displaySpecWaypoints()
     end
 end
 

@@ -1,6 +1,7 @@
 local M = {
     -- server data
     participants = {},
+    ---@type {pos: vec3, rot: vec3, radius: number}?
     target = nil,
 
     baseDistance = nil,
@@ -166,8 +167,12 @@ local function slowTick(ctxt)
         end
 
         if #BJIRaceWaypoint._targets == 0 then
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+            BJIRaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = M.target.pos,
+                radius = M.target.radius * getRadiusMultiplier(),
+                color = BJIRaceWaypoint.COLORS.BLUE
+            })
         end
 
         local distance = ctxt.vehPosRot.pos:distance(M.target.pos)
@@ -222,8 +227,12 @@ local function onTargetChange()
         M.target.radius * getRadiusMultiplier(), nil, nil, false)
     BJIMessage.flash("BJIDeliveryMultiNextTarget", BJILang.get("packageDelivery.flashStart"), 3, false)
     BJIRaceWaypoint.resetAll()
-    BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJIRaceWaypoint.addWaypoint({
+        name = "BJIDeliveryMultiTarget",
+        pos = M.target.pos,
+        radius = M.target.radius * getRadiusMultiplier(),
+        color = BJIRaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function rxData(data)
@@ -255,8 +264,12 @@ local function rxData(data)
         end
         if #BJIRaceWaypoint._targets > 0 then
             BJIRaceWaypoint.resetAll()
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+            BJIRaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = M.target.pos,
+                radius = M.target.radius * getRadiusMultiplier(),
+                color = BJIRaceWaypoint.COLORS.BLUE
+            })
         end
     end
 end

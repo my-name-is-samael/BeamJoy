@@ -114,20 +114,7 @@ local function isRacing()
     return M._race._started
 end
 
---[[
-<ul>
-    <li> waypoints = (array)</li>
-    <ul>
-        <li>name: string NULLABLE</li>
-        <li>pos: vec3</li>
-        <li>rot: vec3</li>
-        <li>radius: float</li>
-        <li>parents: array</li>
-        <li>lap: boolean NULLABLE</li>
-        <li>stand: boolean NULLABLE</li>
-    </ul>
-</ul>
-]]
+---@param step {name: string, pos: vec3, zOffset?:number, rot: vec3, radius: number, parents: string[], lap?: boolean, stand?: boolean}[]
 local function addRaceStep(step)
     if M._race._started then
         LogError("already started", M._name)
@@ -399,32 +386,41 @@ local function checkRaceTargetReached(ctxt)
     end
 end
 
-local function addWaypoint(name, pos, radius, color)
+---@param wp {name: string, pos: vec3, rot?: quat, radius?: number, color?: string}
+local function addWaypoint(wp)
     local _, err
-    _, pos, err = pcall(vec3, pos)
+    _, wp.pos, err = pcall(vec3, wp.pos)
     if err then
         LogError("invalid position", M._name)
         return
     end
 
-    name = name or string.var("raceWaypoint{1}", { GetCurrentTimeMillis() })
-    radius = tonumber(radius) or 1
-    color = color or M.COLORS.RED
+    wp.name = wp.name or string.var("raceWaypoint{1}", { GetCurrentTimeMillis() })
+    wp.radius = tonumber(wp.radius) or 1
+    wp.color = wp.color or M.COLORS.RED
+
+    local normal
+    if wp.rot then
+        local angle = math.angleFromQuatRotation(wp.rot)
+        normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+        normal = normal:normalized()
+    end
 
     table.insert(M._targets, {
-        name = name,
-        pos = pos,
-        radius = radius,
-        color = color,
+        name = wp.name,
+        pos = wp.pos,
+        radius = wp.radius,
+        color = wp.color,
     })
     table.insert(M._markers, {
-        name = name,
-        pos = pos,
-        radius = radius,
+        name = wp.name,
+        pos = wp.pos,
+        normal = normal,
+        radius = wp.radius,
         fadeNear = false,
         fadeFar = false,
     })
-    M._modes[name] = color
+    M._modes[wp.name] = wp.color
 
     M._raceMarker.setupMarkers(M._markers, M._markerType)
 end
