@@ -18,6 +18,19 @@ function Table(tab)
     return metatable(tab)
 end
 
+--- Create a table filled with range
+---@param startIndex integer
+---@param endIndex integer
+---@return tablelib<integer>
+function Range(startIndex, endIndex)
+    if type(endIndex) ~= "number" or type(startIndex) ~= "number" then return Table() end
+    local res = Table()
+    for i = startIndex, endIndex, startIndex <= endIndex and 1 or -1 do
+        res:insert(i)
+    end
+    return res
+end
+
 -- ALREADY PRESENT FUNCTIONS
 
 table.concat = table.concat

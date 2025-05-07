@@ -7,6 +7,7 @@
 ---@class vec3: point
 ---@field z number
 ---@field distance fun(self: vec3, target: vec3): number|nil
+---@field normalized fun(self: vec3): vec3
 
 ---@class vec4 : point
 ---@field z number
