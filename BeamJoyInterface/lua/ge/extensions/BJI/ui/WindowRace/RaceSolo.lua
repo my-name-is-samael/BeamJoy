@@ -1,6 +1,8 @@
 local M = {
+    ---@type table<string, any>
     mgr = BJIScenario.get(BJIScenario.TYPES.RACE_SOLO),
     SHOW_ALL_THRESHOLD = 3,
+    ELLIPSIS_MARKER = "...",
 
     cache = {
         data = {
@@ -11,19 +13,27 @@ local M = {
             hasStartTime = false,
             startTime = 0,
 
+            ---@type Timer?
             raceTimer = nil,
+            ---@type Timer?
             lapTimer = nil,
             baseTime = RaceDelay(0),
             showFinalTime = false,
             finalTime = "",
+            ---@type boolean
             showAll = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
             showAllWidth = 0,
+            ---@type number[]
             columnsWidths = {},
+            ---@type {cells: function[]}[]
             cols = {},
             showRaceTimer = false,
             wpCounter = "",
             lapCounter = "",
+            DNFEnabled = false,
+            ---@type {timeout: number, process: boolean, targetTime?: integer}
+            DNFData = {},
 
             showSprint = false,
         },
@@ -38,6 +48,7 @@ local M = {
             gameStartsIn = "",
             flashCountdownZero = "",
             eliminatedIn = "",
+            eliminated = "",
             showAll = "",
 
             wpCounter = "",
@@ -60,7 +71,8 @@ local function updateLabels()
     M.cache.labels.gameStartsIn = BJILang.get("races.play.gameStartsIn")
     M.cache.labels.flashCountdownZero = BJILang.get("races.play.flashCountdownZero")
     M.cache.labels.eliminatedIn = BJILang.get("races.play.eliminatedIn")
-    M.cache.labels.showAll = "Show all" -- TODO i18n
+    M.cache.labels.eliminated = BJILang.get("races.play.flashDnfOut")
+    M.cache.labels.showAll = BJILang.get("races.play.showAllData")
 
     M.cache.labels.wpCounter = BJILang.get("races.play.WP")
     M.cache.labels.lapCounter = BJILang.get("races.play.Lap")
@@ -90,12 +102,14 @@ local function updateCache(ctxt)
     M.cache.data.showFinalTime = not not M.mgr.race.timers.finalTime
     M.cache.data.finalTime = M.cache.data.showFinalTime and RaceDelay(M.mgr.race.timers.finalTime)
     M.cache.data.showRaceTimer = not not M.mgr.race.timers.race and M.mgr.isRaceStarted()
+    M.cache.data.DNFEnabled = M.mgr.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
+    M.cache.data.DNFData = M.mgr.dnf
 
     local leaderboard = M.mgr.race.leaderboard or {}
     local wpPerLap = M.mgr.race.raceData.wpPerLap
 
     local function printEllipsis()
-        LineBuilder():text("..."):build()
+        LineBuilder():text(M.ELLIPSIS_MARKER):build()
     end
 
     M.cache.data.showSprint = not M.mgr.settings.laps or M.mgr.settings.laps == 1
@@ -173,37 +187,56 @@ local function updateCache(ctxt)
         local laps = Table(leaderboard.laps):map(function(data, i) return { lap = i, data = data } end)
             :sort(function(a, b) return a.lap < b.lap end) or Table()
         if not M.cache.data.showAll and #laps > M.SHOW_ALL_THRESHOLD then
+            local hiddenBestLap
             while #laps > M.SHOW_ALL_THRESHOLD do
-                Table(laps):remove(1)
+                local removed = laps:remove(1)
+                if removed.data and removed.data.wp == wpPerLap and not removed.data.diff then
+                    hiddenBestLap = removed
+                end
             end
-            table.insert(M.cache.data.cols, {
-                cells = { printEllipsis, printEllipsis }
-            })
+            --[[
+                case with best time within 3 last laps:
+                ...   ...
+                Lap 3 %time% + %diff%
+                Lap 4 %best_time%
+                Lap 5 %current_time%
+            ]]
+            laps:insert(1, M.ELLIPSIS_MARKER)
+            if hiddenBestLap then
+                --[[
+                    case with best time 3+ laps before:
+                    Lap 2 %best_time%
+                    ...   ...
+                    Lap 3 %time% + %diff%
+                    Lap 4 %time% + %diff%
+                    Lap 5 %current_time%
+                ]]
+                laps:insert(1, hiddenBestLap)
+            end
         end
         laps:forEach(function(el)
-            local time, diff
-            if el.data.wp == wpPerLap then
-                -- one of previous laps
-                time = el.data.time or 0
-                diff = el.data.diff
+            if el == M.ELLIPSIS_MARKER then
+                table.insert(M.cache.data.cols, { cells = { printEllipsis, printEllipsis } })
             else
-                -- current lap
-                time = M.cache.data.lapTimer and
-                    M.cache.data.lapTimer:get() or 0
+                local lapLabel = M.cache.labels.lapCounter:var({ lap = el.lap })
+                local timeLabel, diff
+                if el.data.wp == wpPerLap then
+                    -- one of previous laps
+                    timeLabel = RaceDelay(el.data.time or 0)
+                    diff = el.data.diff
+                end
+                local diffLabel = (diff and diff > 0) and string.var("+{1}", { RaceDelay(diff or 0) }) or ""
+                table.insert(M.cache.data.cols, {
+                    cells = {
+                        function() LineBuilder():text(lapLabel):build() end,
+                        function()
+                            local finalTimeLabel = timeLabel or RaceDelay(M.cache.data.lapTimer and
+                                M.cache.data.lapTimer:get() or 0)
+                            LineBuilder():text(finalTimeLabel):text(diffLabel, TEXT_COLORS.ERROR):build()
+                        end,
+                    }
+                })
             end
-            local lapLabel = M.cache.labels.lapCounter:var({ lap = el.lap })
-            local timeLabel = RaceDelay(time)
-            local diffSymbol = ""
-            if diff and diff > 0 then
-                diffSymbol = "+"
-            end
-            local diffLabel = diff and string.var("{1}{2}", { diffSymbol, RaceDelay(diff or 0) }) or ""
-            table.insert(M.cache.data.cols, {
-                cells = {
-                    function() LineBuilder():text(lapLabel):build() end,
-                    function() LineBuilder():text(timeLabel):text(diffLabel, TEXT_COLORS.ERROR):build() end,
-                }
-            })
         end)
     end
 end
@@ -236,11 +269,11 @@ local function onUnload()
     listeners:forEach(BJIEvents.removeListener)
 end
 
-local function getStartRemainingTime(now)
-    if not M.cache.data.hasStartTime then
+local function getDiffTime(time, now)
+    if not time then
         return 0
     end
-    return math.ceil((M.cache.data.startTime - now) / 1000)
+    return math.ceil((time - now) / 1000)
 end
 
 local function headerSprint(ctxt)
@@ -352,7 +385,7 @@ local function header(ctxt)
                                 M.cache.data.showAll = not M.cache.data.showAll
                                 BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
                                     M.cache.data.showAll)
-                                BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
+                                updateCache(ctxt)
                             end,
                         })
                         :build()
@@ -376,7 +409,7 @@ local function header(ctxt)
         })
 
     if M.cache.data.hasStartTime then
-        local remaining = getStartRemainingTime(ctxt.now)
+        local remaining = getDiffTime(M.cache.data.hasStartTime, ctxt.now)
         if remaining > 0 then
             line:text(M.cache.labels.gameStartsIn:var({ delay = PrettyDelay(remaining) }))
         elseif remaining > -3 then
@@ -384,12 +417,14 @@ local function header(ctxt)
         end
     end
 
-    if M.mgr.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-        if M.mgr.dnf.process and M.mgr.dnf.targetTime then
-            local remaining = math.ceil((M.mgr.dnf.targetTime - ctxt.now) / 1000)
-            if remaining >= 0 and remaining < M.mgr.dnf.timeout then
-                line:text(M.cache.labels.eliminatedIn:var({ delay = PrettyDelay(math.abs(remaining)) }),
-                    TEXT_COLORS.HIGHLIGHT)
+    if M.cache.data.DNFEnabled and M.cache.data.DNFData.process and M.cache.data.DNFData.targetTime then
+        local remaining = getDiffTime(M.cache.data.DNFData.targetTime, ctxt.now)
+        if remaining < M.cache.data.DNFData.timeout then
+            local color = remaining > 3 and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.ERROR
+            if remaining > 0 then
+                line:text(M.cache.labels.eliminatedIn:var({ delay = PrettyDelay(math.abs(remaining)) }))
+            else
+                line:text(M.cache.labels.eliminated, color)
             end
         end
     end

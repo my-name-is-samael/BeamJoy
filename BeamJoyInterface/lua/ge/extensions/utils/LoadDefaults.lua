@@ -6,11 +6,17 @@ guihooks = guihooks or {
     trigger = function(key, data) end,
 }
 
+---@return vec3
 vec3 = vec3 or function(x, y, z) return {} end
+---@return quat
 quat = quat or function(x, y, z, w) return {} end
+---@return quat
 quatFromDir = quatFromDir or function(dir, up) return quat() end
+---@return quat
 quatFromEuler = quatFromEuler or function(x, y, a) return quat() end
+---@return point
 Point2F = Point2F or function(x, y) return {} end
+---@return string
 String = String or function(str) return tostring(str) end
 
 ui_imgui = ui_imgui or {}
@@ -22,8 +28,23 @@ debugDrawer = debugDrawer or {
     drawTextAdvanced = function(self, pos, text, textColF, useAdvancedText, twod, bgColI, shadow, useZ) end,
 }
 
-color = color or function(r, g, b, a) return {} end
+---@param r integer {0-255}
+---@param g integer {0-255}
+---@param b integer {0-255}
+---@param a integer {0-255}
+---@return integer
+color = color or function(r, g, b, a) return 0 end
+---@param r number {0-1}
+---@param g number {0-1}
+---@param b number {0-1}
+---@param a number {0-1}
+---@return {r: number, red: number, g: number, green: number, b: number, blue: number, a: number, alpha: number}
 ColorF = ColorF or function(r, g, b, a) return {} end
+---@param r integer {0-255}
+---@param g integer {0-255}
+---@param b integer {0-255}
+---@param a integer {0-255}
+---@return {r: number, red: number, g: number, green: number, b: number, blue: number, a: number, alpha: number}
 ColorI = ColorI or function(r, g, b, a) return {} end
 
 log = log or function(type, tag, msg) end

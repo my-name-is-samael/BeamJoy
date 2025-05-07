@@ -1,20 +1,18 @@
 -- MATH UTILS
 
----@class vec3
+---@class point
 ---@field x number
 ---@field y number
+
+---@class vec3: point
 ---@field z number
 ---@field distance fun(self: vec3, target: vec3): number|nil
 
----@class vec4
----@field x number
----@field y number
+---@class vec4 : point
 ---@field z number
 ---@field w number
 
----@class quat
----@field x number
----@field y number
+---@class quat: point
 ---@field z number
 ---@field w number
 
