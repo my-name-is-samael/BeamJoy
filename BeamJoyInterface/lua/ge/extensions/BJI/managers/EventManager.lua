@@ -11,6 +11,7 @@ local M = {
         VEHICLE_SPEC_CHANGED = "vehicle_spec_changed",
         VEHDATA_UPDATED = "vehdata_updated",
         SCENARIO_CHANGED = "scenario_changed",
+        SCENARIO_UPDATED = "scenario_updated",
         PERMISSION_CHANGED = "permission_changed",
         LANG_CHANGED = "lang_changed",
         UI_SCALE_CHANGED = "ui_scale_changed",
@@ -20,7 +21,6 @@ local M = {
         NAMETAGS_VISIBILITY_CHANGED = "nametags_visibility_changed",
         CORE_CHANGED = "core_changed",
         LEVEL_UP = "level_up",
-        RACE_MULTI_UPDATED = "race_multi_updated",
         RACE_NEW_PB = "race_new_pb",
 
         UI_UPDATE_REQUEST = "ui_update_request",

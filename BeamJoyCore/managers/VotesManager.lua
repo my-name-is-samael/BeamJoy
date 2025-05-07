@@ -296,9 +296,9 @@ local function raceValidateSettings(race, settings)
 
     local RS = BJCScenario.RaceManager.RESPAWN_STRATEGIES
 
-    if not race.hasStand and table.includes({ RS.STAND }, settings.respawnStrategy) then
+    if not race.hasStand and settings.respawnStrategy == RS.STAND then
         error({ key = "rx.errors.invalidData" })
-    elseif settings.respawnStrategy and not table.includes(RS, settings.respawnStrategy) then
+    elseif not settings.respawnStrategy or not table.includes(RS, settings.respawnStrategy) then
         error({ key = "rx.errors.invalidData" })
     end
 
@@ -343,12 +343,12 @@ function M.Race.start(creatorID, isVote, raceID, settings)
         respawnStrategy = settings.respawnStrategy,
     }
     M.Race.time = {
-        label = settings.time.ToD and settings.time.key or nil,
-        ToD = settings.time.ToD or nil,
+        label = settings.time.key and settings.time.key or nil,
+        ToD = settings.time.key and settings.time.ToD or nil,
     }
     M.Race.weather = {
-        label = settings.weather.keys  and settings.weather.key or nil,
-        keys = settings.weather.keys or nil,
+        label = settings.weather.key and settings.weather.key or nil,
+        keys = settings.weather.key and settings.weather.keys or nil,
     }
     M.Race.voters = { creatorID }
 

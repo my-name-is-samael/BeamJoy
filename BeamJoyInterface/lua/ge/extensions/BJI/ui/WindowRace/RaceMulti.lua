@@ -1,3 +1,13 @@
+local M = {
+    mgr = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI),
+}
+
+local function onLoad()
+end
+
+local function onUnload()
+end
+
 local mgr
 
 local function drawHeader(ctxt)
@@ -336,7 +346,10 @@ local function drawBody(ctxt)
     end
 end
 
-return {
-    header = drawHeader,
-    body = drawBody,
-}
+M.onLoad = onLoad
+M.onUnload = onUnload
+
+M.header = drawHeader
+M.body = drawBody
+
+return M

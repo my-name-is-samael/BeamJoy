@@ -113,8 +113,8 @@ local function initWindows()
                 return false
             end
             local raceSolo = BJIScenario.is(BJIScenario.TYPES.RACE_SOLO)
-            local raceMulti = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI)
-            return raceSolo or (raceMulti and raceMulti.state)
+            local raceMulti = BJIScenario.is(BJIScenario.TYPES.RACE_MULTI)
+            return raceSolo or raceMulti
         end,
         draw = require("ge/extensions/BJI/ui/WindowRace/DrawWindowRace"),
         w = 300,

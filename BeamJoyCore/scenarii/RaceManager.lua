@@ -221,6 +221,7 @@ local function start(raceID, settings, time, weather)
             M.previous.env.ToD = BJCEnvironment.Data.ToD
             BJCEnvironment.set("ToD", M.time.ToD)
         end
+        dump(5, M.weather)
         if M.weather.keys then
             if not BJCEnvironment.Data.controlWeather then
                 M.previous.env.controlWeather = BJCEnvironment.Data.controlWeather
@@ -235,8 +236,10 @@ local function start(raceID, settings, time, weather)
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
     end
+    dump(6, M)
 
     M.state = M.STATES.GRID
+    dump(10, M)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
     startGridTimeout(M.grid.timeout)
 end
