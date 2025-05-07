@@ -1,5 +1,10 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 3,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 3
+    end,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation
@@ -80,7 +85,7 @@ end
 
 local function checkDerbyReady()
     if M.state == M.STATES.PREPARATION and
-        #M.participants >= M.MINIMUM_PARTICIPANTS then
+        #M.participants >= M.MINIMUM_PARTICIPANTS() then
         local everyoneReady = true
         for _, participant in ipairs(M.participants) do
             if not participant.ready then
@@ -113,7 +118,7 @@ local function onPreparationTimeout()
         end
     end
 
-    if #M.participants < M.MINIMUM_PARTICIPANTS then
+    if #M.participants < M.MINIMUM_PARTICIPANTS() then
         stopDerby()
     else
         startDerby()
@@ -350,7 +355,7 @@ end
 local function getCache()
     return {
         -- common
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         state = M.state,
         destroyedTimeout = BJCConfig.Data.Derby.DestroyedTimeout,
         -- settings
@@ -366,6 +371,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.state,
         M.baseArena,
         M.preparation,

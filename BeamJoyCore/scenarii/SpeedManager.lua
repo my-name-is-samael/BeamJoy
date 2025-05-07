@@ -1,5 +1,10 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 2,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 2
+    end,
     isEvent = false,
     startTime = nil,
     participants = {},
@@ -13,7 +18,7 @@ local M = {
 
 local function getCache()
     return {
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         isEvent = M.isEvent,
         startTime = M.startTime,
         participants = M.participants,
@@ -25,6 +30,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.startTime,
         M.participants,
         M.leaderboard,
@@ -33,7 +39,7 @@ local function getCacheHash()
 end
 
 local function start(participants, isEvent)
-    if table.length(participants) < M.MINIMUM_PARTICIPANTS then
+    if table.length(participants) < M.MINIMUM_PARTICIPANTS() then
         return
     end
     if isEvent then
