@@ -14,7 +14,9 @@ local M = {
 
     settings = {
         waypoints = 3,
+        ---@type {model: string, config: table}?
         huntedConfig = nil,
+        ---@type {model: string, config: table}[]
         hunterConfigs = {},
     },
 
@@ -227,10 +229,10 @@ end
 local function onVehicleResetted(gameVehID)
     if BJIVeh.isVehicleOwn(gameVehID) then
         local participant = M.participants[BJIContext.User.playerID]
-        if M.state == M.STATES.GAME and -- game started
-            participant and not participant.hunted and -- is hunter
+        if M.state == M.STATES.GAME and                    -- game started
+            participant and not participant.hunted and     -- is hunter
             M.hunterStartTime < GetCurrentTimeMillis() and -- already started
-            M.huntersRespawnDelay > 0 then -- minimum stuck delay configured
+            M.huntersRespawnDelay > 0 then                 -- minimum stuck delay configured
             BJIVeh.freeze(true, gameVehID)
             BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
             BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
@@ -377,11 +379,21 @@ local function initGameHunted(participant)
     local function updateWP()
         -- current WP
         local wp = M.waypoints[M.waypoint]
-        BJIRaceWaypoint.addWaypoint("BJIHunter", wp.pos, wp.radius, BJIRaceWaypoint.COLORS.BLUE)
+        BJIRaceWaypoint.addWaypoint({
+            name = "BJIHunter",
+            pos = wp.pos,
+            radius = wp.radius,
+            color = BJIRaceWaypoint.COLORS.BLUE
+        })
         -- next WP
         local nextWp = M.waypoints[M.waypoint + 1]
         if nextWp then
-            BJIRaceWaypoint.addWaypoint("BJIHunterNext", nextWp.pos, nextWp.radius, BJIRaceWaypoint.COLORS.BLACK)
+            BJIRaceWaypoint.addWaypoint({
+                name = "BJIHunterNext",
+                pos = nextWp.pos,
+                radius = nextWp.radius,
+                color = BJIRaceWaypoint.COLORS.BLACK
+            })
         end
 
         BJIGPS.appendWaypoint(BJIGPS.KEYS.HUNTER, wp.pos, wp.radius, function()
