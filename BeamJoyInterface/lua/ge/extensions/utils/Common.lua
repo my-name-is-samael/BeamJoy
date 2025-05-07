@@ -1,3 +1,5 @@
+---@param text string
+---@return integer
 function GetTextWidth(text)
     if type(text) ~= "string" then
         return 0
@@ -6,10 +8,15 @@ function GetTextWidth(text)
 end
 
 local COLUMNS_MARGIN = GetTextWidth("  ")
+---@param text string
+---@return integer
 function GetColumnTextWidth(text)
     return GetTextWidth(text) + COLUMNS_MARGIN
 end
 
+---@param content any
+---@param typeNumber? boolean
+---@return integer
 function GetInputWidthByContent(content, typeNumber)
     local inputOffset = 4 + (typeNumber and 50 or 0)
     return GetTextWidth(tostring(content)) + inputOffset
@@ -17,6 +24,9 @@ end
 
 -- DISTANCE / POSITIONS ROTATIONS
 
+---@param pos1 vec3
+---@param pos2 vec3
+---@return number|nil
 function GetHorizontalDistance(pos1, pos2)
     local _, _, err = pcall(vec3, pos1)
     local _, _, err2 = pcall(vec3, pos2)
@@ -66,6 +76,8 @@ function RoundPositionRotation(posRot)
 end
 
 -- FORMAT
+---@param secs number
+---@return string
 function PrettyDelay(secs)
     local mins, hours, days, months = 0, 0, 0, 0
     if secs >= 60 then
@@ -161,6 +173,8 @@ function PrettyDelay(secs)
     return string.var("{secs} {secondLabel}", { secs = secs, secondLabel = secondLabel })
 end
 
+---@param ms integer
+---@return string
 function RaceDelay(ms)
     local hours = math.floor(ms / 1000 / 60 / 60)
     ms = ms - hours * 60 * 60 * 1000
@@ -192,9 +206,11 @@ function RaceDelay(ms)
     end
 end
 
-function PrettyDistance(m)
+---@param meter number
+---@return string
+function PrettyDistance(meter)
     if settings.getValue("uiUnitLength") == "imperial" then
-        local foot = m * 3.28084
+        local foot = meter * 3.28084
         local miles = foot / 5280
         if miles >= .5 then
             return string.var("{1}mi", { math.round(miles, 1) })
@@ -202,15 +218,17 @@ function PrettyDistance(m)
             return string.var("{1}ft", { math.round(foot) })
         end
     else
-        local kms = m / 1000
+        local kms = meter / 1000
         if kms >= .5 then
             return string.var("{1}km", { math.round(kms, 1) })
         else
-            return string.var("{1}m", { math.round(m) })
+            return string.var("{1}m", { math.round(meter) })
         end
     end
 end
 
+---@param ToD integer
+---@return string
 function PrettyTime(ToD)
     local curSecs = ToD * 86400
     if ToD >= 0 and ToD < .5 then
@@ -225,8 +243,28 @@ function PrettyTime(ToD)
     return string.format("%02d:%02d:%02d", curHours, curMins, curSecs)
 end
 
--- DRAW
+---@class Timer
+---@field get fun(self): number
+---@field reset fun(self)
+function TimerCreate()
+    return ({
+        _timer = hptimer(),
+        get = function(self)
+            local timeStr = tostring(self._timer):gsub("s", "")
+            return math.floor(tonumber(timeStr) or 0)
+        end,
+        reset = function(self)
+            self._timer:stopAndReset()
+        end
+    })
+end
 
+---@param id string
+---@param value integer
+---@param min integer
+---@param max integer
+---@param resetValue integer
+---@param callback function
 function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     local showMonth = true
     if max and max < 60 * 60 * 24 * 30 then
@@ -329,21 +367,8 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
         :build()
 end
 
--- TIMER
-
-function TimerCreate()
-    return ({
-        _timer = hptimer(),
-        get = function(self)
-            local timeStr = tostring(self._timer):gsub("s", "")
-            return math.floor(tonumber(timeStr) or 0)
-        end,
-        reset = function(self)
-            self._timer:stopAndReset()
-        end
-    })
-end
-
+---@param id string
+---@param withUpdate? boolean
 function DrawTimePlayPauseButtons(id, withUpdate)
     LineBuilder()
         :btnIcon({

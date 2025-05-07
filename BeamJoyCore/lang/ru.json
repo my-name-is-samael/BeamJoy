@@ -881,6 +881,7 @@
         "waitingForOtherPlayers": "Ждем других игроков...",
         "flashCountdownZero": "ИДТИ !!!",
         "eliminatedIn": "Вы будете исключены через {delay}",
+        "showAllData": "Показать все",
         "WP": "КП {wp}",
         "Lap": "Круг {laps}",
         "wpDifference": "+{wpDifference}CP",

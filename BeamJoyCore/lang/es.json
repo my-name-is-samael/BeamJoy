@@ -1007,6 +1007,7 @@
         "waitingForOtherPlayers": "Esperando a otros jugadores...",
         "flashCountdownZero": "IR !!!",
         "eliminatedIn": "Serás eliminado en {delay}",
+        "showAllData": "Mostrar todo",
         "WP": "CP {wp}",
         "Lap": "Vuelta {lap}",
         "wpDifference": "+{wpDifference}CP",
