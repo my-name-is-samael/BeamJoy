@@ -1,5 +1,10 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 1,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 2
+    end,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",                            -- grid
@@ -180,7 +185,7 @@ local function onGridTimeout()
         end
     end
 
-    if #M.grid.participants < M.MINIMUM_PARTICIPANTS then
+    if #M.grid.participants < M.MINIMUM_PARTICIPANTS() then
         stopRace()
     else
         checkRaceReady()
@@ -708,7 +713,7 @@ end
 local function getCache()
     return {
         -- common
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         state = M.state,
         raceName = M.baseRace and M.baseRace.name or nil,
         raceHash = M.baseRace and M.baseRace.hash or nil,
@@ -737,6 +742,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.state,
         M.grid,
         M.race,
