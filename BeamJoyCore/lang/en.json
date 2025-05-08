@@ -181,7 +181,7 @@
     },
     "mapSwitch": {
       "missingArchive": "The archive is missing",
-      "kickIn": "The map is about to change, you will be kick in {delay}",
+      "kickIn": "The map is about to change, you will be kicked in {delay}",
       "kick": "The map has changed, please reconnect"
     },
     "broadcast": {
