@@ -141,6 +141,4 @@ M.getCacheMaps = getCacheMaps
 M.getCacheMapsHash = getCacheMapsHash
 
 init()
-
-RegisterBJCManager(M)
 return M

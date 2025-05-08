@@ -36,24 +36,10 @@ require("utils/Common")
 
 SetLogType("BJC", CONSOLE_COLORS.FOREGROUNDS.LIGHT_BLUE)
 
-local _bjcManagers = {}
-function RegisterBJCManager(manager)
-    table.insert(_bjcManagers, manager)
-end
-
-function TriggerBJCManagers(eventName, ...)
-    for _, manager in ipairs(_bjcManagers) do
-        if type(manager[eventName]) == "function" then
-            local ok, err = pcall(manager[eventName], ...)
-            if not ok then
-                LogError(string.var("Error triggering {1} : {3}", {eventName, err}), "BJC")
-            end
-        end
-    end
-end
-
-function _G.onInit()
+local function loadBeamJoy()
     Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
+
+    BJCEvents = require("managers/EventManager")
 
     BJCAsync = require("managers/AsyncManager")
     BJCDefaults = require("managers/Defaults")
@@ -69,10 +55,8 @@ function _G.onInit()
     BJCMaps = require("managers/MapsManager")
     BJCCommand = require("managers/CommandManager")
     BJCVote = require("managers/VotesManager")
-    --[[BJCTx]]
-    require("tx/Tx")
+    require("tx/Tx") ---[[BJCTx]]
     BJCEnvironment = require("managers/EnvironmentManager")
-    BJCTickManager = require("managers/TickManager")
     BJCChatCommand = require("managers/ChatCommandManager")
     BJCChat = require("managers/ChatManager")
 
@@ -81,4 +65,11 @@ function _G.onInit()
     require("rx/Rx")
 
     Log(string.var("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
+end
+
+function _G.onInit()
+    local ok, err = pcall(loadBeamJoy)
+    if not ok then
+        LogError(string.var("BeamJoyCore failed to load: {1}", { err }))
+    end
 end

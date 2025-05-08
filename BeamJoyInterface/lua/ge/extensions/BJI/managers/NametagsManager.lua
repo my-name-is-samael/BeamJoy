@@ -328,8 +328,6 @@ local function renderTick(ctxt)
     end
 end
 
-M.onLoad = onLoad
-
 M.getNametagColor = getNametagColor
 M.getNametagBgColor = getNametagBgColor
 

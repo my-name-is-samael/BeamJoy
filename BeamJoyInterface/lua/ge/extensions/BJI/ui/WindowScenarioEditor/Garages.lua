@@ -24,11 +24,7 @@ local function save()
         table.insert(garages, RoundPositionRotation({
             name = garage.name,
             radius = garage.radius,
-            pos = {
-                x = garage.pos.x,
-                y = garage.pos.y,
-                z = garage.pos.z,
-            },
+            pos = vec3(garage.pos.x, garage.pos.y, garage.pos.z),
         }))
     end
 

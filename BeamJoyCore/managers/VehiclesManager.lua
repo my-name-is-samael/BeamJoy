@@ -1,12 +1,8 @@
 local M = {
-    Data = {},
+    Data = BJCDao.vehicles.findAll(),
 }
 
-local function init()
-    M.Data = BJCDao.vehicles.findAll()
-end
-
-function _BJCOnVehicleSpawn(playerID, vehID, vehData)
+local function onVehicleSpawn(playerID, vehID, vehData)
     local s, e = vehData:find('%{')
     vehData = vehData:sub(s)
     vehData = JSON.parse(vehData)
@@ -76,7 +72,7 @@ function _BJCOnVehicleSpawn(playerID, vehID, vehData)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-function _BJCOnVehicleEdited(playerID, vehID, vehData)
+local function onVehicleEdited(playerID, vehID, vehData)
     local s, e = vehData:find('%{')
     vehData = vehData:sub(s)
     vehData = JSON.parse(vehData)
@@ -116,12 +112,12 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
     end
 end
 
-function _BJCOnVehicleReset(playerID, vehID, posRot)
+local function onVehicleReset(playerID, vehID, posRot)
     -- NO USE FOR NOW
     posRot = JSON.parse(posRot)
 end
 
-function _BJCOnVehicleDeleted(playerID, vehID)
+local function onVehicleDeleted(playerID, vehID)
     local player = BJCPlayers.Players[playerID]
     if not player then
         LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
@@ -138,13 +134,6 @@ function _BJCOnVehicleDeleted(playerID, vehID)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 
     BJCScenario.onVehicleDeleted(playerID, vehID)
-end
-
-local function initHooks()
-    MP.RegisterEvent("onVehicleSpawn", "_BJCOnVehicleSpawn")
-    MP.RegisterEvent("onVehicleEdited", "_BJCOnVehicleEdited")
-    MP.RegisterEvent("onVehicleDeleted", "_BJCOnVehicleDeleted")
-    MP.RegisterEvent("onVehicleReset", "_BJCOnVehicleReset")
 end
 
 local function setModelBlacklist(model, state)
@@ -191,7 +180,9 @@ M.getCacheHash = getCacheHash
 
 M.onDriftEnded = onDriftEnded
 
-init()
-initHooks()
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_SPAWN, onVehicleSpawn)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_EDITED, onVehicleEdited)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_RESET, onVehicleReset)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
 return M

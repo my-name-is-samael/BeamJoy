@@ -150,12 +150,11 @@ M.resetted = resetted
 M.reached = reached
 M.leave = leave
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
 
 M.stop = stop
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-RegisterBJCManager(M)
 return M

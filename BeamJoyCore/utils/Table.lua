@@ -1,18 +1,18 @@
----@class tablelib<any, any> : table
+---@class tablelib: table
 
 ---@type tablelib
 table = table
 
 --- allow to chain "stream" function (ig table.filter({}, function()  end):forEach(function() end))
----@param tab table<any, any>
----@return tablelib<any, any>
+---@param tab table
+---@return tablelib
 local function metatable(tab)
     return setmetatable(tab, { __index = table })
 end
 
 --- Create a table with chained functions
----@param tab? table<any, any>
----@return tablelib<any, any>
+---@param tab? table
+---@return tablelib
 function Table(tab)
     tab = tab or {}
     return metatable(tab)
@@ -45,8 +45,8 @@ table.remove = table.remove
 
 -- RECOVER FROM CLIENT FUNCTIONS
 
----@param tab table<any, any>
----@return tablelib<any, any>
+---@param tab table
+---@return tablelib
 table.clear = table.clear or function(tab)
     if type(tab) ~= "table" then return Table() end
     tab = Table(tab)
@@ -104,13 +104,13 @@ table.foreachi = table.foreachi or function(tab, foreachiFn)
     end
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@return integer
 table.getn = table.getn or function(tab)
     return type(tab) == "table" and #tab or 0
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@return integer|nil
 table.maxn = table.maxn or function(tab)
     return Table(tab)
@@ -127,21 +127,21 @@ end
 
 -- ADD-ONS
 
----@param tab table<any, any>
+---@param tab table
 ---@return boolean
 table.isArray = table.isArray or function(tab)
     return type(tab) == "table" and #tab == Table(tab):length()
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@return boolean
 table.isObject = table.isObject or function(tab)
     return type(tab) == "table" and #tab ~= Table(tab):length()
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@param distinct? boolean
----@return tablelib<any, any>
+---@return tablelib
 table.duplicates = table.duplicates or function(tab, distinct)
     if type(tab) ~= "table" then return Table() end
     if type(distinct) ~= "boolean" then distinct = false end
@@ -157,7 +157,7 @@ table.duplicates = table.duplicates or function(tab, distinct)
     end, { saw = Table(), dup = Table() }).dup
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@return any|nil
 table.random = table.random or function(tab)
     if type(tab) ~= "table" then return nil end
@@ -173,7 +173,7 @@ table.random = table.random or function(tab)
     end, { found = nil, i = 1 }).found
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@param index any
 ---@return integer|string|nil
 table.nextIndex = table.nextIndex or function(tab, index)
@@ -193,10 +193,10 @@ table.nextIndex = table.nextIndex or function(tab, index)
     end, { next = false, found = nil }).found
 end
 
----@param tab1 table<any, any>
----@param tab2 table<any, any>
+---@param tab1 table
+---@param tab2 table
 ---@param distinct? boolean
----@return tablelib<any, any>
+---@return tablelib
 table.addAll = table.addAll or function(tab1, tab2, distinct)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return Table() end
     return Table({ tab1, tab2 })
@@ -212,7 +212,7 @@ table.addAll = table.addAll or function(tab1, tab2, distinct)
 end
 
 --- table.concat only works on arrays, table.join is working on objects too
----@param tab table<any, any>
+---@param tab table
 ---@param sep? string
 ---@param keys? boolean
 table.join = table.join or function(tab, sep, keys)
@@ -230,8 +230,8 @@ table.join = table.join or function(tab, sep, keys)
     end, "")
 end
 
----@param tab table<any, any>
----@return tablelib<any, any>
+---@param tab table
+---@return tablelib
 table.flat = table.flat or function(tab)
     if type(tab) ~= "table" then return Table() end
     return Table(tab):reduce(function(acc, el)
@@ -244,16 +244,17 @@ table.flat = table.flat or function(tab)
     end, Table())
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@param val any
 ---@return any result nil if not found
 table.indexOf = table.indexOf or function(tab, val)
     return Table(tab):reduce(function(acc, el, k) return el == val and k or acc end)
 end
 
----@param target table<any, any>
----@param source table<any, any>
+---@param target table
+---@param source table
 ---@param level? integer
+---@return table
 table.assign = table.assign or function(target, source, level)
     if type(target) ~= "table" or type(source) ~= "table" then return target end
     if type(level) ~= "number" then
@@ -274,6 +275,7 @@ table.assign = table.assign or function(target, source, level)
             target[k] = v
         end
     end
+    return Table(target)
 end
 
 ---@generic K, V, T
@@ -398,7 +400,7 @@ table.find = table.find or function(tab, findFn, callbackFn)
     return nil
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@return integer
 table.length = table.length or function(tab)
     if type(tab) ~= "table" then return 0 end
@@ -427,7 +429,7 @@ table.values = table.values or function(tab)
     end, Table())
 end
 
----@param tab table<any, any>
+---@param tab table
 ---@param el any
 ---@return boolean
 table.includes = table.includes or function(tab, el)
@@ -438,8 +440,8 @@ table.includes = table.includes or function(tab, el)
 end
 table.contains = table.contains or table.includes
 
----@param tab1 table<any, any>
----@param tab2 table<any, any>
+---@param tab1 table
+---@param tab2 table
 ---@param deep? boolean DEFAULT to false
 ---@return boolean
 table.compare = table.compare or function(tab1, tab2, deep)
@@ -463,14 +465,14 @@ table.compare = table.compare or function(tab1, tab2, deep)
     end
     return true
 end
----@param tab1 table<any, any>
----@param tab2 table<any, any>
+---@param tab1 table
+---@param tab2 table
 ---@return boolean
 table.deepcompare = table.deepcompare or function(tab1, tab2)
     return table.compare(tab1, tab2, true)
 end
----@param tab1 table<any, any>
----@param tab2 table<any, any>
+---@param tab1 table
+---@param tab2 table
 ---@return boolean
 table.shallowcompare = table.shallowcompare or function(tab1, tab2)
     return table.compare(tab1, tab2)

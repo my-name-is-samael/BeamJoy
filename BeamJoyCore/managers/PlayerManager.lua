@@ -151,11 +151,15 @@ local function checkJoin(playerID)
     end
 end
 
-function _BJCOnPlayerAuth(name, role, isGuest, identifiers)
+---@param name string
+---@param role string
+---@param isGuest boolean
+---@param identifiers {ip: string, beammp: string}
+local function onPlayerAuth(name, role, isGuest, identifiers)
     addAuthPlayer(name, isGuest, identifiers.ip, identifiers.beammp)
 end
 
-function _BJCOnPlayerConnecting(playerID)
+local function onPlayerConnecting(playerID)
     local playerName = MP.GetPlayerName(playerID)
     if bindAuthPlayer(playerID, playerName) then
         instantiatePlayer(playerID)
@@ -167,10 +171,10 @@ function _BJCOnPlayerConnecting(playerID)
     end
 end
 
-function _BJCOnPlayerJoining(playerID)
+local function onPlayerJoining(playerID)
 end
 
-function _BJCOnPlayerJoin(playerID)
+local function onPlayerJoin(playerID)
     if not M.Players[playerID] then
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
@@ -184,14 +188,14 @@ local function onPlayerConnect(playerID)
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
-        TriggerBJCManagers("onPlayerConnected", playerID, M.Players[playerID].playerName)
+        BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_CONNECTED, playerID)
     else
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
     end
 end
 
-function _BJCOnPlayerDisconnect(playerID)
+local function onPlayerDisconnect(playerID)
     if M.Players[playerID] then
         local playerName = M.Players[playerID].playerName
         M.Players[playerID] = nil
@@ -199,50 +203,9 @@ function _BJCOnPlayerDisconnect(playerID)
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
         BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
-        TriggerBJCManagers("onPlayerDisconnect", playerID, playerName)
+        BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_DISCONNECTED, { playerID = playerID, playerName = playerName })
+        -- TriggerBJCManagers("onPlayerDisconnect", playerID, playerName)
     end
-end
-
-function _BJCOnChatMessage(senderID, name, chatMessage)
-    local player = M.Players[senderID]
-    if not player then
-        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = senderID }))
-        return -1
-    end
-
-    local group = BJCGroups.Data[player.group]
-    if not group then
-        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
-        return -1
-    end
-
-    chatMessage = chatMessage:trim()
-    while chatMessage:find("  ") do -- removing multiple following spaces
-        chatMessage = chatMessage:gsub("  ", " ")
-    end
-
-    -- command
-    if chatMessage:sub(1, 1) == BJCChatCommand.COMMAND_CHAR then
-        pcall(BJCChatCommand.handle, player, chatMessage:sub(2))
-        return -1
-    end
-
-    if player.muted or group.muted then
-        BJCChat.onServerChat(senderID, BJCLang.getServerMessage(senderID, "players.cantSendMessage"))
-        return -1
-    end
-
-    table.insert(player.messages, {
-        time = GetCurrentTime(),
-        message = chatMessage
-    })
-    Log(string.var("OnChatMessage - {1} : {2}", { player.playerName, chatMessage }), "BJCChat")
-    -- send to mods+ players cache invalidation
-    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.PLAYERS, BJCPerm.PERMISSIONS.KICK)
-
-    -- overriden chat
-    BJCChat.onPlayerChat(player.playerName, chatMessage)
-    return -1
 end
 
 local function onVehicleSwitched(senderID, gameVehID)
@@ -398,7 +361,6 @@ end
 
 local function drop(playerID, reason)
     local player = M.Players[playerID]
-    BJCScenario.onPlayerKicked(playerID)
     if type(reason) ~= "string" or #reason == 0 then
         reason = nil
     end
@@ -409,6 +371,7 @@ local function drop(playerID, reason)
             reason = parsed
         end
     end
+    BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_KICKED, playerID)
     MP.DropPlayer(playerID, reason)
     local connected = player.ready
     M.Players[playerID] = nil
@@ -654,14 +617,14 @@ local function deleteVehicle(senderID, targetID, gameVehID)
         end
         MP.RemoveVehicle(targetID, vehID)
         target.vehicles[gameVehID] = nil
-        _BJCOnVehicleDeleted(targetID, vehID)
+        BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
     else
         --remove all player vehicles
         target.currentVehicle = nil
         for vehID in pairs(target.vehicles) do
             MP.RemoveVehicle(targetID, vehID)
             target.vehicles[vehID] = nil
-            _BJCOnVehicleDeleted(targetID, vehID)
+            BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
         end
 
         BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveAll",
@@ -1333,14 +1296,11 @@ M.consoleUnban = consoleUnban
 M.consoleMute = consoleMute
 M.consoleUnmute = consoleUnmute
 
-MP.RegisterEvent("onPlayerAuth", "_BJCOnPlayerAuth")
-MP.RegisterEvent("onPlayerConnecting", "_BJCOnPlayerConnecting")
-MP.RegisterEvent("onPlayerJoining", "_BJCOnPlayerJoining")
-MP.RegisterEvent("onPlayerJoin", "_BJCOnPlayerJoin")
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_AUTH, onPlayerAuth)
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_CONNECTING, onPlayerConnecting)
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_JOINING, onPlayerJoining)
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_JOIN, onPlayerJoin)
 M.onPlayerConnect = onPlayerConnect
-MP.RegisterEvent("onPlayerDisconnect", "_BJCOnPlayerDisconnect")
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
 
-MP.RegisterEvent("onChatMessage", "_BJCOnChatMessage")
-
-RegisterBJCManager(M)
 return M

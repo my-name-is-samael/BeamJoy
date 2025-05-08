@@ -139,6 +139,4 @@ M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 _init()
-
-RegisterBJCManager(M)
 return M

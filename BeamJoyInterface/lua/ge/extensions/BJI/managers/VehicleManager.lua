@@ -11,7 +11,7 @@
 
 ---@class BJIPositionRotation
 ---@field pos vec3
----@field rot quat
+---@field rot? quat
 
 BJI_VEHICLE_TYPES = {
     CAR = "Car",
@@ -472,7 +472,7 @@ local function setPositionRotation(pos, rot, options)
     end
     pos = vec3(pos)
     if not rot then
-        rot = M.getPositionRotation().rot
+        rot = M.getPositionRotation().rot or quat(0, 0, 0, 0)
     else
         rot = quat(rot)
     end

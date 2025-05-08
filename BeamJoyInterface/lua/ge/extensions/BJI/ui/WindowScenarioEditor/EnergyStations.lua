@@ -25,11 +25,7 @@ local function save()
             name = station.name,
             types = table.clone(station.types),
             radius = station.radius,
-            pos = {
-                x = station.pos.x,
-                y = station.pos.y,
-                z = station.pos.z
-            }
+            pos = vec3(station.pos.x, station.pos.y, station.pos.z)
         }))
     end
 

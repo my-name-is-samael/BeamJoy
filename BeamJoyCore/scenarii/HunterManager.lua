@@ -279,7 +279,7 @@ local function onPlayerDisconnect(playerID)
     end
 end
 
-local function postVehicleDeleted(playerID, vehID)
+local function onVehicleDeleted(playerID, vehID)
     if M.state and M.participants[playerID] then
         local needStop = M.state == M.STATES.GAME and M.participants[playerID].hunted
         M.participants[playerID] = nil
@@ -310,10 +310,9 @@ M.start = onStart
 M.rx = onRx
 M.stop = onStop
 
-M.onPlayerDisconnect = onPlayerDisconnect
-M.postVehicleDeleted = postVehicleDeleted
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
 
-RegisterBJCManager(M)
 return M

@@ -206,9 +206,13 @@ function RaceDelay(ms)
     end
 end
 
----@param meter number
+---@param meter? number
 ---@return string
 function PrettyDistance(meter)
+    meter = tonumber(meter)
+    if not meter then
+        return "0m"
+    end
     if settings.getValue("uiUnitLength") == "imperial" then
         local foot = meter * 3.28084
         local miles = foot / 5280
