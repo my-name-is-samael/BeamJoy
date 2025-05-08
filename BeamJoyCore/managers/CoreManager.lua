@@ -120,33 +120,17 @@ local function setMap(mapName)
 
     -- save map
     local newFullName = string.var("{1}{2}{3}", { M._mapFullNamePrefix, mapName, M._mapFullNameSuffix })
-    M.Data.General.Map = newFullName
-    MP.Set(MP.Settings.Map, newFullName)
-    writeServerConfig()
 
-    -- countdown
     local messagesCache = {}
-    for i = 5, 1, -1 do
-        BJCAsync.delayTask(function()
-            for playerID, player in pairs(BJCPlayers.Players) do
-                if not messagesCache[player.lang] then
-                    messagesCache[player.lang] = BJCLang.getServerMessage(player.lang, "mapSwitch.kickIn")
-                end
-                BJCChat.onServerChat(playerID,
-                    messagesCache[player.lang]:var({ delay = PrettyDelay(i) }))
-            end
-        end, 6 - i, string.var("BJCSwitchMapMessage-{1}", { i }))
-    end
-
-    BJCAsync.delayTask(function()
-        -- kick all players
-        local playerIDs = {}
-        for playerID in pairs(BJCPlayers.Players) do
-            table.insert(playerIDs, playerID)
+    CountdownKickAll(6, function(player, delaySec)
+        if not messagesCache[player.lang] then
+            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang, "mapSwitch.kickIn")
         end
-        if #playerIDs > 0 then
-            BJCPlayers.dropMultiple(playerIDs, "mapSwitch.kick")
-        end
+        return messagesCache[player.lang]:var({ delay = PrettyDelay(delaySec) })
+    end, "mapSwitch.kick", function()
+        M.Data.General.Map = newFullName
+        MP.Set(MP.Settings.Map, newFullName)
+        writeServerConfig()
 
         if currentMap and targetMap and
             (currentMap.custom or targetMap.custom) and
@@ -154,10 +138,9 @@ local function setMap(mapName)
             -- if current or target is custom and not from the same mod, a reboot is mandatory
             Exit()
         else
-            -- reload scenarii
             BJCScenario.reload()
         end
-    end, 6, "BJCSwitchMap")
+    end)
 end
 
 local function consoleSetMap(args)
@@ -271,45 +254,20 @@ end
 
 local stopDelay = 10
 local function stop()
-    if table.length(BJCPlayers.Players) > 0 then
-        -- countdown
-        local messagesCache = {}
-        for i = stopDelay, 1, -1 do
-            BJCAsync.delayTask(function()
-                if table.length(BJCPlayers.Players) == 0 then
-                    for j = 1, stopDelay do BJCAsync.removeTask(string.var("BJCStopMessage-{1}", { j })) end
-                    Exit()
-                else
-                    for playerID, player in pairs(BJCPlayers.Players) do
-                        if not messagesCache[player.lang] then
-                            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
-                                "broadcast.serverStopsIn")
-                        end
-                        BJCChat.onServerChat(playerID,
-                            messagesCache[player.lang]:var({ delay = PrettyDelay(i) }))
-                    end
-                end
-                if i == 1 then
-                    BJCAsync.delayTask(function()
-                        -- kick all players
-                        local playerIDs = {}
-                        for playerID in pairs(BJCPlayers.Players) do
-                            table.insert(playerIDs, playerID)
-                        end
-                        if #playerIDs > 0 then
-                            BJCPlayers.dropMultiple(playerIDs, "broadcast.serverStopped")
-                        end
-                        Exit()
-                    end, 1, "BJCStopServer")
-                end
-            end, stopDelay + 1 - i, string.var("BJCStopMessage-{1}", { i }))
-        end
-
-        return BJCLang.getConsoleMessage("command.stopIn"):var({ seconds = stopDelay })
-    else
+    if MP.GetPlayerCount() == 0 then
         Exit()
         return BJCLang.getConsoleMessage("command.stop")
     end
+    local messagesCache = {}
+    CountdownKickAll(stopDelay, function(player, delaySec)
+        if not messagesCache[player.lang] then
+            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
+                "broadcast.serverStopsIn")
+        end
+        return messagesCache[player.lang]:var({ delay = PrettyDelay(delaySec) })
+    end, "broadcast.serverStopped", Exit)
+
+    return BJCLang.getConsoleMessage("command.stopIn"):var({ seconds = stopDelay })
 end
 
 local function getCache()

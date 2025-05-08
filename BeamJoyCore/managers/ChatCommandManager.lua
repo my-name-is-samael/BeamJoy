@@ -3,6 +3,22 @@ local M = {
     commands = {},
 }
 
+---@param msg string
+---@return string
+local function sanitizeMessage(msg)
+    msg = msg:trim()
+    while msg:find("  ") do -- removing multiple following spaces
+        msg = msg:gsub("  ", " ")
+    end
+    return msg
+end
+
+---@param msg string
+---@return boolean
+local function isCommand(msg)
+    return msg:startswith(M.COMMAND_CHAR)
+end
+
 local function findCommand(sender, cmd, excludedCmds)
     local found
     for _, command in ipairs(M.commands) do
@@ -224,6 +240,8 @@ local function handle(sender, commandStr)
     found.exec(sender, args)
 end
 
+M.sanitizeMessage = sanitizeMessage
+M.isCommand = isCommand
 M.handle = handle
 
 local function onInit()

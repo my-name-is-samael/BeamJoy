@@ -518,7 +518,7 @@ function M.getCacheHash()
     })
 end
 
-function M.onPlayerDisconnect(playerID)
+local function onPlayerDisconnect(playerID)
     Table({ {
         cond = kickStarted,
         fn = M.Kick.onPlayerDisconnect,
@@ -532,9 +532,9 @@ function M.onPlayerDisconnect(playerID)
         cond = speedStarted,
         fn = M.Speed.onPlayerDisconnect,
     } })
-        :map(function(el) return el.cond() end)
+        :filter(function(el) return el.cond() end)
         :forEach(function(el) el.fn(playerID) end)
 end
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
 
-RegisterBJCManager(M)
 return M

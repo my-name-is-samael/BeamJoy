@@ -53,15 +53,11 @@ for k, v in pairs(BJC_EVENTS) do
     end
 end
 
-local retrievingEvents = {}
-local function tryFinalizeEvent(id)
-    local event = retrievingEvents[id]
-    if event and BJCPlayers.Players[event.senderID] then
-        if event.parts > #event.data or not event.controller then
-            -- not ready yet
-            return
-        end
-
+---@type table<string, {senderID: integer, created: integer, parts?: integer, controller?: string, endpoint?: string, data?: table}>
+local _queue = Table()
+local function finalizeCommunication(id)
+    local event = _queue[id]
+    if event and event.parts and event.parts == #event.data then
         local rawData = table.join(event.data)
         rawData = #rawData > 0 and JSON.parse(rawData) or {}
         local ctxt = {
@@ -107,10 +103,8 @@ local function tryFinalizeEvent(id)
         else
             logAndToastError(ctxt.sender, "rx.errors.invalidEvent", { eventName = ctxt.event })
         end
-        BJCAsync.removeTask(string.var("BJCRxEventTimeout-{1}", { id }))
+        _queue[id] = nil
     end
-
-    retrievingEvents[id] = nil
 end
 
 function _BJCRxEvent(senderID, dataSent)
@@ -121,31 +115,22 @@ function _BJCRxEvent(senderID, dataSent)
         return
     end
 
-    local event = retrievingEvents[data.id]
-    if event then
-        event.senderID = senderID
-        event.parts = data.parts
-        event.controller = data.controller
-        event.endpoint = data.endpoint
-        if not event.data then
-            event.data = {}
-        end
-    else
-        retrievingEvents[data.id] = {
+    if _queue[data.id] then
+        table.assign(_queue[data.id], {
             senderID = senderID,
             parts = data.parts,
             controller = data.controller,
             endpoint = data.endpoint,
-            data = {},
+        })
+    else
+        _queue[data.id] = {
+            senderID = senderID,
+            created = GetCurrentTime(),
+            parts = data.parts,
+            controller = data.controller,
+            endpoint = data.endpoint,
+            data = Table(),
         }
-    end
-    if data.parts == 0 then
-        tryFinalizeEvent(data.id)
-    end
-    if retrievingEvents[data.id] then
-        BJCAsync.delayTask(function()
-            retrievingEvents[data.id] = nil
-        end, 30, string.var("BJCRxEventTimeout-{1}", { data.id }))
     end
 end
 
@@ -157,26 +142,30 @@ function _BJCRxEventParts(senderID, dataSent)
         return
     end
 
-    local event = retrievingEvents[data.id]
-    if event then
-        if event.data then
-            event.data[data.part] = data.data
-        else
-            event.data = { [data.part] = data.data }
-        end
+    if _queue[data.id] then
+        _queue[data.id].data = table.assign(_queue[data.id].data or {}, {
+            [data.part] = data.data
+        })
     else
-        retrievingEvents[data.id] = {
+        _queue[data.id] = {
             senderID = senderID,
-            data = { [data.part] = data.data }
+            created = GetCurrentTime(),
+            data = Table({ [data.part] = data.data })
         }
     end
-    tryFinalizeEvent(data.id)
-    if retrievingEvents[data.id] then
-        BJCAsync.delayTask(function()
-            retrievingEvents[data.id] = nil
-        end, 30, string.var("BJCRxEventTimeout-{1}", { data.id }))
-    end
 end
+
+BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, function(time)
+    _queue:forEach(function(el, id)
+        if el.parts and el.parts == #el.data then
+            finalizeCommunication(id)
+        elseif el.created + 30 < time then
+            LogError(string.var("Communication timed out : {1} - {2}.{3}", { el.senderID, el.controller, el.endpoint }),
+                logTag)
+            _queue[id] = nil
+        end
+    end)
+end)
 
 MP.RegisterEvent(BJC_EVENTS.SERVER_EVENT, "_BJCRxEvent")
 MP.RegisterEvent(BJC_EVENTS.SERVER_EVENT_PARTS, "_BJCRxEventParts")

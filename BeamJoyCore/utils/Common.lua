@@ -39,7 +39,7 @@ FS = FS or {
     Remove = function(path) end,
 }
 Util = Util or {}
-Exit = exit or function() end
+Exit = exit or function() end ---@diagnostic disable-line
 -------------------------------------------------------------------------
 
 CONSOLE_COLORS = {
@@ -306,8 +306,7 @@ function RaceDelay(ms)
     end
 end
 
--- TIMER
-
+---@return Timer
 function TimerCreate()
     return {
         _timer = MP.CreateTimer(),
@@ -319,4 +318,46 @@ function TimerCreate()
             self._timer:Start()
         end
     }
+end
+
+---@param delaySec integer 2-60
+---@param getMessage fun(player: table, delaySec: integer): string
+---@param kickReasonKey string
+---@param callback? fun()
+function CountdownKickAll(delaySec, getMessage, kickReasonKey, callback)
+    delaySec = math.clamp(tonumber(delaySec) or 2, 2, 60)
+    if MP.GetPlayerCount() == 0 then
+        MP.Sleep(500)
+        if callback then callback() end
+        return
+    end
+
+    local asyncKey = "CountdownKickAll-{1}"
+    if BJCAsync.exists(asyncKey:var({ 1 })) then
+        Range(1, 60):forEach(function(i)
+            BJCAsync.removeTask(asyncKey:var({ i }))
+        end)
+    end
+
+    Range(delaySec - 1, 1)
+        :forEach(function(i)
+            BJCAsync.delayTask(function()
+                if MP.GetPlayerCount() == 0 then
+                    Range(1, delaySec):forEach(function(j)
+                        BJCAsync.removeTask(asyncKey:var({ j }))
+                    end)
+                    if callback then callback() end
+                else
+                    Table(BJCPlayers.Players):forEach(function(player, playerID)
+                        BJCChat.onServerChat(playerID, getMessage(player, i))
+                    end)
+                end
+            end, delaySec - i, asyncKey:var({ i }))
+        end)
+    BJCAsync.delayTask(function()
+        if MP.GetPlayerCount() > 0 then
+            BJCPlayers.dropMultiple(Table(BJCPlayers.Players):keys(), kickReasonKey)
+        end
+        if callback then callback() end
+    end, delaySec, asyncKey:var({ delaySec }))
 end

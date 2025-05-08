@@ -235,6 +235,4 @@ M.getCacheHash = getCacheHash
 M.tickTime = tickTime
 
 init()
-
-RegisterBJCManager(M)
 return M

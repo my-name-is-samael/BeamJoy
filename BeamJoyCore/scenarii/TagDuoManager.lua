@@ -22,6 +22,16 @@ local M = {
     }
 }]]
 
+local function getCache()
+    return {
+        lobbies = M.lobbies
+    }, M.getCacheHash()
+end
+
+local function getCacheHash()
+    return Hash({ M.lobbies })
+end
+
 -- stops all lobbies for an incoming server scenario
 local function stop()
     M.lobbies = {}
@@ -152,30 +162,14 @@ local function onClientLeave(senderID)
     end
 end
 
-local function onPlayerDisconnect(targetID)
-    onClientLeave(targetID)
-end
-
-local function getCache()
-    return {
-        lobbies = M.lobbies
-    }, M.getCacheHash()
-end
-
-local function getCacheHash()
-    return Hash({ M.lobbies })
-end
-
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 M.onClientJoin = onClientJoin
 M.onClientUpdate = onClientUpdate
 M.onClientLeave = onClientLeave
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onClientLeave)
 
 M.stop = stop
 
-
-RegisterBJCManager(M)
 return M

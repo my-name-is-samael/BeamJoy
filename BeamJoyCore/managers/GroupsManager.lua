@@ -264,6 +264,4 @@ M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 init()
-
-RegisterBJCManager(M)
 return M

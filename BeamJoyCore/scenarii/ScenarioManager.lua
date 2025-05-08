@@ -664,14 +664,6 @@ local function stopServerScenarii()
     M.TagDuoManager.stop()
 end
 
-local function onPlayerKicked(targetID)
-    if isServerScenarioInProgress() then
-        if not not M.RaceManager.state then
-            M.RaceManager.onPlayerDisconnect(targetID)
-        end
-    end
-end
-
 local function canSpawnVehicle(playerID, vehID, vehData)
     if M.RaceManager.state then
         -- RACE IN PROGRESS
@@ -752,28 +744,18 @@ local function canWalk(playerID)
 end
 
 local function onVehicleDeleted(playerID, vehID)
-    if M.RaceManager.state then
-        -- RACE IN PROGRESS
-        M.RaceManager.postVehicleDeleted(playerID, vehID)
-    elseif M.HunterManager.state then
-        -- HUNTER IN PROGRESS
-        M.HunterManager.postVehicleDeleted(playerID, vehID)
-    elseif M.SpeedManager.startTime then
-        -- SPEED IN PROGRESS
-        M.SpeedManager.postVehicleDeleted(playerID, vehID)
-    else
-        if BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
-            -- SOLO SCENARIO
-            if table.includes({
-                    BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
-                    BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
-                }, BJCPlayers.Players[playerID].scenario) then
-                BJCTx.scenario.DeliveryStop(playerID)
-            end
-            BJCPlayers.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
-        else
-            -- FREEROAM
+    if not isServerScenarioInProgress() and
+        BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
+        -- SOLO SCENARIO
+        if table.includes({
+                BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
+                BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
+            }, BJCPlayers.Players[playerID].scenario) then
+            BJCTx.scenario.DeliveryStop(playerID)
         end
+        BJCPlayers.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
+    else
+        -- FREEROAM
     end
 end
 
@@ -811,15 +793,13 @@ M.saveDerbyArenas = saveDerbyArenas
 
 M.isServerScenarioInProgress = isServerScenarioInProgress
 M.stopServerScenarii = stopServerScenarii
-M.onPlayerKicked = onPlayerKicked
 M.canSpawnVehicle = canSpawnVehicle
 M.canEditVehicle = canEditVehicle
 M.canWalk = canWalk
 
-M.onVehicleDeleted = onVehicleDeleted
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
 M.reload = reload
 reload()
 
-RegisterBJCManager(M)
 return M

@@ -6,7 +6,7 @@ local M = {
     COMMANDS = {}
 }
 
-function M.addCommand(cmd, fnName)
+local function addCommand(cmd, fnName)
     if not cmd or not fnName or cmd:find(" ") then
         LogError(BJCLang.getConsoleMessage("errors.invalidCommandData"), logTag)
         return
@@ -194,7 +194,7 @@ local function overrideDefaultCommands(message)
     end
 end
 
-function _OnConsoleInput(message)
+local function onConsoleInput(message)
     if message:sub(1, #M.commandPrefix) ~= M.commandPrefix then
         -- not bj command
         return overrideDefaultCommands(message)
@@ -241,7 +241,7 @@ function _OnConsoleInput(message)
 end
 
 local function _init()
-    MP.RegisterEvent("onConsoleInput", "_OnConsoleInput")
+    BJCEvents.addListener(BJCEvents.EVENTS.CONSOLE_INPUT, onConsoleInput)
 
     -- Registering Console Commands
     M.addCommand("lang", "BJCCore.consoleSetLang")
@@ -259,6 +259,8 @@ local function _init()
 
     M.addCommand("stop", "BJCCore.stop")
 end
+
+M.addCommand = addCommand
 _init()
 
 return M
