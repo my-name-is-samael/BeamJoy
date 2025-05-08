@@ -37,26 +37,12 @@ local function initWindows()
     M.register({
         name = "BJIEvents",
         showConditionFn = function()
-            local votes = {}
-
-            local showVoteKick = BJIVote.Kick.started()
-            table.insert(votes, showVoteKick)
-
-            local showVoteMap = BJIVote.Map.started()
-            table.insert(votes, showVoteMap)
-
-            local showRacePreparation = BJIVote.Race.started()
-            table.insert(votes, showRacePreparation)
-
-            local showSpeedPreparation = BJIVote.Speed.started()
-            table.insert(votes, showSpeedPreparation)
-
-            for i = 1, #votes do
-                while votes[i] == false do
-                    table.remove(votes, i)
-                end
-            end
-            return #votes > 0
+            return Table({
+                BJIVote.Kick.started,
+                BJIVote.Map.started,
+                BJIVote.Race.started,
+                BJIVote.Speed.started,
+            }):reduce(function(acc, fn) return acc or fn() end, false)
         end,
         draw = require("ge/extensions/BJI/ui/WindowEvents/DrawWindowEvents"),
         w = 480,

@@ -1,27 +1,16 @@
-local function draw(ctxt)
+return function(ctxt, cache)
     local vk = BJIVote.Kick
-    local creator = BJIContext.Players[vk.creatorID]
-    local creatorName = creator and creator.playerName or BJILang.get("common.unknown")
-    local target = BJIContext.Players[vk.targetID]
-    local targetName = target and target.playerName or BJILang.get("common.unknown")
 
     LineBuilder()
-        :text(creatorName,
-            BJIContext.User.playerID == vk.creatorID and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-        :text(BJILang.get("votekick.hasStarted"))
-        :text(targetName,
-            BJIContext.User.playerID == vk.targetID and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+        :text(cache.creator, ctxt.user.playerID == vk.creatorID and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+        :text(cache.hasStarted)
+        :text(cache.target, ctxt.user.playerID == vk.targetID and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
         :build()
-    local delayLabel
     local remainingTime = vk.endsAt - ctxt.now
-    if remainingTime < 1000 then
-        delayLabel = BJILang.get("votekick.voteAboutToEnd")
-    else
-        delayLabel = BJILang.get("votekick.voteTimeout")
-            :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
-    end
+    local delayLabel = remainingTime < 1000 and cache.aboutEnd or cache.timeout
+        :var({ delay = PrettyDelay(math.floor(remainingTime / 1000)) })
     LineBuilder()
-        :text(string.var("{1}/{2}", { vk.amountVotes, vk.threshold }))
+        :text(cache.votes)
         :text(delayLabel)
         :build()
     local line = LineBuilder()
@@ -29,8 +18,12 @@ local function draw(ctxt)
             id = "voteKick",
             icon = vk.selfVoted and ICONS.event_busy or ICONS.event_available,
             state = not vk.selfVoted,
+            disabled = cache.voteDisabled,
             onClick = function()
+                cache.voteDisabled = true
                 BJITx.votekick.vote()
+                vk.selfVoted = not vk.selfVoted
+                vk.amountVotes = vk.amountVotes + (vk.selfVoted and 1 or -1)
             end
         })
     if BJIPerm.isStaff() then
@@ -38,9 +31,12 @@ local function draw(ctxt)
             id = "stopVoteKick",
             icon = ICONS.cancel,
             style = BTN_PRESETS.ERROR,
-            onClick = BJITx.votekick.stop,
+            disabled = cache.stopDisabled,
+            onClick = function()
+                cache.stopDisabled = true
+                BJITx.votekick.stop()
+            end,
         })
     end
     line:build()
 end
-return draw

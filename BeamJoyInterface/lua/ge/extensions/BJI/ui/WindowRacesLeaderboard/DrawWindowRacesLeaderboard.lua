@@ -138,10 +138,10 @@ local function updateCache(ctxt)
     end)
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     updateLabels()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
@@ -150,7 +150,7 @@ local function onLoad()
     end))
 
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.RACE_NEW_PB,
         BJIEvents.EVENTS.UI_SCALE_CHANGED,
@@ -164,7 +164,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function header()

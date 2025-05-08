@@ -140,7 +140,7 @@ local function sanitizeMapRacesPBs()
     end
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     ---@param parent table
     ---@param storageKey string
@@ -184,7 +184,7 @@ local function onLoad()
     BJIAsync.task(function()
         return not not BJIContext.Scenario.Data.Races
     end, sanitizeMapRacesPBs)
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({ BJICache.CACHES.RACES }, data.cache) then
             sanitizeMapRacesPBs()
         end
@@ -192,7 +192,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 ---@param key LocalStorageElement

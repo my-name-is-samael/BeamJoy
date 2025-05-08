@@ -96,9 +96,13 @@ end
 -- load hook
 local function onLoad(ctxt)
     BJIVehSelector.tryClose(true)
-    BJIVeh.saveCurrentVehicle()
-    BJIVeh.deleteAllOwnVehicles()
-    BJIAI.removeVehicles()
+    if ctxt.veh then
+        BJIVeh.saveCurrentVehicle()
+    end
+    if table.length(ctxt.user.vehicles) > 0 then
+        BJIVeh.deleteAllOwnVehicles()
+        BJIAI.removeVehicles()
+    end
     BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
     BJIQuickTravel.toggle(false)
     BJIRaceWaypoint.resetAll()
@@ -665,88 +669,86 @@ local function showSpecWaypoints()
 end
 
 local function initRace(data)
-    BJIVehSelector.tryClose(true)
+    local ctxt = BJITick.getContext()
+
     parseRaceData(data.steps)
-    M.race.lap = 1
-    M.race.waypoint = 0
-    M.lapData = {}
 
-    if M.settings.laps and M.settings.laps > 1 then
-        BJIRaceUI.setLap(M.race.lap, M.settings.laps)
+    -- freshly joined players (auto spec)
+    if not M.state and M.race.startTime < ctxt.now then
+        BJIScenario.switchScenario(BJIScenario.TYPES.RACE_MULTI)
+        showSpecWaypoints()
+        M.race.timers.race = TimerCreate()
+        M.race.timers.raceOffset = math.round(ctxt.now - M.race.startTime)
+        return
     end
-    BJIRaceUI.setWaypoint(M.race.waypoint, M.race.raceData.wpPerLap)
 
-    if M.race.startTime > GetCurrentTimeMillis() then
+    BJIVehSelector.tryClose(true)
+    if M.isParticipant() then
+        M.race.lap = 1
+        M.race.waypoint = 0
+        M.lapData = {}
+
+        if M.settings.laps and M.settings.laps > 1 then
+            BJIRaceUI.setLap(M.race.lap, M.settings.laps)
+        end
+        BJIRaceUI.setWaypoint(M.race.waypoint, M.race.raceData.wpPerLap)
+    end
+
+    if M.race.startTime > ctxt.now then
         BJIMessage.flashCountdown("BJIRaceStart", M.race.startTime, true,
             BJILang.get("races.play.flashCountdownZero"), 5, nil, true)
     end
 
     -- 3secs before start
-    BJIAsync.programTask(function(ctxt)
-        if M.state then
-            if M.isSpec() then
-                -- spec
-                if not BJIVeh.getCurrentVehicle() then
-                    specRandomRacer()
-                end
-                if ctxt.camera == BJICam.CAMERAS.FREE then
-                    BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-                end
-            else
-                -- participant
-                if M.preRaceCam then
-                    if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
-                        BJICam.setCamera(M.preRaceCam)
-                    end
-                end
-
-                if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
-                    local pos = table.indexOf(M.grid.participants, BJIContext.User.playerID)
-                    local posrot = M.grid.startPositions[pos]
-                    M.race.lastStand = { step = 0, pos = posrot.pos, rot = posrot.rot }
-                end
-
-                BJIVeh.saveHome()
-            end
-        end
-    end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
-
-    if M.state and M.isParticipant() then
-        -- players
-        initWaypoints()
-        -- enable waypoints before start to avoid stutter
+    if M.isParticipant() then
         BJIAsync.programTask(function()
-            if M.isParticipant() and M.state then
-                -- players
-                BJIRaceWaypoint.startRace()
+            if M.preRaceCam then
+                if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
+                    BJICam.setCamera(M.preRaceCam)
+                end
             end
-        end, M.race.startTime - 500, "BJIRaceStartWaypoints")
-    else
-        -- specs and freshly joined players (specs too)
-        showSpecWaypoints()
+
+            if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
+                local pos = table.indexOf(M.grid.participants, BJIContext.User.playerID)
+                local posrot = M.grid.startPositions[pos]
+                M.race.lastStand = { step = 0, pos = posrot.pos, rot = posrot.rot }
+            end
+
+            BJIVeh.saveHome()
+            initWaypoints()
+        end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
     end
 
+    -- enable waypoints before start to avoid stutter
+    BJIAsync.programTask(function()
+        if M.isParticipant() then
+            -- players
+            BJIRaceWaypoint.startRace()
+        else
+            -- specs
+            showSpecWaypoints()
+        end
+    end, M.race.startTime - 500, "BJIRaceStartWaypoints")
+
     -- on start
-    BJIAsync.programTask(function(ctxt)
-        if M.state then
-            M.race.timers.race = TimerCreate()
-            M.race.timers.raceOffset = math.round(ctxt.now - M.race.startTime)
-            if math.abs(M.race.timers.raceOffset) < 100 then
-                M.race.timers.raceOffset = 0
-            end
-            if not M.isSpec() then
-                BJIVeh.freeze(false)
-                M.race.timers.lap = TimerCreate()
-                if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-                    local restrictions = BJIRestrictions.TYPES.LOAD_HOME
-                    if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-                        restrictions = {
-                            BJIRestrictions.TYPES.RECOVER_VEHICLE,
-                            BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
-                        }
-                    end
-                    BJIRestrictions.updateReset(restrictions)
+    BJIAsync.programTask(function(ctxt2)
+        M.race.timers.race = TimerCreate()
+        M.race.timers.raceOffset = math.round(ctxt2.now - M.race.startTime)
+        if math.abs(M.race.timers.raceOffset) < 100 then
+            M.race.timers.raceOffset = 0
+        end
+        if M.isParticipant() then
+            BJIVeh.freeze(false)
+            M.race.timers.lap = TimerCreate()
+            if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+                local restrictions = BJIRestrictions.TYPES.LOAD_HOME
+                if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+                    restrictions = {
+                        BJIRestrictions.TYPES.RECOVER_VEHICLE,
+                        BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
+                    }
                 end
+                BJIRestrictions.updateReset(restrictions)
             end
         end
         BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
@@ -812,10 +814,9 @@ local function rxData(data)
         if data.state == M.STATES.GRID then
             if not M.state then
                 initGrid(data)
-            elseif M.state == data.state then
+            elseif M.state == M.STATES.GRID then
                 local isParticipant = table.includes(data.participants, BJIContext.User.playerID)
                 local isReady = table.includes(data.ready, BJIContext.User.playerID)
-
                 if not wasParticipant and isParticipant then
                     onJoinGridParticipants()
                 elseif wasParticipant and not isParticipant then
@@ -827,15 +828,12 @@ local function rxData(data)
         elseif data.state == M.STATES.RACE then
             if not M.state or M.state == M.STATES.GRID then
                 initRace(data)
-            elseif M.state >= data.state then
+            elseif M.state == M.STATES.RACE then
                 updateRace()
             end
         elseif data.state == M.STATES.FINISHED then
-            if M.state == M.STATES.RACE then
-                initRaceFinish()
-            end
+            initRaceFinish()
         end
-
         M.state = data.state
     elseif M.state then
         M.stopRace()

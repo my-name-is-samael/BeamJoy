@@ -13,6 +13,13 @@
 ---@field pos vec3
 ---@field rot quat
 
+BJI_VEHICLE_TYPES = {
+    CAR = "Car",
+    TRUCK = "Truck",
+    TRAILER = "Trailer",
+    PROP = "Prop",
+}
+
 local M = {
     _name = "BJIVeh",
     baseFunctions = {},
@@ -698,7 +705,7 @@ local function saveCurrentVehicle()
         if not veh then
             local gameVehID
             for _, v in pairs(BJIContext.User.vehicles) do
-                if not table.includes({ "Trailer", "Prop" }, M.getType(v.model)) then
+                if not table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP }, M.getType(v.model)) then
                     gameVehID = v.gameVehID
                     break
                 end
@@ -776,6 +783,8 @@ local function getFullConfig(config)
     end
 end
 
+---@param model string
+---@return string?
 local function getType(model)
     if not M.allVehicleConfigs then
         M.getAllVehicleConfigs()
@@ -866,7 +875,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     for _, veh in ipairs(vehs) do
         if veh.model then
             local isVeh = true -- Truck | Car
-            if table.includes({ "Trailer", "Prop" }, veh.model.Type) then
+            if table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP }, veh.model.Type) then
                 isVeh = false
             end
 
@@ -881,9 +890,9 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             local target
             if isVeh then
                 target = vehicles
-            elseif veh.model.Type == "Trailer" then
+            elseif veh.model.Type == BJI_VEHICLE_TYPES.TRAILER then
                 target = trailers
-            elseif veh.model.Type == "Prop" then
+            elseif veh.model.Type == BJI_VEHICLE_TYPES.PROP then
                 target = props
             end
             local brandPrefix = ""

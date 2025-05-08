@@ -523,10 +523,10 @@ local function updateCache(ctxt)
     menuDerby(ctxt)
 end
 
-local listeners = {}
+local listeners = Table()
 function M.onLoad()
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.ENV_CHANGED,
@@ -536,7 +536,7 @@ function M.onLoad()
     }, updateCache))
 
     ---@param data {cache: string}
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({
                 BJICache.CACHES.BJC,
                 BJICache.CACHES.MAPS,
@@ -553,9 +553,7 @@ function M.onLoad()
 end
 
 function M.onUnload()
-    for _, id in ipairs(listeners) do
-        BJIEvents.removeListener(id)
-    end
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 return M

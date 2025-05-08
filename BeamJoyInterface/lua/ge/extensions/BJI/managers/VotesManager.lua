@@ -22,6 +22,7 @@ function M.Kick.onLoad()
             M.Kick.amountVotes = cacheData.Kick.voters and table.length(cacheData.Kick.voters) or 0
             M.Kick.selfVoted = cacheData.Kick.voters and
                 table.includes(cacheData.Kick.voters, BJIContext.User.playerID) or false
+            BJIEvents.trigger(BJIEvents.EVENTS.VOTE_UPDATED)
         end
     end)
 end
@@ -78,6 +79,7 @@ function M.Map.onLoad()
             M.Map.amountVotes = cacheData.Map.voters and table.length(cacheData.Map.voters) or 0
             M.Map.selfVoted = cacheData.Map.voters and
                 table.includes(cacheData.Map.voters, BJIContext.User.playerID) or false
+            BJIEvents.trigger(BJIEvents.EVENTS.VOTE_UPDATED)
         end
     end)
 end
@@ -147,6 +149,7 @@ function M.Race.onLoad()
             M.Race.amountVotes = cacheData.Race.voters and table.length(cacheData.Race.voters) or 0
             M.Race.selfVoted = cacheData.Race.voters and
                 table.includes(cacheData.Race.voters, BJIContext.User.playerID) or false
+            BJIEvents.trigger(BJIEvents.EVENTS.VOTE_UPDATED)
         end
     end)
 end
@@ -183,8 +186,9 @@ function M.Speed.onLoad()
         if cacheData.Speed then
             M.Speed.creatorID = cacheData.Speed.creatorID
             M.Speed.isEvent = not cacheData.Speed.isVote
-            M.Speed.endsAt = cacheData.Speed.endsAt
+            M.Speed.endsAt = BJITick.applyTimeOffset(cacheData.Speed.endsAt)
             M.Speed.participants = cacheData.Speed.participants
+            BJIEvents.trigger(BJIEvents.EVENTS.VOTE_UPDATED)
         end
     end)
 end
@@ -212,10 +216,10 @@ end
 
 local function slowTick(ctxt)
     if M.Speed.started() then
+        -- autojoin on event
         if M.Speed.isEvent and
             not M.Speed.participants[BJIContext.User.playerID] and
             ctxt.isOwner then
-            -- autojoin on event
             BJITx.scenario.SpeedJoin(ctxt.veh:getID())
         end
 

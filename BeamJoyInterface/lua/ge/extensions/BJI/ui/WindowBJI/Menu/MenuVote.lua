@@ -173,10 +173,10 @@ local function updateCache(ctxt)
     menuSpeed(ctxt)
 end
 
-local listeners = {}
+local listeners = Table()
 function M.onLoad()
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.LANG_CHANGED,
@@ -185,7 +185,7 @@ function M.onLoad()
     }, updateCache))
 
     ---@param data {cache: string}
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({
                 BJICache.CACHES.VOTE,
                 BJICache.CACHES.PLAYERS,
@@ -200,9 +200,7 @@ function M.onLoad()
 end
 
 function M.onUnload()
-    for _, id in ipairs(listeners) do
-        BJIEvents.removeListener(id)
-    end
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 return M

@@ -16,6 +16,7 @@
 ---@class quat: point
 ---@field z number
 ---@field w number
+---@field inversed fun(self: quat): quat
 
 ---@param value number
 ---@param fromMin number

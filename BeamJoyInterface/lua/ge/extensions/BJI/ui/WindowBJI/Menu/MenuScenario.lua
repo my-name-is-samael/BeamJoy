@@ -452,10 +452,10 @@ local function updateCache(ctxt)
     end
 end
 
-local listeners = {}
+local listeners = Table()
 function M.onLoad()
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.PLAYER_CONNECT,
         BJIEvents.EVENTS.PLAYER_DISCONNECT,
         BJIEvents.EVENTS.VEHICLE_SPAWNED,
@@ -468,13 +468,15 @@ function M.onLoad()
     }, updateCache))
 
     ---@param data {cache: string}
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({
                 BJICache.CACHES.RACES,
                 BJICache.CACHES.DELIVERIES,
                 BJICache.CACHES.BUS_LINES,
                 BJICache.CACHES.HUNTER_DATA,
+                BJICache.CACHES.HUNTER,
                 BJICache.CACHES.DERBY_DATA,
+                BJICache.CACHES.DERBY,
             }, data.cache) then
             updateCache(ctxt)
         end
@@ -482,9 +484,7 @@ function M.onLoad()
 end
 
 function M.onUnload()
-    for _, id in ipairs(listeners) do
-        BJIEvents.removeListener(id)
-    end
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 return M
