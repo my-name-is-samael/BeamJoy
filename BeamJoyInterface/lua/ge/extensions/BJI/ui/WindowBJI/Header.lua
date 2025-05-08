@@ -120,13 +120,13 @@ local function updateCache(ctxt)
     updateLabels()
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     updateCache()
 
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.LANG_CHANGED, updateLabels))
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.UI_SCALE_CHANGED, updateWidths))
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.LANG_CHANGED, updateLabels))
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
         BJIEvents.EVENTS.NAMETAGS_VISIBILITY_CHANGED,
@@ -136,11 +136,11 @@ local function onLoad()
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.PERMISSION_CHANGED,
     }, updateCacheData))
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.UI_UPDATE_REQUEST, updateCache))
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.UI_UPDATE_REQUEST, updateCache))
 end
 
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function draw(ctxt)

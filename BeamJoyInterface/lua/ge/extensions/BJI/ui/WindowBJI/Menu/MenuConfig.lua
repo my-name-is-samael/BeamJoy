@@ -113,10 +113,10 @@ local function updateCache(ctxt)
     menuStopServer(ctxt)
 end
 
-local listeners = {}
+local listeners = Table()
 function M.onLoad()
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.PERMISSION_CHANGED,
         BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
         BJIEvents.EVENTS.LANG_CHANGED,
@@ -125,9 +125,7 @@ function M.onLoad()
 end
 
 function M.onUnload()
-    for _, id in ipairs(listeners) do
-        BJIEvents.removeListener(id)
-    end
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 return M

@@ -262,7 +262,7 @@ Scenarios have their own rules, here is the complete respawns guide by scenario 
   - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to become the last player alive.
 
 For reference, here is the BeamJoy handled respawns list with default bindings:
-- __RecoverVehicle__ : Keyboard `R` by default | Controller `Dpad left` by default
+- __RecoverVehicle__ : Keyboard `Insert` by default | Controller `Dpad left` by default
 - __RecoverVehicleAlt__ : Keyboard `Ctrl + Insert` by default | not assigned by default on Controller
 - __LoadHome__ : Keyboard `Home` by default | not assigned by default on Controller
 

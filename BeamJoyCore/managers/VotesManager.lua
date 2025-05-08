@@ -519,21 +519,21 @@ function M.getCacheHash()
 end
 
 function M.onPlayerDisconnect(playerID)
-    if kickStarted() then
-        M.Kick.onPlayerDisconnect(playerID)
-    end
-
-    if mapStarted() then
-        M.Map.onPlayerDisconnect(playerID)
-    end
-
-    if raceStarted() then
-        M.Race.onPlayerDisconnect(playerID)
-    end
-
-    if speedStarted() then
-        M.Speed.onPlayerDisconnect(playerID)
-    end
+    Table({ {
+        cond = kickStarted,
+        fn = M.Kick.onPlayerDisconnect,
+    }, {
+        cond = mapStarted,
+        fn = M.Map.onPlayerDisconnect,
+    }, {
+        cond = raceStarted,
+        fn = M.Race.onPlayerDisconnect,
+    }, {
+        cond = speedStarted,
+        fn = M.Speed.onPlayerDisconnect,
+    } })
+        :map(function(el) return el.cond() end)
+        :forEach(function(el) el.fn(playerID) end)
 end
 
 RegisterBJCManager(M)

@@ -125,7 +125,7 @@ local function updateWidths()
         M.settings.multi and M.cache.labels.time or nil,
         M.settings.multi and M.cache.labels.weather or nil,
     }, function(label)
-        local w = GetColumnTextWidth(label)
+        local w = GetColumnTextWidth(label or "")
         if w > M.cache.widths.labels then
             M.cache.widths.labels = w
         end
@@ -285,11 +285,11 @@ local function updateCache(ctxt)
         (not M.settings.multi and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO))
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     updatePresets()
     updateLabels()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
@@ -299,13 +299,13 @@ local function onLoad()
     end))
 
     updateWidths()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.UI_SCALE_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, updateWidths))
 
     updateCache()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.VEHICLE_SPAWNED,
         BJIEvents.EVENTS.VEHICLE_UPDATED,
         BJIEvents.EVENTS.VEHICLE_REMOVED,
@@ -314,7 +314,7 @@ local function onLoad()
         BJIEvents.EVENTS.SCENARIO_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache))
-    table.insert(listeners, BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
         if data.cache == BJICache.CACHES.RACES or data.cache == BJICache.CACHES.PLAYERS then
             updateCache(ctxt)
         end
@@ -322,7 +322,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function drawRespawnStrategies(cols)

@@ -259,12 +259,12 @@ local function updateCachePlayers(ctxt)
     end
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     local ctxt = BJITick.getContext()
 
     updateCache(ctxt)
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.VEHICLE_SPAWNED,
         BJIEvents.EVENTS.VEHICLE_REMOVED,
         BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
@@ -276,14 +276,14 @@ local function onLoad()
     }, updateCache))
 
     updateLabels()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.VEHDATA_UPDATED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, updateLabels))
 
     deliveryLeaderboard.updateCache(ctxt)
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.UI_SCALE_CHANGED,
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.LANG_CHANGED,
@@ -296,7 +296,7 @@ local function onLoad()
     end))
 
     updateCacheRaces()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.CACHE_LOADED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST
     }, function(ctxt2, data)
@@ -307,7 +307,7 @@ local function onLoad()
     end))
 
     updateCachePlayers(ctxt)
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.PLAYER_CONNECT,
         BJIEvents.EVENTS.PLAYER_DISCONNECT,
         BJIEvents.EVENTS.UI_SCALE_CHANGED,
@@ -328,7 +328,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function draw(ctxt)

@@ -12,6 +12,7 @@ local M = {
         VEHDATA_UPDATED = "vehdata_updated",
         SCENARIO_CHANGED = "scenario_changed",
         SCENARIO_UPDATED = "scenario_updated",
+        VOTE_UPDATED = "vote_updated",
         PERMISSION_CHANGED = "permission_changed",
         LANG_CHANGED = "lang_changed",
         UI_SCALE_CHANGED = "ui_scale_changed",

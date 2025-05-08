@@ -62,17 +62,17 @@ local function updateCachePaints(ctxt)
     end
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     updateCachePaints()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.VEHICLE_SPAWNED,
         BJIEvents.EVENTS.VEHICLE_REMOVED,
         BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
     }, updateCachePaints))
 end
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function drawHeader(ctxt)

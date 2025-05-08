@@ -123,10 +123,10 @@ local function updateWidths()
     end)
 end
 
-local listeners = {}
+local listeners = Table()
 local function onLoad()
     updateLabels()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.LANG_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, function()
@@ -135,13 +135,13 @@ local function onLoad()
     end))
 
     updateWidths()
-    table.insert(listeners, BJIEvents.addListener({
+    listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.UI_SCALE_CHANGED,
         BJIEvents.EVENTS.UI_UPDATE_REQUEST,
     }, updateWidths))
 end
 local function onUnload()
-    table.forEach(listeners, BJIEvents.removeListener)
+    listeners:forEach(BJIEvents.removeListener)
 end
 
 local function drawVehicleSettings(ctxt)
