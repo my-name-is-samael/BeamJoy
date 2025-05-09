@@ -145,7 +145,7 @@ local function draw(ctxt)
 
         ProgressBar({
             floatPercent = energyAmount / cache.tanksMaxes[energyType],
-            width = 250,
+            width = "100%",
         })
         i = i + 1
     end

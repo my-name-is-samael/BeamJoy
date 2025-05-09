@@ -6,6 +6,7 @@
 ---@field freeze boolean
 ---@field engine boolean
 ---@field vehicles table<integer, BJIVehicleData>
+---@field currentVehicle? integer gameVehID
 
 local C = {
     _name = "BJIContext",
@@ -26,7 +27,9 @@ local C = {
         mapName = "",
         mapLabel = "",
         dropSizeRatio = 1,
+        ---@type {value: number, key: string, default: boolean}
         gravity = nil, -- save current gravity preset if there is one
+        ---@type {value: number, key: string, default: boolean}
         speed = nil,   -- save current speed preset if not default
     },
 
@@ -51,6 +54,7 @@ local C = {
         FreeroamSettingsOpen = false,
         Data = {}, -- Scenarii data
         RaceSettings = nil,
+        BusSettings = nil,
         Race = nil,
 
         RaceEdit = nil,
@@ -115,11 +119,32 @@ local function loadUser()
         end, function()
             -- update quick travel
             if BJIScenario.isFreeroam() then
-                BJIQuickTravel.toggle(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
+                BJIBigmap.toggleQuickTravel(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
             end
             -- update nametags
             BJINametags.tryUpdate()
         end, "BJICacheFreeroamReady")
+
+        if C.User.group ~= previous.group then
+            BJIAsync.task(function()
+                return BJICache.areBaseCachesFirstLoaded() and BJICONNECTED
+            end, function()
+                -- update AI restriction
+                BJIRestrictions.update({ {
+                    restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+                    state = not BJIPerm.canSpawnAI(),
+                } })
+
+                -- update vehSelector restriction
+                BJIRestrictions.update({ {
+                    restrictions = Table({
+                        BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    }):flat(),
+                    state = not BJIPerm.canSpawnVehicle(),
+                } })
+            end)
+        end
 
         -- events detection
         local previousVehCount = table.length(previous.vehicles)
@@ -326,10 +351,20 @@ local function loadConfig()
                 C.BJC.Freeroam[k] = v
             end
 
-            -- update quick travel
             if BJIScenario.isFreeroam() then
-                BJIQuickTravel.toggle(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
+                --update unicycle policy
+                if not C.BJC.Freeroam.AllowUnicycle and BJIVeh.isUnicycle() then
+                    BJIVeh.deleteCurrentOwnVehicle()
+                end
+                BJIRestrictions.update({ {
+                    restrictions = BJIRestrictions.OTHER.WALKING,
+                    state = not C.BJC.Freeroam.AllowUnicycle,
+                } })
+
+                -- update quick travel
+                BJIBigmap.toggleQuickTravel(C.BJC.Freeroam.QuickTravel or BJIPerm.isStaff())
             end
+
             -- update nametags
             if BJIScenario.isFreeroam() or BJIScenario.isPlayerScenarioInProgress() then
                 BJINametags.toggle((C.BJC.Freeroam.Nametags or BJIPerm.isStaff()) and
@@ -393,20 +428,18 @@ local function loadConfig()
 
         if cacheData.CEN then
             C.BJC.CEN = cacheData.CEN
-            local restrictions = {}
+            local restrictions = Table()
             if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
                 not BJIContext.BJC.CEN.Console then
-                table.insert(restrictions, BJIRestrictions.TYPES.CONSOLE)
+                restrictions:addAll(BJIRestrictions.CEN.CONSOLE)
             end
             if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
                 not BJIContext.BJC.CEN.Editor then
-                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR)
-                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR_SAFE_MODE)
-                table.insert(restrictions, BJIRestrictions.TYPES.EDITOR_OBJECT)
+                restrictions:addAll(BJIRestrictions.CEN.EDITOR)
             end
             if not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
                 not BJIContext.BJC.CEN.NodeGrabber then
-                table.insert(restrictions, BJIRestrictions.TYPES.NODEGRABBER)
+                restrictions:addAll(BJIRestrictions.CEN.NODEGRABBER)
             end
             BJIRestrictions.updateCEN(restrictions)
         end

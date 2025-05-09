@@ -17,6 +17,17 @@ local function onLoad(ctxt)
     BJICam.resetForceCamera()
     BJICam.resetRestrictedCameras()
 
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            not BJIPerm.canSpawnAI() and BJIRestrictions.OTHER.AI_CONTROL or nil,
+            not BJIPerm.canSpawnVehicle() and BJIRestrictions.OTHER.VEHICLE_SELECTOR or nil,
+            not BJIPerm.canSpawnVehicle() and BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR or nil,
+            (BJIContext.BJC.Freeroam and not BJIContext.BJC.Freeroam.AllowUnicycle) and
+            BJIRestrictions.OTHER.WALKING or nil,
+        }):values():flat(),
+        state = true,
+    } })
+
     M.reset.restricted = false
     M.reset.nextExempt = false
     M.teleport.restricted = false
@@ -24,7 +35,7 @@ local function onLoad(ctxt)
     BJIAsync.task(function()
         return not not BJIContext.BJC.Freeroam
     end, function()
-        BJIQuickTravel.toggle(BJIContext.BJC.Freeroam.QuickTravel)
+        BJIBigmap.toggleQuickTravel(BJIContext.BJC.Freeroam.QuickTravel)
     end, "BJIScenarioFreeroamLoadUpdateQuickTravel")
     BJINametags.tryUpdate()
 end
@@ -128,11 +139,11 @@ local function onVehicleResetted(gameVehID)
     local bypass = BJIPerm.isStaff() or M.reset.nextExempt
     if isResetDelay and not bypass then
         M.reset.restricted = true
-        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
+        BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
         BJIAsync.delayTask(
             function()
                 M.reset.restricted = false
-                BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
+                BJIRestrictions.updateResets({})
             end,
             BJIContext.BJC.Freeroam.ResetDelay * 1000,
             BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER
@@ -234,26 +245,6 @@ local function tryPaint(paint, paintNumber)
         M.exemptNextReset()
         BJIVeh.paintVehicle(paint, paintNumber)
     end
-end
-
-local function canRefuelAtStation()
-    return true
-end
-
-local function canRepairAtGarage()
-    return true
-end
-
-local function canSpawnAI()
-    return true
-end
-
-local function canDeleteOtherPlayersVehicle()
-    return true
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
 end
 
 local function getModelList()
@@ -388,9 +379,18 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.ALL,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.WALKING,
+        }):values():flat(),
+        state = false,
+    } })
 
-    BJIQuickTravel.toggle(true)
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
 end
 
@@ -413,12 +413,10 @@ M.trySpawnNew = trySpawnNew
 M.tryReplaceOrSpawn = tryReplaceOrSpawn
 M.tryPaint = tryPaint
 
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.canSpawnAI = canSpawnAI
-M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
-
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canRefuelAtStation = TrueFn
+M.canRepairAtGarage = TrueFn
+M.canDeleteOtherPlayersVehicle = TrueFn
+M.doShowNametagsSpecs = TrueFn
 
 M.getModelList = getModelList
 

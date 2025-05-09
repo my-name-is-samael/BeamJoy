@@ -60,13 +60,6 @@ local function initPositions(ctxt)
 end
 
 local function initDelivery()
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
-    BJIQuickTravel.toggle(false)
-    BJINametags.tryUpdate()
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
-
-    BJIGPS.reset()
     BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.targetPosition.pos,
         M.targetPosition.radius, nil, nil, false)
     M.baseDistance = BJIGPS.getCurrentRouteLength()
@@ -87,8 +80,23 @@ local function onLoad(ctxt)
         initPositions(ctxt)
 
         if M.targetPosition then
-            initDelivery()
+            BJIRestrictions.update({ {
+                restrictions = Table({
+                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                    BJIRestrictions.OTHER.WALKING,
+                }):flat(),
+                state = true,
+            } })
+            BJIBigmap.toggleQuickTravel(false)
+            BJINametags.tryUpdate()
+            BJIGPS.reset()
+            BJIRaceWaypoint.resetAll()
+            BJIGPS.reset()
 
+            initDelivery()
             BJITx.scenario.DeliveryPackageStart()
             BJIMessage.flash("BJIDeliveryPackageStart", BJILang.get("packageDelivery.flashStart"), 3, false)
             init = true
@@ -121,10 +129,6 @@ local function onVehicleResetted(gameVehID)
         return
     end
 
-    onDeliveryEnded()
-end
-
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
     onDeliveryEnded()
 end
 
@@ -192,22 +196,6 @@ local function onTargetReached(ctxt)
     initDelivery()
 end
 
-local function canRefuelAtStation()
-    return true
-end
-
-local function canRepairAtGarage()
-    return true
-end
-
-local function canVehUpdate()
-    return false
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
-end
-
 local function rxStreak(streak)
     M.streak = streak
 end
@@ -269,8 +257,17 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
-    BJIQuickTravel.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
@@ -282,20 +279,17 @@ M.onLoad = onLoad
 M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onGarageRepair = onGarageRepair
 M.onStopDelivery = onStopDelivery
 
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
+M.canRefuelAtStation = TrueFn
+M.canRepairAtGarage = TrueFn
+M.doShowNametagsSpecs = TrueFn
 
-M.canSelectVehicle = canVehUpdate
-M.canSpawnNewVehicle = canVehUpdate
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canSpawnNewVehicle = FalseFn
+M.canReplaceVehicle = FalseFn
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
 
 M.rxStreak = rxStreak
 

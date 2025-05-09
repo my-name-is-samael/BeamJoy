@@ -7,6 +7,18 @@ end
 
 -- load hook
 local function onLoad(ctxt)
+    -- declare restrictions
+    BJIRestrictions.update({
+        {
+            restrictions = Table():addAll(BJIRestrictions.RESET.TELEPORT)
+                :addAll(BJIRestrictions.OTHER.VEHICLE_SWITCH),
+            state = true, -- forbidden bindings
+        },
+        {
+            restrictions = Table():addAll(BJIRestrictions.OTHER.FREE_CAM),
+            state = false, -- allowed bindings
+        }
+    })
 end
 
 -- player vehicle spawn hook
@@ -65,10 +77,6 @@ end
 local function canSpawnAI()
 end
 
--- can player select vehicle
-local function canSelectVehicle()
-end
-
 -- can player spawn new vehicle
 local function canSpawnNewVehicle()
 end
@@ -83,10 +91,6 @@ end
 
 -- can player delete other vehicles
 local function canDeleteOtherVehicles()
-end
-
--- can player edit vehicle
-local function canEditVehicle()
 end
 
 -- vehicle model list getter
@@ -115,6 +119,18 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
+    -- rollback restrictions
+    BJIRestrictions.update({
+        {
+            restrictions = Table():addAll(BJIRestrictions.RESET.TELEPORT)
+                :addAll(BJIRestrictions.OTHER.VEHICLE_SWITCH),
+            state = false, -- forbidden bindings
+        },
+        {
+            restrictions = Table():addAll(BJIRestrictions.OTHER.FREE_CAM),
+            state = true, -- allowed bindings
+        }
+    })
 end
 
 M.canChangeTo = canChangeTo
@@ -134,12 +150,10 @@ M.tryTeleportToPlayer = tryTeleportToPlayer
 M.tryTeleportToPos = tryTeleportToPos
 M.tryFocus = tryFocus
 M.canSpawnAI = canSpawnAI
-M.canSelectVehicle = canSelectVehicle
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
 M.canDeleteVehicle = canDeleteVehicle
 M.canDeleteOtherVehicles = canDeleteOtherVehicles
-M.canEditVehicle = canEditVehicle
 M.getModelList = getModelList
 M.doShowNametag = doShowNametag
 M.getCollisionsType = getCollisionsType

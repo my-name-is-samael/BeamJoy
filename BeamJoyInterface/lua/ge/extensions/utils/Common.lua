@@ -176,6 +176,7 @@ end
 ---@param ms integer
 ---@return string
 function RaceDelay(ms)
+    ms = math.round(ms or 0)
     local hours = math.floor(ms / 1000 / 60 / 60)
     ms = ms - hours * 60 * 60 * 1000
     local mins = math.floor(ms / 1000 / 60)
@@ -402,4 +403,17 @@ function DrawTimePlayPauseButtons(id, withUpdate)
             end,
         })
         :build()
+end
+
+---@param keepMenuBar? boolean
+function HideGameMenu(keepMenuBar)
+    guihooks.trigger('MenuHide', keepMenuBar == true)
+end
+
+function TrueFn()
+    return true
+end
+
+function FalseFn()
+    return false
 end

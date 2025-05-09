@@ -158,7 +158,7 @@ local function updateCachePlayers(ctxt)
     end):forEach(function(player, playerID)
         local showPromote = player.isGroupLower and
             not table.includes({ BJI_GROUP_NAMES.OWNER }, BJIPerm.getNextGroup(player.group))
-        local promoteGroup = showPromote and BJIPerm.getNextGroup(player.group)
+        local promoteGroup = showPromote and BJIPerm.getNextGroup(player.group) or ""
         local promoteLabel = showPromote and BJILang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJILang.get("groups." .. promoteGroup, promoteGroup) }) or nil
 
@@ -196,12 +196,12 @@ local function updateCachePlayers(ctxt)
 
         local showDemote = isGroupLower and
             not table.includes({ BJI_GROUP_NAMES.NONE, BJI_GROUP_NAMES.OWNER }, p.group)
-        local demoteGroup = showDemote and BJIPerm.getPreviousGroup(p.group)
+        local demoteGroup = showDemote and BJIPerm.getPreviousGroup(p.group) or ""
         local demoteLabel = showDemote and BJILang.get("moderationBlock.buttons.demoteTo")
             :var({ groupName = BJILang.get("groups." .. demoteGroup, demoteGroup) }) or nil
         local showPromote = isGroupLower and
             not table.includes({ BJI_GROUP_NAMES.OWNER }, BJIPerm.getNextGroup(p.group))
-        local promoteGroup = showPromote and BJIPerm.getNextGroup(p.group)
+        local promoteGroup = showPromote and BJIPerm.getNextGroup(p.group) or ""
         local promoteLabel = showPromote and BJILang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJILang.get("groups." .. promoteGroup, promoteGroup) }) or nil
 

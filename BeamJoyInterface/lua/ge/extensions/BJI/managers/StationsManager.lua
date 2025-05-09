@@ -198,8 +198,8 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     -- start process
     BJIVeh.stopCurrentVehicle()
     BJIContext.User.stationProcess = true
-    local previousRestrictions = table.clone(BJIRestrictions.currentResets)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
+    local previousRestrictions = BJIRestrictions.getCurrentResets()
+    BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
     BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
     BJIVeh.freeze(true, ctxt.vehData.vehGameID)
@@ -229,11 +229,7 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
             BJIVeh.engine(true, ctxt.vehData.vehGameID)
         end
         BJICam.resetForceCamera()
-        if #previousRestrictions == 0 then
-            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_All)
-        else
-            BJIRestrictions.updateReset(previousRestrictions)
-        end
+        BJIRestrictions.updateResets(previousRestrictions)
         BJIContext.User.stationProcess = false
     end, fillDuration * 1000, "BJIStationRefillEnd")
 end

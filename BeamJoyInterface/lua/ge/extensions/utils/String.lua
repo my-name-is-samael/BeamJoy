@@ -104,7 +104,7 @@ string.capitalizeWords = string.capitalizeWords or function(str)
     local delims = { " ", "-", ".", ",", ":", ";", "'", '"', "(", ")" }
     table.forEach(delims, function(d)
         ---@type string[]
-        local words = str:split(d)
+        local words = str:split2(d)
         for i in ipairs(words) do
             words[i] = words[i]:capitalize()
         end

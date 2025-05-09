@@ -19,7 +19,7 @@ local function onLoad()
 
     M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
     gameplay_traffic.setupTrafficWaitForUi = function(...)
-        if M.canSpawnAI() then
+        if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
             return M.baseFunctions.setupTrafficWaitForUi(...)
         else
             BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -28,7 +28,7 @@ local function onLoad()
 
     M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
     gameplay_traffic.createTrafficGroup = function(...)
-        if M.canSpawnAI() then
+        if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
             return M.baseFunctions.createTrafficGroup(...)
         else
             -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -41,7 +41,7 @@ local function onLoad()
     end, function()
         M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
         core_multiSpawn.spawnGroup = function(...)
-            if M.canSpawnAI() then
+            if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
                 return M.baseFunctions.spawnGroup(...)
             else
                 BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -67,10 +67,6 @@ local function onUnload()
     core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
 
     listeners:forEach(BJIEvents.removeListener)
-end
-
-local function canSpawnAI()
-    return M.state and BJIScenario.canSpawnAI()
 end
 
 local function isTrafficSpawned()
@@ -139,7 +135,6 @@ end
 M.onLoad = onLoad
 M.onUnload = onUnload
 
-M.canSpawnAI = canSpawnAI
 M.isTrafficSpawned = isTrafficSpawned
 M.removeVehicles = removeVehicles
 M.toggle = toggle

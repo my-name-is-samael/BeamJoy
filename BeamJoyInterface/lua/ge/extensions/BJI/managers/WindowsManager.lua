@@ -248,10 +248,7 @@ local function initWindows()
     M.register({
         name = "BJIBusMissionPreparation",
         showConditionFn = function()
-            return BJIScenario.is(BJIScenario.TYPES.BUS_MISSION) and
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION) and
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION).state ==
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION).STATES.PREPARATION
+            return BJIContext.Scenario.BusSettings
         end,
         draw = require("ge/extensions/BJI/ui/WindowBusMissionPreparation/DrawWindowBusMissionPreparation"),
         w = 430,

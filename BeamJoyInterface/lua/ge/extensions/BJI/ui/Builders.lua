@@ -1115,13 +1115,21 @@ EmptyLine = function()
     LineBuilder():text(" "):build()
 end
 
+---@param data {floatPercent: number, width?: number|string, text?: string}
 ProgressBar = function(data)
     data.floatPercent = data.floatPercent or 0
+    if tonumber(data.width) then
+        data.width = math.floor(tonumber(data) or 0) * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+    elseif tostring(data.width):find("%d+%%") then
+        data.width = tonumber(tostring(data.width):match("^%d+")) / 100 * im.GetContentRegionAvail().x
+    else
+        data.width = -1
+    end
     data.width = data.width or -1
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
-    local size = im.ImVec2(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE), height)
+    local size = im.ImVec2(data.width, height)
 
     im.ProgressBar(data.floatPercent, size, text)
 end

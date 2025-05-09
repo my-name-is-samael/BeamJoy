@@ -109,12 +109,6 @@ local function initPositions()
 end
 
 local function initDelivery()
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
-    BJIQuickTravel.toggle(false)
-    BJINametags.tryUpdate()
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
-
     if not table.includes({
             BJICam.CAMERAS.FREE,
             BJICam.CAMERAS.EXTERNAL,
@@ -159,6 +153,24 @@ local function onLoad(ctxt)
         initVehicle()
 
         if M.startPosition and M.targetPosition and M.model then
+            BJIRestrictions.update({ {
+                restrictions = Table({
+                    BJIRestrictions.OTHER.AI_CONTROL,
+                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                    BJIRestrictions.OTHER.WALKING,
+                    BJIRestrictions.OTHER.BIG_MAP,
+                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                    BJIRestrictions.OTHER.FREE_CAM,
+                }):flat(),
+                state = true,
+            } })
+            BJIBigmap.toggleQuickTravel(false)
+            BJINametags.tryUpdate()
+            BJIGPS.reset()
+            BJIRaceWaypoint.resetAll()
+
             initDelivery()
 
             BJIAsync.task(function(ctxt2)
@@ -198,14 +210,6 @@ local function onVehicleResetted(gameVehID)
     end
 
     onDeliveryFailed()
-end
-
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.init then
-        if newGameVehID ~= M.gameVehID then
-            BJIVeh.focusVehicle(M.gameVehID)
-        end
-    end
 end
 
 local function onStopDelivery()
@@ -276,20 +280,8 @@ local function onTargetReached(ctxt)
     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
 end
 
-local function canRefuelAtStation()
-    return true
-end
-
 local function canSpawnVehicle()
     return not M.init
-end
-
-local function canVehUpdate()
-    return false
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
 end
 
 local function slowTick(ctxt)
@@ -346,8 +338,20 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
-    BJIQuickTravel.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
@@ -359,19 +363,16 @@ M.onLoad = onLoad
 M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onStopDelivery = onStopDelivery
 M.onTargetReached = onTargetReached
 
-M.canRefuelAtStation = canRefuelAtStation
+M.canRefuelAtStation = TrueFn
 
-M.canSelectVehicle = canVehUpdate
 M.canSpawnNewVehicle = canSpawnVehicle
 M.canSpawnNewVehicle = canSpawnVehicle
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
+M.doShowNametagsSpecs = TrueFn
 
 M.slowTick = slowTick
 

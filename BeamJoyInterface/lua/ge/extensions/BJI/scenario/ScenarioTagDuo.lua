@@ -18,8 +18,22 @@ end
 
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
-    BJIQuickTravel.toggle(false)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.TELEPORT,
+            BJIRestrictions.RESET.HEAVY_RELOAD,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = true,
+    } })
+    BJIBigmap.toggleQuickTravel(false)
     BJIRaceWaypoint.resetAll()
     BJIWaypointEdit.reset()
     BJIGPS.reset()
@@ -47,10 +61,12 @@ local function onVehicleResetted(gameVehID)
         isChasing() and
         not isTagger() then
         BJIVeh.freeze(true, gameVehID)
-        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
+        BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
         BJIMessage.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, true, "FLEE !", nil, function()
             BJIVeh.freeze(false, gameVehID)
-            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
+            BJIRestrictions.updateResets(Table()
+                :addAll(BJIRestrictions.RESET.TELEPORT)
+                :addAll(BJIRestrictions.RESET.HEAVY_RELOAD))
         end, false)
     end
 end
@@ -125,10 +141,13 @@ local function onDataUpdate(ctxt, newLobby)
         M.tagMessage = true
 
         -- cancel reset process
-        if BJIRestrictions.isRestricted(BJIRestrictions.TYPES.RECOVER_VEHICLE) then
+        if BJIRestrictions.getCurrentResets():sort()
+            :compare(Table():addAll(BJIRestrictions.RESET.ALL):sort() or {}) then
             BJIMessage.cancelFlash("BJITagDuoTaggedReset")
             BJIVeh.freeze(false, M.selfLobby.players[ctxt.user.playerID].gameVehID)
-            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_RECOVER_VEHICLE)
+            BJIRestrictions.updateResets(Table()
+                :addAll(BJIRestrictions.RESET.TELEPORT)
+                :addAll(BJIRestrictions.RESET.HEAVY_RELOAD))
         end
 
         -- flash
@@ -189,18 +208,25 @@ local function onUnload(ctxt)
     BJIMessage.cancelFlash("BJITagDuoTaggedReset")
     BJIMessage.stopRealtimeDisplay()
 
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.TELEPORT,
+            BJIRestrictions.RESET.HEAVY_RELOAD,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = false,
+    } })
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
     BJICam.removeRestrictedCamera(BJICam.CAMERAS.FREE)
     BJIGPS.reset()
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
-end
-
-local function fnTrue()
-    return true
-end
-
-local function fnFalse()
-    return false
+    BJIBigmap.toggleQuickTravel(true)
 end
 
 M.canChangeTo = canChangeTo
@@ -213,15 +239,12 @@ M.onVehicleResetted = onVehicleResetted
 M.onVehicleSwitched = onVehicleSwitched
 M.onVehicleDestroyed = onVehicleDestroyed
 
-M.canRefuelAtStation = fnTrue
-M.canRepairAtGarage = fnTrue
-M.canSpawnAI = fnFalse
-M.canSelectVehicle = fnFalse
-M.canSpawnNewVehicle = fnFalse
-M.canReplaceVehicle = fnFalse
-M.canDeleteVehicle = fnTrue
-M.canDeleteOtherVehicles = fnFalse
-M.canEditVehicle = fnFalse
+M.canRefuelAtStation = TrueFn
+M.canRepairAtGarage = TrueFn
+M.canSpawnNewVehicle = FalseFn
+M.canReplaceVehicle = FalseFn
+M.canDeleteVehicle = TrueFn
+M.canDeleteOtherVehicles = FalseFn
 
 M.getPlayerListActions = getPlayerListActions
 

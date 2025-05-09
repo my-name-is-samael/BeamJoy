@@ -103,38 +103,24 @@ local function onLoad(ctxt)
         BJIVeh.deleteAllOwnVehicles()
         BJIAI.removeVehicles()
     end
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
-    BJIQuickTravel.toggle(false)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.ALL,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+        }):flat(),
+        state = true,
+    } })
+    BJIBigmap.toggleQuickTravel(false)
     BJIRaceWaypoint.resetAll()
     BJIWaypointEdit.reset()
     BJIGPS.reset()
     BJICam.addRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
     BJIRaceUI.clear()
-end
-
--- player vehicle switch hook
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.isParticipant() and not M.isSpec() then
-        -- racer
-        for _, v in pairs(BJIVeh.getMPOwnVehicles()) do
-            BJIVeh.focusVehicle(v.gameVehicleID)
-            return
-        end
-
-        -- no own veh found => eliminated
-        BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.LEAVE)
-        return
-    end
-
-    if M.isRaceStarted() and not M.isRaceFinished() then
-        -- finished or eliminated player spec switch
-        local ownerID = BJIVeh.getVehOwnerID(newGameVehID)
-
-        if table.includes(M.race.finished, ownerID) or
-            table.includes(M.race.eliminated, ownerID) then
-            BJIVeh.focusNextVehicle()
-        end
-    end
 end
 
 -- player list contextual actions getter
@@ -168,9 +154,23 @@ local function onUnload(ctxt)
         end
         break
     end
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.ALL,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = false,
+    } })
     BJIVehSelector.tryClose(true)
     guihooks.trigger('ScenarioResetTimer')
+    BJIBigmap.toggleQuickTravel(true)
 end
 
 local function initGrid(data)
@@ -256,6 +256,19 @@ end
 
 local function onJoinGridParticipants()
     -- join participants
+    BJIRestrictions.update({
+        {
+            restrictions = Table({
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJIRestrictions.OTHER.FREE_CAM,
+            }):flat(),
+            state = true,
+        },
+        {
+            restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            state = false,
+        }
+    })
 
     -- prepare vehicle selector
     local models = BJIVeh.getAllVehicleConfigs()
@@ -280,6 +293,20 @@ local function onJoinGridParticipants()
 end
 
 local function onLeaveGridParticipants()
+    BJIRestrictions.update({
+        {
+            restrictions = Table({
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJIRestrictions.OTHER.FREE_CAM,
+            }):flat(),
+            state = false,
+        },
+        {
+            restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            state = true,
+        }
+    })
+    HideGameMenu()
     BJICam.setCamera(BJICam.CAMERAS.FREE)
     BJICam.setPositionRotation(M.grid.previewPosition.pos, M.grid.previewPosition.rot)
     BJIVeh.deleteAllOwnVehicles()
@@ -288,6 +315,12 @@ end
 
 local function onJoinGridReady()
     BJIVehSelector.tryClose(true)
+    BJIRestrictions.update({
+        {
+            restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            state = true,
+        }
+    })
 end
 
 local function specRandomRacer()
@@ -305,7 +338,8 @@ local function specRandomRacer()
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
+    local previousRestrictions = BJIRestrictions.getCurrentResets()
+    BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
     M.dnf.standExempt = true
 
     delayMs = delayMs and math.max(delayMs, 3000) or 5000
@@ -339,14 +373,7 @@ local function onStandStop(delayMs, wp, lastWp, callback)
         if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJIAsync.delayTask(function()
                 -- delays reset restriction remove
-                local restrictions = BJIRestrictions.TYPES.LOAD_HOME
-                if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-                    restrictions = {
-                        BJIRestrictions.TYPES.RECOVER_VEHICLE,
-                        BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
-                    }
-                end
-                BJIRestrictions.updateReset(restrictions)
+                BJIRestrictions.updateResets(previousRestrictions)
                 M.dnf.standExempt = false
             end, 1000, "BJIRacePostStart")
         end
@@ -540,7 +567,7 @@ local function onFinishReached()
     local postFinishTimeout = BJIContext.BJC.Race.FinishTimeout * 1000
     if not isLast then
         -- multiplayer and not last
-        BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
+        BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
         BJIVeh.freeze(true)
 
         local isLappedRacer = false
@@ -741,14 +768,13 @@ local function initRace(data)
             BJIVeh.freeze(false)
             M.race.timers.lap = TimerCreate()
             if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-                local restrictions = BJIRestrictions.TYPES.LOAD_HOME
+                local restrictions = BJIRestrictions.RESET.ALL_BUT_LOADHOME
                 if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-                    restrictions = {
-                        BJIRestrictions.TYPES.RECOVER_VEHICLE,
-                        BJIRestrictions.TYPES.RECOVER_VEHICLE_ALT,
-                    }
+                    restrictions = Table()
+                        :addAll(BJIRestrictions.RESET.TELEPORT)
+                        :addAll(BJIRestrictions.RESET.HEAVY_RELOAD)
                 end
-                BJIRestrictions.updateReset(restrictions)
+                BJIRestrictions.updateResets(restrictions)
             end
         end
         BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
@@ -756,16 +782,27 @@ local function initRace(data)
 end
 
 local function updateRace()
-    if not M.isRaceFinished() and
-        (M.isFinished() or M.isEliminated()) and
-        BJIVeh.isCurrentVehicleOwn() then
-        if M.isEliminated() then
-            BJIVeh.deleteAllOwnVehicles()
+    if not M.isRaceFinished() and BJIVeh.isCurrentVehicleOwn() then
+        if M.isFinished() or M.isEliminated() then
+            BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
+            BJIRestrictions.update({
+                {
+                    restrictions = Table({
+                        BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                        BJIRestrictions.OTHER.FREE_CAM,
+                    }):flat(),
+                    state = false,
+                }
+            })
+            if M.isEliminated() then
+                -- onEliminated
+                BJIVeh.deleteAllOwnVehicles()
+            end
+            if BJIRaceWaypoint.isRacing() then
+                BJIRaceWaypoint.resetAll()
+            end
+            specRandomRacer()
         end
-        if BJIRaceWaypoint.isRacing() then
-            BJIRaceWaypoint.resetAll()
-        end
-        specRandomRacer()
     end
 end
 
@@ -1004,8 +1041,6 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.onVehicleSwitched = onVehicleSwitched
-
 M.trySpawnNew = tryReplaceOrSpawn
 M.tryReplaceOrSpawn = tryReplaceOrSpawn
 M.tryPaint = tryPaint
@@ -1031,12 +1066,10 @@ M.isRaceFinished = isRaceFinished
 
 M.stopRace = stopRace
 
-M.canSelectVehicle = canVehUpdate
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canVehUpdate
 M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = function() return false end
-M.canEditVehicle = function() return false end
+M.canDeleteOtherVehicles = FalseFn
 M.getCollisionsType = getCollisionsType
 
 return M
