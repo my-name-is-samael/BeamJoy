@@ -1116,8 +1116,11 @@ EmptyLine = function()
     LineBuilder():text(" "):build()
 end
 
-LineLabel = function(label, startSameLine)
-    LineBuilder(startSameLine):text(label):build()
+---@param label string
+---@param color? table
+---@param startSameLine? boolean
+LineLabel = function(label, color, startSameLine)
+    LineBuilder(startSameLine):text(label, color):build()
 end
 
 ---@param data {floatPercent: number, width?: number|string, text?: string}
