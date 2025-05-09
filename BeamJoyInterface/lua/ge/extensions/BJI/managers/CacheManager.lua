@@ -153,28 +153,38 @@ local function slowTick(ctxt)
     local cachesToRequest = Table()
     if ctxt.cachesHashes then
         -- if a hash has changed
-        Table(ctxt.cachesHashes):forEach(function(hash, cacheType)
+        cachesToRequest:addAll(Table(ctxt.cachesHashes):filter(function(hash, cacheType)
+            return M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash
+        end):keys())
+        --[[Table(ctxt.cachesHashes):forEach(function(hash, cacheType)
             if M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash then
                 cachesToRequest:insert(cacheType)
             end
-        end)
+        end)]]
     end
 
     -- base caches
-    Table(M.BASE_CACHES):forEach(function(cacheType)
+    cachesToRequest:addAll(Table(M.BASE_CACHES):filter(function(cacheType)
+        return M._states[cacheType] == M.CACHE_STATES.EMPTY
+    end))
+    --[[Table(M.BASE_CACHES):forEach(function(cacheType)
         if M._states[cacheType] == M.CACHE_STATES.EMPTY then
             cachesToRequest:insert(cacheType)
         end
-    end)
+    end)]]
 
     if M.areBaseCachesFirstLoaded() then
         -- post base caches load, other caches
-        Table(M.CACHES):forEach(function(cacheType)
+        cachesToRequest:addAll(Table(M.CACHES):filter(function(cacheType)
+            return not table.includes(M.BASE_CACHES, cacheType) and
+                M._states[cacheType] == M.CACHE_STATES.EMPTY
+        end):values())
+        --[[Table(M.CACHES):forEach(function(cacheType)
             if not table.includes(M.BASE_CACHES, cacheType) and
                 M._states[cacheType] == M.CACHE_STATES.EMPTY then
                 cachesToRequest:insert(cacheType)
             end
-        end)
+        end)]]
     end
 
     _tryRequestCaches(cachesToRequest)

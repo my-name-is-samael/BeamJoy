@@ -1,9 +1,4 @@
 local M = {
-    STATES = {
-        PREPARATION = 1,
-        DRIVE = 2,
-    },
-    state = 1,
     model = "citybus",
     config = nil,
     line = {
@@ -13,7 +8,7 @@ local M = {
         stops = {},
         totalDistance = nil,
     },
-    nextStop = 1,
+    nextStop = 2,
     progression = nil,
 
     init = false,
@@ -24,8 +19,6 @@ local M = {
 }
 
 local function reset()
-    M.state              = M.STATES.PREPARATION
-    M.model              = "citybus"
     M.config             = nil
     M.line               = {
         id = nil,
@@ -34,19 +27,21 @@ local function reset()
         stops = {},
         totalDistance = nil,
     }
-    M.nextStop           = 1
+    M.nextStop           = 2
     M.progression        = nil
 
     M.nextResetExempt    = true
     M.init               = false
     M.checkTargetProcess = false
 end
+reset()
 
 local function canChangeTo(ctxt)
     return BJIScenario.isFreeroam() and
         BJICache.isFirstLoaded(BJICache.CACHES.BUS_LINES) and
         BJIContext.Scenario.Data.BusLines and
-        #BJIContext.Scenario.Data.BusLines > 0
+        #BJIContext.Scenario.Data.BusLines > 0 and
+        M.config
 end
 
 local function initCornerMarkers()
@@ -87,19 +82,6 @@ local function initCornerMarkers()
             table.insert(M.cornerMarkers, marker)
         end
     end
-end
-
-local function onLoad(ctxt)
-    reset()
-    BJIVehSelector.tryClose()
-
-    M.state = M.STATES.PREPARATION
-
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RECOVER_VEHICLE)
-    BJIQuickTravel.toggle(false)
-    BJINametags.tryUpdate()
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
 end
 
 local function updateCornerMarkers(ctxt, stop)
@@ -146,7 +128,27 @@ local function updateTarget(ctxt)
     BJIGPS.prependWaypoint(BJIGPS.KEYS.BUS_STOP, next.pos, next.radius, nil, nil, false)
 end
 
-local function initDrive(ctxt)
+local function onLoad(ctxt)
+    reset()
+    BJIVehSelector.tryClose()
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+        }):flat(),
+        state = true,
+    } })
+    BJIBigmap.toggleQuickTravel(false)
+    BJINametags.tryUpdate()
+    BJIGPS.reset()
+    BJIRaceWaypoint.resetAll()
+end
+
+local function start(ctxt)
     M.nextStop = 2
 
     local points = {}
@@ -163,9 +165,9 @@ local function initDrive(ctxt)
                 not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
                 ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
         end, function(ctxt2)
-            M.state = M.STATES.DRIVE
             initCornerMarkers()
             updateTarget(ctxt2)
+            BJIScenario.switchScenario(BJIScenario.TYPES.BUS_MISSION, ctxt)
             BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
             BJIAsync.delayTask(function()
                 BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
@@ -186,11 +188,7 @@ local function onMissionFailed()
 end
 
 local function onVehicleResetted(gameVehID)
-    if M.init and M.state == M.STATES.DRIVE then
-        if gameVehID ~= BJIContext.User.currentVehicle then
-            return
-        end
-
+    if M.init and gameVehID == BJIContext.User.currentVehicle then
         if M.nextResetExempt then
             -- used only for vehicle creation
             M.nextResetExempt = false
@@ -201,52 +199,42 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.init and M.state == M.STATES.DRIVE then
-        onMissionFailed()
-    end
-end
-
 local function onStopBusMission()
     onMissionFailed()
 end
 
 local function drawUI(ctxt, cache)
-    if M.state == M.STATES.DRIVE then
-        LineBuilder()
-            :text(cache.labels.busMission.line:var({ name = M.line.name }))
-            :build()
-        LineBuilder()
-            :text(cache.labels.busMission.stopCount
-                :var({ current = M.nextStop - 1, total = #M.line.stops }))
-            :build()
-        ProgressBar({
-            floatPercent = M.progression,
-            width = 250,
+    LineBuilder()
+        :text(cache.labels.busMission.line:var({ name = M.line.name }))
+        :build()
+    LineBuilder()
+        :text(cache.labels.busMission.stopCount
+            :var({ current = M.nextStop - 1, total = #M.line.stops }))
+        :build()
+    ProgressBar({
+        floatPercent = M.progression,
+        width = 250,
+    })
+    local line = LineBuilder()
+    if M.line.loopable then
+        local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
+        line:btnIconToggle({
+            id = "toggleBusLoop",
+            icon = ICONS.all_inclusive,
+            state = loop,
+            onClick = function()
+                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
+            end,
+            big = true,
         })
-        local line = LineBuilder()
-        if M.line.loopable then
-            local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
-            line:btnIconToggle({
-                id = "toggleBusLoop",
-                icon = ICONS.all_inclusive,
-                state = loop,
-                onClick = function()
-                    BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
-                end,
-                big = true,
-            })
-        end
-        line
-            :btnIcon({
-                id = "stopBusMission",
-                icon = ICONS.exit_to_app,
-                style = BTN_PRESETS.ERROR,
-                onClick = onStopBusMission,
-                big = true,
-            })
-            :build()
     end
+    line:btnIcon({
+        id = "stopBusMission",
+        icon = ICONS.exit_to_app,
+        style = BTN_PRESETS.ERROR,
+        onClick = onStopBusMission,
+        big = true,
+    }):build()
 end
 
 local function onTargetReached(ctxt)
@@ -286,7 +274,7 @@ local function updateCornerMarkersColor(reached)
 end
 
 local function slowTick(ctxt)
-    if M.init and M.state == M.STATES.DRIVE then
+    if M.init then
         if not ctxt.isOwner then
             M.onStopBusMission()
             return
@@ -355,8 +343,18 @@ end
 local function onUnload(ctxt)
     removeCornerMarkers()
     reset()
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
-    BJIQuickTravel.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
     BJIBusUI.reset()
@@ -365,21 +363,18 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.initDrive = initDrive
+M.start = start
 
 M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onStopBusMission = onStopBusMission
 M.onTargetReached = onTargetReached
 
-M.canSelectVehicle = canVehUpdate
 M.canSpawnNewVehicle = canVehUpdate
 M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
 
 M.slowTick = slowTick
 

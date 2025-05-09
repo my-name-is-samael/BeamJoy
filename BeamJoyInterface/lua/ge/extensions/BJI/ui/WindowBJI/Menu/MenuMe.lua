@@ -24,7 +24,7 @@ local function updateCache(ctxt)
 
     -- VEHICLE SELECTOR
     if BJIPerm.canSpawnVehicle() and
-        BJIScenario.canSelectVehicle() then
+        not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
         table.insert(M.cache.elems, {
             label = BJILang.get("menu.me.vehicleSelector"),
             active = BJIVehSelector.state,

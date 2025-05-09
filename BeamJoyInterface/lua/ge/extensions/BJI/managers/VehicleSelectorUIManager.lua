@@ -85,25 +85,23 @@ local function createVehiclesData()
     if not BJIPerm.canSpawnVehicle() then
         -- cannot spawn veh
         BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        HideGameMenu()
         return resModels, resConfigs
-    elseif not BJIScenario.canSelectVehicle() then
+    elseif BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
         -- cannot spawn veh in current scenario
         BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        HideGameMenu()
         return resModels, resConfigs
     end
 
-    local models = BJIScenario.getModelList()
-    for _, model in pairs(models) do
-        for _, config in pairs(model.configs) do
-            table.insert(resConfigs, config)
-        end
-
+    local res = Table(BJIScenario.getModelList()):reduce(function(acc, model)
+        acc.configs:addAll(model.configs)
         model.configs = nil
+        acc.models:insert(model)
+        return acc
+    end, { models = Table(), configs = Table() })
 
-        table.insert(resModels, model)
-    end
-
-    return resModels, resConfigs
+    return res.models, res.configs
 end
 
 local function notifyUI()
@@ -125,6 +123,14 @@ local function notifyUIEnd()
     if p then p:add("CEF side") end
     if p then p:finish() end
     p = nil
+end
+
+local function postSpawnCamera(ctxt)
+    LogWarn("Post spawn actions")
+    if ctxt.camera == BJICam.CAMERAS.FREE then
+        BJICam.toggleFreeCam()
+        ctxt.camera = BJICam.getCamera()
+    end
 end
 
 local function cloneCurrent(...)
@@ -149,6 +155,7 @@ local function cloneCurrent(...)
         end
     end
 
+    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
     return M.baseFunctions.cloneCurrent(...)
 end
 
@@ -173,6 +180,7 @@ local function spawnDefault(...)
         end
     end
 
+    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
     return M.baseFunctions.spawnDefault(...)
 end
 
@@ -198,6 +206,7 @@ local function spawnNewVehicle(model, opts)
         end
     end
 
+    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
     return M.baseFunctions.spawnNewVehicle(model, opts)
 end
 
@@ -220,6 +229,7 @@ local function replaceVehicle(...)
         end
     end
 
+    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
     return M.baseFunctions.replaceVehicle(...)
 end
 
@@ -256,9 +266,10 @@ end
 
 -- VEHICLE CONFIGURATION
 local function getAvailableParts(ioCtx)
-    if not BJIScenario.canEditVehicle() then
+    if BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR) then
         -- cannot edit veh in current scenario
         BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        HideGameMenu()
         return {}
     end
 

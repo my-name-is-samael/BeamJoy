@@ -252,7 +252,7 @@ local function menuBusMission(ctxt)
                 label = BJILang.get("menu.scenario.busMission.start"),
                 onClick = function()
                     BJIAsync.delayTask(function()
-                        BJIScenario.switchScenario(BJIScenario.TYPES.BUS_MISSION, ctxt)
+                        BJIContext.Scenario.BusSettings = true
                     end, 0, "BJIBusMissionStart")
                 end,
             })

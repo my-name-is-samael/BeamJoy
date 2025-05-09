@@ -1,8 +1,8 @@
 local function onRepair(ctxt)
     BJIVeh.stopCurrentVehicle()
     BJIContext.User.stationProcess = true
-    local previousRestrictions = table.clone(BJIRestrictions.currentResets)
-    BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_NONE)
+    local previousRestrictions = BJIRestrictions.getCurrentResets()
+    BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
     BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
     BJIVeh.freeze(true, ctxt.vehData.vehGameID)
@@ -27,11 +27,7 @@ local function onRepair(ctxt)
             BJIVeh.engine(true, ctxt.vehData.vehGameID)
         end
         BJICam.resetForceCamera()
-        if #previousRestrictions == 0 then
-            BJIRestrictions.updateReset(BJIRestrictions.TYPES.RESET_ALL)
-        else
-            BJIRestrictions.updateReset(previousRestrictions)
-        end
+        BJIRestrictions.updateResets(previousRestrictions)
         BJIContext.User.stationProcess = false
     end, 5000, "BJIStationRepair")
 end

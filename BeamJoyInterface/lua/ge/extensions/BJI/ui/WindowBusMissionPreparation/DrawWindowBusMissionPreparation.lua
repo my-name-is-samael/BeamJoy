@@ -128,8 +128,8 @@ local function drawBody(ctxt)
 end
 
 local function onClose()
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
     configs = nil
+    BJIContext.Scenario.BusSettings = nil
 end
 
 local function drawFooter(ctxt)
@@ -145,7 +145,7 @@ local function drawFooter(ctxt)
             icon = ICONS.videogame_asset,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                bm.initDrive(ctxt)
+                bm.start(ctxt)
                 configs = nil
             end,
         })

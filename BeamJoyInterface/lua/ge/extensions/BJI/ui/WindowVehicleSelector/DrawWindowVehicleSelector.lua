@@ -78,21 +78,21 @@ end
 local function drawHeader(ctxt)
     if #M.models.cars + #M.models.trucks +
         #M.models.trailers + #M.models.props > 0 then
-        local line = LineBuilder()
-        if M.onClose then
-            line:btnIcon({
+        LineBuilder()
+            :btnIcon({
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
                 style = BTN_PRESETS.INFO,
                 onClick = function()
-                    BJIVehSelector.tryClose()
+                    if M.onClose then
+                        BJIVehSelector.tryClose()
+                    end
                     core_vehicles.openSelectorUI()
                 end,
             })
-        end
-        line:icon({
-            icon = ICONS.ab_filter_default,
-        })
+            :icon({
+                icon = ICONS.ab_filter_default,
+            })
             :inputString({
                 id = "vehFilter",
                 value = M.vehFilter,

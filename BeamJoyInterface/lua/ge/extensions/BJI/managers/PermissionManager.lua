@@ -127,6 +127,28 @@ local function onLoad()
             end
         end
 
+        local selfGroup = M.Groups[BJIContext.User.group]
+        if not table.compare(selfGroup, previous[BJIContext.User.group]) then
+            BJIAsync.task(function()
+                return BJICache.areBaseCachesFirstLoaded() and BJICONNECTED
+            end, function()
+                -- update AI restriction
+                BJIRestrictions.update({ {
+                    restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+                    state = not M.canSpawnAI(),
+                } })
+
+                -- update vehSelector restriction
+                BJIRestrictions.update({ {
+                    restrictions = Table({
+                        BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    }):flat(),
+                    state = not M.canSpawnVehicle(),
+                } })
+            end)
+        end
+
         -- events detection
         if not table.compare(previous, M.Groups, true) then
             local changedLevels = {}
@@ -323,6 +345,21 @@ local function canSpawnVehicle(playerID)
     return group.canSpawn == true
 end
 
+local function canSpawnAI(playerID)
+    if not BJICache.areBaseCachesFirstLoaded() then
+        return false
+    end
+
+    local groupName = playerID and BJIContext.Players[playerID].group or BJIContext.User.group
+
+    local group = M.Groups[groupName]
+    if not group then
+        return false
+    end
+
+    return group.canSpawnAI == true
+end
+
 local function isStaff(playerID)
     if not BJICache.areBaseCachesFirstLoaded() then
         return false
@@ -403,6 +440,7 @@ M.hasMinimumGroup = hasMinimumGroup
 M.hasPermission = hasPermission
 M.hasMinimumGroupOrPermission = hasMinimumGroupOrPermission
 M.canSpawnVehicle = canSpawnVehicle
+M.canSpawnAI = canSpawnAI
 M.isStaff = isStaff
 M.getNextGroup = getNextGroup
 M.getPreviousGroup = getPreviousGroup

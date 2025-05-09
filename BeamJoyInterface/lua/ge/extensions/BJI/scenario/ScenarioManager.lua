@@ -210,20 +210,6 @@ local function canRepairAtGarage()
     return false
 end
 
-local function canSpawnAI()
-    if _curr().canSpawnAI then
-        return _curr().canSpawnAI()
-    end
-    return false
-end
-
-local function canSelectVehicle()
-    if _curr().canSelectVehicle then
-        return _curr().canSelectVehicle()
-    end
-    return true
-end
-
 local function canSpawnNewVehicle()
     if _curr().canSpawnNewVehicle then
         return _curr().canSpawnNewVehicle()
@@ -257,13 +243,6 @@ local function canDeleteOtherPlayersVehicle()
         return _curr().canDeleteOtherPlayersVehicle()
     end
     return false
-end
-
-local function canEditVehicle()
-    if _curr().canEditVehicle then
-        return _curr().canEditVehicle()
-    end
-    return true
 end
 
 local function getModelList()
@@ -302,6 +281,15 @@ local function getCollisionsType(ctxt)
         return _curr().getCollisionsType(ctxt or BJITick.getContext())
     else
         return BJICollisions.TYPES.GHOSTS
+    end
+end
+
+---@return ScenarioRestriction[]
+local function getRestrictions()
+    if _curr().getRestrictions then
+        return _curr().getRestrictions()
+    else
+        return {}
     end
 end
 
@@ -432,19 +420,17 @@ M.tryPaint = tryPaint
 
 M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
-M.canSpawnAI = canSpawnAI
-M.canSelectVehicle = canSelectVehicle
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
 M.canDeleteVehicle = canDeleteVehicle
 M.canDeleteOtherVehicles = canDeleteOtherVehicles
 M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
-M.canEditVehicle = canEditVehicle
 M.getModelList = getModelList
 M.getPlayerListActions = getPlayerListActions
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType
+M.getRestrictions = getRestrictions
 
 M.renderTick = renderTick
 M.slowTick = slowTick

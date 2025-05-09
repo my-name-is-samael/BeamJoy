@@ -124,8 +124,9 @@ local function stop()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
 end
 
-local function slowTick(ctxt)
-    if M.startTime and M.startTime <= GetCurrentTime() and
+---@param time integer
+local function slowTick(time)
+    if M.startTime and M.startTime <= time and
         table.length(M.participants) > table.length(M.leaderboard) then
         M.stepCounter = M.stepCounter + 1
         if M.stepCounter >= BJCConfig.Data.Speed.StepDelay then
@@ -191,13 +192,12 @@ M.start = start
 M.fail = fail
 M.stop = stop
 
-M.slowTick = slowTick
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
 
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
 
 BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
-
 BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
 return M

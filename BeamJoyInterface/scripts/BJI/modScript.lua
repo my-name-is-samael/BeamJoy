@@ -1,2 +1,2 @@
-_ = load('BJI')
+local _ = load('BJI')
 setExtensionUnloadMode('BJI', 'manual')

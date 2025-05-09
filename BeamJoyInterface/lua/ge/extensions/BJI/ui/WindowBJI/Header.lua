@@ -161,7 +161,7 @@ local function draw(ctxt)
                                 end
                             })
                         if BJIPerm.canSpawnVehicle() and
-                            BJIScenario.canSelectVehicle() then
+                            not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
                             line:btnIcon({
                                 id = "toggleVehicleSelector",
                                 icon = ICONS.directions_car,
@@ -390,7 +390,7 @@ local function draw(ctxt)
 
         ProgressBar({
             floatPercent = (reputation - levelReputation) / (nextLevel - levelReputation),
-            width = 250,
+            width = "100%",
         })
     end
 

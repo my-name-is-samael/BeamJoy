@@ -276,6 +276,22 @@ local function hasVehicle()
     return table.length(MPVehicleGE.getOwnMap()) > 0
 end
 
+
+---@param callback fun(ctxt: TickContext)
+local function waitForVehicleSpawn(callback)
+    local delay = GetCurrentTimeMillis() + 100
+    BJIAsync.task(function(ctxt)
+        if ctxt.now > delay and ui_imgui.GetIO().Framerate > 5 and ctxt.veh ~= nil then
+            if BJIVeh.isUnicycle(ctxt.veh:getID()) then
+                return true
+            end
+            return ctxt.vehData ~= nil and ctxt.vehData.damageState ~= nil and
+                ctxt.vehData.damageState < BJIContext.physics.VehiclePristineThreshold
+        end
+        return false
+    end, callback, "BJIVehSpawnCallback")
+end
+
 local function onVehicleSpawned(gameVehID)
     local vehicle = M.getVehicleObject(gameVehID)
     if vehicle then
@@ -428,11 +444,7 @@ local function loadHome(callback)
     if veh then
         veh:queueLuaCommand("recovery.loadHome()")
         if type(callback) == "function" then
-            local delay = GetCurrentTimeMillis() + 100
-            BJIAsync.task(function(ctxt)
-                return ctxt.now > delay and ui_imgui.GetIO().Framerate > 5 and
-                    ctxt.vehData.damageState < BJIContext.physics.VehiclePristineThreshold
-            end, callback, "BJIVehLoadHomeCallback")
+            waitForVehicleSpawn(callback)
         end
     end
 end
@@ -1155,7 +1167,7 @@ local function updateVehFuelState(ctxt, data)
                         ctxt.vehData.tanks[tank.name].currentEnergy and
                         ctxt.vehData.tanks[tank.name].currentEnergy > tank.maxEnergy * M.tankLowThreshold and
                         tank.currentEnergy < tank.maxEnergy * M.tankLowThreshold then
-                        BJISound.play(BJISound.FUEL_LOW)
+                        BJISound.play(BJISound.SOUNDS.FUEL_LOW)
                     end
 
                     ctxt.vehData.tanks[tank.name].currentEnergy = tank.currentEnergy
@@ -1300,6 +1312,7 @@ M.isCurrentVehicleOwn = isCurrentVehicleOwn
 M.getCurrentVehicleOwn = getCurrentVehicleOwn
 M.hasVehicle = hasVehicle
 
+M.waitForVehicleSpawn = waitForVehicleSpawn
 M.onVehicleSpawned = onVehicleSpawned
 
 M.focus = focus

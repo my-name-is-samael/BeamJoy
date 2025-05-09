@@ -276,6 +276,7 @@ end
 -- FORMAT
 
 function RaceDelay(ms)
+    ms = math.round(ms or 0)
     local hours = math.floor(ms / 1000 / 60 / 60)
     ms = ms - hours * 60 * 60 * 1000
     local mins = math.floor(ms / 1000 / 60)

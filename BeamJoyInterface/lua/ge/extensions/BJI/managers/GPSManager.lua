@@ -41,7 +41,7 @@ local function navigateToMission(poiID)
         end
     end
     if not pos then
-        for _, poi in ipairs(gameplay_rawPois.getRawPoiListByLevel(getCurrentLevelIdentifier())) do
+        for _, poi in ipairs(extensions.gameplay_rawPois.getRawPoiListByLevel(getCurrentLevelIdentifier())) do
             if poi.id == poiID and poi.markerInfo.bigmapMarker then
                 pos = poi.markerInfo.bigmapMarker.pos
                 if poi.data and poi.data.type == M.KEYS.STATION then

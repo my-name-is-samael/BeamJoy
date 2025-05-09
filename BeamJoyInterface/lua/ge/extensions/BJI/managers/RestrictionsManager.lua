@@ -1,201 +1,137 @@
----@class Restriction
----@field key string
----@field type string
----@field subtype? string
+---@class ScenarioRestriction
+---@field restrictions string[] list of restrictions
+---@field state boolean should be restricted
 
 local M = {
     _name = "BJIRestrictions",
 
-    --@type table<string, Restriction>
-    TYPES = {
-        -- RESET
-
-        RESET_ALL = { -- CUSTOM FLAG
-            key = "beamjoy_custom_reset_all",
-            type = "Reset",
+    RESET = {
+        TELEPORT = {
+            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road"
         },
-        RESET_NONE = { -- CUSTOM FLAG
-            key = "beamjoy_custom_reset_none",
-            type = "Reset",
+        HEAVY_RELOAD = {
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
         },
-
-        RECOVER_VEHICLE = { -- R
-            key = "recover_vehicle",
-            type = "Reset",
+        ALL = {
+            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road",
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt"
         },
-        RESET_PHYSICS = { -- Ctrl + R
-            key = "reset_physics",
-            type = "Reset",
-        },
-        RESET_ALL_PHYSICS = { -- Shift + R
-            key = "reset_all_physics",
-            type = "Reset",
-        },
-        RECOVER_VEHICLE_ALT = { -- Ctrl + Insert
-            key = "recover_vehicle_alt",
-            type = "Reset",
-        },
-        RECOVER_TO_LAST_ROAD = { -- Unassigned
-            key = "recover_to_last_road",
-            type = "Reset",
-        },
-        RELOAD_VEHICLE = { -- Ctrl + Alt + R
-            key = "reload_vehicle",
-            type = "Reset",
-        },
-        RELOAD_ALL_VEHICLES = { -- Ctrl + Shift + R
-            key = "reload_all_vehicles",
-            type = "Reset",
-        },
-        LOAD_HOME = { -- Home
-            key = "loadHome",
-            type = "Reset",
-        },
-        SAVE_HOME = { -- Ctrl + Home
-            key = "saveHome",
-            type = "Reset",
-        },
-        DROP_PLAYER_AT_CAMERA = { -- F7
-            key = "dropPlayerAtCamera",
-            type = "Reset",
-        },
-        DROP_PLAYER_AT_CAMERA_NO_RESET = { -- Shift + F7
-            key = "dropPlayerAtCameraNoReset",
-            type = "Reset",
-        },
-        GOTO_CHECKPOINT = {
-            key = "goto_checkpoint",
-            type = "Reset",
-        },
-
-        -- CEN
-
-        CONSOLE = {
-            key = "toggleConsoleNG",
-            type = "CEN",
-            subtype = "Console",
-        },
-        EDITOR = {
-            key = "editorToggle",
-            type = "CEN",
-            subtype = "Editor",
-        },
-        EDITOR_SAFE_MODE = {
-            key = "editorSafeModeToggle",
-            type = "CEN",
-            subtype = "Editor",
-        },
-        EDITOR_OBJECT = {
-            key = "objectEditorToggle",
-            type = "CEN",
-            subtype = "Editor",
-        },
-        NODEGRABBER = {
-            key = "nodegrabberRender",
-            type = "CEN",
-            subtype = "NodeGrabber",
+        ALL_BUT_LOADHOME = { -- only load home allowed
+            "saveHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint", "recover_to_last_road",
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt"
         },
     },
-    ---@type Restriction[]
-    currentResets = {},
-    ---@type Restriction[]
-    currentCEN = {},
-    tag = "BeamjoyRestrictions",
+    CEN = {
+        CONSOLE = {
+            "toggleConsoleNG",
+        },
+        EDITOR = {
+            "editorToggle", "editorSafeModeToggle", "objectEditorToggle",
+        },
+        NODEGRABBER = {
+            "nodegrabberRender",
+        },
+    },
+    OTHER = {
+        VEHICLE_SELECTOR = { "vehicle_selector" },
+        VEHICLE_PARTS_SELECTOR = { "parts_selector" },
+        VEHICLE_DEBUG = { "vehicledebugMenu" },
+        AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
+        VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
+        FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
+        WALKING = { "toggleWalkingMode" },
+        BIG_MAP = { "toggleBigMap" },
+    },
+
+    _tag = "BeamjoyRestrictions",
+    _restrictions = Table({ "pause", "toggleTrackBuilder" }),
 }
 
 local function onLoad()
-    extensions.core_input_actionFilter.setGroup(M.tag, {})
-    extensions.core_input_actionFilter.addAction(0, M.tag, false)
+    extensions.core_input_actionFilter.setGroup(M._tag, {})
+    extensions.core_input_actionFilter.addAction(0, M._tag, false)
 end
 
-local function updateRestrictions()
-    extensions.core_input_actionFilter.addAction(0, M.tag, false)
-
-    local res = {}
-    table.forEach(M.currentResets, function(r)
-        table.insert(res, r)
-    end)
-    table.forEach(M.currentCEN, function(r)
-        table.insert(res, r)
-    end)
-
-    extensions.core_input_actionFilter.setGroup(M.tag, res)
-    extensions.core_input_actionFilter.addAction(0, M.tag, true)
+--- Applies reset restrictions and removes not specified
+---@param resets string[]
+local function updateResets(resets)
+    M._restrictions = M._restrictions
+        :filter(function(r) return not table.includes(M.RESET.ALL, r) end)
+        :addAll(resets, true)
 end
 
----@param allowedTypes Restriction|Restriction[] allowed reset type(s) or custom flag
-local function updateReset(allowedTypes)
-    if type(allowedTypes) ~= "table" then
-        LogError(string.var("Invalid restriction type {1}", { allowedTypes }))
-        return
-    end
-    if allowedTypes == M.TYPES.RESET_ALL then
-        -- allow all resets
-        M.currentResets = {}
-        updateRestrictions()
-        return
-    elseif allowedTypes == M.TYPES.RESET_NONE then
-        -- restrict all resets
-        M.currentResets = {}
-        table.filter(M.TYPES, function(t)
-            return t.type == "Reset" and not string.startswith(t.key, "beamjoy_custom_")
-        end):forEach(function(t)
-            table.insert(M.currentResets, t.key)
+---@param cen string[]
+local function updateCEN(cen)
+    M._restrictions = M._restrictions
+        :filter(function(r)
+            return not table.any(M.CEN,
+                function(cenRestrictions) return table.includes(cenRestrictions, r) end)
         end)
-        updateRestrictions()
-        return
-    end
-
-    M.currentResets = {}
-    if allowedTypes.key then
-        allowedTypes = { allowedTypes }
-    end
-    ---@param t Restriction
-    table.filter(table.clone(M.TYPES), function(t)
-        return t.key and t.type == "Reset" and not string.startswith(t.key, "beamjoy_custom_") and
-            ---@param t2 Restriction
-            not table.find(allowedTypes, function(t2) return t2.key == t.key end)
-    end):forEach(function(t)
-        table.insert(M.currentResets, t.key)
-    end)
-    updateRestrictions()
+        :addAll(cen)
 end
 
----@param restrictedTypes Restriction[]
-local function updateCEN(restrictedTypes)
-    if type(restrictedTypes) ~= "table" then
-        LogError(string.var("Invalid CEN restriction type {1}", { restrictedTypes }))
-        return
-    end
-    M.currentCEN = {}
-    ---@param t Restriction
-    table.filter(table.clone(M.TYPES), function(t)
-        return t.type == "CEN" and not string.startswith(t.key, "beamjoy_custom_") and
-            ---@param t2 Restriction
-            table.find(restrictedTypes, function(t2) return t2.key == t.key end)
-    end):forEach(function(t)
-        table.insert(M.currentCEN, t.key)
+---@param restr ScenarioRestriction[]
+local function update(restr)
+    ---@param rest ScenarioRestriction
+    Table(restr):forEach(function(rest)
+        if not rest.state then
+            M._restrictions = Table(rest.restrictions):reduce(function(acc, r)
+                if acc:includes(r) then
+                    acc:remove(M._restrictions:indexOf(r))
+                end
+                return acc
+            end, M._restrictions)
+            Table(rest.restrictions):forEach(function(r)
+                M._restrictions = M._restrictions:filter(function(r2) return r2 ~= r end)
+            end)
+        elseif rest.state then
+            M._restrictions:addAll(rest.restrictions, true)
+        end
     end)
-    updateRestrictions()
 end
 
----@param rest Restriction
+---@return tablelib<string>
+local function getCurrentResets()
+    return M._restrictions:filter(function(el) return table.includes(M.RESET.ALL, el) end)
+end
+
+---@param restrictions tablelib<string>|string[]
 ---@return boolean
-local function isRestricted(rest)
-    if type(rest) ~= "table" or not rest.key or
-        string.startswith(rest.key, "beamjoy_custom_") then
-        LogError(string.var("Invalid restriction type {1}", { rest }))
-        return false
-    end
+local function getState(restrictions)
+    return Table(restrictions):all(function(r)
+        return table.includes(M._restrictions, r)
+    end)
+end
 
-    return table.includes(M.currentResets, rest.key) or
-        table.includes(M.currentCEN, rest.key)
+local function slowTick()
+    update(BJIScenario.getRestrictions())
+end
+
+local previous = Table()
+local function renderTick()
+    if not previous:compare(M._restrictions) then
+        M._restrictions:sort()
+        extensions.core_input_actionFilter.addAction(0, M._tag, false)
+        extensions.core_input_actionFilter.setGroup(M._tag, M._restrictions)
+        extensions.core_input_actionFilter.addAction(0, M._tag, true)
+        previous = M._restrictions:clone()
+    end
 end
 
 M.onLoad = onLoad
-M.updateReset = updateReset
+
+M.updateResets = updateResets
 M.updateCEN = updateCEN
-M.isRestricted = isRestricted
+M.update = update
+M.getCurrentResets = getCurrentResets
+M.getState = getState
+
+M.slowTick = slowTick
+M.renderTick = renderTick
 
 RegisterBJIManager(M)
 return M

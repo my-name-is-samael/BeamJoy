@@ -121,16 +121,25 @@ end
 ---@return tablelib
 table.addAll = table.addAll or function(tab1, tab2, distinct)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return Table() end
-    return Table({ tab1, tab2 })
-        :map(function(tab) return Table(tab):values() end)
-        :reduce(function(acc, tab)
-            Table(tab):forEach(function(el, k)
-                if not distinct or not acc:includes(el) then
-                    acc:insert(el)
-                end
-            end)
+    if Table(tab1):isArray() then
+        return Table(tab2):reduce(function(acc, el)
+            if not distinct or not acc:includes(el) then
+                acc:insert(el)
+            end
             return acc
-        end, Table())
+        end, Table(tab1))
+    else
+        return Table({ tab1, tab2 })
+            :map(function(tab) return Table(tab):values() end)
+            :reduce(function(acc, tab)
+                Table(tab):forEach(function(el, k)
+                    if not distinct or not acc:includes(el) then
+                        acc:insert(el)
+                    end
+                end)
+                return acc
+            end, Table())
+    end
 end
 
 -- table.concat only works on arrays, table.join is working on objects too
