@@ -204,7 +204,7 @@ local function getRemoteVehID(gameVehID)
     local vehs = M.getMPVehicles()
     for _, v in pairs(vehs) do
         if v.gameVehicleID == gameVehID and v.remoteVehID ~= -1 then
-            return v.remoteVehID
+            return tonumber(v.remoteVehID)
         end
     end
     return nil
@@ -343,8 +343,7 @@ local function teleportToPlayer(targetID)
     end
 
     -- old
-    -- playerName = target.playerName
-    -- MPVehicleGE.teleportVehToPlayer(playerName)
+    -- MPVehicleGE.teleportVehToPlayer(target.playerName)
 
     local posRot = destVeh and M.getPositionRotation(destVeh)
     if posRot then

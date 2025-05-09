@@ -679,6 +679,7 @@
       "muteReason": "Motivo muto",
       "kickReason": "Calcia la ragione",
       "banReason": "Motivo del divieto",
+      "savedReason": "Motivo salvato",
       "kickModal": "Sei sicuro di voler espellere \"{playerName}\"?",
       "tempBanModal": "Sei sicuro di voler bannare temporaneamente \"{playerName}\"?",
       "banModal": "Sei sicuro di voler bannare \"{playerName}\"?"

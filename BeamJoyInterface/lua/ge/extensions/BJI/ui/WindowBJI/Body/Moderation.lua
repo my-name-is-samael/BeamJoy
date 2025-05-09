@@ -1,4 +1,8 @@
-local actionLinebreak = "linebreak"
+local _actionLinebreak = "linebreak"
+
+---@param player table
+---@param isAccordionOpen boolean
+---@param ctxt TickContext
 local function getHeaderActions(player, isAccordionOpen, ctxt)
     -- base actions
     local actions = BJIScenario.getPlayerListActions(player, ctxt)
@@ -22,7 +26,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
     end
 
     if #actions > 0 then
-        table.insert(actions, actionLinebreak)
+        table.insert(actions, _actionLinebreak)
     end
 
     -- line moderation actions
@@ -93,7 +97,10 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
     return actions
 end
 
-local function drawPlayerVehicles(player, ctxt, cache)
+---@param player table
+---@param ctxt TickContext
+---@param cache table
+local function drawVehicles(player, ctxt, cache)
     if player.vehiclesCount > 0 then
         LineBuilder()
             :text(string.var("{1} ({2}):", { cache.labels.players.moderation.vehicles, player.vehiclesCount }))
@@ -168,234 +175,243 @@ local function drawPlayerVehicles(player, ctxt, cache)
     end
 end
 
-local function drawPlayerDetails(player, ctxt, cache)
-    if not player.self then
-        local labels = {
-            "moderationBlock.muteReason",
-            "moderationBlock.kickReason",
-            "moderationBlock.banReason",
-            "moderationBlock.tempBanDuration",
-        }
-        local labelWidth = 0
-        for _, k in ipairs(labels) do
-            local label = BJILang.get(k)
-            local w = GetColumnTextWidth(label .. ":")
-            if w > labelWidth then
-                labelWidth = w
-            end
-        end
-
-        local buttonsWidth = GetBtnIconSize()
-        local labelKickButton = BJILang.get("moderationBlock.buttons.kick")
-        if GetColumnTextWidth(labelKickButton) > buttonsWidth then
-            buttonsWidth = GetColumnTextWidth(labelKickButton)
-        end
-
-        ColumnsBuilder(string.var("moderation{1}", { player.playerID }), { labelWidth, -1, buttonsWidth })
-            :addRow({
-                cells = {
-                    function()
-                        LineBuilder()
-                            :text(cache.labels.players.moderation.muteReason)
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :inputString({
-                                id = string.var("muteReason{1}", { player.playerID }),
-                                value = player.muteReason,
-                                onUpdate = function(val)
-                                    player.muteReason = val
-                                end
-                            })
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :btnIconToggle({
-                                id = string.var("toggleMute{1}", { player.playerID }),
-                                icon = ICONS.speaker_notes_off,
-                                state = player.muted == true,
-                                onClick = function()
-                                    BJITx.moderation.mute(player.playerName, player.muteReason)
-                                end
-                            })
-                            :build()
-                    end
-                }
-            })
-            :addRow({
-                cells = {
-                    function()
-                        LineBuilder()
-                            :text(cache.labels.players.moderation.kickReason)
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :inputString({
-                                id = string.var("kickReason{1}", { player.playerID }),
-                                value = player.kickReason,
-                                onUpdate = function(val)
-                                    player.kickReason = val
-                                end
-                            })
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :btn({
-                                id = string.var("kick{1}", { player.playerID }),
-                                label = labelKickButton,
-                                style = BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    BJIPopup.createModal(
-                                        BJILang.get("moderationBlock.kickModal")
-                                        :var({ playerName = player.playerName }),
-                                        {
-                                            {
-                                                label = BJILang.get("common.buttons.cancel"),
-                                            },
-                                            {
-                                                label = BJILang.get("common.buttons.confirm"),
-                                                onClick = function()
-                                                    BJITx.moderation.kick(player.playerID, player.kickReason)
-                                                end
-                                            }
-                                        }
-                                    )
-                                end
-                            })
-                            :build()
-                    end
-                }
-            })
-            :addRow({
-                cells = {
-                    function()
-                        LineBuilder()
-                            :text(cache.labels.players.moderation.banReason)
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :inputString({
-                                id = string.var("banReason{1}", { player.playerID }),
-                                value = player.banReason,
-                                onUpdate = function(val)
-                                    player.banReason = val
-                                end
-                            })
-                            :build()
-                    end,
-                    BJIPerm.hasPermission(BJIPerm.PERMISSIONS.BAN) and function()
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("ban{1}", { player.playerID }),
-                                icon = ICONS.gavel,
-                                style = BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    BJIPopup.createModal(
-                                        BJILang.get("moderationBlock.banModal")
-                                        :var({ playerName = player.playerName }),
-                                        {
-                                            {
-                                                label = BJILang.get("common.buttons.cancel"),
-                                            },
-                                            {
-                                                label = BJILang.get("common.buttons.confirm"),
-                                                onClick = function()
-                                                    BJITx.moderation.ban(player.playerName, player.banReason)
-                                                end
-                                            }
-                                        }
-                                    )
-                                end
-                            })
-                            :build()
-                    end or nil
-                }
-            })
-            :addRow({
-                cells = {
-                    function()
-                        LineBuilder()
-                            :text(cache.labels.players.moderation.tempBanDuration)
-                            :build()
-                    end,
-                    function()
-                        local delay = tonumber(player.tempBanDuration) or 0
-                        LineBuilder()
-                            :text(PrettyDelay(delay))
-                            :build()
-                    end,
-                    function()
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("tempBan{1}", { player.playerID }),
-                                icon = ICONS.av_timer,
-                                style = BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    BJIPopup.createModal(
-                                        BJILang.get("moderationBlock.tempBanModal")
-                                        :var({ playerName = player.playerName }),
-                                        {
-                                            {
-                                                label = BJILang.get("common.buttons.cancel"),
-                                            },
-                                            {
-                                                label = BJILang.get("common.buttons.confirm"),
-                                                onClick = function()
-                                                    BJITx.moderation.tempban(player.playerName,
-                                                        player.tempBanDuration,
-                                                        player.banReason)
-                                                end
-                                            }
-                                        }
-                                    )
-                                end
-                            })
-                            :build()
-                    end
-                }
-            })
-            :build()
-
-        local min, max = BJIContext.BJC.TempBan.minTime, BJIContext.BJC.TempBan.maxTime
-        DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
-            player.tempBanDuration, min, max, BJIContext.BJC.TempBan.minTime, function(val)
-                player.tempBanDuration = val
-            end)
-
-        if player.demoteGroup or player.promoteGroup then
-            local line = LineBuilder()
-            if player.demoteGroup then
-                line:btn({
-                    id = string.var("demote{1}", { player.playerID }),
-                    label = player.demoteLabel,
-                    style = BTN_PRESETS.ERROR,
-                    onClick = function()
-                        BJITx.moderation.setGroup(player.playerName, player.demoteGroup)
-                    end
-                })
-            end
-            if player.promoteGroup then
-                line:btn({
-                    id = string.var("promote{1}", { player.playerID }),
-                    label = player.promoteLabel,
-                    style = BTN_PRESETS.SUCCESS,
-                    onClick = function()
-                        BJITx.moderation.setGroup(player.playerName, player.promoteGroup)
-                    end
-                })
-            end
-            line:build()
-        end
+---@param player table
+---@param ctxt TickContext
+---@param cache table
+local function drawModeration(player, ctxt, cache)
+    local inputs = cache.data.players.moderationInputs
+    local cols = ColumnsBuilder(string.var("moderation{1}", { player.playerID }),
+            { cache.widths.players.moderation.labels, -1, cache.widths.players.moderation.buttons })
+        :addRow({
+            cells = {
+                function()
+                    LineLabel(cache.labels.players.moderation.muteReason)
+                end,
+                function()
+                    LineBuilder()
+                        :inputString({
+                            id = string.var("muteReason{1}", { player.playerID }),
+                            value = inputs.muteReason,
+                            onUpdate = function(val)
+                                inputs.muteReason = val
+                            end
+                        })
+                        :build()
+                end,
+                function()
+                    LineBuilder()
+                        :btnIconToggle({
+                            id = string.var("toggleMute{1}", { player.playerID }),
+                            icon = ICONS.speaker_notes_off,
+                            state = player.muted == true,
+                            onClick = function()
+                                BJITx.moderation.mute(player.playerName, inputs.muteReason)
+                                inputs.muteReason = ""
+                            end
+                        })
+                        :build()
+                end
+            }
+        })
+    if player.muteReason and #player.muteReason > 0 then
+        cols:addRow({
+            cells = {
+                function()
+                    LineLabel(cache.labels.players.moderation.savedReason)
+                end,
+                function()
+                    LineLabel(player.muteReason)
+                end
+            }
+        })
     end
+    cols:addRow({
+        cells = {
+            function()
+                LineLabel(cache.labels.players.moderation.kickReason)
+            end,
+            function()
+                LineBuilder()
+                    :inputString({
+                        id = string.var("kickReason{1}", { player.playerID }),
+                        value = inputs.kickReason,
+                        onUpdate = function(val)
+                            inputs.kickReason = val
+                        end
+                    })
+                    :build()
+            end,
+            function()
+                LineBuilder()
+                    :btn({
+                        id = string.var("kick{1}", { player.playerID }),
+                        label = cache.labels.players.moderation.kickButton,
+                        style = BTN_PRESETS.ERROR,
+                        onClick = function()
+                            BJIPopup.createModal(
+                                BJILang.get("moderationBlock.kickModal")
+                                :var({ playerName = player.playerName }),
+                                {
+                                    {
+                                        label = BJILang.get("common.buttons.cancel"),
+                                    },
+                                    {
+                                        label = BJILang.get("common.buttons.confirm"),
+                                        onClick = function()
+                                            BJITx.moderation.kick(player.playerID, inputs.kickReason)
+                                            inputs.kickReason = ""
+                                        end
+                                    }
+                                }
+                            )
+                        end
+                    })
+                    :build()
+            end
+        }
+    })
+    if player.kickReason and #player.kickReason > 0 then
+        cols:addRow({
+            cells = {
+                function()
+                    LineLabel(cache.labels.players.moderation.savedReason)
+                end,
+                function()
+                    LineLabel(player.kickReason)
+                end
+            }
+        })
+    end
+    cols:addRow({
+        cells = {
+            function()
+                LineLabel(cache.labels.players.moderation.banReason)
+            end,
+            function()
+                LineBuilder()
+                    :inputString({
+                        id = string.var("banReason{1}", { player.playerID }),
+                        value = inputs.banReason,
+                        onUpdate = function(val)
+                            inputs.banReason = val
+                        end
+                    })
+                    :build()
+            end,
+            cache.data.players.canBan and function()
+                LineBuilder()
+                    :btnIcon({
+                        id = string.var("ban{1}", { player.playerID }),
+                        icon = ICONS.gavel,
+                        style = BTN_PRESETS.ERROR,
+                        onClick = function()
+                            BJIPopup.createModal(
+                                BJILang.get("moderationBlock.banModal")
+                                :var({ playerName = player.playerName }),
+                                {
+                                    {
+                                        label = BJILang.get("common.buttons.cancel"),
+                                    },
+                                    {
+                                        label = BJILang.get("common.buttons.confirm"),
+                                        onClick = function()
+                                            BJITx.moderation.ban(player.playerName, inputs.banReason)
+                                            inputs.banReason = ""
+                                        end
+                                    }
+                                }
+                            )
+                        end
+                    })
+                    :build()
+            end or nil
+        }
+    })
+    if player.banReason and #player.banReason > 0 then
+        cols:addRow({
+            cells = {
+                function()
+                    LineLabel(cache.labels.players.moderation.savedReason)
+                end,
+                function()
+                    LineLabel(player.banReason)
+                end
+            }
+        })
+    end
+    cols:addRow({
+        cells = {
+            function()
+                LineLabel(cache.labels.players.moderation.tempBanDuration)
+            end,
+            function()
+                LineLabel(PrettyDelay(tonumber(inputs.tempBanDuration) or 0))
+            end,
+            function()
+                LineBuilder()
+                    :btnIcon({
+                        id = string.var("tempBan{1}", { player.playerID }),
+                        icon = ICONS.av_timer,
+                        style = BTN_PRESETS.ERROR,
+                        onClick = function()
+                            BJIPopup.createModal(
+                                BJILang.get("moderationBlock.tempBanModal")
+                                :var({ playerName = player.playerName }),
+                                {
+                                    {
+                                        label = BJILang.get("common.buttons.cancel"),
+                                    },
+                                    {
+                                        label = BJILang.get("common.buttons.confirm"),
+                                        onClick = function()
+                                            BJITx.moderation.tempban(player.playerName,
+                                                inputs.tempBanDuration,
+                                                player.banReason)
+                                        end
+                                    }
+                                }
+                            )
+                        end
+                    })
+                    :build()
+            end
+        }
+    })
+        :build()
 
-    drawPlayerVehicles(player, ctxt, cache)
+    local min, max = BJIContext.BJC.TempBan.minTime, BJIContext.BJC.TempBan.maxTime
+    DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
+        inputs.tempBanDuration, min, max, BJIContext.BJC.TempBan.minTime, function(val)
+            inputs.tempBanDuration = val
+        end)
+
+    if player.demoteGroup or player.promoteGroup then
+        local line = LineBuilder()
+        if player.demoteGroup then
+            line:btn({
+                id = string.var("demote{1}", { player.playerID }),
+                label = player.demoteLabel,
+                style = BTN_PRESETS.ERROR,
+                onClick = function()
+                    BJITx.moderation.setGroup(player.playerName, player.demoteGroup)
+                end
+            })
+        end
+        if player.promoteGroup then
+            line:btn({
+                id = string.var("promote{1}", { player.playerID }),
+                label = player.promoteLabel,
+                style = BTN_PRESETS.SUCCESS,
+                onClick = function()
+                    BJITx.moderation.setGroup(player.playerName, player.promoteGroup)
+                end
+            })
+        end
+        line:build()
+    end
 end
 
+---@param cache table
 local function drawWaitingPlayers(cache)
     if #cache.data.players.waiting == 0 then
         return
@@ -424,6 +440,7 @@ local function drawWaitingPlayers(cache)
 end
 
 ---@param ctxt TickContext
+---@param cache table
 local function drawListPlayers(ctxt, cache)
     local drawHeaderActions = function(player, isAccordionOpen)
         local actions = getHeaderActions(player, isAccordionOpen, ctxt)
@@ -432,7 +449,7 @@ local function drawListPlayers(ctxt, cache)
         end
         local line = LineBuilder(true)
         for _, action in ipairs(actions) do
-            if action == actionLinebreak then
+            if action == _actionLinebreak then
                 line:build()
                 line = LineBuilder()
             elseif action.icon then
@@ -449,60 +466,46 @@ local function drawListPlayers(ctxt, cache)
         end
     end
 
-    LineBuilder()
-        :text(cache.labels.players.moderation.list)
-        :build()
-    for _, player in ipairs(cache.data.players.list) do
-        if player.self and player.vehiclesCount == 0 then
-            -- self without vehicles
-            Indent(1)
-            LineBuilder()
-                :text(player.playerName, TEXT_COLORS.HIGHLIGHT)
-                :text(player.nameSuffix, TEXT_COLORS.HIGHLIGHT)
-                :build()
-            drawHeaderActions(player, false)
-            Indent(-1)
-        elseif not player.showVehicles then
-            -- same group or higher staff member
-            Indent(1)
-            LineBuilder()
-                :text(player.playerName)
-                :text(player.nameSuffix)
-                :build()
-            drawHeaderActions(player, false)
-            Indent(-1)
-        else
-            -- players and lower staff members
-            AccordionBuilder()
-                :label("##" .. player.playerName)
-                :commonStart(
-                    function()
-                        local color = player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT
-                        LineBuilder(true)
-                            :text(player.playerName, color)
-                            :text(player.nameSuffix, color)
-                            :build()
-                    end
-                )
-                :closedBehavior(
-                    function()
-                        drawHeaderActions(player, false)
-                    end
-                )
-                :openedBehavior(
-                    function()
-                        drawHeaderActions(player, true)
+    LineLabel(cache.labels.players.moderation.list)
+    Table(cache.data.players.list)
+        :forEach(function(player)
+            if not player.showModeration and not player.showVehicles then
+                Indent(1)
+                LineBuilder()
+                    :text(player.playerName, player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+                    :text(player.nameSuffix, player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+                    :build()
+                drawHeaderActions(player, false)
+                Indent(-1)
+            else
+                AccordionBuilder()
+                    :label(string.var("{1} {2}", { player.playerName, player.nameSuffix }),
+                        player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
+                    :closedBehavior(
+                        function()
+                            drawHeaderActions(player, false)
+                        end
+                    )
+                    :openedBehavior(
+                        function()
+                            drawHeaderActions(player, true)
 
-                        drawPlayerDetails(player, ctxt, cache)
-                    end
-                )
-                :build()
-        end
-    end
+                            if player.showModeration then
+                                drawModeration(player, ctxt, cache)
+                            end
+                            if player.showVehicles then
+                                drawVehicles(player, ctxt, cache)
+                            end
+                        end
+                    )
+                    :build()
+            end
+        end)
 end
 
 ---@param ctxt TickContext
-local function drawModeration(ctxt, cache)
+---@param cache table
+return function(ctxt, cache)
     if #cache.data.players.list + #cache.data.players.waiting == 0 then
         LineBuilder()
             :text(cache.labels.loading)
@@ -513,5 +516,3 @@ local function drawModeration(ctxt, cache)
     drawWaitingPlayers(cache)
     drawListPlayers(ctxt, cache)
 end
-
-return drawModeration

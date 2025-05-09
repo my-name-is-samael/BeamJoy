@@ -129,7 +129,6 @@ local function body(ctxt)
                         end,
                         onChange = function(item)
                             cache.data.lineSelected = item
-                            dump(item.id, cache.data.linesCombo[1].id)
                             if item.id and not cache.data.linesCombo[1].id then
                                 -- auto remove on switch
                                 cache.data.linesCombo:remove(1)

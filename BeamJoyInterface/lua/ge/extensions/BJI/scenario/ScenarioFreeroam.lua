@@ -336,6 +336,7 @@ local function getPlayerListActions(player, ctxt)
                     id = string.var("teleportTo{1}", { player.playerID }),
                     icon = ICONS.tb_height_higher,
                     style = BTN_PRESETS.WARNING,
+                    disabled = M.teleport.restricted,
                     onClick = function()
                         M.tryTeleportToPlayer(player.playerID)
                     end

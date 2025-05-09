@@ -19,8 +19,14 @@ local M = {
 }
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
+
+local _cachedCtxt
+
 ---@return TickContext
 local function getContext()
+    if _cachedCtxt then
+        return _cachedCtxt
+    end
     local veh = BJIVeh.getCurrentVehicle()
     local isOwner = veh and BJIVeh.isVehicleOwn(veh:getID())
     local vehData
@@ -32,7 +38,7 @@ local function getContext()
             end
         end
     end
-    return {
+    _cachedCtxt = {
         now = GetCurrentTimeMillis(),
         user = BJIContext.User,
         group = BJIPerm.Groups[BJIContext.User.group],
@@ -42,11 +48,13 @@ local function getContext()
         vehData = vehData,
         camera = BJICam.getCamera(),
     }
+    return _cachedCtxt
 end
 
 -- ClientTick (each render tick)
 local function client()
     if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
+        _cachedCtxt = nil
         TriggerBJIManagerEvent("renderTick", getContext())
     end
 end

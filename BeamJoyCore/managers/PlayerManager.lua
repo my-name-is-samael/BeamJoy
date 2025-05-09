@@ -284,6 +284,9 @@ local function getCachePlayers(senderID)
                 currentVehicle = player.currentVehicle,
                 vehicles = {},
                 ai = table.deepcopy(player.ai),
+                isGhost = table.includes({
+                    BJCScenario.PLAYER_SCENARII.RACE_SOLO
+                }, player.scenario),
             }
             players[playerID].vehicles = {}
             for vehID, vehicle in pairs(player.vehicles) do

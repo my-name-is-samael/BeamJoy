@@ -679,6 +679,7 @@
       "muteReason": "razón muda",
       "kickReason": "Razón de patada",
       "banReason": "Razón de prohibición",
+      "savedReason": "Motivo guardado",
       "kickModal": "¿Estás seguro de que quieres patear a \"{playerName}\"?",
       "tempBanModal": "¿Estás seguro de que quieres prohibir temporalmente \"{playerName}\"?",
       "banModal": "¿Estás seguro de que quieres prohibir \"{playerName}\"?"

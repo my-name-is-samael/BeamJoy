@@ -679,6 +679,7 @@
       "muteReason": "Raison du Mute",
       "kickReason": "Raison du Kick",
       "banReason": "Raison du Ban",
+      "savedReason": "Raison enregistrée",
       "kickModal": "Es-tu sûr de vouloir kicker \"{playerName}\" ?",
       "tempBanModal": "Es-tu sûr de vouloir bannir temporairement \"{playerName}\" ?",
       "banModal": "Es-tu sûr de vouloir bannir \"{playerName}\" ?"
