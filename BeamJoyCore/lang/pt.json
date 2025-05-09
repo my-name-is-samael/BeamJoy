@@ -679,6 +679,7 @@
       "muteReason": "Razão para silenciar",
       "kickReason": "Razão do chute",
       "banReason": "Motivo do banimento",
+      "savedReason": "Motivo salvo",
       "kickModal": "Tem certeza de que deseja expulsar \"{playerName}\"?",
       "tempBanModal": "Tem certeza de que deseja banir temporariamente \"{playerName}\"?",
       "banModal": "Tem certeza de que deseja banir \"{playerName}\"?"

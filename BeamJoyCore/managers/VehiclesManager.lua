@@ -132,8 +132,6 @@ local function onVehicleDeleted(playerID, vehID)
     end
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-
-    BJCScenario.onVehicleDeleted(playerID, vehID)
 end
 
 local function setModelBlacklist(model, state)

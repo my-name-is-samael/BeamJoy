@@ -205,6 +205,7 @@ local function loadPlayers()
                     currentVehicle = nil,
                     vehicles = {},
                     ai = {},
+                    isGhost = false,
                 }
             end
             local player = C.Players[p.playerID]

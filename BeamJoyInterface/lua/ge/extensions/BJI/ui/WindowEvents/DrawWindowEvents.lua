@@ -166,7 +166,6 @@ local function updateCaches(ctxt)
             end):join(", "),
         })
     end
-    dump(cache)
 end
 
 local listeners = Table()

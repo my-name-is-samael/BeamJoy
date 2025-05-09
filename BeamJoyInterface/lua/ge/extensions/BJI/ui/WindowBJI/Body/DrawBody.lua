@@ -13,8 +13,15 @@ local cache = {
         playersFn = nil,
 
         players = {
-            waiting = {},
-            list = {},
+            waiting = Table(),
+            list = Table(),
+            moderationInputs = {
+                muteReason = "",
+                kickReason = "",
+                banReason = "",
+                tempBanDuration = 0,
+            },
+            canBan = false,
         },
     },
 
@@ -45,7 +52,9 @@ local cache = {
                 promoteWaitingTo = "",
                 muteReason = "",
                 kickReason = "",
+                kickButton = "",
                 banReason = "",
+                savedReason = "",
                 tempBanDuration = "",
                 vehicles = "",
             },
@@ -58,6 +67,7 @@ local cache = {
         players = {
             moderation = {
                 labels = 0,
+                buttons = 0,
             }
         }
     }
@@ -138,7 +148,9 @@ local function updateLabels()
     cache.labels.players.moderation.promoteWaitingTo = BJILang.get("moderationBlock.buttons.promoteTo")
     cache.labels.players.moderation.muteReason = BJILang.get("moderationBlock.muteReason")
     cache.labels.players.moderation.kickReason = BJILang.get("moderationBlock.kickReason")
+    cache.labels.players.moderation.kickButton = BJILang.get("moderationBlock.buttons.kick")
     cache.labels.players.moderation.banReason = BJILang.get("moderationBlock.banReason")
+    cache.labels.players.moderation.savedReason = BJILang.get("moderationBlock.savedReason")
     cache.labels.players.moderation.tempBanDuration = BJILang.get("moderationBlock.tempBanDuration")
     cache.labels.players.moderation.vehicles = BJILang.get("moderationBlock.vehicles")
     cache.labels.players.waiting = BJILang.get("playersBlock.waitingPlayers")
@@ -147,12 +159,9 @@ end
 
 ---@param ctxt TickContext
 local function updateCachePlayers(ctxt)
-    cache.data.players.waiting = {}
-    cache.data.players.list = {}
-
     local selfStaff = BJIPerm.isStaff()
 
-    cache.data.players.waiting = {}
+    cache.data.players.waiting = Table()
     table.filter(BJIContext.Players, function(_, playerID)
         return not BJIPerm.canSpawnVehicle(playerID) and not BJIPerm.isStaff(playerID)
     end):forEach(function(player, playerID)
@@ -171,16 +180,15 @@ local function updateCachePlayers(ctxt)
         })
     end)
 
-    cache.data.players.list = {}
+    cache.data.players.list = Table()
     table.filter(BJIContext.Players, function(_, playerID)
         return BJIPerm.canSpawnVehicle(playerID) or BJIPerm.isStaff(playerID)
     end):forEach(function(p, playerID)
-        local isSelf = BJIContext.isSelf(playerID)
+        local isSelf = BJIContext.isSelf(playerID) and not BJIDEBUG
         local groupLabel = BJILang.get(string.var("groups.{1}", { p.group }), p.group)
         local targetGroup = BJIPerm.Groups[p.group] or { level = 0 }
-        local isGroupLower = ctxt.group.level > targetGroup.level
+        local isGroupLower = ctxt.group.level > targetGroup.level or BJIDEBUG
         local vehiclesCount = table.length(p.vehicles or {})
-        local showVehicles = isSelf or isGroupLower
         local nameSuffix
         if selfStaff then
             nameSuffix = string.var("({1})", { groupLabel })
@@ -196,13 +204,13 @@ local function updateCachePlayers(ctxt)
 
         local showDemote = isGroupLower and
             not table.includes({ BJI_GROUP_NAMES.NONE, BJI_GROUP_NAMES.OWNER }, p.group)
-        local demoteGroup = showDemote and BJIPerm.getPreviousGroup(p.group) or ""
-        local demoteLabel = showDemote and BJILang.get("moderationBlock.buttons.demoteTo")
+        local demoteGroup = showDemote and BJIPerm.getPreviousGroup(p.group) or nil
+        local demoteLabel = (showDemote and demoteGroup) and BJILang.get("moderationBlock.buttons.demoteTo")
             :var({ groupName = BJILang.get("groups." .. demoteGroup, demoteGroup) }) or nil
         local showPromote = isGroupLower and
             not table.includes({ BJI_GROUP_NAMES.OWNER }, BJIPerm.getNextGroup(p.group))
-        local promoteGroup = showPromote and BJIPerm.getNextGroup(p.group) or ""
-        local promoteLabel = showPromote and BJILang.get("moderationBlock.buttons.promoteTo")
+        local promoteGroup = showPromote and BJIPerm.getNextGroup(p.group) or nil
+        local promoteLabel = (showPromote and promoteGroup) and BJILang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJILang.get("groups." .. promoteGroup, promoteGroup) }) or nil
 
         local vehicleCursor = "@ => "
@@ -223,7 +231,8 @@ local function updateCachePlayers(ctxt)
             nameSuffix = nameSuffix,
             group = p.group,
             groupLabel = groupLabel,
-            showVehicles = showVehicles,
+            showModeration = selfStaff and isGroupLower,
+            showVehicles = (isSelf or isGroupLower) and vehiclesCount > 0,
             vehiclesCount = vehiclesCount,
             currentVehicle = p.currentVehicle,
             vehicles = p.vehicles,
@@ -232,9 +241,21 @@ local function updateCachePlayers(ctxt)
             promoteGroup = promoteGroup,
             promoteLabel = promoteLabel,
             demoteGroup = demoteGroup,
-            demoteLabel = demoteLabel
+            demoteLabel = demoteLabel,
+            muteReason = p.muteReason,
+            kickReason = p.kickReason,
+            banReason = p.banReason,
+            tempBanDuration = p.tempBanDuration
         })
+
+        cache.data.players.canBan = selfStaff and BJIPerm.hasPermission(BJIPerm.PERMISSIONS.BAN)
     end)
+    if selfStaff and type(BJIContext.BJC.TempBan) == "table" then
+        cache.data.players.moderationInputs.tempBanDuration = math.clamp(
+            cache.data.players.moderationInputs.tempBanDuration,
+            BJIContext.BJC.TempBan.minTime, BJIContext.BJC.TempBan.maxTime
+        )
+    end
 
     table.forEach({ cache.data.players.waiting, cache.data.players.list }, function(players)
         table.sort(players, function(a, b)
@@ -257,6 +278,8 @@ local function updateCachePlayers(ctxt)
             end
         end
     end
+    cache.widths.players.moderation.buttons = math.max(GetBtnIconSize(),
+        GetColumnTextWidth(cache.labels.players.moderation.kickButton))
 end
 
 local listeners = Table()

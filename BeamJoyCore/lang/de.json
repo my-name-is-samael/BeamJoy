@@ -679,6 +679,7 @@
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",
       "banReason": "Verbotsgrund",
+      "savedReason": "Vorheriger Grund",
       "kickModal": "Sind Sie sicher, dass Sie „{playerName}“ rausschmeißen möchten?",
       "tempBanModal": "Sind Sie sicher, dass Sie „{playerName}“ vorübergehend sperren möchten?",
       "banModal": "Sind Sie sicher, dass Sie „{playerName}“ sperren möchten?"

@@ -680,6 +680,7 @@
       "muteReason": "Mute reason",
       "kickReason": "Kick reason",
       "banReason": "Ban reason",
+      "savedReason": "Saved reason",
       "kickModal": "Are you sure you want to kick \"{playerName}\" ?",
       "tempBanModal": "Are you sure you want to temp ban \"{playerName}\" ?",
       "banModal": "Are you sure you want to ban \"{playerName}\" ?"

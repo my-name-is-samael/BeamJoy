@@ -553,6 +553,7 @@
       "muteReason": "Немая причина",
       "kickReason": "Причина удара",
       "banReason": "Причина бана",
+      "savedReason": "Сохранённая причина",
       "kickModal": "Вы уверены, что хотите выгнать \"{playerName}\"?",
       "tempBanModal": "Вы уверены, что хотите временно забанить \"{playerName}\"?",
       "banModal": "Вы уверены, что хотите забанить игрока \"{playerName}\"?"

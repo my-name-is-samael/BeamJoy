@@ -54,7 +54,7 @@ local function addListener(events, callback)
     local id = UUID()
     table.forEach(events, function(event)
         if not M.listeners[event] then
-            M.listeners[event] = {}
+            M.listeners[event] = Table()
         end
         M.listeners[event][id] = callback
     end)
@@ -106,10 +106,14 @@ local function renderTick(ctxt)
                 el.event == M.EVENTS.CACHE_LOADED and
                 string.var(" ({1})", { el.data.cache }) or ""
             }), M._name)
-            table.forEach(M.listeners[el.event], function(callback)
+            M.listeners[el.event]:forEach(function(callback)
                 local data = el.data or {}
                 data._event = el.event
-                pcall(callback, ctxt, el.data)
+                local ok, err = pcall(callback, ctxt, data)
+                if not ok then
+                    LogError(string.var("Error firing event {1} :", { el.event }))
+                    dump(err)
+                end
             end)
         end
     end

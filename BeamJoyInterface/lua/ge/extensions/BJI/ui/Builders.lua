@@ -2,6 +2,18 @@ local im = ui_imgui
 local ffi = require('ffi')
 BTN_NO_SOUND = "no_sound"
 
+    ---@return vec4
+    local function convertColorToVec4(color)
+        if type(color) == "table" then
+            if color.r then
+                color = RGBA(color.r, color.g, color.b, color.a)
+            elseif color[1] then
+                color = RGBA(color[1], color[2], color[3], color[4] or 1)
+            end
+        end
+        return color
+    end
+
 -- INPUTS
 
 function InputInt(val)
@@ -388,14 +400,18 @@ AccordionBuilder = function(indentAmount)
     local builder = {
         _indent = indentAmount,
         _label = nil,
+        _labelColor = nil,
         _commonStart = nil,
         _openedBehavior = nil,
         _closedBehavior = nil,
         _commonEnd = nil
     }
 
-    builder.label = function(self, label)
+    builder.label = function(self, label, labelColor)
         self._label = label
+        if labelColor then
+            self._labelColor = convertColorToVec4(labelColor)
+        end
         return self
     end
     builder.commonStart = function(self, startFn)
@@ -427,7 +443,15 @@ AccordionBuilder = function(indentAmount)
             self._label = ""
         end
 
-        if im.TreeNode1(self._label) then
+        if self._labelColor then
+            SetStyleColor(STYLE_COLS.TEXT_COLOR, self._labelColor)
+        end
+        im.SetNextItemWidth(im.GetContentRegionAvail().x)
+        local isOpen = im.TreeNode1(self._label)
+        if self._labelColor then
+            PopStyleColor(1)
+        end
+        if isOpen then
             Indent(self._indent)
             if self._commonStart ~= nil then
                 self._commonStart()
@@ -473,18 +497,6 @@ LineBuilder = function(startSameLine)
         if (self._elemCount > 0) then
             im.SameLine()
         end
-    end
-
-    ---@return vec4
-    local function convertColorToVec4(color)
-        if type(color) == "table" then
-            if color.r then
-                color = RGBA(color.r, color.g, color.b, color.a)
-            elseif color[1] then
-                color = RGBA(color[1], color[2], color[3], color[4] or 1)
-            end
-        end
-        return color
     end
 
     builder.text = function(self, text, color)

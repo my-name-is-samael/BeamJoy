@@ -46,38 +46,31 @@ end
 
 local ctrls = {}
 -- route events categories to controller files
-for k, v in pairs(BJC_EVENTS) do
+Table(BJC_EVENTS):forEach(function(v, k)
     if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
         ctrls[k] = require("rx/" .. k .. "Rx")
         ctrls[k].dispatchEvent = controllerDispatch
     end
-end
+end)
 
 ---@type table<string, {senderID: integer, created: integer, parts?: integer, controller?: string, endpoint?: string, data?: table}>
 local _queue = Table()
 local function finalizeCommunication(id)
-    local event = _queue[id]
-    if event and event.parts and event.parts == #event.data then
-        local rawData = table.join(event.data)
-        rawData = #rawData > 0 and JSON.parse(rawData) or {}
-        local ctxt = {
-            senderID = event.senderID,
-            sender = BJCPlayers.Players[event.senderID] or {},
-            event = event.controller,
-            endpoint = event.endpoint,
-            data = rawData,
-        }
-        BJCInitContext(ctxt)
+    local comm = _queue[id]
+    local rawData = table.join(comm.data)
+    rawData = #rawData > 0 and JSON.parse(rawData) or {}
+    local ctxt = {
+        senderID = comm.senderID,
+        sender = BJCPlayers.Players[comm.senderID] or {},
+        event = comm.controller,
+        endpoint = comm.endpoint,
+        data = rawData,
+    }
+    BJCInitContext(ctxt)
 
-        local ctrl
-        for e, controller in pairs(ctrls) do
-            if type(BJC_EVENTS[e]) == "table" and
-                BJC_EVENTS[e].EVENT == ctxt.event then
-                ctrl = controller
-                break
-            end
-        end
-        if ctrl then
+    if not Table(ctrls):find(function(_, e)
+            return (type(BJC_EVENTS[e]) == "table" and BJC_EVENTS[e].EVENT == ctxt.event)
+        end, function(ctrl)
             if BJCCore.Data.General.Debug then
                 Log(BJCLang.getConsoleMessage("rx.eventReceived")
                     :var({
@@ -88,7 +81,7 @@ local function finalizeCommunication(id)
                     logTag)
                 if table.length(ctxt.data) > 0 then
                     PrintObj(ctxt.data, string.var("{1}.{2} ({3} parts data)",
-                        { ctxt.event, ctxt.endpoint, event.parts }))
+                        { ctxt.event, ctxt.endpoint, comm.parts }))
                 end
             end
 
@@ -98,13 +91,12 @@ local function finalizeCommunication(id)
                     PrintObj(err, "Error Detail")
                 end
                 err = type(err) == "table" and err or {}
-                logAndToastError(ctxt.sender, err.key, err.data)
+                logAndToastError(ctxt.senderID, err.key, err.data)
             end
-        else
-            logAndToastError(ctxt.sender, "rx.errors.invalidEvent", { eventName = ctxt.event })
-        end
-        _queue[id] = nil
+        end) then
+        logAndToastError(ctxt.senderID, "rx.errors.invalidEvent", { eventName = ctxt.event })
     end
+    _queue[id] = nil
 end
 
 function _BJCRxEvent(senderID, dataSent)
@@ -156,11 +148,11 @@ function _BJCRxEventParts(senderID, dataSent)
 end
 
 BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, function(time)
-    _queue:forEach(function(el, id)
-        if el.parts and el.parts == #el.data then
+    _queue:forEach(function(comm, id)
+        if comm.parts and comm.parts == #comm.data then
             finalizeCommunication(id)
-        elseif el.created + 30 < time then
-            LogError(string.var("Communication timed out : {1} - {2}.{3}", { el.senderID, el.controller, el.endpoint }),
+        elseif comm.created + 30 < time then
+            LogError(string.var("Communication timed out : {1} - {2}.{3}", { comm.senderID, comm.controller, comm.endpoint }),
                 logTag)
             _queue[id] = nil
         end

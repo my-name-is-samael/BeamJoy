@@ -128,10 +128,6 @@ local lastRaceHotlap
 local function addHotlapRow(raceName, time)
     if type(raceName) ~= "string" or type(time) ~= "number" then
         LogError("Invalid hotlap data")
-        dump({
-            raceName = raceName,
-            time = time
-        })
         return
     end
     if lastRaceHotlap ~= raceName then
