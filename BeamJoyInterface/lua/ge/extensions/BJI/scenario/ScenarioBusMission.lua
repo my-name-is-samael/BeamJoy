@@ -1,12 +1,12 @@
 local M = {
-    model = "citybus",
+    BASE_MODEL = "citybus",
     config = nil,
     line = {
         id = nil,
         name = nil,
         loopable = false,
         stops = {},
-        totalDistance = nil,
+        totalDistance = 0,
     },
     nextStop = 2,
     progression = nil,
@@ -25,7 +25,7 @@ local function reset()
         name = nil,
         loopable = false,
         stops = {},
-        totalDistance = nil,
+        totalDistance = 0,
     }
     M.nextStop           = 2
     M.progression        = nil
@@ -129,7 +129,6 @@ local function updateTarget(ctxt)
 end
 
 local function onLoad(ctxt)
-    reset()
     BJIVehSelector.tryClose()
     BJIRestrictions.update({ {
         restrictions = Table({
@@ -148,7 +147,11 @@ local function onLoad(ctxt)
     BJIRaceWaypoint.resetAll()
 end
 
-local function start(ctxt)
+local function start(ctxt, lineData, model, config)
+    reset()
+    table.assign(M.line, lineData)
+    model = model or M.BASE_MODEL
+    M.config = config
     M.nextStop = 2
 
     local points = {}
@@ -159,25 +162,27 @@ local function start(ctxt)
 
     BJIUI.applyLoading(true, function()
         local startPosRot = M.line.stops[1]
-        BJIVeh.replaceOrSpawnVehicle(M.model, M.config, startPosRot)
-        BJIAsync.task(function(ctxt2)
-            return ctxt2.isOwner and
-                not BJIVeh.isConfigCustom(ctxt2.veh.partConfig) and
-                ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
-        end, function(ctxt2)
-            initCornerMarkers()
-            updateTarget(ctxt2)
-            BJIScenario.switchScenario(BJIScenario.TYPES.BUS_MISSION, ctxt)
-            BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
-            BJIAsync.delayTask(function()
-                BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
-                BJIBusUI.requestStop(true)
-            end, 300, "BJIBusMissionInitBusUI")
+        BJIAsync.removeTask("BJIBusMissionInitVehicle")
+        BJIVeh.replaceOrSpawnVehicle(model, M.config, startPosRot)
+        BJIVeh.waitForVehicleSpawn(function()
+            BJIAsync.task(function(ctxt2)
+                return ctxt2.isOwner and ctxt2.veh.jbeam == model and
+                    ctxt2.veh.partConfig:find(string.var("/{1}.", { M.config }))
+            end, function(ctxt2)
+                initCornerMarkers()
+                updateTarget(ctxt2)
+                BJIScenario.switchScenario(BJIScenario.TYPES.BUS_MISSION, ctxt)
+                BJIMessage.flash("BJIBusMissionTarget", BJILang.get("buslines.play.flashDriveNext"), 3, false)
+                BJIAsync.delayTask(function()
+                    BJIBusUI.initBusMission(M.line.id, M.line.stops, M.nextStop)
+                    BJIBusUI.requestStop(true)
+                end, 300, "BJIBusMissionInitBusUI")
 
-            BJITx.scenario.BusMissionStart()
-            M.init = true
-            BJIUI.applyLoading(false)
-        end, "BJIBusMissionInitVehicle")
+                BJITx.scenario.BusMissionStart()
+                M.init = true
+                BJIUI.applyLoading(false)
+            end, "BJIBusMissionInitVehicle")
+        end)
     end)
 end
 

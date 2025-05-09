@@ -15,8 +15,10 @@ function BJCTx.player.toast(targetID, type, msgKey, msgData, delay)
         end
     else
         local player = BJCPlayers.Players[targetID]
-        local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
-        BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.TOAST, targetID, { type, msg, tonumber(delay) })
+        if player then
+            local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
+            BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.TOAST, targetID, { type, msg, tonumber(delay) })
+        end
     end
 end
 
@@ -29,8 +31,10 @@ function BJCTx.player.flash(targetID, msgKey, msgData, delay)
         end
     else
         local player = BJCPlayers.Players[targetID]
-        local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
-        BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.FLASH, targetID, { msg, tonumber(delay) })
+        if player then
+            local msg = BJCLang.getServerMessage(player.lang, msgKey):var(msgData)
+            BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.FLASH, targetID, { msg, tonumber(delay) })
+        end
     end
 end
 
