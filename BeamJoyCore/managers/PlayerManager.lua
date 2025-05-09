@@ -798,17 +798,17 @@ local function setPlayerScenario(playerID, scenario)
 end
 
 local function onRaceSoloEnd(playerID, finished)
-    local self = M.Players[playerID]
-    if self.scenario ~= BJCScenario.PLAYER_SCENARII.RACE_SOLO then
+    local player = M.Players[playerID]
+    if player.scenario ~= BJCScenario.PLAYER_SCENARII.RACE_SOLO then
         error({ key = "rx.errors.invalidData" })
     end
 
     M.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
-    self.stats.race = self.stats.race + 1
+    player.stats.race = player.stats.race + 1
     if finished then
         M.reward(playerID, BJCConfig.Data.Reputation.RaceSoloReward)
     else
-        M.savePlayer(self)
+        M.savePlayer(player)
     end
 end
 

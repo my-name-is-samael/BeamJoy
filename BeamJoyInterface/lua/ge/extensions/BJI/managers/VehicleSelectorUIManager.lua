@@ -126,7 +126,6 @@ local function notifyUIEnd()
 end
 
 local function postSpawnCamera(ctxt)
-    LogWarn("Post spawn actions")
     if ctxt.camera == BJICam.CAMERAS.FREE then
         BJICam.toggleFreeCam()
         ctxt.camera = BJICam.getCamera()

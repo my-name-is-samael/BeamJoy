@@ -460,6 +460,7 @@ AccordionBuilder = function(indentAmount)
     return builder
 end
 
+---@param startSameLine? boolean
 LineBuilder = function(startSameLine)
     local builder = {
         _elemCount = 0,
@@ -1113,6 +1114,10 @@ end
 
 EmptyLine = function()
     LineBuilder():text(" "):build()
+end
+
+LineLabel = function(label, startSameLine)
+    LineBuilder(startSameLine):text(label):build()
 end
 
 ---@param data {floatPercent: number, width?: number|string, text?: string}

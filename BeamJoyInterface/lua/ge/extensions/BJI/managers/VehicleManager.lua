@@ -280,7 +280,12 @@ end
 ---@param callback fun(ctxt: TickContext)
 local function waitForVehicleSpawn(callback)
     local delay = GetCurrentTimeMillis() + 100
+    local timeout = delay + 20000
     BJIAsync.task(function(ctxt)
+        if ctxt.now >= timeout then
+            LogError("Vehicle spawn wait timeout")
+            return true
+        end
         if ctxt.now > delay and ui_imgui.GetIO().Framerate > 5 and ctxt.veh ~= nil then
             if BJIVeh.isUnicycle(ctxt.veh:getID()) then
                 return true
@@ -289,7 +294,7 @@ local function waitForVehicleSpawn(callback)
                 ctxt.vehData.damageState < BJIContext.physics.VehiclePristineThreshold
         end
         return false
-    end, callback, "BJIVehSpawnCallback")
+    end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
 end
 
 local function onVehicleSpawned(gameVehID)
@@ -1024,7 +1029,9 @@ local function getAllPaintsForModel(model)
     return (data or {}).paints or {}
 end
 
--- optionnal config and posrot
+---@param model string
+---@param config? string|table
+---@param posrot? BJIPositionRotation
 local function replaceOrSpawnVehicle(model, config, posrot)
     local newVehicle = not M.isCurrentVehicleOwn()
 
