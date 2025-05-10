@@ -9,7 +9,7 @@ local function drawGroupNewPermission(groupName, cols)
         table.insert(options, "")
     end
     for _, permName in pairs(BJIPerm.PERMISSIONS) do
-        if not tincludes(group.permissions, permName, true) then
+        if not table.includes(group.permissions, permName) then
             table.insert(options, permName)
         end
     end
@@ -44,7 +44,7 @@ local function drawGroupNewPermission(groupName, cols)
             function()
                 LineBuilder()
                     :btnIcon({
-                        id = svar("newPerm" .. groupName),
+                        id = string.var("newPerm{1}", {groupName}),
                         icon = ICONS.done,
                         style = BTN_PRESETS.SUCCESS,
                         disabled = group._new == "",
@@ -61,8 +61,7 @@ end
 
 local function _isLevelAssignedToAnotherGroup(groupName, level)
     for g2Name, g2 in pairs(BJIPerm.Groups) do
-        if not tincludes({ "_new", "_newLevel" }, g2Name) and
-            groupName ~= g2Name and
+        if groupName ~= g2Name and
             g2.level == level then
             return true
         end
@@ -76,7 +75,7 @@ local function drawGroupData(groupName)
     local keys = { "level", "vehicleCap", "staff", "banned", "muted", "whitelisted", "permissions" }
     local labelWidth = 0
     for _, k in ipairs(keys) do
-        local label = BJILang.get(svar("serverConfig.permissions.groupKeys.{1}", { k }), k)
+        local label = BJILang.get(string.var("serverConfig.permissions.groupKeys.{1}", { k }), k)
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -88,27 +87,27 @@ local function drawGroupData(groupName)
     end
     local valueWidth = 200 -- min width for inputs
     for _, permName in pairs(group.permissions) do
-        local w = GetColumnTextWidth(svar("- {1}", { permName }))
+        local w = GetColumnTextWidth(string.var("- {1}", { permName }))
         if w > valueWidth then
             valueWidth = w
         end
     end
     local widths = { labelWidth, valueWidth, -1 }
 
-    local cols = ColumnsBuilder(svar("group{1}permissions", { groupName }), widths)
+    local cols = ColumnsBuilder(string.var("group{1}permissions", { groupName }), widths)
         -- level
         :addRow({
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.level") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :inputNumeric({
-                            id = svar("perm-{1}-level", { groupName }),
+                            id = string.var("perm-{1}-level", { groupName }),
                             type = "int",
                             value = group.level,
                             step = 1,
@@ -127,8 +126,10 @@ local function drawGroupData(groupName)
                                         free = not _isLevelAssignedToAnotherGroup(groupName, val)
                                     end
                                 end
-                                group.level = val
-                                BJITx.config.permissionsGroup(groupName, "level", val)
+                                if val > 0 then
+                                    group.level = val
+                                    BJITx.config.permissionsGroup(groupName, "level", val)
+                                end
                             end
                         })
                         :build()
@@ -140,14 +141,14 @@ local function drawGroupData(groupName)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.vehicleCap") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :inputNumeric({
-                            id = svar("perm-{1}-vehicleCap", { groupName }),
+                            id = string.var("perm-{1}-vehicleCap", { groupName }),
                             type = "int",
                             value = group.vehicleCap,
                             step = 1,
@@ -166,14 +167,14 @@ local function drawGroupData(groupName)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.staff") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIconToggle({
-                            id = svar("perm-{1}-staff", { groupName }),
+                            id = string.var("perm-{1}-staff", { groupName }),
                             state = group.staff,
                             coloredIcon = true,
                             onClick = function()
@@ -189,14 +190,14 @@ local function drawGroupData(groupName)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.banned") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIconToggle({
-                            id = svar("perm-{1}-banned", { groupName }),
+                            id = string.var("perm-{1}-banned", { groupName }),
                             state = group.banned,
                             coloredIcon = true,
                             onClick = function()
@@ -212,14 +213,14 @@ local function drawGroupData(groupName)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.muted") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIconToggle({
-                            id = svar("perm-{1}-muted", { groupName }),
+                            id = string.var("perm-{1}-muted", { groupName }),
                             state = group.muted,
                             coloredIcon = true,
                             onClick = function()
@@ -235,14 +236,14 @@ local function drawGroupData(groupName)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.whitelisted") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIconToggle({
-                            id = svar("perm-{1}-whitelisted", { groupName }),
+                            id = string.var("perm-{1}-whitelisted", { groupName }),
                             state = group.whitelisted,
                             coloredIcon = true,
                             onClick = function()
@@ -259,19 +260,19 @@ local function drawGroupData(groupName)
             cells = {
                 i == 1 and function()
                     LineBuilder()
-                        :text(svar("{1}:",
+                        :text(string.var("{1}:",
                             { BJILang.get("serverConfig.permissions.groupKeys.permissions") }))
                         :build()
                 end or nil,
                 function()
                     LineBuilder()
-                        :text(svar("- {1}", { permName }))
+                        :text(string.var("- {1}", { permName }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("deleteGroupPerm-{1}-{2}", { groupName, permName }),
+                            id = string.var("deleteGroupPerm-{1}-{2}", { groupName, permName }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             onClick = function()
@@ -288,19 +289,17 @@ local function drawGroupData(groupName)
 end
 
 local function drawNewGroup()
-    local canCreate = #BJIPerm.Groups._new > 0 and
-        not tincludes({ "_new", "_newLevel" }, BJIPerm.Groups._new)
+    local canCreate = #BJIPerm.Inputs.newGroupName > 0
     if canCreate then
         for k, v in pairs(BJIPerm.Groups) do
-            if not tincludes({ "_new", "_newLevel" }, k) and
-                (k == BJIPerm.Groups._new or v.level == BJIPerm.Groups._newLevel) then
+            if (k == BJIPerm.Inputs.newGroupName or v.level == BJIPerm.Inputs.newGroupLevel) then
                 canCreate = false
                 break
             end
         end
     end
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.permissions.newGroup.title") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.permissions.newGroup.title") }))
         :build()
     Indent(1)
     local labelWidth = 0
@@ -319,16 +318,16 @@ local function drawNewGroup()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.permissions.newGroup.label") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.permissions.newGroup.label") }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :inputString({
                             id = "newGroup",
-                            value = BJIPerm.Groups._new,
+                            value = BJIPerm.Inputs.newGroupName,
                             onUpdate = function(val)
-                                BJIPerm.Groups._new = val
+                                BJIPerm.Inputs.newGroupName = val
                             end
                         })
                         :build()
@@ -339,7 +338,7 @@ local function drawNewGroup()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("serverConfig.permissions.newGroup.level") }))
+                        :text(string.var("{1}:", { BJILang.get("serverConfig.permissions.newGroup.level") }))
                         :build()
                 end,
                 function()
@@ -347,11 +346,11 @@ local function drawNewGroup()
                         :inputNumeric({
                             id = "newGroupLevel",
                             type = "int",
-                            value = BJIPerm.Groups._newLevel,
+                            value = BJIPerm.Inputs.newGroupLevel,
                             step = 1,
                             min = 0,
                             onUpdate = function(val)
-                                BJIPerm.Groups._newLevel = val
+                                BJIPerm.Inputs.newGroupLevel = val
                             end
                         })
                         :build()
@@ -366,10 +365,10 @@ local function drawNewGroup()
             style = BTN_PRESETS.SUCCESS,
             disabled = not canCreate,
             onClick = function()
-                if not _isLevelAssignedToAnotherGroup(BJIPerm.Groups._new, BJIPerm.Groups._newLevel) then
-                    BJITx.config.permissionsGroup(BJIPerm.Groups._new, "level", BJIPerm.Groups._newLevel)
-                    BJIPerm.Groups._new = ""
-                    BJIPerm.Groups._newLevel = 0
+                if not _isLevelAssignedToAnotherGroup(BJIPerm.Inputs.newGroupName, BJIPerm.Inputs.newGroupLevel) then
+                    BJITx.config.permissionsGroup(BJIPerm.Inputs.newGroupName, "level", BJIPerm.Inputs.newGroupLevel)
+                    BJIPerm.Inputs.newGroupName = ""
+                    BJIPerm.Inputs.newGroupLevel = 0
                 end
             end
         })
@@ -386,16 +385,16 @@ local function drawListGroups(groupNames)
                 :commonStart(
                     function()
                         local line = LineBuilder(true)
-                            :text(svar("({1})", { group.level }))
-                        if not tincludes(BJI_GROUP_NAMES, groupName) then
+                            :text(string.var("({1})", { group.level }))
+                        if not table.includes(BJI_GROUP_NAMES, groupName) then
                             line:btnIcon({
                                 id = "deleteGroup" .. groupName,
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
-                                        svar(BJILang.get("serverConfig.permissions.deleteModal"),
-                                            { groupName = groupName }),
+                                        BJILang.get("serverConfig.permissions.deleteModal")
+                                        :var({ groupName = groupName }),
                                         {
                                             {
                                                 label = BJILang.get("common.buttons.cancel"),
@@ -447,7 +446,7 @@ local function drawListPermissions(groupNames)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { permName }))
+                        :text(string.var("{1}:", { permName }))
                         :build()
                 end,
                 function()
@@ -456,7 +455,7 @@ local function drawListPermissions(groupNames)
                     for _, groupName in ipairs(groupNames) do
                         local group = BJIPerm.Groups[groupName]
                         line:btn({
-                            id = svar("{1}{2}", { permName, groupName }),
+                            id = string.var("{1}{2}", { permName, groupName }),
                             label = BJILang.get("groups." .. groupName, groupName),
                             style = permLevel <= group.level and BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
                             onClick = function()

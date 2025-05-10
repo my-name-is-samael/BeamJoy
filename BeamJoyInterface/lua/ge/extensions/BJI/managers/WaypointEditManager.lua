@@ -44,11 +44,11 @@ local function _insertWaypoint(wp)
         })
     elseif wp.type == M.TYPES.RACE_GATE then
         local zOffset = wp.zOffset or 1
-        local angle = AngleFromQuatRotation(wp.rot)
-        local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-        local left = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
+        local angle = math.angleFromQuatRotation(wp.rot)
+        local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
+        local left = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
         left = quat(left.x, left.y, left.z - zOffset, left.z + wp.radius * 2)
-        local right = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+        local right = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
         right = quat(right.x, right.y, right.z - zOffset, right.z + wp.radius * 2)
         local textPos = vec3(wp.pos)
         textPos.z = ((wp.pos.z - zOffset) + (wp.pos.z + wp.radius * 2)) / 2
@@ -119,10 +119,10 @@ local function setWaypointsWithSegments(waypoints, loopable)
                                 -- place segments on top of gate
                                 local fromPos = vec3(flatWps[iFin].pos)
                                 fromPos.z = fromPos.z + (flatWps[iFin].radius *
-                                    (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, flatWps[iFin].type) and 2 or 1))
+                                    (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, flatWps[iFin].type) and 2 or 1))
                                 local toPos = vec3(wp.pos)
                                 toPos.z = toPos.z + (wp.radius *
-                                    (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
+                                    (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
                                 table.insert(M.segments, {
                                     from = fromPos,
                                     to = toPos,
@@ -137,10 +137,10 @@ local function setWaypointsWithSegments(waypoints, loopable)
                         if parent then
                             local fromPos = vec3(parent.pos)
                             fromPos.z = fromPos.z + (parent.radius *
-                                (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, parent.type) and 2 or 1))
+                                (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, parent.type) and 2 or 1))
                             local toPos = vec3(wp.pos)
                             toPos.z = toPos.z + (wp.radius *
-                                (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
+                                (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
                             table.insert(M.segments, {
                                 from = fromPos,
                                 to = toPos,
@@ -203,10 +203,10 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.arrows) do
-        local angle = AngleFromQuatRotation(wp.rot)
-        local len = Rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
+        local angle = math.angleFromQuatRotation(wp.rot)
+        local len = math.rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
         local tip = vec3(wp.pos) + len
-        local base = vec3(wp.pos) + Rotate2DVec(len, math.pi)
+        local base = vec3(wp.pos) + math.rotate2DVec(len, math.pi)
         ShapeDrawer.SquarePrism(
             base, ctxt.veh and ctxt.veh:getInitialWidth() or wp.radius * 1.2,
             tip, 0,

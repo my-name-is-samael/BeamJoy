@@ -249,7 +249,8 @@
         "confirm": "Bestätigen",
         "start": "Start",
         "explode": "Explodieren",
-        "leave": "Verlassen"
+        "leave": "Verlassen",
+        "toggle": "Umschalten auf"
       },
       "durationModifiers": {
         "minute": "M",
@@ -301,6 +302,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Meine Einstellungen",
       "BJIEvents": "Veranstaltungen",
+      "BJIRacesLeaderboard": "Rennen-Rangliste",
       "BJIRaceSettings": "Renneinstellungen",
       "BJIRace": "Wettrennen",
       "BJIDeliveryMulti": "Lieferung zusammen",
@@ -328,8 +330,10 @@
       },
       "vote": {
         "title": "Abstimmung",
-        "map": "Karte",
-        "mapCustom": "Brauch",
+        "map": {
+          "title": "Karte",
+          "custom": "Brauch"
+        },
         "race": {
           "title": "Wettrennen",
           "noRace": "Kein Rennen verfügbar",
@@ -394,6 +398,8 @@
         "freeroamSettings": "Freeroam-Einstellungen",
         "time": "Uhrzeit",
         "weather": "Wetter",
+        "gravity": "Schwerkraft",
+        "speed": "Sim.-Geschwindigkeit",
         "map": "Karte wechseln",
         "mapCustom": "Brauch",
         "energyStations": "Energiestationen ({amount})",
@@ -607,14 +613,15 @@
     },
     "header": {
       "gamemode": "Spielmodus",
-      "reputation": "Reputationsniveau",
       "gravity": "Schwerkraft",
       "speed": "Geschwindigkeit",
       "resetDisabled": "Zurücksetzen ist deaktiviert",
       "nextReset": "Nächster Reset",
       "resetAvailable": "Zurücksetzen verfügbar",
       "nextTeleport": "Nächste Teleportation",
-      "teleportAvailable": "Teleportation verfügbar"
+      "teleportAvailable": "Teleportation verfügbar",
+      "collisions": "Kollisionen",
+      "reputation": "Reputationsniveau"
     },
     "userSettings": {
       "uiScale": "UI-Skala",
@@ -672,6 +679,7 @@
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",
       "banReason": "Verbotsgrund",
+      "savedReason": "Vorheriger Grund",
       "kickModal": "Sind Sie sicher, dass Sie „{playerName}“ rausschmeißen möchten?",
       "tempBanModal": "Sind Sie sicher, dass Sie „{playerName}“ vorübergehend sperren möchten?",
       "banModal": "Sind Sie sicher, dass Sie „{playerName}“ sperren möchten?"
@@ -965,9 +973,7 @@
           "currentModel": "Aktuelles Modell",
           "currentConfig": "Aktuelle Konfiguration",
           "specific": "Spezifisches {model}"
-        },
-        "time": "Uhrzeit",
-        "weather": "Wetter"
+        }
       },
       "preparation": {
         "singleplayer": "Einzelspieler-Rennen",
@@ -1000,6 +1006,7 @@
         "waitingForOtherPlayers": "Warten auf andere Spieler...",
         "flashCountdownZero": "GEHEN !!!",
         "eliminatedIn": "Sie werden in {delay} eliminiert",
+        "showAllData": "Alle anzeigen",
         "WP": "CP {wp}",
         "Lap": "Runde {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1011,7 +1018,12 @@
         "flashDnfOut": "BESEITIGT"
       },
       "leaderboard": {
-        "title": "Rennen-Rangliste"
+        "title": "Rennen-Rangliste",
+        "amountPBs": "Gesamtanzahl Bestergebnisse",
+        "removeAllPBsButton": "Alle Bestergebnisse entfernen",
+        "removeAllPBsModal": "Möchtest du wirklich alle Bestergebnisse auf dem Server entfernen?",
+        "pb": "BE",
+        "removePBModal": "Möchtest du wirklich dein Bestergebnis auf {raceName} entfernen?"
       }
     },
     "energy": {

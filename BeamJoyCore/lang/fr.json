@@ -249,7 +249,8 @@
         "confirm": "Confirmer",
         "start": "Commencer",
         "explode": "Exploser",
-        "leave": "Quitter"
+        "leave": "Quitter",
+        "toggle": "Basculer"
       },
       "durationModifiers": {
         "minute": "m",
@@ -301,6 +302,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Mes Paramètres",
       "BJIEvents": "Événements",
+      "BJIRacesLeaderboard": "Classement des courses",
       "BJIRaceSettings": "Paramètres de Course",
       "BJIRace": "Course",
       "BJIDeliveryMulti": "Livraison en Groupe",
@@ -328,8 +330,10 @@
       },
       "vote": {
         "title": "Vote",
-        "map": "Carte",
-        "mapCustom": "custom",
+        "map": {
+          "title": "Carte",
+          "custom": "custom"
+        },
         "race": {
           "title": "Course",
           "noRace": "Aucune course disponible",
@@ -394,6 +398,8 @@
         "freeroamSettings": "Paramètres du Freeroam",
         "time": "Heure",
         "weather": "Météo",
+        "gravity": "Gravité",
+        "speed": "Vitesse de sim.",
         "map": "Changer de Carte",
         "mapCustom": "custom",
         "energyStations": "Stations-Services ({amount})",
@@ -607,14 +613,15 @@
     },
     "header": {
       "gamemode": "Mode de Jeu",
-      "reputation": "Niveau de Réputation",
       "gravity": "Gravité",
       "speed": "Vitesse",
       "resetDisabled": "Reset désactivée",
       "nextReset": "Prochaine reset",
       "resetAvailable": "Reset disponible",
       "nextTeleport": "Prochaine téléportation",
-      "teleportAvailable": "Téléportation disponible"
+      "teleportAvailable": "Téléportation disponible",
+      "collisions": "Collisions",
+      "reputation": "Niveau de Réputation"
     },
     "userSettings": {
       "uiScale": "Échelle de l'Interface",
@@ -672,6 +679,7 @@
       "muteReason": "Raison du Mute",
       "kickReason": "Raison du Kick",
       "banReason": "Raison du Ban",
+      "savedReason": "Raison enregistrée",
       "kickModal": "Es-tu sûr de vouloir kicker \"{playerName}\" ?",
       "tempBanModal": "Es-tu sûr de vouloir bannir temporairement \"{playerName}\" ?",
       "banModal": "Es-tu sûr de vouloir bannir \"{playerName}\" ?"
@@ -965,9 +973,7 @@
           "currentModel": "Modèle actuel",
           "currentConfig": "Configuration actuelle",
           "specific": "{model} spécifique"
-        },
-        "time": "Heure",
-        "weather": "Météo"
+        }
       },
       "preparation": {
         "singleplayer": "Course Solo",
@@ -1000,6 +1006,7 @@
         "waitingForOtherPlayers": "En attente des autres joueurs...",
         "flashCountdownZero": "GO !!!",
         "eliminatedIn": "Tu seras éliminé dans {delay}",
+        "showAllData": "Afficher tout",
         "WP": "CP {wp}",
         "Lap": "Tour {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1011,7 +1018,12 @@
         "flashDnfOut": "ÉLIMINÉ"
       },
       "leaderboard": {
-        "title": "Classement des courses"
+        "title": "Classement des courses",
+        "amountPBs": "Total de PBs",
+        "removeAllPBsButton": "Supprimer tous les PBs",
+        "removeAllPBsModal": "Es-tu sûr de vouloir supprimer tous tes PBs sur le serveur ?",
+        "pb": "PB",
+        "removePBModal": "Es-tu sûr de vouloir supprimer ton PB sur {raceName} ?"
       }
     },
     "energy": {

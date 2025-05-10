@@ -1,5 +1,6 @@
 local M = {
     participants = {},
+    ---@type BJIPositionRotation?
     target = nil,
 }
 
@@ -7,7 +8,7 @@ local function initTarget(pos)
     local targets = {}
     for _, delivery in pairs(BJCScenario.Deliveries) do
         table.insert(targets, {
-            target = tdeepcopy(delivery),
+            target = table.deepcopy(delivery),
             distance = GetHorizontalDistance(pos, delivery.pos),
         })
     end
@@ -21,7 +22,7 @@ local function initTarget(pos)
             table.remove(targets, threhsholdPos)
         end
     end
-    M.target = trandom(targets).target
+    M.target = table.random(targets).target
 end
 
 local function join(playerID, gameVehID, pos)
@@ -34,7 +35,7 @@ local function join(playerID, gameVehID, pos)
     end
 
     local isStarting = false
-    if tlength(M.participants) == 0 then
+    if table.length(M.participants) == 0 then
         initTarget(pos)
         isStarting = true
     end
@@ -60,7 +61,7 @@ local function resetted(playerID)
 end
 
 local function checkNextTarget()
-    if tlength(M.participants) == 0 then
+    if table.length(M.participants) == 0 then
         return
     end
     for _, playerData in pairs(M.participants) do
@@ -96,7 +97,7 @@ local function reached(playerID)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 0 then
+    if table.length(M.participants) == 0 then
         M.target = nil
     end
 end
@@ -115,7 +116,7 @@ local function onPlayerDisconnect(playerID)
     if M.participants[playerID] then
         M.participants[playerID] = nil
         checkEnd()
-        if tlength(M.participants) > 0 then
+        if table.length(M.participants) > 0 then
             checkNextTarget()
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
@@ -123,7 +124,7 @@ local function onPlayerDisconnect(playerID)
 end
 
 local function stop()
-    if tlength(M.participants) > 0 then
+    if table.length(M.participants) > 0 then
         M.participants = {}
         M.target = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
@@ -149,12 +150,11 @@ M.resetted = resetted
 M.reached = reached
 M.leave = leave
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
 
 M.stop = stop
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-RegisterBJCManager(M)
 return M

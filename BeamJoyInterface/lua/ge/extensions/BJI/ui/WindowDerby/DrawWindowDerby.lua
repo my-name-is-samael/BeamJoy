@@ -1,11 +1,11 @@
 local dm
 
 local function drawHeaderPreparation(ctxt)
-    local remainingTime = Round((dm.preparationTimeout - ctxt.now) / 1000)
+    local remainingTime = math.round((dm.preparationTimeout - ctxt.now) / 1000)
     local msg = remainingTime < 1 and
         BJILang.get("derby.play.preparationTimeoutAboutToEnd") or
-        svar(BJILang.get("derby.play.preparationTimeoutIn"),
-            { delay = PrettyDelay(remainingTime) })
+        BJILang.get("derby.play.preparationTimeoutIn")
+        :var({ delay = PrettyDelay(remainingTime) })
     LineBuilder()
         :text(msg)
         :build()
@@ -43,8 +43,8 @@ local function drawHeaderGame(ctxt)
         local remainingTime = math.ceil((dm.startTime - ctxt.now) / 1000)
         if remainingTime > 0 then
             LineBuilder()
-                :text(svar(BJILang.get("derby.play.gameStartsIn"),
-                    { delay = PrettyDelay(remainingTime) }))
+                :text(BJILang.get("derby.play.gameStartsIn")
+                    :var({ delay = PrettyDelay(remainingTime) }))
                 :build()
         elseif remainingTime > -3 then
             LineBuilder()
@@ -82,7 +82,7 @@ local function drawHeaderGame(ctxt)
                 BJILang.get("derby.play.resetIn") or
                 BJILang.get("derby.play.eliminatedIn")
             LineBuilder()
-                :text(svar(msg, { delay = PrettyDelay(remainingTime) }))
+                :text(msg:var({ delay = PrettyDelay(remainingTime) }))
                 :build()
         else
             EmptyLine()
@@ -96,9 +96,9 @@ local function drawHeader(ctxt)
     dm = BJIScenario.get(BJIScenario.TYPES.DERBY)
 
     LineBuilder()
-        :text(svar(BJILang.get("derby.play.arenaName"), { name = dm.baseArena.name }))
-        :text(svar("({1})", { svar(BJILang.get("derby.settings.places"),
-            { places = #dm.baseArena.startPositions }) }))
+        :text(BJILang.get("derby.play.arenaName"):var({ name = dm.baseArena.name }))
+        :text(string.var("({1})", { BJILang.get("derby.settings.places")
+            :var({ places = #dm.baseArena.startPositions }) }))
         :build()
 
     if dm.state == dm.STATES.PREPARATION then
@@ -112,7 +112,7 @@ local function drawBodyPreparation(ctxt)
     if #dm.participants > 0 then
         for _, participant in ipairs(dm.participants) do
             local player = BJIContext.Players[participant.playerID]
-            local mark = svar("({1})",
+            local mark = string.var("({1})",
                 { participant.ready and
                 BJILang.get("derby.play.readyMark") or
                 BJILang.get("derby.play.notReadyMark") })
@@ -128,7 +128,7 @@ local function drawBodyPreparation(ctxt)
         for i, config in ipairs(dm.configs) do
             LineBuilder()
                 :btnIcon({
-                    id = svar("spawnConfig{1}", { i }),
+                    id = string.var("spawnConfig{1}", { i }),
                     icon = ICONS.carSensors,
                     style = ctxt.isOwner and BTN_PRESETS.WARNING or BTN_PRESETS.SUCCESS,
                     onClick = function()
@@ -146,23 +146,23 @@ local function drawBodyGame(ctxt)
         local player = BJIContext.Players[participant.playerID]
         if dm.isEliminated(participant.playerID) then
             LineBuilder()
-                :text(svar("{1} {2}", { i, player.playerName }),
+                :text(string.var("{1} {2}", { i, player.playerName }),
                     participant.playerID == BJIContext.User.playerID and
                     TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
-                :text(svar("({1})", { RaceDelay(participant.eliminationTime) }),
+                :text(string.var("({1})", { RaceDelay(participant.eliminationTime) }),
                     TEXT_COLORS.ERROR)
                 :build()
         else
             local line = LineBuilder()
-                :text(svar("- {1}", { player.playerName }),
+                :text(string.var("- {1}", { player.playerName }),
                     participant.playerID == BJIContext.User.playerID and
                     TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
             if participant.lives > 0 then
                 local livesLabel = participant.lives > 1 and
                     BJILang.get("derby.play.amountLives") or
                     BJILang.get("derby.play.amountLife")
-                livesLabel = svar(livesLabel, { amount = participant.lives })
-                line:text(svar("({1})", { livesLabel }))
+                livesLabel = livesLabel:var({ amount = participant.lives })
+                line:text(string.var("({1})", { livesLabel }))
             end
             line:build()
         end

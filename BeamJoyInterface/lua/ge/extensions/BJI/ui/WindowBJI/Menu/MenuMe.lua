@@ -1,22 +1,31 @@
-return function(ctxt)
-    local meEntry = {
+local M = {
+    cache = {
+        label = nil,
+        elems = {},
+    },
+}
+
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache = {
         label = BJILang.get("menu.me.title"),
         elems = {},
     }
 
     -- SETTINGS
-    table.insert(meEntry.elems, {
+    table.insert(M.cache.elems, {
         label = BJILang.get("menu.me.settings"),
-        active = BJIContext.UserSettings.open,
+        active = BJIUserSettingsWindow.show,
         onClick = function()
-            BJIContext.UserSettings.open = not BJIContext.UserSettings.open
+            BJIUserSettingsWindow.show = not BJIUserSettingsWindow.show
         end
     })
 
     -- VEHICLE SELECTOR
     if BJIPerm.canSpawnVehicle() and
-        BJIScenario.canSelectVehicle() then
-        table.insert(meEntry.elems, {
+        not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.me.vehicleSelector"),
             active = BJIVehSelector.state,
             onClick = function()
@@ -24,7 +33,7 @@ return function(ctxt)
                     BJIVehSelector.tryClose()
                 else
                     local models = BJIScenario.getModelList()
-                    if tlength(models) > 0 then
+                    if table.length(models) > 0 then
                         BJIVehSelector.open(models, true)
                     end
                 end
@@ -33,12 +42,29 @@ return function(ctxt)
 
         -- CLEAR GPS
         if BJIGPS.isClearable() then
-            table.insert(meEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = BJILang.get("menu.me.clearGPS"),
                 onClick = BJIGPS.clear,
             })
         end
     end
-
-    return #meEntry.elems > 0 and meEntry or nil
 end
+
+local listeners = Table()
+function M.onLoad()
+    updateCache()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJIEvents.EVENTS.GPS_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+end
+
+function M.onUnload()
+    listeners:forEach(BJIEvents.removeListener)
+end
+
+return M

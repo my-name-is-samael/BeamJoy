@@ -181,7 +181,7 @@
     },
     "mapSwitch": {
       "missingArchive": "The archive is missing",
-      "kickIn": "The map is about to change, you will be kick in {delay}",
+      "kickIn": "The map is about to change, you will be kicked in {delay}",
       "kick": "The map has changed, please reconnect"
     },
     "broadcast": {
@@ -250,7 +250,8 @@
         "confirm": "Confirm",
         "start": "Start",
         "explode": "Explode",
-        "leave": "Leave"
+        "leave": "Leave",
+        "toggle": "Toggle"
       },
       "durationModifiers": {
         "minute": "m",
@@ -302,6 +303,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "My Settings",
       "BJIEvents": "Events",
+      "BJIRacesLeaderboard": "Races Leaderboard",
       "BJIRaceSettings": "Race Settings",
       "BJIRace": "Race",
       "BJIDeliveryMulti": "Delivery Together",
@@ -329,8 +331,10 @@
       },
       "vote": {
         "title": "Vote",
-        "map": "Map",
-        "mapCustom": "custom",
+        "map": {
+          "title": "Map",
+          "custom": "custom"
+        },
         "race": {
           "title": "Race",
           "noRace": "No race available",
@@ -395,6 +399,8 @@
         "freeroamSettings": "Freeroam Settings",
         "time": "Time of day",
         "weather": "Weather",
+        "gravity": "Gravity",
+        "speed": "Sim. speed",
         "map": "Switch Map",
         "mapCustom": "custom",
         "energyStations": "Energy stations ({amount})",
@@ -608,14 +614,15 @@
     },
     "header": {
       "gamemode": "Gamemode",
-      "reputation": "Reputation Level",
       "gravity": "Gravity",
       "speed": "Speed",
       "resetDisabled": "Reset is disabled",
       "nextReset": "Next reset",
       "resetAvailable": "Reset available",
       "nextTeleport": "Next teleportation",
-      "teleportAvailable": "Teleportation available"
+      "teleportAvailable": "Teleportation available",
+      "collisions": "Collisions",
+      "reputation": "Reputation Level"
     },
     "userSettings": {
       "uiScale": "UI scale",
@@ -673,6 +680,7 @@
       "muteReason": "Mute reason",
       "kickReason": "Kick reason",
       "banReason": "Ban reason",
+      "savedReason": "Saved reason",
       "kickModal": "Are you sure you want to kick \"{playerName}\" ?",
       "tempBanModal": "Are you sure you want to temp ban \"{playerName}\" ?",
       "banModal": "Are you sure you want to ban \"{playerName}\" ?"
@@ -966,9 +974,7 @@
           "currentModel": "Current model",
           "currentConfig": "Current config",
           "specific": "Specific {model}"
-        },
-        "time": "Time of day",
-        "weather": "Weather"
+        }
       },
       "preparation": {
         "singleplayer": "Singleplayer Race",
@@ -1001,6 +1007,7 @@
         "waitingForOtherPlayers": "Waiting for other players...",
         "flashCountdownZero": "GO !!!",
         "eliminatedIn": "You will be eliminated in {delay}",
+        "showAllData": "Show all",
         "WP": "CP {wp}",
         "Lap": "Lap {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1012,7 +1019,12 @@
         "flashDnfOut": "ELIMINATED"
       },
       "leaderboard": {
-        "title": "Races Leaderboard"
+        "title": "Races Leaderboard",
+        "amountPBs": "Total PBs",
+        "removeAllPBsButton": "Remove all PBs",
+        "removeAllPBsModal": "Are your sure you want to remove all your PBs on the server ?",
+        "pb": "PB",
+        "removePBModal": "Are your sure you want to remove your PB on {raceName} ?"
       }
     },
     "energy": {

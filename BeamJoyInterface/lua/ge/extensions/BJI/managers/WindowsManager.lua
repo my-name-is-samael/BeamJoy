@@ -26,9 +26,9 @@ local function initWindows()
     M.register({
         name = "BJIUserSettings",
         showConditionFn = function()
-            return BJIContext.UserSettings.open
+            return BJIUserSettingsWindow.show
         end,
-        draw = require("ge/extensions/BJI/ui/WindowUserSettings/DrawWindowUserSettings"),
+        draw = BJIUserSettingsWindow,
         w = 330,
         h = 330,
     })
@@ -37,26 +37,12 @@ local function initWindows()
     M.register({
         name = "BJIEvents",
         showConditionFn = function()
-            local votes = {}
-
-            local showVoteKick = BJIVote.Kick.started()
-            table.insert(votes, showVoteKick)
-
-            local showVoteMap = BJIVote.Map.started()
-            table.insert(votes, showVoteMap)
-
-            local showRacePreparation = BJIVote.Race.started()
-            table.insert(votes, showRacePreparation)
-
-            local showSpeedPreparation = BJIVote.Speed.started()
-            table.insert(votes, showSpeedPreparation)
-
-            for i = 1, #votes do
-                while votes[i] == false do
-                    table.remove(votes, i)
-                end
-            end
-            return #votes > 0
+            return Table({
+                BJIVote.Kick.started,
+                BJIVote.Map.started,
+                BJIVote.Race.started,
+                BJIVote.Speed.started,
+            }):reduce(function(acc, fn) return acc or fn() end, false)
         end,
         draw = require("ge/extensions/BJI/ui/WindowEvents/DrawWindowEvents"),
         w = 480,
@@ -85,14 +71,20 @@ local function initWindows()
         h = BJIVehSelectorPreview.imageSize.y + BJIVehSelectorPreview.windowSizeOffset.y,
     })
 
+    -- RACES LEADERBOARD
+    M.register({
+        name = "BJIRacesLeaderboard",
+        showConditionFn = function() return BJIRacesLeaderboardWindow.show end,
+        draw = BJIRacesLeaderboardWindow,
+        w = 530,
+        h = 320,
+    })
+
     -- RACE SETTINGS
     M.register({
         name = "BJIRaceSettings",
         showConditionFn = function()
-            return BJIContext.Scenario.RaceSettings and BJIScenario.isFreeroam() and
-                (BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-                    BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO) or
-                    BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO))
+            return BJIRaceSettingsWindow.show
         end,
         draw = require("ge/extensions/BJI/ui/WindowRaceSettings/DrawWindowRaceSettings"),
         w = 390,
@@ -107,8 +99,8 @@ local function initWindows()
                 return false
             end
             local raceSolo = BJIScenario.is(BJIScenario.TYPES.RACE_SOLO)
-            local raceMulti = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI)
-            return raceSolo or (raceMulti and raceMulti.state)
+            local raceMulti = BJIScenario.is(BJIScenario.TYPES.RACE_MULTI)
+            return raceSolo or raceMulti
         end,
         draw = require("ge/extensions/BJI/ui/WindowRace/DrawWindowRace"),
         w = 300,
@@ -183,11 +175,9 @@ local function initWindows()
     M.register({
         name = "BJIDerbySettings",
         showConditionFn = function()
-            return BJIContext.Scenario.DerbySettings and
-                BJIScenario.isFreeroam() and
-                BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
+            return BJIDerbySettingsWindow.show
         end,
-        draw = require("ge/extensions/BJI/ui/WindowDerbySettings/DrawWindowDerbySettings"),
+        draw = BJIDerbySettingsWindow,
         w = 300,
         h = 350,
     })
@@ -197,6 +187,7 @@ local function initWindows()
         name = "BJIDerby",
         showConditionFn = function()
             return BJICache.areBaseCachesFirstLoaded() and
+                BJIScenario.get(BJIScenario.TYPES.DERBY) and
                 BJIScenario.is(BJIScenario.TYPES.DERBY)
         end,
         draw = require("ge/extensions/BJI/ui/WindowDerby/DrawWindowDerby"),
@@ -255,10 +246,7 @@ local function initWindows()
     M.register({
         name = "BJIBusMissionPreparation",
         showConditionFn = function()
-            return BJIScenario.is(BJIScenario.TYPES.BUS_MISSION) and
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION) and
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION).state ==
-                BJIScenario.get(BJIScenario.TYPES.BUS_MISSION).STATES.PREPARATION
+            return BJIContext.Scenario.BusSettings
         end,
         draw = require("ge/extensions/BJI/ui/WindowBusMissionPreparation/DrawWindowBusMissionPreparation"),
         w = 430,
@@ -329,11 +317,11 @@ local function initWindows()
                 local totalLines = 0
                 local function display(obj, key)
                     local line = LineBuilder()
-                        :text(key and svar("{1} ({2}) =", { key, type(key) }) or "")
+                        :text(key and string.var("{1} ({2}) =", { key, type(key) }) or "")
                     if type(obj) == "table" then
-                        line:text(svar("({1}, {2} child.ren)", {
+                        line:text(string.var("({1}, {2} child.ren)", {
                             type(obj),
-                            tlength(obj)
+                            table.length(obj)
                         }))
                         Indent(1)
                         local objs = {}
@@ -352,9 +340,9 @@ local function initWindows()
                         Indent(-1)
                     else
                         local val = type(obj) == "string" and
-                            svar("\"{1}\"", { obj }) or
+                            string.var("\"{1}\"", { obj }) or
                             tostring(obj)
-                        line:text(svar("{1} ({2})", { val, type(obj) }))
+                        line:text(string.var("{1} ({2})", { val, type(obj) }))
                     end
                     line:build()
                     totalLines = totalLines + 1
@@ -362,6 +350,7 @@ local function initWindows()
 
                 local data = BJIDEBUG
                 if type(data) == "function" then
+                    local _
                     _, data = pcall(data, ctxt)
                 end
                 display(data)
@@ -380,30 +369,21 @@ local function initWindows()
                         end
                     })
                     :build()
-            end
+            end,
+            onClose = function()
+                BJIDEBUG = nil
+            end,
         },
     })
 end
 
-local function exists(name)
-    return M._windows[name] ~= nil
-end
-
---[[
-data: object
-<ul>
-    <li>name: string</li>
-    <li>draw: function(): nil</li>
-    <li>showConditionFn: function() : boolean</li>
-    <li>x: number NULLABLE</li>
-    <li>y: number NULLABLE</li>
-]]
+---@param data { name: string, draw: function|table, showConditionFn: function, w?: number, h?: number, x?: number, y?: number }
 local function register(data)
     if not data.draw or not data.showConditionFn then
         LogError("Window requires name, draw and showConditionFn")
         return
     end
-    if M.exists(data.name) then
+    if M._windows[data.name] ~= nil then
         -- already exists
         return
     end
@@ -431,8 +411,9 @@ local function renderTick(ctxt)
     local function drawWrap(fn, w)
         -- apply min height (fixes moved out collapsed size issue)
         local size = im.GetWindowSize()
-        if w.h and size.y < w.h * BJIContext.UserSettings.UIScale then
-            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * BJIContext.UserSettings.UIScale)), im.Cond_Always)
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+        if w.h and size.y < w.h * scale then
+            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
         end
         local _, err = pcall(fn, ctxt)
         if err then
@@ -442,36 +423,51 @@ local function renderTick(ctxt)
 
     InitDefaultStyles()
     for _, w in pairs(M._windows) do
+        local draw = w.draw
+        if type(draw) == "function" then
+            draw = draw()
+        end
+
         if (w.show and not w.showConditionFn()) or
             not M.loaded or
             not MPGameNetwork.launcherConnected() then
+            if draw.onUnload then
+                draw.onUnload()
+            end
             w.show = false
             BJIContext.GUI.hideWindow(w.name)
+            BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+                name = w.name,
+                state = false,
+            })
         elseif not w.show and w.showConditionFn() then
+            if draw.onLoad then
+                draw.onLoad()
+            end
             w.show = true
             BJIContext.GUI.showWindow(w.name)
+            BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+                name = w.name,
+                state = true,
+            })
         end
 
         local title = w.name and
-            BJILang.get(svar("windows.{1}", { w.name }), w.name) or
+            BJILang.get(string.var("windows.{1}", { w.name }), w.name) or
             nil
         if w.show then
-            local draw = w.draw
-            if type(draw) == "function" then
-                draw = draw()
-            end
-
             if w.w and w.h then
+                local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
                 im.SetNextWindowSize(im.ImVec2(
-                    math.floor(w.w * BJIContext.UserSettings.UIScale),
-                    math.floor(w.h * BJIContext.UserSettings.UIScale)
+                    math.floor(w.w * scale),
+                    math.floor(w.h * scale)
                 ))
             end
             if w.x and w.y then
                 im.SetNextWindowPos(im.ImVec2(w.x, w.y))
             end
 
-            local flagsToApply = tdeepcopy(M._baseFlags)
+            local flagsToApply = table.clone(M._baseFlags)
             local flags = draw.flags or {}
             if type(flags) == "function" then
                 flags = flags(ctxt)
@@ -480,18 +476,18 @@ local function renderTick(ctxt)
                 flags = {}
             end
             for _, winFlag in pairs(flags) do
-                if not tincludes(flagsToApply, winFlag, true) then
+                if not table.includes(flagsToApply, winFlag) then
                     table.insert(flagsToApply, winFlag)
                 end
             end
 
             if type(draw.menu) == "function" and
-                not tincludes(flagsToApply, WINDOW_FLAGS.MENU_BAR, true) then
+                not table.includes(flagsToApply, WINDOW_FLAGS.MENU_BAR) then
                 table.insert(flagsToApply, WINDOW_FLAGS.MENU_BAR)
             end
             BJIContext.GUI.setupWindow(w.name)
             local alpha = BJIStyles[STYLE_COLS.WINDOW_BG] and BJIStyles[STYLE_COLS.WINDOW_BG].w or .5
-            local window = WindowBuilder(w.name, im.flags(tunpack(flagsToApply)))
+            local window = WindowBuilder(w.name, im.flags(table.unpack(flagsToApply)))
                 :title(title)
                 :opacity(alpha)
 
@@ -526,11 +522,12 @@ local function renderTick(ctxt)
             if draw.onClose then
                 window:onClose(function()
                     draw.onClose(ctxt)
+                    BJISound.play(BJISound.SOUNDS.MAIN_CANCEL)
                 end)
             end
             window:build()
         elseif not title then
-            LogError(svar("Invalid name for window {1}", { w.name }))
+            LogError(string.var("Invalid name for window {1}", { w.name }))
         end
     end
     ResetStyles()
@@ -546,10 +543,22 @@ local function onLoad()
 end
 
 local function onUnload()
+    for _, w in pairs(M._windows) do
+        if w.show then
+            local draw = w.draw
+            if type(draw) == "function" then
+                draw = draw()
+            end
+            if draw.onUnload then
+                draw.onUnload()
+            end
+            w.show = false
+            BJIContext.GUI.hideWindow(w.name)
+        end
+    end
     M.loaded = false
 end
 
-M.exists = exists
 M.register = register
 M.renderTick = renderTick
 

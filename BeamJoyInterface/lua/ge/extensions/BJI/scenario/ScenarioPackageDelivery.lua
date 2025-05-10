@@ -55,23 +55,20 @@ local function initPositions(ctxt)
             table.remove(targets, threhsholdPos)
         end
     end
-    M.targetPosition = trandom(targets)
+    M.targetPosition = table.random(targets)
     M.targetPosition.distance = nil
 end
 
 local function initDelivery()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
-    BJIQuickTravel.toggle(false)
-    BJINametags.tryUpdate()
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
-
-    BJIGPS.reset()
     BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.targetPosition.pos,
         M.targetPosition.radius, nil, nil, false)
     M.baseDistance = BJIGPS.getCurrentRouteLength()
-    BJIRaceWaypoint.addWaypoint("BJIVehicleDelivery", M.targetPosition.pos, M.targetPosition.radius,
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJIRaceWaypoint.addWaypoint({
+        name = "BJIVehicleDelivery",
+        pos = M.targetPosition.pos,
+        radius = M.targetPosition.radius,
+        color = BJIRaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function onLoad(ctxt)
@@ -83,8 +80,23 @@ local function onLoad(ctxt)
         initPositions(ctxt)
 
         if M.targetPosition then
-            initDelivery()
+            BJIRestrictions.update({ {
+                restrictions = Table({
+                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                    BJIRestrictions.OTHER.WALKING,
+                }):flat(),
+                state = true,
+            } })
+            BJIBigmap.toggleQuickTravel(false)
+            BJINametags.tryUpdate()
+            BJIGPS.reset()
+            BJIRaceWaypoint.resetAll()
+            BJIGPS.reset()
 
+            initDelivery()
             BJITx.scenario.DeliveryPackageStart()
             BJIMessage.flash("BJIDeliveryPackageStart", BJILang.get("packageDelivery.flashStart"), 3, false)
             init = true
@@ -120,10 +132,6 @@ local function onVehicleResetted(gameVehID)
     onDeliveryEnded()
 end
 
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    onDeliveryEnded()
-end
-
 local function onGarageRepair()
     M.nextResetGarage = true
     local veh
@@ -134,7 +142,7 @@ local function onGarageRepair()
         end
     end
     if veh then
-        M.tanksSaved = tdeepcopy(veh.tanks)
+        M.tanksSaved = table.clone(veh.tanks)
     end
 end
 
@@ -142,13 +150,13 @@ local function onStopDelivery()
     onDeliveryEnded()
 end
 
-local function drawDeliveryUI(ctxt)
+local function drawUI(ctxt, cache)
     if M.distance then
         LineBuilder()
-            :text(svar("{1}: {2}", {
-                BJILang.get("delivery.currentDelivery"),
-                svar(BJILang.get("delivery.distanceLeft"),
-                    { distance = PrettyDistance(M.distance) })
+            :text(string.var("{1}: {2}", {
+                cache.labels.delivery.current,
+                cache.labels.delivery.distanceLeft
+                    :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
 
@@ -159,8 +167,8 @@ local function drawDeliveryUI(ctxt)
     end
 
     LineBuilder()
-        :text(svar(BJILang.get("packageDelivery.currentStreak"), { streak = M.streak }))
-        :helpMarker(BJILang.get("packageDelivery.streakTooltip"))
+        :text(cache.labels.delivery.package.streak:var({ streak = M.streak }))
+        :helpMarker(cache.labels.delivery.package.streakTooltip)
         :build()
 
     LineBuilder()
@@ -186,22 +194,6 @@ local function onTargetReached(ctxt)
         M.onStopDelivery()
     end
     initDelivery()
-end
-
-local function canRefuelAtStation()
-    return true
-end
-
-local function canRepairAtGarage()
-    return true
-end
-
-local function canVehUpdate()
-    return false
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
 end
 
 local function rxStreak(streak)
@@ -230,7 +222,7 @@ local function slowTick(ctxt)
             if streak == 1 then
                 msg = BJILang.get("packageDelivery.flashFirstPackage")
             else
-                msg = svar(BJILang.get("packageDelivery.flashPackageStreak"), { streak = streak })
+                msg = BJILang.get("packageDelivery.flashPackageStreak"):var({ streak = streak })
             end
             BJIMessage.flashCountdown("BJIDeliveryTarget", ctxt.now + 3100, false, msg, nil,
                 onTargetReached)
@@ -253,7 +245,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -265,8 +257,17 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
-    BJIQuickTravel.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
@@ -275,23 +276,20 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.drawDeliveryUI = drawDeliveryUI
+M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onGarageRepair = onGarageRepair
 M.onStopDelivery = onStopDelivery
 
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
+M.canRefuelAtStation = TrueFn
+M.canRepairAtGarage = TrueFn
+M.doShowNametagsSpecs = TrueFn
 
-M.canSelectVehicle = canVehUpdate
-M.canSpawnNewVehicle = canVehUpdate
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canSpawnNewVehicle = FalseFn
+M.canReplaceVehicle = FalseFn
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
 
 M.rxStreak = rxStreak
 

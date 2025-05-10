@@ -61,12 +61,48 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
 }
 
+local function onLoad()
+    BJICache.addRxHandler(BJICache.CACHES.ENVIRONMENT, function(cacheData)
+        local previous = table.clone(M.Data)
+        for k, v in pairs(cacheData) do
+            M.Data[k] = v
+
+            if k == "shadowTexSize" then
+                local shadowTexVal = 5
+                while 2 ^ shadowTexVal < v do
+                    shadowTexVal = shadowTexVal + 1
+                end
+                M.Data.shadowTexSizeInput = shadowTexVal - 4
+            end
+        end
+
+        M.updateCurrentPreset()
+
+        -- events detection
+        local keysChanged = {}
+        for k, v in pairs(M.Data) do
+            if v ~= previous[k] then
+                keysChanged[k] = {
+                    previousValue = previous[k],
+                    currentValue = v,
+                }
+            end
+        end
+
+        if table.length(keysChanged) > 0 then
+            BJIEvents.trigger(BJIEvents.EVENTS.ENV_CHANGED, {
+                keys = keysChanged
+            })
+        end
+    end)
+end
+
 local function _getObjectWithCache(category)
     if BJIContext.WorldCache[category] then
         return scenetree.findObjectById(BJIContext.WorldCache[category])
     end
     local names = scenetree.findClassObjects(category)
-    if names and tlength(names) > 0 then
+    if names and table.length(names) > 0 then
         for _, name in pairs(names) do
             local obj = scenetree.findObject(name)
             if obj then
@@ -90,6 +126,7 @@ end
 local function _tryApplyTimeFromServer(ToD)
     if ToD ~= nil and M.Data.controlSun and M.Data.timePlay then
         M.Data.ToD = ToD
+        -- no event fired because can flood too much
     end
 end
 
@@ -158,7 +195,7 @@ local function _tryApplyWeather()
             precipitation.dropSize = M.Data.dropSize * (BJIContext.UI.dropSizeRatio or 1)
             precipitation.minSpeed = M.Data.dropMinSpeed
             precipitation.maxSpeed = M.Data.dropMaxSpeed
-            if tincludes(M.PRECIP_TYPES, M.Data.precipType) then
+            if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
                 precipitation.dataBlock = scenetree.findObject(M.Data.precipType)
             end
         end
@@ -188,7 +225,7 @@ end
 
 local function _tryApplyGravity()
     if M.Data.controlGravity then
-        local g = Round(core_environment.getGravity(), 3)
+        local g = math.round(core_environment.getGravity(), 3)
         if g ~= M.Data.gravityRate then
             core_environment.setGravity(M.Data.gravityRate)
         end
@@ -263,7 +300,7 @@ local function updateCurrentPreset()
         local allMatch = true
         for k, v in pairs(preset.keys) do
             if type(v) == "number" then
-                if Round(M.Data[k], 4) ~= Round(v, 4) then
+                if math.round(M.Data[k], 4) ~= math.round(v, 4) then
                     allMatch = false
                     break
                 end
@@ -280,6 +317,8 @@ local function updateCurrentPreset()
         end
     end
 end
+
+M.onLoad = onLoad
 
 M.getTime = getTime
 M.getTemperature = getTemperature

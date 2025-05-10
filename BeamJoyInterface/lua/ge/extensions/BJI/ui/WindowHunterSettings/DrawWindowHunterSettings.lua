@@ -29,7 +29,7 @@ local function drawBody(ctxt)
         "hunter.settings.huntedConfigs",
         "hunter.settings.hunterConfigs",
     }) do
-        local w = GetColumnTextWidth(svar("{1}{2}", { BJILang.get(key), HELPMARKER_TEXT }))
+        local w = GetColumnTextWidth(string.var("{1}{2}", { BJILang.get(key), HELPMARKER_TEXT }))
         if w > labelWidth then
             labelWidth = w
         end
@@ -73,9 +73,9 @@ local function drawBody(ctxt)
         return {
             model = ctxt.veh.jbeam,
             label = BJIVeh.isConfigCustom(ctxt.veh.partConfig) and
-                svar(BJILang.get("hunter.settings.specificConfig"),
-                    { model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
-                svar("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
+                BJILang.get("hunter.settings.specificConfig")
+                :var({ model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
+                string.var("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
             config = BJIVeh.getFullConfig(ctxt.veh.partConfig),
         }
     end
@@ -170,7 +170,7 @@ local function drawBody(ctxt)
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("showHunterConfig{1}", { i }),
+                            id = string.var("showHunterConfig{1}", { i }),
                             icon = ICONS.visibility,
                             style = BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
@@ -179,7 +179,7 @@ local function drawBody(ctxt)
                             end,
                         })
                         :btnIcon({
-                            id = svar("removeHunterConfig{1}", { i }),
+                            id = string.var("removeHunterConfig{1}", { i }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             onClick = function()
@@ -210,9 +210,9 @@ local function drawBody(ctxt)
                             style = BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh,
                             onClick = function()
-                                local config = getConfig()
+                                local config = getConfig() or {}
                                 for _, c in ipairs(hs.hunterConfigs) do
-                                    if tdeepcompare(config, c) then
+                                    if table.compare(config, c, true) then
                                         BJIToast.error(BJILang.get("hunter.settings.toastConfigAlreadySaved"))
                                         return
                                     end

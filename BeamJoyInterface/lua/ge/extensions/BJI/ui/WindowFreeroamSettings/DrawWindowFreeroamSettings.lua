@@ -34,10 +34,10 @@ local function draw(ctxt)
         if not labelConf.minimumGroup or BJIPerm.hasMinimumGroup(labelConf.minimumGroup) then
             local label = BJILang.get(labelConf.key)
             if labelConf.colon then
-                label = svar("{1}:", { label })
+                label = string.var("{1}:", { label })
             end
             if labelConf.tooltip then
-                label = svar("{1} {2}", { label, HELPMARKER_TEXT })
+                label = string.var("{1} {2}", { label, HELPMARKER_TEXT })
             end
             local w = GetColumnTextWidth(label)
             if w > labelWidth then
@@ -50,7 +50,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.resetDelay") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.resetDelay") }))
                         :build()
                 end,
                 function()
@@ -80,7 +80,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.teleportDelay") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.teleportDelay") }))
                         :build()
                 end,
                 function()
@@ -111,7 +111,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.vehicleSpawning") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.vehicleSpawning") }))
                         :build()
                 end,
                 function()
@@ -133,7 +133,7 @@ local function draw(ctxt)
                 cells = {
                     function()
                         LineBuilder()
-                            :text(svar("{1}:", { BJILang.get("freeroamSettings.quickTravel") }))
+                            :text(string.var("{1}:", { BJILang.get("freeroamSettings.quickTravel") }))
                             :build()
                     end,
                     function()
@@ -156,7 +156,7 @@ local function draw(ctxt)
         cells = {
             function()
                 LineBuilder()
-                    :text(svar("{1}:", { BJILang.get("freeroamSettings.nametags") }))
+                    :text(string.var("{1}:", { BJILang.get("freeroamSettings.nametags") }))
                     :build()
             end,
             function()
@@ -178,7 +178,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.allowUnicycle") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.allowUnicycle") }))
                         :build()
                 end,
                 function()
@@ -200,7 +200,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.driftGood") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.driftGood") }))
                         :build()
                 end,
                 function()
@@ -241,7 +241,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.driftBig") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.driftBig") }))
                         :build()
                 end,
                 function()
@@ -281,7 +281,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.preserveEnergy") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.preserveEnergy") }))
                         :build()
                 end,
                 function()
@@ -303,7 +303,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelDuration") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelDuration") }))
                         :helpMarker(BJILang.get("freeroamSettings.emergencyRefuelDurationTooltip"))
                         :build()
                 end,
@@ -329,7 +329,7 @@ local function draw(ctxt)
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelPercent") }))
+                        :text(string.var("{1}:", { BJILang.get("freeroamSettings.emergencyRefuelPercent") }))
                         :helpMarker(BJILang.get("freeroamSettings.emergencyRefuelPercentTooltip"))
                         :build()
                 end,

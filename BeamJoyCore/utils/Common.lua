@@ -38,7 +38,8 @@ FS = FS or {
     Copy = function(srcPath, destPath) end,
     Remove = function(path) end,
 }
-Exit = exit or function() end
+Util = Util or {}
+Exit = exit or function() end ---@diagnostic disable-line
 -------------------------------------------------------------------------
 
 CONSOLE_COLORS = {
@@ -86,11 +87,11 @@ CONSOLE_COLORS = {
     }
 }
 local function _getConsoleColor(fg, bg)
-    local strColor = svar("{1}[{2}", { string.char(27), tostring(fg) })
+    local strColor = string.var("{1}[{2}", { string.char(27), tostring(fg) })
     if bg then
-        strColor = svar("{1};{2}", { strColor, tostring(bg) })
+        strColor = string.var("{1};{2}", { strColor, tostring(bg) })
     end
-    return svar('{1}m', { strColor })
+    return string.var('{1}m', { strColor })
 end
 
 local logTypes = {}
@@ -115,17 +116,17 @@ function Log(content, tag)
         tagColor = logTypes[tag].headingColor
         stringColor = logTypes[tag].stringColor
     end
-    prefix = svar("{1}[{2}{3}{4}] {5}", { prefix, tagColor, tag, resetColor, stringColor })
+    prefix = string.var("{1}[{2}{3}{4}] {5}", { prefix, tagColor, tag, resetColor, stringColor })
 
     if content == nil then
         content = "nil"
     elseif type(content) == "boolean" or type(content) == "number" then
         content = tostring(content)
     elseif type(content) == 'table' then
-        content = svar("table ({1} children)", { tlength(content) })
+        content = string.var("table ({1} children)", { table.length(content) })
     end
 
-    print(svar("{1}{2}{3}", { prefix, content, _getConsoleColor(0) }))
+    print(string.var("{1}{2}{3}", { prefix, content, _getConsoleColor(0) }))
 end
 
 function LogDebug(content, tag)
@@ -137,7 +138,7 @@ function LogDebug(content, tag)
         return
     end
 
-    Log(svar("DEBUG | {1}", { content }), tag)
+    Log(string.var("DEBUG | {1}", { content }), tag)
 end
 
 SetLogType("ERROR", CONSOLE_COLORS.FOREGROUNDS.RED, nil, CONSOLE_COLORS.FOREGROUNDS.LIGHT_RED)
@@ -184,7 +185,7 @@ function PrettyDelay(secs)
 
     if months > 1 then
         local monthLabel = BJCLang.getConsoleMessage("common.time.months")
-        return svar("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
+        return string.var("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
     elseif months == 1 then
         local monthLabel = BJCLang.getConsoleMessage("common.time.month")
         local dayLabel = BJCLang.getConsoleMessage("common.time.day")
@@ -193,16 +194,16 @@ function PrettyDelay(secs)
             dayLabel = BJCLang.getConsoleMessage("common.time.days")
         end
         if days > 0 then
-            return svar("{months} {monthLabel} {andLabel} {days} {dayLabel}",
+            return string.var("{months} {monthLabel} {andLabel} {days} {dayLabel}",
                 { months = months, monthLabel = monthLabel, andLabel = andLabel, days = days, dayLabel = dayLabel })
         else
-            return svar("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
+            return string.var("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
         end
     end
 
     if days > 1 then
         local dayLabel = BJCLang.getConsoleMessage("common.time.days")
-        return svar("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
+        return string.var("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
     elseif days == 1 then
         local dayLabel = BJCLang.getConsoleMessage("common.time.day")
         local hourLabel = BJCLang.getConsoleMessage("common.time.hour")
@@ -211,16 +212,16 @@ function PrettyDelay(secs)
             hourLabel = BJCLang.getConsoleMessage("common.time.hours")
         end
         if hours > 0 then
-            return svar("{days} {dayLabel} {andLabel} {hours} {hourLabel}",
+            return string.var("{days} {dayLabel} {andLabel} {hours} {hourLabel}",
                 { days = days, dayLabel = dayLabel, andLabel = andLabel, hours = hours, hourLabel = hourLabel })
         else
-            return svar("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
+            return string.var("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
         end
     end
 
     if hours > 1 then
         local hourLabel = BJCLang.getConsoleMessage("common.time.hours")
-        return svar("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
+        return string.var("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
     elseif hours == 1 then
         local hourLabel = BJCLang.getConsoleMessage("common.time.hour")
         local minuteLabel = BJCLang.getConsoleMessage("common.time.minute")
@@ -229,25 +230,25 @@ function PrettyDelay(secs)
             minuteLabel = BJCLang.getConsoleMessage("common.time.minutes")
         end
         if mins > 0 then
-            return svar("{hours} {hourLabel} {andLabel} {mins} {minuteLabel}",
+            return string.var("{hours} {hourLabel} {andLabel} {mins} {minuteLabel}",
                 { hours = hours, hourLabel = hourLabel, andLabel = andLabel, mins = mins, minuteLabel = minuteLabel })
         else
-            return svar("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
+            return string.var("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
         end
     end
 
     if mins > 1 then
         local minLabel = BJCLang.getConsoleMessage("common.time.minutes")
-        return svar("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
+        return string.var("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
     elseif mins == 1 then
         local minLabel = BJCLang.getConsoleMessage("common.time.minute")
         local secLabel = BJCLang.getConsoleMessage("common.time.second")
         local andLabel = BJCLang.getConsoleMessage("common.time.and")
         if secs > 0 then
-            return svar("{mins} {minLabel} {andLabel} {secs} {secLabel}",
+            return string.var("{mins} {minLabel} {andLabel} {secs} {secLabel}",
                 { mins = mins, minLabel = minLabel, andLabel = andLabel, secs = secs, secLabel = secLabel })
         else
-            return svar("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
+            return string.var("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
         end
     end
 
@@ -255,7 +256,7 @@ function PrettyDelay(secs)
     if secs > 1 then
         secondLabel = BJCLang.getConsoleMessage("common.time.seconds")
     end
-    return svar("{secs} {secondLabel}", { secs = secs, secondLabel = secondLabel })
+    return string.var("{secs} {secondLabel}", { secs = secs, secondLabel = secondLabel })
 end
 
 BJC_TOAST_TYPES = {
@@ -266,7 +267,7 @@ BJC_TOAST_TYPES = {
 }
 
 function BJCInitContext(data)
-    tdeepassign(data, {
+    table.assign(data, {
         time = GetCurrentTime(),
         origin = data.senderID and "player" or "cmd",
     })
@@ -275,6 +276,7 @@ end
 -- FORMAT
 
 function RaceDelay(ms)
+    ms = math.round(ms or 0)
     local hours = math.floor(ms / 1000 / 60 / 60)
     ms = ms - hours * 60 * 60 * 1000
     local mins = math.floor(ms / 1000 / 60)
@@ -283,39 +285,80 @@ function RaceDelay(ms)
     ms = ms - secs * 1000
 
     if hours > 0 then
-        return svar("{1}:{2}:{3}.{4}",
+        return string.var("{1}:{2}:{3}.{4}",
             {
                 tostring(hours),
-                snormalizeint(mins, 2),
-                snormalizeint(secs, 2),
-                snormalizeint(ms, 3)
+                string.normalizeInt(mins, 2),
+                string.normalizeInt(secs, 2),
+                string.normalizeInt(ms, 3)
             })
     elseif mins > 0 then
-        return svar("{1}:{2}.{3}",
+        return string.var("{1}:{2}.{3}",
             {
                 mins,
-                snormalizeint(secs, 2),
-                snormalizeint(ms, 3)
+                string.normalizeInt(secs, 2),
+                string.normalizeInt(ms, 3)
             })
     else
-        return svar("{1}.{2}", {
+        return string.var("{1}.{2}", {
             secs,
-            snormalizeint(ms, 3)
+            string.normalizeInt(ms, 3)
         })
     end
 end
 
--- TIMER
-
+---@return Timer
 function TimerCreate()
     return {
         _timer = MP.CreateTimer(),
         get = function(self)
             local secTime = self._timer:GetCurrent()
-            return Round(secTime * 1000)
+            return math.round(secTime * 1000)
         end,
         reset = function(self)
             self._timer:Start()
         end
     }
+end
+
+---@param delaySec integer 2-60
+---@param getMessage fun(player: table, delaySec: integer): string
+---@param kickReasonKey string
+---@param callback? fun()
+function CountdownKickAll(delaySec, getMessage, kickReasonKey, callback)
+    delaySec = math.clamp(tonumber(delaySec) or 2, 2, 60)
+    if MP.GetPlayerCount() == 0 then
+        MP.Sleep(500)
+        if callback then callback() end
+        return
+    end
+
+    local asyncKey = "CountdownKickAll-{1}"
+    if BJCAsync.exists(asyncKey:var({ 1 })) then
+        Range(1, 60):forEach(function(i)
+            BJCAsync.removeTask(asyncKey:var({ i }))
+        end)
+    end
+
+    Range(delaySec - 1, 1)
+        :forEach(function(i)
+            BJCAsync.delayTask(function()
+                if MP.GetPlayerCount() == 0 then
+                    Range(1, delaySec):forEach(function(j)
+                        BJCAsync.removeTask(asyncKey:var({ j }))
+                    end)
+                    if callback then callback() end
+                else
+                    Table(BJCPlayers.Players):forEach(function(player, playerID)
+                        BJCChat.onServerChat(playerID, getMessage(player, i))
+                    end)
+                end
+            end, delaySec - i, asyncKey:var({ i }))
+        end)
+    BJCAsync.delayTask(function()
+        if MP.GetPlayerCount() > 0 then
+            BJCPlayers.dropMultiple(Table(BJCPlayers.Players):keys(), kickReasonKey)
+        end
+        if callback then callback() end
+    end, delaySec, asyncKey:var({ delaySec }))
 end

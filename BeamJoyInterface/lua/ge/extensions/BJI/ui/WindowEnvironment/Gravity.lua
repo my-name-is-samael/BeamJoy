@@ -2,8 +2,8 @@ local common = require("ge/extensions/BJI/ui/WindowEnvironment/Common")
 
 local function drawGravityPresets(presets)
     for _, p in ipairs(presets) do
-        local value = Round(p.value, 3)
-        local selected = Round(BJIEnv.Data.gravityRate, 3) == value
+        local value = math.round(p.value, 3)
+        local selected = math.round(BJIEnv.Data.gravityRate, 3) == value
         local style = BTN_PRESETS.INFO
         if not selected and p.default then
             style = BTN_PRESETS.SUCCESS
@@ -11,8 +11,8 @@ local function drawGravityPresets(presets)
         LineBuilder()
             :btn({
                 id = p.key,
-                label = svar("{1} ({2})", {
-                    BJILang.get(svar("presets.gravity.{1}", { p.key })),
+                label = string.var("{1} ({2})", {
+                    BJILang.get(string.var("presets.gravity.{1}", { p.key })),
                     p.value,
                 }),
                 style = style,
@@ -41,7 +41,7 @@ local function draw()
         "controlGravity",
         "gravityRate",
     }) do
-        local label = BJILang.get(svar("environment.{1}", { key }))
+        local label = BJILang.get(string.var("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -53,7 +53,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.controlGravity") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.controlGravity") }))
                         :build()
                 end,
                 function()

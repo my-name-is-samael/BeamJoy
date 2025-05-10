@@ -249,7 +249,8 @@
         "confirm": "Confirmar",
         "start": "Comenzar",
         "explode": "Explotar",
-        "leave": "Dejar"
+        "leave": "Dejar",
+        "toggle": "Alternar"
       },
       "durationModifiers": {
         "minute": "metro",
@@ -301,6 +302,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Mi configuración",
       "BJIEvents": "Eventos",
+      "BJIRacesLeaderboard": "Clasificación de carreras",
       "BJIRaceSettings": "Configuración de carrera",
       "BJIRace": "Carrera",
       "BJIDeliveryMulti": "Entrega juntos",
@@ -328,8 +330,10 @@
       },
       "vote": {
         "title": "Votar",
-        "map": "Mapa",
-        "mapCustom": "costumbre",
+        "map": {
+          "title": "Mapa",
+          "custom": "costumbre"
+        },
         "race": {
           "title": "Carrera",
           "noRace": "No hay carrera disponible",
@@ -394,6 +398,8 @@
         "freeroamSettings": "Configuración de libertad",
         "time": "Hora del día",
         "weather": "Clima",
+        "gravity": "Gravedad",
+        "speed": "Velocidad de sim",
         "map": "Cambiar mapa",
         "mapCustom": "costumbre",
         "energyStations": "Estaciones de energía ({amount})",
@@ -607,14 +613,15 @@
     },
     "header": {
       "gamemode": "Modo de juego",
-      "reputation": "Nivel de reputación",
       "gravity": "Gravedad",
       "speed": "Velocidad",
       "resetDisabled": "El reinicio está deshabilitado",
       "nextReset": "Siguiente reinicio",
       "resetAvailable": "Restablecer disponible",
       "nextTeleport": "Próxima teletransportación",
-      "teleportAvailable": "Teletransportación disponible"
+      "teleportAvailable": "Teletransportación disponible",
+      "collisions": "Colisiones",
+      "reputation": "Nivel de reputación"
     },
     "userSettings": {
       "uiScale": "escala de interfaz de usuario",
@@ -672,6 +679,7 @@
       "muteReason": "razón muda",
       "kickReason": "Razón de patada",
       "banReason": "Razón de prohibición",
+      "savedReason": "Motivo guardado",
       "kickModal": "¿Estás seguro de que quieres patear a \"{playerName}\"?",
       "tempBanModal": "¿Estás seguro de que quieres prohibir temporalmente \"{playerName}\"?",
       "banModal": "¿Estás seguro de que quieres prohibir \"{playerName}\"?"
@@ -965,9 +973,7 @@
           "currentModel": "Modelo actual",
           "currentConfig": "Configuración actual",
           "specific": "{model} específico"
-        },
-        "time": "Hora del día",
-        "weather": "Clima"
+        }
       },
       "preparation": {
         "singleplayer": "Carrera para un jugador",
@@ -1000,6 +1006,7 @@
         "waitingForOtherPlayers": "Esperando a otros jugadores...",
         "flashCountdownZero": "IR !!!",
         "eliminatedIn": "Serás eliminado en {delay}",
+        "showAllData": "Mostrar todo",
         "WP": "CP {wp}",
         "Lap": "Vuelta {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1011,7 +1018,12 @@
         "flashDnfOut": "ELIMINADO"
       },
       "leaderboard": {
-        "title": "Clasificación de carreras"
+        "title": "Clasificación de carreras",
+        "amountPBs": "Total de marcas personales",
+        "removeAllPBsButton": "Eliminar todas las marcas personales",
+        "removeAllPBsModal": "¿Seguro que deseas eliminar todas tus marcas personales del servidor?",
+        "pb": "MP",
+        "removePBModal": "¿Seguro que deseas eliminar tu marca personal en {raceName}?"
       }
     },
     "energy": {

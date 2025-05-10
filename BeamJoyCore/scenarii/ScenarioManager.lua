@@ -31,6 +31,16 @@ local M = {
     TagDuoManager = require("scenarii/TagDuoManager")
 }
 
+local function checkRacesData()
+    table.forEach(M.Races, function(race)
+        if not race.hash then
+            race.hash = Hash({ race.loopable, race.startPositions, race.steps })
+            BJCDao.scenario.Races.save(race)
+            LogDebug(string.var("Added hash to race \"{1}\"({2}): {3}", { race.name, race.id, race.hash }))
+        end
+    end)
+end
+
 local function reload()
     M.Races = BJCDao.scenario.Races.findAll()
     M.EnergyStations = BJCDao.scenario.EnergyStations.findAll()
@@ -45,6 +55,8 @@ local function reload()
             M.updateDeliveryLeaderboard()
         end
     end, 0)
+
+    checkRacesData()
 end
 
 local function getCacheRaces(senderID)
@@ -71,12 +83,14 @@ local function getCacheRaces(senderID)
                         hasStand = race.hasStand == true,
                         loopable = race.loopable == true,
                         places = #race.startPositions,
-                        record = record
+                        record = record,
+                        hash = race.hash,
                     })
                 end
             end
         end
     end
+    cache.mapName = BJCCore.getMap()
 
     return cache, M.getCacheRacesHash()
 end
@@ -87,21 +101,21 @@ end
 
 local function getCacheDeliveries(senderID)
     local cache = {
-        Deliveries = tdeepcopy(M.Deliveries),
-        DeliveryLeaderboard = tdeepcopy(M.DeliveryLeaderboard),
+        Deliveries = table.deepcopy(M.Deliveries),
+        DeliveryLeaderboard = table.deepcopy(M.DeliveryLeaderboard),
     }
 
     return cache, M.getCacheDeliveriesHash()
 end
 
 local function getCacheDeliveriesHash()
-    return Hash({M.Deliveries, M.DeliveryLeaderboard})
+    return Hash({ M.Deliveries, M.DeliveryLeaderboard })
 end
 
 local function getCacheStations(senderID)
     local cache = {
-        EnergyStations = tdeepcopy(M.EnergyStations),
-        Garages = tdeepcopy(M.Garages),
+        EnergyStations = table.deepcopy(M.EnergyStations),
+        Garages = table.deepcopy(M.Garages),
     }
 
     return cache, M.getCacheStationsHash()
@@ -113,7 +127,7 @@ end
 
 local function getCacheBusLines(senderID)
     local cache = {
-        BusLines = tdeepcopy(M.BusLines),
+        BusLines = table.deepcopy(M.BusLines),
     }
 
     return cache, M.getCacheBusLinesHash()
@@ -129,7 +143,7 @@ local function getCacheHunter(senderID)
     }
     if M.Hunter.enabled or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        cache = tdeepcopy(M.Hunter)
+        cache = table.deepcopy(M.Hunter)
     end
 
     return cache, M.getCacheHunterHash()
@@ -144,7 +158,7 @@ local function getCacheDerby(senderID)
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         for _, arena in ipairs(M.Derby) do
-            table.insert(cache, tdeepcopy(arena))
+            table.insert(cache, table.deepcopy(arena))
         end
     end
     return cache, M.getCacheDerbyHash()
@@ -157,7 +171,7 @@ end
 local function getRace(raceID)
     for _, r in ipairs(M.Races) do
         if r.id == raceID then
-            return tdeepcopy(r)
+            return table.deepcopy(r)
         end
     end
     return nil
@@ -178,7 +192,7 @@ end
 
 local function saveRace(race)
     local function checkParents(raceData, wpData, wpStep)
-        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or tincludes(wpData.parents, wpData.name) then
+        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or table.includes(wpData.parents, wpData.name) then
             return false
         end
         if wpStep == 1 then
@@ -234,7 +248,7 @@ local function saveRace(race)
         local names = {}
         for _, steps in ipairs(stepsData) do
             for _, wp in ipairs(steps) do
-                if tincludes(names, wp.name) then
+                if table.includes(names, wp.name) then
                     return false
                 else
                     table.insert(names, wp.name)
@@ -246,6 +260,7 @@ local function saveRace(race)
 
     local baseRace = race.id and M.getRace(race.id) or nil
     if race.id then
+        -- should be an existing race
         if not baseRace then
             error({ key = "rx.errors.invalidData" })
         end
@@ -288,6 +303,9 @@ local function saveRace(race)
                 end
             end
         end
+
+        -- update hash
+        race.hash = Hash({ race.loopable, race.startPositions, race.steps })
     elseif race.keepRecord == true then
         if not baseRace then
             error({ key = "rx.errors.invalidData" })
@@ -301,7 +319,7 @@ local function saveRace(race)
 
     race.enabled = race.enabled == true
 
-    -- sanitizing
+    -- removing unwanted values
     race.keepRecord = nil
 
     BJCDao.scenario.Races.save(race)
@@ -356,7 +374,8 @@ end
 local function broadcastRaceRecord(raceName, playerName, time)
     for playerID in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            svar(BJCLang.getServerMessage(playerID, "broadcast.newRaceRecord"), {
+            BJCLang.getServerMessage(playerID, "broadcast.newRaceRecord")
+            :var({
                 playerName = playerName,
                 raceName = raceName,
                 time = RaceDelay(time),
@@ -367,7 +386,8 @@ end
 local function broadcastRaceTime(raceName, playerName, time)
     for playerID in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            svar(BJCLang.getServerMessage(playerID, "broadcast.raceTime"), {
+            BJCLang.getServerMessage(playerID, "broadcast.raceTime")
+            :var({
                 playerName = playerName,
                 raceName = raceName,
                 time = RaceDelay(time),
@@ -401,7 +421,7 @@ local function saveEnergyStations(stations)
         error({ key = "rx.errors.invalidData" })
     end
     for _, s in ipairs(stations) do
-        if type(s.name) ~= "string" or #strim(s.name) == 0 then
+        if type(s.name) ~= "string" or #s.name:trim() == 0 then
             error({ key = "rx.errors.invalidData" })
         elseif type(s.pos) ~= "table" or
             type(s.pos.x) ~= "number" or
@@ -414,7 +434,7 @@ local function saveEnergyStations(stations)
             error({ key = "rx.errors.invalidData" })
         end
         for _, type in ipairs(s.types) do
-            if not tincludes(M.ENERGY_TYPES, type, true) then
+            if not table.includes(M.ENERGY_TYPES, type) then
                 error({ key = "rx.errors.invalidData" })
             end
         end
@@ -430,7 +450,7 @@ local function saveGarages(garages)
         error({ key = "rx.errors.invalidData" })
     end
     for _, g in ipairs(garages) do
-        if type(g.name) ~= "string" or #strim(g.name) == 0 then
+        if type(g.name) ~= "string" or #g.name:trim() == 0 then
             error({ key = "rx.errors.invalidData" })
         elseif type(g.pos) ~= "table" or
             type(g.pos.x) ~= "number" or
@@ -503,7 +523,7 @@ local function saveBusLines(lines)
         error({ key = "rx.errors.invalidData" })
     end
     for _, line in ipairs(lines) do
-        if type(line.name) ~= "string" or #strim(line.name) == 0 or
+        if type(line.name) ~= "string" or #line.name:trim() == 0 or
             type(line.loopable) ~= "boolean" or
             type(line.stops) ~= "table" or #line.stops < 2 or
             type(line.distance) ~= "number" then
@@ -511,7 +531,7 @@ local function saveBusLines(lines)
         end
 
         for _, stop in ipairs(line.stops) do
-            if type(stop.name) ~= "string" or #strim(stop.name) == 0 or
+            if type(stop.name) ~= "string" or #stop.name:trim() == 0 or
                 type(stop.pos) ~= "table" or
                 type(stop.pos.x) ~= "number" or
                 type(stop.pos.y) ~= "number" or
@@ -608,7 +628,7 @@ local function saveDerbyArenas(arenas)
     else
         for _, arena in ipairs(arenas) do
             if type(arena.name) ~= "string" or
-                #strim(arena.name) == 0 or
+                #arena.name:trim() == 0 or
                 type(arena.enabled) ~= "boolean" or
                 type(arena.previewPosition) ~= "table" or
                 not checkCameraPos(arena.previewPosition) or
@@ -644,14 +664,6 @@ local function stopServerScenarii()
     M.TagDuoManager.stop()
 end
 
-local function onPlayerKicked(targetID)
-    if isServerScenarioInProgress() then
-        if not not M.RaceManager.state then
-            M.RaceManager.onPlayerDisconnect(targetID)
-        end
-    end
-end
-
 local function canSpawnVehicle(playerID, vehID, vehData)
     if M.RaceManager.state then
         -- RACE IN PROGRESS
@@ -663,10 +675,10 @@ local function canSpawnVehicle(playerID, vehID, vehData)
         -- SPEED IN PROGRESS
         return M.SpeedManager.canSpawnVehicle(playerID, vehID, vehData)
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO SCENARII
             return false
         end
@@ -693,10 +705,10 @@ local function canEditVehicle(playerID, vehID, vehData)
         -- SPEED IN PROGRESS
         return M.SpeedManager.canEditVehicle(playerID, vehID, vehData)
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO DELIVERY
             local self = BJCPlayers.Players[playerID]
             local veh = self and self.vehicles[vehID] or nil
@@ -717,12 +729,12 @@ local function canWalk(playerID)
         -- PLAYER IN DELIVERY MULTI
         return false
     else
-        if tincludes({
+        if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
                 BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
                 BJCScenario.PLAYER_SCENARII.RACE_SOLO,
                 BJCScenario.PLAYER_SCENARII.BUS_MISSION
-            }, BJCPlayers.Players[playerID].scenario, true) then
+            }, BJCPlayers.Players[playerID].scenario) then
             -- SOLO SCENARII
             return false
         end
@@ -731,29 +743,55 @@ local function canWalk(playerID)
     end
 end
 
-local function onVehicleDeleted(playerID, vehID)
-    if M.RaceManager.state then
-        -- RACE IN PROGRESS
-        M.RaceManager.postVehicleDeleted(playerID, vehID)
-    elseif M.HunterManager.state then
-        -- HUNTER IN PROGRESS
-        M.HunterManager.postVehicleDeleted(playerID, vehID)
-    elseif M.SpeedManager.startTime then
-        -- SPEED IN PROGRESS
-        M.SpeedManager.postVehicleDeleted(playerID, vehID)
+--- check if spawned vehicle is the same than the required one<br>
+--- config export in-game and vehdata given by server hooks
+--- are not completely equals, so we need to give an approximation
+--- of answer (+90% match minimum)
+--- @param askedParts table<string, string>
+--- @param spawnedParts table<string, string>
+--- @return boolean bool if matches enough
+local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
+    if not askedParts and spawnedParts or not spawnedParts then
+        return false
+    end
+
+    local larger, smaller
+    if table.length(askedParts) > table.length(spawnedParts) then
+        larger = askedParts
+        smaller = spawnedParts
     else
-        if BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
-            -- SOLO SCENARIO
-            if tincludes({
-                    BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
-                    BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
-                }, BJCPlayers.Players[playerID].scenario, true) then
-                BJCTx.scenario.DeliveryStop(playerID)
+        larger = spawnedParts
+        smaller = askedParts
+    end
+
+    local matches = Table(larger):reduce(function(acc, el, k)
+        if smaller[k] then
+            acc = acc + .5
+            if smaller[k] == el then
+                acc = acc + .5
             end
-            BJCPlayers.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
-        else
-            -- FREEROAM
         end
+        return acc
+    end, 0)
+    local ratio = matches / table.length(larger)
+    local logFn = ratio > .9 and Log or LogError
+    logFn(string.var("Vehicle matches requirements up to {1}%%", {math.round(ratio * 100, 1)}))
+    return ratio > .9
+end
+
+local function onVehicleDeleted(playerID, vehID)
+    if not isServerScenarioInProgress() and
+        BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
+        -- SOLO SCENARIO
+        if table.includes({
+                BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
+                BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE,
+            }, BJCPlayers.Players[playerID].scenario) then
+            BJCTx.scenario.DeliveryStop(playerID)
+        end
+        BJCPlayers.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)
+    else
+        -- FREEROAM
     end
 end
 
@@ -791,15 +829,15 @@ M.saveDerbyArenas = saveDerbyArenas
 
 M.isServerScenarioInProgress = isServerScenarioInProgress
 M.stopServerScenarii = stopServerScenarii
-M.onPlayerKicked = onPlayerKicked
 M.canSpawnVehicle = canSpawnVehicle
 M.canEditVehicle = canEditVehicle
 M.canWalk = canWalk
 
-M.onVehicleDeleted = onVehicleDeleted
+M.isVehicleSpawnedMatchesRequired = isVehicleSpawnedMatchesRequired
+
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
 M.reload = reload
 reload()
 
-RegisterBJCManager(M)
 return M

@@ -4,7 +4,7 @@ local M = {
 
 local function init()
     M.Data = BJCDefaults.maps()
-    tdeepassign(M.Data, BJCDao.maps.findAll())
+    table.assign(M.Data, BJCDao.maps.findAll())
 end
 
 --[[
@@ -141,6 +141,4 @@ M.getCacheMaps = getCacheMaps
 M.getCacheMapsHash = getCacheMapsHash
 
 init()
-
-RegisterBJCManager(M)
 return M

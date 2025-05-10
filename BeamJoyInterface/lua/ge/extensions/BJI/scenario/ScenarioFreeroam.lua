@@ -17,11 +17,26 @@ local function onLoad(ctxt)
     BJICam.resetForceCamera()
     BJICam.resetRestrictedCameras()
 
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            not BJIPerm.canSpawnAI() and BJIRestrictions.OTHER.AI_CONTROL or nil,
+            not BJIPerm.canSpawnVehicle() and BJIRestrictions.OTHER.VEHICLE_SELECTOR or nil,
+            not BJIPerm.canSpawnVehicle() and BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR or nil,
+            (BJIContext.BJC.Freeroam and not BJIContext.BJC.Freeroam.AllowUnicycle) and
+            BJIRestrictions.OTHER.WALKING or nil,
+        }):values():flat(),
+        state = true,
+    } })
+
     M.reset.restricted = false
     M.reset.nextExempt = false
     M.teleport.restricted = false
 
-    BJIQuickTravel.toggle(BJIContext.BJC.Freeroam.QuickTravel)
+    BJIAsync.task(function()
+        return not not BJIContext.BJC.Freeroam
+    end, function()
+        BJIBigmap.toggleQuickTravel(BJIContext.BJC.Freeroam.QuickTravel)
+    end, "BJIScenarioFreeroamLoadUpdateQuickTravel")
     BJINametags.tryUpdate()
 end
 
@@ -121,14 +136,14 @@ local function onVehicleResetted(gameVehID)
 
     -- ResetTimer restriction
     local isResetDelay = BJIContext.BJC.Freeroam.ResetDelay > 0
-    local bypass = BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.MOD) or M.reset.nextExempt
+    local bypass = BJIPerm.isStaff() or M.reset.nextExempt
     if isResetDelay and not bypass then
         M.reset.restricted = true
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
+        BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
         BJIAsync.delayTask(
             function()
                 M.reset.restricted = false
-                BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+                BJIRestrictions.updateResets({})
             end,
             BJIContext.BJC.Freeroam.ResetDelay * 1000,
             BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER
@@ -169,10 +184,10 @@ end
 local function tryTeleportToPlayer(targetID, forced)
     local target = BJIContext.Players[targetID]
     if target == nil then
-        LogError(svar("Invalid player {1}", { targetID }))
+        LogError(string.var("Invalid player {1}", { targetID }))
         return
-    elseif tlength(target.vehicles) == 0 or not target.currentVehicle then
-        LogError(svar("Player {1} has no vehicle", { targetID }))
+    elseif table.length(target.vehicles) == 0 or not target.currentVehicle then
+        LogError(string.var("Player {1} has no vehicle", { targetID }))
         return
     end
 
@@ -208,7 +223,7 @@ end
 
 local function trySpawnNew(model, config)
     local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJIContext.User.vehicles)
     if BJIPerm.canSpawnVehicle() and not limitReached then
         M.exemptNextReset()
         BJIVeh.spawnNewVehicle(model, config)
@@ -218,7 +233,7 @@ end
 local function tryReplaceOrSpawn(model, config)
     local replacing = BJIVeh.isCurrentVehicleOwn()
     local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJIContext.User.vehicles)
     if BJIPerm.canSpawnVehicle() and (replacing or not limitReached) then
         M.exemptNextReset()
         BJIVeh.replaceOrSpawnVehicle(model, config)
@@ -226,32 +241,10 @@ local function tryReplaceOrSpawn(model, config)
 end
 
 local function tryPaint(paint, paintNumber)
-    PrintObj("tryPaint FREEROAM")
     if BJIVeh.isCurrentVehicleOwn() then
-        PrintObj("tryPaint FREEROAM own")
         M.exemptNextReset()
         BJIVeh.paintVehicle(paint, paintNumber)
     end
-end
-
-local function canRefuelAtStation()
-    return true
-end
-
-local function canRepairAtGarage()
-    return true
-end
-
-local function canSpawnAI()
-    return true
-end
-
-local function canDeleteOtherPlayersVehicle()
-    return true
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
 end
 
 local function getModelList()
@@ -277,24 +270,22 @@ end
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    local isSelf = BJIContext.isSelf(player.playerID)
-
-    if tlength(player.vehicles) > 0 then
+    if player.vehiclesCount > 0 then
         local disabled = false
-        if isSelf then
-            disabled = ctxt.isOwner and tlength(ctxt.user.vehicles) == 1
+        if player.self then
+            disabled = ctxt.isOwner and table.length(ctxt.user.vehicles) == 1
         else
             local finalGameVehID = BJIVeh.getVehicleObject(player.currentVehicle)
             finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
             disabled = finalGameVehID and ctxt.veh and ctxt.veh:getID() == finalGameVehID or false
         end
         table.insert(actions, {
-            id = svar("focus{1}", { player.playerID }),
+            id = string.var("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
             style = BTN_PRESETS.INFO,
             disabled = disabled,
             onClick = function()
-                if isSelf then
+                if player.self then
                     local selfVehs = {}
                     local currentOwnIndex
                     for _, v in pairs(BJIContext.User.vehicles) do
@@ -321,7 +312,7 @@ local function getPlayerListActions(player, ctxt)
     end
 
     if ctxt.isOwner then
-        if isSelf and BJIVeh.isUnicycle(ctxt.veh:getID()) then
+        if player.self and BJIVeh.isUnicycle(ctxt.veh:getID()) then
             table.insert(actions, {
                 id = "stopWalking",
                 icon = ICONS.directions_run,
@@ -330,9 +321,9 @@ local function getPlayerListActions(player, ctxt)
             })
         end
 
-        if not isSelf and tlength(player.vehicles) > 0 then
+        if not player.self and player.vehiclesCount > 0 then
             table.insert(actions, {
-                id = svar("gpsPlayer{1}", { player.playerID }),
+                id = string.var("gpsPlayer{1}", { player.playerID }),
                 icon = ICONS.add_location,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -342,9 +333,10 @@ local function getPlayerListActions(player, ctxt)
 
             if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.TELEPORT_TO) then
                 table.insert(actions, {
-                    id = svar("teleportTo{1}", { player.playerID }),
+                    id = string.var("teleportTo{1}", { player.playerID }),
                     icon = ICONS.tb_height_higher,
                     style = BTN_PRESETS.WARNING,
+                    disabled = M.teleport.restricted,
                     onClick = function()
                         M.tryTeleportToPlayer(player.playerID)
                     end
@@ -356,7 +348,7 @@ local function getPlayerListActions(player, ctxt)
                 finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
                 if finalGameVehID and BJIVeh.getVehOwnerID(finalGameVehID) == player.playerID then
                     table.insert(actions, {
-                        id = svar("teleportFrom{1}", { player.playerID }),
+                        id = string.var("teleportFrom{1}", { player.playerID }),
                         icon = ICONS.tb_height_lower,
                         style = BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
@@ -371,11 +363,11 @@ local function getPlayerListActions(player, ctxt)
         end
     end
 
-    if not BJIPerm.isStaff() and not isSelf and
+    if not BJIPerm.isStaff() and not player.self and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
         BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             icon = ICONS.event_busy,
             style = BTN_PRESETS.ERROR,
             onClick = function()
@@ -388,9 +380,18 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.ALL,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.WALKING,
+        }):values():flat(),
+        state = false,
+    } })
 
-    BJIQuickTravel.toggle(true)
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
 end
 
@@ -413,12 +414,10 @@ M.trySpawnNew = trySpawnNew
 M.tryReplaceOrSpawn = tryReplaceOrSpawn
 M.tryPaint = tryPaint
 
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.canSpawnAI = canSpawnAI
-M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
-
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canRefuelAtStation = TrueFn
+M.canRepairAtGarage = TrueFn
+M.canDeleteOtherPlayersVehicle = TrueFn
+M.doShowNametagsSpecs = TrueFn
 
 M.getModelList = getModelList
 

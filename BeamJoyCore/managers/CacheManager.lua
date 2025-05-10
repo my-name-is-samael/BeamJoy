@@ -75,7 +75,49 @@ local function getCache(ctxt, cacheType)
     BJCTx.cache.send(ctxt.senderID, cacheType, cache, hash)
 end
 
-M.getCache = getCache
+local function slowTick()
+    if MP.GetPlayerCount() > 0 then
+        BJCEnvironment.tickTime()
 
-RegisterBJCManager(M)
+        local serverTickData = {}
+        local env = BJCEnvironment.Data
+        if env.controlSun and env.timePlay then
+            serverTickData.ToD = env.ToD
+        end
+        serverTickData.cachesHashes = {
+            [BJCCache.CACHES.LANG] = BJCLang.getCacheHash(),
+            [BJCCache.CACHES.GROUPS] = BJCGroups.getCacheHash(),
+            [BJCCache.CACHES.PERMISSIONS] = BJCPerm.getCacheHash(),
+            [BJCCache.CACHES.ENVIRONMENT] = BJCEnvironment.getCacheHash(),
+            [BJCCache.CACHES.BJC] = BJCConfig.getCacheHash(),
+            [BJCCache.CACHES.PLAYERS] = BJCPlayers.getCachePlayersHash(),
+            [BJCCache.CACHES.MAP] = BJCMaps.getCacheMapHash(),
+            [BJCCache.CACHES.VOTE] = BJCVote.getCacheHash(),
+            [BJCCache.CACHES.RACES] = BJCScenario.getCacheRacesHash(),
+            [BJCCache.CACHES.RACE] = BJCScenario.RaceManager.getCacheHash(),
+            [BJCCache.CACHES.DELIVERIES] = BJCScenario.getCacheDeliveriesHash(),
+            [BJCCache.CACHES.DELIVERY_MULTI] = BJCScenario.DeliveryMultiManager.getCacheHash(),
+            [BJCCache.CACHES.STATIONS] = BJCScenario.getCacheStationsHash(),
+            [BJCCache.CACHES.BUS_LINES] = BJCScenario.getCacheBusLinesHash(),
+            [BJCCache.CACHES.SPEED] = BJCScenario.SpeedManager.getCacheHash(),
+            [BJCCache.CACHES.DATABASE_PLAYERS] = BJCPlayers.getCacheDatabasePlayersHash(),
+            [BJCCache.CACHES.DATABASE_VEHICLES] = BJCVehicles.getCacheHash(),
+            [BJCCache.CACHES.CORE] = BJCCore.getCacheHash(),
+            [BJCCache.CACHES.MAPS] = BJCMaps.getCacheMapsHash(),
+            [BJCCache.CACHES.HUNTER_DATA] = BJCScenario.getCacheHunterHash(),
+            [BJCCache.CACHES.HUNTER] = BJCScenario.HunterManager.getCacheHash(),
+            [BJCCache.CACHES.DERBY_DATA] = BJCScenario.getCacheDerbyHash(),
+            [BJCCache.CACHES.DERBY] = BJCScenario.DerbyManager.getCacheHash(),
+        }
+        serverTickData.serverTime = GetCurrentTime()
+        for playerID in pairs(BJCPlayers.Players) do
+            serverTickData.cachesHashes[BJCCache.CACHES.USER] = BJCPlayers.getCacheUserHash(playerID)
+            BJCTx.player.tick(playerID, serverTickData)
+        end
+    end
+end
+
+M.getCache = getCache
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
+
 return M

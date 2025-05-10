@@ -1,6 +1,6 @@
 local function drawServerBroadcasts()
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.server.broadcasts.title") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.server.broadcasts.title") }))
         :helpMarker(BJILang.get("serverConfig.bjc.server.broadcasts.tooltip"))
         :build()
     Indent(2)
@@ -52,7 +52,7 @@ local function drawServerBroadcasts()
         :build()
     Indent(2)
     local maxI = #BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang]
-    local longestLabel = svar("{1} {2}",
+    local longestLabel = string.var("{1} {2}",
         { BJILang.get("serverConfig.bjc.server.broadcasts.broadcast"), maxI })
     local cols = ColumnsBuilder("serverBroadcasts", { GetColumnTextWidth(longestLabel), -1 })
     for i, broad in ipairs(BJIContext.BJC.Server.Broadcasts[BJIContext.BJC.Server.BroadcastsLang]) do
@@ -60,7 +60,7 @@ local function drawServerBroadcasts()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1} {2}", { BJILang.get("serverConfig.bjc.server.broadcasts.broadcast"), i }))
+                        :text(string.var("{1} {2}", { BJILang.get("serverConfig.bjc.server.broadcasts.broadcast"), i }))
                         :build()
                 end,
                 function()
@@ -111,7 +111,7 @@ local function drawServerBroadcasts()
             icon = ICONS.save,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                local data = tdeepcopy(BJIContext.BJC.Server.Broadcasts)
+                local data = table.clone(BJIContext.BJC.Server.Broadcasts)
                 -- remove empty messages
                 for k, langBroads in pairs(data) do
                     if k ~= "delay" then
@@ -130,15 +130,15 @@ end
 
 local function drawServerWelcomeMessages()
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.server.welcomeMessage.title") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.server.welcomeMessage.title") }))
         :helpMarker(BJILang.get("serverConfig.bjc.server.welcomeMessage.tooltip"))
         :build()
     Indent(2)
     local labelWidth = 0
     local langs = {}
     for l, msg in pairs(BJIContext.BJC.Server.WelcomeMessage) do
-        local w = GetColumnTextWidth(svar(BJILang.get("serverConfig.bjc.server.welcomeMessage.message"),
-            { lang = l:upper() }))
+        local w = GetColumnTextWidth(BJILang.get("serverConfig.bjc.server.welcomeMessage.message")
+            :var({ lang = l:upper() }))
         if w > labelWidth then
             labelWidth = w
         end
@@ -154,8 +154,8 @@ local function drawServerWelcomeMessages()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar(BJILang.get("serverConfig.bjc.server.welcomeMessage.message"),
-                            { lang = el.lang:upper() }))
+                        :text(BJILang.get("serverConfig.bjc.server.welcomeMessage.message")
+                            :var({ lang = el.lang:upper() }))
                         :build()
                 end,
                 function()
@@ -180,7 +180,7 @@ local function drawServerWelcomeMessages()
             icon = ICONS.save,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                local data = tdeepcopy(BJIContext.BJC.Server.WelcomeMessage)
+                local data = table.clone(BJIContext.BJC.Server.WelcomeMessage)
                 for lang, msg in pairs(data) do
                     if #msg == 0 then
                         data[lang] = nil
@@ -197,7 +197,7 @@ return function(ctxt)
     if #BJILang.Langs > 1 then
         EmptyLine()
         BJILang.drawSelector({
-            label = svar("{1}:", { BJILang.get("serverConfig.bjc.server.lang") }),
+            label = string.var("{1}:", { BJILang.get("serverConfig.bjc.server.lang") }),
             selected = BJIContext.BJC.Server.Lang,
             onChange = function(newLang)
                 BJITx.config.bjc("Server.Lang", newLang)
@@ -205,7 +205,7 @@ return function(ctxt)
         })
     else
         LineBuilder()
-            :text(svar("{1}:", { BJILang.get("serverConfig.bjc.server.lang") }))
+            :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.server.lang") }))
             :text(BJIContext.BJC.Server.Lang:upper())
             :build()
     end
@@ -223,7 +223,7 @@ return function(ctxt)
         :build()
 
     LineBuilder()
-        :text(svar("{1}:", { BJILang.get("serverConfig.bjc.server.driftBigBroadcast") }))
+        :text(string.var("{1}:", { BJILang.get("serverConfig.bjc.server.driftBigBroadcast") }))
         :btnIconToggle({
             id = "driftBigBroadcast",
             state = BJIContext.BJC.Server.DriftBigBroadcast,

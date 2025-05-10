@@ -1,13 +1,18 @@
-local function menuMap(ctxt, votesEntry)
-    if BJIVote.Map.canStartVote() and
-        BJIScenario.isFreeroam() and
-        BJIContext.Maps then
+local M = {
+    cache = {
+        label = "",
+        elems = {},
+    },
+}
+
+local function menuMap(ctxt)
+    if BJIVote.Map.canStartVote() then
         local maps = {}
-        local customMapLabel = BJILang.get("menu.vote.mapCustom")
+        local customMapLabel = BJILang.get("menu.vote.map.custom")
         for mapName, map in pairs(BJIContext.Maps.Data) do
             if map.enabled then
                 table.insert(maps, {
-                    label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                    label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
                     active = BJIContext.UI.mapName == mapName,
                     onClick = function()
                         if BJIContext.UI.mapName ~= mapName then
@@ -20,14 +25,14 @@ local function menuMap(ctxt, votesEntry)
         table.sort(maps, function(a, b)
             return a.label < b.label
         end)
-        table.insert(votesEntry.elems, {
-            label = BJILang.get("menu.vote.map"),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.vote.map.title"),
             elems = maps
         })
     end
 end
 
-local function menuRace(ctxt, votesEntry)
+local function menuRace(ctxt)
     local function openRaceVote(raceID)
         local race
         for _, r in ipairs(BJIContext.Scenario.Data.Races) do
@@ -41,26 +46,21 @@ local function menuRace(ctxt, votesEntry)
             return
         end
 
-        local strategies = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).RESPAWN_STRATEGIES
-        local respawnStrategies = {}
-        for _, rs in pairs(strategies) do
-            if race.hasStand or rs ~= strategies.STAND then
-                table.insert(respawnStrategies, rs)
-            end
-        end
+        local respawnStrategies = table.filter(BJI_RACES_RESPAWN_STRATEGIES, function(rs)
+                return race.hasStand or rs.key ~= BJI_RACES_RESPAWN_STRATEGIES.STAND.key
+            end)
+            :sort(function(a, b) return a.order < b.order end)
+            :map(function(el) return el.key end)
 
-        BJIContext.Scenario.RaceSettings = {
+        BJIRaceSettingsWindow.open({
             multi = true,
             raceID = race.id,
             raceName = race.name,
             loopable = race.loopable,
             laps = 1,
-            respawnStrategy = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).RESPAWN_STRATEGIES.LAST_CHECKPOINT,
+            defaultRespawnStrategy = BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
             respawnStrategies = respawnStrategies,
-            vehicle = nil,
-            vehicleModel = ctxt.veh and ctxt.veh.jbeam or nil,
-            vehicleConfig = BJIVeh.getFullConfig(ctxt.veh and ctxt.veh.partConfig or nil),
-            vehicleLabel = nil,
+            vehicleMode = nil,
             time = {
                 label = nil,
                 ToD = nil,
@@ -69,11 +69,11 @@ local function menuRace(ctxt, votesEntry)
                 label = nil,
                 keys = nil,
             },
-        }
+        })
     end
     if BJIVote.Race.canStartVote() then
         local raceErrorMessage = nil
-        local minParticipants = BJIScenario.get(BJIScenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
+        local minParticipants = (BJIScenario.get(BJIScenario.TYPES.RACE_MULTI) or {}).MINIMUM_PARTICIPANTS
         local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
         local rawRaces = {}
         if BJIContext.Scenario.Data.Races then
@@ -86,16 +86,16 @@ local function menuRace(ctxt, votesEntry)
         if #rawRaces == 0 then
             raceErrorMessage = BJILang.get("menu.vote.race.noRace")
         elseif potentialPlayers < minParticipants then
-            raceErrorMessage = svar(BJILang.get("menu.vote.race.missingPlayers"),
-                { amount = minParticipants - potentialPlayers })
+            raceErrorMessage = BJILang.get("menu.vote.race.missingPlayers")
+                :var({ amount = minParticipants - potentialPlayers })
         end
 
         if raceErrorMessage then
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.race.title"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { raceErrorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { raceErrorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
@@ -104,13 +104,13 @@ local function menuRace(ctxt, votesEntry)
             for _, race in ipairs(rawRaces) do
                 local disabledSuffix = ""
                 if race.enabled == false then
-                    disabledSuffix = svar(", {1}", { BJILang.get("common.disabled") })
+                    disabledSuffix = string.var(", {1}", { BJILang.get("common.disabled") })
                 end
                 table.insert(races, {
-                    label = svar("{1} ({2}{3})", {
+                    label = string.var("{1} ({2}{3})", {
                         race.name,
-                        svar(BJILang.get("races.preparation.places"),
-                            { places = race.places }),
+                        BJILang.get("races.preparation.places")
+                            :var({ places = race.places }),
                         disabledSuffix,
                     }),
                     onClick = function()
@@ -121,7 +121,7 @@ local function menuRace(ctxt, votesEntry)
             table.sort(races, function(a, b)
                 return a.label < b.label
             end)
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = BJILang.get("menu.vote.race.title"),
                 elems = races
             })
@@ -129,28 +129,28 @@ local function menuRace(ctxt, votesEntry)
     end
 end
 
-local function menuSpeed(ctxt, votesEntry)
+local function menuSpeed(ctxt)
     if BJIVote.Speed.canStartVote() then
         local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
+        local minimumParticipants = (BJIScenario.get(BJIScenario.TYPES.SPEED) or {}).MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
-            errorMessage = svar(BJILang.get("menu.vote.speed.missingPlayers"), {
+            errorMessage = BJILang.get("menu.vote.speed.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
 
         if errorMessage then
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 render = function()
                     LineBuilder()
                         :text(BJILang.get("menu.vote.speed.title"), TEXT_COLORS.DISABLED)
-                        :text(svar("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
+                        :text(string.var("({1})", { errorMessage }), TEXT_COLORS.DISABLED)
                         :build()
                 end
             })
         else
-            table.insert(votesEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = BJILang.get("menu.vote.speed.title"),
                 onClick = function()
                     BJITx.scenario.SpeedStart(true)
@@ -160,15 +160,47 @@ local function menuSpeed(ctxt, votesEntry)
     end
 end
 
-return function(ctxt)
-    local votesEntry = {
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache = {
         label = BJILang.get("menu.vote.title"),
-        elems = {}
+        elems = {},
     }
 
-    menuMap(ctxt, votesEntry)
-    menuRace(ctxt, votesEntry)
-    menuSpeed(ctxt, votesEntry)
-
-    return #votesEntry.elems > 0 and votesEntry or nil
+    menuMap(ctxt)
+    menuRace(ctxt)
+    menuSpeed(ctxt)
 end
+
+local listeners = Table()
+function M.onLoad()
+    updateCache()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.SCENARIO_UPDATED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+
+    ---@param data {cache: string}
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if table.includes({
+                BJICache.CACHES.VOTE,
+                BJICache.CACHES.PLAYERS,
+                BJICache.CACHES.RACE,
+                BJICache.CACHES.RACES,
+                BJICache.CACHES.SPEED,
+                BJICache.CACHES.MAP,
+            }, data.cache) then
+            updateCache(ctxt)
+        end
+    end))
+end
+
+function M.onUnload()
+    listeners:forEach(BJIEvents.removeListener)
+end
+
+return M

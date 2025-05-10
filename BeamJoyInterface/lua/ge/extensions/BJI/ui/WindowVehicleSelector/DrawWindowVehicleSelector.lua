@@ -7,23 +7,24 @@ local M = {
         trailers = {},
         props = {},
     },
-    sumConfigs = 0,
     vehFilter = "",
-    filtered = nil,
-    paints = {},
+    cache = {
+        vehicles = {},
+        paints = {}
+    },
 }
 local ownVeh, limitReached = false, false
 
-local function updateFiltered()
-    M.filtered = {}
+local function updateCacheVehicles()
+    M.cache.vehicles = {}
     if #M.vehFilter == 0 then
-        M.filtered = M.models
+        M.cache.vehicles = M.models
     else
         for modelType, models in pairs(M.models) do
-            M.filtered[modelType] = {}
+            M.cache.vehicles[modelType] = {}
             for _, model in ipairs(models) do
                 if model.label:lower():find(M.vehFilter:lower()) then
-                    table.insert(M.filtered[modelType], model)
+                    table.insert(M.cache.vehicles[modelType], model)
                 else
                     local configs = {}
                     for _, config in ipairs(model.configs) do
@@ -32,9 +33,9 @@ local function updateFiltered()
                         end
                     end
                     if #configs > 0 then
-                        local modelCopy = tdeepcopy(model)
+                        local modelCopy = table.clone(model)
                         modelCopy.configs = configs
-                        table.insert(M.filtered[modelType], modelCopy)
+                        table.insert(M.cache.vehicles[modelType], modelCopy)
                     end
                 end
             end
@@ -42,16 +43,51 @@ local function updateFiltered()
     end
 end
 
+---@param ctxt? TickContext
+local function updateCachePaints(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache.paints = {}
+
+    if ctxt.isOwner then
+        M.cache.paints = table.map(BJIVeh.getAllPaintsForModel(ctxt.veh.jbeam),
+            function(paintData, paintLabel)
+                return {
+                    label = paintLabel,
+                    paint = paintData,
+                }
+            end):values()
+        table.sort(M.cache.paints, function(a, b)
+            return a.label < b.label
+        end)
+    end
+end
+
+local listeners = Table()
+local function onLoad()
+    updateCachePaints()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.VEHICLE_SPAWNED,
+        BJIEvents.EVENTS.VEHICLE_REMOVED,
+        BJIEvents.EVENTS.VEHICLE_SPEC_CHANGED,
+    }, updateCachePaints))
+end
+local function onUnload()
+    listeners:forEach(BJIEvents.removeListener)
+end
+
 local function drawHeader(ctxt)
-    if M.sumConfigs > 0 then
+    if #M.models.cars + #M.models.trucks +
+        #M.models.trailers + #M.models.props > 0 then
         local line = LineBuilder()
-        if M.onClose then
+        if not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
             line:btnIcon({
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
                 style = BTN_PRESETS.INFO,
                 onClick = function()
-                    BJIVehSelector.tryClose()
+                    if M.onClose then
+                        BJIVehSelector.tryClose()
+                    end
                     core_vehicles.openSelectorUI()
                 end,
             })
@@ -64,7 +100,7 @@ local function drawHeader(ctxt)
                 value = M.vehFilter,
                 onUpdate = function(val)
                     M.vehFilter = val
-                    updateFiltered()
+                    updateCacheVehicles()
                 end
             })
             :build()
@@ -74,7 +110,7 @@ local function drawHeader(ctxt)
     local showDeleteOtherPlayerVehicle = not ctxt.isOwner and ctxt.veh and
         BJIScenario.canDeleteOtherPlayersVehicle()
     local showDeleteOthers = BJIScenario.canDeleteOtherVehicles() and
-        tlength(BJIContext.User.vehicles) > (ctxt.isOwner and 1 or 0)
+        table.length(BJIContext.User.vehicles) > (ctxt.isOwner and 1 or 0)
 
     if showDeleteCurrent or showDeleteOtherPlayerVehicle or showDeleteOthers then
         local line = LineBuilder()
@@ -116,7 +152,7 @@ local function drawConfig(modelKey, config)
     local line = LineBuilder()
     if not limitReached then
         line:btnIcon({
-            id = svar("spawnNew-{1}-{2}", { modelKey, config.key }),
+            id = string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.add,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
@@ -129,7 +165,7 @@ local function drawConfig(modelKey, config)
             line = LineBuilder()
         end
         line:btnIcon({
-            id = svar("replace-{1}-{2}", { modelKey, config.key }),
+            id = string.var("replace-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.carSensors,
             style = BTN_PRESETS.WARNING,
             onClick = function()
@@ -144,7 +180,7 @@ end
 local function drawModel(model)
     local function drawModelButtons(line, withSpawn)
         line:btnIcon({
-            id = svar("preview-{1}", { model.key }),
+            id = string.var("preview-{1}", { model.key }),
             icon = ICONS.ab_asset_image,
             style = BTN_PRESETS.INFO,
             onClick = function()
@@ -154,32 +190,32 @@ local function drawModel(model)
         if withSpawn then
             if not limitReached then
                 line:btnIcon({
-                    id = svar("spawnNew-{1}", { model.key }),
+                    id = string.var("spawnNew-{1}", { model.key }),
                     icon = ICONS.add,
                     style = BTN_PRESETS.SUCCESS,
                     onClick = function()
-                        BJIScenario.trySpawnNew(model.key)
+                        BJIScenario.trySpawnNew(model.key, #model.configs == 1 and model.configs[1].key or nil)
                     end
                 })
             end
             if ownVeh then
                 line:btnIcon({
-                    id = svar("replace-{1}", { model.key }),
+                    id = string.var("replace-{1}", { model.key }),
                     icon = ICONS.carSensors,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
-                        BJIScenario.tryReplaceOrSpawn(model.key)
+                        BJIScenario.tryReplaceOrSpawn(model.key, #model.configs == 1 and model.configs[1].key or nil)
                     end
                 })
             end
         end
         if #model.configs > 1 and (ownVeh or not limitReached) then
             line:btnIcon({
-                id = svar("spawnRandom-{1}", { model.key }),
+                id = string.var("spawnRandom-{1}", { model.key }),
                 icon = ICONS.casino,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
-                    local config = trandom(model.configs) or {}
+                    local config = table.random(model.configs) or {}
                     BJIScenario.tryReplaceOrSpawn(model.key, config.key)
                 end
             })
@@ -205,7 +241,7 @@ local function drawModel(model)
         drawModelButtons(line, true)
         drawModelTitle(line):build()
         local config = model.configs[1]
-        line:text(svar("({1})", { config.label }))
+        line:text(string.var("({1})", { config.label }))
             :build()
         Indent(-1)
     elseif #model.configs < ACCORDION_THRESHOLD then
@@ -217,7 +253,7 @@ local function drawModel(model)
         Indent(-2)
     else
         AccordionBuilder()
-            :label(svar("##{1}", { model.key }))
+            :label(string.var("##{1}", { model.key }))
             :openedBehavior(function()
                 local line = LineBuilder(true)
                 drawModelButtons(line, false)
@@ -247,12 +283,12 @@ local function drawType(vehs, label, name, icon)
             end
             if #vehs > 0 then
                 line:btnIcon({
-                    id = svar("random-{1}", { name }),
+                    id = string.var("random-{1}", { name }),
                     icon = ICONS.casino,
                     style = BTN_PRESETS.WARNING,
                     onClick = function()
-                        local model = trandom(vehs) or {}
-                        local config = trandom(model.configs) or {}
+                        local model = table.random(vehs) or {}
+                        local config = table.random(model.configs) or {}
 
                         if model.key and config.key then
                             BJIScenario.tryReplaceOrSpawn(model.key, config.key)
@@ -313,7 +349,7 @@ local function drawPaints(paints)
         for j = 1, 3 do
             local style = paintToIconStyle(paintData.paint.baseColor)
             line:btnIcon({
-                id = svar("applyPaint-{1}-{2}", { i, j }),
+                id = string.var("applyPaint-{1}-{2}", { i, j }),
                 icon = ICONS.format_color_fill,
                 style = style,
                 onClick = function()
@@ -350,7 +386,7 @@ local function drawPreviousVeh(ctxt)
         local line = LineBuilder()
         if not limitReached then
             line:btnIcon({
-                id = svar("spawnNewPrevious-{1}-{2}", { previousConfig.model, previousConfig }),
+                id = string.var("spawnNewPrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.add,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -360,7 +396,7 @@ local function drawPreviousVeh(ctxt)
         end
         if ownVeh then
             line:btnIcon({
-                id = svar("replacePrevious-{1}-{2}", { previousConfig.model, previousConfig }),
+                id = string.var("replacePrevious-{1}-{2}", { previousConfig.model, previousConfig }),
                 icon = ICONS.carSensors,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
@@ -368,7 +404,7 @@ local function drawPreviousVeh(ctxt)
                 end
             })
         end
-        line:text(svar("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
+        line:text(string.var("{1}:", { BJILang.get("vehicleSelector.previousVeh") }))
             :text(modelLabel)
             :build()
     end
@@ -398,7 +434,7 @@ local function drawDefaultVeh(ctxt)
         local line = LineBuilder()
         if not limitReached then
             line:btnIcon({
-                id = svar("spawnNewDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
+                id = string.var("spawnNewDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.add,
                 style = BTN_PRESETS.SUCCESS,
                 onClick = function()
@@ -408,7 +444,7 @@ local function drawDefaultVeh(ctxt)
         end
         if ownVeh then
             line:btnIcon({
-                id = svar("replaceDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
+                id = string.var("replaceDefault-{1}-{2}", { defaultVeh.model, defaultVeh.config }),
                 icon = ICONS.carSensors,
                 style = BTN_PRESETS.WARNING,
                 onClick = function()
@@ -416,7 +452,7 @@ local function drawDefaultVeh(ctxt)
                 end
             })
         end
-        line:text(svar("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
+        line:text(string.var("{1}:", { BJILang.get("vehicleSelector.defaultVeh") }))
             :text(modelLabel)
             :build()
     end
@@ -424,32 +460,30 @@ end
 
 local function drawBody(ctxt)
     ownVeh = ctxt.isOwner
-    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= tlength(ctxt.user.vehicles)
+    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= table.length(ctxt.user.vehicles)
 
     drawPreviousVeh(ctxt)
     drawDefaultVeh(ctxt)
 
-    if M.filtered.cars then
-        drawType(M.filtered.cars, "Cars", "car", ICONS.fg_vehicle_suv)
+    if M.cache.vehicles.cars then
+        drawType(M.cache.vehicles.cars, "Cars", "car", ICONS.fg_vehicle_suv)
     end
 
-    if M.filtered.trucks then
-        drawType(M.filtered.trucks, "Trucks", "truck", ICONS.fg_vehicle_truck)
+    if M.cache.vehicles.trucks then
+        drawType(M.cache.vehicles.trucks, "Trucks", "truck", ICONS.fg_vehicle_truck)
     end
 
-    if M.filtered.trailers then
-        drawType(M.filtered.trailers, "Trailers", "trailer", ICONS.fg_vehicle_tanker_trailer)
+    if M.cache.vehicles.trailers then
+        drawType(M.cache.vehicles.trailers, "Trailers", "trailer", ICONS.fg_vehicle_tanker_trailer)
     end
 
-    if M.filtered.props then
-        drawType(M.filtered.props, "Props", "prop", ICONS.fg_traffic_cone)
+    if M.cache.vehicles.props then
+        drawType(M.cache.vehicles.props, "Props", "prop", ICONS.fg_traffic_cone)
     end
 
     local veh = BJIVeh.getCurrentVehicleOwn()
     -- must get a new instance of current vehicle or else crash
-    if veh and veh.jbeam and
-        M.paints[veh.jbeam] and
-        #M.paints[veh.jbeam] > 0 then
+    if #M.cache.paints > 0 then
         AccordionBuilder()
             :label(BJILang.get("vehicleSelector.paints"))
             :commonStart(function()
@@ -461,7 +495,7 @@ local function drawBody(ctxt)
             end)
             :openedBehavior(
                 function()
-                    drawPaints(M.paints[ctxt.veh.jbeam])
+                    drawPaints(M.cache.paints)
                 end)
             :build()
     end
@@ -495,10 +529,10 @@ local function updateOnClose(state)
                 trailers = {},
                 props = {},
             }
-            M.sumConfigs = 0
-            M.vehFilter = ""
-            M.filtered = nil
-            M.paints = {}
+            M.cache = {
+                vehicles = {},
+                paints = {},
+            }
         end
     elseif not state and M.onClose then
         M.onClose = nil
@@ -569,28 +603,11 @@ local function open(models, canClose)
     M.models.trailers = trailers
     M.models.props = props
 
-    for model, modelData in pairs(BJIVeh.getAllVehicleConfigs(true, true)) do
-        M.paints[model] = {}
-        for paintLabel, paintData in pairs(modelData.paints) do
-            table.insert(M.paints[model], {
-                label = paintLabel,
-                paint = paintData,
-            })
-        end
-        table.sort(M.paints[model], function(a, b)
-            return a.label < b.label
-        end)
-    end
-
-    M.sumConfigs = 0
-    for _, typeModels in pairs(M.models) do
-        for _, model in pairs(typeModels) do
-            M.sumConfigs = M.sumConfigs + #model.configs
-        end
-    end
-
-    M.filtered = {}
-    updateFiltered()
+    M.cache = {
+        vehicles = {},
+        paints = {},
+    }
+    updateCacheVehicles()
 
     M.state = true
 end
@@ -603,6 +620,9 @@ local function tryClose(force)
         M.onClose()
     end
 end
+
+M.onLoad = onLoad
+M.onUnload = onUnload
 
 M.header = drawHeader
 M.body = drawBody

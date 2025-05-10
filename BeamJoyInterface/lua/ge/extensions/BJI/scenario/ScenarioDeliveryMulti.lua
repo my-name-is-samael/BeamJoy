@@ -1,6 +1,7 @@
 local M = {
     -- server data
     participants = {},
+    ---@type {pos: vec3, rot: vec3, radius: number}?
     target = nil,
 
     baseDistance = nil,
@@ -43,7 +44,7 @@ local function stop()
 end
 
 local function getRadiusMultiplier()
-    return Clamp(tlength(M.participants), 1, 4)
+    return math.clamp(table.length(M.participants), 1, 4)
 end
 
 -- can switch to scenario hook
@@ -58,18 +59,29 @@ end
 -- load hook
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
-    BJIQuickTravel.toggle(false)
-    BJIAI.toggle(false)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.TELEPORT,
+            BJIRestrictions.RESET.HEAVY_RELOAD,
+            not BJIPerm.canSpawnAI() and BJIRestrictions.OTHER.AI_CONTROL or nil,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+        }):values():flat(),
+        state = true,
+    } })
+    BJIBigmap.toggleQuickTravel(false)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
 end
 
 -- player vehicle spawn hook
 local function onVehicleSpawned(gameVehID)
-    if BJIVeh.isVehicleOwn(gameVehID) then
+    --[[if BJIVeh.isVehicleOwn(gameVehID) then
         BJITx.scenario.DeliveryMultiLeave()
-    end
+    end]]
 end
 
 -- player vehicle reset hook
@@ -89,15 +101,6 @@ local function onVehicleResetted(gameVehID)
     end
 
     BJITx.scenario.DeliveryMultiResetted()
-end
-
--- player vehicle switch hook
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.participants[BJIContext.User.playerID] then
-        if newGameVehID ~= M.participants[BJIContext.User.playerID].gameVehID then
-            BJIVeh.focusVehicle(M.participants[BJIContext.User.playerID].gameVehID)
-        end
-    end
 end
 
 -- player vehicle destroy hook
@@ -128,12 +131,8 @@ local function onGarageRepair()
         end
     end
     if veh then
-        M.tanksSaved = tdeepcopy(veh.tanks)
+        M.tanksSaved = table.clone(veh.tanks)
     end
-end
-
-local function canVehUpdate()
-    return false
 end
 
 local function onTargetReached(ctxt)
@@ -167,8 +166,12 @@ local function slowTick(ctxt)
         end
 
         if #BJIRaceWaypoint._targets == 0 then
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+            BJIRaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = M.target.pos,
+                radius = M.target.radius * getRadiusMultiplier(),
+                color = BJIRaceWaypoint.COLORS.BLUE
+            })
         end
 
         local distance = ctxt.vehPosRot.pos:distance(M.target.pos)
@@ -198,7 +201,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -211,9 +214,20 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
-    BJIQuickTravel.toggle(true)
-    BJIAI.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.RESET.TELEPORT,
+            BJIRestrictions.RESET.HEAVY_RELOAD,
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
     BJIMessage.stopRealtimeDisplay()
     BJIRaceWaypoint.resetAll()
@@ -224,15 +238,19 @@ local function onTargetChange()
         M.target.radius * getRadiusMultiplier(), nil, nil, false)
     BJIMessage.flash("BJIDeliveryMultiNextTarget", BJILang.get("packageDelivery.flashStart"), 3, false)
     BJIRaceWaypoint.resetAll()
-    BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJIRaceWaypoint.addWaypoint({
+        name = "BJIDeliveryMultiTarget",
+        pos = M.target.pos,
+        radius = M.target.radius * getRadiusMultiplier(),
+        color = BJIRaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function rxData(data)
     local wasParticipant = not not M.participants[BJIContext.User.playerID]
     local previousRadius = getRadiusMultiplier()
     M.participants = data.participants
-    local previousTarget = M.target and TryParsePosRot(tdeepcopy(M.target)) or nil
+    local previousTarget = M.target and TryParsePosRot(M.target) or nil
     M.target = TryParsePosRot(data.target)
 
     updateUI()
@@ -257,8 +275,12 @@ local function rxData(data)
         end
         if #BJIRaceWaypoint._targets > 0 then
             BJIRaceWaypoint.resetAll()
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+            BJIRaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = M.target.pos,
+                radius = M.target.radius * getRadiusMultiplier(),
+                color = BJIRaceWaypoint.COLORS.BLUE
+            })
         end
     end
 end
@@ -268,18 +290,15 @@ M.onLoad = onLoad
 
 M.onVehicleSpawned = onVehicleSpawned
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onVehicleDestroyed = onVehicleDestroyed
 M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
 M.onGarageRepair = onGarageRepair
 
-M.canSelectVehicle = canVehUpdate
-M.canSpawnNewVehicle = canVehUpdate
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
+M.canSpawnNewVehicle = FalseFn
+M.canReplaceVehicle = FalseFn
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
 
 M.getPlayerListActions = getPlayerListActions
 

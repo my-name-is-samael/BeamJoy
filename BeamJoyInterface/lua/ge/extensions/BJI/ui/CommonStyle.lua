@@ -1,11 +1,17 @@
 local im = ui_imgui
 
+---@param r number
+---@param g number
+---@param b number
+---@param a number
+---@return vec4
 function RGBA(r, g, b, a)
     return im.ImVec4(r, g, b, a)
 end
 
 RGBA_PRECISION = 3
 
+---@type table<string, number>
 WINDOW_FLAGS = {
     MENU_BAR = im.WindowFlags_MenuBar,
     NO_SCROLLBAR = im.WindowFlags_NoScrollbar,
@@ -15,6 +21,7 @@ WINDOW_FLAGS = {
     NO_RESIZE = im.WindowFlags_NoResize,
 }
 
+---@type table<string, number>
 STYLE_COLS = {
     WINDOW_BG = im.Col_WindowBg,
     POPUP_BG = im.Col_PopupBg,
@@ -55,6 +62,8 @@ STYLE_COLS = {
     PROGRESSBAR = im.Col_PlotHistogram,
 }
 
+---@param col number
+---@param color vec4
 function SetStyleColor(col, color)
     local found = false
     for _, v in pairs(STYLE_COLS) do
@@ -66,7 +75,7 @@ function SetStyleColor(col, color)
         end
     end
     if not found then
-        error(svar("Invalid style column: {1}", { col }))
+        error(string.var("Invalid style column: {1}", { col }))
         return
     end
 
@@ -77,12 +86,17 @@ function PopStyleColor(amount)
     im.PopStyleColor(amount)
 end
 
+---@typetable<string, vec4>
 BJIStyles = {}
+---@typetable<string, vec4>
 TEXT_COLORS = {}
+---@typetable<string, vec4[]>
 BTN_PRESETS = {}
+---@typetable<string, vec4[]>
 INPUT_PRESETS = {}
 
 BJIThemeLoaded = false
+---@param data { Fields: table<string, number[]>, Text: table<string, number[]>, Button: table<string, number[][]>, Input: table<string, number[][]> }
 function LoadTheme(data)
     if BJIThemeLoaded then
         PopStyleColor(2)
@@ -126,5 +140,5 @@ function InitDefaultStyles()
 end
 
 function ResetStyles()
-    PopStyleColor(tlength(BJIStyles) + 1)
+    PopStyleColor(table.length(BJIStyles) + 1)
 end

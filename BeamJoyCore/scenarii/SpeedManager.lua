@@ -1,5 +1,10 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 2,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 2
+    end,
     isEvent = false,
     startTime = nil,
     participants = {},
@@ -13,7 +18,7 @@ local M = {
 
 local function getCache()
     return {
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         isEvent = M.isEvent,
         startTime = M.startTime,
         participants = M.participants,
@@ -25,6 +30,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.startTime,
         M.participants,
         M.leaderboard,
@@ -33,7 +39,7 @@ local function getCacheHash()
 end
 
 local function start(participants, isEvent)
-    if tlength(participants) < M.MINIMUM_PARTICIPANTS then
+    if table.length(participants) < M.MINIMUM_PARTICIPANTS() then
         return
     end
     if isEvent then
@@ -54,7 +60,7 @@ local function start(participants, isEvent)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 1 or M.leaderboard[2] then
+    if table.length(M.participants) == 1 or M.leaderboard[2] then
         for pid in pairs(M.participants) do
             local found = false
             for _, lb in pairs(M.leaderboard) do
@@ -73,7 +79,7 @@ local function checkEnd()
         end
     end
 
-    if tlength(M.participants) == tlength(M.leaderboard) then
+    if table.length(M.participants) == table.length(M.leaderboard) then
         BJCAsync.delayTask(function()
             for i, lb in ipairs(M.leaderboard) do
                 local playerID = lb.playerID
@@ -86,7 +92,7 @@ end
 
 local function fail(playerID, time)
     if M.startTime then
-        for i = tlength(M.participants), 1, -1 do
+        for i = table.length(M.participants), 1, -1 do
             if M.leaderboard[i] and
                 M.leaderboard[i].playerID == playerID then
                 return
@@ -118,9 +124,10 @@ local function stop()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
 end
 
-local function slowTick(ctxt)
-    if M.startTime and M.startTime <= GetCurrentTime() and
-        tlength(M.participants) > tlength(M.leaderboard) then
+---@param time integer
+local function slowTick(time)
+    if M.startTime and M.startTime <= time and
+        table.length(M.participants) > table.length(M.leaderboard) then
         M.stepCounter = M.stepCounter + 1
         if M.stepCounter >= BJCConfig.Data.Speed.StepDelay then
             M.stepCounter = 0
@@ -139,9 +146,9 @@ local function onPlayerDisconnect(targetID)
         return
     end
 
-    for i = 1, tlength(M.participants) do
+    for i = 1, table.length(M.participants) do
         if M.leaderboard[i] and M.leaderboard[i].playerID == targetID then
-            for j = i, tlength(M.participants) do
+            for j = i, table.length(M.participants) do
                 if M.leaderboard[j + 1] then
                     M.leaderboard[j] = M.leaderboard[j + 1]
                 else
@@ -165,7 +172,7 @@ local function onVehicleDeleted(playerID, vehID)
     end
 
     local eliminated = false
-    for i = 1, tlength(M.participants) do
+    for i = 1, table.length(M.participants) do
         if M.leaderboard[i] and M.leaderboard[i].playerID == playerID then
             eliminated = true
         end
@@ -185,14 +192,12 @@ M.start = start
 M.fail = fail
 M.stop = stop
 
-M.slowTick = slowTick
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
 
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
-M.postVehicleDeleted = onVehicleDeleted
-
-RegisterBJCManager(M)
 return M

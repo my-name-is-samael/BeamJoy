@@ -1,10 +1,32 @@
+---@class TickContext
+---@field now integer
+---@field user BJIUser
+---@field group BJIGroup
+---@field veh? userdata|any
+---@field vehPosRot? BJIPositionRotation
+---@field isOwner boolean
+---@field vehData? BJIVehicleData
+---@field camera string
+
+---@class SlowTickContext : TickContext
+---@field serverTime integer
+---@field cachesHashes table<string, string>
+---@field ToD? number
+
 local M = {
     _name = "BJITick",
     timeOffsets = {}, -- time offsets in sec
 }
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
+
+local _cachedCtxt
+
+---@return TickContext
 local function getContext()
+    if _cachedCtxt then
+        return _cachedCtxt
+    end
     local veh = BJIVeh.getCurrentVehicle()
     local isOwner = veh and BJIVeh.isVehicleOwn(veh:getID())
     local vehData
@@ -16,7 +38,7 @@ local function getContext()
             end
         end
     end
-    return {
+    _cachedCtxt = {
         now = GetCurrentTimeMillis(),
         user = BJIContext.User,
         group = BJIPerm.Groups[BJIContext.User.group],
@@ -26,30 +48,30 @@ local function getContext()
         vehData = vehData,
         camera = BJICam.getCamera(),
     }
+    return _cachedCtxt
 end
 
+-- ClientTick (each render tick)
 local function client()
-    -- ClientTick (each render tick)
-
     if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
-        TriggerBJIEvent("renderTick", getContext())
+        _cachedCtxt = nil
+        TriggerBJIManagerEvent("renderTick", getContext())
     end
 end
 
+-- ServerTick (~1s)
 local function server(serverData)
-    -- ServerTick (~1s)
-
     if type(serverData.serverTime) == "number" then
-        -- local offsetMs = (serverData.serverTime - GetCurrentTime()) * 1000
         table.insert(M.timeOffsets, serverData.serverTime - GetCurrentTime())
         if #M.timeOffsets > 100 then
             table.remove(M.timeOffsets, 1)
         end
     end
 
+    ---@type SlowTickContext|any
     local ctxt = getContext()
-    tdeepassign(ctxt, serverData or {})
-    TriggerBJIEvent("slowTick", ctxt)
+    table.assign(ctxt, serverData or {})
+    TriggerBJIManagerEvent("slowTick", ctxt)
 end
 
 local function getAvgOffsetMs()
@@ -62,7 +84,7 @@ local function getAvgOffsetMs()
         count = count + offset
     end
     local avgSec = count / #M.timeOffsets
-    return Round(avgSec * 1000, 3)
+    return math.round(avgSec * 1000, 3)
 end
 
 local function applyTimeOffset(timeSec)

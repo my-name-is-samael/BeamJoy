@@ -114,20 +114,7 @@ local function isRacing()
     return M._race._started
 end
 
---[[
-<ul>
-    <li> waypoints = (array)</li>
-    <ul>
-        <li>name: string NULLABLE</li>
-        <li>pos: vec3</li>
-        <li>rot: vec3</li>
-        <li>radius: float</li>
-        <li>parents: array</li>
-        <li>lap: boolean NULLABLE</li>
-        <li>stand: boolean NULLABLE</li>
-    </ul>
-</ul>
-]]
+---@param step {name: string, pos: vec3, zOffset?:number, rot: vec3, radius: number, parents: string[], lap?: boolean, stand?: boolean}[]
 local function addRaceStep(step)
     if M._race._started then
         LogError("already started", M._name)
@@ -173,7 +160,7 @@ local function updateRaceMarkers(lastWp)
         -- next marker
         for iStep, step in ipairs(M._race._steps) do
             for iWp, wp in ipairs(step) do
-                if tincludes(wp.parents, wpName, true) and           -- is child
+                if table.includes(wp.parents, wpName) and            -- is child
                     not (wp.stand and iStep == #M._race._steps) then -- disable stand if last step
                     table.insert(M._targets, {
                         step = iStep,
@@ -182,8 +169,8 @@ local function updateRaceMarkers(lastWp)
 
                     local normal
                     if not wp.stand then
-                        local angle = AngleFromQuatRotation(wp.rot)
-                        normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                        local angle = math.angleFromQuatRotation(wp.rot)
+                        normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
                         normal = normal:normalized()
                     end
 
@@ -216,13 +203,13 @@ local function updateRaceMarkers(lastWp)
                 local wpPrevious = M._race._steps[target.step][target.wp]
                 for iStep, step in ipairs(M._race._steps) do
                     for _, wp in ipairs(step) do
-                        if tincludes(wp.parents, wpPrevious.name) and
+                        if table.includes(wp.parents, wpPrevious.name) and
                             (not wp.stand or iStep < #M._race._steps) then -- disable stand if last step
                             if M._modes[wp.name] == nil then
                                 local normal
                                 if not wp.stand then
-                                    local angle = AngleFromQuatRotation(wp.rot)
-                                    normal = Rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+                                    local angle = math.angleFromQuatRotation(wp.rot)
+                                    normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
                                     normal = normal:normalized()
                                 end
 
@@ -256,13 +243,19 @@ end
 
 local function onRaceWaypointReached(waypoint)
     if M._race._onWaypoint then
-        pcall(M._race._onWaypoint, waypoint, #M._race._steps)
+        local ok, err = pcall(M._race._onWaypoint, waypoint, #M._race._steps)
+        if not ok then
+            LogError(string.var("Error while handling waypoint : {1}", { err }))
+        end
     end
 end
 
 local function onRaceFinishReached()
     if M._race._onFinish then
-        pcall(M._race._onFinish)
+        local ok, err = pcall(M._race._onFinish)
+        if not ok then
+            LogError(string.var("Error while handling finish : {1}", { err }))
+        end
     end
 
     M.resetAll()
@@ -276,16 +269,16 @@ local function getVehCorners(ctxt)
     local len = vec3(ctxt.veh:getInitialLength() / 2, 0, 0);
     local vdata = map.objects[ctxt.veh:getID()];
     local dir = vdata.dirVec;
-    local angle = Atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
-    angle = Scale(angle, -math.pi, math.pi, 0, math.pi * 2);
+    local angle = math.atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
+    angle = math.scale(angle, -math.pi, math.pi, 0, math.pi * 2);
     angle = (angle + math.pi / 2) % (math.pi * 2);
 
     local w = vec3(0, ctxt.veh:getInitialWidth() / 2, 0);
     return {
-        fl = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle),
-        fr = origin + Rotate2DVec(len, angle) + Rotate2DVec(w, angle + math.pi),
-        bl = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle),
-        br = origin + Rotate2DVec(len, angle + math.pi) + Rotate2DVec(w, angle + math.pi),
+        fl = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle),
+        fr = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle + math.pi),
+        bl = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle),
+        br = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle + math.pi),
     }
 end
 
@@ -312,10 +305,10 @@ end
 local function checkSegmentCrossed(ctxt, wp, vehCorners)
     if not ctxt.veh then return end
 
-    local angle = AngleFromQuatRotation(wp.rot)
-    local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-    local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
-    local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+    local angle = math.angleFromQuatRotation(wp.rot)
+    local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
+    local wpLeft = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
+    local wpRight = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
 
     for _, segment in ipairs({
         { vehCorners.fl, vehCorners.br },
@@ -357,10 +350,10 @@ local function checkRaceTargetReached(ctxt)
         local wp = M._race._steps[target.step][target.wp]
 
         if BJIDEBUG then
-            local angle = AngleFromQuatRotation(wp.rot)
-            local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-            local wpLeft = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
-            local wpRight = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+            local angle = math.angleFromQuatRotation(wp.rot)
+            local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
+            local wpLeft = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
+            local wpRight = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
 
             local gateColor = ShapeDrawer.Color(1, 0, 1, .33)
             local a = vec3(wpLeft.x, wpLeft.y, wpLeft.z)
@@ -393,32 +386,41 @@ local function checkRaceTargetReached(ctxt)
     end
 end
 
-local function addWaypoint(name, pos, radius, color)
+---@param wp {name: string, pos: vec3, rot?: quat, radius?: number, color?: string}
+local function addWaypoint(wp)
     local _, err
-    _, pos, err = pcall(vec3, pos)
+    _, wp.pos, err = pcall(vec3, wp.pos)
     if err then
         LogError("invalid position", M._name)
         return
     end
 
-    name = name or svar("raceWaypoint{1}", { GetCurrentTimeMillis() })
-    radius = tonumber(radius) or 1
-    color = color or M.COLORS.RED
+    wp.name = wp.name or string.var("raceWaypoint{1}", { GetCurrentTimeMillis() })
+    wp.radius = tonumber(wp.radius) or 1
+    wp.color = wp.color or M.COLORS.RED
+
+    local normal
+    if wp.rot then
+        local angle = math.angleFromQuatRotation(wp.rot)
+        normal = math.rotate2DVec(vec3(0, wp.radius, 0), angle - math.rad(1))
+        normal = normal:normalized()
+    end
 
     table.insert(M._targets, {
-        name = name,
-        pos = pos,
-        radius = radius,
-        color = color,
+        name = wp.name,
+        pos = wp.pos,
+        radius = wp.radius,
+        color = wp.color,
     })
     table.insert(M._markers, {
-        name = name,
-        pos = pos,
-        radius = radius,
+        name = wp.name,
+        pos = wp.pos,
+        normal = normal,
+        radius = wp.radius,
         fadeNear = false,
         fadeFar = false,
     })
-    M._modes[name] = color
+    M._modes[wp.name] = wp.color
 
     M._raceMarker.setupMarkers(M._markers, M._markerType)
 end
@@ -441,6 +443,47 @@ local function onUnload()
     M.resetAll()
 end
 
+---@param raceHash string
+---@return MapRacePBWP[]|nil, integer?
+local function getPB(raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("getPB invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)[GetMapName() or BJIContext.UI.mapName]
+    if pbs then
+        local pb = pbs[raceHash]
+        local time
+        if pb then
+            time = pb[table.maxn(pb)].time
+        end
+        return pb, time
+    end
+end
+
+---@param raceHash string
+---@param newPb MapRacePBWP[]|nil
+local function setPB(raceHash, newPb)
+    if type(raceHash) ~= "string" then
+        LogError("setPB invalid raceHash")
+        dump(raceHash)
+        return
+    elseif not table.includes({ "table", "nil" }, type(newPb)) then
+        LogError("setPB invalid newPb")
+        dump(newPb)
+        return
+    end
+    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)
+    local mapPbs = pbs[GetMapName() or BJIContext.UI.mapName]
+    if not mapPbs then
+        mapPbs = {}
+        pbs[GetMapName() or BJIContext.UI.mapName] = mapPbs
+    end
+    mapPbs[raceHash] = newPb
+    BJILocalStorage.set(BJILocalStorage.VALUES.RACES_PB, pbs)
+end
+
 M.resetAll = resetAll
 
 M.setRaceWaypointHandler = setRaceWaypointHandler
@@ -454,6 +497,9 @@ M.addWaypoint = addWaypoint
 M.renderTick = renderTick
 
 M.onUnload = onUnload
+
+M.getPB = getPB
+M.setPB = setPB
 
 RegisterBJIManager(M)
 return M

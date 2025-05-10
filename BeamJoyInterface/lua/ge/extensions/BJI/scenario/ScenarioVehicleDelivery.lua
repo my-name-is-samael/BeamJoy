@@ -14,7 +14,6 @@ local M = {
     gameVehID = nil,
     baseDistance = nil,
     distance = nil,
-    nextLoop = false,
 
     nextResetExempt = true,     -- exempt reset fail for vehicle creation
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
@@ -51,11 +50,11 @@ local function initVehicle()
     for _, name in ipairs(BJIContext.BJC.VehicleDelivery.ModelBlacklist) do
         models[name] = nil
     end
-    if tlength(models) == 0 then
+    if table.length(models) == 0 then
         BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
         return
     end
-    local model = trandom(models)
+    local model = table.random(models)
     if model then
         M.model = model.key
         M.modelLabel = BJIVeh.getModelLabel(M.model)
@@ -63,7 +62,7 @@ local function initVehicle()
         -- config
         local config
         while not config or config.label:find("Traffic") do
-            config = trandom(model.configs)
+            config = table.random(model.configs)
         end
         if config then
             local configFile = BJIVeh.getConfigByModelAndKey(model.key, config.key)
@@ -73,7 +72,7 @@ local function initVehicle()
 
         -- paint
         for i = 1, 3 do
-            local paint = trandom(model.paints)
+            local paint = table.random(model.paints)
             if paint then
                 M.paints[i] = paint
             end
@@ -82,7 +81,7 @@ local function initVehicle()
 end
 
 local function initPositions()
-    M.startPosition = trandom(BJIContext.Scenario.Data.Deliveries)
+    M.startPosition = table.random(BJIContext.Scenario.Data.Deliveries)
 
     local targets = {}
     for _, position in ipairs(BJIContext.Scenario.Data.Deliveries) do
@@ -105,18 +104,12 @@ local function initPositions()
             table.remove(targets, threhsholdPos)
         end
     end
-    M.targetPosition = trandom(targets)
+    M.targetPosition = table.random(targets)
     M.targetPosition.distance = nil
 end
 
 local function initDelivery()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
-    BJIQuickTravel.toggle(false)
-    BJINametags.tryUpdate()
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
-
-    if not tincludes({
+    if not table.includes({
             BJICam.CAMERAS.FREE,
             BJICam.CAMERAS.EXTERNAL,
             BJICam.CAMERAS.BIG_MAP
@@ -142,34 +135,60 @@ local function initDelivery()
     BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.targetPosition.pos,
         M.targetPosition.radius, nil, nil, false)
     M.baseDistance = BJIGPS.getCurrentRouteLength()
-    BJIRaceWaypoint.addWaypoint("BJIVehicleDelivery", M.targetPosition.pos, M.targetPosition.radius,
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJIRaceWaypoint.addWaypoint({
+        name = "BJIVehicleDelivery",
+        pos = M.targetPosition.pos,
+        radius = M.targetPosition.radius,
+        color = BJIRaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function onLoad(ctxt)
     reset()
     BJIVehSelector.tryClose()
 
-    initPositions()
+    BJIUI.applyLoading(true, function()
+        initPositions()
 
-    initVehicle()
+        initVehicle()
 
-    if M.startPosition and M.targetPosition and M.model then
-        initDelivery()
+        if M.startPosition and M.targetPosition and M.model then
+            BJIRestrictions.update({ {
+                restrictions = Table({
+                    BJIRestrictions.OTHER.AI_CONTROL,
+                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                    BJIRestrictions.OTHER.WALKING,
+                    BJIRestrictions.OTHER.BIG_MAP,
+                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                    BJIRestrictions.OTHER.FREE_CAM,
+                }):flat(),
+                state = true,
+            } })
+            BJIBigmap.toggleQuickTravel(false)
+            BJINametags.tryUpdate()
+            BJIGPS.reset()
+            BJIRaceWaypoint.resetAll()
 
-        BJIAsync.task(function(ctxt2)
-                return ctxt2.isOwner and
-                    tshallowcompare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig))
-            end,
-            function(ctxt2)
-                BJITx.scenario.DeliveryVehicleStart()
-                M.init = true
-                M.gameVehID = ctxt2.veh:getID()
-                BJIMessage.flash("BJIDeliveryVehicleStart", BJILang.get("vehicleDelivery.flashStart"), 5, false)
-            end, "BJIDeliveryVehicleInit")
-    else
-        BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
-    end
+            initDelivery()
+
+            BJIAsync.task(function(ctxt2)
+                    return ctxt2.isOwner and
+                        table.compare(M.config, BJIVeh.getFullConfig(ctxt2.veh.partConfig) or {})
+                end,
+                function(ctxt2)
+                    BJITx.scenario.DeliveryVehicleStart()
+                    M.init = true
+                    M.gameVehID = ctxt2.veh:getID()
+                    BJIMessage.flash("BJIDeliveryVehicleStart", BJILang.get("vehicleDelivery.flashStart"), 5, false)
+                    BJIUI.applyLoading(false)
+                end, "BJIDeliveryVehicleInit")
+        else
+            BJIUI.applyLoading(false)
+            BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM, ctxt)
+        end
+    end)
 end
 
 local function onDeliveryFailed()
@@ -193,25 +212,17 @@ local function onVehicleResetted(gameVehID)
     onDeliveryFailed()
 end
 
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.init then
-        if newGameVehID ~= M.gameVehID then
-            BJIVeh.focusVehicle(M.gameVehID)
-        end
-    end
-end
-
 local function onStopDelivery()
     onDeliveryFailed()
 end
 
-local function drawDeliveryUI(ctxt)
+local function drawUI(ctxt, cache)
     if M.distance then
         LineBuilder()
-            :text(svar("{1}: {2}", {
-                BJILang.get("delivery.currentDelivery"),
-                svar(BJILang.get("delivery.distanceLeft"),
-                    { distance = PrettyDistance(M.distance) })
+            :text(string.var("{1}: {2}", {
+                cache.labels.delivery.current,
+                cache.labels.delivery.distanceLeft
+                    :var({ distance = PrettyDistance(M.distance) })
             }))
             :build()
 
@@ -221,21 +232,19 @@ local function drawDeliveryUI(ctxt)
         })
     end
 
-    local configLabel = M.configLabel and svar(" {1}", { M.configLabel }) or ""
-    LineBuilder()
-        :text(svar("{1}: {2}{3}", {
-            BJILang.get("vehicleDelivery.vehicle"),
-            M.modelLabel,
-            configLabel,
-        }))
-
+    LineBuilder():text(string.var("{1}: {2}{3}", {
+        cache.labels.delivery.vehicle.currentConfig, M.modelLabel, M.configLabel and
+    string.var(" {1}", { M.configLabel }) or
+    "",
+    })):build()
+    local loop = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     LineBuilder()
         :btnIconToggle({
             id = "vehicleDeliveryLoop",
             icon = ICONS.all_inclusive,
-            state = M.nextLoop,
+            state = loop,
             onClick = function()
-                M.nextLoop = not M.nextLoop
+                BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP, not loop)
             end,
             big = true,
         })
@@ -259,7 +268,7 @@ local function onTargetReached(ctxt)
         ctxt.vehData.damageState <= BJIContext.physics.VehiclePristineThreshold
     BJITx.scenario.DeliveryVehicleSuccess(pristine)
 
-    if M.nextLoop then
+    if BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
         BJIAsync.delayTask(function()
             if BJIScenario.isFreeroam() then
                 BJIScenario.switchScenario(BJIScenario.TYPES.VEHICLE_DELIVERY, ctxt)
@@ -271,20 +280,8 @@ local function onTargetReached(ctxt)
     BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
 end
 
-local function canRefuelAtStation()
-    return true
-end
-
 local function canSpawnVehicle()
     return not M.init
-end
-
-local function canVehUpdate()
-    return false
-end
-
-local function doShowNametagsSpecs(vehData)
-    return true
 end
 
 local function slowTick(ctxt)
@@ -329,7 +326,7 @@ local function getPlayerListActions(player, ctxt)
 
     if BJIVote.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
+            id = string.var("voteKick{1}", { player.playerID }),
             label = BJILang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJIVote.Kick.start(player.playerID)
@@ -341,8 +338,20 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
-    BJIQuickTravel.toggle(true)
+    BJIRestrictions.update({ {
+        restrictions = Table({
+            BJIRestrictions.OTHER.AI_CONTROL,
+            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            BJIRestrictions.OTHER.WALKING,
+            BJIRestrictions.OTHER.BIG_MAP,
+            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJIRestrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = false,
+    } })
+    BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
@@ -351,22 +360,19 @@ end
 M.canChangeTo = canChangeTo
 M.onLoad = onLoad
 
-M.drawDeliveryUI = drawDeliveryUI
+M.drawUI = drawUI
 
 M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
 M.onStopDelivery = onStopDelivery
 M.onTargetReached = onTargetReached
 
-M.canRefuelAtStation = canRefuelAtStation
+M.canRefuelAtStation = TrueFn
 
-M.canSelectVehicle = canVehUpdate
 M.canSpawnNewVehicle = canSpawnVehicle
 M.canSpawnNewVehicle = canSpawnVehicle
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
-M.doShowNametagsSpecs = doShowNametagsSpecs
+M.canDeleteVehicle = FalseFn
+M.canDeleteOtherVehicles = FalseFn
+M.doShowNametagsSpecs = TrueFn
 
 M.slowTick = slowTick
 

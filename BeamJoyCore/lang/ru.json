@@ -123,7 +123,8 @@
         "confirm": "Подтверждать",
         "start": "Начинать",
         "explode": "Взорваться",
-        "leave": "Оставлять"
+        "leave": "Оставлять",
+        "toggle": "Переключать"
       },
       "durationModifiers": {
         "minute": "м",
@@ -175,6 +176,7 @@
       "BJI": "BeamJoyInterface",
       "BJIUserSettings": "Мои настройки",
       "BJIEvents": "События",
+      "BJIRacesLeaderboard": "Таблица лидеров гонок",
       "BJIRaceSettings": "Настройки гонки",
       "BJIRace": "Раса",
       "BJIDeliveryMulti": "Доставка вместе",
@@ -202,8 +204,10 @@
       },
       "vote": {
         "title": "Голосование",
-        "map": "Карта",
-        "mapCustom": "обычай",
+        "map": {
+          "title": "Карта",
+          "custom": "обычай"
+        },
         "race": {
           "title": "Раса",
           "noRace": "Нет доступных гонок",
@@ -268,6 +272,8 @@
         "freeroamSettings": "Настройки свободного роуминга",
         "time": "Время суток",
         "weather": "Погода",
+        "gravity": "Гравитация",
+        "speed": "Скорость сим.",
         "map": "Переключить карту",
         "mapCustom": "обычай",
         "energyStations": "Энергостанции ({amount})",
@@ -481,14 +487,15 @@
     },
     "header": {
       "gamemode": "Режим игры",
-      "reputation": "Уровень репутации",
       "gravity": "Гравитация",
       "speed": "Скорость",
       "resetDisabled": "Сброс отключен",
       "nextReset": "Следующий сброс",
       "resetAvailable": "Сброс доступен",
       "nextTeleport": "Следующая телепортация",
-      "teleportAvailable": "Доступна телепортация"
+      "teleportAvailable": "Доступна телепортация",
+      "collisions": "Коллизии",
+      "reputation": "Уровень репутации"
     },
     "userSettings": {
       "uiScale": "Масштаб пользовательского интерфейса",
@@ -546,6 +553,7 @@
       "muteReason": "Немая причина",
       "kickReason": "Причина удара",
       "banReason": "Причина бана",
+      "savedReason": "Сохранённая причина",
       "kickModal": "Вы уверены, что хотите выгнать \"{playerName}\"?",
       "tempBanModal": "Вы уверены, что хотите временно забанить \"{playerName}\"?",
       "banModal": "Вы уверены, что хотите забанить игрока \"{playerName}\"?"
@@ -839,9 +847,7 @@
           "currentModel": "Текущая модель",
           "currentConfig": "Текущая конфигурация",
           "specific": "Конкретная {model}"
-        },
-        "time": "Время суток",
-        "weather": "Погода"
+        }
       },
       "preparation": {
         "singleplayer": "Одиночная гонка",
@@ -874,6 +880,7 @@
         "waitingForOtherPlayers": "Ждем других игроков...",
         "flashCountdownZero": "ИДТИ !!!",
         "eliminatedIn": "Вы будете исключены через {delay}",
+        "showAllData": "Показать все",
         "WP": "КП {wp}",
         "Lap": "Круг {laps}",
         "wpDifference": "+{wpDifference}CP",
@@ -885,7 +892,12 @@
         "flashDnfOut": "УДАЛЕНО"
       },
       "leaderboard": {
-        "title": "Таблица лидеров гонок"
+        "title": "Таблица лидеров гонок",
+        "amountPBs": "Всего лучших результатов",
+        "removeAllPBsButton": "Удалить все лучшие результаты",
+        "removeAllPBsModal": "Вы уверены, что хотите удалить все свои лучшие результаты на сервере?",
+        "pb": "ЛР",
+        "removePBModal": "Вы уверены, что хотите удалить свой лучший результат на {raceName}?"
       }
     },
     "energy": {

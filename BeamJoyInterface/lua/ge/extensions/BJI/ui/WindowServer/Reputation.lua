@@ -8,10 +8,10 @@ local function draw(ctxt)
 
     local labelWidth = 0
     for k in pairs(BJIContext.BJC.Reputation) do
-        local label = svar(BJILang.get(svar("serverConfig.reputation.{1}", { k })))
-        local tooltip = BJILang.get(svar("serverConfig.reputation.{1}Tooltip", { k }), "")
+        local label = BJILang.get(string.var("serverConfig.reputation.{1}", { k }))
+        local tooltip = BJILang.get(string.var("serverConfig.reputation.{1}Tooltip", { k }), "")
         if #tooltip > 0 then
-            label = svar("{1}{2}", { label, HELPMARKER_TEXT })
+            label = string.var("{1}{2}", { label, HELPMARKER_TEXT })
         end
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
@@ -25,8 +25,8 @@ local function draw(ctxt)
             cells = {
                 function()
                     local line = LineBuilder()
-                        :text(svar("{1}:", { BJILang.get(svar("serverConfig.reputation.{1}", { k })) }))
-                    local tooltip = BJILang.get(svar("serverConfig.reputation.{1}Tooltip", { k }), "")
+                        :text(string.var("{1}:", { BJILang.get(string.var("serverConfig.reputation.{1}", { k })) }))
+                    local tooltip = BJILang.get(string.var("serverConfig.reputation.{1}Tooltip", { k }), "")
                     if #tooltip > 0 then
                         line:helpMarker(tooltip)
                     end
@@ -42,7 +42,7 @@ local function draw(ctxt)
                             step = 1,
                             onUpdate = function(val)
                                 BJIContext.BJC.Reputation[k] = val
-                                BJITx.config.bjc(svar("Reputation.{1}", { k }), val)
+                                BJITx.config.bjc(string.var("Reputation.{1}", { k }), val)
                             end,
                         })
                         :build()

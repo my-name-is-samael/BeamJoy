@@ -66,25 +66,25 @@ local function consoleSetLang(args)
     table.sort(langs, function(a, b) return a:lower() < b:lower() end)
 
     if not args[1] then -- displays current
-        return svar(BJCLang.getConsoleMessage("command.currentLang"),
-            { langName = BJCConfig.Data.Server.Lang })
+        return BJCLang.getConsoleMessage("command.currentLang"):var({ langName = BJCConfig.Data.Server.Lang })
     end
 
-    if not tincludes(langs, args[1]:lower()) then -- invalid lang
-        return svar("{1}\n{2}", {
-            svar(BJCLang.getConsoleMessage("command.errors.invalidValue"), { value = args[1] }),
-            svar(BJCLang.getConsoleMessage("command.validLangs"), { langNames = tconcat(langs, ", ") })
+    if not table.includes(langs, args[1]:lower()) then -- invalid lang
+        return string.var("{1}\n{2}", {
+            BJCLang.getConsoleMessage("command.errors.invalidValue"):var({ value = args[1] }),
+            BJCLang.getConsoleMessage("command.validLangs"):var({ langNames = table.join(langs, ", ") })
         })
     end
 
     local ctxt = {}
     BJCInitContext(ctxt)
     BJCConfig.set(ctxt, "Server.Lang", args[1]:lower())
-    return svar(BJCLang.getConsoleMessage("command.langChanged"), { langName = BJCConfig.Data.Server.Lang })
+    return BJCLang.getConsoleMessage("command.langChanged"):var({ langName = BJCConfig.Data.Server.Lang })
 end
 
 local function getMap()
-    return M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
+    local mapName = M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
+    return mapName
 end
 
 local function setMap(mapName)
@@ -101,7 +101,7 @@ local function setMap(mapName)
 
     if currentMap and currentMap.custom then
         -- move map mod out of folder
-        local targetPath = svar("{1}Client/{2}", { resourcesFolderPath, currentMap.archive })
+        local targetPath = string.var("{1}Client/{2}", { resourcesFolderPath, currentMap.archive })
         if FS.Exists(targetPath) then
             FS.Remove(targetPath)
         end
@@ -109,9 +109,9 @@ local function setMap(mapName)
 
     if targetMap and targetMap.custom then
         -- move map mod into folder
-        local sourcePath = svar("{1}{2}", { resourcesFolderPath, targetMap.archive })
+        local sourcePath = string.var("{1}{2}", { resourcesFolderPath, targetMap.archive })
         if FS.Exists(sourcePath) then
-            local targetPath = svar("{1}Client/{2}", { resourcesFolderPath, targetMap.archive })
+            local targetPath = string.var("{1}Client/{2}", { resourcesFolderPath, targetMap.archive })
             FS.Copy(sourcePath, targetPath)
         else
             error({ key = "mapSwitch.missingArchive" })
@@ -119,34 +119,18 @@ local function setMap(mapName)
     end
 
     -- save map
-    local newFullName = svar("{1}{2}{3}", { M._mapFullNamePrefix, mapName, M._mapFullNameSuffix })
-    M.Data.General.Map = newFullName
-    MP.Set(MP.Settings.Map, newFullName)
-    writeServerConfig()
+    local newFullName = string.var("{1}{2}{3}", { M._mapFullNamePrefix, mapName, M._mapFullNameSuffix })
 
-    -- countdown
     local messagesCache = {}
-    for i = 5, 1, -1 do
-        BJCAsync.delayTask(function()
-            for playerID, player in pairs(BJCPlayers.Players) do
-                if not messagesCache[player.lang] then
-                    messagesCache[player.lang] = BJCLang.getServerMessage(player.lang, "mapSwitch.kickIn")
-                end
-                BJCChat.onServerChat(playerID,
-                    svar(messagesCache[player.lang], { delay = PrettyDelay(i) }))
-            end
-        end, 6 - i, svar("BJCSwitchMapMessage-{1}", { i }))
-    end
-
-    BJCAsync.delayTask(function()
-        -- kick all players
-        local playerIDs = {}
-        for playerID in pairs(BJCPlayers.Players) do
-            table.insert(playerIDs, playerID)
+    CountdownKickAll(6, function(player, delaySec)
+        if not messagesCache[player.lang] then
+            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang, "mapSwitch.kickIn")
         end
-        if #playerIDs > 0 then
-            BJCPlayers.dropMultiple(playerIDs, "mapSwitch.kick")
-        end
+        return messagesCache[player.lang]:var({ delay = PrettyDelay(delaySec) })
+    end, "mapSwitch.kick", function()
+        M.Data.General.Map = newFullName
+        MP.Set(MP.Settings.Map, newFullName)
+        writeServerConfig()
 
         if currentMap and targetMap and
             (currentMap.custom or targetMap.custom) and
@@ -154,10 +138,9 @@ local function setMap(mapName)
             -- if current or target is custom and not from the same mod, a reboot is mandatory
             Exit()
         else
-            -- reload scenarii
             BJCScenario.reload()
         end
-    end, 6, "BJCSwitchMap")
+    end)
 end
 
 local function consoleSetMap(args)
@@ -170,10 +153,9 @@ local function consoleSetMap(args)
     table.sort(maps, function(a, b) return a:lower() < b:lower() end)
 
     if not args[1] or #args[1] == 0 then -- show current and list maps
-        return svar("{1}\n{2}", {
-            svar(BJCLang.getConsoleMessage("command.currentMap"), { mapName = getMap() }),
-            svar(BJCLang.getConsoleMessage("command.validMaps"),
-                { maps = tconcat(maps, ", ") })
+        return string.var("{1}\n{2}", {
+            BJCLang.getConsoleMessage("command.currentMap"):var({ mapName = getMap() }),
+            BJCLang.getConsoleMessage("command.validMaps"):var({ maps = table.join(maps, ", ") })
         })
     end
 
@@ -188,14 +170,15 @@ local function consoleSetMap(args)
     end
 
     if #matches == 0 then -- no match
-        return svar("{1}\n{2}", {
-            svar(BJCLang.getConsoleMessage("command.errors.invalidMap"), { mapName = args[1] }),
-            svar(BJCLang.getConsoleMessage("command.validMaps"),
-                { maps = tconcat(maps, ", ") })
+        return string.var("{1}\n{2}", {
+            BJCLang.getConsoleMessage("command.errors.invalidMap"):var({ mapName = args[1] }),
+            BJCLang.getConsoleMessage("command.validMaps"):var({ maps = table.join(maps, ", ") })
         })
     elseif #matches > 1 then -- multiple matches
-        return svar(BJCLang.getConsoleMessage("command.errors.mapAmbiguity"),
-            { mapName = args[1], mapList = tconcat(matches, ", ") })
+        return BJCLang.getConsoleMessage("command.errors.mapAmbiguity"):var({
+            mapName = args[1],
+            mapList = table.join(matches, ", ")
+        })
     end
 
     -- switch map
@@ -205,7 +188,7 @@ end
 
 local function set(key, value)
     local keys = { "Name", "Debug", "Private", "MaxCars", "MaxPlayers" }
-    if type(M.Data.General[key]) == type(value) and tincludes(keys, key) then
+    if type(M.Data.General[key]) == type(value) and table.includes(keys, key) then
         M.Data.General[key] = value
         MP.Set(MP.Settings[key], value)
         writeServerConfig()
@@ -226,7 +209,7 @@ local function set(key, value)
 end
 
 local function consoleSet(key, value)
-    local keyParts = ssplit(key, ".")
+    local keyParts = key:split(".")
     if #keyParts ~= 2 then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     end
@@ -241,12 +224,12 @@ local function consoleSet(key, value)
         end
 
         -- value types validation
-        if tincludes({ "Port", "MaxPlayers", "MaxCars" }, keyParts[2], true) then
+        if table.includes({ "Port", "MaxPlayers", "MaxCars" }, keyParts[2]) then
             value = tonumber(value)
             if not value then
                 error({ key = "rx.errors.invalidValue", data = { value = value } })
             end
-        elseif tincludes({ "Debug", "Private" }, keyParts[2], true) then
+        elseif table.includes({ "Debug", "Private" }, keyParts[2]) then
             if value == "true" then
                 value = true
             elseif value == "false" then
@@ -271,51 +254,26 @@ end
 
 local stopDelay = 10
 local function stop()
-    if tlength(BJCPlayers.Players) > 0 then
-        -- countdown
-        local messagesCache = {}
-        for i = stopDelay, 1, -1 do
-            BJCAsync.delayTask(function()
-                if tlength(BJCPlayers.Players) == 0 then
-                    for j = 1, stopDelay do BJCAsync.removeTask(svar("BJCStopMessage-{1}", { j })) end
-                    Exit()
-                else
-                    for playerID, player in pairs(BJCPlayers.Players) do
-                        if not messagesCache[player.lang] then
-                            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
-                                "broadcast.serverStopsIn")
-                        end
-                        BJCChat.onServerChat(playerID,
-                            svar(messagesCache[player.lang], { delay = PrettyDelay(i) }))
-                    end
-                end
-                if i == 1 then
-                    BJCAsync.delayTask(function()
-                        -- kick all players
-                        local playerIDs = {}
-                        for playerID in pairs(BJCPlayers.Players) do
-                            table.insert(playerIDs, playerID)
-                        end
-                        if #playerIDs > 0 then
-                            BJCPlayers.dropMultiple(playerIDs, "broadcast.serverStopped")
-                        end
-                        Exit()
-                    end, 1, "BJCStopServer")
-                end
-            end, stopDelay + 1 - i, svar("BJCStopMessage-{1}", { i }))
-        end
-
-        return svar(BJCLang.getConsoleMessage("command.stopIn"), { seconds = stopDelay })
-    else
+    if MP.GetPlayerCount() == 0 then
         Exit()
         return BJCLang.getConsoleMessage("command.stop")
     end
+    local messagesCache = {}
+    CountdownKickAll(stopDelay, function(player, delaySec)
+        if not messagesCache[player.lang] then
+            messagesCache[player.lang] = BJCLang.getServerMessage(player.lang,
+                "broadcast.serverStopsIn")
+        end
+        return messagesCache[player.lang]:var({ delay = PrettyDelay(delaySec) })
+    end, "broadcast.serverStopped", Exit)
+
+    return BJCLang.getConsoleMessage("command.stopIn"):var({ seconds = stopDelay })
 end
 
 local function getCache()
     local fields = { "Name", "Tags", "Debug", "Private", "MaxCars", "MaxPlayers", "Description" }
     local cache = {}
-    local config = tdeepcopy(M.Data.General)
+    local config = table.deepcopy(M.Data.General)
     for _, v in ipairs(fields) do
         cache[v] = config[v]
         if v == "Tags" then

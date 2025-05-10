@@ -22,7 +22,7 @@ end
 
 local function init()
     M.Data = BJCDefaults.config()
-    tdeepassign(M.Data, BJCDao.config.findAll())
+    table.assign(M.Data, BJCDao.config.findAll())
 
     if sanitizeTheme(M.Data.Server.Theme) then
         BJCDao.config.save("Server", "Theme", M.Data.Server.Theme)
@@ -103,7 +103,7 @@ local function getCache(senderID)
     data.Server = {
         AllowClientMods = M.Data.Server.AllowClientMods,
         ClientMods = M.ClientMods,
-        Theme = tdeepcopy(M.Data.Server.Theme),
+        Theme = table.deepcopy(M.Data.Server.Theme),
     }
     if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.OWNER) then
         data.Server.Lang = M.Data.Server.Lang
@@ -167,24 +167,24 @@ end
 
 local function hasPermissionByParentAndKey(senderID, parent, key)
     if parent == "VoteKick" then
-        if tincludes({ "Timeout", "ThresholdRatio" }, key) then
+        if table.includes({ "Timeout", "ThresholdRatio" }, key) then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
         end
     elseif parent == "VoteMap" then
-        if tincludes({ "Timeout", "ThresholdRatio" }, key) then
+        if table.includes({ "Timeout", "ThresholdRatio" }, key) then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
         end
     elseif parent == "Freeroam" then
-        if tincludes({ "VehicleSpawning", "VehicleReset", "QuickTravel", "AllowUnicycle" }, key) then
+        if table.includes({ "VehicleSpawning", "VehicleReset", "QuickTravel", "AllowUnicycle" }, key) then
             return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.ADMIN)
-        elseif tincludes({ "ResetDelay", "TeleportDelay", "PreserveEnergy", "DriftGood",
+        elseif table.includes({ "ResetDelay", "TeleportDelay", "PreserveEnergy", "DriftGood",
                 "DriftBig", "Nametags", "EmergencyRefuelDuration", "EmergencyRefuelPercent" }, key) then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
         end
     elseif parent == "Reputation" then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
     elseif parent == "TempBan" then
-        if tincludes({ "minTime", "maxTime" }, key) then
+        if table.includes({ "minTime", "maxTime" }, key) then
             return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.ADMIN)
         end
     elseif parent == "Whitelist" then
@@ -195,12 +195,12 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
         end
     elseif parent == "CEN" then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CEN)
-    elseif tincludes({ "Race", "Speed", "Hunter", "Derby", "VehicleDelivery" }, parent, true) then
+    elseif table.includes({ "Race", "Speed", "Hunter", "Derby", "VehicleDelivery" }, parent) then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO)
     elseif parent == "Server" then
-        if tincludes({ "Lang", "AllowClientMods", "Theme" }, key, true) then
+        if table.includes({ "Lang", "AllowClientMods", "Theme" }, key) then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CORE)
-        elseif tincludes({ "DriftBigBroadcast", "Broadcasts", "WelcomeMessage" }, key) then
+        elseif table.includes({ "DriftBigBroadcast", "Broadcasts", "WelcomeMessage" }, key) then
             return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.OWNER)
         end
     end
@@ -210,37 +210,37 @@ end
 local function clampValue(parent, key, value)
     if parent == "VoteKick" then
         if key == "Timeout" then
-            return Clamp(value, 5, 300)
+            return math.clamp(value, 5, 300)
         elseif key == "ThresholdRatio" then
-            return Clamp(value, 0.01, 1)
+            return math.clamp(value, 0.01, 1)
         end
     elseif parent == "MapVote" then
         if key == "Timeout" then
-            return Clamp(value, 5, 300)
+            return math.clamp(value, 5, 300)
         elseif key == "ThresholdRatio" then
-            return Clamp(value, 0.01, 1)
+            return math.clamp(value, 0.01, 1)
         end
     elseif parent == "Freeroam" then
-        if tincludes({ "ResetDelay", "TeleportDelay" }, key) then
-            return Clamp(value, 0)
+        if table.includes({ "ResetDelay", "TeleportDelay" }, key) then
+            return math.clamp(value, 0)
         elseif key == "EmergencyRefuelDuration" then
-            return Clamp(value, 5, 60)
+            return math.clamp(value, 5, 60)
         elseif key == "EmergencyRefuelPercent" then
-            return Clamp(value, 5, 100)
+            return math.clamp(value, 5, 100)
         end
     elseif parent == "TempBan" then
         if key == "minTime" then
             return math.max(0, math.min(M.Data.TempBan.maxTime, value))
         elseif key == "maxTime" then
-            return Clamp(value, M.Data.TempBan.minTime or 0)
+            return math.clamp(value, M.Data.TempBan.minTime or 0)
         end
     elseif parent == "Race" then
-        if tincludes({ "PreparationTimeout", "FinishTimeout", "RaceEndTimeout", "GridReadyTimeout" }, key) then
-            return Clamp(value, 5)
-        elseif tincludes({ "GridTimeout", "RaceCountdown" }, key) then
-            return Clamp(value, 10)
+        if table.includes({ "PreparationTimeout", "FinishTimeout", "RaceEndTimeout", "GridReadyTimeout" }, key) then
+            return math.clamp(value, 5)
+        elseif table.includes({ "GridTimeout", "RaceCountdown" }, key) then
+            return math.clamp(value, 10)
         elseif key == "VoteThresholdRatio" then
-            return Clamp(value, 0.01, 1)
+            return math.clamp(value, 0.01, 1)
         end
     end
     return value
@@ -248,7 +248,7 @@ end
 
 local function set(ctxt, key, value)
     local parent = nil
-    local keyParts = ssplit(key, ".")
+    local keyParts = key:split(".")
     if #keyParts ~= 2 then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     else
@@ -274,7 +274,7 @@ local function set(ctxt, key, value)
 
     if type(target) ~= type(value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
-    elseif not parent and key == "Lang" and not tincludes(BJCLang.getLangsList(), value) then
+    elseif not parent and key == "Lang" and not table.includes(BJCLang.getLangsList(), value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     end
 
@@ -297,29 +297,26 @@ local function consoleSetWhitelist(args)
             end
         end
         table.sort(wlGroups, function(a, b) return a:lower() < b:lower() end)
-        return svar("{1}\n{2}\n{3}", {
-            svar(BJCLang.getConsoleMessage("command.showWhitelistState"),
-                {
-                    state = BJCLang.getConsoleMessage(svar("common.{1}", {
-                        M.Data.Whitelist.Enabled and "enabled" or "disabled"
-                    }))
-                }),
-            svar(BJCLang.getConsoleMessage("command.showWhitelistedGroups"),
-                {
-                    groupList = #wlGroups > 0 and
-                        tconcat(wlGroups, ", ") or
-                        BJCLang.getConsoleMessage("common.empty")
-                }),
-            svar(BJCLang.getConsoleMessage("command.showWhitelistedPlayers"),
-                {
-                    playerList = #M.Data.Whitelist.PlayerNames > 0 and
-                        tconcat(M.Data.Whitelist.PlayerNames, ", ") or
-                        BJCLang.getConsoleMessage("common.empty")
-                }),
+        return string.var("{1}\n{2}\n{3}", {
+            BJCLang.getConsoleMessage("command.showWhitelistState"):var({
+                state = BJCLang.getConsoleMessage(string.var("common.{1}", {
+                    M.Data.Whitelist.Enabled and "enabled" or "disabled"
+                }))
+            }),
+            BJCLang.getConsoleMessage("command.showWhitelistedGroups"):var({
+                groupList = #wlGroups > 0 and
+                    table.join(wlGroups, ", ") or
+                    BJCLang.getConsoleMessage("common.empty")
+            }),
+            BJCLang.getConsoleMessage("command.showWhitelistedPlayers"):var({
+                playerList = #M.Data.Whitelist.PlayerNames > 0 and
+                    table.join(M.Data.Whitelist.PlayerNames, ", ") or
+                    BJCLang.getConsoleMessage("common.empty")
+            }),
         })
-    elseif args[1] == "set" then                                                 -- set whitelist status
-        if not args[2] or not tincludes({ "true", "false" }, args[2], true) then -- invalid arg
-            return svar("{1}whitelist set {2}", {
+    elseif args[1] == "set" then                                                -- set whitelist status
+        if not args[2] or not table.includes({ "true", "false" }, args[2]) then -- invalid arg
+            return string.var("{1}whitelist set {2}", {
                 BJCCommand.commandPrefix,
                 BJCLang.getConsoleMessage("command.help.whitelistSetArgs")
             })
@@ -327,29 +324,29 @@ local function consoleSetWhitelist(args)
             local newState = args[2] == "true"
             M.set(ctxt, "Whitelist.Enabled", newState)
             BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BJC, BJCPerm.PERMISSIONS.WHITELIST)
-            return svar(BJCLang.getConsoleMessage("command.newWhitelistState"), { state = newState })
+            return BJCLang.getConsoleMessage("command.newWhitelistState"):var({ state = newState })
         end
     elseif args[1] == "add" then             -- add player to whitelist
         if not args[2] or args[2] == "" then -- invalid arg
-            return svar("{1}whitelist add {2}", {
+            return string.var("{1}whitelist add {2}", {
                 BJCCommand.commandPrefix,
                 BJCLang.getConsoleMessage("command.help.whitelistAddRemoveArgs")
             })
-        elseif tincludes(M.Data.Whitelist.PlayerNames, args[2], true) then -- already whitelisted
-            return svar(BJCLang.getConsoleMessage("command.alreadyWhitelistedPlayer"), { playerName = args[2] })
-        else                                                               -- proceed
+        elseif table.includes(M.Data.Whitelist.PlayerNames, args[2]) then -- already whitelisted
+            return BJCLang.getConsoleMessage("command.alreadyWhitelistedPlayer"):var({ playerName = args[2] })
+        else                                                              -- proceed
             BJCPlayers.whitelist(ctxt, args[2])
-            return svar(BJCLang.getConsoleMessage("command.whitelistAddedPlayer"), { playerName = args[2] })
+            return BJCLang.getConsoleMessage("command.whitelistAddedPlayer"):var({ playerName = args[2] })
         end
     elseif args[1] == "remove" then -- remove player from whitelist
         if not args[2] then         -- invalid arg
-            return svar("{1}whitelist remove {2}", {
+            return string.var("{1}whitelist remove {2}", {
                 BJCCommand.commandPrefix,
                 BJCLang.getConsoleMessage("command.help.whitelistAddRemoveArgs")
             })
         else -- valid arg
             local matches = {}
-            local list = tdeepcopy(M.Data.Whitelist.PlayerNames)
+            local list = table.deepcopy(M.Data.Whitelist.PlayerNames)
             for i, pname in ipairs(list) do -- find matches
                 if pname == args[2] then    -- exact match
                     matches = { pos = i, playerName = args[2] }
@@ -359,29 +356,31 @@ local function consoleSetWhitelist(args)
                 end
             end
             if #matches == 0 then    -- not whitelisted
-                return svar(BJCLang.getConsoleMessage("command.notWhitelistedPlayer"), { playerName = args[2] })
+                return BJCLang.getConsoleMessage("command.notWhitelistedPlayer"):var({ playerName = args[2] })
             elseif #matches > 1 then -- ambiguity
                 local playerList = {}
                 for _, m in ipairs(matches) do
                     table.insert(playerList, m.playerName)
                 end
                 table.sort(playerList, function(a, b) return a:lower() < b:lower() end)
-                return svar(BJCLang.getConsoleMessage("command.errors.playerAmbiguity"),
-                    { playerName = args[2], playerList = tconcat(playerList, ", ") })
+                return BJCLang.getConsoleMessage("command.errors.playerAmbiguity"):var({
+                    playerName = args[2],
+                    playerList = table.join(playerList, ", ")
+                })
             else -- proceed
                 BJCPlayers.whitelist(ctxt, matches[1].playerName)
-                return svar(BJCLang.getConsoleMessage("command.whitelistRemovedPlayer"),
-                    { playerName = matches[1].playerName })
+                return BJCLang.getConsoleMessage("command.whitelistRemovedPlayer"):var({
+                    playerName = matches[1].playerName
+                })
             end
         end
     else -- invalid args
-        return svar(BJCLang.getConsoleMessage("command.errors.usage"),
-            {
-                command = svar(
-                    "{1}whitelist {2}",
-                    { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.whitelistArgs") }
-                )
-            })
+        return BJCLang.getConsoleMessage("command.errors.usage"):var({
+            command = string.var(
+                "{1}whitelist {2}",
+                { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.whitelistArgs") }
+            )
+        })
     end
 end
 

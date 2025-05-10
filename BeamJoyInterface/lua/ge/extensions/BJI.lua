@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJIVERSION = "1.1.6"
+BJI = {}
+BJIVERSION = "1.2.0"
 
 require("ge/extensions/utils/LoadDefaults")
 
@@ -33,22 +34,22 @@ end
 
 require("ge/extensions/utils/Bench")
 
-function TriggerBJIEvent(eventName, ...)
+function TriggerBJIManagerEvent(eventName, ...)
     for i, manager in ipairs(managers) do
         if type(manager[eventName]) == "function" then
             local status, err = pcall(manager[eventName], ...)
             if not status then
-                LogError(svar("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
+                LogError(string.var("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
             end
         end
     end
 end
 
 require("log")
+require("ge/extensions/utils/Lua")
+require("ge/extensions/utils/Math")
 require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
-require("ge/extensions/utils/LUA")
-require("ge/extensions/utils/MATH")
 require("ge/extensions/utils/Constants")
 require("ge/extensions/utils/Icons")
 ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
@@ -56,6 +57,9 @@ ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
 local function loadManagers()
     BJISound = require("ge/extensions/BJI/managers/SoundManager")
     BJIAsync = require("ge/extensions/BJI/managers/AsyncManager")
+    BJIUI = require("ge/extensions/BJI/managers/UIManager")
+    BJILocalStorage = require("ge/extensions/BJI/managers/LocalStorageManager")
+    BJIEvents = require("ge/extensions/BJI/managers/EventManager")
     BJIPerm = require("ge/extensions/BJI/managers/PermissionManager")
     BJIContext = require("ge/extensions/BJI/Context")
     require("ge/extensions/BJI/ui/CommonStyle")
@@ -79,7 +83,6 @@ local function loadManagers()
     BJIControllers = require("ge/extensions/BJI/rx/Controllers")
     BJIVote = require("ge/extensions/BJI/managers/VotesManager")
     BJITick = require("ge/extensions/BJI/managers/TickManager")
-    BJIQuickTravel = require("ge/extensions/BJI/managers/QuickTravelManager")
     BJIBigmap = require("ge/extensions/BJI/managers/BigmapManager")
     BJIDrift = require("ge/extensions/BJI/managers/DriftManager")
     BJIChat = require("ge/extensions/BJI/managers/ChatManager")
@@ -93,8 +96,12 @@ local function loadManagers()
     BJIBusUI = require("ge/extensions/BJI/managers/BusUIManager")
     BJIVehUI = require("ge/extensions/BJI/managers/VehicleSelectorUIManager")
 
+    BJIUserSettingsWindow = require("ge/extensions/BJI/ui/WindowUserSettings/DrawWindowUserSettings")
     BJIVehSelector = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelector")
     BJIVehSelectorPreview = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelectorPreview")
+    BJIRacesLeaderboardWindow = require("ge/extensions/BJI/ui/WindowRacesLeaderboard/DrawWindowRacesLeaderboard")
+    BJIRaceSettingsWindow = require("ge/extensions/BJI/ui/WindowRaceSettings/DrawWindowRaceSettings")
+    BJIDerbySettingsWindow = require("ge/extensions/BJI/ui/WindowDerbySettings/DrawWindowDerbySettings")
 
     BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
 end
@@ -120,11 +127,14 @@ function M.onExtensionLoaded()
     _initGUI()
     for _, manager in ipairs(managers) do
         if type(manager.onLoad) == "function" then
-            manager.onLoad()
+            local status, err = pcall(manager.onLoad)
+            if not status then
+                LogError(string.var("Error during {1} onLoad : {2}", {manager._name, err}), tag)
+            end
         end
     end
 
-    LogInfo(svar("BJI v{1} Extension Loaded", { BJIVERSION }), tag)
+    LogInfo(string.var("BJI v{1} Extension Loaded", { BJIVERSION }), tag)
 end
 
 M.onInit = function()
@@ -149,29 +159,36 @@ M.onUpdate = function(...)
 end
 
 commands.dropPlayerAtCamera = function(...)
-    TriggerBJIEvent("onDropPlayerAtCamera", ...)
+    TriggerBJIManagerEvent("onDropPlayerAtCamera", ...)
 end
 commands.dropPlayerAtCameraNoReset = function(...)
-    TriggerBJIEvent("onDropPlayerAtCameraNoReset", ...)
+    TriggerBJIManagerEvent("onDropPlayerAtCameraNoReset", ...)
 end
 M.onVehicleSpawned = function(...)
-    TriggerBJIEvent("onVehicleSpawned", ...)
+    TriggerBJIManagerEvent("onVehicleSpawned", ...)
 end
 M.onVehicleSwitched = function(...)
-    TriggerBJIEvent("onVehicleSwitched", ...)
+    TriggerBJIManagerEvent("onVehicleSwitched", ...)
 end
 M.onVehicleResetted = function(gameVehID)
     BJIAsync.delayTask(function()
         -- delay execution or else vehicle can't be own
-        TriggerBJIEvent("onVehicleResetted", gameVehID)
-    end, 100, svar("BJIVehReset{1}", { gameVehID }))
+        TriggerBJIManagerEvent("onVehicleResetted", gameVehID)
+    end, 100, string.var("BJIVehReset{1}", { gameVehID }))
+end
+M.onVehicleReplaced = function(...)
+    TriggerBJIManagerEvent("onVehicleReplaced", ...)
+    BJIEvents.trigger(BJIEvents.EVENTS.VEHICLE_UPDATED)
+end
+M.onAiModeChange = function(gameVehID, aiState)
+    BJIAI.updateVehicle(gameVehID, aiState ~= "disabled")
 end
 M.onVehicleDestroyed = function(...)
-    TriggerBJIEvent("onVehicleDestroyed", ...)
+    TriggerBJIManagerEvent("onVehicleDestroyed", ...)
 end
 
 function M.onDriftCompletedScored(...)
-    TriggerBJIEvent("onDriftCompletedScored", ...)
+    TriggerBJIManagerEvent("onDriftCompletedScored", ...)
 end
 
 M.setPhysicsSpeed = BJIContext.setPhysicsSpeed
@@ -179,10 +196,13 @@ M.setPhysicsSpeed = BJIContext.setPhysicsSpeed
 function M.onExtensionUnloaded()
     for _, manager in ipairs(managers) do
         if type(manager.onUnload) == "function" then
-            manager.onUnload()
+            local status, err = pcall(manager.onUnload)
+            if not status then
+                LogError(string.var("Error during {1} onUnload : {2}", {manager._name, err}), tag)
+            end
         end
     end
-    LogInfo(svar("BJI v{1} Extension Unloaded", { BJIVERSION }), tag)
+    LogInfo(string.var("BJI v{1} Extension Unloaded", { BJIVERSION }), tag)
 end
 
 return M

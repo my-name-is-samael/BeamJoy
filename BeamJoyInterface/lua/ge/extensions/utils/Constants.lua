@@ -34,7 +34,6 @@ BJI_EVENTS = {
         },
         TX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",
@@ -173,6 +172,8 @@ BJI_EVENTS = {
     }
 }
 
+-- BJI Constants
+
 BJI_ENV_TYPES = {
     SUN = "sun",
     WEATHER = "weather",
@@ -186,4 +187,12 @@ BJI_ENERGY_STATION_TYPES = {
     DIESEL = "diesel",
     KEROSINE = "kerosine",
     ELECTRIC = "electricEnergy",
+}
+
+---@type table<string, {key: string, order: integer}>
+BJI_RACES_RESPAWN_STRATEGIES = {
+    ALL_RESPAWNS = { key = "all", order = 1 },
+    NO_RESPAWN = { key = "norespawn", order = 2 },
+    LAST_CHECKPOINT = { key = "lastcheckpoint", order = 3 },
+    STAND = { key = "stand", order = 4 },
 }

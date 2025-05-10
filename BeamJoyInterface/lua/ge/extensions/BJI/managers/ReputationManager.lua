@@ -10,7 +10,7 @@ local M = {
 
 local function updateReputationSmooth(value)
     if type(value) ~= "number" then
-        LogError(svar("Invalid reputation value '{1}'", { value or "" }))
+        LogError(string.var("Invalid reputation value '{1}'", { value or "" }))
         return
     end
 
@@ -35,6 +35,9 @@ local function renderTick(ctxt)
             if newLevel > lastLevel then
                 -- ON LEVEL UP
                 BJISound.play(BJISound.SOUNDS.LEVEL_UP)
+                BJIEvents.trigger(BJIEvents.EVENTS.LEVEL_UP, {
+                    level = newLevel
+                })
             end
         end
     end

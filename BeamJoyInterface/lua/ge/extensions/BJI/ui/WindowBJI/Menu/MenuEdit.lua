@@ -1,7 +1,14 @@
-local function menuFreeroamSettings(ctxt, editEntry)
+local M = {
+    cache = {
+        label = nil,
+        elems = {},
+    },
+}
+
+local function menuFreeroamSettings(ctxt)
     if BJICache.isFirstLoaded(BJICache.CACHES.BJC) and
         BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_CONFIG) then
-        table.insert(editEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.edit.freeroamSettings"),
             active = BJIContext.Scenario.FreeroamSettingsOpen,
             onClick = function()
@@ -11,7 +18,7 @@ local function menuFreeroamSettings(ctxt, editEntry)
     end
 end
 
-local function menuTimePresets(ctxt, editEntry)
+local function menuTimePresets(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJIEnv.Data.controlSun then
         local presets = require("ge/extensions/utils/EnvironmentUtils").timePresets()
@@ -23,25 +30,24 @@ local function menuTimePresets(ctxt, editEntry)
             }
         }
         for _, preset in ipairs(presets) do
-            local disabled = Round(BJIEnv.Data.ToD, 3) == Round(preset.ToD, 3)
+            local disabled = not BJIEnv.Data.timePlay and math.round(BJIEnv.Data.ToD, 3) == math.round(preset.ToD, 3)
             table.insert(elems, {
                 render = function()
                     local onClick = function()
                         if not disabled then
                             BJITx.config.env("ToD", preset.ToD)
-                            BJIEnv.Data.ToD = preset.ToD
                         end
                     end
                     LineBuilder()
                         :btnIcon({
-                            id = svar("timePreset{1}Button", { preset.label }),
+                            id = string.var("timePreset{1}Button", { preset.label }),
                             icon = preset.icon,
                             style = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
                             onClick = onClick,
                         })
                         :btn({
-                            id = svar("timePreset{1}Label", { preset.label }),
-                            label = BJILang.get(svar("presets.time.{1}", { preset.label })),
+                            id = string.var("timePreset{1}Label", { preset.label }),
+                            label = BJILang.get(string.var("presets.time.{1}", { preset.label })),
                             disabled = disabled,
                             onClick = onClick,
                         })
@@ -49,14 +55,14 @@ local function menuTimePresets(ctxt, editEntry)
                 end,
             })
         end
-        table.insert(editEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.edit.time"),
             elems = elems,
         })
     end
 end
 
-local function menuWeatherPresets(ctxt, editEntry)
+local function menuWeatherPresets(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJIEnv.Data.controlWeather then
         local presets = require("ge/extensions/utils/EnvironmentUtils").weatherPresets()
@@ -66,7 +72,6 @@ local function menuWeatherPresets(ctxt, editEntry)
             local onClick = function()
                 if not disabled then
                     for k, v in pairs(preset.keys) do
-                        BJIEnv.Data[k] = v
                         BJITx.config.env(k, v)
                     end
                 end
@@ -75,14 +80,14 @@ local function menuWeatherPresets(ctxt, editEntry)
                 render = function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("weatherPreset{1}Button", { preset.label }),
+                            id = string.var("weatherPreset{1}Button", { preset.label }),
                             icon = preset.icon,
                             style = disabled and BTN_PRESETS.DISABLED or BTN_PRESETS.INFO,
                             onClick = onClick,
                         })
                         :btn({
-                            id = svar("weatherPreset{1}Label", { preset.label }),
-                            label = BJILang.get(svar("presets.weather.{1}", { preset.label })),
+                            id = string.var("weatherPreset{1}Label", { preset.label }),
+                            label = BJILang.get(string.var("presets.weather.{1}", { preset.label })),
                             disabled = disabled,
                             onClick = onClick,
                         })
@@ -90,14 +95,66 @@ local function menuWeatherPresets(ctxt, editEntry)
                 end,
             })
         end
-        table.insert(editEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.edit.weather"),
             elems = elems,
         })
     end
 end
 
-local function menuSwitchMap(ctxt, editEntry)
+local function menuGravityPresets(ctxt)
+    if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) and BJIEnv.Data.controlGravity then
+        local presets = require("ge/extensions/utils/EnvironmentUtils").gravityPresets()
+        local elems = {}
+        table.forEach(presets, function(preset)
+            local value = math.round(preset.value, 3)
+            local disabled = value == math.round(BJIEnv.Data.gravityRate, 3)
+            table.insert(elems, {
+                label = string.var("{1} ({2})", {
+                    BJILang.get(string.var("presets.gravity.{1}", { preset.key })),
+                    value,
+                }),
+                disabled = disabled,
+                active = disabled,
+                onClick = function()
+                    BJITx.config.env("gravityRate", value)
+                end
+            })
+        end)
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.gravity"),
+            elems = elems,
+        })
+    end
+end
+
+local function menuSpeedPresets(ctxt)
+    if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT) then
+        local presets = require("ge/extensions/utils/EnvironmentUtils").speedPresets()
+        local elems = {}
+        table.forEach(presets, function(preset)
+            local value = math.round(preset.value, 3)
+            local disabled = value == math.round(BJIEnv.Data.simSpeed, 3)
+            table.insert(elems, {
+                label = string.var("{1} (x{2})", {
+                    BJILang.get(string.var("presets.speed.{1}", { preset.key })),
+                    value,
+                }),
+                disabled = disabled,
+                active = disabled,
+                onClick = function()
+                    BJITx.config.env("simSpeed", value)
+                end
+            })
+        end)
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.speed"),
+            elems = elems,
+        })
+    end
+end
+
+local function menuSwitchMap(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP) and
         BJIContext.Maps then
         local maps = {}
@@ -105,12 +162,11 @@ local function menuSwitchMap(ctxt, editEntry)
         for mapName, map in pairs(BJIContext.Maps.Data) do
             if map.enabled then
                 table.insert(maps, {
-                    label = map.custom and svar("{1} ({2})", { map.label, customMapLabel }) or map.label,
-                    active = BJIContext.UI.mapName == mapName,
+                    label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                    disabled = mapName == BJIContext.UI.mapName,
+                    active = mapName == BJIContext.UI.mapName,
                     onClick = function()
-                        if BJIContext.UI.mapName ~= mapName then
-                            BJITx.config.switchMap(mapName)
-                        end
+                        BJITx.config.switchMap(mapName)
                     end
                 })
             end
@@ -118,7 +174,7 @@ local function menuSwitchMap(ctxt, editEntry)
         table.sort(maps, function(a, b)
             return a.label < b.label
         end)
-        table.insert(editEntry.elems, {
+        table.insert(M.cache.elems, {
             label = BJILang.get("menu.edit.map"),
             elems = maps
         })
@@ -132,12 +188,12 @@ local function isScenarioEditorDisabled(currentData)
     return BJIContext.Scenario.isEditorOpen()
 end
 
-local function menuEnergyStations(ctxt, editEntry)
+local function menuEnergyStations(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.EnergyStations then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.energyStations"),
-                { amount = tlength(BJIContext.Scenario.Data.EnergyStations) }),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.energyStations")
+                :var({ amount = table.length(BJIContext.Scenario.Data.EnergyStations) }),
             active = BJIContext.Scenario.EnergyStationsEdit,
             disabled = isScenarioEditorDisabled(BJIContext.Scenario.EnergyStationsEdit),
             onClick = function()
@@ -150,7 +206,7 @@ local function menuEnergyStations(ctxt, editEntry)
                 else
                     BJIContext.Scenario.EnergyStationsEdit = {
                         changed = false,
-                        stations = tdeepcopy(BJIContext.Scenario.Data.EnergyStations)
+                        stations = table.clone(BJIContext.Scenario.Data.EnergyStations)
                     }
                 end
             end,
@@ -158,12 +214,12 @@ local function menuEnergyStations(ctxt, editEntry)
     end
 end
 
-local function menuGarages(ctxt, editEntry)
+local function menuGarages(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Garages then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.garages"),
-                { amount = #BJIContext.Scenario.Data.Garages }),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.garages")
+                :var({ amount = #BJIContext.Scenario.Data.Garages }),
             active = BJIContext.Scenario.GaragesEdit,
             disabled = isScenarioEditorDisabled(BJIContext.Scenario.GaragesEdit),
             onClick = function()
@@ -176,7 +232,7 @@ local function menuGarages(ctxt, editEntry)
                 else
                     BJIContext.Scenario.GaragesEdit = {
                         changed = false,
-                        garages = tdeepcopy(BJIContext.Scenario.Data.Garages)
+                        garages = table.clone(BJIContext.Scenario.Data.Garages)
                     }
                 end
             end,
@@ -184,12 +240,12 @@ local function menuGarages(ctxt, editEntry)
     end
 end
 
-local function menuDeliveries(ctxt, editEntry)
+local function menuDeliveries(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Deliveries then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.deliveries"),
-                { amount = #BJIContext.Scenario.Data.Deliveries }),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.deliveries")
+                :var({ amount = #BJIContext.Scenario.Data.Deliveries }),
             active = BJIContext.Scenario.DeliveryEdit,
             disabled = isScenarioEditorDisabled(BJIContext.Scenario.DeliveryEdit),
             onClick = function()
@@ -203,7 +259,7 @@ local function menuDeliveries(ctxt, editEntry)
                     BJIContext.Scenario.DeliveryEdit = {
                         changed = false,
                         positions = BJIContext.Scenario.Data.Deliveries and
-                            tdeepcopy(BJIContext.Scenario.Data.Deliveries) or {}
+                            table.clone(BJIContext.Scenario.Data.Deliveries) or {}
                     }
                 end
             end,
@@ -211,12 +267,12 @@ local function menuDeliveries(ctxt, editEntry)
     end
 end
 
-local function menuBusLines(ctxt, editEntry)
+local function menuBusLines(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.BusLines then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.buslines"),
-                { amount = #BJIContext.Scenario.Data.BusLines }),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.buslines")
+                :var({ amount = #BJIContext.Scenario.Data.BusLines }),
             active = BJIContext.Scenario.BusLinesEdit,
             disabled = isScenarioEditorDisabled(BJIContext.Scenario.BusLinesEdit),
             onClick = function()
@@ -230,7 +286,7 @@ local function menuBusLines(ctxt, editEntry)
                     BJIContext.Scenario.BusLinesEdit = {
                         changed = false,
                         lines = BJIContext.Scenario.Data.BusLines and
-                            tdeepcopy(BJIContext.Scenario.Data.BusLines) or {}
+                            table.clone(BJIContext.Scenario.Data.BusLines) or {}
                     }
                 end
             end,
@@ -238,7 +294,7 @@ local function menuBusLines(ctxt, editEntry)
     end
 end
 
-local function menuRaces(ctxt, editEntry)
+local function menuRaces(ctxt)
     local function createRaceEditData(r, isCopy)
         -- creation
         local res = {
@@ -299,17 +355,17 @@ local function menuRaces(ctxt, editEntry)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Races and
         not BJIScenario.isServerScenarioInProgress() then
-        local label = svar(BJILang.get("menu.edit.races"),
-            { amount = #BJIContext.Scenario.Data.Races })
+        local label = BJILang.get("menu.edit.races")
+            :var({ amount = #BJIContext.Scenario.Data.Races })
         if isScenarioEditorDisabled(BJIContext.Scenario.RaceEdit) then
             -- another scenario editor is open
-            table.insert(editEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = label,
                 disabled = true,
             })
         elseif BJIContext.Scenario.RaceEdit then
             -- already open
-            table.insert(editEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = label,
                 active = true,
             })
@@ -341,13 +397,13 @@ local function menuRaces(ctxt, editEntry)
                                 end
                             })
                             :btnIcon({
-                                id = svar("delete{1}", { race.id }),
+                                id = string.var("delete{1}", { race.id }),
                                 icon = ICONS.delete_forever,
                                 style = BTN_PRESETS.ERROR,
                                 onClick = function()
                                     BJIPopup.createModal(
-                                        svar(BJILang.get("menu.edit.raceDeleteModal"),
-                                            { raceName = race.name }),
+                                        BJILang.get("menu.edit.raceDeleteModal")
+                                        :var({ raceName = race.name }),
                                         {
                                             {
                                                 label = BJILang.get("common.buttons.cancel"),
@@ -363,19 +419,19 @@ local function menuRaces(ctxt, editEntry)
                                 end
                             })
                             :btnIconToggle({
-                                id = svar("toggleEnabled{1}", { race.id }),
+                                id = string.var("toggleEnabled{1}", { race.id }),
                                 icon = race.enabled and ICONS.visibility or ICONS.visibility_off,
                                 state = race.enabled == true,
                                 onClick = function()
                                     BJITx.scenario.RaceToggle(race.id, not race.enabled)
                                 end
                             })
-                            :text(svar("{1}", { race.name }))
+                            :text(string.var("{1}", { race.name }))
                             :build()
                     end,
                 })
             end
-            table.insert(editEntry.elems, {
+            table.insert(M.cache.elems, {
                 label = label,
                 elems = races,
             })
@@ -383,13 +439,13 @@ local function menuRaces(ctxt, editEntry)
     end
 end
 
-local function menuHunter(ctxt, editEntry)
+local function menuHunter(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Hunter and
         BJIContext.Scenario.Data.Hunter.targets then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.hunter"),
-                {
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.hunter")
+                :var({
                     visibility = BJILang.get(BJIContext.Scenario.Data.Hunter.enabled and
                         "common.enabled" or "common.disabled"),
                     amount = #BJIContext.Scenario.Data.Hunter.targets,
@@ -408,19 +464,19 @@ local function menuHunter(ctxt, editEntry)
                         changed = false,
                         processSave = nil,
                     }
-                    tdeepassign(BJIContext.Scenario.HunterEdit, BJIContext.Scenario.Data.Hunter)
+                    table.assign(BJIContext.Scenario.HunterEdit, BJIContext.Scenario.Data.Hunter)
                 end
             end,
         })
     end
 end
 
-local function menuDerby(ctxt, editEntry)
+local function menuDerby(ctxt)
     if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SCENARIO) and
         BJIContext.Scenario.Data.Derby then
-        table.insert(editEntry.elems, {
-            label = svar(BJILang.get("menu.edit.derby"),
-                { amount = #BJIContext.Scenario.Data.Derby }),
+        table.insert(M.cache.elems, {
+            label = BJILang.get("menu.edit.derby")
+                :var({ amount = #BJIContext.Scenario.Data.Derby }),
             active = BJIContext.Scenario.DerbyEdit,
             disabled = isScenarioEditorDisabled(BJIContext.Scenario.DerbyEdit),
             onClick = function()
@@ -430,11 +486,11 @@ local function menuDerby(ctxt, editEntry)
                         BJIContext.Scenario.DerbyEdit.onClose()
                     end
                 else
-                    BJIContext.Scenario.DerbySettings = nil
+                    BJIDerbySettingsWindow.onClose()
                     BJIContext.Scenario.DerbyEdit = {
                         changed = false,
                         processSave = nil,
-                        arenas = tdeepcopy(BJIContext.Scenario.Data.Derby)
+                        arenas = table.clone(BJIContext.Scenario.Data.Derby)
                     }
                 end
             end
@@ -442,25 +498,62 @@ local function menuDerby(ctxt, editEntry)
     end
 end
 
-return function(ctxt)
-    local editEntry = {
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+    M.cache = {
         label = BJILang.get("menu.edit.title"),
         elems = {},
     }
 
-    menuFreeroamSettings(ctxt, editEntry)
-    menuTimePresets(ctxt, editEntry)
-    menuWeatherPresets(ctxt, editEntry)
-    menuSwitchMap(ctxt, editEntry)
+    menuFreeroamSettings(ctxt)
+    menuTimePresets(ctxt)
+    menuWeatherPresets(ctxt)
+    menuGravityPresets(ctxt)
+    menuSpeedPresets(ctxt)
+    menuSwitchMap(ctxt)
 
     -- scenario editors
-    menuEnergyStations(ctxt, editEntry)
-    menuGarages(ctxt, editEntry)
-    menuDeliveries(ctxt, editEntry)
-    menuBusLines(ctxt, editEntry)
-    menuRaces(ctxt, editEntry)
-    menuHunter(ctxt, editEntry)
-    menuDerby(ctxt, editEntry)
-
-    return #editEntry.elems > 0 and editEntry or nil
+    menuEnergyStations(ctxt)
+    menuGarages(ctxt)
+    menuDeliveries(ctxt)
+    menuBusLines(ctxt)
+    menuRaces(ctxt)
+    menuHunter(ctxt)
+    menuDerby(ctxt)
 end
+
+local listeners = Table()
+function M.onLoad()
+    updateCache()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.PERMISSION_CHANGED,
+        BJIEvents.EVENTS.SCENARIO_CHANGED,
+        BJIEvents.EVENTS.ENV_CHANGED,
+        BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+
+    ---@param data {cache: string}
+    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if table.includes({
+                BJICache.CACHES.BJC,
+                BJICache.CACHES.MAPS,
+                BJICache.CACHES.STATIONS,
+                BJICache.CACHES.RACES,
+                BJICache.CACHES.DELIVERIES,
+                BJICache.CACHES.BUS_LINES,
+                BJICache.CACHES.HUNTER_DATA,
+                BJICache.CACHES.DERBY_DATA,
+            }, data.cache) then
+            updateCache(ctxt)
+        end
+    end))
+end
+
+function M.onUnload()
+    listeners:forEach(BJIEvents.removeListener)
+end
+
+return M

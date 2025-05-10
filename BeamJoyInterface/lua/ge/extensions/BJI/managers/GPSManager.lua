@@ -41,7 +41,7 @@ local function navigateToMission(poiID)
         end
     end
     if not pos then
-        for _, poi in ipairs(gameplay_rawPois.getRawPoiListByLevel(getCurrentLevelIdentifier())) do
+        for _, poi in ipairs(extensions.gameplay_rawPois.getRawPoiListByLevel(getCurrentLevelIdentifier())) do
             if poi.id == poiID and poi.markerInfo.bigmapMarker then
                 pos = poi.markerInfo.bigmapMarker.pos
                 if poi.data and poi.data.type == M.KEYS.STATION then
@@ -106,6 +106,7 @@ local function renderTargets()
         end
         core_groundMarkers.setFocus(waypoints, nil, nil, nil, nil, nil, color)
     end
+    BJIEvents.trigger(BJIEvents.EVENTS.GPS_CHANGED)
 end
 
 local function reset()
@@ -153,7 +154,7 @@ local function _insertWaypoint(index, previousIndex, target)
     table.insert(M.targets, index, target)
 
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
 end
 
 local function _commonCreateWaypoint(key, pos, radius, callback, playerName, prepend)
@@ -263,7 +264,7 @@ local function appendWaypoint(key, pos, radius, callback, playerName, clearable)
 end
 
 local function getCurrentRouteLength()
-    return #M.targets > 0 and Round(core_groundMarkers.getPathLength(), 3) or 0
+    return #M.targets > 0 and math.round(core_groundMarkers.getPathLength(), 3) or 0
 end
 
 --[[
@@ -289,7 +290,7 @@ local function getRouteLength(points)
 
     local length
     if M.routePlanner.path and M.routePlanner.path[1] then
-        length = Round(M.routePlanner.path[1].distToTarget, 3)
+        length = math.round(M.routePlanner.path[1].distToTarget, 3)
     else
         length = 0
     end
@@ -312,7 +313,7 @@ local function checkNextTargetReached(ctxt)
         if distance < wp.radius then
             table.remove(M.targets, 1)
             renderTargets()
-            BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+            BJISound.play(BJISound.SOUNDS.INFO_OPEN)
             pcall(wp.callback, ctxt)
         end
     end
@@ -320,7 +321,7 @@ end
 
 local function _onLastTargetReached()
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.NAV_CHANGE)
+    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
 end
 
 local function updatePlayerTarget()

@@ -34,7 +34,7 @@ local function draw()
         "moonElevation",
         "moonScale",
     }) do
-        local label = BJILang.get(svar("environment.{1}", { key }))
+        local label = BJILang.get(string.var("environment.{1}", { key }))
         local w = GetColumnTextWidth(label .. ":")
         if w > labelWidth then
             labelWidth = w
@@ -46,7 +46,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.controlSun") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.controlSun") }))
                         :build()
                 end,
                 function()
@@ -80,7 +80,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.timePlay") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.timePlay") }))
                         :build()
                 end,
                 function()
@@ -123,7 +123,7 @@ local function draw()
             cells = {
                 function()
                     LineBuilder()
-                        :text(svar("{1}:", { BJILang.get("environment.shadowTexSize") }))
+                        :text(string.var("{1}:", { BJILang.get("environment.shadowTexSize") }))
                         :build()
                 end,
                 function()

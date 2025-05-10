@@ -14,7 +14,7 @@ end
 local function registerSoloScenario(type, module)
     M.TYPES[type] = type
     M.scenarii[type] = module
-    if not tincludes(M.solo, type, true) then
+    if not table.includes(M.solo, type) then
         table.insert(M.solo, type)
     end
 end
@@ -22,12 +22,12 @@ end
 local function registerMultiScenario(type, module)
     M.TYPES[type] = type
     M.scenarii[type] = module
-    if not tincludes(M.multi, type, true) then
+    if not table.includes(M.multi, type) then
         table.insert(M.multi, type)
     end
 end
 
-local function init()
+local function initScenarii()
     M.TYPES.FREEROAM = "FREEROAM"
     M.scenarii[M.TYPES.FREEROAM] = require("ge/extensions/BJI/scenario/ScenarioFreeroam")
 
@@ -48,17 +48,34 @@ local function init()
         _curr().onLoad()
     end
 end
-BJIAsync.task(
-    function()
-        return BJICache.areBaseCachesFirstLoaded() and
-            BJICache.isFirstLoaded(BJICache.CACHES.MAP) and
-            BJICache.isFirstLoaded(BJICache.CACHES.BJC)
-    end,
-    init, "BJIScenarioInit"
-)
+
+local function onLoad()
+    initScenarii()
+
+    -- init cache handlers
+    table.forEach({
+        [BJICache.CACHES.RACE] = M.TYPES.RACE_MULTI,
+        [BJICache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
+        [BJICache.CACHES.SPEED] = M.TYPES.SPEED,
+        [BJICache.CACHES.HUNTER] = M.TYPES.HUNTER,
+        [BJICache.CACHES.DERBY] = M.TYPES.DERBY,
+        --[BJICache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
+    }, function(scenarioType, cacheName)
+        BJICache.addRxHandler(cacheName, function(cacheData)
+            local sc = M.get(scenarioType)
+            if type(sc.rxData) == "function" then
+                local ok, err = pcall(sc.rxData, cacheData)
+                if not ok then
+                    LogError(string.var("RxCache failed (cache {1}, scenario {2}): {3}",
+                        { cacheName, scenarioType, err }))
+                end
+            end
+        end)
+    end)
+end
 
 local function onVehicleSpawned(gameVehID)
-    LogDebug(svar("Spawned vehicle {1}", { gameVehID }))
+    LogDebug(string.var("Spawned vehicle {1}", { gameVehID }))
     BJIReputation.onVehicleResetted()
     if _curr().onVehicleSpawned then
         _curr().onVehicleSpawned(gameVehID)
@@ -66,7 +83,7 @@ local function onVehicleSpawned(gameVehID)
 end
 
 local function onVehicleResetted(gameVehID)
-    LogDebug(svar("Resetted vehicle {1}", { gameVehID }))
+    LogDebug(string.var("Resetted vehicle {1}", { gameVehID }))
     if not BJIVeh.isVehicleOwn(gameVehID) then
         return
     end
@@ -78,7 +95,7 @@ local function onVehicleResetted(gameVehID)
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    LogDebug(svar("Switched vehicle from {1} to {2}", { oldGameVehID, newGameVehID }))
+    LogDebug(string.var("Switched vehicle from {1} to {2}", { oldGameVehID, newGameVehID }))
 
     -- assign the real gameVehID
     local finalGameVehID
@@ -193,20 +210,6 @@ local function canRepairAtGarage()
     return false
 end
 
-local function canSpawnAI()
-    if _curr().canSpawnAI then
-        return _curr().canSpawnAI()
-    end
-    return false
-end
-
-local function canSelectVehicle()
-    if _curr().canSelectVehicle then
-        return _curr().canSelectVehicle()
-    end
-    return true
-end
-
 local function canSpawnNewVehicle()
     if _curr().canSpawnNewVehicle then
         return _curr().canSpawnNewVehicle()
@@ -240,13 +243,6 @@ local function canDeleteOtherPlayersVehicle()
         return _curr().canDeleteOtherPlayersVehicle()
     end
     return false
-end
-
-local function canEditVehicle()
-    if _curr().canEditVehicle then
-        return _curr().canEditVehicle()
-    end
-    return true
 end
 
 local function getModelList()
@@ -288,11 +284,21 @@ local function getCollisionsType(ctxt)
     end
 end
 
+---@return ScenarioRestriction[]
+local function getRestrictions()
+    if _curr().getRestrictions then
+        return _curr().getRestrictions()
+    else
+        return {}
+    end
+end
+
 local renderTickErrorLimitTime = nil
 local function renderTick(ctxt)
     if _curr().renderTick then
         local status, err = pcall(_curr().renderTick, ctxt or BJITick.getContext())
         if not status then
+            LogError(string.var("Error during scenario tick : {1}", { err }))
             if not renderTickErrorLimitTime then
                 renderTickErrorLimitTime = ctxt.now + 3000
             elseif ctxt.now >= renderTickErrorLimitTime then
@@ -324,8 +330,8 @@ local function getAvailableScenarii()
 end
 
 local function switchScenario(newType, ctxt)
-    if not tincludes(M.TYPES, newType, true) then
-        LogError(svar("Invalid scenario {1}", { newType }))
+    if not table.includes(M.TYPES, newType) then
+        LogError(string.var("Invalid scenario {1}", { newType }))
         return
     end
 
@@ -360,6 +366,12 @@ local function switchScenario(newType, ctxt)
             error(err)
         end
     end
+
+    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_CHANGED, {
+        previousScenario = previousScenario,
+        newScenario = newType,
+        type = M.solo[newType] and "solo" or M.multi[newType] and "multi" or "other",
+    })
 end
 
 local function isFreeroam()
@@ -371,11 +383,11 @@ local function getFreeroam()
 end
 
 local function isSoloScenario()
-    return tincludes(M.solo, M.CurrentScenario, true)
+    return table.includes(M.solo, M.CurrentScenario)
 end
 
 local function isServerScenario()
-    return tincludes(M.multi, M.CurrentScenario, true)
+    return table.includes(M.multi, M.CurrentScenario)
 end
 
 local function is(type)
@@ -385,6 +397,8 @@ end
 local function get(type)
     return M.scenarii[type]
 end
+
+M.onLoad = onLoad
 
 M.onVehicleSpawned = onVehicleSpawned
 M.onVehicleResetted = onVehicleResetted
@@ -406,19 +420,17 @@ M.tryPaint = tryPaint
 
 M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
-M.canSpawnAI = canSpawnAI
-M.canSelectVehicle = canSelectVehicle
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
 M.canDeleteVehicle = canDeleteVehicle
 M.canDeleteOtherVehicles = canDeleteOtherVehicles
 M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
-M.canEditVehicle = canEditVehicle
 M.getModelList = getModelList
 M.getPlayerListActions = getPlayerListActions
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType
+M.getRestrictions = getRestrictions
 
 M.renderTick = renderTick
 M.slowTick = slowTick

@@ -1,7 +1,7 @@
 local numericData = require("ge/extensions/utils/EnvironmentUtils").numericData()
 
 local function getEnvNumericType(key)
-    if tincludes({ "dayLength", "shadowDistance", "shadowSplits", "visibleDistance", "fogAtmosphereHeight",
+    if table.includes({ "dayLength", "shadowDistance", "shadowSplits", "visibleDistance", "fogAtmosphereHeight",
             "rainDrops", "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }, key) then
         return "int"
     end
@@ -16,7 +16,7 @@ local function drawNumericWithReset(cols, key, inputsCallback)
         cells = {
             function()
                 LineBuilder()
-                    :text(svar("{1}:", { BJILang.get(svar("environment.{1}", { key })) }))
+                    :text(string.var("{1}:", { BJILang.get(string.var("environment.{1}", { key })) }))
                     :build()
             end,
             function()
@@ -36,7 +36,7 @@ local function drawNumericWithReset(cols, key, inputsCallback)
                         end
                     })
                     :btnIcon({
-                        id = svar("reset{1}", { key }),
+                        id = string.var("reset{1}", { key }),
                         icon = ICONS.refresh,
                         style = BTN_PRESETS.WARNING,
                         onClick = function()

@@ -43,16 +43,18 @@ local function drawBody(ctxt)
     end
 end
 
+local function onClose()
+    BJIContext.DatabaseEditorOpen = false
+    cacheData = {}
+end
+
 local function drawFooter(ctxt)
     LineBuilder()
         :btnIcon({
             id = "databaseEditorClose",
             icon = ICONS.exit_to_app,
             style = BTN_PRESETS.ERROR,
-            onClick = function()
-                BJIContext.DatabaseEditorOpen = false
-                cacheData = {}
-            end
+            onClick = onClose,
         })
         :build()
 end
@@ -61,8 +63,5 @@ return {
     header = drawHeader,
     body = drawBody,
     footer = drawFooter,
-    onClose = function()
-        BJIContext.DatabaseEditorOpen = false
-        cacheData = {}
-    end,
+    onClose = onClose,
 }

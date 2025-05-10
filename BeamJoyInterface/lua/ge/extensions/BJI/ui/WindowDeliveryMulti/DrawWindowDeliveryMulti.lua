@@ -7,14 +7,14 @@ local function drawHeader(ctxt)
     local self = sdm.participants[BJIContext.User.playerID]
     LineBuilder()
         :text(self.nextTargetReward and
-            svar("{1} : {2}", { BJILang.get("deliveryTogether.streak"), self.streak }) or
+            string.var("{1} : {2}", { BJILang.get("deliveryTogether.streak"), self.streak }) or
             BJILang.get("deliveryTogether.resetted"),
             self.nextTargetReward and TEXT_COLORS.DEFAULT or TEXT_COLORS.ERROR)
         :build()
     if not self.reached and sdm.distance then
         -- distance
         LineBuilder()
-            :text(svar("{1} : {2}", { BJILang.get("deliveryTogether.distance"), PrettyDistance(sdm.distance) }))
+            :text(string.var("{1} : {2}", { BJILang.get("deliveryTogether.distance"), PrettyDistance(sdm.distance) }))
             :build()
         if sdm.baseDistance then
             ProgressBar({
@@ -45,8 +45,8 @@ local function drawBody(ctxt)
                         :text(p.reached and BJILang.get("deliveryTogether.arrived") or
                             BJILang.get("deliveryTogether.onTheWay"), color)
                         :text(p.nextTargetReward and
-                            svar("({1} : {2})", { BJILang.get("deliveryTogether.streak"), p.streak }) or
-                            svar("({1})", { BJILang.get("deliveryTogether.resetted") }),
+                            string.var("({1} : {2})", { BJILang.get("deliveryTogether.streak"), p.streak }) or
+                            string.var("({1})", { BJILang.get("deliveryTogether.resetted") }),
                             p.nextTargetReward and color or TEXT_COLORS.ERROR)
                         :build()
                 end,

@@ -7,7 +7,7 @@ return function(ctxt)
     local selected
     local modelWidth = 0
     for model, label in pairs(modelLabels) do
-        if not tincludes(BJIContext.BJC.VehicleDelivery.ModelBlacklist, model) then
+        if not table.includes(BJIContext.BJC.VehicleDelivery.ModelBlacklist, model) then
             table.insert(options, {
                 value = model,
                 label = label,
@@ -46,13 +46,13 @@ return function(ctxt)
                 end,
                 function()
                     LineBuilder()
-                        :text(svar("- {1}", { modelLabels[model] or model }))
+                        :text(string.var("- {1}", { modelLabels[model] or model }))
                         :build()
                 end,
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = svar("removeVehDeliveryBlackListModel{1}", { model }),
+                            id = string.var("removeVehDeliveryBlackListModel{1}", { model }),
                             icon = ICONS.delete_forever,
                             style = BTN_PRESETS.ERROR,
                             onClick = function()

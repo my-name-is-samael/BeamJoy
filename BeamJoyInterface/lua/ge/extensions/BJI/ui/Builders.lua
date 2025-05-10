@@ -1,12 +1,25 @@
 local im = ui_imgui
 local ffi = require('ffi')
+BTN_NO_SOUND = "no_sound"
+
+    ---@return vec4
+    local function convertColorToVec4(color)
+        if type(color) == "table" then
+            if color.r then
+                color = RGBA(color.r, color.g, color.b, color.a)
+            elseif color[1] then
+                color = RGBA(color[1], color[2], color[3], color[4] or 1)
+            end
+        end
+        return color
+    end
 
 -- INPUTS
 
 function InputInt(val)
     return ({
         _value = nil,
-        get = function(self) return Round(self._value[0]) end,
+        get = function(self) return math.round(self._value[0]) end,
         set = function(self, value)
             self._value = im.IntPtr(value)
             return self
@@ -27,7 +40,7 @@ function InputFloat(val, precision)
     precision = tonumber(precision) or 3
     return ({
         _value = nil,
-        get = function(self) return Round(self._value[0], precision) end,
+        get = function(self) return math.round(self._value[0], precision) end,
         set = function(self, value)
             self._value = im.FloatPtr(value)
             return self
@@ -52,7 +65,7 @@ function InputString(size, defaultValue)
         set = function(self, value)
             if type(value) == "string" then
                 self._value = im.ArrayChar(self._size, value)
-            elseif tincludes({ "number", "boolean" }, type(value)) then
+            elseif table.includes({ "number", "boolean" }, type(value)) then
                 self._value = im.ArrayChar(self._size, tostring(value))
             else
                 self._value = im.ArrayChar(self._size)
@@ -142,8 +155,9 @@ WindowBuilder = function(name, flags)
         im.SetNextWindowBgAlpha(self._opacity)
         local closeable = type(self._onClose) == "function"
         local open = closeable and im.BoolPtr(true) or nil
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
         if im.Begin(self._title, open, self._flags) then
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
 
             if self._menuBehavior then
                 self._menuBehavior()
@@ -154,13 +168,13 @@ WindowBuilder = function(name, flags)
             end
 
             local footerHeight = self._footerLines == 0 and 0 or
-                (self._footerLines * lineHeight + 2) * BJIContext.UserSettings.UIScale
+                (self._footerLines * lineHeight + 2) * scale
             local bodyHeight = im.GetContentRegionAvail().y - math.ceil(footerHeight)
-            im.BeginChild1(svar("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
+            im.BeginChild1(string.var("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
             im.SetWindowFontScale(1) -- must scale to 1 in children
             self._bodyBehavior()
             im.EndChild()
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
 
             if self._footerBehavior then
                 self._footerBehavior()
@@ -240,19 +254,33 @@ MenuBarBuilder = function()
                         elseif subElem.separator then
                             table.insert(subElems, { separator = true })
                         else
+                            if subElem.sound == BTN_NO_SOUND then
+                                subElem.sound = nil
+                            else
+                                subElem.sound = subElem.sound or BJISound.SOUNDS.BIGMAP_HOVER
+                            end
+
                             table.insert(subElems, {
                                 label = subElem.label,
                                 onClick = type(subElem.onClick) == "function" and subElem.onClick or nil,
+                                sound = subElem.sound,
                                 color = subElem.color,
                                 active = subElem.active,
                                 disabled = subElem.disabled,
                             })
                         end
                     end
+                else
+                    if elem.sound == BTN_NO_SOUND then
+                        elem.sound = nil
+                    else
+                        elem.sound = elem.sound or BJISound.SOUNDS.BIGMAP_HOVER
+                    end
                 end
                 table.insert(entry.elems, {
                     label = elem.label,
                     onClick = type(elem.onClick) == "function" and elem.onClick or nil,
+                    sound = elem.sound,
                     color = elem.color,
                     active = elem.active,
                     disabled = elem.disabled,
@@ -266,11 +294,12 @@ MenuBarBuilder = function()
 
     builder.build = function(self)
         if #self._entries > 0 then
+            local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
             local function drawMenu(label, elems, level)
                 level = level or 0
                 if im.BeginMenu(label) then
-                    im.SetWindowFontScale(level == 0 and 1 or BJIContext.UserSettings.UIScale)
-                    for i, elem in ipairs(elems) do
+                    im.SetWindowFontScale(level == 0 and 1 or scale)
+                    for _, elem in ipairs(elems) do
                         if elem.separator then
                             Separator()
                         elseif elem.render then
@@ -283,6 +312,9 @@ MenuBarBuilder = function()
                             end
                             local enabled = elem.disabled and im.BoolFalse() or im.BoolTrue()
                             if im.MenuItem1(elem.label, nil, im.BoolFalse(), enabled) then
+                                if elem.sound then
+                                    BJISound.play(elem.sound)
+                                end
                                 elem.onClick()
                             end
                             if elem.active then
@@ -311,7 +343,7 @@ MenuBarBuilder = function()
                 drawMenu(entry.label, entry.elems)
             end
             im.EndMenuBar()
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+            im.SetWindowFontScale(scale)
         end
     end
 
@@ -368,14 +400,18 @@ AccordionBuilder = function(indentAmount)
     local builder = {
         _indent = indentAmount,
         _label = nil,
+        _labelColor = nil,
         _commonStart = nil,
         _openedBehavior = nil,
         _closedBehavior = nil,
         _commonEnd = nil
     }
 
-    builder.label = function(self, label)
+    builder.label = function(self, label, labelColor)
         self._label = label
+        if labelColor then
+            self._labelColor = convertColorToVec4(labelColor)
+        end
         return self
     end
     builder.commonStart = function(self, startFn)
@@ -407,7 +443,15 @@ AccordionBuilder = function(indentAmount)
             self._label = ""
         end
 
-        if im.TreeNode1(self._label) then
+        if self._labelColor then
+            SetStyleColor(STYLE_COLS.TEXT_COLOR, self._labelColor)
+        end
+        im.SetNextItemWidth(im.GetContentRegionAvail().x)
+        local isOpen = im.TreeNode1(self._label)
+        if self._labelColor then
+            PopStyleColor(1)
+        end
+        if isOpen then
             Indent(self._indent)
             if self._commonStart ~= nil then
                 self._commonStart()
@@ -440,6 +484,7 @@ AccordionBuilder = function(indentAmount)
     return builder
 end
 
+---@param startSameLine? boolean
 LineBuilder = function(startSameLine)
     local builder = {
         _elemCount = 0,
@@ -452,17 +497,6 @@ LineBuilder = function(startSameLine)
         if (self._elemCount > 0) then
             im.SameLine()
         end
-    end
-
-    local function convertColorToVec4(color)
-        if type(color) == "table" then
-            if color.r then
-                color = RGBA(color.r, color.g, color.b, color.a)
-            elseif color[1] then
-                color = RGBA(color[1], color[2], color[3], color[4] or 1)
-            end
-        end
-        return color
     end
 
     builder.text = function(self, text, color)
@@ -484,13 +518,14 @@ LineBuilder = function(startSameLine)
         bgColor = bgColor and convertColorToVec4(bgColor)
         color = color and convertColorToVec4(color)
         local size = im.CalcTextSize(text)
-        size.x = size.x + 4 * BJIContext.UserSettings.UIScale
-        size.y = size.y + 4 * BJIContext.UserSettings.UIScale
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+        size.x = size.x + 4 * scale
+        size.y = size.y + 4 * scale
 
-        SetStyleColor(STYLE_COLS.HEADER, RGBA(1, 0, 0, 1))
-        SetStyleColor(STYLE_COLS.CHILD_BG, convertColorToVec4(bgColor))
+        SetStyleColor(STYLE_COLS.HEADER, RGBA(0, 0, 0, 0))
+        SetStyleColor(STYLE_COLS.CHILD_BG, bgColor)
         im.BeginChild1(id, size)
-        im.SetWindowFontScale(BJIContext.UserSettings.UIScale)
+        im.SetWindowFontScale(scale)
         im.TextColored(color, tostring(text))
         im.EndChild()
         PopStyleColor(2)
@@ -513,14 +548,23 @@ LineBuilder = function(startSameLine)
             LogError("btn requires id, label and onClick", logTag)
             return self
         end
+
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) btn.style has invalid type", { data.id }))
+                return self
+            end
+        end
+
         self:_commonStartElem()
-        data.style = data.style and tdeepcopy(data.style) or nil
+        data.style = data.style and table.clone(data.style) or nil
 
         if data.disabled == true then
-            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
+            data.style = table.clone(BTN_PRESETS.DISABLED)
         end
         if not data.style then
-            data.style = tdeepcopy(BTN_PRESETS.INFO)
+            data.style = table.clone(BTN_PRESETS.INFO)
         end
         if data.active then
             data.style[4] = TEXT_COLORS.HIGHLIGHT
@@ -528,7 +572,17 @@ LineBuilder = function(startSameLine)
             data.style[4] = TEXT_COLORS.DEFAULT
         end
         btnStylePreset(data.style)
-        if im.SmallButton(svar("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
+
+        if data.sound == BTN_NO_SOUND then
+            data.sound = nil
+        else
+            data.sound = data.sound or BJISound.SOUNDS.BIGMAP_HOVER
+        end
+
+        if im.SmallButton(string.var("{1}##{2}", { data.label, data.id })) and data.disabled ~= true then
+            if data.sound then
+                BJISound.play(data.sound)
+            end
             data.onClick()
         end
         resetBtnStyle()
@@ -557,7 +611,7 @@ LineBuilder = function(startSameLine)
             LogError("btnToggle requires id, state and onClick", logTag)
             return self
         end
-        local label = "Toggle"
+        local label = BJILang.get("common.buttons.toggle")
         -- invert state to print in Red when active
         return self:btnSwitch({
             id = data.id,
@@ -565,7 +619,8 @@ LineBuilder = function(startSameLine)
             labelOff = label,
             state = not data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchAllowBlocked = function(self, data)
@@ -579,7 +634,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.buttons.blocked"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchEnabledDisabled = function(self, data)
@@ -593,7 +649,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.disabled"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchPlayStop = function(self, data)
@@ -608,7 +665,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.buttons.stop"),
             state = not data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
     builder.btnSwitchYesNo = function(self, data)
@@ -622,7 +680,8 @@ LineBuilder = function(startSameLine)
             labelOff = BJILang.get("common.no"),
             state = data.state,
             disabled = data.disabled,
-            onClick = data.onClick
+            onClick = data.onClick,
+            sound = data.sound,
         })
     end
 
@@ -642,7 +701,7 @@ LineBuilder = function(startSameLine)
         if not data or not data.id or not data.type or type(data.value) ~= "number" then
             LogError("inputNumeric requires id, type and value", logTag)
             return self
-        elseif not tincludes({ "int", "float" }, data.type) then
+        elseif not table.includes({ "int", "float" }, data.type) then
             LogError("inputNumeric requires type to be 'int' or 'float'", logTag)
             return self
         end
@@ -655,7 +714,7 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
@@ -678,14 +737,14 @@ LineBuilder = function(startSameLine)
         end
         inputStylePreset(data.style, true)
 
-        local input = InputInt(Round(data.value))
+        local input = InputInt(math.round(data.value))
         local drawFn = im.InputInt
         if data.type == "float" then
             input = InputFloat(data.value, data.precision)
             drawFn = im.InputFloat
         end
 
-        if drawFn(svar("##{1}", { data.id }), input._value, data.step, data.stepFast) and
+        if drawFn(string.var("##{1}", { data.id }), input._value, data.step, data.stepFast) and
             not data.disabled then
             local valid = true
             if data.min or data.max then
@@ -722,9 +781,11 @@ LineBuilder = function(startSameLine)
         end
         self:_commonStartElem()
 
+        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * scale)
         else
             im.PushItemWidth(-1)
         end
@@ -751,24 +812,24 @@ LineBuilder = function(startSameLine)
         local input = InputString(data.size or 100, data.value)
         if not data.multiline then
             --[[im.InputTextWithHint(
-                svar("##{1}", { data.id }),
+                string.var("##{1}", { data.id }),
                 data.placeholder,
                 input._value,
                 input._size
             )]]
             -- TODO wait for fix answer
-            if data.placeholder and #strim(data.placeholder) > 0 then
+            if data.placeholder and #data.placeholder:trim() > 0 then
                 im.ShowHelpMarker(data.placeholder)
                 im.SameLine()
             end
-            if im.InputText(svar("##{1}", { data.id }), input._value, input._size) and
+            if im.InputText(string.var("##{1}", { data.id }), input._value, input._size) and
                 not data.disabled and type(data.onUpdate) == "function" then
                 data.onUpdate(input:get())
             end
         else
             local w = -1
             if data.width then
-                w = data.width * BJIContext.UserSettings.UIScale
+                w = data.width * scale
             end
 
             local lines = 3
@@ -778,13 +839,13 @@ LineBuilder = function(startSameLine)
             elseif data.lines then
                 lines = data.lines
             end
-            local h = (lineHeight * BJIContext.UserSettings.UIScale * lines) + 2
+            local h = (lineHeight * scale * lines) + 2
             if h < 0 then
                 h = -1
             end
-            im.SetWindowFontScale(BJIContext.UserSettings.UIScale) -- update scale for multiline inputs
+            im.SetWindowFontScale(scale) -- update scale for multiline inputs
             if im.InputTextMultiline(
-                    svar("##{1}", { data.id }),
+                    string.var("##{1}", { data.id }),
                     input._value,
                     input._size,
                     im.ImVec2(w, h)
@@ -805,6 +866,9 @@ LineBuilder = function(startSameLine)
         return self
     end
 
+    ---@generic V
+    ---@param data {id: string, label?: string, items: V[], value: V, (getLabelFn?: fun(v: V): string), onChange: fun(v: V), width?: integer}
+    --- data.items: string[]|table[]
     builder.inputCombo = function(self, data)
         if not data or not data.id or type(data.items) ~= "table" then
             LogError("combo requires id, items", logTag)
@@ -826,7 +890,7 @@ LineBuilder = function(startSameLine)
 
         local valuePos = 1
         if stringValues then
-            valuePos = tpos(data.items, data.value) or valuePos
+            valuePos = table.indexOf(data.items, data.value) or valuePos
         else
             for i, v in ipairs(data.items) do
                 if data.getLabelFn(v) == data.getLabelFn(data.value) then
@@ -837,7 +901,7 @@ LineBuilder = function(startSameLine)
         end
         local input = InputInt(valuePos - 1)
 
-        local parsedValues = tdeepcopy(data.items)
+        local parsedValues = table.clone(data.items)
         if not stringValues then
             for i, v in ipairs(parsedValues) do
                 parsedValues[i] = data.getLabelFn(v)
@@ -846,12 +910,12 @@ LineBuilder = function(startSameLine)
 
         -- WIDTH
         if data.width then
-            im.PushItemWidth(data.width * BJIContext.UserSettings.UIScale)
+            im.PushItemWidth(data.width * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE))
         else
             im.PushItemWidth(-1)
         end
 
-        if im.Combo1(svar("{1}##{2}", { data.label, data.id }), input._value, im.ArrayCharPtrByTbl(parsedValues)) and
+        if im.Combo1(string.var("{1}##{2}", { data.label, data.id }), input._value, im.ArrayCharPtrByTbl(parsedValues)) and
             type(data.onChange) == "function" then
             local newString = parsedValues[input:get() + 1]
             local newValue
@@ -890,6 +954,14 @@ LineBuilder = function(startSameLine)
             return self
         end
 
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) icon.style has invalid type", { data.id }))
+                return self
+            end
+        end
+
         local icon = GetIcon(data.icon)
         if not icon then
             return self
@@ -898,13 +970,13 @@ LineBuilder = function(startSameLine)
         local size = GetIconSize(data.big)
         local border = data.border or nil
 
-        data.style = data.style and tdeepcopy(data.style) or tdeepcopy(BTN_PRESETS.INFO)
+        data.style = data.style and table.clone(data.style) or table.clone(BTN_PRESETS.INFO)
         local iconColor
         if data.coloredIcon then
             iconColor = data.style[1]
         else
             if not data.style[4] then
-                data.style[4] = tdeepcopy(TEXT_COLORS.DEFAULT)
+                data.style[4] = table.clone(TEXT_COLORS.DEFAULT)
             end
             iconColor = data.style[4]
         end
@@ -925,33 +997,47 @@ LineBuilder = function(startSameLine)
             return self
         end
 
+        if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
+            local status = pcall(function() return data.style[1] end)
+            if not status then
+                LogError(string.var("({1}) btnIcon.style has invalid type", { data.id }))
+                return self
+            end
+        end
+
         local icon = GetIcon(data.icon)
         if not icon then
             -- error already logged inside GetIcon(str)
             return self
         end
         self:_commonStartElem()
-        data.style = data.style and tdeepcopy(data.style) or nil
+        data.style = data.style and table.clone(data.style) or nil
 
         local size = GetIconSize(data.big)
         if data.disabled then
-            data.style = tdeepcopy(BTN_PRESETS.DISABLED)
+            data.style = table.clone(BTN_PRESETS.DISABLED)
         end
-        data.style = data.style or tdeepcopy(BTN_PRESETS.INFO)
+        data.style = data.style or table.clone(BTN_PRESETS.INFO)
         local iconColor
         if data.active then
-            iconColor = tdeepcopy(TEXT_COLORS.HIGHLIGHT)
+            iconColor = table.clone(TEXT_COLORS.HIGHLIGHT)
         else
-            iconColor = data.style[4] and tdeepcopy(data.style[4]) or tdeepcopy(TEXT_COLORS.DEFAULT)
+            iconColor = data.style[4] and table.clone(data.style[4]) or table.clone(TEXT_COLORS.DEFAULT)
         end
-        local bgColor = tdeepcopy(data.style[1])
-        local hoveredColor = tdeepcopy(data.style[2])
-        local activeColor = tdeepcopy(data.style[3])
+        local bgColor = table.clone(data.style[1])
+        local hoveredColor = table.clone(data.style[2])
+        local activeColor = table.clone(data.style[3])
         if data.coloredIcon then
             iconColor = bgColor
             bgColor = BTN_PRESETS.TRANSPARENT[1]
             hoveredColor = BTN_PRESETS.TRANSPARENT[2]
             activeColor = BTN_PRESETS.TRANSPARENT[3]
+        end
+
+        if data.sound == BTN_NO_SOUND then
+            data.sound = nil
+        else
+            data.sound = data.sound or BJISound.SOUNDS.BIGMAP_HOVER
         end
 
         SetStyleColor(STYLE_COLS.BUTTON_HOVERED, hoveredColor)
@@ -967,6 +1053,9 @@ LineBuilder = function(startSameLine)
                 false,                            -- ON RELEASE
                 nil                               -- HIGHLIGHT TEXT
             ) and not data.disabled then
+            if data.sound then
+                BJISound.play(data.sound)
+            end
             data.onClick()
         end
         im.PopStyleColor(2)
@@ -1016,12 +1105,12 @@ LineBuilder = function(startSameLine)
         if data.alpha then
             fn = im.ColorEdit4
         end
-        if fn(svar("##{1}", { data.id }), color, im.flags(tunpack(flags))) and not data.disabled then
+        if fn(string.var("##{1}", { data.id }), color, im.flags(table.unpack(flags))) and not data.disabled then
             data.onChange({
-                Round(color[0], RGBA_PRECISION),
-                Round(color[1], RGBA_PRECISION),
-                Round(color[2], RGBA_PRECISION),
-                Round(color[3], RGBA_PRECISION),
+                math.round(color[0], RGBA_PRECISION),
+                math.round(color[1], RGBA_PRECISION),
+                math.round(color[2], RGBA_PRECISION),
+                math.round(color[3], RGBA_PRECISION),
             })
         end
         self._elemCount = self._elemCount + 1
@@ -1039,13 +1128,28 @@ EmptyLine = function()
     LineBuilder():text(" "):build()
 end
 
+---@param label string
+---@param color? table
+---@param startSameLine? boolean
+LineLabel = function(label, color, startSameLine)
+    LineBuilder(startSameLine):text(label, color):build()
+end
+
+---@param data {floatPercent: number, width?: number|string, text?: string}
 ProgressBar = function(data)
     data.floatPercent = data.floatPercent or 0
+    if tonumber(data.width) then
+        data.width = math.floor(tonumber(data) or 0) * BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+    elseif tostring(data.width):find("%d+%%") then
+        data.width = tonumber(tostring(data.width):match("^%d+")) / 100 * im.GetContentRegionAvail().x
+    else
+        data.width = -1
+    end
     data.width = data.width or -1
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
-    local size = im.ImVec2(data.width * BJIContext.UserSettings.UIScale, height)
+    local size = im.ImVec2(data.width, height)
 
     im.ProgressBar(data.floatPercent, size, text)
 end
@@ -1062,7 +1166,7 @@ ColumnsBuilder = function(name, colsWidths, borders)
     local builder = {
         _name = name,
         _cols = #colsWidths,
-        _widths = tdeepcopy(colsWidths),
+        _widths = table.clone(colsWidths),
         _currentCol = 0,
         _rows = {},
         _borders = borders == true,

@@ -21,7 +21,7 @@ local function _printChat(senderName, message, color)
     guihooks.trigger("chatMessage", {
         id = M.msgCounter,
         color = color,
-        message = senderName and svar("{1}: {2}", { senderName, message }) or message,
+        message = senderName and string.var("{1}: {2}", { senderName, message }) or message,
     })
     chatWindow.addMessage(senderName or "", message, M.msgCounter, color)
 
@@ -46,8 +46,8 @@ local function _onPlayerChat(playerName, message, color)
         return
     end
     local playerTag = player.staff and BJILang.get("chat.staffTag") or
-        svar("{1}{2}", { BJILang.get("chat.reputationTag"), BJIReputation.getReputationLevel(player.reputation) })
-    playerName = svar("[{1}]{2}", { playerTag, playerName })
+        string.var("{1}{2}", { BJILang.get("chat.reputationTag"), BJIReputation.getReputationLevel(player.reputation) })
+    playerName = string.var("[{1}]{2}", { playerTag, playerName })
 
     _printChat(playerName, message, color)
 end
@@ -72,14 +72,14 @@ local function renderTick(ctxt)
         elseif event == M.EVENTS.SERVER_CHAT then
             _printChat(nil, data.message, data.color)
         elseif event == M.EVENTS.DIRECT_MESSAGE then
-            _printChat(svar(BJILang.get("chat.directMessage"), { playerName = data.playerName }),
+            _printChat(BJILang.get("chat.directMessage"):var({ playerName = data.playerName }),
                 data.message, data.color)
         elseif event == M.EVENTS.DIRECT_MESSAGE_SENT then
-            _printChat(svar(BJILang.get("chat.directMessageSent"), { playerName = data.playerName }),
+            _printChat(BJILang.get("chat.directMessageSent"):var({ playerName = data.playerName }),
                 data.message, data.color)
-        elseif tincludes({ M.EVENTS.JOIN, M.EVENTS.LEAVE }, event, true) then
+        elseif table.includes({ M.EVENTS.JOIN, M.EVENTS.LEAVE }, event) then
             local key = event == M.EVENTS.JOIN and "chat.playerJoined" or "chat.playerLeft"
-            _printChat(nil, svar(BJILang.get(key), { playerName = data.playerName }))
+            _printChat(nil, BJILang.get(key):var({ playerName = data.playerName }))
         end
         table.remove(M.queue, 1)
     end

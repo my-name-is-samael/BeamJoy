@@ -1,5 +1,10 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 3,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 3
+    end,
     -- received events
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation
@@ -80,7 +85,7 @@ end
 
 local function checkDerbyReady()
     if M.state == M.STATES.PREPARATION and
-        #M.participants >= M.MINIMUM_PARTICIPANTS then
+        #M.participants >= M.MINIMUM_PARTICIPANTS() then
         local everyoneReady = true
         for _, participant in ipairs(M.participants) do
             if not participant.ready then
@@ -99,7 +104,7 @@ local function onPreparationTimeout()
     for iParticipant, participant in ipairs(M.participants) do
         if not participant.ready then
             local player = BJCPlayers.Players[participant.playerID]
-            if tlength(player.vehicles) == 0 then
+            if table.length(player.vehicles) == 0 then
                 table.remove(M.participants, iParticipant)
             else
                 participant.ready = true
@@ -113,7 +118,7 @@ local function onPreparationTimeout()
         end
     end
 
-    if #M.participants < M.MINIMUM_PARTICIPANTS then
+    if #M.participants < M.MINIMUM_PARTICIPANTS() then
         stopDerby()
     else
         startDerby()
@@ -134,9 +139,9 @@ local function start(derbyIndex, lives, configs)
         player.scenario = nil
     end
 
-    M.baseArena = tdeepcopy(BJCScenario.Derby[derbyIndex])
+    M.baseArena = table.deepcopy(BJCScenario.Derby[derbyIndex])
     M.settings.lives = lives
-    M.settings.configs = configs and tdeepcopy(configs) or {}
+    M.settings.configs = configs and table.deepcopy(configs) or {}
     while #M.settings.configs >= 6 do -- limit to 5 configs max
         table.remove(M.settings.configs, 6)
     end
@@ -180,7 +185,7 @@ local function finishDerby()
     if winner and (not second or second.eliminationTime) then
         BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.winner", { playerName = winner.playerName }, 5)
         for i, participant in ipairs(M.participants) do
-            local reward = Round(BJCConfig.Data.Reputation.DerbyWinnerReward / i)
+            local reward = math.round(BJCConfig.Data.Reputation.DerbyWinnerReward / i)
             BJCPlayers.reward(participant.playerID, reward)
         end
     else
@@ -213,7 +218,8 @@ local function onClientDestroyed(playerID, time)
     sortParticipants()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 
-    if not M.participants[2] or M.participants[2].eliminationTime then
+    if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
+        M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
         finishDerby()
     end
 end
@@ -261,6 +267,23 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
+local function compareVehicle(required, spawned)
+    if not required and spawned or not spawned then
+        return false
+    end
+
+    -- remove blank parts (causing compare to fail)
+    for _, arr in ipairs({ required, spawned }) do
+        for k, v in pairs(arr) do
+            if #v:trim() == 0 then
+                arr[k] = nil
+            end
+        end
+    end
+
+    return table.compare(required, spawned)
+end
+
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     if not M.state then
         return true
@@ -274,8 +297,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             -- forced config
             local found = false
             for _, config in ipairs(M.settings.configs) do
-                if tdeepcompare({ model = vehData.vcf.model, parts = vehData.vcf.parts },
-                        { model = config.model, parts = config.parts }) then
+                if vehData.vcf.model == config.model and
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts) then
                     found = true
                     break
                 end
@@ -333,7 +356,7 @@ end
 local function getCache()
     return {
         -- common
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         state = M.state,
         destroyedTimeout = BJCConfig.Data.Derby.DestroyedTimeout,
         -- settings
@@ -349,6 +372,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.state,
         M.baseArena,
         M.preparation,
@@ -370,9 +394,7 @@ M.onClientUpdate = onClientUpdate
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
-M.postVehicleDeleted = onVehicleDeleted
-
-RegisterBJCManager(M)
 return M
