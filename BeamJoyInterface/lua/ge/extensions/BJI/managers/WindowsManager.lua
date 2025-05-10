@@ -1,8 +1,21 @@
 local im = ui_imgui
 
+---@class WindowWrapperPayload
+---@field name string,
+---@field showConditionFn function
+---@field draw table|fun(): table TODO remove direct functions
+---@field w? integer
+---@field h? integer
+---@field x? integer
+---@field y? integer
+
+---@class WindowWrapper : WindowWrapperPayload
+---@field show boolean
+
 local M = {
     _name = "BJIWindowsManager",
-    _windows = {},
+    ---@type tablelib<WindowWrapper>
+    _windows = Table(),
     _baseFlags = {
         WINDOW_FLAGS.NO_SCROLLBAR,
         WINDOW_FLAGS.NO_SCROLL_WITH_MOUSE,
@@ -207,22 +220,23 @@ local function initWindows()
             return BJIContext.Scenario.isEditorOpen()
         end,
         draw = function()
+            local res = {}
             if BJIContext.Scenario.RaceEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/Race")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/Race")
             elseif BJIContext.Scenario.EnergyStationsEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/EnergyStations")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/EnergyStations")
             elseif BJIContext.Scenario.GaragesEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/Garages")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/Garages")
             elseif BJIContext.Scenario.DeliveryEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/Deliveries")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/Deliveries")
             elseif BJIContext.Scenario.BusLinesEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/BusLines")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/BusLines")
             elseif BJIContext.Scenario.HunterEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/Hunter")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/Hunter")
             elseif BJIContext.Scenario.DerbyEdit then
-                return require("ge/extensions/BJI/ui/WindowScenarioEditor/Derby")
+                res = require("ge/extensions/BJI/ui/WindowScenarioEditor/Derby")
             end
-            return {}
+            return res
         end,
         w = 450,
         h = 850,
@@ -377,18 +391,18 @@ local function initWindows()
     })
 end
 
----@param data { name: string, draw: function|table, showConditionFn: function, w?: number, h?: number, x?: number, y?: number }
+---@param data WindowWrapperPayload
 local function register(data)
     if not data.draw or not data.showConditionFn then
         LogError("Window requires name, draw and showConditionFn")
         return
     end
-    if M._windows[data.name] ~= nil then
-        -- already exists
+    if M._windows:any(function(w) return w.name == data.name end) then
+        LogError("Window with name " .. data.name .. " already exists")
         return
     end
 
-    M._windows[data.name] = {
+    M._windows:insert({
         show = false,
         name = data.name,
         draw = data.draw,
@@ -397,43 +411,51 @@ local function register(data)
         h = data.h,
         x = data.x,
         y = data.y,
-    }
-    data.w = data.w or -1
-    data.h = data.h or -1
-    BJIContext.GUI.registerWindow(data.name, im.ImVec2(data.w, data.h))
+    })
+    BJIContext.GUI.registerWindow(data.name, im.ImVec2(data.w or -1, data.h or -1))
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if not BJICONNECTED or not BJICache.areBaseCachesFirstLoaded() or not BJIThemeLoaded then
         return
     end
 
-    local function drawWrap(fn, w)
-        -- apply min height (fixes moved out collapsed size issue)
-        local size = im.GetWindowSize()
-        local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
-        if w.h and size.y < w.h * scale then
-            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
+    ---@param w WindowWrapper
+    ---@param fnName string
+    local function windowSubFnCall(w, fnName)
+        if w.show then
+            -- apply min height (fixes moved out collapsed size issue)
+            local size = im.GetWindowSize()
+            local scale = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE)
+            if w.h and size.y < w.h * scale then
+                im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
+            end
         end
-        local _, err = pcall(fn, ctxt)
-        if err then
-            LogError(err, M._name)
+        local winRenderer = w.draw
+        if type(winRenderer) == "function" then
+            ---@type table
+            winRenderer = winRenderer()
+        end
+        if type(winRenderer[fnName]) == "function" then
+            local _, err = pcall(winRenderer[fnName], ctxt)
+            if err then
+                LogError(string.var("Error executing {1} on window {2} : {3}", { fnName, w.name, err }), M._name)
+            end
         end
     end
 
     InitDefaultStyles()
     for _, w in pairs(M._windows) do
-        local draw = w.draw
-        if type(draw) == "function" then
-            draw = draw()
+        local winRenderer = w.draw
+        if type(winRenderer) == "function" then
+            winRenderer = winRenderer()
         end
 
         if (w.show and not w.showConditionFn()) or
             not M.loaded or
             not MPGameNetwork.launcherConnected() then
-            if draw.onUnload then
-                draw.onUnload()
-            end
+            windowSubFnCall(w, "onUnload")
             w.show = false
             BJIContext.GUI.hideWindow(w.name)
             BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
@@ -441,9 +463,7 @@ local function renderTick(ctxt)
                 state = false,
             })
         elseif not w.show and w.showConditionFn() then
-            if draw.onLoad then
-                draw.onLoad()
-            end
+            windowSubFnCall(w, "onLoad")
             w.show = true
             BJIContext.GUI.showWindow(w.name)
             BJIEvents.trigger(BJIEvents.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
@@ -468,7 +488,7 @@ local function renderTick(ctxt)
             end
 
             local flagsToApply = table.clone(M._baseFlags)
-            local flags = draw.flags or {}
+            local flags = winRenderer.flags or {}
             if type(flags) == "function" then
                 flags = flags(ctxt)
             end
@@ -481,7 +501,7 @@ local function renderTick(ctxt)
                 end
             end
 
-            if type(draw.menu) == "function" and
+            if type(winRenderer.menu) == "function" and
                 not table.includes(flagsToApply, WINDOW_FLAGS.MENU_BAR) then
                 table.insert(flagsToApply, WINDOW_FLAGS.MENU_BAR)
             end
@@ -491,37 +511,37 @@ local function renderTick(ctxt)
                 :title(title)
                 :opacity(alpha)
 
-            if draw.menu then
+            if winRenderer.menu then
                 window = window:menu(function()
-                    drawWrap(draw.menu, w)
+                    windowSubFnCall(w, "menu")
                 end)
             end
 
-            if draw.header then
+            if winRenderer.header then
                 window:header(function()
-                    drawWrap(draw.header, w)
+                    windowSubFnCall(w, "header")
                 end)
             end
 
-            if draw.body then
+            if winRenderer.body then
                 window:body(function()
-                    drawWrap(draw.body, w)
+                    windowSubFnCall(w, "body")
                 end)
             end
 
-            if draw.footer then
+            if winRenderer.footer then
                 local lines = 1
-                if draw.footerLines then
-                    lines = draw.footerLines(ctxt)
+                if winRenderer.footerLines then
+                    lines = winRenderer.footerLines(ctxt)
                 end
                 window:footer(function()
-                    drawWrap(draw.footer, w)
+                    windowSubFnCall(w, "footer")
                 end, lines)
             end
 
-            if draw.onClose then
+            if winRenderer.onClose then
                 window:onClose(function()
-                    draw.onClose(ctxt)
+                    winRenderer.onClose(ctxt)
                     BJISound.play(BJISound.SOUNDS.MAIN_CANCEL)
                 end)
             end

@@ -1,5 +1,4 @@
 local function draw(ctxt)
-
     AccordionBuilder()
         :label(BJILang.get("serverConfig.bjc.whitelist.title"))
         :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Whitelist")(ctxt) end)
@@ -33,15 +32,17 @@ local function draw(ctxt)
             :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Speed")(ctxt) end)
             :build()
 
-            AccordionBuilder()
-                :label(BJILang.get("serverConfig.bjc.hunter.title"))
-                :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Hunter")(ctxt) end)
-                :build()
+        AccordionBuilder()
+            :label(BJILang.get("serverConfig.bjc.hunter.title"))
+            :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/Hunter")(ctxt) end)
+            :build()
 
         AccordionBuilder()
             :label(BJILang.get("serverConfig.bjc.vehicleDelivery.title"))
             :openedBehavior(function() require("ge/extensions/BJI/ui/WindowServer/BJC/VehicleDelivery")(ctxt) end)
             :build()
+
+        -- TODO add derby options
     end
 
     if BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.OWNER) then
