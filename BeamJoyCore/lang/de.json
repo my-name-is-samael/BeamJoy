@@ -973,9 +973,7 @@
           "currentModel": "Aktuelles Modell",
           "currentConfig": "Aktuelle Konfiguration",
           "specific": "Spezifisches {model}"
-        },
-        "time": "Uhrzeit",
-        "weather": "Wetter"
+        }
       },
       "preparation": {
         "singleplayer": "Einzelspieler-Rennen",

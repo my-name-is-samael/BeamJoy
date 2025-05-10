@@ -973,9 +973,7 @@
           "currentModel": "Modèle actuel",
           "currentConfig": "Configuration actuelle",
           "specific": "{model} spécifique"
-        },
-        "time": "Heure",
-        "weather": "Météo"
+        }
       },
       "preparation": {
         "singleplayer": "Course Solo",

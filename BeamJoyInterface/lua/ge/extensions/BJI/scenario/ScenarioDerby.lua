@@ -266,11 +266,6 @@ local function renderTick(ctxt)
             if not M.startPos then
                 M.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
             end
-            if ctxt.vehPosRot.pos:distance(M.startPos.pos) > .5 then
-                BJIVeh.setPositionRotation(M.startPos.pos, M.startPos.rot)
-                BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-                BJIVeh.freeze(true)
-            end
         elseif M.startTime and ctxt.now > M.startTime then
             local dist = M.destroy.lastPos and ctxt.vehPosRot.pos:distance(M.destroy.lastPos) or nil
             if M.destroy.process then
@@ -311,8 +306,9 @@ local function renderTick(ctxt)
                             M.destroy.lock = true
                             BJIAsync.task(function()
                                 -- wait for data update before unlocking destroy process
+                                local updated = M.getParticipant()
                                 return participant.lives == 0 and M.isEliminated() or
-                                    M.getParticipant().lives == participant.lives - 1
+                                    (type(updated) == "table" and updated.lives == participant.lives - 1)
                             end, function()
                                 M.destroy.lock = false
                             end, "BJIDerbyDestroyLockSafe")
@@ -369,7 +365,7 @@ end
 local function onJoinParticipants()
     BJIRestrictions.update({ {
         restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = #M.configs ~= 1,
+        state = #M.configs == 1,
     }, {
         restrictions = BJIRestrictions.OTHER.FREE_CAM,
         state = true,

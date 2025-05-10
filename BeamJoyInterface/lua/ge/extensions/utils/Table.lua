@@ -79,8 +79,9 @@ table.duplicates = table.duplicates or function(tab, distinct)
     end, { saw = Table(), dup = Table() }).dup
 end
 
----@param tab table
----@return any|nil
+---@generic K, V
+---@param tab table<K,V>|V[]
+---@return V
 table.random = table.random or function(tab)
     if type(tab) ~= "table" then return nil end
     if table.length(tab) == 0 then return nil end

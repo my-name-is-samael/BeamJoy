@@ -227,14 +227,6 @@ M.Race = {
         config = nil,
         respawnStrategy = nil,
     },
-    time = {
-        label = nil, -- time preset label
-        ToD = nil,
-    },
-    weather = {
-        label = nil, -- weather preset label
-        keys = nil,
-    },
 
     voters = {}, -- list of playerIDs
 }
@@ -256,14 +248,6 @@ local function raceReset()
         config = nil,
         respawnStrategy = nil,
     }
-    M.Race.time = {
-        label = nil,
-        ToD = nil,
-    }
-    M.Race.weather = {
-        label = nil,
-        keys = nil,
-    }
     M.Race.voters = {}
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
@@ -281,10 +265,10 @@ local function raceVoteTimeout()
 
     if M.Race.isVote then
         if table.length(M.Race.voters) >= getRaceThreshold() then
-            BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings, M.Race.time, M.Race.weather)
+            BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings)
         end
     else
-        BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings, M.Race.time, M.Race.weather)
+        BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings)
     end
     raceReset()
 end
@@ -341,14 +325,6 @@ function M.Race.start(creatorID, isVote, raceID, settings)
         model = settings.model,
         config = settings.config,
         respawnStrategy = settings.respawnStrategy,
-    }
-    M.Race.time = {
-        label = settings.time.key and settings.time.key or nil,
-        ToD = settings.time.key and settings.time.ToD or nil,
-    }
-    M.Race.weather = {
-        label = settings.weather.key and settings.weather.key or nil,
-        keys = settings.weather.key and settings.weather.keys or nil,
     }
     M.Race.voters = { creatorID }
 
@@ -495,8 +471,6 @@ function M.getCache()
             raceName = M.Race.raceName,
             places = M.Race.places,
             record = M.Race.record,
-            timeLabel = M.Race.time.label,
-            weatherLabel = M.Race.weather.label,
             laps = M.Race.settings.laps,
             model = M.Race.settings.model,
             specificConfig = not not M.Race.settings.config,

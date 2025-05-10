@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
+BJI = {}
 BJIVERSION = "1.2.0"
 
 require("ge/extensions/utils/LoadDefaults")
@@ -100,6 +101,7 @@ local function loadManagers()
     BJIVehSelectorPreview = require("ge/extensions/BJI/ui/WindowVehicleSelector/DrawWindowVehicleSelectorPreview")
     BJIRacesLeaderboardWindow = require("ge/extensions/BJI/ui/WindowRacesLeaderboard/DrawWindowRacesLeaderboard")
     BJIRaceSettingsWindow = require("ge/extensions/BJI/ui/WindowRaceSettings/DrawWindowRaceSettings")
+    BJIDerbySettingsWindow = require("ge/extensions/BJI/ui/WindowDerbySettings/DrawWindowDerbySettings")
 
     BJIWindows = require("ge/extensions/BJI/managers/WindowsManager")
 end

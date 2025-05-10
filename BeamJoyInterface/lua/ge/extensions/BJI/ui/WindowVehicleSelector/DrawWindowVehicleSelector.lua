@@ -78,8 +78,9 @@ end
 local function drawHeader(ctxt)
     if #M.models.cars + #M.models.trucks +
         #M.models.trailers + #M.models.props > 0 then
-        LineBuilder()
-            :btnIcon({
+        local line = LineBuilder()
+        if not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
+            line:btnIcon({
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
                 style = BTN_PRESETS.INFO,
@@ -90,9 +91,10 @@ local function drawHeader(ctxt)
                     core_vehicles.openSelectorUI()
                 end,
             })
-            :icon({
-                icon = ICONS.ab_filter_default,
-            })
+        end
+        line:icon({
+            icon = ICONS.ab_filter_default,
+        })
             :inputString({
                 id = "vehFilter",
                 value = M.vehFilter,

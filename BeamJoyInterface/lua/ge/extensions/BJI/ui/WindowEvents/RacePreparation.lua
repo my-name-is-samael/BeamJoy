@@ -4,10 +4,6 @@ return function(ctxt, cache)
     LineBuilder():text(cache.title):build()
     LineBuilder():text(cache.settings):build()
 
-    if cache.timeWeather then
-        LineBuilder():text(cache.timeWeather):build()
-    end
-
     if cache.record then
         LineBuilder():text(cache.record):build()
     end

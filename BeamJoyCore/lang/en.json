@@ -974,9 +974,7 @@
           "currentModel": "Current model",
           "currentConfig": "Current config",
           "specific": "Specific {model}"
-        },
-        "time": "Time of day",
-        "weather": "Weather"
+        }
       },
       "preparation": {
         "singleplayer": "Singleplayer Race",

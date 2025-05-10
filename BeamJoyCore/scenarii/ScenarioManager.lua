@@ -743,6 +743,42 @@ local function canWalk(playerID)
     end
 end
 
+--- check if spawned vehicle is the same than the required one<br>
+--- config export in-game and vehdata given by server hooks
+--- are not completely equals, so we need to give an approximation
+--- of answer (+90% match minimum)
+--- @param askedParts table<string, string>
+--- @param spawnedParts table<string, string>
+--- @return boolean bool if matches enough
+local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
+    if not askedParts and spawnedParts or not spawnedParts then
+        return false
+    end
+
+    local larger, smaller
+    if table.length(askedParts) > table.length(spawnedParts) then
+        larger = askedParts
+        smaller = spawnedParts
+    else
+        larger = spawnedParts
+        smaller = askedParts
+    end
+
+    local matches = Table(larger):reduce(function(acc, el, k)
+        if smaller[k] then
+            acc = acc + .5
+            if smaller[k] == el then
+                acc = acc + .5
+            end
+        end
+        return acc
+    end, 0)
+    local ratio = matches / table.length(larger)
+    local logFn = ratio > .9 and Log or LogError
+    logFn(string.var("Vehicle matches requirements up to {1}%%", {math.round(ratio * 100, 1)}))
+    return ratio > .9
+end
+
 local function onVehicleDeleted(playerID, vehID)
     if not isServerScenarioInProgress() and
         BJCPlayers.Players[playerID].scenario ~= BJCScenario.PLAYER_SCENARII.FREEROAM then
@@ -796,6 +832,8 @@ M.stopServerScenarii = stopServerScenarii
 M.canSpawnVehicle = canSpawnVehicle
 M.canEditVehicle = canEditVehicle
 M.canWalk = canWalk
+
+M.isVehicleSpawnedMatchesRequired = isVehicleSpawnedMatchesRequired
 
 BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 

@@ -847,9 +847,7 @@
           "currentModel": "Текущая модель",
           "currentConfig": "Текущая конфигурация",
           "specific": "Конкретная {model}"
-        },
-        "time": "Время суток",
-        "weather": "Погода"
+        }
       },
       "preparation": {
         "singleplayer": "Одиночная гонка",
