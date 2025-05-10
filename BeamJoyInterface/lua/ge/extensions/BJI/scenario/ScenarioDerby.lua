@@ -321,6 +321,13 @@ local function renderTick(ctxt)
     end
 end
 
+-- Destroy rpocess si detected through slowTick, then checked in renderTick
+local function slowTick(ctxt)
+    if M.state == M.STATES.GAME and M.isParticipant() and not M.destroy.process then
+        M.destroy.lastPos = ctxt.vehPosRot.pos
+    end
+end
+
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
     BJIRestrictions.update({ {
@@ -365,7 +372,7 @@ end
 local function onJoinParticipants()
     BJIRestrictions.update({ {
         restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = #M.configs == 1 and
+        state = #M.configs > 0 and
             BJIRestrictions.STATE.RESTRICTED or
             BJIRestrictions.STATE.ALLOWED,
     }, {
@@ -373,8 +380,11 @@ local function onJoinParticipants()
         state = BJIRestrictions.STATE.RESTRICTED,
     } })
     M.startPos = findFreeStartPosition()
-    if #M.configs == 1 then
-        M.trySpawnNew(M.configs[1].model, M.configs[1].config)
+    if #M.configs > 0 then
+        -- no models in veh selector cause configs can be absent from others clients
+        if #M.configs == 1 then
+            M.trySpawnNew(M.configs[1].model, M.configs[1].config)
+        end
         BJIVehSelector.open({}, false)
     elseif #M.configs == 0 then
         BJIVehSelector.open(M.getModelList(), false)
@@ -390,6 +400,7 @@ local function onLeaveParticipants()
         state = BJIRestrictions.STATE.ALLOWED,
     } })
     HideGameMenu()
+    BJIVehSelector.tryClose(true)
     BJICam.setCamera(BJICam.CAMERAS.FREE)
     BJICam.setPositionRotation(M.baseArena.previewPosition.pos, M.baseArena.previewPosition.rot)
     BJIVeh.deleteAllOwnVehicles()
@@ -525,6 +536,7 @@ local function rxData(data)
             M.stop()
         end
     end
+    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
 end
 
 local function getParticipant(playerID)
@@ -570,6 +582,7 @@ M.getPlayerListActions = getPlayerListActions
 
 M.onVehicleResetted = onVehicleResetted
 M.renderTick = renderTick
+M.slowTick = slowTick
 
 M.onUnload = onUnload
 

@@ -443,6 +443,9 @@ local function drawGrid(ctxt)
                 disabled = M.cache.data.grid.disableJoinLeaveBtn,
                 onClick = function()
                     M.cache.data.grid.disableJoinLeaveBtn = true -- api request protection
+                    if M.cache.data.grid.isParticipant then
+                        M.cache.data.grid.disableReadyBtn = true -- api request protection
+                    end
                     BJITx.scenario.RaceMultiUpdate(M.mgr.CLIENT_EVENTS.JOIN)
                     if M.cache.data.grid.isParticipant and BJIVeh.isCurrentVehicleOwn() then
                         BJIVeh.deleteAllOwnVehicles()
@@ -461,6 +464,7 @@ local function drawGrid(ctxt)
                 disabled = M.cache.data.grid.disableReadyBtn or showReadyCooldown,
                 onClick = function()
                     M.cache.data.grid.disableReadyBtn = true -- api request protection
+                    M.cache.data.grid.disableJoinLeaveBtn = true -- api request protection
                     BJITx.scenario.RaceMultiUpdate(M.mgr.CLIENT_EVENTS.READY)
                 end,
                 big = true,

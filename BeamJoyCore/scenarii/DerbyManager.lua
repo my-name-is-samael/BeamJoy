@@ -192,7 +192,7 @@ local function finishDerby()
         BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.draw", {}, 5)
     end
 
-    stopDerby()
+    BJCAsync.delayTask(stopDerby, BJCConfig.Data.Derby.EndTimeout)
 end
 
 local function onClientDestroyed(playerID, time)
@@ -257,7 +257,8 @@ local function onClientUpdate(senderID, event, data)
                 M.participants[pos].eliminationTime = data
                 sortParticipants()
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-                if not M.participants[2] or M.participants[2].eliminationTime then
+                if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
+                    M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
                     finishDerby()
                 end
             end
@@ -265,23 +266,6 @@ local function onClientUpdate(senderID, event, data)
             onClientDestroyed(senderID, data)
         end
     end
-end
-
-local function compareVehicle(required, spawned)
-    if not required and spawned or not spawned then
-        return false
-    end
-
-    -- remove blank parts (causing compare to fail)
-    for _, arr in ipairs({ required, spawned }) do
-        for k, v in pairs(arr) do
-            if #v:trim() == 0 then
-                arr[k] = nil
-            end
-        end
-    end
-
-    return table.compare(required, spawned)
 end
 
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)

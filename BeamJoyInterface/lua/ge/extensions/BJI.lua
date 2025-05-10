@@ -39,7 +39,8 @@ function TriggerBJIManagerEvent(eventName, ...)
         if type(manager[eventName]) == "function" then
             local status, err = pcall(manager[eventName], ...)
             if not status then
-                LogError(string.var("Error executing event {1} on manager {2} : {3}", { eventName, i, err }))
+                LogError(string.var("Error executing event {1} on manager {2} : {3}",
+                    { eventName, manager._name or i, err }))
             end
         end
     end
@@ -129,7 +130,7 @@ function M.onExtensionLoaded()
         if type(manager.onLoad) == "function" then
             local status, err = pcall(manager.onLoad)
             if not status then
-                LogError(string.var("Error during {1} onLoad : {2}", {manager._name, err}), tag)
+                LogError(string.var("Error during {1} onLoad : {2}", { manager._name, err }), tag)
             end
         end
     end
@@ -198,7 +199,7 @@ function M.onExtensionUnloaded()
         if type(manager.onUnload) == "function" then
             local status, err = pcall(manager.onUnload)
             if not status then
-                LogError(string.var("Error during {1} onUnload : {2}", {manager._name, err}), tag)
+                LogError(string.var("Error during {1} onUnload : {2}", { manager._name, err }), tag)
             end
         end
     end
