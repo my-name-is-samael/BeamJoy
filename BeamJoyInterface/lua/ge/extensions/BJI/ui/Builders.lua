@@ -948,6 +948,7 @@ LineBuilder = function(startSameLine)
         return self
     end
 
+    ---@param data {icon: string, big?: boolean, border?: vec4, style?: vec4[], coloredIcon?: boolean}
     builder.icon = function(self, data)
         if not data.icon then
             LogError("icon requires icon", logTag)
@@ -957,7 +958,7 @@ LineBuilder = function(startSameLine)
         if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
             local status = pcall(function() return data.style[1] end)
             if not status then
-                LogError(string.var("({1}) icon.style has invalid type", { data.id }))
+                LogError("icon.style has invalid type")
                 return self
             end
         end

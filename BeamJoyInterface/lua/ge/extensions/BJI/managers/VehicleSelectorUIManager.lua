@@ -125,7 +125,11 @@ local function notifyUIEnd()
     p = nil
 end
 
-local function postSpawnCamera(ctxt)
+local function postSpawnActions(ctxt)
+    if BJIAI.selfVehs:includes(ctxt.veh:getID()) then
+        -- was manually toggled, resume state
+        ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
+    end
     if ctxt.camera == BJICam.CAMERAS.FREE then
         BJICam.toggleFreeCam()
         ctxt.camera = BJICam.getCamera()
@@ -154,7 +158,7 @@ local function cloneCurrent(...)
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
+    BJIVeh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.cloneCurrent(...)
 end
 
@@ -179,7 +183,7 @@ local function spawnDefault(...)
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
+    BJIVeh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnDefault(...)
 end
 
@@ -205,7 +209,7 @@ local function spawnNewVehicle(model, opts)
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
+    BJIVeh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnNewVehicle(model, opts)
 end
 
@@ -228,7 +232,7 @@ local function replaceVehicle(...)
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnCamera)
+    BJIVeh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.replaceVehicle(...)
 end
 

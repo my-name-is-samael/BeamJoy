@@ -176,9 +176,7 @@ local function onVehicleResetted(gameVehID)
 
     if M.type == M.TYPES.GHOSTS then
         local veh = BJIVeh.getVehicleObject(gameVehID)
-        if not veh or BJIVeh.isUnicycle(gameVehID) or
-            table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP },
-                BJIVeh.getType(veh.jbeam)) then
+        if not veh or not isVehicle(gameVehID) then
             return
         end
 
@@ -232,9 +230,7 @@ end
 local function renderTick(ctxt)
     if not ctxt.veh then
         return -- no current veh
-    elseif BJIAI.isAIVehicle(ctxt.veh:getID()) or
-        BJIVeh.isUnicycle(ctxt.veh:getID()) or
-        table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP }, BJIVeh.getType(ctxt.veh.jbeam)) then
+    elseif not canBecomeGhost(ctxt.veh:getID()) then
         return -- is AI or not a vehicle
     end
 
@@ -272,14 +268,11 @@ local function updatePermaGhosts()
             :forEach(function(player)
                 Table(player.vehicles)
                     :map(function(v)
-                        return BJIVeh.getRemoteVehID(v.gameVehID)
+                        return v.finalGameVehID
                     end):values()
                     :filter(function(gameVehID)
                         local veh = BJIVeh.getVehicleObject(gameVehID)
-                        return veh ~= nil and not BJIAI.isAIVehicle(gameVehID) and
-                            not BJIVeh.isUnicycle(gameVehID) and
-                            not table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP },
-                                BJIVeh.getType(veh.jbeam))
+                        return veh ~= nil and canBecomeGhost(gameVehID)
                     end)
                     :forEach(function(gameVehID)
                         if player.isGhost and not M.permaGhosts[gameVehID] then

@@ -102,76 +102,105 @@ end
 ---@param cache table
 local function drawVehicles(player, ctxt, cache)
     if player.vehiclesCount > 0 then
-        LineBuilder()
-            :text(string.var("{1} ({2}):", { cache.labels.players.moderation.vehicles, player.vehiclesCount }))
-            :build()
+        local canFocus = not BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SWITCH)
 
-        local cols = ColumnsBuilder(string.var("BJIPlayerVehicles-{1}", { player.playerID }),
-            { player.vehiclesLabelWidth, -1 })
-        for vehID, vehicle in pairs(player.vehicles) do
-            local finalGameVehID = BJIVeh.getVehicleObject(vehicle.gameVehID)
-            finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
-            local isCurrentVehicle = not finalGameVehID or (ctxt.veh and ctxt.veh:getID() == finalGameVehID)
-            cols:addRow({
-                cells = {
-                    function()
-                        LineBuilder()
-                            :text("@ =>", isCurrentVehicle and TEXT_COLORS.HIGHLIGHT or RGBA(0, 0, 0, 0))
-                            :text(vehicle.model)
-                            :build()
-                    end,
-                    (player.self or player.isGroupLower) and function()
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("focus{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.cameraFocusOnVehicle2,
-                                style = BTN_PRESETS.INFO,
-                                disabled = isCurrentVehicle,
-                                onClick = function()
-                                    BJIVeh.focusVehicle(finalGameVehID)
-                                end
-                            })
-                            :btnIconToggle({
+        local function drawList()
+            local cols = ColumnsBuilder(string.var("BJIPlayerVehicles-{1}", { player.playerID }),
+                { player.vehiclesLabelWidth, -1 })
+            for vehID, vehicle in pairs(player.vehicles) do
+                local isCurrentVehicle = ctxt.veh and ctxt.veh:getID() == vehicle.finalGameVehID
+                cols:addRow({
+                    cells = {
+                        function()
+                            local line = LineBuilder()
+                            if vehicle.isAI then
+                                line:icon({
+                                    icon = ICONS.AIMicrochip,
+                                    style = { isCurrentVehicle and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT },
+                                    coloredIcon = true,
+                                })
+                            elseif isCurrentVehicle then
+                                line:icon({
+                                    icon = ICONS.visibility,
+                                    style = { TEXT_COLORS.HIGHLIGHT },
+                                    coloredIcon = true,
+                                })
+                            else
+                                line:icon({
+                                    icon = ICONS.visibility_off,
+                                    style = { RGBA(0, 0, 0, 0) },
+                                    coloredIcon = true,
+                                })
+                            end
+                            line:text(vehicle.model)
+                                :build()
+                        end,
+                        (player.self or player.isGroupLower) and function()
+                            local line = LineBuilder()
+                            if canFocus then
+                                line:btnIcon({
+                                    id = string.var("focus{1}-{2}", { player.playerID, vehID }),
+                                    icon = ICONS.cameraFocusOnVehicle2,
+                                    style = BTN_PRESETS.INFO,
+                                    disabled = isCurrentVehicle,
+                                    onClick = function()
+                                        BJIVeh.focusVehicle(vehicle.finalGameVehID)
+                                    end
+                                })
+                            end
+                            line:btnIconToggle({
                                 id = string.var("toggleFreeze{1}-{2}", { player.playerID, vehID }),
                                 icon = ICONS.ac_unit,
                                 state = not not vehicle.freeze,
-                                disabled = not finalGameVehID,
+                                disabled = not vehicle.finalGameVehID,
                                 onClick = function()
                                     BJITx.moderation.freeze(player.playerID, vehID)
                                 end
                             })
-                            :btnIconToggle({
-                                id = string.var("toggleEngine{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.cogs,
-                                state = not not vehicle.engine,
-                                disabled = not finalGameVehID,
-                                onClick = function()
-                                    BJITx.moderation.engine(player.playerID, vehID)
-                                end
-                            })
-                            :btnIcon({
-                                id = string.var("delete{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.delete_forever,
-                                style = BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    BJITx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
-                                end
-                            })
-                            :btnIcon({
-                                id = string.var("explode{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.whatshot,
-                                style = BTN_PRESETS.ERROR,
-                                disabled = not finalGameVehID,
-                                onClick = function()
-                                    BJITx.player.explodeVehicle(vehicle.gameVehID)
-                                end
-                            })
-                            :build()
-                    end,
-                }
-            })
+                                :btnIconToggle({
+                                    id = string.var("toggleEngine{1}-{2}", { player.playerID, vehID }),
+                                    icon = ICONS.cogs,
+                                    state = not not vehicle.engine,
+                                    disabled = not vehicle.finalGameVehID,
+                                    onClick = function()
+                                        BJITx.moderation.engine(player.playerID, vehID)
+                                    end
+                                })
+                                :btnIcon({
+                                    id = string.var("delete{1}-{2}", { player.playerID, vehID }),
+                                    icon = ICONS.delete_forever,
+                                    style = BTN_PRESETS.ERROR,
+                                    onClick = function()
+                                        BJITx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
+                                    end
+                                })
+                                :btnIcon({
+                                    id = string.var("explode{1}-{2}", { player.playerID, vehID }),
+                                    icon = ICONS.whatshot,
+                                    style = BTN_PRESETS.ERROR,
+                                    disabled = not vehicle.finalGameVehID,
+                                    onClick = function()
+                                        BJITx.player.explodeVehicle(vehicle.gameVehID)
+                                    end
+                                })
+                                :build()
+                        end,
+                    }
+                })
+            end
+            cols:build()
         end
-        cols:build()
+
+        local vehsLabel = string.var("{1} ({2}):", { cache.labels.players.moderation.vehicles, player.vehiclesCount })
+        if player.showModeration then
+            AccordionBuilder()
+                :label(vehsLabel)
+                :openedBehavior(drawList)
+                :build()
+        else
+            LineLabel(vehsLabel)
+            drawList()
+        end
     end
 end
 
@@ -478,7 +507,7 @@ local function drawListPlayers(ctxt, cache)
                 drawHeaderActions(player, false)
                 Indent(-1)
             else
-                AccordionBuilder()
+                AccordionBuilder(0)
                     :label(string.var("{1} {2}", { player.playerName, player.nameSuffix }),
                         player.self and TEXT_COLORS.HIGHLIGHT or TEXT_COLORS.DEFAULT)
                     :closedBehavior(

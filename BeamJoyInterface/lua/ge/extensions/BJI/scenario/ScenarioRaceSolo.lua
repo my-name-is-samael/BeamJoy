@@ -102,7 +102,7 @@ local function onLoad(ctxt)
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     BJIBigmap.toggleQuickTravel(false)
     BJIRaceWaypoint.resetAll()
@@ -163,7 +163,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     guihooks.trigger('ScenarioResetTimer')
     BJIBigmap.toggleQuickTravel(true)

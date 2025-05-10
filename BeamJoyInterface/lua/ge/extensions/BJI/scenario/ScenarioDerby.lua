@@ -72,7 +72,7 @@ local function onLoad(ctxt)
             BJIRestrictions.OTHER.WALKING,
             BJIRestrictions.OTHER.BIG_MAP,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     BJIBigmap.toggleQuickTravel(false)
     BJIGPS.reset()
@@ -335,7 +335,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.BIG_MAP,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIMessage.cancelFlash("BJIDerbyDestroy")
     if ctxt.isOwner then
@@ -365,10 +365,12 @@ end
 local function onJoinParticipants()
     BJIRestrictions.update({ {
         restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = #M.configs == 1,
+        state = #M.configs == 1 and
+            BJIRestrictions.STATE.RESTRICTED or
+            BJIRestrictions.STATE.ALLOWED,
     }, {
         restrictions = BJIRestrictions.OTHER.FREE_CAM,
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     M.startPos = findFreeStartPosition()
     if #M.configs == 1 then
@@ -382,10 +384,10 @@ end
 local function onLeaveParticipants()
     BJIRestrictions.update({ {
         restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     }, {
         restrictions = BJIRestrictions.OTHER.FREE_CAM,
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     HideGameMenu()
     BJICam.setCamera(BJICam.CAMERAS.FREE)
@@ -401,7 +403,7 @@ local function onReady()
             BJIRestrictions.OTHER.FREE_CAM,
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
 end
 
@@ -465,13 +467,19 @@ local function onElimination()
     local participant = M.getParticipant()
     if participant then
         BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
-        BJIRestrictions.update({ {
-            restrictions = Table({
-                BJIRestrictions.OTHER.FREE_CAM,
-                BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            }):flat(),
-            state = false,
-        } })
+        BJIRestrictions.update({
+            {
+                restrictions = BJIRestrictions.RESET.ALL,
+                state = BJIRestrictions.STATE.RESTRICTED,
+            },
+            {
+                restrictions = Table({
+                    BJIRestrictions.OTHER.FREE_CAM,
+                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                }):flat(),
+                state = BJIRestrictions.STATE.ALLOWED,
+            }
+        })
         if participant.gameVehID then
             BJITx.player.explodeVehicle(participant.gameVehID)
         else

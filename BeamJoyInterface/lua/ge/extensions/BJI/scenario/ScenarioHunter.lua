@@ -28,6 +28,7 @@ local M = {
     huntersRespawnDelay = 0,
     waypoints = {},
 
+    ---@type BJIPositionRotation?
     startpos = nil,
     waypoint = 1,
 
@@ -82,7 +83,7 @@ local function onLoad(ctxt)
             BJIRestrictions.OTHER.BIG_MAP,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     BJIBigmap.toggleQuickTravel(false)
     BJIRaceWaypoint.resetAll()
@@ -118,7 +119,7 @@ local function onUnload()
             BJIRestrictions.OTHER.BIG_MAP,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIVehSelector.tryClose(true)
     BJIBigmap.toggleQuickTravel(true)
@@ -322,7 +323,7 @@ local function onJoinParticipants(isHunted)
             BJIRestrictions.update({
                 {
                     restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-                    state = false,
+                    state = BJIRestrictions.STATE.ALLOWED,
                 }
             })
             BJIMessage.flash("BJIHunterChooseVehicle", BJILang.get("hunter.play.flashChooseVehicle"), 3, false)
@@ -352,7 +353,7 @@ local function onJoinParticipants(isHunted)
             BJIRestrictions.update({
                 {
                     restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-                    state = false,
+                    state = BJIRestrictions.STATE.ALLOWED,
                 }
             })
             BJIMessage.flash("BJIHunterChooseVehicle", BJILang.get("hunter.play.flashChooseVehicle"), 3, false)
@@ -374,7 +375,7 @@ local function onLeaveParticipants()
     BJIRestrictions.update({
         {
             restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            state = true,
+            state = BJIRestrictions.STATE.RESTRICTED,
         }
     })
     M.waypoints = {}
@@ -493,7 +494,7 @@ local function initGame(data)
                 BJIRestrictions.OTHER.VEHICLE_SWITCH,
                 BJIRestrictions.OTHER.FREE_CAM,
             }):flat(),
-            state = false,
+            state = BJIRestrictions.STATE.ALLOWED,
         } })
     end
 end

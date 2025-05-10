@@ -59,19 +59,26 @@ end
 -- load hook
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.update({ {
-        restrictions = Table({
-            BJIRestrictions.RESET.TELEPORT,
-            BJIRestrictions.RESET.HEAVY_RELOAD,
-            not BJIPerm.canSpawnAI() and BJIRestrictions.OTHER.AI_CONTROL or nil,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
-        }):values():flat(),
-        state = true,
-    } })
+    BJIRestrictions.update({
+        {
+            restrictions = Table({
+                BJIRestrictions.RESET.TELEPORT,
+                BJIRestrictions.RESET.HEAVY_RELOAD,
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                BJIRestrictions.OTHER.WALKING,
+            }):flat(),
+            state = BJIRestrictions.STATE.RESTRICTED,
+        },
+        {
+            restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+            state = BJIPerm.canSpawnAI() and
+                BJIRestrictions.STATE.ALLOWED or
+                BJIRestrictions.STATE.RESTRICTED,
+        }
+    })
     BJIBigmap.toggleQuickTravel(false)
     BJIGPS.reset()
     BJIRaceWaypoint.resetAll()
@@ -225,7 +232,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.VEHICLE_DEBUG,
             BJIRestrictions.OTHER.WALKING,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIBigmap.toggleQuickTravel(true)
     BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
