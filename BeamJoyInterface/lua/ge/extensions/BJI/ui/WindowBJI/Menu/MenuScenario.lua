@@ -392,16 +392,7 @@ local function menuDerby(ctxt)
                         }),
                         onClick = function()
                             BJIContext.Scenario.DerbyEdit = nil
-                            local existing = BJIContext.Scenario.DerbySettings
-                            if not existing then
-                                BJIContext.Scenario.DerbySettings = {
-                                    lives = 3,
-                                    configs = BJIScenario.get(BJIScenario.TYPES.DERBY).configs or {}
-                                }
-                                existing = BJIContext.Scenario.DerbySettings
-                            end
-                            existing.arenaIndex = i
-                            existing.arena = arena
+                            BJIDerbySettingsWindow.open(i)
                         end
                     })
                 end

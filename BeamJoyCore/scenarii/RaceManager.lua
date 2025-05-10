@@ -32,18 +32,6 @@ local M = {
         model = nil,
         config = nil,
         respawnStrategy = nil,
-        time = {
-            label = nil,
-            ToD = nil,
-        },
-        weather = {
-            label = nil,
-            keys = nil,
-        },
-    },
-
-    previous = {   -- data to restore after race
-        env = nil, -- list of keys to restore
     },
 
     grid = {
@@ -77,14 +65,6 @@ local function stopRace()
         model = nil,
         config = nil,
         respawnStrategy = nil,
-        time = {
-            label = nil,
-            ToD = nil,
-        },
-        weather = {
-            label = nil,
-            keys = nil,
-        },
     }
     M.grid = {
         participants = {},
@@ -102,14 +82,6 @@ local function stopRace()
     }
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
-
-    if M.previous.env then
-        for k, v in pairs(M.previous.env) do
-            pcall(BJCEnvironment.set, k, v)
-        end
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
-    end
-    M.previous = { env = nil }
 end
 
 local function onClientStopRace()
@@ -196,7 +168,7 @@ local function startGridTimeout(time)
     BJCAsync.programTask(onGridTimeout, time, "BJCRaceGridTimeout")
 end
 
-local function start(raceID, settings, time, weather)
+local function start(raceID, settings)
     BJCScenario.stopServerScenarii()
     for _, player in pairs(BJCPlayers.Players) do
         player.scenario = nil
@@ -204,47 +176,13 @@ local function start(raceID, settings, time, weather)
 
     M.baseRace = BJCScenario.getRace(raceID)
     M.settings = settings
-    M.time = time
-    M.weather = weather
 
     M.grid.participants = {}
     M.grid.ready = {}
     M.grid.timeout = GetCurrentTime() + BJCConfig.Data.Race.GridTimeout
     M.grid.readyTime = GetCurrentTime() + BJCConfig.Data.Race.GridReadyTimeout
 
-    if M.time.ToD or M.weather.keys then
-        M.previous.env = {}
-        if M.time.ToD then
-            if not BJCEnvironment.Data.controlSun then
-                M.previous.env.controlSun = BJCEnvironment.Data.controlSun
-                BJCEnvironment.set("controlSun", true)
-            end
-            if BJCEnvironment.Data.timePlay then
-                M.previous.env.timePlay = BJCEnvironment.Data.timePlay
-                BJCEnvironment.set("timePlay", false)
-            end
-            M.previous.env.ToD = BJCEnvironment.Data.ToD
-            BJCEnvironment.set("ToD", M.time.ToD)
-        end
-        dump(5, M.weather)
-        if M.weather.keys then
-            if not BJCEnvironment.Data.controlWeather then
-                M.previous.env.controlWeather = BJCEnvironment.Data.controlWeather
-                BJCEnvironment.set("controlWeather", true)
-            end
-            for k, v in pairs(M.weather.keys) do
-                if BJCEnvironment.Data[k] then
-                    M.previous.env[k] = BJCEnvironment.Data[k]
-                    pcall(BJCEnvironment.set, k, v)
-                end
-            end
-        end
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
-    end
-    dump(6, M)
-
     M.state = M.STATES.GRID
-    dump(10, M)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
     startGridTimeout(M.grid.timeout)
 end
@@ -567,30 +505,6 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
-local function compareVehicle(required, spawned)
-    if not required and spawned or not spawned then
-        return false
-    end
-
-    -- remove blank parts (causing compare to fail)
-    table.forEach({ required, spawned }, function(parts, i)
-        table.forEach(parts, function(part, k)
-            if #(part:trim()) == 0 then
-                parts[k] = nil
-            end
-        end)
-    end)
-
-    -- some spawned config parts won't show up, then remove them
-    table.forEach(required, function(_, k)
-        if not spawned[k] then
-            required[k] = nil
-        end
-    end)
-
-    return table.compare(required, spawned)
-end
-
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     if M.state == M.STATES.GRID and
         table.includes(M.grid.participants, playerID) and
@@ -610,7 +524,7 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
                 -- forced config
                 M.settings.config = M.settings.config or {}
                 local sameConfig = vehData.vcf.model == M.settings.config.model and
-                    compareVehicle(table.clone(M.settings.config.parts), vehData.vcf.parts)
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.settings.config.parts)
                 if not sameConfig then
                     onWrongVehicleAtGrid()
                 end

@@ -7,8 +7,6 @@
 ---@field defaultRespawnStrategy? string
 ---@field respawnStrategies string[]
 ---@field vehicleMode string|nil
----@field time? {label?: string, ToD?: integer}
----@field weather? {label?: string, keys?: table}
 
 local envUtils = require("ge/extensions/utils/EnvironmentUtils")
 local M = {
@@ -29,8 +27,6 @@ local M = {
         defaultRespawnStrategy = nil,
         respawnStrategies = {},
         vehicleMode = nil,
-        time = nil,
-        weather = nil,
     },
 
     cache = {
@@ -48,16 +44,6 @@ local M = {
             comboVehicle = {},
             ---@type {value?: string, label: string}?
             vehicleSelected = nil,
-
-            ---@type {ToD?: string, label: string, key?: string}[]
-            comboTime = {},
-            ---@type {ToD?: string, label: string, key?: string}?
-            timeSelected = nil,
-
-            ---@type {keys?: string[], label: string, key?: string}[]
-            comboWeather = {},
-            ---@type {keys?: string[], label: string, key?: string}?
-            weatherSelected = nil,
 
             showVoteBtn = false,
             showStartBtn = false,
@@ -81,8 +67,6 @@ local M = {
                 currentModel = "",
                 currentConfig = "",
             },
-            time = "",
-            weather = "",
         },
         widths = {
             labels = 0,
@@ -111,9 +95,6 @@ local function updateLabels()
     M.cache.labels.vehicle.all = BJILang.get("races.settings.vehicles.all")
     M.cache.labels.vehicle.currentModel = BJILang.get("races.settings.vehicles.currentModel")
     M.cache.labels.vehicle.currentConfig = BJILang.get("races.settings.vehicles.currentConfig")
-
-    M.cache.labels.time = BJILang.get("races.settings.time")
-    M.cache.labels.weather = BJILang.get("races.settings.weather")
 end
 
 local function updateWidths()
@@ -122,64 +103,12 @@ local function updateWidths()
         M.cache.labels.laps,
         M.cache.labels.respawnStrategies.title,
         M.settings.multi and M.cache.labels.vehicle.title or nil,
-        M.settings.multi and M.cache.labels.time or nil,
-        M.settings.multi and M.cache.labels.weather or nil,
     }, function(label)
         local w = GetColumnTextWidth(label or "")
         if w > M.cache.widths.labels then
             M.cache.widths.labels = w
         end
     end)
-end
-
----@param ctxt? TickContext
-local function updatePresets(ctxt)
-    ctxt = ctxt or BJITick.getContext()
-
-    M.cache.data.comboTime = {}
-    M.cache.data.comboWeather = {}
-
-    if M.settings.multi then
-        -- time presets
-        table.insert(M.cache.data.comboTime, {
-            label = BJILang.get("presets.time.currentTime"),
-        })
-        table.forEach(envUtils.timePresets(), function(p)
-            local comboElem = {
-                key = p.label,
-                label = BJILang.get(string.var("presets.time.{1}", { p.label })),
-                ToD = p.ToD,
-            }
-            table.insert(M.cache.data.comboTime, comboElem)
-            if not M.cache.data.timeSelected and M.settings.time and
-                M.settings.time.ToD == p.ToD then
-                M.cache.data.timeSelected = comboElem
-            end
-        end)
-        if not M.cache.data.timeSelected then
-            M.cache.data.timeSelected = M.cache.data.comboTime[1]
-        end
-
-        -- weather presets
-        table.insert(M.cache.data.comboWeather, {
-            label = BJILang.get("presets.weather.currentWeather"),
-        })
-        table.forEach(envUtils.weatherPresets(), function(p)
-            local comboElem = {
-                key = p.label,
-                label = BJILang.get(string.var("presets.weather.{1}", { p.label })),
-                keys = p.keys,
-            }
-            table.insert(M.cache.data.comboWeather, comboElem)
-            if not M.cache.data.weatherSelected and M.settings.weather and
-                M.settings.weather.label == p.label then
-                M.cache.data.weatherSelected = comboElem
-            end
-        end)
-        if not M.cache.data.weatherSelected then
-            M.cache.data.weatherSelected = M.cache.data.comboWeather[1]
-        end
-    end
 end
 
 ---@param ctxt? TickContext
@@ -287,7 +216,6 @@ end
 
 local listeners = Table()
 local function onLoad()
-    updatePresets()
     updateLabels()
     listeners:insert(BJIEvents.addListener({
         BJIEvents.EVENTS.LANG_CHANGED,
@@ -295,7 +223,6 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateWidths()
-        updatePresets(ctxt)
     end))
 
     updateWidths()
@@ -393,60 +320,6 @@ local function drawVehicleSelector(cols, ctxt)
     end
 end
 
-local function drawTimeOfDaySelector(cols)
-    cols:addRow({
-        cells = {
-            function()
-                LineBuilder()
-                    :text(M.cache.labels.time)
-                    :build()
-            end,
-            function()
-                LineBuilder()
-                    :inputCombo({
-                        id = "timePreset",
-                        items = M.cache.data.comboTime,
-                        getLabelFn = function(v)
-                            return v.label
-                        end,
-                        value = M.cache.data.timeSelected,
-                        onChange = function(v)
-                            M.cache.data.timeSelected = v
-                        end,
-                    })
-                    :build()
-            end
-        }
-    })
-end
-
-local function drawWeatherSelector(cols)
-    cols:addRow({
-        cells = {
-            function()
-                LineBuilder()
-                    :text(M.cache.labels.weather)
-                    :build()
-            end,
-            function()
-                LineBuilder()
-                    :inputCombo({
-                        id = "weatherPreset",
-                        items = M.cache.data.comboWeather,
-                        getLabelFn = function(v)
-                            return v.label
-                        end,
-                        value = M.cache.data.weatherSelected,
-                        onChange = function(v)
-                            M.cache.data.weatherSelected = v
-                        end,
-                    })
-                    :build()
-            end
-        }
-    })
-end
-
 local function drawHeader()
     LineBuilder():text(M.cache.labels.title, TEXT_COLORS.HIGHLIGHT):build()
     LineBuilder():text(M.cache.labels.raceName):build()
@@ -493,8 +366,6 @@ local function drawBody(ctxt)
     drawRespawnStrategies(cols)
     if M.settings.multi then
         drawVehicleSelector(cols, ctxt)
-        drawTimeOfDaySelector(cols)
-        drawWeatherSelector(cols)
     end
 
     cols:build()
@@ -505,8 +376,6 @@ local function getPayloadSettings()
         laps = M.settings.loopable and M.settings.laps or nil,
         model = M.cache.data.vehicleSelected.value ~= M.VEHICLE_MODES.ALL and M.cache.data.currentVeh.model or nil,
         config = M.cache.data.vehicleSelected.value == M.VEHICLE_MODES.CONFIG and M.cache.data.currentVeh.config or nil,
-        time = table.clone(M.cache.data.timeSelected),
-        weather = table.clone(M.cache.data.weatherSelected),
         respawnStrategy = M.cache.data.respawnStrategySelected.value,
     }
 end
@@ -595,7 +464,6 @@ local function open(raceSettings)
             --if already open, update data
             updateLabels()
             updateWidths()
-            updatePresets()
             updateCache()
         end
         M.show = true

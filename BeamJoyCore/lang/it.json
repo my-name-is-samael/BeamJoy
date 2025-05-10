@@ -973,9 +973,7 @@
           "currentModel": "Modello attuale",
           "currentConfig": "Configurazione attuale",
           "specific": "{model} specifico"
-        },
-        "time": "Ora del giorno",
-        "weather": "Tempo atmosferico"
+        }
       },
       "preparation": {
         "singleplayer": "Gara per giocatore singolo",

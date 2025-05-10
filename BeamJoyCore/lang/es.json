@@ -973,9 +973,7 @@
           "currentModel": "Modelo actual",
           "currentConfig": "Configuración actual",
           "specific": "{model} específico"
-        },
-        "time": "Hora del día",
-        "weather": "Clima"
+        }
       },
       "preparation": {
         "singleplayer": "Carrera para un jugador",

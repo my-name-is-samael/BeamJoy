@@ -1,66 +1,202 @@
-local ds
+local M = {
+    flags = {
+        WINDOW_FLAGS.NO_COLLAPSE,
+    },
+    show = false,
+
+    labels = {
+        title = "",
+        places = "",
+        lives = "",
+        configs = "",
+        configsTooltip = "",
+        specificConfig = "",
+    },
+    data = {
+        arenaIndex = 0,
+        arena = {},
+        lives = 3,
+        ---@type {label: string, model: string, key?: string, custom: boolean, config: table}[]|tablelib
+        configs = Table(),
+
+        places = "",
+        headerWidth = 0,
+        labelsWidth = 0,
+    },
+
+    presets = require("ge/extensions/utils/VehiclePresets").getDerbyPresets(),
+}
 
 local function onClose()
-    BJIContext.Scenario.DerbySettings = nil
+    M.show = false
 end
 
-local function drawHeader(ctxt)
-    ds = BJIContext.Scenario.DerbySettings
-    local potentialPlayers = BJIPerm.getCountPlayersCanSpawnVehicle()
-    local minimumParticipants = BJIScenario.get(BJIScenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
-    if potentialPlayers < minimumParticipants then
-        -- when a player leaves then there are not enough players to start
-        BJIToast.warning(BJILang.get("derby.settings.notEnoughPlayers"))
-        onClose()
-    end
-
-    LineBuilder()
-        :text(BJILang.get("derby.settings.title"))
-        :build()
-
-    LineBuilder()
-        :text(ds.arena.name)
-        :text(string.var("({1})", { BJILang.get("derby.settings.places"):var({ places = #ds.arena.startPositions }) }))
-        :build()
+local function updateLabels()
+    M.labels.title = BJILang.get("derby.settings.title")
+    M.labels.places = BJILang.get("derby.settings.places")
+    M.labels.lives = BJILang.get("derby.settings.lives")
+    M.labels.configs = BJILang.get("derby.settings.configs")
+    M.labels.configsTooltip = BJILang.get("derby.settings.configsTooltip")
+    M.labels.specificConfig = BJILang.get("derby.settings.specificConfig")
 end
 
-local function drawBody(ctxt)
-    if not BJIContext.Scenario.DerbySettings then
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJITick.getContext()
+
+    M.data.places = string.var("({1})", { M.labels.places:var({ places = #M.data.arena.startPositions }) })
+
+    M.data.headerWidth = Table({
+        M.labels.title,
+        M.data.arena.name .. " " .. M.data.places
+    }):reduce(function(acc, v)
+        local w = GetColumnTextWidth(v)
+        return w > acc and w or acc
+    end, 0)
+
+    M.data.labelsWidth = Table({
+        M.labels.lives,
+        M.labels.configs .. HELPMARKER_TEXT,
+    }):reduce(function(acc, label)
+        local w = GetColumnTextWidth(label)
+        return w > acc and w or acc
+    end, 0)
+end
+
+local listeners = Table()
+local function onLoad()
+    updateLabels()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.LANG_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST,
+    }, updateLabels))
+
+    updateCache()
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.UI_SCALE_CHANGED,
+        BJIEvents.EVENTS.UI_UPDATE_REQUEST,
+    }, updateCache))
+
+    listeners:insert(BJIEvents.addListener({
+        BJIEvents.EVENTS.CACHE_LOADED,
+    }, function(_, data)
+        if data.cache == BJICache.CACHES.PLAYERS and
+            BJIPerm.getCountPlayersCanSpawnVehicle() < BJIScenario.get(BJIScenario.TYPES.DERBY).MINIMUM_PARTICIPANTS then
+            BJIToast.warning(BJILang.get("derby.settings.notEnoughPlayers"))
+            onClose()
+        end
+    end))
+end
+
+local function onUnload()
+    listeners:forEach(BJIEvents.removeListener)
+end
+
+local function open(arenaIndex)
+    if not BJIContext.Scenario.Data.Derby or
+        not BJIContext.Scenario.Data.Derby[arenaIndex] then
         return
     end
-    local labelWidth = 0
-    for _, key in ipairs({
-        "derby.settings.lives",
-        "derby.settings.configs",
-    }) do
-        local w = GetColumnTextWidth(BJILang.get(key) .. HELPMARKER_TEXT)
-        if w > labelWidth then
-            labelWidth = w
-        end
-    end
 
-    local btnsWidth = GetBtnIconSize() * 3
+    M.data.arenaIndex = arenaIndex
+    M.data.arena = BJIContext.Scenario.Data.Derby[arenaIndex]
+    if M.show then updateCache() end
+    M.show = true
+end
 
-    local cols = ColumnsBuilder("BJIDerbySettings", { labelWidth, -1, btnsWidth })
-        -- LIVES
+local function header(ctxt)
+    ColumnsBuilder("BJIDerbyHeader", { M.data.headerWidth, -1 })
         :addRow({
             cells = {
                 function()
-                    LineBuilder()
-                        :text(BJILang.get("derby.settings.lives"))
-                        :build()
+                    LineLabel(M.labels.title)
+                    LineBuilder():text(M.data.arena.name):text(M.data.places):build()
+                end,
+                function()
+                    LineLabel("Presets :")
+                    local line = LineBuilder()
+                    Table(M.presets):forEach(function(preset, i)
+                        line:btn({
+                            id = string.var("preset-{1}", { i }),
+                            label = preset.label,
+                            style = BTN_PRESETS.INFO,
+                            disabled = #M.data.configs == 5,
+                            onClick = function()
+                                M.data.configs:addAll(
+                                    Range(1, 5 - #M.data.configs)
+                                    :reduce(function(acc)
+                                        local j
+                                        while not j do
+                                            j = math.random(#acc.configs)
+                                            if M.data.configs:find(function(c)
+                                                    return c.model == acc.configs[j].model and
+                                                        c.key == acc.configs[j].key
+                                                end) then
+                                                acc.configs:remove(j)
+                                                j = nil
+                                            end
+                                        end
+                                        acc.gen:insert(acc.configs:remove(j))
+                                        return acc
+                                    end, { gen = Table(), configs = table.clone(preset.configs) }).gen
+                                    :map(function(gen)
+                                        return {
+                                            model = gen.model,
+                                            key = gen.key,
+
+                                            label = string.var("{1} {2}", { BJIVeh.getModelLabel(gen.model),
+                                                BJIVeh.getConfigLabel(gen.model, gen.key) }),
+                                            config = BJIVeh.getFullConfig(BJIVeh.getConfigByModelAndKey(gen.model,
+                                                gen.key)),
+                                        }
+                                    end)
+                                )
+                            end
+                        })
+                    end)
+                    line:build()
+                end
+            }
+        }):build()
+end
+
+---@param ctxt TickContext
+local function addCurrentConfig(ctxt)
+    local config = {
+        model = ctxt.veh.jbeam,
+        key = BJIVeh.getCurrentConfigKey(),
+        label = BJIVeh.isConfigCustom(ctxt.veh.partConfig) and
+            BJILang.get("derby.settings.specificConfig"):var({ model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
+            string.var("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
+        config = BJIVeh.getFullConfig(ctxt.veh.partConfig),
+    }
+    if M.data.configs:any(function(c)
+            return table.compare(config.config.parts, c.config.parts)
+        end) then
+        BJIToast.error(BJILang.get("derby.settings.toastConfigAlreadySaved"))
+    else
+        M.data.configs:insert(config)
+    end
+end
+
+local function body(ctxt)
+    local cols = ColumnsBuilder("BJIDerbySettings", { M.data.labelsWidth, -1 })
+        :addRow({
+            cells = {
+                function()
+                    LineLabel(M.labels.lives)
                 end,
                 function()
                     LineBuilder()
                         :inputNumeric({
                             id = "derbyLives",
                             type = "int",
-                            value = ds.lives,
+                            value = M.data.lives,
                             min = 0,
                             max = 5,
                             step = 1,
                             onUpdate = function(val)
-                                ds.lives = val
+                                M.data.lives = val
                             end
                         })
                         :build()
@@ -68,103 +204,61 @@ local function drawBody(ctxt)
             }
         })
 
-    local function getConfig()
-        if not ctxt.veh then
-            return
-        end
-
-        return {
-            model = ctxt.veh.jbeam,
-            label = BJIVeh.isConfigCustom(ctxt.veh.partConfig) and
-                BJILang.get("derby.settings.specificConfig")
-                :var({ model = BJIVeh.getModelLabel(ctxt.veh.jbeam) }) or
-                string.var("{1} {2}", { BJIVeh.getModelLabel(ctxt.veh.jbeam), BJIVeh.getCurrentConfigLabel() }),
-            config = BJIVeh.getFullConfig(ctxt.veh.partConfig),
-        }
-    end
-
-    -- CONFIGS
-    for i, confData in ipairs(ds.configs) do
+    Range(1, math.min(#M.data.configs + 1, 5)):forEach(function(i)
+        local config = M.data.configs[i]
         cols:addRow({
             cells = {
                 function()
                     if i == 1 then
                         LineBuilder()
-                            :text(BJILang.get("derby.settings.configs"))
-                            :helpMarker(BJILang.get("derby.settings.configsTooltip"))
+                            :text(M.labels.configs)
+                            :helpMarker(M.labels.configsTooltip)
                             :build()
                     end
                 end,
                 function()
-                    LineBuilder()
-                        :text(confData.label)
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :btnIcon({
-                            id = string.var("showDerbyConfig{1}", { i }),
-                            icon = ICONS.visibility,
-                            style = BTN_PRESETS.INFO,
-                            disabled = not ctxt.isOwner,
-                            onClick = function()
-                                BJIVeh.replaceOrSpawnVehicle(confData.model, confData.config)
-                            end,
-                        })
-                        :btnIcon({
-                            id = string.var("removeDerbyConfig{1}", { i }),
-                            icon = ICONS.delete_forever,
-                            style = BTN_PRESETS.ERROR,
-                            onClick = function()
-                                table.remove(ds.configs, i)
-                            end,
-                        })
-                        :build()
-                end,
-            }
-        })
-    end
-    if #ds.configs < 5 then -- 5 configs max
-        cols:addRow({
-            cells = {
-                function()
-                    if #ds.configs == 0 then
+                    if config then
                         LineBuilder()
-                            :text(BJILang.get("derby.settings.configs"))
-                            :helpMarker(BJILang.get("derby.settings.configsTooltip"))
+                            :btnIcon({
+                                id = string.var("showDerbyConfig{1}", { i }),
+                                icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
+                                style = ctxt.isOwner and BTN_PRESETS.WARNING or BTN_PRESETS.INFO,
+                                onClick = function()
+                                    local fn = ctxt.isOwner and BJIVeh.replaceOrSpawnVehicle or BJIVeh.spawnNewVehicle
+                                    fn(config.model, config.key or { parts = config.config })
+                                end,
+                            })
+                            :btnIcon({
+                                id = string.var("removeDerbyConfig{1}", { i }),
+                                icon = ICONS.delete_forever,
+                                style = BTN_PRESETS.ERROR,
+                                onClick = function()
+                                    M.data.configs:remove(i)
+                                end,
+                            })
+                            :text(config.label)
+                            :build()
+                    else
+                        LineBuilder()
+                            :btnIcon({
+                                id = "addDerbyConfig",
+                                icon = ICONS.addListItem,
+                                style = BTN_PRESETS.SUCCESS,
+                                disabled = not ctxt.veh,
+                                onClick = function()
+                                    addCurrentConfig(ctxt)
+                                end,
+                            })
                             :build()
                     end
                 end,
-                function()
-                    LineBuilder()
-                        :btnIcon({
-                            id = "addDerbyConfig",
-                            icon = ICONS.addListItem,
-                            style = BTN_PRESETS.SUCCESS,
-                            disabled = not ctxt.veh,
-                            onClick = function()
-                                local config = getConfig() or {}
-                                for _, c in ipairs(ds.configs) do
-                                    if table.compare(config, c, true) then
-                                        BJIToast.error(BJILang.get("derby.settings.toastConfigAlreadySaved"))
-                                        return
-                                    end
-                                end
-                                table.insert(ds.configs, config)
-                            end,
-                        })
-                        :build()
-                end,
             }
         })
-    end
+    end)
     cols:build()
 end
 
-local function drawFooter(ctxt)
-    if not BJIContext.Scenario.DerbySettings then
-        return
-    end
+local function footer(ctxt)
     LineBuilder()
         :btnIcon({
             id = "closeDerbySettings",
@@ -177,21 +271,19 @@ local function drawFooter(ctxt)
             icon = ICONS.check,
             style = BTN_PRESETS.SUCCESS,
             onClick = function()
-                local status = pcall(BJITx.scenario.DerbyStart, ds.arenaIndex, ds.lives, ds.configs)
-                if status then
-                    onClose()
-                end
+                BJITx.scenario.DerbyStart(M.data.arenaIndex, M.data.lives, M.data.configs)
+                onClose()
             end
         })
         :build()
 end
 
-return {
-    flags = {
-        WINDOW_FLAGS.NO_COLLAPSE,
-    },
-    header = drawHeader,
-    body = drawBody,
-    footer = drawFooter,
-    onClose = onClose,
-}
+M.onLoad = onLoad
+M.onUnload = onUnload
+M.open = open
+M.header = header
+M.body = body
+M.footer = footer
+M.onClose = onClose
+
+return M

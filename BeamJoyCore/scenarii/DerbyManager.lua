@@ -218,7 +218,8 @@ local function onClientDestroyed(playerID, time)
     sortParticipants()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 
-    if not M.participants[2] or M.participants[2].eliminationTime then
+    if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
+        M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
         finishDerby()
     end
 end
@@ -297,7 +298,7 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             local found = false
             for _, config in ipairs(M.settings.configs) do
                 if vehData.vcf.model == config.model and
-                    compareVehicle(config.parts, vehData.vcf.parts) then
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts) then
                     found = true
                     break
                 end

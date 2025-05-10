@@ -734,7 +734,8 @@ local function saveCurrentVehicle()
     end
 end
 
--- model is optionnal
+---@param model? string
+---@param withTechName? boolean
 local function getModelLabel(model, withTechName)
     model = model or M.getCurrentModel()
     if type(model) ~= "string" then
@@ -760,6 +761,17 @@ local function getModelLabel(model, withTechName)
     else
         return string.var("{1} - {2}", { model, label })
     end
+end
+
+---@param model string
+---@param configKey string
+local function getConfigLabel(model, configKey)
+    if type(model) ~= "string" or type(configKey) ~= "string" then
+        return "?"
+    end
+
+    local modelData = M.getAllVehicleConfigs(true, true)[model] or {}
+    return (modelData.configs and modelData.configs[configKey]) and modelData.configs[configKey].label or "?"
 end
 
 -- config is optionnal
@@ -829,6 +841,7 @@ local function getConfigByModelAndKey(model, configKey)
     return string.var("vehicles/{1}/{2}.pc", { model, configKey })
 end
 
+---@return string?
 local function getCurrentConfigKey()
     local veh = M.getCurrentVehicle()
     if not veh or isConfigCustom() then
@@ -1335,6 +1348,7 @@ M.getDefaultModelAndConfig = getDefaultModelAndConfig
 M.isDefaultModelVehicle = isDefaultModelVehicle
 M.saveCurrentVehicle = saveCurrentVehicle
 M.getModelLabel = getModelLabel
+M.getConfigLabel = getConfigLabel
 M.isConfigCustom = isConfigCustom
 M.isModelBlacklisted = isModelBlacklisted
 M.getFullConfig = getFullConfig

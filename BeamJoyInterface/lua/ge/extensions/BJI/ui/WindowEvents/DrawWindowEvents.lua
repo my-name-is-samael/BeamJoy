@@ -25,7 +25,6 @@ local cache = {
         hasStarted = "",
         title = "",
         settings = "",
-        timeWeather = "",
         record = "",
         votes = "",
         timeAboutEnd = "",
@@ -47,7 +46,6 @@ local cache = {
 
 ---@param ctxt? TickContext
 local function updateCaches(ctxt)
-    LogWarn("EVENTS CACHE UPDATE")
     ctxt = ctxt or BJITick.getContext()
 
     if BJIVote.Kick.started() then
@@ -110,18 +108,6 @@ local function updateCaches(ctxt)
             BJILang.get(string.var("races.settings.respawnStrategies.{1}", { BJIVote.Race.respawnStrategy }))
         }))
         cache.race.settings = settings:join(", ")
-
-        cache.race.timeWeather = nil
-        if BJIVote.Race.timeLabel or BJIVote.Race.weatherLabel then
-            cache.race.timeWeather = Table({
-                BJIVote.Race.timeLabel and string.var("{1}: {2}",
-                    { BJILang.get("environment.ToD"), BJILang.get(string.var("presets.time.{1}",
-                        { BJIVote.Race.timeLabel })) }) or nil,
-                BJIVote.Race.weatherLabel and string.var("{1}: {2}",
-                    { BJILang.get("environment.weather"), BJILang.get(string.var("presets.weather.{1}",
-                        { BJIVote.Race.weatherLabel })) }) or nil
-            }):join(BJILang.get("common.vSeparator"))
-        end
 
         cache.race.record = nil
         if type(BJIVote.Race.record) == "table" then

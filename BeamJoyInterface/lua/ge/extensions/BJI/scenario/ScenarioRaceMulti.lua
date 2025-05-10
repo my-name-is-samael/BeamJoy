@@ -485,13 +485,31 @@ local function onCheckpointReached(wp, remainingSteps)
             lb.wp = M.race.waypoint
             lb.time = raceTime
             lb.lapTime = wp.lap and raceTime or nil
+
+            ---@type MapRacePBWP[]?
+            local pb = BJIRaceWaypoint.getPB(M.raceHash)
+            -- UI update before server data
+            local diff, recordDiff
+            if lb.diff ~= 0 then
+                -- not first position => compare to first racer
+                diff = lb.diff
+            elseif pb and pb[lastWp.wp] then
+                -- if first pos and pb exists => compare to pb
+                diff = M.lapData[lastWp.wp].time - pb[lastWp.wp].time
+            end
+            if wp.lap or remainingSteps == 0 then
+                if previousRecordTime then
+                    -- lap / finish record diff
+                    recordDiff = M.lapData[lastWp.wp].time - previousRecordTime
+                end
+            end
+            BJIRaceUI.setRaceTime(diff, recordDiff, 3000)
         end)
 
         waitForServerWp(M.race.lap, M.race.waypoint, function(lb)
             M.lapData[lastWp.wp].time = lb.wpTime
 
             -- detect new pb
-            ---@type MapRacePBWP[]?
             local pb = BJIRaceWaypoint.getPB(M.raceHash)
 
             if wp.lap or remainingSteps == 0 then
@@ -518,8 +536,8 @@ local function onCheckpointReached(wp, remainingSteps)
                 end
             end
 
-            -- UI update
-            local diff, recordDiff
+            -- UI update with server times
+            local diff, recordDiff = nil, nil
             if lb.diff ~= 0 then
                 -- not first position => compare to first racer
                 diff = lb.diff

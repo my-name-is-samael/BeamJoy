@@ -486,7 +486,7 @@ local function menuDerby(ctxt)
                         BJIContext.Scenario.DerbyEdit.onClose()
                     end
                 else
-                    BJIContext.Scenario.DerbySettings = nil
+                    BJIDerbySettingsWindow.onClose()
                     BJIContext.Scenario.DerbyEdit = {
                         changed = false,
                         processSave = nil,

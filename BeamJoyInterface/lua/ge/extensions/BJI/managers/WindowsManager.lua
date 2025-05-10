@@ -175,11 +175,9 @@ local function initWindows()
     M.register({
         name = "BJIDerbySettings",
         showConditionFn = function()
-            return BJIContext.Scenario.DerbySettings and
-                BJIScenario.isFreeroam() and
-                BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
+            return BJIDerbySettingsWindow.show
         end,
-        draw = require("ge/extensions/BJI/ui/WindowDerbySettings/DrawWindowDerbySettings"),
+        draw = BJIDerbySettingsWindow,
         w = 300,
         h = 350,
     })
