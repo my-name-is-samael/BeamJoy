@@ -32,7 +32,7 @@ local function onLoad(ctxt)
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     BJIVehSelector.tryClose()
     BJIBigmap.toggleQuickTravel(false)
@@ -104,7 +104,7 @@ local function onElimination()
             BJIRestrictions.OTHER.FREE_CAM,
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
 end
 
@@ -190,7 +190,7 @@ local function initScenario(data)
             BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
             BJIRestrictions.OTHER.VEHICLE_DEBUG,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     if M.isSpec() then
         BJIRestrictions.update({ {
@@ -199,7 +199,7 @@ local function initScenario(data)
                 BJIRestrictions.OTHER.VEHICLE_SWITCH,
                 BJIRestrictions.OTHER.FREE_CAM,
             }):flat(),
-            state = false,
+            state = BJIRestrictions.STATE.ALLOWED,
         } })
         local ownerID = BJIVeh.getVehOwnerID()
         if not ownerID or not M.participants[ownerID] then

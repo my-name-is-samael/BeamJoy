@@ -135,7 +135,9 @@ local function onLoad()
                 -- update AI restriction
                 BJIRestrictions.update({ {
                     restrictions = BJIRestrictions.OTHER.AI_CONTROL,
-                    state = not M.canSpawnAI(),
+                    state = M.canSpawnAI() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
                 } })
 
                 -- update vehSelector restriction
@@ -144,7 +146,9 @@ local function onLoad()
                         BJIRestrictions.OTHER.VEHICLE_SELECTOR,
                         BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
                     }):flat(),
-                    state = not M.canSpawnVehicle(),
+                    state = M.canSpawnVehicle() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
                 } })
             end)
         end

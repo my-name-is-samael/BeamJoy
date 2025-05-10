@@ -1,6 +1,7 @@
 ---@class BJIVehicleData
 ---@field vehID integer
 ---@field gameVehID integer
+---@field finalGameVehID integer
 ---@field model string
 ---@field damageState number
 ---@field engine boolean
@@ -190,12 +191,10 @@ local function getVehicleObject(gameVehID)
     end
     local veh = be:getObjectByID(gameVehID)
     if not veh then
-        local vehs = M.getMPVehicles()
-        for _, v in pairs(vehs) do
-            if v.remoteVehID == gameVehID then
-                return be:getObjectByID(v.gameVehicleID)
-            end
-        end
+        local remote = Table(M.getMPVehicles()):find(function(v)
+            return v.remoteVehID == gameVehID
+        end)
+        return remote and be:getObjectByID(remote.gameVehicleID) or nil
     end
     return veh or nil
 end

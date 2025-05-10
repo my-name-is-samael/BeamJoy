@@ -5,6 +5,11 @@
 local M = {
     _name = "BJIRestrictions",
 
+    STATE = {
+        RESTRICTED = true,
+        ALLOWED = false,
+    },
+
     RESET = {
         TELEPORT = {
             "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",

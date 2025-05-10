@@ -113,7 +113,7 @@ local function onLoad(ctxt)
             BJIRestrictions.OTHER.WALKING,
             BJIRestrictions.OTHER.BIG_MAP,
         }):flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
     BJIBigmap.toggleQuickTravel(false)
     BJIRaceWaypoint.resetAll()
@@ -166,7 +166,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIVehSelector.tryClose(true)
     guihooks.trigger('ScenarioResetTimer')
@@ -262,11 +262,11 @@ local function onJoinGridParticipants()
                 BJIRestrictions.OTHER.VEHICLE_SWITCH,
                 BJIRestrictions.OTHER.FREE_CAM,
             }):flat(),
-            state = true,
+            state = BJIRestrictions.STATE.RESTRICTED,
         },
         {
             restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            state = false,
+            state = BJIRestrictions.STATE.ALLOWED,
         }
     })
 
@@ -299,11 +299,11 @@ local function onLeaveGridParticipants()
                 BJIRestrictions.OTHER.VEHICLE_SWITCH,
                 BJIRestrictions.OTHER.FREE_CAM,
             }):flat(),
-            state = false,
+            state = BJIRestrictions.STATE.ALLOWED,
         },
         {
             restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            state = true,
+            state = BJIRestrictions.STATE.RESTRICTED,
         }
     })
     HideGameMenu()
@@ -318,7 +318,7 @@ local function onJoinGridReady()
     BJIRestrictions.update({
         {
             restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            state = true,
+            state = BJIRestrictions.STATE.RESTRICTED,
         }
     })
 end
@@ -809,7 +809,7 @@ local function updateRace()
                         BJIRestrictions.OTHER.VEHICLE_SWITCH,
                         BJIRestrictions.OTHER.FREE_CAM,
                     }):flat(),
-                    state = false,
+                    state = BJIRestrictions.STATE.ALLOWED,
                 }
             })
             if M.isEliminated() then

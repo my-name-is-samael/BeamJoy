@@ -656,7 +656,8 @@ local function isServerScenarioInProgress()
         false
 end
 
--- force every multiplayer scenarii to stop now (to allow forced multiplayer scenario to start)
+--- force every multiplayer scenarii to stop now<br>
+--- (to allow forced multiplayer scenario to start)
 local function stopServerScenarii()
     M.RaceManager.stop()
     M.SpeedManager.stop()
@@ -664,6 +665,8 @@ local function stopServerScenarii()
     M.TagDuoManager.stop()
 end
 
+--- check if player can spawn a vehicle, depending of his current scenario<br>
+--- (can be triggered by traffic toggling)
 local function canSpawnVehicle(playerID, vehID, vehData)
     if M.RaceManager.state then
         -- RACE IN PROGRESS
@@ -676,10 +679,9 @@ local function canSpawnVehicle(playerID, vehID, vehData)
         return M.SpeedManager.canSpawnVehicle(playerID, vehID, vehData)
     else
         if table.includes({
-                BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,
-                BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE
+                BJCScenario.PLAYER_SCENARII.RACE_SOLO
             }, BJCPlayers.Players[playerID].scenario) then
-            -- SOLO SCENARII
+            -- restricted SOLO SCENARII
             return false
         end
         -- FREEROAM or allowed scenarii
@@ -775,7 +777,7 @@ local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
     end, 0)
     local ratio = matches / table.length(larger)
     local logFn = ratio > .9 and Log or LogError
-    logFn(string.var("Vehicle matches requirements up to {1}%%", {math.round(ratio * 100, 1)}))
+    logFn(string.var("Vehicle matches requirements up to {1}%%", { math.round(ratio * 100, 1) }))
     return ratio > .9
 end
 

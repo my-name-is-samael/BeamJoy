@@ -8,7 +8,9 @@ local M = {
     config = nil,
     configLabel = nil,
     paints = {},
+    ---@type BJIPositionRotation?
     startPosition = nil,
+    ---@type { pos: vec3, radius: number, distance?: number }?
     targetPosition = nil,
     init = false,
     gameVehID = nil,
@@ -153,19 +155,26 @@ local function onLoad(ctxt)
         initVehicle()
 
         if M.startPosition and M.targetPosition and M.model then
-            BJIRestrictions.update({ {
-                restrictions = Table({
-                    BJIRestrictions.OTHER.AI_CONTROL,
-                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
-                    BJIRestrictions.OTHER.WALKING,
-                    BJIRestrictions.OTHER.BIG_MAP,
-                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
-                    BJIRestrictions.OTHER.FREE_CAM,
-                }):flat(),
-                state = true,
-            } })
+            BJIRestrictions.update({
+                {
+                    restrictions = Table({
+                        BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                        BJIRestrictions.OTHER.WALKING,
+                        BJIRestrictions.OTHER.BIG_MAP,
+                        BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                        BJIRestrictions.OTHER.FREE_CAM,
+                    }):flat(),
+                    state = BJIRestrictions.STATE.RESTRICTED,
+                },
+                {
+                    restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+                    state = BJIPerm.canSpawnAI() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
+                }
+            })
             BJIBigmap.toggleQuickTravel(false)
             BJINametags.tryUpdate()
             BJIGPS.reset()
@@ -349,7 +358,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)

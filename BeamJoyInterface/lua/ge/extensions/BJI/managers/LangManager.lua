@@ -68,6 +68,8 @@ local function drawSelector(data)
     else
         line:icon({
             icon = ICONS.translate,
+            style = { TEXT_COLORS.DEFAULT },
+            coloredIcon = true,
         })
     end
     for _, l in ipairs(M.Langs) do

@@ -35,6 +35,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
   - [FAQ](#faq)
     - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
     - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
+    - [Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?](#why-some-players-can-spawn-traffic-and-some-dont--how-can-i-spawn-traffic-during-a-scenario-)
     - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
@@ -270,6 +271,17 @@ If you are mainly `playing with a controller`, I suggest you to remove all respa
 - __Recover Vehicle__ : `DPad left`
 - __Save Home__ : `DPad left`
 - __Load Home__ : `DPad Right`
+
+### Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?
+
+Traffic spawning is dependant on group permissions. Players in groups having a `VehicleCap` attribute set to `-1` (_Infinite_) will automatically have access to traffic toggling, but not anytime.
+
+Here the scenarii list players can toggle traffic in:
+- Freeroam
+- Vehicle Delivery
+- Package Delivery
+- Delivery Together
+- Bus Mission
 
 ### My game crashes during the join process or randomly with the following error
 

@@ -132,7 +132,9 @@ local function loadUser()
                 -- update AI restriction
                 BJIRestrictions.update({ {
                     restrictions = BJIRestrictions.OTHER.AI_CONTROL,
-                    state = not BJIPerm.canSpawnAI(),
+                    state = BJIPerm.canSpawnAI() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
                 } })
 
                 -- update vehSelector restriction
@@ -141,7 +143,9 @@ local function loadUser()
                         BJIRestrictions.OTHER.VEHICLE_SELECTOR,
                         BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
                     }):flat(),
-                    state = not BJIPerm.canSpawnVehicle(),
+                    state = BJIPerm.canSpawnVehicle() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
                 } })
             end)
         end
@@ -214,6 +218,20 @@ local function loadPlayers()
             end
         end
 
+        table.forEach(C.Players, function(player)
+            -- parse vehicles finalGameVehID
+            table.forEach(player.vehicles or {}, function(veh)
+                veh.finalGameVehID = C.isSelf(player.playerID) and veh.gameVehID or BJIVeh.getRemoteVehID(veh.gameVehID)
+            end)
+
+            -- parse ai final IDs
+            if not C.isSelf(player.playerID) then
+                player.ai = Table(player.ai):map(function(remoteVid)
+                    return BJIVeh.getRemoteVehID(remoteVid)
+                end):values()
+            end
+        end)
+
         -- remove obsolete players
         for k, v in pairs(C.Players) do
             local found = false
@@ -230,16 +248,7 @@ local function loadPlayers()
         -- update AI vehicles (to hide their nametags)
         BJIAI.updateVehicles(Table(C.Players)
             :filter(function(player) return #player.ai > 0 end)
-            :map(function(player)
-                local self = C.isSelf(player.playerID)
-                player.ai = Table(player.ai):map(function(vid)
-                    if not self then
-                        vid = BJIVeh.getGameVehIDByRemoteVehID(vid)
-                    end
-                    return BJIVeh.getVehicleObject(vid) and vid or nil
-                end):values()
-                return player.ai
-            end)
+            :map(function(player) return player.ai end)
             :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table()))
 
         -- events detection
@@ -359,7 +368,9 @@ local function loadConfig()
                 end
                 BJIRestrictions.update({ {
                     restrictions = BJIRestrictions.OTHER.WALKING,
-                    state = not C.BJC.Freeroam.AllowUnicycle,
+                    state = C.BJC.Freeroam.AllowUnicycle and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
                 } })
 
                 -- update quick travel

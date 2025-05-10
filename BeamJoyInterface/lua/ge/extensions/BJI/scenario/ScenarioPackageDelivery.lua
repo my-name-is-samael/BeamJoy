@@ -1,4 +1,5 @@
 local M = {
+    ---@type { pos: vec3, radius: number, distance?: number }?
     targetPosition = nil,
     baseDistance = nil,
     distance = nil,
@@ -80,16 +81,24 @@ local function onLoad(ctxt)
         initPositions(ctxt)
 
         if M.targetPosition then
-            BJIRestrictions.update({ {
-                restrictions = Table({
-                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
-                    BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-                    BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                    BJIRestrictions.OTHER.VEHICLE_DEBUG,
-                    BJIRestrictions.OTHER.WALKING,
-                }):flat(),
-                state = true,
-            } })
+            BJIRestrictions.update({
+                {
+                    restrictions = Table({
+                        BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                        BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                        BJIRestrictions.OTHER.VEHICLE_DEBUG,
+                        BJIRestrictions.OTHER.WALKING,
+                    }):flat(),
+                    state = BJIRestrictions.STATE.RESTRICTED,
+                },
+                {
+                    restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+                    state = BJIPerm.canSpawnAI() and
+                        BJIRestrictions.STATE.ALLOWED or
+                        BJIRestrictions.STATE.RESTRICTED,
+                }
+            })
             BJIBigmap.toggleQuickTravel(false)
             BJINametags.tryUpdate()
             BJIGPS.reset()
@@ -259,13 +268,14 @@ end
 local function onUnload(ctxt)
     BJIRestrictions.update({ {
         restrictions = Table({
+            BJIRestrictions.OTHER.AI_CONTROL,
             BJIRestrictions.OTHER.VEHICLE_SWITCH,
             BJIRestrictions.OTHER.VEHICLE_SELECTOR,
             BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
             BJIRestrictions.OTHER.VEHICLE_DEBUG,
             BJIRestrictions.OTHER.WALKING,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)

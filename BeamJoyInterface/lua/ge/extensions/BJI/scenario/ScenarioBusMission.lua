@@ -130,17 +130,24 @@ end
 
 local function onLoad(ctxt)
     BJIVehSelector.tryClose()
-    BJIRestrictions.update({ {
-        restrictions = Table({
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.WALKING,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-        }):flat(),
-        state = true,
-    } })
+    BJIRestrictions.update({
+        {
+            restrictions = Table({
+                BJIRestrictions.OTHER.VEHICLE_SELECTOR,
+                BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJIRestrictions.OTHER.WALKING,
+                BJIRestrictions.OTHER.VEHICLE_DEBUG,
+            }):flat(),
+            state = BJIRestrictions.STATE.RESTRICTED,
+        },
+        {
+            restrictions = BJIRestrictions.OTHER.AI_CONTROL,
+            state = BJIPerm.canSpawnAI() and
+                BJIRestrictions.STATE.ALLOWED or
+                BJIRestrictions.STATE.RESTRICTED,
+        }
+    })
     BJIBigmap.toggleQuickTravel(false)
     BJINametags.tryUpdate()
     BJIGPS.reset()
@@ -357,7 +364,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.WALKING,
             BJIRestrictions.OTHER.VEHICLE_DEBUG,
         }):flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
     BJIBigmap.toggleQuickTravel(true)
     BJINametags.toggle(true)

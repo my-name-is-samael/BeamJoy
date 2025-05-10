@@ -10,13 +10,15 @@ local function onLoad(ctxt)
     -- declare restrictions
     BJIRestrictions.update({
         {
-            restrictions = Table():addAll(BJIRestrictions.RESET.TELEPORT)
-                :addAll(BJIRestrictions.OTHER.VEHICLE_SWITCH),
-            state = true, -- forbidden bindings
+            restrictions = Table({
+                BJIRestrictions.RESET.TELEPORT,
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            }):flat(),
+            state = BJIRestrictions.STATE.RESTRICTED,
         },
         {
-            restrictions = Table():addAll(BJIRestrictions.OTHER.FREE_CAM),
-            state = false, -- allowed bindings
+            restrictions = BJIRestrictions.OTHER.FREE_CAM,
+            state = BJIRestrictions.STATE.ALLOWED,
         }
     })
 end
@@ -122,12 +124,14 @@ local function onUnload(ctxt)
     -- rollback restrictions
     BJIRestrictions.update({
         {
-            restrictions = Table():addAll(BJIRestrictions.RESET.TELEPORT)
-                :addAll(BJIRestrictions.OTHER.VEHICLE_SWITCH),
+            restrictions = Table({
+                BJIRestrictions.RESET.TELEPORT,
+                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            }):flat(),
             state = false, -- forbidden bindings
         },
         {
-            restrictions = Table():addAll(BJIRestrictions.OTHER.FREE_CAM),
+            restrictions = BJIRestrictions.OTHER.FREE_CAM,
             state = true, -- allowed bindings
         }
     })

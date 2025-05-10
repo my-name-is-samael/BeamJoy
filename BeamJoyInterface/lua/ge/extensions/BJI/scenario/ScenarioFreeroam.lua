@@ -25,7 +25,7 @@ local function onLoad(ctxt)
             (BJIContext.BJC.Freeroam and not BJIContext.BJC.Freeroam.AllowUnicycle) and
             BJIRestrictions.OTHER.WALKING or nil,
         }):values():flat(),
-        state = true,
+        state = BJIRestrictions.STATE.RESTRICTED,
     } })
 
     M.reset.restricted = false
@@ -388,7 +388,7 @@ local function onUnload(ctxt)
             BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
             BJIRestrictions.OTHER.WALKING,
         }):values():flat(),
-        state = false,
+        state = BJIRestrictions.STATE.ALLOWED,
     } })
 
     BJIBigmap.toggleQuickTravel(true)
