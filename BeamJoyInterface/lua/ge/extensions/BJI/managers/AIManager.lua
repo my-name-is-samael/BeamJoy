@@ -1,9 +1,11 @@
+---@class BJIManagerAI : BJIManager
 local M = {
-    _name = "BJIAI",
+    _name = "AI",
+
     state = true,
     baseFunctions = {},
 
-    -- cache
+    -- caches
 
     ---@type tablelib<integer[]>
     aiVehs = Table(),     -- all ai cars on the server to prevent nametags
@@ -12,62 +14,6 @@ local M = {
     ---@type tablelib<integer[]>
     parkedVehs = Table(), -- parked vehs (since they are not firing the onAiModeChange event)
 }
-
-local listeners = Table()
-local function onLoad()
-    -- ge/extensions/core/quickAccess.lua:registerDefaultMenus()
-
-    M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
-    gameplay_traffic.setupTrafficWaitForUi = function(...)
-        if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
-            return M.baseFunctions.setupTrafficWaitForUi(...)
-        else
-            BJIToast.error(BJILang.get("ai.toastCantSpawn"))
-        end
-    end
-
-    M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
-    gameplay_traffic.createTrafficGroup = function(...)
-        if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
-            return M.baseFunctions.createTrafficGroup(...)
-        else
-            -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
-            return nil
-        end
-    end
-
-    BJIAsync.task(function()
-        return not not core_multiSpawn.spawnGroup
-    end, function()
-        M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
-        core_multiSpawn.spawnGroup = function(...)
-            if not BJIRestrictions.getState(BJIRestrictions.OTHER.AI_CONTROL) then
-                return M.baseFunctions.spawnGroup(...)
-            else
-                BJIToast.error(BJILang.get("ai.toastCantSpawn"))
-                return nil
-            end
-        end
-    end, "BJIAsyncInitMultispawn")
-
-    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.VEHICLE_REMOVED, function()
-        M.selfVehs = M.selfVehs:filter(function(gameVehID)
-            return BJIVeh.getVehicleObject(gameVehID) ~= nil
-        end)
-
-        M.parkedVehs = M.parkedVehs:filter(function(gameVehID)
-            return BJIVeh.getVehicleObject(gameVehID) ~= nil
-        end)
-    end))
-end
-
-local function onUnload()
-    gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
-    gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
-    core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
-
-    listeners:forEach(BJIEvents.removeListener)
-end
 
 local function isTrafficSpawned()
     return gameplay_traffic and #M.selfVehs > 0 or #M.parkedVehs > 0
@@ -94,25 +40,30 @@ local function slowTick(ctxt)
     end)
 
     --detect changes and update if needed
-    if BJIPerm.canSpawnVehicle() and M.isTrafficSpawned() then
+    if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
         local listVehs = M.parkedVehs:clone()
         M.selfVehs:forEach(function(v)
             listVehs:insert(v)
         end)
         listVehs:sort()
-        table.sort(BJIContext.Players[ctxt.user.playerID].ai)
-        if not listVehs:compare(BJIContext.Players[ctxt.user.playerID].ai) then
-            BJITx.player.UpdateAI(listVehs)
+        table.sort(BJI.Managers.Context.Players[ctxt.user.playerID].ai)
+        if not listVehs:compare(BJI.Managers.Context.Players[ctxt.user.playerID].ai) then
+            BJI.Tx.player.UpdateAI(listVehs)
         end
-    elseif BJIContext.Players[ctxt.user.playerID] and
-        BJIContext.Players[ctxt.user.playerID].ai and
-        #BJIContext.Players[ctxt.user.playerID].ai > 0 then
-        BJITx.player.UpdateAI({})
+    elseif BJI.Managers.Context.Players[ctxt.user.playerID] and
+        BJI.Managers.Context.Players[ctxt.user.playerID].ai and
+        #BJI.Managers.Context.Players[ctxt.user.playerID].ai > 0 then
+        BJI.Tx.player.UpdateAI({})
     end
 end
 
 local function updateAllAIVehicles(aiVehs)
+    aiVehs:sort()
+    local diff = not M.aiVehs:compare(aiVehs)
     M.aiVehs = aiVehs
+    if diff then
+        BJI.Managers.Collisions.checkAIVehicles()
+    end
 end
 
 local function isAIVehicle(gameVehID)
@@ -123,27 +74,83 @@ end
 
 --- Change vehicle manual AI state
 ---@param gameVehID integer
----@param aiState boolean
+---@param aiState "disabled"|"traffic"|"stop"|"script"|"flee"|"chase"|"follow"|"manual"|"span"|"random"
 local function updateVehicle(gameVehID, aiState)
-    if aiState and not M.selfVehs:includes(gameVehID) then
+    local state = aiState ~= "disabled"
+    if state and not M.selfVehs:includes(gameVehID) then
         M.selfVehs:insert(gameVehID)
-    elseif not aiState and M.selfVehs:includes(gameVehID) then
+    elseif not state and M.selfVehs:includes(gameVehID) then
         M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
 end
 
-M.onLoad = onLoad
-M.onUnload = onUnload
+local listeners = Table()
+
+local function onUnload()
+    gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
+    gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
+    core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
+
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+local function onLoad()
+    -- ge/extensions/core/quickAccess.lua:registerDefaultMenus()
+
+    M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
+    gameplay_traffic.setupTrafficWaitForUi = function(...)
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+            return M.baseFunctions.setupTrafficWaitForUi(...)
+        else
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
+        end
+    end
+
+    M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
+    gameplay_traffic.createTrafficGroup = function(...)
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+            return M.baseFunctions.createTrafficGroup(...)
+        else
+            -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
+            return nil
+        end
+    end
+
+    BJI.Managers.Async.task(function()
+        return not not core_multiSpawn.spawnGroup
+    end, function()
+        M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
+        core_multiSpawn.spawnGroup = function(...)
+            if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+                return M.baseFunctions.spawnGroup(...)
+            else
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
+                return nil
+            end
+        end
+    end, "BJIAsyncInitMultispawn")
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, function()
+        M.selfVehs = M.selfVehs:filter(function(gameVehID)
+            return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
+        end)
+
+        M.parkedVehs = M.parkedVehs:filter(function(gameVehID)
+            return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
+        end)
+    end))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick))
+end
 
 M.isTrafficSpawned = isTrafficSpawned
 M.removeVehicles = removeVehicles
 M.toggle = toggle
 
-M.slowTick = slowTick
-
 M.updateVehicles = updateAllAIVehicles
 M.isAIVehicle = isAIVehicle
-M.updateVehicle = updateVehicle
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+
 return M

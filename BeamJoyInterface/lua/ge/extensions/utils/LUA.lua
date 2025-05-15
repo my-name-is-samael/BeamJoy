@@ -1,6 +1,16 @@
+---@return true
+function TrueFn()
+    return true
+end
+
+---@return false
+function FalseFn()
+    return false
+end
+
 ---@return integer
 function GetCurrentTime()
-    return os.time(os.date("!*t")) -- - offset
+    return os.time(os.date("!*t")) ---@diagnostic disable-line
 end
 
 ---@return integer
@@ -74,6 +84,7 @@ function PrintObj(...)
         _PrintObj("data", el)
     end)
 end
+
 dump = dump or PrintObj
 
 ---@param obj any
@@ -99,3 +110,20 @@ function PrintObj1Level(obj, filterStr)
         end
     end
 end
+
+--[[
+
+-- count recursively every element in table tree
+countElems = function(el)
+    if type(el) ~= "table" then return 1 end
+    return Table(el):reduce(function(acc, v)
+        if type(v) == "table" then
+            acc = acc + countElems(v)
+        else
+            acc = acc + 1
+        end
+        return acc
+    end, 1);
+end
+
+]]

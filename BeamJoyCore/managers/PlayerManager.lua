@@ -9,7 +9,6 @@ local M = {
     MapCachePermissions = {
         [BJCCache.CACHES.USER] = "User",
         [BJCCache.CACHES.PLAYERS] = "Players",
-        [BJCCache.CACHES.DATABASE_PLAYERS] = "DatabasePlayers",
         [BJCCache.CACHES.DATABASE_VEHICLES] = "DatabaseVehicles",
     },
     _lastDatabaseUpdate = GetCurrentTime(),
@@ -186,7 +185,6 @@ local function onPlayerConnect(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 
         BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_CONNECTED, playerID)
     else
@@ -201,10 +199,6 @@ local function onPlayerDisconnect(playerID)
         M.Players[playerID] = nil
 
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
-
-        BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_DISCONNECTED, { playerID = playerID, playerName = playerName })
-        -- TriggerBJCManagers("onPlayerDisconnect", playerID, playerName)
     end
 end
 
@@ -288,7 +282,6 @@ local function getCachePlayers(senderID)
                     BJCScenario.PLAYER_SCENARII.RACE_SOLO
                 }, player.scenario),
             }
-            players[playerID].vehicles = {}
             for vehID, vehicle in pairs(player.vehicles) do
                 players[playerID].vehicles[vehID] = {
                     vehID = vehID,
@@ -327,37 +320,37 @@ local function getCachePlayersHash()
     return Hash(M.Players)
 end
 
-local function getCacheDatabasePlayers()
-    local db = {}
-    for _, filename in pairs(FS.ListFiles(dbPath)) do
-        local file, error = io.open(string.var("{1}/{2}", { dbPath, filename }), "r")
-        if not error and file then
+local function getDatabasePlayers()
+    return Table(FS.ListFiles(dbPath))
+        :map(function(filename)
+            local file, error = io.open(string.var("{1}/{2}", { dbPath, filename }), "r")
+            return not error and file or nil
+        end)
+        :map(function(file)
             local player = JSON.parse(file:read("*a"))
             file:close()
-            if player ~= nil then
-                if player.tempBanUntil and player.tempBanUntil <= GetCurrentTime() then
-                    player.tempBanUntil = nil
-                    M.savePlayer(player)
-                end
-                db[player.beammp] = {
-                    playerName = player.playerName,
-                    group = player.group,
-                    tempBanUntil = player.tempBanUntil,
-                    banned = player.banned,
-                    banReason = player.banReason,
-                    muted = player.muted,
-                    muteReason = player.muteReason,
-                    beammp = player.beammp,
-                    lang = player.lang,
-                }
+            return player
+        end)
+        :map(function(player)
+            if player.tempBanUntil and player.tempBanUntil <= GetCurrentTime() then
+                player.tempBanUntil = nil
+                M.savePlayer(player)
             end
-        end
-    end
-    return db, M.getCacheDatabasePlayersHash()
-end
-
-local function getCacheDatabasePlayersHash()
-    return Hash({ M._lastDatabaseUpdate })
+            return {
+                playerName = player.playerName,
+                group = player.group,
+                tempBanUntil = player.tempBanUntil,
+                banned = player.banned,
+                banReason = player.banReason,
+                muted = player.muted,
+                muteReason = player.muteReason,
+                beammp = player.beammp,
+                lang = player.lang,
+            }
+        end):values()
+        :sort(function(a, b)
+            return a.playerName < b.playerName
+        end)
 end
 
 -- PLAYER MODERATION
@@ -437,6 +430,7 @@ local function setGroup(ctxt, targetName, groupName)
 
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
     end
+    BJCTx.database.playersUpdated()
 end
 
 local function toggleFreeze(targetID, vehID) -- optional vehID
@@ -514,7 +508,7 @@ local function whitelist(ctxt, playerName)
     BJCConfig.set(ctxt, "Whitelist.PlayerNames", whitelistNames)
 
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.BJC, BJCPerm.PERMISSIONS.WHITELIST)
-    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
+    BJCTx.database.playersUpdated()
 end
 
 local function toggleMute(ctxt, targetName, reason)
@@ -565,6 +559,7 @@ local function toggleMute(ctxt, targetName, reason)
             BJCChat.onServerChat(target.playerID, BJCLang.getServerMessage(target.lang, "players.unmuted"))
         end
     end
+    BJCTx.database.playersUpdated()
 end
 
 local function deleteVehicle(senderID, targetID, gameVehID)
@@ -662,7 +657,6 @@ local function kick(ctxt, targetID, reason)
 
     M.drop(targetID, reason)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DATABASE_PLAYERS, BJCPerm.PERMISSIONS.DATABASE_PLAYERS)
 end
 
 local function tempBan(ctxt, targetName, reason, duration)
@@ -708,6 +702,7 @@ local function tempBan(ctxt, targetName, reason, duration)
         M.drop(target.playerID, finalReason)
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
     end
+    BJCTx.database.playersUpdated()
 end
 
 local function ban(ctxt, targetName, reason)
@@ -749,6 +744,7 @@ local function ban(ctxt, targetName, reason)
         M.drop(target.playerID, finalReason)
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
     end
+    BJCTx.database.playersUpdated()
 end
 
 local function unban(targetName)
@@ -765,6 +761,7 @@ local function unban(targetName)
     target.banned = nil
     target.tempBanUntil = nil
     M.savePlayer(target)
+    BJCTx.database.playersUpdated()
 end
 
 local function changeLang(targetID, lang)
@@ -782,6 +779,7 @@ local function changeLang(targetID, lang)
 
     BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(targetID, BJCCache.CACHES.LANG)
+    BJCTx.database.playersUpdated()
 end
 
 local function updateAI(playerID, listVehIDs)
@@ -1259,8 +1257,7 @@ M.getCacheUser = getCacheUser
 M.getCacheUserHash = getCacheUserHash
 M.getCachePlayers = getCachePlayers
 M.getCachePlayersHash = getCachePlayersHash
-M.getCacheDatabasePlayers = getCacheDatabasePlayers
-M.getCacheDatabasePlayersHash = getCacheDatabasePlayersHash
+M.getDatabasePlayers = getDatabasePlayers
 
 M.setGroup = setGroup
 

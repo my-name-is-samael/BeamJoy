@@ -1,5 +1,7 @@
+---@class BJIManagerRaceWaypoint : BJIManager
 local M = {
-    _name = "BJIWaypoint",
+    _name = "RaceWaypoint",
+
     _race = {
         _started = false,
         _countWp = 0,
@@ -334,36 +336,36 @@ local function checkRaceTargetReached(ctxt)
     end
 
     local vehCorners = getVehCorners(ctxt) or {}
-    if BJIDEBUG then
+    if BJI.DEBUG then
         for _, segment in ipairs({
             { vehCorners.fl, vehCorners.br },
             { vehCorners.fr, vehCorners.bl },
         }) do
-            ShapeDrawer.Cylinder(
+            BJI.Utils.ShapeDrawer.Cylinder(
                 vec3(segment[1].x, segment[1].y, segment[1].z),
                 vec3(segment[2].x, segment[2].y, segment[2].z),
-                .1, ShapeDrawer.Color(1, 0, 0, .7))
+                .1, BJI.Utils.ShapeDrawer.Color(1, 0, 0, .7))
         end
     end
 
     for _, target in ipairs(M._targets) do
         local wp = M._race._steps[target.step][target.wp]
 
-        if BJIDEBUG then
+        if BJI.DEBUG then
             local angle = math.angleFromQuatRotation(wp.rot)
             local len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
             local wpLeft = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
             local wpRight = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
 
-            local gateColor = ShapeDrawer.Color(1, 0, 1, .33)
+            local gateColor = BJI.Utils.ShapeDrawer.Color(1, 0, 1, .33)
             local a = vec3(wpLeft.x, wpLeft.y, wpLeft.z)
             local b = vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2)
             local c = vec3(wpRight.x, wpRight.y, wpRight.z)
-            ShapeDrawer.Triangle(a, b, c, gateColor)
+            BJI.Utils.ShapeDrawer.Triangle(a, b, c, gateColor)
             local d = vec3(wpRight.x, wpRight.y, wpRight.z)
             local e = vec3(wpRight.x, wpRight.y, wpRight.z + wp.radius * 2)
             local f = vec3(wpLeft.x, wpLeft.y, wpLeft.z + wp.radius * 2)
-            ShapeDrawer.Triangle(d, e, f, gateColor)
+            BJI.Utils.ShapeDrawer.Triangle(d, e, f, gateColor)
         end
 
         if checkMatchingHeight(ctxt, wp) then
@@ -451,7 +453,7 @@ local function getPB(raceHash)
         dump(raceHash)
         return
     end
-    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)[GetMapName() or BJIContext.UI.mapName]
+    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)[GetMapName() or BJI.Managers.Context.UI.mapName]
     if pbs then
         local pb = pbs[raceHash]
         local time
@@ -474,14 +476,14 @@ local function setPB(raceHash, newPb)
         dump(newPb)
         return
     end
-    local pbs = BJILocalStorage.get(BJILocalStorage.VALUES.RACES_PB)
-    local mapPbs = pbs[GetMapName() or BJIContext.UI.mapName]
+    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)
+    local mapPbs = pbs[GetMapName() or BJI.Managers.Context.UI.mapName]
     if not mapPbs then
         mapPbs = {}
-        pbs[GetMapName() or BJIContext.UI.mapName] = mapPbs
+        pbs[GetMapName() or BJI.Managers.Context.UI.mapName] = mapPbs
     end
     mapPbs[raceHash] = newPb
-    BJILocalStorage.set(BJILocalStorage.VALUES.RACES_PB, pbs)
+    BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, pbs)
 end
 
 M.resetAll = resetAll
@@ -494,12 +496,13 @@ M.startRace = startRace
 
 M.addWaypoint = addWaypoint
 
-M.renderTick = renderTick
-
-M.onUnload = onUnload
-
 M.getPB = getPB
 M.setPB = setPB
 
-RegisterBJIManager(M)
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+end
+M.renderTick = renderTick
+
+
 return M

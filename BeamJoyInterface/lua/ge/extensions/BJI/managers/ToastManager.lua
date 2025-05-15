@@ -1,5 +1,7 @@
+---@class BJIManagerToast : BJIManager
 local M = {
-    _name = "BJIToast",
+    _name = "Toast",
+
     TOAST_TYPES = {
         SUCCESS = "success",
         INFO = "info",
@@ -49,5 +51,4 @@ M.error = function(msg, timeoutSec)
     M.toast(M.TOAST_TYPES.ERROR, msg, timeoutSec)
 end
 
-RegisterBJIManager(M)
 return M

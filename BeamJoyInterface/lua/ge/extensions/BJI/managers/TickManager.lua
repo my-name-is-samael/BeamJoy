@@ -13,49 +13,49 @@
 ---@field cachesHashes table<string, string>
 ---@field ToD? number
 
+---@class BJIManagerTick : BJIManager
 local M = {
-    _name = "BJITick",
+    _name = "Tick",
+
     timeOffsets = {}, -- time offsets in sec
 }
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
 
-local _cachedCtxt
-
 ---@return TickContext
 local function getContext()
-    if _cachedCtxt then
-        return _cachedCtxt
-    end
-    local veh = BJIVeh.getCurrentVehicle()
-    local isOwner = veh and BJIVeh.isVehicleOwn(veh:getID())
+    local veh = BJI.Managers.Veh.getCurrentVehicle()
+    local isOwner = veh and BJI.Managers.Veh.isVehicleOwn(veh:getID())
     local vehData
     if isOwner then
-        for _, v in pairs(BJIContext.User.vehicles) do
+        for _, v in pairs(BJI.Managers.Context.User.vehicles) do
             if v.gameVehID == veh:getID() then
                 vehData = v
                 break
             end
         end
     end
-    _cachedCtxt = {
+    return {
         now = GetCurrentTimeMillis(),
-        user = BJIContext.User,
-        group = BJIPerm.Groups[BJIContext.User.group],
+        user = BJI.Managers.Context.User,
+        group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
         veh = veh,
-        vehPosRot = veh and BJIVeh.getPositionRotation(veh) or nil,
+        vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil,
         isOwner = isOwner,
         vehData = vehData,
-        camera = BJICam.getCamera(),
+        camera = BJI.Managers.Cam.getCamera(),
     }
-    return _cachedCtxt
 end
 
 -- ClientTick (each render tick)
 local function client()
-    if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
-        _cachedCtxt = nil
-        TriggerBJIManagerEvent("renderTick", getContext())
+    if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
+        local ctxt = getContext()
+        Table(BJI.Managers):forEach(function(m)
+            if m.renderTick then
+                m.renderTick(ctxt)
+            end
+        end)
     end
 end
 
@@ -68,10 +68,12 @@ local function server(serverData)
         end
     end
 
-    ---@type SlowTickContext|any
-    local ctxt = getContext()
-    table.assign(ctxt, serverData or {})
-    TriggerBJIManagerEvent("slowTick", ctxt)
+    if serverData.ToD then
+        BJI.Managers.Env.tryApplyTimeFromServer(serverData.ToD)
+    end
+
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SLOW_TICK,
+        table.assign(getContext(), serverData or {}))
 end
 
 local function getAvgOffsetMs()
@@ -102,5 +104,4 @@ M.server = server
 M.getAvgOffsetMs = getAvgOffsetMs
 M.applyTimeOffset = applyTimeOffset
 
-RegisterBJIManager(M)
 return M

@@ -329,6 +329,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
     M.Race.voters = { creatorID }
 
     BJCAsync.programTask(raceVoteTimeout, M.Race.endsAt, "BJCVoteRaceTimeout")
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
 
 function M.Race.vote(playerID)
@@ -351,6 +352,7 @@ function M.Race.vote(playerID)
     else
         error({ key = "rx.errors.insufficientPermissions" })
     end
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
 
 function M.Race.stop()
@@ -430,6 +432,7 @@ function M.Speed.start(senderID, isVote)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 
     BJCAsync.programTask(speedVoteTimeout, M.Speed.endsAt, "BJCVoteSpeed")
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
 
 function M.Speed.join(senderID, gameVehID)

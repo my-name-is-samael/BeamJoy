@@ -1,5 +1,7 @@
+---@class BJIManagerCam : BJIManager
 local M = {
-    _name = "BJICam",
+    _name = "Cam",
+
     DEFAULT_FREECAM_FOV = 65,
     CAMERAS = {
         ORBIT = "orbit",
@@ -33,12 +35,12 @@ local function setCamera(cameraName, withTransition)
     end
 
     if cameraName == M.CAMERAS.PASSENGER then
-        if BJIVeh.isCurrentVehicleOwn() then
+        if BJI.Managers.Veh.isCurrentVehicleOwn() then
             -- You can't be passenger in your own vehicle
             cameraName = M.CAMERAS.DRIVER
         end
     elseif cameraName == M.CAMERAS.DRIVER then
-        if not BJIVeh.isCurrentVehicleOwn() then
+        if not BJI.Managers.Veh.isCurrentVehicleOwn() then
             -- You can't be driver in another vehicle
             cameraName = M.CAMERAS.PASSENGER
         end
@@ -55,7 +57,7 @@ local function getPositionRotation(keepOrientation)
     if not keepOrientation then
         camDir.z = 0
     end
-    return RoundPositionRotation({
+    return math.roundPositionRotation({
         pos = core_camera.getPosition(),
         rot = quatFromDir(camDir, vec3(0, 0, 1))
     })
@@ -71,7 +73,7 @@ local function setPositionRotation(pos, rot)
     rot = rot or M.getPositionRotation().rot
 
     core_camera.setPosRot(
-        BJIContext.User.playerID,
+        BJI.Managers.Context.User.playerID,
         pos.x, pos.y, pos.z,
         rot.x, rot.y, rot.z, rot.w
     )
@@ -79,7 +81,7 @@ end
 
 local function toggleFreeCam()
     if M.getCamera() == M.CAMERAS.FREE then
-        if BJIVeh.getCurrentVehicle() then
+        if BJI.Managers.Veh.getCurrentVehicle() then
             commands.toggleCamera()
         end
     else
@@ -106,14 +108,15 @@ local function forceCamera(cam)
     M.forced.cam = cam
 end
 
-local function resetForceCamera()
+---@param rollback? boolean
+local function resetForceCamera(rollback)
     if not M.isForcedCamera() then
         return
     end
 
     M.forced.cam = nil
     M.forced.posrot = nil
-    if M.forced.previouscam then
+    if rollback and M.forced.previouscam then
         M.setCamera(M.forced.previouscam)
 
         if M.forced.previouscam == M.CAMERAS.FREE then
@@ -126,9 +129,16 @@ local function resetForceCamera()
     M.forced.previousposrot = nil
 end
 
+---@param pos? vec3
+---@param rot? quat
 local function forceFreecamPos(pos, rot)
     M.forced.previouscam = M.getCamera()
     M.forced.cam = M.CAMERAS.FREE
+    if not pos or not rot then
+        local base = M.getPositionRotation(true)
+        pos = pos or base.pos
+        rot = rot or base.rot
+    end
     M.forced.posrot = { pos = pos, rot = rot }
 end
 
@@ -198,16 +208,14 @@ local function renderTick(ctxt)
             ctxt.camera = M.getCamera()
         end
 
-        if M.forced.cam == M.CAMERAS.FREE then
-            if M.forced.posrot then
-                M.setPositionRotation(M.forced.posrot.pos, M.forced.posrot.rot)
-            end
+        if M.forced.cam == M.CAMERAS.FREE and M.forced.posrot then
+            M.setPositionRotation(M.forced.posrot.pos, M.forced.posrot.rot)
         end
     end
 
     if ctxt.camera == M.CAMERAS.FREE then
         local isSmoothed = M.isFreeCamSmooth()
-        local state = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
+        local state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
         if state and not isSmoothed then
             M.setFreeCamSmooth(true)
         elseif not state and isSmoothed then
@@ -219,9 +227,9 @@ end
 
 local function slowTick(ctxt)
     if ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
+        M.getFOV() ~= BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
         -- update FOV
-        BJILocalStorage.set(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV, M.getFOV())
+        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, M.getFOV())
     end
 end
 
@@ -237,23 +245,25 @@ local function onCameraChange(newCamera)
         end
     end
 
-    if newCamera == M.CAMERAS.DRIVER and not BJIVeh.isCurrentVehicleOwn() then
+    if newCamera == M.CAMERAS.DRIVER and not BJI.Managers.Veh.isCurrentVehicleOwn() then
         switchToNextCam()
         return
-    elseif newCamera == M.CAMERAS.PASSENGER and BJIVeh.isCurrentVehicleOwn() then
+    elseif newCamera == M.CAMERAS.PASSENGER and BJI.Managers.Veh.isCurrentVehicleOwn() then
         switchToNextCam()
         return
     end
 
     if newCamera == M.CAMERAS.FREE then
-        M.setFOV(BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
     end
 end
 
 local function onLoad()
     if M.getCamera() == M.CAMERAS.FREE then
-        M.setFOV(BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
     end
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
 end
 
 M.getCamera = getCamera
@@ -278,10 +288,9 @@ M.setFreeCamSmooth = setFreeCamSmooth
 M.getFOV = getFOV
 M.setFOV = setFOV
 
-M.renderTick = renderTick
-M.slowTick = slowTick
 M.onCameraChange = onCameraChange
-M.onLoad = onLoad
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+M.renderTick = renderTick
+
 return M

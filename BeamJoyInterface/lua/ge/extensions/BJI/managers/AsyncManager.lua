@@ -1,5 +1,7 @@
+---@class BJIManagerAsync: BJIManager
 local M = {
-    _name = "BJIAsync",
+    _name = "Async",
+
     KEYS = {
         BASE_CACHES_POST_INPUTS = "baseCachesPostInputs",
         RESTRICTIONS_RESET_TIMER = "restrictionsResetTimer",
@@ -34,7 +36,7 @@ local function task(conditionFn, taskFn, key)
         error("Tasks need conditionFn and taskFn")
     end
     if key == nil then
-        key = tostring(GetCurrentTimeMillis()) + tostring(math.random(100))
+        key = UUID()
     end
     local existingTask = M.tasks[key]
     if not existingTask then
@@ -135,5 +137,4 @@ M.removeTask = removeTask
 
 M.renderTick = renderTick
 
-RegisterBJIManager(M)
 return M

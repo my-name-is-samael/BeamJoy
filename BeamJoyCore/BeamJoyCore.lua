@@ -36,6 +36,24 @@ require("utils/Common")
 
 SetLogType("BJC", CONSOLE_COLORS.FOREGROUNDS.LIGHT_BLUE)
 
+local function printLogo()
+    -- https://patorjk.com/software/taag/#p=display&f=Big%20Money-se&t=BeamJoy1.2.0
+    print([[
+
+ _______                                        _____
+|       \                                      |     \
+| $$$$$$$\  ______    ______   ______ ____      \$$$$$  ______   __    __
+| $$__/ $$ /      \  |      \ |      \    \       | $$ /      \ |  \  |  \
+| $$    $$|  $$$$$$\  \$$$$$$\| $$$$$$\$$$$\ __   | $$|  $$$$$$\| $$  | $$
+| $$$$$$$\| $$    $$ /      $$| $$ | $$ | $$|  \  | $$| $$  | $$| $$  | $$
+| $$__/ $$| $$$$$$$$|  $$$$$$$| $$ | $$ | $$| $$__| $$| $$__/ $$| $$__/ $$
+| $$    $$ \$$     \ \$$    $$| $$ | $$ | $$ \$$    $$ \$$    $$ \$$    $$
+ \$$$$$$$   \$$$$$$$  \$$$$$$$ \$$  \$$  \$$  \$$$$$$   \$$$$$$  _\$$$$$$$
+                                                                |  \__| $$
+                                                                 \$$    $$
+                                                                  \$$$$$$]])
+end
+
 local function loadBeamJoy()
     Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
 
@@ -64,7 +82,9 @@ local function loadBeamJoy()
 
     require("rx/Rx")
 
+    printLogo()
     Log(string.var("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
+    Log(BJCLang.getConsoleMessage("common.startMessage"))
 end
 
 function _G.onInit()

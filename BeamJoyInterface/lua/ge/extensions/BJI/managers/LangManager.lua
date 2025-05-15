@@ -1,29 +1,29 @@
+---@class BJIManagerLang : BJIManager
 local M = {
-    _name = "BJILang",
+    _name = "Lang",
+
     Langs = {},
     Messages = {},
 }
 
 local function onLoad()
-    BJICache.addRxHandler(BJICache.CACHES.LANG, function(cacheData)
-        BJILang.Langs = cacheData.langs
-        table.sort(BJILang.Langs, function(a, b) return a:lower() < b:lower() end)
-        BJILang.Messages = cacheData.messages
+    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.LANG, function(cacheData)
+        BJI.Managers.Lang.Langs = cacheData.langs
+        table.sort(BJI.Managers.Lang.Langs, function(a, b) return a:lower() < b:lower() end)
+        BJI.Managers.Lang.Messages = cacheData.messages
 
-        BJIEvents.trigger(BJIEvents.EVENTS.LANG_CHANGED)
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.LANG_CHANGED)
     end)
-end
 
-local function initClient()
     local lang = Lua:getSelectedLanguage()
     if lang and type(lang) == "string" and lang:find("_") then
         lang = lang:split2("_")[1]:lower()
-        BJIAsync.task(
+        BJI.Managers.Async.task(
             function()
-                return BJICache.areBaseCachesFirstLoaded()
+                return BJI.Managers.Cache.areBaseCachesFirstLoaded()
             end,
             function()
-                BJITx.player.lang(lang)
+                BJI.Tx.player.lang(lang)
             end,
             "BJILangInit"
         )
@@ -68,7 +68,7 @@ local function drawSelector(data)
     else
         line:icon({
             icon = ICONS.translate,
-            style = { TEXT_COLORS.DEFAULT },
+            style = { BJI.Utils.Style.TEXT_COLORS.DEFAULT },
             coloredIcon = true,
         })
     end
@@ -76,7 +76,7 @@ local function drawSelector(data)
         line:btn({
             id = l,
             label = l:upper(),
-            style = data.selected == l and BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
+            style = data.selected == l and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO,
             onClick = function()
                 if data.selected ~= l and data.onChange then
                     data.onChange(l)
@@ -87,11 +87,9 @@ local function drawSelector(data)
     line:build()
 end
 
-M.onLoad = onLoad
-
-M.initClient = initClient
 M.get = get
 M.drawSelector = drawSelector
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+
 return M

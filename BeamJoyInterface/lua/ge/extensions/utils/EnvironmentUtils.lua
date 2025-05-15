@@ -41,6 +41,7 @@ function utils.numericData()
         dropSize = { step = 1, stepFast = 10, min = 0, max = 2 },
         dropMinSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
         dropMaxSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
+        dropSizeRatio = { step = .001, min = .001 },
         -- GRAVITY
         gravityRate = { step = .5, stepFast = 10, min = -280, max = 10 },
         --TEMPERATURE

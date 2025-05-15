@@ -1,7 +1,9 @@
 local im = ui_imgui
 
+---@class BJIManagerChat : BJIManager
 local M = {
-    _name = "BJIChat",
+    _name = "Chat",
+
     EVENTS = {
         JOIN = "join",
         LEAVE = "leave",
@@ -29,13 +31,13 @@ local function _printChat(senderName, message, color)
 end
 
 local function parseColor(color)
-    color = color and RGBA(color[1], color[2], color[3], color[4]) or RGBA(1, 1, 1, 1)
+    color = color and BJI.Utils.Style.RGBA(color[1], color[2], color[3], color[4]) or BJI.Utils.Style.RGBA(1, 1, 1, 1)
     return { [0] = color.x * 255, [1] = color.y * 255, [2] = color.z * 255, [3] = color.w * 255 }
 end
 
 local function _onPlayerChat(playerName, message, color)
     local player
-    for _, p in pairs(BJIContext.Players) do
+    for _, p in pairs(BJI.Managers.Context.Players) do
         if p.playerName == playerName then
             player = p
             break
@@ -45,8 +47,8 @@ local function _onPlayerChat(playerName, message, color)
         LogError("Invalid player chat data (playerName)", M._name)
         return
     end
-    local playerTag = player.staff and BJILang.get("chat.staffTag") or
-        string.var("{1}{2}", { BJILang.get("chat.reputationTag"), BJIReputation.getReputationLevel(player.reputation) })
+    local playerTag = player.staff and BJI.Managers.Lang.get("chat.staffTag") or
+        string.var("{1}{2}", { BJI.Managers.Lang.get("chat.reputationTag"), BJI.Managers.Reputation.getReputationLevel(player.reputation) })
     playerName = string.var("[{1}]{2}", { playerTag, playerName })
 
     _printChat(playerName, message, color)
@@ -60,7 +62,7 @@ local function onChat(event, data)
 end
 
 local function renderTick(ctxt)
-    if BJICache.isFirstLoaded(BJICache.CACHES.LANG) and M.queue[1] then
+    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.LANG) and M.queue[1] then
         local event, data = M.queue[1].event, M.queue[1].data
         data.color = parseColor(data.color)
         if event == M.EVENTS.PLAYER_CHAT then
@@ -72,14 +74,14 @@ local function renderTick(ctxt)
         elseif event == M.EVENTS.SERVER_CHAT then
             _printChat(nil, data.message, data.color)
         elseif event == M.EVENTS.DIRECT_MESSAGE then
-            _printChat(BJILang.get("chat.directMessage"):var({ playerName = data.playerName }),
+            _printChat(BJI.Managers.Lang.get("chat.directMessage"):var({ playerName = data.playerName }),
                 data.message, data.color)
         elseif event == M.EVENTS.DIRECT_MESSAGE_SENT then
-            _printChat(BJILang.get("chat.directMessageSent"):var({ playerName = data.playerName }),
+            _printChat(BJI.Managers.Lang.get("chat.directMessageSent"):var({ playerName = data.playerName }),
                 data.message, data.color)
         elseif table.includes({ M.EVENTS.JOIN, M.EVENTS.LEAVE }, event) then
             local key = event == M.EVENTS.JOIN and "chat.playerJoined" or "chat.playerLeft"
-            _printChat(nil, BJILang.get(key):var({ playerName = data.playerName }))
+            _printChat(nil, BJI.Managers.Lang.get(key):var({ playerName = data.playerName }))
         end
         table.remove(M.queue, 1)
     end
@@ -92,9 +94,9 @@ end
 
 M.onChat = onChat
 
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+end
 M.renderTick = renderTick
 
-M.onUnload = onUnload
-
-RegisterBJIManager(M)
 return M

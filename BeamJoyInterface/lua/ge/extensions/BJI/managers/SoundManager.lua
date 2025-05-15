@@ -2,8 +2,10 @@ local function _baseSoundsPath(filename)
     return string.var("/art/sound/{1}.ogg", { filename })
 end
 
+---@class BJIManagerSound : BJIManager
 local M = {
-    _name = "BJISound",
+    _name = "Sound",
+
     SOUNDS = {
         LEVEL_UP = _baseSoundsPath("levelup"),
         RACE_COUNTDOWN = "event:UI_Countdown1",
@@ -45,5 +47,4 @@ end
 M.addSound = addSound
 M.play = play
 
-RegisterBJIManager(M)
 return M

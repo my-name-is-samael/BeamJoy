@@ -1,5 +1,7 @@
+---@class BJIManagerBusUI : BJIManager
 local M = {
-    _name = "BJIBusUI",
+    _name = "BusUI",
+    
     id = "00",
     color = "#FF0",
     tasklist = {},
@@ -30,7 +32,7 @@ local function draw()
     local strData = string.var(
         "controller.onGameplayEvent('bus_onRouteChange',{direction='{1}',routeID='{2}',routeId='{2}',routeColor='{3}',tasklist={4}})",
         { direction, M.id, color, vehTasklist })
-    local veh = BJIVeh.getCurrentVehicleOwn()
+    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
     if veh then
         pcall(veh.queueLuaCommand, veh, strData)
     end

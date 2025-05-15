@@ -46,3 +46,30 @@ math.round = math.round or function(val, prec)
     end
     return tonumber(string.format("%." .. tostring(prec) .. "f", val)) or 0
 end
+
+---@param pos1 vec3
+---@param pos2 vec3
+---@return number
+math.horizontalDistance = math.horizontalDistance or function(pos1, pos2)
+    if not pos1.x or not pos1.y or
+        not pos2.x or not pos2.y then
+        LogError("invalid position")
+        return 0
+    end
+
+    return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
+end
+
+---@return Timer
+math.timer = math.timer or function()
+    return {
+        _timer = MP.CreateTimer(),
+        get = function(self)
+            local secTime = self._timer:GetCurrent()
+            return math.round(secTime * 1000)
+        end,
+        reset = function(self)
+            self._timer:Start()
+        end
+    }
+end

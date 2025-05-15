@@ -65,7 +65,7 @@
       "raceTime": "{playerName} завершил {raceName} за {time}"
     },
     "hunter": {
-      "invalidHunted": "Беглеца нет или у беглеца нет транспортного средства",
+      "invalidHunted": "Нет беглеца",
       "huntedWinner": "Беглец победил!",
       "huntersWinners": "Охотники победили!",
       "draw": "Рисовать"
@@ -173,27 +173,27 @@
       "selfTrailer": "Ваш трейлер"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Мои настройки",
-      "BJIEvents": "События",
-      "BJIRacesLeaderboard": "Таблица лидеров гонок",
-      "BJIRaceSettings": "Настройки гонки",
-      "BJIRace": "Раса",
-      "BJIDeliveryMulti": "Доставка вместе",
-      "BJIVehicleSelector": "Выбор автомобиля",
-      "BJIStation": "Станция",
-      "BJIBusMissionPreparation": "Подготовка автобусной миссии",
-      "BJIScenarioEditor": "Редактор сценариев",
-      "BJIFreeroamSettings": "Настройки свободного роуминга",
-      "BJIEnvironment": "Редактор среды",
-      "BJIServer": "Настройки сервера",
-      "BJISpeed": "Скорость игры",
-      "BJIDatabase": "База данных",
-      "BJIHunterSettings": "Настройки игры Охотник",
-      "BJIHunter": "Охотничья игра",
-      "BJITheme": "Редактор тем",
-      "BJIDerby": "Дерби Разрушения",
-      "BJIVehicleSelectorPreview": "Предпросмотр транспорта"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Мои настройки",
+      "Events": "События",
+      "RacesLeaderboard": "Таблица лидеров гонок",
+      "RaceSettings": "Настройки гонки",
+      "Race": "Раса",
+      "DeliveryMulti": "Доставка вместе",
+      "VehicleSelector": "Выбор автомобиля",
+      "Station": "Станция",
+      "BusMissionPreparation": "Подготовка автобусной миссии",
+      "ScenarioEditor": "Редактор сценариев",
+      "FreeroamSettings": "Настройки свободного роуминга",
+      "Environment": "Редактор среды",
+      "Server": "Настройки сервера",
+      "Speed": "Скорость игры",
+      "Database": "База данных",
+      "HunterSettings": "Настройки игры Охотник",
+      "Hunter": "Охотничья игра",
+      "Theme": "Редактор тем",
+      "Derby": "Дерби Разрушения",
+      "VehicleSelectorPreview": "Предпросмотр транспорта"
     },
     "menu": {
       "me": {
@@ -607,6 +607,7 @@
         "server": {
           "title": "Настройки сервера",
           "lang": "Язык консоли сервера",
+          "allowMods": "Разрешить модификации игроков",
           "driftBigBroadcast": "Бродкаст «Большие заносы»",
           "broadcasts": {
             "title": "Трансляции",
@@ -768,7 +769,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Сбросить время восстановления",
+      "resetDelayTooltip": "Время в секундах до возможности сброса игроком",
       "teleportDelay": "Время восстановления телепортации",
+      "teleportDelayTooltip": "Время в секундах до возможности телепортации к другому игроку",
       "vehicleSpawning": "Глобальное появление транспортных средств",
       "quickTravel": "Быстрое путешествие",
       "nametags": "Бейджи с именами игроков",
@@ -779,14 +782,16 @@
       "emergencyRefuelPercentTooltip": "Процент бака, заправленного после процесса",
       "driftGood": "Минимальный балл за хорошие заносы",
       "driftBig": "Минимальный балл за большие заносы",
-      "allowUnicycle": "Разрешить ходьбу"
+      "allowUnicycle": "Разрешить ходьбу",
+      "cancelModal": "Вы потеряете несохраненные изменения. Вы уверены, что хотите закрыть окно?"
     },
     "races": {
       "races": "Гонки",
       "names": {},
       "tools": {
         "title": "Инструменты",
-        "rotation": "Вращение"
+        "rotation": "Вращение",
+        "reverse": "Обратить шаги"
       },
       "edit": {
         "title": "Редактор гонок",
@@ -818,7 +823,6 @@
         "addBranch": "Добавить филиал сюда",
         "addStep": "Добавьте сюда шаг",
         "errors": {
-          "invalidName": "Неверное имя",
           "noChild": "Нет ребенка"
         },
         "hasRecordConfirm": "В этом забеге установлен рекорд, и при сохранении он будет удален. ",
@@ -1066,7 +1070,11 @@
       "defaultVeh": "Мой автомобиль по умолчанию",
       "noVeh": "Транспортное средство не найдено",
       "paints": "Краски",
-      "applyPaint": "Краска {position}"
+      "applyPaint": "Краска {position}",
+      "cars": "Машины",
+      "trucks": "Грузовики",
+      "trailers": "Прицепы",
+      "props": "Объекты"
     },
     "database": {
       "players": {
@@ -1108,6 +1116,8 @@
         "hunterConfigsTooltip": "Конфигурации транспортных средств, которые могут выбирать охотники (если их нет, можно выбрать любую игровую конфигурацию)",
         "toastConfigAlreadySaved": "Конфигурация уже сохранена",
         "specificConfig": "Конкретная {model}",
+        "lastWaypointGPS": "Показать последний путь",
+        "lastWaypointGPSTooltip": "Когда остается только одна точка маршрута, охотники могут видеть, где находится беглец (Имя и GPS)",
         "notEnoughPlayers": "Недостаточно игроков для запуска режима охотника"
       },
       "play": {
@@ -1117,9 +1127,9 @@
         "preparationTimeoutIn": "Тайм-аут подготовки через {delay}",
         "preparationTimeoutAboutToEnd": "Тайм-аут подготовки подходит к концу",
         "startIn": "Вы начнете через {delay}",
-        "aboutToStart": "Вы собираетесь начать",
         "huntedLooseIn": "Вы проиграете через {delay}",
         "huntedAboutToLoose": "Вы собираетесь потерять",
+        "hunterResumeIn": "Вы продолжите через {delay}",
         "configChoose": "Выберите свой автомобиль",
         "readyMark": "ГОТОВЫЙ",
         "notReadyMark": "НЕ ГОТОВО",

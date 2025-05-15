@@ -5,7 +5,8 @@
 ---@class RaceStand : BJIPositionRotation
 ---@field step integer
 
-local M = {
+---@class BJIScenarioRaceSolo : BJIScenario
+local S = {
     settings = {},
     race = {},
     dnf = {
@@ -15,34 +16,28 @@ local M = {
 }
 
 local function initManagerData()
-    M.baseSettings = nil
-    M.baseRaceData = nil
+    S.baseSettings = nil
+    S.baseRaceData = nil
 
-    M.testing = false
-    if type(M.testingCallback) == "function" then
-        M.testingCallback()
-    end
-    M.testingCallback = nil
+    S.testing = false
 
-    M.exemptNextReset = false
+    S.exemptNextReset = false
 
-    M.raceName = nil
-    M.raceHash = nil
-    M.record = nil
+    S.raceName = nil
+    S.raceHash = nil
+    S.record = nil
 
-    M.settings = {
+    S.settings = {
         raceID = nil,
         laps = nil,
         model = nil,
         respawnStrategy = nil,
     }
-    M.raceVeh = nil
+    S.raceVeh = nil
 
-    M.gridResetProcess = false
+    S.startPosition = nil
 
-    M.startPosition = nil
-
-    M.race = {
+    S.race = {
         startTime = nil,
         raceData = {
             -- loopable
@@ -64,68 +59,75 @@ local function initManagerData()
         },
     }
 
-    M.currentSpeed = 0
+    S.currentSpeed = 0
     ---@type MapRacePBWP[]
-    M.lapData = {}
+    S.lapData = {}
 
-    M.dnf.process = false -- true if countdown is launched
-    M.dnf.standExempt = false
-    M.dnf.lastPos = nil
-    M.dnf.targetTime = nil
+    S.dnf.process = false -- true if countdown is launched
+    S.dnf.standExempt = false
+    S.dnf.lastPos = nil
+    S.dnf.targetTime = nil
 end
 initManagerData()
 
 local function stopRace()
+    if type(S.testingCallback) == "function" then
+        BJI.Managers.Async.delayTask(S.testingCallback, 0, "BJIRaceTestingCallback")
+        S.testingCallback = nil
+    end
+
     initManagerData()
 end
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
-    return BJIScenario.isFreeroam() and
+    return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJIVeh.isUnicycle(ctxt.veh:getID()) and
-        #BJIContext.Scenario.Data.Races > 0
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) and
+        #BJI.Managers.Context.Scenario.Data.Races > 0
 end
 
 -- load hook
 local function onLoad(ctxt)
-    BJIVehSelector.tryClose()
-    BJIRestrictions.update({ {
+    BJI.Windows.VehSelector.tryClose()
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.RESET.ALL,
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
-            BJIRestrictions.OTHER.BIG_MAP,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+            BJI.Managers.Restrictions.OTHER.WALKING,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = BJIRestrictions.STATE.RESTRICTED,
+        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJIBigmap.toggleQuickTravel(false)
-    BJIRaceWaypoint.resetAll()
-    BJIWaypointEdit.reset()
-    BJIGPS.reset()
-    BJICam.addRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
-    BJITx.scenario.RaceSoloStart()
+    BJI.Managers.Bigmap.toggleQuickTravel(false)
+    BJI.Managers.RaceWaypoint.resetAll()
+    BJI.Managers.WaypointEdit.reset()
+    BJI.Managers.GPS.reset()
+    BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
+    if not S.testing then
+        BJI.Tx.scenario.RaceSoloStart()
+    end
 end
 
 local function getCollisionsType(ctxt)
-    return BJICollisions.TYPES.DISABLED
+    return BJI.Managers.Collisions.TYPES.DISABLED
 end
 
 -- player list contextual actions getter
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    if BJIVote.Kick.canStartVote(player.playerID) then
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            label = BJILang.get("playersBlock.buttons.voteKick"),
+            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
-                BJIVote.Kick.start(player.playerID)
+                BJI.Managers.Votes.Kick.start(player.playerID)
             end
         })
     end
@@ -135,38 +137,40 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIAsync.removeTask("BJIRaceStandReset")
-    BJIAsync.removeTask("BJIRaceStandEnd")
-    BJIAsync.removeTask("BJIRaceStart")
-    BJIAsync.removeTask("BJIRaceStartWaypoints")
-    BJIAsync.removeTask("BJIRaceStartTime")
-    BJIAsync.removeTask("BJIRaceDNFStop")
-    BJIMessage.cancelFlash("BJIRaceStartShortCountdown")
-    BJIMessage.cancelFlash("BJIRaceDNF")
+    BJI.Managers.Async.removeTask("BJIRaceStandReset")
+    BJI.Managers.Async.removeTask("BJIRaceStandEnd")
+    BJI.Managers.Async.removeTask("BJIRaceStart")
+    BJI.Managers.Async.removeTask("BJIRaceStartWaypoints")
+    BJI.Managers.Async.removeTask("BJIRaceStartTime")
+    BJI.Managers.Async.removeTask("BJIRaceDNFStop")
+    BJI.Managers.Message.cancelFlash("BJIRaceStartShortCountdown")
+    BJI.Managers.Message.cancelFlash("BJIRaceDNF")
     if ctxt.isOwner then
-        BJIVeh.freeze(false, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
     end
 
-    BJIRaceUI.clear()
-    BJITx.scenario.RaceSoloEnd(M.race.timers.finalTime ~= nil)
+    BJI.Managers.RaceUI.clear()
+    if not S.testing then
+        BJI.Tx.scenario.RaceSoloEnd(S.race.timers.finalTime ~= nil)
+    end
     stopRace()
-    BJIRaceWaypoint.resetAll()
-    BJIRestrictions.update({ {
+    BJI.Managers.RaceWaypoint.resetAll()
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.RESET.ALL,
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
-            BJIRestrictions.OTHER.BIG_MAP,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+            BJI.Managers.Restrictions.OTHER.WALKING,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = BJIRestrictions.STATE.ALLOWED,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     guihooks.trigger('ScenarioResetTimer')
-    BJIBigmap.toggleQuickTravel(true)
+    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 -- prepare complete race steps list
@@ -174,7 +178,7 @@ local function initSteps(steps)
     -- parse vectors data
     for _, step in ipairs(steps or {}) do
         for _, wp in ipairs(step) do
-            local parsed = TryParsePosRot(wp)
+            local parsed = math.tryParsePosRot(wp)
             wp.pos = parsed.pos
             wp.rot = parsed.rot
         end
@@ -183,7 +187,7 @@ local function initSteps(steps)
     local nSteps = {}
 
     -- parse for each lap
-    for iLap = 1, M.settings.laps or 1 do
+    for iLap = 1, S.settings.laps or 1 do
         for iStep, step in ipairs(steps) do
             local nStep = {}
             for _, wp in ipairs(step) do
@@ -217,16 +221,16 @@ local function initSteps(steps)
             table.insert(nSteps, nStep)
         end
     end
-    M.race.raceData.steps = nSteps
+    S.race.raceData.steps = nSteps
 end
 
 local function parseRaceData(steps)
-    M.race.raceData.wpPerLap = #steps
+    S.race.raceData.wpPerLap = #steps
     initSteps(steps)
     for iStep, step in ipairs(steps or {}) do
         for _, wp in ipairs(step) do
             if wp.stand then
-                table.insert(M.race.stands, { step = iStep, pos = vec3(wp.pos), rot = quat(wp.rot) })
+                table.insert(S.race.stands, { step = iStep, pos = vec3(wp.pos), rot = quat(wp.rot) })
             end
         end
     end
@@ -263,15 +267,15 @@ end
 </ul>
 ]]
 local function initLeaderboard()
-    if M.isSprint() then
+    if S.isSprint() then
         -- sprint
-        M.race.leaderboard = {
+        S.race.leaderboard = {
             wp = 0,
             waypoints = {},
         }
     else
         -- loopable
-        M.race.leaderboard = {
+        S.race.leaderboard = {
             laps = {},
         }
     end
@@ -279,38 +283,38 @@ end
 
 local function updateLeaderBoard(remainingSteps, raceTime, lapTime)
     local reachedWp
-    if M.isSprint() then
+    if S.isSprint() then
         -- sprint
-        reachedWp = #M.race.raceData.steps - remainingSteps
+        reachedWp = #S.race.raceData.steps - remainingSteps
 
-        M.race.leaderboard.wp = reachedWp
-        M.race.leaderboard.waypoints[reachedWp] = raceTime
+        S.race.leaderboard.wp = reachedWp
+        S.race.leaderboard.waypoints[reachedWp] = raceTime
     else
         -- loopable
-        local remainingLaps = M.settings.laps - M.race.lap
-        local remainingWpInLap = remainingSteps - (remainingLaps * M.race.raceData.wpPerLap)
-        reachedWp = M.race.raceData.wpPerLap - remainingWpInLap
+        local remainingLaps = S.settings.laps - S.race.lap
+        local remainingWpInLap = remainingSteps - (remainingLaps * S.race.raceData.wpPerLap)
+        reachedWp = S.race.raceData.wpPerLap - remainingWpInLap
 
-        if not M.race.leaderboard.laps[M.race.lap] then
-            M.race.leaderboard.laps[M.race.lap] = {
+        if not S.race.leaderboard.laps[S.race.lap] then
+            S.race.leaderboard.laps[S.race.lap] = {
                 wp = reachedWp,
                 time = nil,
                 diff = nil,
             }
         else
-            M.race.leaderboard.laps[M.race.lap].wp = reachedWp
+            S.race.leaderboard.laps[S.race.lap].wp = reachedWp
         end
-        if reachedWp == M.race.raceData.wpPerLap then
-            M.race.leaderboard.laps[M.race.lap].time = lapTime
+        if reachedWp == S.race.raceData.wpPerLap then
+            S.race.leaderboard.laps[S.race.lap].time = lapTime
         end
 
-        local finishedLaps = #M.race.leaderboard.laps
-        while finishedLaps > 1 and not M.race.leaderboard.laps[finishedLaps].time do
+        local finishedLaps = #S.race.leaderboard.laps
+        while finishedLaps > 1 and not S.race.leaderboard.laps[finishedLaps].time do
             finishedLaps = finishedLaps - 1
         end
         if finishedLaps > 1 then
-            local bestLap, bestLapTime = 1, M.race.leaderboard.laps[1].time
-            for iLap, lap in ipairs(M.race.leaderboard.laps) do
+            local bestLap, bestLapTime = 1, S.race.leaderboard.laps[1].time
+            for iLap, lap in ipairs(S.race.leaderboard.laps) do
                 if lap.time then
                     if lap.time < bestLapTime then
                         bestLap = iLap
@@ -320,7 +324,7 @@ local function updateLeaderBoard(remainingSteps, raceTime, lapTime)
                 end
             end
 
-            for iLap, lap in ipairs(M.race.leaderboard.laps) do
+            for iLap, lap in ipairs(S.race.leaderboard.laps) do
                 if lap.time and iLap ~= bestLap then
                     lap.diff = lap.time - bestLapTime
                 end
@@ -330,41 +334,41 @@ local function updateLeaderBoard(remainingSteps, raceTime, lapTime)
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
-    local previousRestrictions = BJIRestrictions.getCurrentResets()
-    M.dnf.standExempt = true
+    local previousRestrictions = BJI.Managers.Restrictions.getCurrentResets()
+    S.dnf.standExempt = true
 
-    BJIMessage.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
-        BJILang.get("races.play.flashCountdownZero"))
+    BJI.Managers.Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
+        BJI.Managers.Lang.get("races.play.flashCountdownZero"))
 
-    local previousCam = BJICam.getCamera()
-    BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-    BJIVeh.stopCurrentVehicle()
-    BJIVeh.freeze(true)
-    M.race.lastStand = { step = lastWp.wp, pos = BJIVeh.getPositionRotation().pos, rot = wp.rot }
-    BJIVeh.saveHome(M.race.lastStand)
+    local previousCam = BJI.Managers.Cam.getCamera()
+    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+    BJI.Managers.Veh.stopCurrentVehicle()
+    BJI.Managers.Veh.freeze(true)
+    S.race.lastStand = { step = lastWp.wp, pos = BJI.Managers.Veh.getPositionRotation().pos, rot = wp.rot }
+    BJI.Managers.Veh.saveHome(S.race.lastStand)
 
-    BJIAsync.delayTask(function()
-        M.exemptNextReset = true
-        BJIVeh.loadHome(function(ctxt)
-            BJIVeh.freeze(true)
-            if ctxt.camera == BJICam.CAMERAS.EXTERNAL then
-                BJICam.setCamera(previousCam)
-                ctxt.camera = BJICam.getCamera()
+    BJI.Managers.Async.delayTask(function()
+        S.exemptNextReset = true
+        BJI.Managers.Veh.loadHome(function(ctxt)
+            BJI.Managers.Veh.freeze(true)
+            if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+                BJI.Managers.Cam.setCamera(previousCam)
+                ctxt.camera = BJI.Managers.Cam.getCamera()
             end
-            if ctxt.camera == BJICam.CAMERAS.EXTERNAL then
-                BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-                ctxt.camera = BJICam.getCamera()
+            if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+                BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
+                ctxt.camera = BJI.Managers.Cam.getCamera()
             end
         end)
     end, delayMs - 3000, "BJIRaceStandReset")
 
-    BJIAsync.delayTask(function()
-        BJIVeh.freeze(false)
-        if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            BJIAsync.delayTask(function()
+    BJI.Managers.Async.delayTask(function()
+        BJI.Managers.Veh.freeze(false)
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            BJI.Managers.Async.delayTask(function()
                 -- delays reset restriction remove
-                BJIRestrictions.updateResets(previousRestrictions)
-                M.dnf.standExempt = false
+                BJI.Managers.Restrictions.updateResets(previousRestrictions)
+                S.dnf.standExempt = false
             end, 1000, "BJIRaceStandEndRestrictionReset")
         end
         if type(callback) == "function" then
@@ -378,55 +382,55 @@ end
 ---@param wp integer
 local function drawTimeDiff(isLap, lap, wp)
     ---@type MapRacePBWP[]?
-    local pb = BJIRaceWaypoint.getPB(M.raceHash)
+    local pb = BJI.Managers.RaceWaypoint.getPB(S.raceHash)
 
     local diff, recordDiff
-    local time = M.lapData[wp].time
-    if M.isSprint() then
+    local time = S.lapData[wp].time
+    if S.isSprint() then
         if time then
             if pb then
                 diff = time - pb[wp].time
             end
-            if isLap and M.record then
-                recordDiff = time - M.record.time
+            if isLap and S.record then
+                recordDiff = time - S.record.time
             end
         end
     else
         if pb then
             diff = time - pb[wp].time
         end
-        if isLap and M.record then
-            recordDiff = time - M.record.time
+        if isLap and S.record then
+            recordDiff = time - S.record.time
         end
     end
     if isLap then
-        BJIRaceUI.addHotlapRow(M.raceName, time)
+        BJI.Managers.RaceUI.addHotlapRow(S.raceName, time)
     end
-    BJIRaceUI.setRaceTime(diff, recordDiff, 3000)
+    BJI.Managers.RaceUI.setRaceTime(diff, recordDiff, 3000)
 end
 
 local function onCheckpointReached(wp, remainingSteps)
-    local currentWaypoint = #M.race.raceData.steps - remainingSteps
-    M.race.waypoint = currentWaypoint
+    local currentWaypoint = #S.race.raceData.steps - remainingSteps
+    S.race.waypoint = currentWaypoint
 
     local lastWp = {
-        lap = math.ceil(currentWaypoint / M.race.raceData.wpPerLap),
-        wp = currentWaypoint % M.race.raceData.wpPerLap > 0 and
-            currentWaypoint % M.race.raceData.wpPerLap or M.race.raceData.wpPerLap,
+        lap = math.ceil(currentWaypoint / S.race.raceData.wpPerLap),
+        wp = currentWaypoint % S.race.raceData.wpPerLap > 0 and
+            currentWaypoint % S.race.raceData.wpPerLap or S.race.raceData.wpPerLap,
     }
 
     local function wpTrigger()
-        local raceTime = M.race.timers.race:get()
-        local lapTime = M.race.timers.lap:get()
+        local raceTime = S.race.timers.race:get()
+        local lapTime = S.race.timers.lap:get()
 
-        if not wp.stand and M.settings.respawnStrategy and
-            M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
-                BJIVeh.saveHome({ pos = wp.pos, rot = wp.rot })
-            elseif M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
+        if not wp.stand and S.settings.respawnStrategy and
+            S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+                BJI.Managers.Veh.saveHome({ pos = wp.pos, rot = wp.rot })
+            elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
                 -- check if current or previous stand is different than last
                 ---@param stand RaceStand
-                local latestStand = table.filter(M.race.stands, function(stand)
+                local latestStand = table.filter(S.race.stands, function(stand)
                         return stand.step <= lastWp.wp
                     end)
                     ---@param acc? RaceStand
@@ -437,96 +441,98 @@ local function onCheckpointReached(wp, remainingSteps)
                 if not latestStand and lastWp.lap > 1 then
                     ---@param acc? RaceStand
                     ---@param stand RaceStand
-                    latestStand = table.reduce(M.race.stands, function(acc, stand)
+                    latestStand = table.reduce(S.race.stands, function(acc, stand)
                         return (not acc or stand.step > acc.step) and stand or acc
                     end)
                 end
-                if latestStand and latestStand.step ~= M.race.lastStand.step then
-                    M.race.lastStand = latestStand
-                    BJIVeh.saveHome(latestStand)
+                if latestStand and latestStand.step ~= S.race.lastStand.step then
+                    S.race.lastStand = latestStand
+                    BJI.Managers.Veh.saveHome(latestStand)
                 end
             end
         end
 
-        local lapWaypoint = currentWaypoint % M.race.raceData.wpPerLap
-        lapWaypoint = lapWaypoint > 0 and lapWaypoint or M.race.raceData.wpPerLap
-        M.lapData[lapWaypoint] = {
+        local lapWaypoint = currentWaypoint % S.race.raceData.wpPerLap
+        lapWaypoint = lapWaypoint > 0 and lapWaypoint or S.race.raceData.wpPerLap
+        S.lapData[lapWaypoint] = {
             time = lapTime,
-            speed = math.round(M.currentSpeed * 3.6, 2),
+            speed = math.round(S.currentSpeed * 3.6, 2),
         }
         updateLeaderBoard(remainingSteps, raceTime, lapTime)
 
-        drawTimeDiff(wp.lap or remainingSteps == 0, lastWp.lap, lastWp.wp)
+        if not S.testing then
+            drawTimeDiff(wp.lap or remainingSteps == 0, lastWp.lap, lastWp.wp)
+        end
 
         local function onLap()
-            if not M.testing then
+            if not S.testing then
                 -- send to server (time broadcasted or new record)
-                BJITx.scenario.RaceSoloUpdate(M.settings.raceID, lapTime, M.settings.model)
+                BJI.Tx.scenario.RaceSoloUpdate(S.settings.raceID, lapTime, S.settings.model)
 
                 -- detect new pb and save it
                 ---@type MapRacePBWP[]?
-                local pb = BJIRaceWaypoint.getPB(M.raceHash)
+                local pb = BJI.Managers.RaceWaypoint.getPB(S.raceHash)
                 local newPb = false
                 if not pb then
-                    pb = M.lapData
+                    pb = S.lapData
                     newPb = true
                 else
                     local pbTime = pb[lapWaypoint] and pb[lapWaypoint].time or nil
-                    if pbTime and M.lapData[lapWaypoint].time < pbTime then
-                        pb = M.lapData
+                    if pbTime and S.lapData[lapWaypoint].time < pbTime then
+                        pb = S.lapData
                         newPb = true
                     end
                 end
                 if newPb then
-                    BJIRaceWaypoint.setPB(M.raceHash, pb)
-                    BJIEvents.trigger(BJIEvents.EVENTS.RACE_NEW_PB, {
-                        raceName = M.race.raceData.name,
-                        raceID = M.settings.raceID,
-                        raceHash = M.raceHash,
-                        time = M.lapData[lapWaypoint].time,
+                    BJI.Managers.RaceWaypoint.setPB(S.raceHash, pb)
+                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                        raceName = S.race.raceData.name,
+                        raceID = S.settings.raceID,
+                        raceHash = S.raceHash,
+                        time = S.lapData[lapWaypoint].time,
                     })
                 end
             end
         end
 
-        BJISound.play(BJISound.SOUNDS.RACE_WAYPOINT)
+        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.RACE_WAYPOINT)
         if remainingSteps == 0 then
             -- finish
-            M.race.timers.lap = nil
-            M.race.timers.race = nil
-            M.race.timers.finalTime = lapTime
+            S.race.timers.lap = nil
+            S.race.timers.race = nil
+            S.race.timers.finalTime = lapTime
 
-            BJIRaceUI.setWaypoint(M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
+            BJI.Managers.RaceUI.setWaypoint(S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
 
             onLap()
         elseif wp.lap then
             -- lap
-            M.race.timers.lap:reset()
+            S.race.timers.lap:reset()
 
-            BJIRaceUI.setWaypoint(M.race.waypoint % M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
+            BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
 
-            M.race.lap = M.race.lap + 1
-            BJIRaceUI.setLap(M.race.lap, M.settings.laps)
+            S.race.lap = S.race.lap + 1
+            BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
 
             local lapMessage
-            if M.race.lap == M.settings.laps then
-                lapMessage = BJILang.get("races.play.finalLapFlash")
+            if S.race.lap == S.settings.laps then
+                lapMessage = BJI.Managers.Lang.get("races.play.finalLapFlash")
             else
-                lapMessage = BJILang.get("races.play.Lap"):var({ lap = M.race.lap })
+                lapMessage = BJI.Managers.Lang.get("races.play.Lap"):var({ lap = S.race.lap })
             end
-            BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
+            BJI.Managers.Message.flash("BJIRaceLap", lapMessage, 5, false)
 
             onLap()
         else
             -- regular checkpoint
-            BJIMessage.flash("BJIRaceCheckpoint", RaceDelay(lapTime), 2, false)
-            BJIRaceUI.setWaypoint(M.race.waypoint % M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
+            BJI.Managers.Message.flash("BJIRaceCheckpoint", BJI.Utils.Common.RaceDelay(lapTime), 2, false)
+            BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
         end
 
         if wp.lap then
-            M.lapData = {}
+            S.lapData = {}
         end
-        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
 
     if wp.stand then
@@ -537,47 +543,52 @@ local function onCheckpointReached(wp, remainingSteps)
 end
 
 local function stopWithLoop()
-    local settings, raceData = M.baseSettings, M.baseRaceData
-    local loop = not M.testing and BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) then
+        return -- skipped by user
+    end
+
+    local settings, raceData = S.baseSettings, S.baseRaceData
+    local loop = not S.testing and
+        BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     if loop then
-        M.initRace(BJITick.getContext(), settings, raceData)
+        S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
     end
 end
 
 local function onFinishReached()
-    local postFinishTimeout = BJIContext.BJC.Race.FinishTimeout * 1000
-    BJIMessage.flash("BJIRaceEndSelf", BJILang.get("races.play.finishFlashSolo"), 3, false)
-    BJIAsync.delayTask(stopWithLoop, postFinishTimeout, "BJIRacePostFinish")
+    local postFinishTimeout = BJI.Managers.Context.BJC.Race.FinishTimeout * 1000
+    BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.finishFlashSolo"), 3, false)
+    BJI.Managers.Async.delayTask(stopWithLoop, postFinishTimeout, "BJIRacePostFinish")
 end
 
 local function initWaypoints()
-    BJIRaceWaypoint.resetAll()
-    for _, step in ipairs(M.race.raceData.steps) do
-        BJIRaceWaypoint.addRaceStep(step)
+    BJI.Managers.RaceWaypoint.resetAll()
+    for _, step in ipairs(S.race.raceData.steps) do
+        BJI.Managers.RaceWaypoint.addRaceStep(step)
     end
 
-    BJIRaceWaypoint.setRaceWaypointHandler(onCheckpointReached)
-    BJIRaceWaypoint.setRaceFinishHandler(onFinishReached)
+    BJI.Managers.RaceWaypoint.setRaceWaypointHandler(onCheckpointReached)
+    BJI.Managers.RaceWaypoint.setRaceFinishHandler(onFinishReached)
 end
 
 local function isRaceStarted(ctxt)
     local now = ctxt and ctxt.now or GetCurrentTimeMillis()
-    return M.race.startTime and now >= M.race.startTime
+    return S.race.startTime and now >= S.race.startTime
 end
 
 local function isRaceFinished()
-    return not not M.race.timers.finalTime
+    return not not S.race.timers.finalTime
 end
 
 local function findFreeStartPosition(startPositions)
-    local vehs = BJIVeh.getMPVehicles()
+    local vehs = BJI.Managers.Veh.getMPVehicles()
     for _, sp in ipairs(startPositions) do
         local positionFree = true
         for _, v in pairs(vehs) do
-            local veh = BJIVeh.getVehicleObject(v.gameVehicleID)
-            if veh and v.gameVehicleID ~= BJIContext.User.currentVehicle then
-                local posRot = BJIVeh.getPositionRotation(veh)
+            local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehicleID)
+            if veh and v.gameVehicleID ~= BJI.Managers.Context.User.currentVehicle then
+                local posRot = BJI.Managers.Veh.getPositionRotation(veh)
                 if posRot and
                     posRot.pos:distance(vec3(sp.pos)) <= veh:getInitialWidth() / 2 then
                     positionFree = false
@@ -586,219 +597,199 @@ local function findFreeStartPosition(startPositions)
             end
         end
         if positionFree then
-            return TryParsePosRot(table.clone(sp))
+            return math.tryParsePosRot(table.clone(sp))
         end
     end
-    return TryParsePosRot(table.clone(startPositions[1]))
+    return math.tryParsePosRot(table.clone(startPositions[1]))
 end
 
 local function initRace(ctxt, settings, raceData, testingCallback)
-    M.baseSettings = table.clone(settings)
-    M.baseRaceData = table.clone(raceData)
+    S.baseSettings = table.clone(settings)
+    S.baseRaceData = table.clone(raceData)
 
     if testingCallback then
-        M.testing = true
-        M.testingCallback = testingCallback
+        S.testing = true
+        S.testingCallback = testingCallback
     end
 
-    BJIVeh.deleteOtherOwnVehicles()
-    M.raceVeh = ctxt.veh:getID()
-    BJIScenario.switchScenario(BJIScenario.TYPES.RACE_SOLO, ctxt)
-    M.settings.model = BJIVeh.getCurrentModel()
-    M.settings.laps = settings.laps
-    M.settings.respawnStrategy = settings.respawnStrategy
+    BJI.Managers.Veh.deleteOtherOwnVehicles()
+    S.raceVeh = ctxt.veh:getID()
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.RACE_SOLO, ctxt)
+    S.settings.model = BJI.Managers.Veh.getCurrentModel()
+    S.settings.laps = settings.laps
+    S.settings.respawnStrategy = settings.respawnStrategy
 
-    M.settings.raceID = raceData.id
-    M.raceName = raceData.name
-    M.raceHash = raceData.hash
-    M.raceAuthor = raceData.author
-    M.record = raceData.record
-    M.startPosition = findFreeStartPosition(raceData.startPositions)
+    S.settings.raceID = raceData.id
+    S.raceName = raceData.name
+    S.raceHash = raceData.hash
+    S.raceAuthor = raceData.author
+    S.record = raceData.record
+    S.startPosition = findFreeStartPosition(raceData.startPositions)
     parseRaceData(raceData.steps)
     initLeaderboard()
 
-    if not M.isSprint() then
-        BJIRaceUI.setLap(M.race.lap, M.settings.laps)
+    if not S.isSprint() then
+        BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
     end
-    BJIRaceUI.setWaypoint(M.race.waypoint, M.race.raceData.wpPerLap)
+    BJI.Managers.RaceUI.setWaypoint(S.race.waypoint, S.race.raceData.wpPerLap)
 
     local previousCam = ctxt.camera
-    BJIVeh.saveHome({ pos = M.startPosition.pos, rot = M.startPosition.rot })
-    BJIVeh.loadHome(function()
-        BJIVeh.freeze(true)
+    BJI.Managers.Veh.saveHome({ pos = S.startPosition.pos, rot = S.startPosition.rot })
+    BJI.Managers.Veh.loadHome(function()
+        BJI.Managers.Veh.freeze(true)
         if table.includes({
-                BJICam.CAMERAS.FREE,
-                BJICam.CAMERAS.BIG_MAP,
-                BJICam.CAMERAS.PASSENGER,
-                BJICam.CAMERAS.EXTERNAL,
+                BJI.Managers.Cam.CAMERAS.FREE,
+                BJI.Managers.Cam.CAMERAS.BIG_MAP,
+                BJI.Managers.Cam.CAMERAS.PASSENGER,
+                BJI.Managers.Cam.CAMERAS.EXTERNAL,
             }, previousCam) then
-            previousCam = BJICam.CAMERAS.ORBIT
+            previousCam = BJI.Managers.Cam.CAMERAS.ORBIT
         end
-        BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     end)
-    M.race.startTime = GetCurrentTimeMillis() + 5500
-    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
+    S.race.startTime = GetCurrentTimeMillis() + 5500
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 
-    M.lapData = {}
+    S.lapData = {}
 
-    BJIMessage.flashCountdown("BJIRaceStart", M.race.startTime, true,
-        BJILang.get("races.play.flashCountdownZero"), 5, nil, true)
+    BJI.Managers.Message.flashCountdown("BJIRaceStart", S.race.startTime, true,
+        BJI.Managers.Lang.get("races.play.flashCountdownZero"), 5, nil, true)
     initWaypoints()
 
     -- 3secs before start
-    BJIAsync.programTask(function(ctxt2)
-        if ctxt2.camera == BJICam.CAMERAS.EXTERNAL then
-            BJICam.setCamera(previousCam)
+    BJI.Managers.Async.programTask(function(ctxt2)
+        if ctxt2.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+            BJI.Managers.Cam.setCamera(previousCam)
         end
-        if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.STAND.key then
-            M.race.lastStand = { step = 0, pos = M.startPosition.pos, rot = M.startPosition.rot }
+        if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+            S.race.lastStand = { step = 0, pos = S.startPosition.pos, rot = S.startPosition.rot }
         end
-    end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
+    end, S.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
     -- enable waypoints before start to avoid stutter
-    BJIAsync.programTask(BJIRaceWaypoint.startRace,
-        M.race.startTime - 500, "BJIRaceStartWaypoints")
+    BJI.Managers.Async.programTask(BJI.Managers.RaceWaypoint.startRace,
+        S.race.startTime - 500, "BJIRaceStartWaypoints")
 
     -- on start
-    BJIAsync.programTask(function()
-        M.race.timers.race = TimerCreate()
-        M.race.timers.lap = TimerCreate()
-        BJIVeh.freeze(false)
-        if M.settings.respawnStrategy ~= BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            local restrictions = BJIRestrictions.RESET.ALL_BUT_LOADHOME
-            if M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+    BJI.Managers.Async.programTask(function()
+        S.race.timers.race = math.timer()
+        S.race.timers.lap = math.timer()
+        BJI.Managers.Veh.freeze(false)
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            local restrictions = BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME
+            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
                 restrictions = Table()
-                    :addAll(BJIRestrictions.RESET.TELEPORT)
-                    :addAll(BJIRestrictions.RESET.HEAVY_RELOAD)
+                    :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
+                    :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD)
             end
-            BJIRestrictions.updateResets(restrictions)
+            BJI.Managers.Restrictions.updateResets(restrictions)
         end
-        BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
-    end, M.race.startTime, "BJIRaceStartTime")
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    end, S.race.startTime, "BJIRaceStartTime")
 end
 
 local function isSprint()
-    return not M.settings.laps or M.settings.laps == 1
+    return not S.settings.laps or S.settings.laps == 1
 end
 
 -- each frame tick hook
 local function renderTick(ctxt)
     if not ctxt.isOwner then
-        BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
         return
     end
 
     ctxt.veh:queueLuaCommand([[
-        obj:queueGameEngineLua("BJIScenario.get(BJIScenario.TYPES.RACE_SOLO).currentSpeed = " .. obj:getAirflowSpeed())
+        obj:queueGameEngineLua("BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).currentSpeed = " .. obj:getAirflowSpeed())
     ]])
 
     -- lap realtimeDisplay
     local time = 0
-    if M.race.timers.finalTime then
-        time = M.race.timers.finalTime
-    elseif M.race.timers.lap then
-        time = M.race.timers.lap:get()
+    if S.race.timers.finalTime then
+        time = S.race.timers.finalTime
+    elseif S.race.timers.lap then
+        time = S.race.timers.lap:get()
     end
     guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
 
-    -- fix vehicle position / damages on grid
-    if not M.gridResetProcess and
-        not M.isRaceStarted(ctxt) and
-        M.startPosition then
-        local moved = GetHorizontalDistance(
-            M.startPosition.pos,
-            ctxt.vehPosRot.pos
-        ) > .5
-        local damageThreshold = 10
-        local damaged = ctxt.vehData and ctxt.vehData.damageState > damageThreshold
-        if moved or damaged then
-            M.startPosition = findFreeStartPosition(M.baseRaceData.startPositions)
-            if not M.startPosition then
-                return
-            end
-            BJIVeh.setPositionRotation(M.startPosition.pos, M.startPosition.rot)
-            BJIVeh.freeze(true, ctxt.veh:getID())
-            M.gridResetProcess = true
-            BJIAsync.task(function(ctxt2)
-                return not ctxt2.isOwner or
-                    (ctxt2.vehPosRot.pos:distance(M.startPosition.pos) < .5 and
-                        ctxt2.vehData.damageState < damageThreshold)
-            end, function()
-                M.gridResetProcess = false
-            end, "BJIRaceSoloGridResetProcess")
-        end
-    end
-
     -- prevent jato usage before start
-    if not M.race.startTime or ctxt.now < M.race.startTime then
+    if not S.race.startTime or ctxt.now < S.race.startTime then
         ctxt.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
     end
 end
 
 -- each second tick hook
 local function slowTick(ctxt)
+    if not S.isRaceStarted(ctxt) and S.startPosition and ctxt.vehData and
+        ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+        BJI.Managers.Veh.loadHome(function(ctxt2)
+            BJI.Managers.Veh.freeze(true, ctxt2.veh:getID())
+        end)
+    end
+
     -- DNF PROCESS
-    if ctxt.isOwner and M.isRaceStarted(ctxt) and not M.isRaceFinished() and
-        M.settings.respawnStrategy == BJI_RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
-        not M.dnf.standExempt then
-        if not M.dnf.lastPos then
+    if ctxt.isOwner and S.isRaceStarted(ctxt) and not S.isRaceFinished() and
+        S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
+        not S.dnf.standExempt then
+        if not S.dnf.lastPos then
             -- first check
-            M.dnf.lastPos = ctxt.vehPosRot.pos
+            S.dnf.lastPos = ctxt.vehPosRot.pos
         else
-            if GetHorizontalDistance(ctxt.vehPosRot.pos, M.dnf.lastPos) < M.dnf.minDistance then
+            if math.horizontalDistance(ctxt.vehPosRot.pos, S.dnf.lastPos) < S.dnf.minDistance then
                 -- distance isn't enough
-                if not M.dnf.process then
+                if not S.dnf.process then
                     -- start countdown process
-                    M.dnf.process = true
-                    M.dnf.targetTime = ctxt.now + (M.dnf.timeout * 1000)
-                    BJIMessage.flashCountdown("BJIRaceDNF", M.dnf.targetTime, true,
-                        BJILang.get("races.play.flashDnfOut"), nil,
+                    S.dnf.process = true
+                    S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
+                    BJI.Managers.Message.flashCountdown("BJIRaceDNF", S.dnf.targetTime, true,
+                        BJI.Managers.Lang.get("races.play.flashDnfOut"), nil,
                         function()
-                            BJIMessage.flash("BJIRaceEndSelf", BJILang.get("races.play.flashDnfOut"), 3, false)
-                            BJIAsync.delayTask(stopWithLoop, 3000, "BJIRaceDNFStop")
+                            BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.flashDnfOut"),
+                                3, false)
+                            BJI.Managers.Async.delayTask(stopWithLoop, 3000, "BJIRaceDNFStop")
                         end)
                 end
             else
                 -- good distance, remove countdown if there is one
-                if M.dnf.process then
-                    BJIMessage.cancelFlash("BJIRaceDNF")
-                    M.dnf.process = false
-                    M.dnf.targetTime = nil
+                if S.dnf.process then
+                    BJI.Managers.Message.cancelFlash("BJIRaceDNF")
+                    S.dnf.process = false
+                    S.dnf.targetTime = nil
                 end
-                M.dnf.lastPos = ctxt.vehPosRot.pos
+                S.dnf.lastPos = ctxt.vehPosRot.pos
             end
         end
     end
 
     -- RECORD UPDATE
-    for _, race in ipairs(BJIContext.Scenario.Data.Races) do
-        if race.id == M.settings.raceID and race.record and
-            (not M.record or race.record.time ~= M.record.time) then
-            M.record = race.record
+    for _, race in ipairs(BJI.Managers.Context.Scenario.Data.Races) do
+        if race.id == S.settings.raceID and race.record and
+            (not S.record or race.record.time ~= S.record.time) then
+            S.record = race.record
         end
     end
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
-M.initRace = initRace
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
+S.initRace = initRace
 
-M.isSprint = isSprint
+S.isSprint = isSprint
 
-M.canSpawnNewVehicle = FalseFn
-M.canReplaceVehicle = FalseFn
-M.canDeleteVehicle = FalseFn
-M.canDeleteOtherVehicles = FalseFn
-M.getCollisionsType = getCollisionsType
+S.canSpawnNewVehicle = FalseFn
+S.canReplaceVehicle = FalseFn
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
+S.getCollisionsType = getCollisionsType
 
-M.getPlayerListActions = getPlayerListActions
+S.getPlayerListActions = getPlayerListActions
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.renderTick = renderTick
+S.slowTick = slowTick
 
-M.onUnload = onUnload
+S.onUnload = onUnload
 
-M.isRaceStarted = isRaceStarted
-M.isRaceFinished = isRaceFinished
+S.isRaceStarted = isRaceStarted
+S.isRaceFinished = isRaceFinished
 
-return M
+return S

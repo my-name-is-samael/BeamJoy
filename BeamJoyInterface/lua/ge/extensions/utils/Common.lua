@@ -1,84 +1,35 @@
+local U = {}
+
 ---@param text string
 ---@return integer
-function GetTextWidth(text)
+function U.GetTextWidth(text)
     if type(text) ~= "string" then
         return 0
     end
-    return math.round(ui_imgui.CalcTextSize(text).x * (BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
+    return math.round(ui_imgui.CalcTextSize(text).x * (BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
 end
 
-local COLUMNS_MARGIN = GetTextWidth("  ")
+local function getColumnsMargin()
+    return U.GetTextWidth("  ")
+end
+
 ---@param text string
 ---@return integer
-function GetColumnTextWidth(text)
-    return GetTextWidth(text) + COLUMNS_MARGIN
+function U.GetColumnTextWidth(text)
+    return U.GetTextWidth(text) + getColumnsMargin()
 end
 
 ---@param content any
 ---@param typeNumber? boolean
 ---@return integer
-function GetInputWidthByContent(content, typeNumber)
+function U.GetInputWidthByContent(content, typeNumber)
     local inputOffset = 4 + (typeNumber and 50 or 0)
-    return GetTextWidth(tostring(content)) + inputOffset
+    return U.GetTextWidth(tostring(content)) + inputOffset
 end
 
--- DISTANCE / POSITIONS ROTATIONS
-
----@param pos1 vec3
----@param pos2 vec3
----@return number|nil
-function GetHorizontalDistance(pos1, pos2)
-    local _, _, err = pcall(vec3, pos1)
-    local _, _, err2 = pcall(vec3, pos2)
-    if err or err2 then
-        LogError("invalid position", "GetHorizontalDistance")
-        return 0
-    end
-
-    local p1 = vec3(pos1.x, pos1.y, 0)
-    local p2 = vec3(pos2.x, pos2.y, 0)
-    return p1:distance(p2)
-end
-
----@param obj table
----@return BJIPositionRotation
-function TryParsePosRot(obj)
-    if type(obj) ~= "table" then
-        return obj
-    end
-
-    if table.includes({ "table", "userdata" }, type(obj.pos)) and
-        table.every({ "x", "y", "z" }, function(k) return obj.pos[k] ~= nil end) then
-        obj.pos = vec3(obj.pos.x, obj.pos.y, obj.pos.z)
-    end
-    if table.includes({ "table", "userdata" }, type(obj.rot)) and
-        table.every({ "x", "y", "z", "w" }, function(k) return obj.rot[k] ~= nil end) then
-        obj.rot = quat(obj.rot.x, obj.rot.y, obj.rot.z, obj.rot.w)
-    end
-    return obj
-end
-
----@param posRot BJIPositionRotation
----@return BJIPositionRotation
-function RoundPositionRotation(posRot)
-    if posRot and posRot.pos then
-        posRot.pos.x = math.round(posRot.pos.x, 3)
-        posRot.pos.y = math.round(posRot.pos.y, 3)
-        posRot.pos.z = math.round(posRot.pos.z, 3)
-    end
-    if posRot and posRot.rot then
-        posRot.rot.x = math.round(posRot.rot.x, 4)
-        posRot.rot.y = math.round(posRot.rot.y, 4)
-        posRot.rot.z = math.round(posRot.rot.z, 4)
-        posRot.rot.w = math.round(posRot.rot.w, 4)
-    end
-    return posRot
-end
-
--- FORMAT
 ---@param secs number
 ---@return string
-function PrettyDelay(secs)
+function U.PrettyDelay(secs)
     local mins, hours, days, months = 0, 0, 0, 0
     if secs >= 60 then
         mins = math.floor(secs / 60)
@@ -98,14 +49,14 @@ function PrettyDelay(secs)
     end
 
     if months > 1 then
-        local monthLabel = BJILang.get("common.time.months")
+        local monthLabel = BJI.Managers.Lang.get("common.time.months")
         return string.var("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
     elseif months == 1 then
-        local monthLabel = BJILang.get("common.time.month")
-        local dayLabel = BJILang.get("common.time.day")
-        local andLabel = BJILang.get("common.time.and")
+        local monthLabel = BJI.Managers.Lang.get("common.time.month")
+        local dayLabel = BJI.Managers.Lang.get("common.time.day")
+        local andLabel = BJI.Managers.Lang.get("common.time.and")
         if days > 1 then
-            dayLabel = BJILang.get("common.time.days")
+            dayLabel = BJI.Managers.Lang.get("common.time.days")
         end
         if days > 0 then
             return string.var("{months} {monthLabel} {andLabel} {days} {dayLabel}",
@@ -116,14 +67,14 @@ function PrettyDelay(secs)
     end
 
     if days > 1 then
-        local dayLabel = BJILang.get("common.time.days")
+        local dayLabel = BJI.Managers.Lang.get("common.time.days")
         return string.var("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
     elseif days == 1 then
-        local dayLabel = BJILang.get("common.time.day")
-        local hourLabel = BJILang.get("common.time.hour")
-        local andLabel = BJILang.get("common.time.and")
+        local dayLabel = BJI.Managers.Lang.get("common.time.day")
+        local hourLabel = BJI.Managers.Lang.get("common.time.hour")
+        local andLabel = BJI.Managers.Lang.get("common.time.and")
         if hours > 1 then
-            hourLabel = BJILang.get("common.time.hours")
+            hourLabel = BJI.Managers.Lang.get("common.time.hours")
         end
         if hours > 0 then
             return string.var("{days} {dayLabel} {andLabel} {hours} {hourLabel}",
@@ -134,14 +85,14 @@ function PrettyDelay(secs)
     end
 
     if hours > 1 then
-        local hourLabel = BJILang.get("common.time.hours")
+        local hourLabel = BJI.Managers.Lang.get("common.time.hours")
         return string.var("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
     elseif hours == 1 then
-        local hourLabel = BJILang.get("common.time.hour")
-        local minuteLabel = BJILang.get("common.time.minute")
-        local andLabel = BJILang.get("common.time.and")
+        local hourLabel = BJI.Managers.Lang.get("common.time.hour")
+        local minuteLabel = BJI.Managers.Lang.get("common.time.minute")
+        local andLabel = BJI.Managers.Lang.get("common.time.and")
         if mins > 1 then
-            minuteLabel = BJILang.get("common.time.minutes")
+            minuteLabel = BJI.Managers.Lang.get("common.time.minutes")
         end
         if mins > 0 then
             return string.var("{hours} {hourLabel} {andLabel} {mins} {minuteLabel}",
@@ -152,12 +103,12 @@ function PrettyDelay(secs)
     end
 
     if mins > 1 then
-        local minLabel = BJILang.get("common.time.minutes")
+        local minLabel = BJI.Managers.Lang.get("common.time.minutes")
         return string.var("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
     elseif mins == 1 then
-        local minLabel = BJILang.get("common.time.minute")
-        local secLabel = BJILang.get("common.time.second")
-        local andLabel = BJILang.get("common.time.and")
+        local minLabel = BJI.Managers.Lang.get("common.time.minute")
+        local secLabel = BJI.Managers.Lang.get("common.time.second")
+        local andLabel = BJI.Managers.Lang.get("common.time.and")
         if secs > 0 then
             return string.var("{mins} {minLabel} {andLabel} {secs} {secLabel}",
                 { mins = mins, minLabel = minLabel, andLabel = andLabel, secs = secs, secLabel = secLabel })
@@ -166,16 +117,16 @@ function PrettyDelay(secs)
         end
     end
 
-    local secondLabel = BJILang.get("common.time.second")
+    local secondLabel = BJI.Managers.Lang.get("common.time.second")
     if secs > 1 then
-        secondLabel = BJILang.get("common.time.seconds")
+        secondLabel = BJI.Managers.Lang.get("common.time.seconds")
     end
     return string.var("{secs} {secondLabel}", { secs = secs, secondLabel = secondLabel })
 end
 
 ---@param ms integer
 ---@return string
-function RaceDelay(ms)
+function U.RaceDelay(ms)
     ms = math.round(ms or 0)
     local hours = math.floor(ms / 1000 / 60 / 60)
     ms = ms - hours * 60 * 60 * 1000
@@ -209,7 +160,7 @@ end
 
 ---@param meter? number
 ---@return string
-function PrettyDistance(meter)
+function U.PrettyDistance(meter)
     meter = tonumber(meter)
     if not meter then
         return "0m"
@@ -234,7 +185,7 @@ end
 
 ---@param ToD integer
 ---@return string
-function PrettyTime(ToD)
+function U.PrettyTime(ToD)
     local curSecs = ToD * 86400
     if ToD >= 0 and ToD < .5 then
         curSecs = curSecs + 43200
@@ -248,29 +199,14 @@ function PrettyTime(ToD)
     return string.format("%02d:%02d:%02d", curHours, curMins, curSecs)
 end
 
----@class Timer
----@field get fun(self): number
----@field reset fun(self)
-function TimerCreate()
-    return ({
-        _timer = hptimer(),
-        get = function(self)
-            local timeStr = tostring(self._timer):gsub("s", "")
-            return math.floor(tonumber(timeStr) or 0)
-        end,
-        reset = function(self)
-            self._timer:stopAndReset()
-        end
-    })
-end
-
 ---@param id string
 ---@param value integer
----@param min integer
----@param max integer
+---@param min? integer
+---@param max? integer
 ---@param resetValue integer
 ---@param callback function
-function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
+---@param disabled? boolean
+function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, disabled)
     local showMonth = true
     if max and max < 60 * 60 * 24 * 30 then
         showMonth = false
@@ -288,8 +224,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showMonth then
         line:btn({
             id = string.var("{1}M1M", { id }),
-            label = string.var("-1{1}", { BJILang.get("common.durationModifiers.month") }),
-            style = BTN_PRESETS.ERROR,
+            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.month") }),
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value - (60 * 60 * 24 * 30), min, max))
             end
@@ -298,8 +235,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showDay then
         line:btn({
             id = string.var("{1}M1d", { id }),
-            label = string.var("-1{1}", { BJILang.get("common.durationModifiers.day") }),
-            style = BTN_PRESETS.ERROR,
+            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.day") }),
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value - (60 * 60 * 24), min, max))
             end
@@ -308,8 +246,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showHour then
         line:btn({
             id = string.var("{1}M1h", { id }),
-            label = string.var("-1{1}", { BJILang.get("common.durationModifiers.hour") }),
-            style = BTN_PRESETS.ERROR,
+            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.hour") }),
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value - (60 * 60), min, max))
             end
@@ -317,16 +256,18 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     end
     line:btn({
         id = string.var("{1}M1m", { id }),
-        label = string.var("-1{1}", { BJILang.get("common.durationModifiers.minute") }),
-        style = BTN_PRESETS.ERROR,
+        label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.minute") }),
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = disabled,
         onClick = function()
             callback(math.clamp(value - 60, min, max))
         end
     })
         :btn({
             id = string.var("{1}P1m", { id }),
-            label = string.var("+1{1}", { BJILang.get("common.durationModifiers.minute") }),
-            style = BTN_PRESETS.SUCCESS,
+            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.minute") }),
+            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value + 60, min, max))
             end
@@ -334,8 +275,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showHour then
         line:btn({
             id = string.var("{1}P1h", { id }),
-            label = string.var("+1{1}", { BJILang.get("common.durationModifiers.hour") }),
-            style = BTN_PRESETS.SUCCESS,
+            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.hour") }),
+            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value + (60 * 60), min, max))
             end
@@ -344,8 +286,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showDay then
         line:btn({
             id = string.var("{1}P1d", { id }),
-            label = string.var("+1{1}", { BJILang.get("common.durationModifiers.day") }),
-            style = BTN_PRESETS.SUCCESS,
+            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.day") }),
+            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value + (60 * 60 * 24), min, max))
             end
@@ -354,8 +297,9 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     if showMonth then
         line:btn({
             id = string.var("{1}P1M", { id }),
-            label = string.var("+1{1}", { BJILang.get("common.durationModifiers.month") }),
-            style = BTN_PRESETS.SUCCESS,
+            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.month") }),
+            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            disabled = disabled,
             onClick = function()
                 callback(math.clamp(value + (60 * 60 * 24 * 30), min, max))
             end
@@ -364,7 +308,8 @@ function DrawLineDurationModifiers(id, value, min, max, resetValue, callback)
     line:btnIcon({
         id = string.var("{1}reset", { id }),
         icon = ICONS.refresh,
-        style = BTN_PRESETS.WARNING,
+        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+            disabled = disabled,
         onClick = function()
             callback(resetValue)
         end
@@ -374,31 +319,34 @@ end
 
 ---@param id string
 ---@param withUpdate? boolean
-function DrawTimePlayPauseButtons(id, withUpdate)
+---@param disabled? boolean
+function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
     LineBuilder()
         :btnIcon({
             id = string.var("{1}-pause", { id }),
             icon = ICONS.pause,
-            style = not BJIEnv.Data.timePlay and BTN_PRESETS.ERROR or BTN_PRESETS.INFO,
-            coloredIcon = not BJIEnv.Data.timePlay,
+            style = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.INFO,
+            coloredIcon = not BJI.Managers.Env.Data.timePlay,
+            disabled = disabled,
             onClick = function()
-                local hasRight = BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-                if hasRight and withUpdate and BJIEnv.Data.timePlay then
-                    BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
-                    BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
+                local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+                if hasRight and withUpdate and BJI.Managers.Env.Data.timePlay then
+                    BJI.Tx.config.env("timePlay", not BJI.Managers.Env.Data.timePlay)
+                    BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
                 end
             end,
         })
         :btnIcon({
             id = string.var("{1}-play", { id }),
             icon = ICONS.play,
-            style = BJIEnv.Data.timePlay and BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
-            coloredIcon = BJIEnv.Data.timePlay,
+            style = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO,
+            coloredIcon = BJI.Managers.Env.Data.timePlay,
+            disabled = disabled,
             onClick = function()
-                local hasRight = BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-                if hasRight and withUpdate and not BJIEnv.Data.timePlay then
-                    BJITx.config.env("timePlay", not BJIEnv.Data.timePlay)
-                    BJIEnv.Data.timePlay = not BJIEnv.Data.timePlay
+                local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+                if hasRight and withUpdate and not BJI.Managers.Env.Data.timePlay then
+                    BJI.Tx.config.env("timePlay", not BJI.Managers.Env.Data.timePlay)
+                    BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
                 end
             end,
         })
@@ -406,14 +354,8 @@ function DrawTimePlayPauseButtons(id, withUpdate)
 end
 
 ---@param keepMenuBar? boolean
-function HideGameMenu(keepMenuBar)
+function U.HideGameMenu(keepMenuBar)
     guihooks.trigger('MenuHide', keepMenuBar == true)
 end
 
-function TrueFn()
-    return true
-end
-
-function FalseFn()
-    return false
-end
+return U

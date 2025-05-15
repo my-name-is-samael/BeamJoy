@@ -1,5 +1,7 @@
+---@class BJIManagerBigmap : BJIManager
 local M = {
-    _name = "BJIBigmap",
+    _name = "Bigmap",
+
     baseFunctions = {},
     POI_TYPES_BLACKLIST = {
         "mission"
@@ -9,8 +11,8 @@ local M = {
 
 -- remove missions from bigmap
 local function getRawPoiListByLevel(level)
-    if BJIRestrictions.getState(BJIRestrictions.OTHER.BIG_MAP) then
-        HideGameMenu()
+    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.BIG_MAP) then
+        BJI.Utils.Common.HideGameMenu()
     end
     local status, list, generation = pcall(M.baseFunctions.getRawPoiListByLevel, level)
     if status then
@@ -25,15 +27,15 @@ local function getRawPoiListByLevel(level)
         return list, generation
     else
         local err = list
-        BJIToast.error("Error retrieving POIs for current map")
+        BJI.Managers.Toast.error("Error retrieving POIs for current map")
         LogError(err)
         return {}, 0
     end
 end
 
 local function formatPoiForBigmap(poi)
-    if BJIRestrictions.getState(BJIRestrictions.OTHER.BIG_MAP) then
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.BIG_MAP) then
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         LogWarn("getRawPoiListByLevel")
     end
 
@@ -52,6 +54,11 @@ local function formatPoiForBigmap(poi)
     }
 end
 
+local function onUnload()
+    extensions.gameplay_rawPois.getRawPoiListByLevel = M.baseFunctions.getRawPoiListByLevel
+    extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = M.baseFunctions.formatPoiForBigmap
+end
+
 local function onLoad()
     if extensions.gameplay_rawPois then
         M.baseFunctions.getRawPoiListByLevel = extensions.gameplay_rawPois.getRawPoiListByLevel
@@ -60,21 +67,15 @@ local function onLoad()
         M.baseFunctions.formatPoiForBigmap = extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap
         extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = formatPoiForBigmap
     end
-end
-
-local function onUnload()
-    extensions.gameplay_rawPois.getRawPoiListByLevel = M.baseFunctions.getRawPoiListByLevel
-    extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = M.baseFunctions.formatPoiForBigmap
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
 end
 
 local function toggleQuickTravel(state)
     M.quickTravel = state
 end
 
-M.onLoad = onLoad
-M.onUnload = onUnload
-
 M.toggleQuickTravel = toggleQuickTravel
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+
 return M

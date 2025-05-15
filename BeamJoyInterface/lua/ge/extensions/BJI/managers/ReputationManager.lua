@@ -1,5 +1,7 @@
+---@class BJIManagerReputation : BJIManager
 local M = {
-    _name = "BJIReputation",
+    _name = "Reputation",
+
     reputation = nil,
 
     kmReward = {
@@ -34,8 +36,8 @@ local function renderTick(ctxt)
             local newLevel = M.getReputationLevel(M.reputation)
             if newLevel > lastLevel then
                 -- ON LEVEL UP
-                BJISound.play(BJISound.SOUNDS.LEVEL_UP)
-                BJIEvents.trigger(BJIEvents.EVENTS.LEVEL_UP, {
+                BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.LEVEL_UP)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.LEVEL_UP, {
                     level = newLevel
                 })
             end
@@ -67,11 +69,11 @@ local function slowTick(ctxt)
         if not M.kmReward.lastPos then
             M.kmReward.distance = 0
         else
-            local drove = GetHorizontalDistance(M.kmReward.lastPos, ctxt.vehPosRot.pos)
+            local drove = math.horizontalDistance(M.kmReward.lastPos, ctxt.vehPosRot.pos)
             M.kmReward.distance = M.kmReward.distance + drove
             if M.kmReward.distance >= 1000 then
                 M.kmReward.distance = M.kmReward.distance - 1000
-                BJITx.player.KmReward()
+                BJI.Tx.player.KmReward()
             end
         end
         M.kmReward.lastPos = ctxt.vehPosRot.pos
@@ -93,16 +95,18 @@ local function onGarageRepair()
 end
 
 M.updateReputationSmooth = updateReputationSmooth
-M.renderTick = renderTick
 
 M.getReputationLevelAmount = getReputationLevelAmount
 M.getReputationLevel = getReputationLevel
 
-M.slowTick = slowTick
-M.onVehicleResetted = onResetOrTeleport
-M.onVehicleTeleport = onResetOrTeleport
+M.vehicleResetted = onResetOrTeleport
+M.vehicleTeleported = onResetOrTeleport
 
 M.onGarageRepair = onGarageRepair
 
-RegisterBJIManager(M)
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
+M.renderTick = renderTick
+
 return M

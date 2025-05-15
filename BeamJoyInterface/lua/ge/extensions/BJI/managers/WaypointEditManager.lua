@@ -1,10 +1,12 @@
+---@class BJIManagerWaypointEdit : BJIManager
 local M = {
-    _name = "BJIWaypointEdit",
-    _startColor = ShapeDrawer.Color(1, 1, 0, .5),
-    _wpColor = ShapeDrawer.Color(.66, .66, 1, .5),
-    _segmentColor = ShapeDrawer.Color(1, 1, 1, .5),
-    _textColor = ShapeDrawer.Color(1, 1, 1, .8),
-    _textBgColor = ShapeDrawer.Color(0, 0, 0, .5),
+    _name = "WaypointEdit",
+
+    _startColor = BJI.Utils.ShapeDrawer.Color(1, 1, 0, .5),
+    _wpColor = BJI.Utils.ShapeDrawer.Color(.66, .66, 1, .5),
+    _segmentColor = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .5),
+    _textColor = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .8),
+    _textBgColor = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5),
 
     TYPES = {
         SPHERE = "start",
@@ -158,7 +160,7 @@ end
 
 local function renderTick(ctxt)
     for _, segment in ipairs(M.segments) do
-        ShapeDrawer.SquarePrism(
+        BJI.Utils.ShapeDrawer.SquarePrism(
             segment.from, segment.fromWidth,
             segment.to, segment.toWidth,
             segment.color
@@ -166,21 +168,25 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.spheres) do
-        ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        BJI.Utils.ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
+        if #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
     end
 
     for _, wp in ipairs(M.cylinders) do
         local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z)
         local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
-        ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        BJI.Utils.ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
+        if #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
         if wp.rot then
             local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
-            ShapeDrawer.Arrow(wp.pos, wp.rot, radius,
-                ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, 1))
+            BJI.Utils.ShapeDrawer.Arrow(wp.pos, wp.rot, radius,
+                BJI.Utils.ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, 1))
         end
     end
 
@@ -188,18 +194,19 @@ local function renderTick(ctxt)
         local a = vec3(wp.left.x, wp.left.y, wp.left.z)
         local b = vec3(wp.left.x, wp.left.y, wp.left.w)
         local c = vec3(wp.right.x, wp.right.y, wp.right.z)
-        ShapeDrawer.Triangle(a, b, c, wp.color)
+        BJI.Utils.ShapeDrawer.Triangle(a, b, c, wp.color)
         local d = vec3(wp.right.x, wp.right.y, wp.right.z)
         local e = vec3(wp.right.x, wp.right.y, wp.right.w)
         local f = vec3(wp.left.x, wp.left.y, wp.left.w)
-        ShapeDrawer.Triangle(d, e, f, wp.color)
-        if wp.name and #wp.name > 0 then
-            ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
+        BJI.Utils.ShapeDrawer.Triangle(d, e, f, wp.color)
+        if wp.name and #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
                 wp.textBg or M._textBgColor, true)
         end
         local arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh:getInitialHeight() or wp.radius / 2)
         local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
-        ShapeDrawer.Arrow(arrowPos, wp.rot, radius, ShapeDrawer.Color(wp.color.r, wp.color.g, wp.color.b, 1))
+        BJI.Utils.ShapeDrawer.Arrow(arrowPos, wp.rot, radius,
+            BJI.Utils.ShapeDrawer.Color(wp.color.r, wp.color.g, wp.color.b, 1))
     end
 
     for _, wp in ipairs(M.arrows) do
@@ -207,13 +214,15 @@ local function renderTick(ctxt)
         local len = math.rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
         local tip = vec3(wp.pos) + len
         local base = vec3(wp.pos) + math.rotate2DVec(len, math.pi)
-        ShapeDrawer.SquarePrism(
+        BJI.Utils.ShapeDrawer.SquarePrism(
             base, ctxt.veh and ctxt.veh:getInitialWidth() or wp.radius * 1.2,
             tip, 0,
             wp.color
         )
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        if #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
     end
 end
 
@@ -225,10 +234,10 @@ M.reset = reset
 M.setWaypoints = setWaypoints
 M.setWaypointsWithSegments = setWaypointsWithSegments
 
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+end
 M.renderTick = renderTick
 
-M.onUnload = onUnload
-
 reset()
-RegisterBJIManager(M)
 return M

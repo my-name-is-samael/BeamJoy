@@ -1,5 +1,6 @@
+---@class BJIManagerVehSelectorUI : BJIManager
 local M = {
-    _name = "BJIVehicleSelectorUIManager",
+    _name = "VehSelectorUI",
     baseFunctions = {}
 }
 
@@ -82,19 +83,19 @@ end
 local function createVehiclesData()
     local resModels, resConfigs = {}, {}
 
-    if not BJIPerm.canSpawnVehicle() then
+    if not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
-        HideGameMenu()
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+        BJI.Utils.Common.HideGameMenu()
         return resModels, resConfigs
-    elseif BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_SELECTOR) then
+    elseif BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR) then
         -- cannot spawn veh in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
-        HideGameMenu()
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
+        BJI.Utils.Common.HideGameMenu()
         return resModels, resConfigs
     end
 
-    local res = Table(BJIScenario.getModelList()):reduce(function(acc, model)
+    local res = Table(BJI.Managers.Scenario.getModelList()):reduce(function(acc, model)
         acc.configs:addAll(model.configs)
         model.configs = nil
         acc.models:insert(model)
@@ -126,157 +127,173 @@ local function notifyUIEnd()
 end
 
 local function postSpawnActions(ctxt)
-    if BJIAI.selfVehs:includes(ctxt.veh:getID()) then
+    if BJI.Managers.AI.selfVehs:includes(ctxt.veh:getID()) then
         -- was manually toggled, resume state
         ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
     end
-    if ctxt.camera == BJICam.CAMERAS.FREE then
-        BJICam.toggleFreeCam()
-        ctxt.camera = BJICam.getCamera()
+    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Cam.toggleFreeCam()
+        ctxt.camera = BJI.Managers.Cam.getCamera()
     end
 end
 
 local function cloneCurrent(...)
-    if not BJIPerm.canSpawnVehicle() then
+    if not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     else
         -- maximum vehs reached
-        local group = BJIPerm.Groups[BJIContext.User.group]
+        local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= table.length(BJIContext.User.vehicles) then
-            BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
+            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
 
-        if not BJIScenario.canSpawnNewVehicle() then
+        if not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnActions)
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.cloneCurrent(...)
 end
 
 local function spawnDefault(...)
-    if not BJIPerm.canSpawnVehicle() then
+    if not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     else
-        if BJIVeh.isCurrentVehicleOwn() then
-            if not BJIScenario.canReplaceVehicle() then
+        if BJI.Managers.Veh.isCurrentVehicleOwn() then
+            if not BJI.Managers.Scenario.canReplaceVehicle() then
                 -- cannot spawn veh in current scenario
-                BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
                 return
             end
         else
-            if not BJIScenario.canSpawnNewVehicle() then
+            if not BJI.Managers.Scenario.canSpawnNewVehicle() then
                 -- cannot spawn veh in current scenario
-                BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
                 return
             end
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnActions)
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnDefault(...)
 end
 
 local function spawnNewVehicle(model, opts)
-    if not BJIPerm.canSpawnVehicle() then
+    if not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     elseif model ~= "unicycle" then
         -- check maximum vehs reached
-        local group = BJIPerm.Groups[BJIContext.User.group]
+        local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= table.length(BJIContext.User.vehicles) then
-            BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
+            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
 
-        if not BJIScenario.canSpawnNewVehicle() then
+        if not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnActions)
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnNewVehicle(model, opts)
 end
 
 local function replaceVehicle(...)
-    if BJIVeh.isCurrentVehicleOwn() then
-        if not BJIScenario.canReplaceVehicle() then
+    if BJI.Managers.Veh.isCurrentVehicleOwn() then
+        if not BJI.Managers.Scenario.canReplaceVehicle() then
             -- cannot update veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
     else
-        if not BJIPerm.canSpawnVehicle() then
+        if not BJI.Managers.Perm.canSpawnVehicle() then
             -- cannot spawn veh
-            BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
             return
-        elseif not BJIScenario.canSpawnNewVehicle() then
+        elseif not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
     end
 
-    BJIVeh.waitForVehicleSpawn(postSpawnActions)
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.replaceVehicle(...)
 end
 
 local function removeCurrent(...)
-    if BJIVeh.isCurrentVehicleOwn() then
+    if BJI.Managers.Veh.isCurrentVehicleOwn() then
         -- my own veh
-        if BJIScenario.canDeleteVehicle() then
-            BJIVeh.deleteCurrentOwnVehicle()
+        if BJI.Managers.Scenario.canDeleteVehicle() then
+            BJI.Managers.Veh.deleteCurrentOwnVehicle()
             --return M.baseFunctions.removeCurrent(...)
         else
             -- cannot delete veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         end
     else
-        if BJIScenario.canDeleteOtherPlayersVehicle() then
-            BJIVeh.deleteOtherPlayerVehicle()
+        if BJI.Managers.Scenario.canDeleteOtherPlayersVehicle() then
+            BJI.Managers.Veh.deleteOtherPlayerVehicle()
         else
             -- cannot delete veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         end
     end
 end
 
 local function removeAllExceptCurrent(...)
-    if not BJIScenario.canDeleteOtherVehicles() then
+    if not BJI.Managers.Scenario.canDeleteOtherVehicles() then
         -- cannot delete other vehs in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         return
     end
 
-    BJIVeh.deleteOtherOwnVehicles()
+    BJI.Managers.Veh.deleteOtherOwnVehicles()
     -- return M.baseFunctions.removeAllExceptCurrent(...)
 end
 
 -- VEHICLE CONFIGURATION
 local function getAvailableParts(ioCtx)
-    if BJIRestrictions.getState(BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR) then
+    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR) then
         -- cannot edit veh in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
-        HideGameMenu()
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
+        BJI.Utils.Common.HideGameMenu()
         return {}
     end
 
     return M.baseFunctions.getAvailableParts(ioCtx)
+end
+
+local function onUnload()
+    -- vehicle selector
+    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
+    core_vehicles.requestList = M.baseFunctions.requestList
+    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
+    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
+    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
+    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
+    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
+    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
+    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
+    -- vehicle configuration
+    local jbeamIO = require('jbeam/io')
+    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
 end
 
 local function onLoad()
@@ -304,26 +321,10 @@ local function onLoad()
     local jbeamIO = require('jbeam/io')
     M.baseFunctions.getAvailableParts = jbeamIO.getAvailableParts
     jbeamIO.getAvailableParts = getAvailableParts
-end
 
-local function onUnload()
-    -- vehicle selector
-    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
-    core_vehicles.requestList = M.baseFunctions.requestList
-    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
-    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
-    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
-    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
-    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
-    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
-    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
-    -- vehicle configuration
-    local jbeamIO = require('jbeam/io')
-    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
 end
 
 M.onLoad = onLoad
-M.onUnload = onUnload
 
-RegisterBJIManager(M)
 return M

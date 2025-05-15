@@ -6,6 +6,10 @@ BJCTx = {
     PAYLOAD_LIMIT_SIZE = 20000,
 }
 
+---@param controller string
+---@param endpoint string
+---@param targetID integer
+---@param data? any
 function BJCTx.sendToPlayer(controller, endpoint, targetID, data)
     if type(data) ~= "table" then
         data = { data }
@@ -57,6 +61,8 @@ function BJCTx.sendByPermissions(eventName, endpoint, data, ...)
     end
 end
 
+-- TODO auto parse
 require("tx/CacheTx")
+require("tx/DatabaseTx")
 require("tx/PlayerTx")
 require("tx/ScenarioTx")

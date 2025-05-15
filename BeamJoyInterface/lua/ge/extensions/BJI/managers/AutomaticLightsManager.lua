@@ -1,27 +1,29 @@
+---@class BJIManagerAutomaticLights : BJIManager
 local M = {
-    _name = "BJIAutomaticLights",
+    _name = "AutomaticLights",
+
     morningSwitched = {}, -- gameVehID : state
     nightSwitched = {},   -- gameVehID : state
 }
 
 local function isNight()
-    return BJIEnv.Data.ToD >= .245 and BJIEnv.Data.ToD <= .76
+    return BJI.Managers.Env.Data.ToD >= .245 and BJI.Managers.Env.Data.ToD <= .76
 end
 
 local function updatePreviousVeh(gameVehID)
-    if BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) and
+    if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) and
         gameVehID and gameVehID ~= -1 and
-        BJIVeh.isVehicleOwn(gameVehID) then
-        BJIVeh.lights(false, gameVehID)
+        BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        BJI.Managers.Veh.lights(false, gameVehID)
         M.nightSwitched[gameVehID] = nil
         M.morningSwitched[gameVehID] = nil
     end
 end
 
 local function updateCurrentVeh(gameVehID)
-    if BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) and
+    if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) and
         gameVehID and gameVehID ~= -1 and
-        BJIVeh.isVehicleOwn(gameVehID) then
+        BJI.Managers.Veh.isVehicleOwn(gameVehID) then
         -- switch lights once if needed
         local night = isNight()
         if night then
@@ -31,23 +33,23 @@ local function updateCurrentVeh(gameVehID)
         end
         if night and not M.nightSwitched[gameVehID] then
             -- switch lights once at night
-            BJIVeh.lights(true, gameVehID)
+            BJI.Managers.Veh.lights(true, gameVehID)
             M.nightSwitched[gameVehID] = true
         elseif not night and not M.morningSwitched[gameVehID] then
             -- switch lights once at morning
-            BJIVeh.lights(false, gameVehID)
+            BJI.Managers.Veh.lights(false, gameVehID)
             M.morningSwitched[gameVehID] = true
         end
     end
 
     -- purge invalid vehicles
     for vid in pairs(M.morningSwitched) do
-        if not BJIVeh.getVehicleObject(vid) then
+        if not BJI.Managers.Veh.getVehicleObject(vid) then
             M.morningSwitched[vid] = nil
         end
     end
     for vid in pairs(M.nightSwitched) do
-        if not BJIVeh.getVehicleObject(vid) then
+        if not BJI.Managers.Veh.getVehicleObject(vid) then
             M.morningSwitched[vid] = nil
         end
     end
@@ -59,20 +61,23 @@ local function slowTick(ctxt)
     end
 end
 
+---@param oldGameVehID integer
+---@param newGameVehID integer
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if oldGameVehID and oldGameVehID ~= -1 and
-        BJIVeh.isVehicleOwn(oldGameVehID) then
+        BJI.Managers.Veh.isVehicleOwn(oldGameVehID) then
         updatePreviousVeh(oldGameVehID)
     end
 
     if newGameVehID and newGameVehID ~= -1 and
-        BJIVeh.isVehicleOwn(newGameVehID) then
+        BJI.Managers.Veh.isVehicleOwn(newGameVehID) then
         updateCurrentVeh(newGameVehID)
     end
 end
 
-M.slowTick = slowTick
-M.onVehicleSwitched = onVehicleSwitched
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
 
-RegisterBJIManager(M)
 return M

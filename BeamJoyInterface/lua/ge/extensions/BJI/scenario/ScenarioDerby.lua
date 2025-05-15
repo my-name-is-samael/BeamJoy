@@ -1,4 +1,5 @@
-local M = {
+---@class BJIScenarioDerby : BJIScenario
+local S = {
     MINIMUM_PARTICIPANTS = 3,
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation
@@ -16,6 +17,7 @@ local M = {
     preparationTimeout = nil,
     startTime = nil,
     participants = {},
+    ---@type {name: string, startPositions: table, previewPosition: BJIPositionRotation?}?
     baseArena = nil,
     configs = {},
     ---@type BJIPositionRotation?
@@ -33,24 +35,23 @@ local M = {
 }
 
 local function stop()
-    M.state = nil
-    M.preparationTimeout = nil
-    M.startTime = nil
-    M.participants = {}
-    ---@type {startPositions: table, config: table, previewPosition: BJIPositionRotation?}?
-    M.baseArena = nil
-    M.startPos = nil
+    S.state = nil
+    S.preparationTimeout = nil
+    S.startTime = nil
+    S.participants = {}
+    S.baseArena = nil
+    S.startPos = nil
 
-    M.nextResetExempt = false
-    M.destroy.process = false
-    M.destroy.lastPos = nil
-    M.destroy.targetTime = nil
-    M.destroy.lock = false
+    S.nextResetExempt = false
+    S.destroy.process = false
+    S.destroy.lastPos = nil
+    S.destroy.targetTime = nil
+    S.destroy.lock = false
 
-    BJIMessage.cancelFlash("BJIDerbyStart")
-    BJIMessage.cancelFlash("BJIDerbyDestroy")
+    BJI.Managers.Message.cancelFlash("BJIDerbyStart")
+    BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
 
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
 end
 
 -- can switch to scenario hook
@@ -60,36 +61,36 @@ end
 
 -- load hook
 local function onLoad(ctxt)
-    BJIVeh.deleteAllOwnVehicles()
-    BJIVehSelector.tryClose()
-    BJIRestrictions.update({ {
+    BJI.Managers.Veh.deleteAllOwnVehicles()
+    BJI.Windows.VehSelector.tryClose()
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.RESET.ALL,
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
-            BJIRestrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+            BJI.Managers.Restrictions.OTHER.WALKING,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
         }):flat(),
-        state = BJIRestrictions.STATE.RESTRICTED,
+        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJIBigmap.toggleQuickTravel(false)
-    BJIGPS.reset()
-    BJICam.addRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
+    BJI.Managers.Bigmap.toggleQuickTravel(false)
+    BJI.Managers.GPS.reset()
+    BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
 end
 
 local function findFreeStartPosition(ownGameVehID)
-    if not M.baseArena then
+    if not S.baseArena then
         return
     end
     local positions = {}
-    for _, p in ipairs(M.baseArena.startPositions) do
+    for _, p in ipairs(S.baseArena.startPositions) do
         local free = true
-        for _, v in pairs(BJIVeh.getMPVehicles()) do
+        for _, v in pairs(BJI.Managers.Veh.getMPVehicles()) do
             if v.gameVehicleID ~= ownGameVehID then
-                local veh = BJIVeh.getVehicleObject(v.gameVehicleID)
-                local pos = BJIVeh.getPositionRotation(veh)
+                local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehicleID)
+                local pos = BJI.Managers.Veh.getPositionRotation(veh)
                 if pos and pos.pos:distance(vec3(p.pos)) < .5 then
                     free = false
                     break
@@ -107,47 +108,49 @@ local function findFreeStartPosition(ownGameVehID)
 end
 
 local function tryReplaceOrSpawn(model, config)
-    local participant = M.getParticipant()
-    if M.state == M.STATES.PREPARATION and participant and not participant.ready then
-        if table.length(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
+    local participant = S.getParticipant()
+    if S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        if table.length(BJI.Managers.Context.User.vehicles) > 0 and not BJI.Managers.Veh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
-        if not M.startPos then
-            M.startPos = findFreeStartPosition(BJIVeh.getCurrentVehicleOwn():getID())
+        if not S.startPos then
+            S.startPos = findFreeStartPosition(BJI.Managers.Veh.getCurrentVehicleOwn():getID())
         end
-        PrintObj(M.startPos)
-        BJIVeh.replaceOrSpawnVehicle(model, config, M.startPos)
-        BJIAsync.task(function(ctxt)
+        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, S.startPos)
+        BJI.Managers.Async.task(function(ctxt)
             return ctxt.isOwner
         end, function()
-            BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-            BJIVeh.freeze(true)
+            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+            BJI.Managers.Veh.freeze(true)
+            if not BJI.Windows.VehSelector.show then
+                BJI.Windows.VehSelector.open({}, false)
+            end
         end, "BJIDerbyPostSpawn")
     end
 end
 
 local function tryPaint(paint, paintNumber)
-    local participant = M.getParticipant()
-    if BJIVeh.isCurrentVehicleOwn() and
-        M.state == M.STATES.PREPARATION and participant and not participant.ready then
-        BJIVeh.paintVehicle(paint, paintNumber)
-        BJIVeh.freeze(true)
+    local participant = S.getParticipant()
+    if BJI.Managers.Veh.isCurrentVehicleOwn() and
+        S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        BJI.Managers.Veh.paintVehicle(paint, paintNumber)
+        BJI.Managers.Veh.freeze(true)
     end
 end
 
 local function getModelList()
-    local participant = M.getParticipant()
-    if M.state ~= M.STATES.PREPARATION or
+    local participant = S.getParticipant()
+    if S.state ~= S.STATES.PREPARATION or
         not participant or participant.ready or
-        #M.configs > 0 then
+        #S.configs > 0 then
         return {}
     end
 
-    local models = BJIVeh.getAllVehicleConfigs()
+    local models = BJI.Managers.Veh.getAllVehicleConfigs()
 
-    if #BJIContext.Database.Vehicles.ModelBlacklist > 0 then
-        for _, model in ipairs(BJIContext.Database.Vehicles.ModelBlacklist) do
+    if #BJI.Managers.Context.Database.Vehicles.ModelBlacklist > 0 then
+        for _, model in ipairs(BJI.Managers.Context.Database.Vehicles.ModelBlacklist) do
             models[model] = nil
         end
     end
@@ -156,17 +159,17 @@ end
 
 local function switchToRandomParticipant()
     local vehIDs = {}
-    for _, participant in pairs(M.participants) do
+    for _, participant in pairs(S.participants) do
         if not participant.eliminationTime then
             if participant.gameVehID then
-                local veh = BJIVeh.getVehicleObject(participant.gameVehID)
+                local veh = BJI.Managers.Veh.getVehicleObject(participant.gameVehID)
                 if veh then
                     table.insert(vehIDs, veh:getID())
                 end
             else
                 local gameVehID
-                for _, v in pairs(BJIContext.Players[participant.playerID].vehicles) do
-                    local veh = BJIVeh.getVehicleObject(v.gameVehID)
+                for _, v in pairs(BJI.Managers.Context.Players[participant.playerID].vehicles) do
+                    local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
                     if veh then
                         gameVehID = veh:getID()
                         break
@@ -180,50 +183,50 @@ local function switchToRandomParticipant()
     end
     local gameVehID = table.random(vehIDs)
     if gameVehID then
-        BJIVeh.focusVehicle(gameVehID)
+        BJI.Managers.Veh.focusVehicle(gameVehID)
     end
 end
 
 local function canVehUpdate()
-    local participant = M.getParticipant()
-    return M.state == M.STATES.PREPARATION and participant and not participant.ready
+    local participant = S.getParticipant()
+    return S.state == S.STATES.PREPARATION and participant and not participant.ready
 end
 
 local function doShowNametag(vehData)
-    return M.isParticipant(vehData.ownerID) and not M.isEliminated(vehData.ownerID)
+    return S.isParticipant(vehData.ownerID) and not S.isEliminated(vehData.ownerID)
 end
 
 -- player list contextual actions getter
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    if M.isSpec() and not M.isSpec(player.playerID) then
-        local finalGameVehID
-        for _, v in pairs(BJIContext.Players[player.playerID].vehicles) do
-            local veh = BJIVeh.getVehicleObject(v.gameVehID)
-            if veh then
-                finalGameVehID = veh:getID()
-                break
-            end
-        end
+    if S.isSpec() and not S.isSpec(player.playerID) then
+        local finalGameVehID = Table(BJI.Managers.Context.Players[player.playerID].vehicles)
+            :reduce(function(acc, v)
+                if not acc then
+                    local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
+                    return veh and veh:getID()
+                end
+                return acc
+            end, nil)
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
             icon = ICONS.visibility,
-            style = BTN_PRESETS.INFO,
+            style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
             onClick = function()
-                BJIVeh.focusVehicle(finalGameVehID)
+                BJI.Managers.Veh.focusVehicle(finalGameVehID)
             end
         })
     end
 
-    if BJIVote.Kick.canStartVote(player.playerID) then
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            label = BJILang.get("playersBlock.buttons.voteKick"),
+            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
-                BJIVote.Kick.start(player.playerID)
+                BJI.Managers.Votes.Kick.start(player.playerID)
             end
         })
     end
@@ -232,199 +235,201 @@ local function getPlayerListActions(player, ctxt)
 end
 
 local function onVehicleResetted(gameVehID)
-    local ctxt = BJITick.getContext()
-    if M.state == M.STATES.GAME and
-        BJIVeh.isVehicleOwn(gameVehID) and
+    local ctxt = BJI.Managers.Tick.getContext()
+    if S.state == S.STATES.GAME and
+        BJI.Managers.Veh.isVehicleOwn(gameVehID) and
         ctxt.isOwner then
-        if M.nextResetExempt then
-            M.nextResetExempt = false
+        if S.nextResetExempt then
+            S.nextResetExempt = false
             return
         end
 
-        if not M.startPos or ctxt.vehPosRot.pos:distance(M.startPos.pos) > .5 then
-            if not M.startPos then
-                M.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
+        if not S.startPos or ctxt.vehPosRot.pos:distance(S.startPos.pos) > .5 then
+            if not S.startPos then
+                S.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
             end
-            BJIVeh.setPositionRotation(M.startPos.pos, M.startPos.rot)
+            BJI.Managers.Veh.setPositionRotation(S.startPos.pos, S.startPos.rot)
         else
-            local participant = M.getParticipant()
+            local participant = S.getParticipant()
             if participant then
-                BJIMessage.cancelFlash("BJIDerbyDestroy")
+                BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
                 if participant.lives == 1 then
-                    BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
+                    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
                 end
-                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - M.startTime))
+                BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - S.startTime))
             end
         end
     end
 end
 
 local function renderTick(ctxt)
-    local participant = M.getParticipant()
-    if participant and not M.isEliminated() and ctxt.isOwner then
-        if M.state == M.STATES.PREPARATION then
-            if not M.startPos then
-                M.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
+    local participant = S.getParticipant()
+    if participant and not S.isEliminated() and ctxt.isOwner then
+        if S.state == S.STATES.PREPARATION then
+            if not S.startPos then
+                S.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
             end
-        elseif M.startTime and ctxt.now > M.startTime then
-            local dist = M.destroy.lastPos and ctxt.vehPosRot.pos:distance(M.destroy.lastPos) or nil
-            if M.destroy.process then
-                if dist and dist > M.destroy.distanceThreshold then
-                    BJIMessage.cancelFlash("BJIDerbyDestroy")
-                    M.destroy.process = false
-                    M.destroy.targetTime = nil
-                end
-            else
-                if not M.destroy.lock and dist and dist <= M.destroy.distanceThreshold then
-                    M.destroy.targetTime = ctxt.now + (M.destroyedTimeout * 1000)
-                    M.destroy.process = true
-                    local msg
-                    if participant.lives > 0 then
-                        if participant.lives == 1 then
-                            msg = BJILang.get("derby.play.flashNoLifeRemaining")
-                        elseif participant.lives == 2 then
-                            msg = BJILang.get("derby.play.flashLifeRemaining"):var({ lives = participant.lives - 1 })
-                        else
-                            msg = BJILang.get("derby.play.flashLivesRemaining"):var({ lives = participant.lives - 1 })
-                        end
-                    end
-                    BJIMessage.cancelFlash("BJIDerbyDestroy")
-                    BJIMessage.flashCountdown("BJIDerbyDestroy", M.destroy.targetTime, false, msg, nil, function()
-                        participant = M.getParticipant()
-                        if participant then
-                            if participant.lives > 0 then
-                                if not M.startPos then
-                                    M.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
-                                end
-                                BJIVeh.setPositionRotation(M.startPos.pos, M.startPos.rot)
-                            else
-                                BJITx.scenario.DerbyUpdate(M.CLIENT_EVENTS.DESTROYED, math.round(ctxt.now - M.startTime))
-                            end
-                            M.destroy.process = false
-                            M.destroy.targetTime = nil
-                            M.destroy.lastPos = nil
-                            M.destroy.lock = true
-                            BJIAsync.task(function()
-                                -- wait for data update before unlocking destroy process
-                                local updated = M.getParticipant()
-                                return participant.lives == 0 and M.isEliminated() or
-                                    (type(updated) == "table" and updated.lives == participant.lives - 1)
-                            end, function()
-                                M.destroy.lock = false
-                            end, "BJIDerbyDestroyLockSafe")
-                        end
-                    end)
-                end
-                M.destroy.lastPos = ctxt.vehPosRot.pos
+        elseif S.startTime and ctxt.now > S.startTime and S.destroy.process then
+            local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
+            if dist and dist > S.destroy.distanceThreshold then
+                BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
+                S.destroy.process = false
+                S.destroy.targetTime = nil
             end
         end
     end
 end
 
--- Destroy rpocess si detected through slowTick, then checked in renderTick
+-- Destroy process is detected through slowTick, then checked through renderTick
 local function slowTick(ctxt)
-    if M.state == M.STATES.GAME and M.isParticipant() and not M.destroy.process then
-        M.destroy.lastPos = ctxt.vehPosRot.pos
+    local participant = S.getParticipant()
+    if S.state == S.STATES.GAME and ctxt.isOwner and
+        not S.destroy.process and not S.destroy.lock and
+        S.startTime and ctxt.now > S.startTime and
+        participant and not S.isEliminated() then
+        local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
+        if dist and dist < S.destroy.distanceThreshold * 10 then
+            S.destroy.targetTime = ctxt.now + (S.destroyedTimeout * 1000)
+            S.destroy.process = true
+            local msg
+            if participant.lives > 0 then
+                if participant.lives == 1 then
+                    msg = BJI.Managers.Lang.get("derby.play.flashNoLifeRemaining")
+                elseif participant.lives == 2 then
+                    msg = BJI.Managers.Lang.get("derby.play.flashLifeRemaining"):var({
+                        lives = participant.lives - 1
+                    })
+                else
+                    msg = BJI.Managers.Lang.get("derby.play.flashLivesRemaining"):var({
+                        lives = participant.lives - 1
+                    })
+                end
+            end
+            BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
+            BJI.Managers.Message.flashCountdown("BJIDerbyDestroy", S.destroy.targetTime, false, msg, nil,
+                function()
+                    participant = S.getParticipant()
+                    if participant then
+                        if participant.lives > 0 then
+                            S.startPos = findFreeStartPosition(ctxt.isOwner and ctxt.veh:getID() or nil)
+                            BJI.Managers.Veh.setPositionRotation(S.startPos.pos, S.startPos.rot)
+                        else
+                            BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED,
+                                math.round(ctxt.now - S.startTime))
+                        end
+                        S.destroy.process = false
+                        S.destroy.targetTime = nil
+                        S.destroy.lastPos = nil
+                        S.destroy.lock = true
+                        BJI.Managers.Async.task(function()
+                            -- wait for data update before unlocking destroy process
+                            local updated = S.getParticipant()
+                            return participant.lives == 0 and S.isEliminated() or
+                                (type(updated) == "table" and updated.lives == participant.lives - 1)
+                        end, function()
+                            S.destroy.lock = false
+                        end, "BJIDerbyDestroyLockSafe")
+                    end
+                end)
+        end
+        S.destroy.lastPos = ctxt.vehPosRot.pos
     end
 end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.update({ {
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.RESET.ALL,
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
-            BJIRestrictions.OTHER.BIG_MAP,
-            BJIRestrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+            BJI.Managers.Restrictions.OTHER.WALKING,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
         }):flat(),
-        state = BJIRestrictions.STATE.ALLOWED,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
-    BJIMessage.cancelFlash("BJIDerbyDestroy")
+    BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
     if ctxt.isOwner then
-        BJIVeh.freeze(false)
-        if ctxt.camera == BJICam.CAMERAS.EXTERNAL then
-            ctxt.camera = BJICam.CAMERAS.ORBIT
-            BJICam.setCamera(ctxt.camera)
+        BJI.Managers.Veh.freeze(false)
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+            ctxt.camera = BJI.Managers.Cam.CAMERAS.ORBIT
+            BJI.Managers.Cam.setCamera(ctxt.camera)
         end
     end
-    BJIBigmap.toggleQuickTravel(true)
+    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 local function initPreparation(data)
-    M.startTime = BJITick.applyTimeOffset(data.startTime)
-    BJIScenario.switchScenario(BJIScenario.TYPES.DERBY)
-    BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
+    S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
+    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
 
-    M.state = data.state
-    M.baseArena = data.baseArena
-    M.configs = data.configs
-    M.preparationTimeout = BJITick.applyTimeOffset(data.preparationTimeout)
-    M.participants = data.participants
-    BJICam.setCamera(BJICam.CAMERAS.FREE)
-    BJICam.setPositionRotation(M.baseArena.previewPosition.pos, M.baseArena.previewPosition.rot)
+    S.state = data.state
+    S.baseArena = data.baseArena
+    S.configs = data.configs
+    S.preparationTimeout = BJI.Managers.Tick.applyTimeOffset(data.preparationTimeout)
+    S.participants = data.participants
+    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+    BJI.Managers.Cam.setPositionRotation(S.baseArena.previewPosition.pos, S.baseArena.previewPosition.rot)
 end
 
 local function onJoinParticipants()
-    BJIRestrictions.update({ {
-        restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = #M.configs > 0 and
-            BJIRestrictions.STATE.RESTRICTED or
-            BJIRestrictions.STATE.ALLOWED,
+    BJI.Managers.Restrictions.update({ {
+        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+        state = #S.configs > 0 and
+            BJI.Managers.Restrictions.STATE.RESTRICTED or
+            BJI.Managers.Restrictions.STATE.ALLOWED,
     }, {
-        restrictions = BJIRestrictions.OTHER.FREE_CAM,
-        state = BJIRestrictions.STATE.RESTRICTED,
+        restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    M.startPos = findFreeStartPosition()
-    if #M.configs > 0 then
+    S.startPos = findFreeStartPosition()
+    if #S.configs == 0 then
+        BJI.Windows.VehSelector.open(S.getModelList(), false)
+    elseif #S.configs == 1 then
         -- no models in veh selector cause configs can be absent from others clients
-        if #M.configs == 1 then
-            M.trySpawnNew(M.configs[1].model, M.configs[1].config)
-        end
-        BJIVehSelector.open({}, false)
-    elseif #M.configs == 0 then
-        BJIVehSelector.open(M.getModelList(), false)
+        S.trySpawnNew(S.configs[1].model, S.configs[1].config)
     end
 end
 
 local function onLeaveParticipants()
-    BJIRestrictions.update({ {
-        restrictions = BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-        state = BJIRestrictions.STATE.RESTRICTED,
+    BJI.Managers.Restrictions.update({ {
+        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     }, {
-        restrictions = BJIRestrictions.OTHER.FREE_CAM,
-        state = BJIRestrictions.STATE.ALLOWED,
+        restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
-    HideGameMenu()
-    BJIVehSelector.tryClose(true)
-    BJICam.setCamera(BJICam.CAMERAS.FREE)
-    BJICam.setPositionRotation(M.baseArena.previewPosition.pos, M.baseArena.previewPosition.rot)
-    BJIVeh.deleteAllOwnVehicles()
+    BJI.Utils.Common.HideGameMenu()
+    BJI.Windows.VehSelector.tryClose(true)
+    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+    BJI.Managers.Cam.setPositionRotation(S.baseArena.previewPosition.pos, S.baseArena.previewPosition.rot)
+    BJI.Managers.Veh.deleteAllOwnVehicles()
 end
 
 local function onReady()
-    BJIVehSelector.tryClose(true)
-    BJIRestrictions.update({ {
+    BJI.Windows.VehSelector.tryClose(true)
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.FREE_CAM,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
         }):flat(),
-        state = BJIRestrictions.STATE.RESTRICTED,
+        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
 end
 
 
 local function updatePreparation(data)
-    local wasParticipant = M.getParticipant()
+    local wasParticipant = S.getParticipant()
     local wasReady = wasParticipant and wasParticipant.ready or false
-    M.participants = data.participants
+    S.participants = data.participants
 
-    local participant = M.getParticipant()
+    local participant = S.getParticipant()
     if not wasParticipant and participant then
         onJoinParticipants()
     elseif wasParticipant and not participant then
@@ -435,113 +440,113 @@ local function updatePreparation(data)
 end
 
 local function initGame(data)
-    BJIVehSelector.tryClose(true)
+    BJI.Windows.VehSelector.tryClose(true)
 
-    M.state = data.state
-    M.baseArena = M.baseArena
-    M.startTime = BJITick.applyTimeOffset(data.startTime)
-    M.participants = data.participants
+    S.state = data.state
+    S.baseArena = S.baseArena
+    S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
+    S.participants = data.participants
 
     local now = GetCurrentTimeMillis()
 
     local function onStart()
-        if now - 1000 <= M.startTime then
-            BJIMessage.flash("BJIDerbyStart", BJILang.get("derby.play.flashStart"), 3, true)
+        if now - 1000 <= S.startTime then
+            BJI.Managers.Message.flash("BJIDerbyStart", BJI.Managers.Lang.get("derby.play.flashStart"), 3, true)
         end
-        local participant = M.getParticipant()
+        local participant = S.getParticipant()
         if participant then
-            BJIVeh.freeze(false)
+            BJI.Managers.Veh.freeze(false)
             if participant.lives > 0 then
-                BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL_BUT_LOADHOME)
+                BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME)
             end
         end
     end
 
-    if now < M.startTime then
-        local participant = M.getParticipant()
+    if now < S.startTime then
+        local participant = S.getParticipant()
         if participant then
-            BJIAsync.programTask(function(ctxt)
-                if ctxt.camera == BJICam.CAMERAS.EXTERNAL then
-                    ctxt.camera = BJICam.CAMERAS.ORBIT
-                    BJICam.setCamera(ctxt.camera)
+            BJI.Managers.Async.programTask(function(ctxt)
+                if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+                    ctxt.camera = BJI.Managers.Cam.CAMERAS.ORBIT
+                    BJI.Managers.Cam.setCamera(ctxt.camera)
                 end
-            end, M.startTime - 3000, "BJIDerbyPreStart")
+            end, S.startTime - 3000, "BJIDerbyPreStart")
         end
-        BJIMessage.flashCountdown("BJIDerbyStart", M.startTime, true, "", nil, onStart, true)
+        BJI.Managers.Message.flashCountdown("BJIDerbyStart", S.startTime, true, "", nil, onStart, true)
     else
-        BJICam.setCamera(BJICam.CAMERAS.ORBIT)
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
         onStart()
     end
 end
 
 local function onElimination()
-    local participant = M.getParticipant()
+    local participant = S.getParticipant()
     if participant then
-        BJIRestrictions.updateResets(BJIRestrictions.RESET.ALL)
-        BJIRestrictions.update({
+        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+        BJI.Managers.Restrictions.update({
             {
-                restrictions = BJIRestrictions.RESET.ALL,
-                state = BJIRestrictions.STATE.RESTRICTED,
+                restrictions = BJI.Managers.Restrictions.RESET.ALL,
+                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
             },
             {
                 restrictions = Table({
-                    BJIRestrictions.OTHER.FREE_CAM,
-                    BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
+                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                 }):flat(),
-                state = BJIRestrictions.STATE.ALLOWED,
+                state = BJI.Managers.Restrictions.STATE.ALLOWED,
             }
         })
         if participant.gameVehID then
-            BJITx.player.explodeVehicle(participant.gameVehID)
+            BJI.Tx.player.explodeVehicle(participant.gameVehID)
         else
-            for _, v in pairs(BJIContext.User.vehicles) do
-                local veh = BJIVeh.getVehicleObject(v.gameVehID)
+            for _, v in pairs(BJI.Managers.Context.User.vehicles) do
+                local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
                 if veh then
-                    BJITx.player.explodeVehicle(veh:getID())
+                    BJI.Tx.player.explodeVehicle(veh:getID())
                 end
             end
         end
-        BJIMessage.flash("BJIDerbyElimination", BJILang.get("derby.play.flashElimination"), 3, false)
-        BJIAsync.delayTask(switchToRandomParticipant, 3000, "BJIDerbyPostEliminationSwitch")
+        BJI.Managers.Message.flash("BJIDerbyElimination", BJI.Managers.Lang.get("derby.play.flashElimination"), 3, false)
+        BJI.Managers.Async.delayTask(switchToRandomParticipant, 3000, "BJIDerbyPostEliminationSwitch")
     end
 end
 
 local function updateGame(data)
-    local wasEliminated = M.isEliminated()
-    M.participants = data.participants
+    local wasEliminated = S.isEliminated()
+    S.participants = data.participants
 
-    if not wasEliminated and M.isEliminated() then
+    if not wasEliminated and S.isEliminated() then
         onElimination()
     end
 end
 
 local function rxData(data)
-    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
+    S.MINIMUM_PARTICIPANTS = data.minimumParticipants
     if data.state then
-        if data.state == M.STATES.PREPARATION then
-            if not M.state then
+        if data.state == S.STATES.PREPARATION then
+            if not S.state then
                 initPreparation(data)
-            elseif M.state == M.STATES.PREPARATION then
+            elseif S.state == S.STATES.PREPARATION then
                 updatePreparation(data)
             end
-        elseif data.state == M.STATES.GAME then
-            if M.state ~= M.STATES.GAME then
+        elseif data.state == S.STATES.GAME then
+            if S.state ~= S.STATES.GAME then
                 initGame(data)
             else
                 updateGame(data)
             end
         end
     else
-        if M.state then
-            M.stop()
+        if S.state then
+            S.stop()
         end
     end
-    BJIEvents.trigger(BJIEvents.EVENTS.SCENARIO_UPDATED)
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 end
 
 local function getParticipant(playerID)
-    playerID = playerID or BJIContext.User.playerID
-    for i, p in ipairs(M.participants) do
+    playerID = playerID or BJI.Managers.Context.User.playerID
+    for i, p in ipairs(S.participants) do
         if p.playerID == playerID then
             return p, i
         end
@@ -550,48 +555,48 @@ local function getParticipant(playerID)
 end
 
 local function isParticipant(playerID)
-    local participant = M.getParticipant(playerID)
+    local participant = S.getParticipant(playerID)
     return not not participant
 end
 
 local function isEliminated(playerID)
-    local participant = M.getParticipant(playerID)
+    local participant = S.getParticipant(playerID)
     return participant and participant.eliminationTime
 end
 
 local function isSpec(playerID)
-    return not M.isParticipant(playerID) or M.isEliminated(playerID)
+    return not S.isParticipant(playerID) or S.isEliminated(playerID)
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
 
-M.trySpawnNew = tryReplaceOrSpawn
-M.tryReplaceOrSpawn = tryReplaceOrSpawn
-M.tryPaint = tryPaint
-M.getModelList = getModelList
+S.trySpawnNew = tryReplaceOrSpawn
+S.tryReplaceOrSpawn = tryReplaceOrSpawn
+S.tryPaint = tryPaint
+S.getModelList = getModelList
 
-M.canSpawnNewVehicle = canVehUpdate
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = FalseFn
-M.canDeleteOtherVehicles = FalseFn
-M.getCollisionsType = function() return BJICollisions.TYPES.FORCED end
-M.doShowNametag = doShowNametag
+S.canSpawnNewVehicle = canVehUpdate
+S.canReplaceVehicle = canVehUpdate
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
+S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end
+S.doShowNametag = doShowNametag
 
-M.getPlayerListActions = getPlayerListActions
+S.getPlayerListActions = getPlayerListActions
 
-M.onVehicleResetted = onVehicleResetted
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.onVehicleResetted = onVehicleResetted
+S.renderTick = renderTick
+S.slowTick = slowTick
 
-M.onUnload = onUnload
+S.onUnload = onUnload
 
-M.rxData = rxData
-M.getParticipant = getParticipant
-M.isParticipant = isParticipant
-M.isEliminated = isEliminated
-M.isSpec = isSpec
+S.rxData = rxData
+S.getParticipant = getParticipant
+S.isParticipant = isParticipant
+S.isEliminated = isEliminated
+S.isSpec = isSpec
 
-M.stop = stop
+S.stop = stop
 
-return M
+return S

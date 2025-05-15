@@ -1,0 +1,400 @@
+local energyIndicator = require("ge/extensions/BJI/ui/windows/Main/Body/VehicleEnergyIndicator")
+local healthIndicator = require("ge/extensions/BJI/ui/windows/Main/Body/VehicleHealthIndicator")
+local deliveryLeaderboard = require("ge/extensions/BJI/ui/windows/Main/Body/DeliveryLeaderBoard")
+
+local cache = {
+    data = {
+        showVehIndicators = false,
+        showDeliveryLeaderboard = false,
+        raceLeaderboard = {
+            show = false,
+        },
+        scenarioUIFn = nil,
+        playersFn = nil,
+
+        players = {
+            waiting = Table(),
+            list = Table(),
+            moderationInputs = {
+                muteReason = "",
+                kickReason = "",
+                banReason = "",
+                tempBanDuration = 0,
+            },
+            canBan = false,
+        },
+    },
+
+    labels = {
+        loading = "",
+        raceLeaderboard = {
+            title = "",
+        },
+        delivery = {
+            current = "",
+            distanceLeft = "",
+            vehicle = {
+                currentConfig = "",
+            },
+            package = {
+                streak = "",
+                streakTooltip = "",
+            }
+        },
+        busMission = {
+            line = "",
+            stopCount = "",
+        },
+        players = {
+            moderation = {
+                waiting = "",
+                list = "",
+                promoteWaitingTo = "",
+                muteReason = "",
+                kickReason = "",
+                kickButton = "",
+                banReason = "",
+                savedReason = "",
+                tempBanDuration = "",
+                vehicles = "",
+            },
+            waiting = "",
+            list = "",
+        }
+    },
+
+    widths = {
+        players = {
+            moderation = {
+                labels = 0,
+                buttons = 0,
+            }
+        }
+    }
+}
+
+local function updateCacheRaces()
+    cache.data.raceLeaderboard.show = table.some({
+            BJI.Managers.Scenario.TYPES.FREEROAM,
+            BJI.Managers.Scenario.TYPES.RACE_SOLO,
+            BJI.Managers.Scenario.TYPES.RACE_MULTI,
+        }, function(type) return BJI.Managers.Scenario.is(type) end) and
+        BJI.Managers.Context.Scenario.Data.Races and
+        #BJI.Managers.Context.Scenario.Data.Races > 0
+
+    if cache.data.raceLeaderboard.show and
+        #table.filter(BJI.Managers.Context.Scenario.Data.Races, function(race) return race.record end):values() == 0 then
+        cache.data.raceLeaderboard.show = false
+    end
+end
+
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJI.Managers.Tick.getContext()
+
+    cache.data.showVehIndicators = ctxt.isOwner and
+        not BJI.Managers.Scenario.isServerScenarioInProgress() and
+        BJI.Managers.Context.Scenario.Data.EnergyStations
+    cache.data.showDeliveryLeaderboard = table.some({
+            BJI.Managers.Scenario.TYPES.FREEROAM,
+            BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY,
+            BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY,
+            BJI.Managers.Scenario.TYPES.DELIVERY_MULTI,
+        }, function(type) return BJI.Managers.Scenario.is(type) end) and
+        BJI.Managers.Context.Scenario.Data.Deliveries and
+        BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard and
+        #BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard > 0
+
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY) then
+        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).drawUI
+    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY) then
+        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).drawUI
+    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.BUS_MISSION) then
+        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION).drawUI
+    else
+        cache.data.scenarioUIFn = nil
+    end
+
+    if BJI.Managers.Perm.isStaff() then
+        cache.data.playersFn = require("ge/extensions/BJI/ui/windows/Main/Body/Moderation")
+    else
+        cache.data.playersFn = require("ge/extensions/BJI/ui/windows/Main/Body/Players")
+    end
+
+    energyIndicator.updateCache(ctxt)
+    healthIndicator.updateCache(ctxt)
+end
+
+local function updateLabels()
+    cache.labels.loading = BJI.Managers.Lang.get("common.loading")
+
+    cache.labels.raceLeaderboard.title = BJI.Managers.Lang.get("races.leaderboard.title")
+
+    -- GLOBAL DELIVERIES
+    cache.labels.delivery.current = BJI.Managers.Lang.get("delivery.currentDelivery")
+    cache.labels.delivery.distanceLeft = BJI.Managers.Lang.get("delivery.distanceLeft")
+    -- VEHICLE DELIVERY
+    cache.labels.delivery.vehicle.currentConfig = BJI.Managers.Lang.get("vehicleDelivery.vehicle")
+    -- PACKAGE DELIVERY
+    cache.labels.delivery.package.streak = BJI.Managers.Lang.get("packageDelivery.currentStreak")
+    cache.labels.delivery.package.streakTooltip = BJI.Managers.Lang.get("packageDelivery.streakTooltip")
+    -- BUS MISSION
+    cache.labels.busMission.line = BJI.Managers.Lang.get("buslines.play.line")
+    cache.labels.busMission.stopCount = BJI.Managers.Lang.get("buslines.play.stopCount")
+
+    -- PLAYERS LIST
+    cache.labels.players.moderation.waiting = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.waitingPlayers") })
+    cache.labels.players.moderation.list = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.players") })
+    cache.labels.players.moderation.promoteWaitingTo = BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
+    cache.labels.players.moderation.muteReason = BJI.Managers.Lang.get("moderationBlock.muteReason")
+    cache.labels.players.moderation.kickReason = BJI.Managers.Lang.get("moderationBlock.kickReason")
+    cache.labels.players.moderation.kickButton = BJI.Managers.Lang.get("moderationBlock.buttons.kick")
+    cache.labels.players.moderation.banReason = BJI.Managers.Lang.get("moderationBlock.banReason")
+    cache.labels.players.moderation.savedReason = BJI.Managers.Lang.get("moderationBlock.savedReason")
+    cache.labels.players.moderation.tempBanDuration = BJI.Managers.Lang.get("moderationBlock.tempBanDuration")
+    cache.labels.players.moderation.vehicles = BJI.Managers.Lang.get("moderationBlock.vehicles")
+    cache.labels.players.waiting = BJI.Managers.Lang.get("playersBlock.waitingPlayers")
+    cache.labels.players.list = string.var("{1}:", { BJI.Managers.Lang.get("playersBlock.players") })
+end
+
+---@param ctxt TickContext
+local function updateCachePlayers(ctxt)
+    local selfStaff = BJI.Managers.Perm.isStaff()
+
+    cache.data.players.waiting = Table()
+    table.filter(BJI.Managers.Context.Players, function(_, playerID)
+        return not BJI.Managers.Perm.canSpawnVehicle(playerID) and not BJI.Managers.Perm.isStaff(playerID)
+    end):forEach(function(player, playerID)
+        local showPromote = player.isGroupLower and
+            not table.includes({ BJI.CONSTANTS.GROUP_NAMES.OWNER }, BJI.Managers.Perm.getNextGroup(player.group))
+        local promoteGroup = showPromote and BJI.Managers.Perm.getNextGroup(player.group) or ""
+        local promoteLabel = showPromote and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
+            :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil
+
+        table.insert(cache.data.players.waiting, {
+            playerID = playerID,
+            playerName = player.playerName,
+            grouplabel = string.var("({1})", { BJI.Managers.Lang.get("groups." .. player.group, player.group) }),
+            promoteGroup = selfStaff and promoteGroup,
+            promoteLabel = selfStaff and promoteLabel
+        })
+    end)
+
+    cache.data.players.list = Table()
+    table.filter(BJI.Managers.Context.Players, function(_, playerID)
+        return BJI.Managers.Perm.canSpawnVehicle(playerID) or BJI.Managers.Perm.isStaff(playerID)
+    end):forEach(function(p, playerID)
+        local isSelf = BJI.Managers.Context.isSelf(playerID) and not BJI.DEBUG
+        local groupLabel = BJI.Managers.Lang.get(string.var("groups.{1}", { p.group }), p.group)
+        local targetGroup = BJI.Managers.Perm.Groups[p.group] or { level = 0 }
+        local isGroupLower = ctxt.group.level > targetGroup.level or BJI.DEBUG
+        local vehiclesCount = table.length(p.vehicles or {})
+        local nameSuffix
+        if selfStaff then
+            nameSuffix = string.var("({1})", { groupLabel })
+        else
+            nameSuffix = BJI.Managers.Perm.isStaff(playerID) and
+                string.var("({1})", { BJI.Managers.Lang.get("chat.staffTag") }) or
+                string.var("({1} | {2}{3})", {
+                    groupLabel,
+                    BJI.Managers.Lang.get("chat.reputationTag"),
+                    BJI.Managers.Reputation.getReputationLevel(p.reputation)
+                })
+        end
+
+        local showDemote = isGroupLower and
+            not table.includes({ BJI.CONSTANTS.GROUP_NAMES.NONE, BJI.CONSTANTS.GROUP_NAMES.OWNER }, p.group)
+        local demoteGroup = showDemote and BJI.Managers.Perm.getPreviousGroup(p.group) or nil
+        local demoteLabel = (showDemote and demoteGroup) and BJI.Managers.Lang.get("moderationBlock.buttons.demoteTo")
+            :var({ groupName = BJI.Managers.Lang.get("groups." .. demoteGroup, demoteGroup) }) or nil
+        local showPromote = isGroupLower and
+            not table.includes({ BJI.CONSTANTS.GROUP_NAMES.OWNER }, BJI.Managers.Perm.getNextGroup(p.group))
+        local promoteGroup = showPromote and BJI.Managers.Perm.getNextGroup(p.group) or nil
+        local promoteLabel = (showPromote and promoteGroup) and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
+            :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil
+
+        local vehicleCursor = "@ => "
+        local vehiclesLabelWidth = 0
+        if selfStaff and vehiclesCount > 0 then
+            table.forEach(p.vehicles, function(veh)
+                local w = BJI.Utils.Common.GetColumnTextWidth(string.var("{1} {2}", { vehicleCursor, veh.model }))
+                if w > vehiclesLabelWidth then
+                    vehiclesLabelWidth = w
+                end
+            end)
+        end
+
+        local vehicles = table.clone(p.vehicles or {}):map(function(v)
+            v.isAI = Table(p.ai):includes(v.finalGameVehID)
+            return v
+        end)
+
+        table.insert(cache.data.players.list, {
+            playerID = playerID,
+            self = isSelf,
+            playerName = p.playerName,
+            nameSuffix = nameSuffix,
+            group = p.group,
+            groupLabel = groupLabel,
+            showModeration = selfStaff and isGroupLower,
+            showVehicles = (isSelf or isGroupLower) and vehiclesCount > 0,
+            vehiclesCount = vehiclesCount,
+            currentVehicle = p.currentVehicle,
+            vehicles = vehicles,
+            vehicleCursor = vehicleCursor,
+            vehiclesLabelWidth = vehiclesLabelWidth,
+            promoteGroup = promoteGroup,
+            promoteLabel = promoteLabel,
+            demoteGroup = demoteGroup,
+            demoteLabel = demoteLabel,
+            muteReason = p.muteReason,
+            kickReason = p.kickReason,
+            banReason = p.banReason,
+            tempBanDuration = p.tempBanDuration
+        })
+
+        cache.data.players.canBan = selfStaff and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BAN)
+    end)
+    if selfStaff and type(BJI.Managers.Context.BJC.TempBan) == "table" then
+        cache.data.players.moderationInputs.tempBanDuration = math.clamp(
+            cache.data.players.moderationInputs.tempBanDuration,
+            BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
+        )
+    end
+
+    table.forEach({ cache.data.players.waiting, cache.data.players.list }, function(players)
+        table.sort(players, function(a, b)
+            return a.playerName < b.playerName
+        end)
+    end)
+
+    cache.widths.players.moderation.labels = 0
+    if BJI.Managers.Perm.isStaff() then
+        for _, k in ipairs({
+            "moderationBlock.muteReason",
+            "moderationBlock.kickReason",
+            "moderationBlock.banReason",
+            "moderationBlock.tempBanDuration",
+        }) do
+            local label = BJI.Managers.Lang.get(k)
+            local w = BJI.Utils.Common.GetColumnTextWidth(label .. ":")
+            if w > cache.widths.players.moderation.labels then
+                cache.widths.players.moderation.labels = w
+            end
+        end
+    end
+    cache.widths.players.moderation.buttons = math.max(GetBtnIconSize(),
+        BJI.Utils.Common.GetColumnTextWidth(cache.labels.players.moderation.kickButton))
+end
+
+local listeners = Table()
+local function onLoad()
+    local ctxt = BJI.Managers.Tick.getContext()
+
+    updateCache(ctxt)
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
+        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    }, updateCache))
+
+    updateLabels()
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    }, updateLabels))
+
+    deliveryLeaderboard.updateCache(ctxt)
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    }, function(ctxt2, data)
+        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.DELIVERIES then
+            deliveryLeaderboard.updateCache(ctxt2)
+        end
+    end))
+
+    updateCacheRaces()
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    }, function(ctxt2, data)
+        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.RACES then
+            updateCacheRaces()
+        end
+    end))
+
+    updateCachePlayers(ctxt)
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
+        BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
+        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    }, function(ctxt2, data)
+        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            table.includes({
+                BJI.Managers.Cache.CACHES.PLAYERS,
+                BJI.Managers.Cache.CACHES.LANG
+            }, data.cache) then
+            updateCachePlayers(ctxt2)
+        end
+    end))
+end
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+local function draw(ctxt)
+    if cache.data.showVehIndicators then
+        energyIndicator.draw(ctxt)
+        healthIndicator.draw(ctxt)
+    end
+
+    if cache.data.showDeliveryLeaderboard then
+        deliveryLeaderboard.draw(ctxt)
+    end
+
+    if cache.data.raceLeaderboard.show then
+        LineBuilder()
+            :btnSwitch({
+                id = "toggleRacesLeaderboardWindow",
+                labelOn = cache.labels.raceLeaderboard.title,
+                labelOff = cache.labels.raceLeaderboard.title,
+                state = not BJI.Windows.RacesLeaderboard.show,
+                onClick = function()
+                    BJI.Windows.RacesLeaderboard.show = not BJI.Windows.RacesLeaderboard.show
+                end
+            })
+            :build()
+    end
+
+    if type(cache.data.scenarioUIFn) == "function" then
+        cache.data.scenarioUIFn(ctxt, cache)
+        Separator()
+    end
+
+    if type(cache.data.playersFn) == "function" then
+        cache.data.playersFn(ctxt, cache)
+    end
+end
+
+return {
+    onLoad = onLoad,
+    onUnload = onUnload,
+    draw = draw,
+}

@@ -17,7 +17,8 @@
       "enabled": "Enabled",
       "disabled": "Disabled",
       "allPlayers": "SERVER",
-      "empty": "Empty"
+      "empty": "Empty",
+      "startMessage": "Type \"help\" for the commands list"
     },
     "messages": {
       "missing": "Error finding message {key}",
@@ -192,7 +193,7 @@
       "raceTime": "{playerName} finished {raceName} in {time}"
     },
     "hunter": {
-      "invalidHunted": "No fugitive or the fugitive has no vehicle",
+      "invalidHunted": "No fugitive",
       "huntedWinner": "The fugitive won !",
       "huntersWinners": "Hunters won !",
       "draw": "Draw"
@@ -300,27 +301,27 @@
       "selfTrailer": "Your trailer"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "My Settings",
-      "BJIEvents": "Events",
-      "BJIRacesLeaderboard": "Races Leaderboard",
-      "BJIRaceSettings": "Race Settings",
-      "BJIRace": "Race",
-      "BJIDeliveryMulti": "Delivery Together",
-      "BJIVehicleSelector": "Vehicle Selector",
-      "BJIStation": "Station",
-      "BJIBusMissionPreparation": "Bus Mission Preparation",
-      "BJIScenarioEditor": "Scenario Editor",
-      "BJIFreeroamSettings": "Freeroam Settings",
-      "BJIEnvironment": "Environment Editor",
-      "BJIServer": "Server Settings",
-      "BJISpeed": "Speed Game",
-      "BJIDatabase": "Database",
-      "BJIHunterSettings": "Hunter Game Settings",
-      "BJIHunter": "Hunter Game",
-      "BJITheme": "Theme Editor",
-      "BJIDerby": "Destruction Derby",
-      "BJIVehicleSelectorPreview": "Vehicle Preview"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "My Settings",
+      "Events": "Events",
+      "RacesLeaderboard": "Races Leaderboard",
+      "RaceSettings": "Race Settings",
+      "Race": "Race",
+      "DeliveryMulti": "Delivery Together",
+      "VehSelector": "Vehicle Selector",
+      "Station": "Station",
+      "BusMissionPreparation": "Bus Mission Preparation",
+      "ScenarioEditor": "Scenario Editor",
+      "FreeroamSettings": "Freeroam Settings",
+      "Environment": "Environment Editor",
+      "Server": "Server Settings",
+      "Speed": "Speed Game",
+      "Database": "Database",
+      "HunterSettings": "Hunter Game Settings",
+      "Hunter": "Hunter Game",
+      "Theme": "Theme Editor",
+      "Derby": "Destruction Derby",
+      "VehSelectorPreview": "Vehicle Preview"
     },
     "menu": {
       "me": {
@@ -734,6 +735,7 @@
         "server": {
           "title": "Server Settings",
           "lang": "Server Console Language",
+          "allowMods": "Allow Player Mods",
           "driftBigBroadcast": "Brodcast big drifts",
           "broadcasts": {
             "title": "Broadcasts",
@@ -895,7 +897,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Reset cooldown",
+      "resetDelayTooltip": "Duration in seconds before a player can reset",
       "teleportDelay": "Teleportation cooldown",
+      "teleportDelayTooltip": "Duration in seconds before a player can teleport to another",
       "vehicleSpawning": "Global vehicle spawning",
       "quickTravel": "Quick travel",
       "nametags": "Players nametags",
@@ -906,14 +910,16 @@
       "emergencyRefuelPercentTooltip": "Tank's percentage refueled after process",
       "driftGood": "Good drifts minimum score",
       "driftBig": "Big drifts minimum score",
-      "allowUnicycle": "Allow walking"
+      "allowUnicycle": "Allow walking",
+      "cancelModal": "You will lose your unsaved changes, are you sure you want to close the window ?"
     },
     "races": {
       "races": "Races",
       "names": {},
       "tools": {
         "title": "Tools",
-        "rotation": "Rotation"
+        "rotation": "Rotation",
+        "reverse": "Reverse steps"
       },
       "edit": {
         "title": "Race Editor",
@@ -945,7 +951,6 @@
         "addBranch": "Add Branch Here",
         "addStep": "Add Step Here",
         "errors": {
-          "invalidName": "Invalid Name",
           "noChild": "No child"
         },
         "hasRecordConfirm": "A record has been set on this race and saving will delete it. Are you sure ?",
@@ -1193,7 +1198,11 @@
       "defaultVeh": "My Default Vehicle",
       "noVeh": "No vehicle found",
       "paints": "Paints",
-      "applyPaint": "Paint {position}"
+      "applyPaint": "Paint {position}",
+      "cars": "Cars",
+      "trucks": "Trucks",
+      "trailers": "Trailers",
+      "props": "Props"
     },
     "database": {
       "players": {
@@ -1235,6 +1244,8 @@
         "hunterConfigsTooltip": "Vehicle configs hunters can choose from (if none, any game config can be picked)",
         "toastConfigAlreadySaved": "Config already saved",
         "specificConfig": "Specific {model}",
+        "lastWaypointGPS": "Last Waypoint Reveal",
+        "lastWaypointGPSTooltip": "When only one waypoint left, hunters can see where the fugitive is (Nametag & GPS)",
         "notEnoughPlayers": "There are not enough players to start the hunter mode"
       },
       "play": {
@@ -1244,9 +1255,9 @@
         "preparationTimeoutIn": "Preparation timeout in {delay}",
         "preparationTimeoutAboutToEnd": "Preparation timeout is about to end",
         "startIn": "You will start in {delay}",
-        "aboutToStart": "You are about to start",
         "huntedLooseIn": "You will loose in {delay}",
         "huntedAboutToLoose": "You are about to loose",
+        "hunterResumeIn": "You will resume in {delay}",
         "configChoose": "Choose your vehicle",
         "readyMark": "READY",
         "notReadyMark": "NOT READY",

@@ -1,13 +1,15 @@
+---@class BJIManagerNametags : BJIManager
 local M = {
-    _name = "BJINametags",
+    _name = "Nametags",
+
     state = true,
 
-    renderConstants = {
-        staffTag = nil,
-        reputationTag = nil,
-        self = nil,
-        selfTrailer = nil,
-        trailer = nil,
+    labels = {
+        staffTag = "",
+        reputationTag = "",
+        self = "",
+        selfTrailer = "",
+        trailer = "",
     },
 }
 
@@ -17,7 +19,7 @@ local function getAlphaByDistance(distance)
         local fadeoutDistance = settings.getValue("nameTagFadeDistance", 40)
         alpha = math.scale(distance, fadeoutDistance, 0, 0, 1, true)
 
-        if BJICam.getCamera() ~= BJICam.CAMERAS.FREE and
+        if BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.FREE and
             settings.getValue("nameTagFadeInvert") then
             alpha = 1 - alpha
         end
@@ -35,7 +37,7 @@ local function toggle(state)
 end
 
 local function tryUpdate()
-    if BJIScenario.isFreeroam() or BJIScenario.isPlayerScenarioInProgress() then
+    if BJI.Managers.Scenario.isFreeroam() or BJI.Managers.Scenario.isPlayerScenarioInProgress() then
         M.toggle(not settings.getValue("hideNameTags", false))
     end
 end
@@ -43,13 +45,13 @@ end
 local function getNametagColor(alpha, spec, idle)
     local color
     if spec then
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT)
     elseif idle then
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT)
     else
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT)
     end
-    if not color then return ShapeDrawer.Color(0, 0, 0) end
+    if not color then return BJI.Utils.ShapeDrawer.Color(0, 0, 0) end
 
     color.a = alpha
     return color
@@ -57,13 +59,13 @@ end
 local function getNametagBgColor(alpha, spec, idle)
     local color
     if spec then
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG)
     elseif idle then
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG)
     else
-        color = BJILocalStorage.get(BJILocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG)
+        color = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG)
     end
-    if not color then return ShapeDrawer.Color(0, 0, 0) end
+    if not color then return BJI.Utils.ShapeDrawer.Color(0, 0, 0) end
 
     color.a = alpha
     return color
@@ -71,17 +73,17 @@ end
 
 local function renderSpecs(ctxt, veh)
     if not settings.getValue("showSpectators", true) or table.length(veh.spectators) == 0 or
-        not BJIScenario.doShowNametagsSpecs(veh) then
+        not BJI.Managers.Scenario.doShowNametagsSpecs(veh) then
         return
     end
 
-    local v = BJIVeh.getVehicleObject(veh.gameVehicleID)
+    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
 
-    local tagPos = BJIVeh.getPositionRotation(v).pos
+    local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
 
-    local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
-    local ownPos = freecaming and BJICam.getPositionRotation().pos or ctxt.vehPosRot.pos
+    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
+    local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
     local alpha = getAlphaByDistance(ownPos:distance(tagPos))
 
     local zOffset = v:getInitialHeight()
@@ -92,11 +94,8 @@ local function renderSpecs(ctxt, veh)
 
     for playerID in pairs(veh.spectators) do
         if playerID ~= ctxt.user.playerID and playerID ~= veh.ownerID then
-            local name = BJIContext.Players[playerID].playerName
-            if settings.getValue("shortenNametags", false) then
-                name = BJIContext.Players[playerID].shortName
-            end
-            ShapeDrawer.Text(name, tagPos,
+            local name = BJI.Managers.Context.Players[playerID].tagName
+            BJI.Utils.ShapeDrawer.Text(name, tagPos,
                 getNametagColor(alpha, true),
                 getNametagBgColor(alpha, true),
                 false)
@@ -109,18 +108,18 @@ local function renderAI(ctxt, veh)
 end
 
 local function renderTrailer(ctxt, veh)
-    local v = BJIVeh.getVehicleObject(veh.gameVehicleID)
+    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
 
     local ownVeh = veh.ownerID == ctxt.user.playerID
     local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
-    local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
+    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerSpectating = veh.spectators[veh.ownerID]
     local ownerTracting = false
-    for _, vid in ipairs(BJIVeh.findAttachedVehicles(veh.gameVehicleID)) do
-        local v2 = BJIVeh.getVehicleObject(vid)
-        if v2 and BJIVeh.getType(v2.jbeam) ~= "Trailer" and
-            veh.ownerID and BJIVeh.getVehOwnerID(vid) == veh.ownerID then
+    for _, vid in ipairs(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID)) do
+        local v2 = BJI.Managers.Veh.getVehicleObject(vid)
+        if v2 and BJI.Managers.Veh.getType(v2.jbeam) ~= "Trailer" and
+            veh.ownerID and BJI.Managers.Veh.getVehOwnerID(vid) == veh.ownerID then
             ownerTracting = true
             break
         end
@@ -129,17 +128,17 @@ local function renderTrailer(ctxt, veh)
     if ownVeh then
         if not ownerTracting then
             local showDist = not currentVeh or freecaming
-            local label = M.renderConstants.selfTrailer
+            local label = M.labels.selfTrailer
 
-            local tagPos = BJIVeh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJICam.getPositionRotation().pos or
+            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
                 (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
             if not ownPos then return end
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
             if showDist then
-                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
             local zOffset = v:getInitialHeight()
@@ -148,7 +147,7 @@ local function renderTrailer(ctxt, veh)
             end
             tagPos.z = tagPos.z + zOffset
 
-            ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 getNametagColor(alpha, false, not currentVeh),
                 getNametagBgColor(alpha, false, not currentVeh),
                 false)
@@ -158,21 +157,18 @@ local function renderTrailer(ctxt, veh)
     else
         if not ownerTracting or ownerSpectating then
             local showDist = not currentVeh or freecaming
-            local name = BJIContext.Players[veh.ownerID].playerName
-            if settings.getValue("shortenNametags", false) then
-                name = BJIContext.Players[veh.ownerID].shortName
-            end
-            local label = M.renderConstants.trailer:var({ playerName = name })
+            local name = BJI.Managers.Context.Players[veh.ownerID].tagName
+            local label = M.labels.trailer:var({ playerName = name })
 
-            local tagPos = BJIVeh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJICam.getPositionRotation().pos or
+            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
                 (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
             if not ownPos then return end
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
             if showDist then
-                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
             local zOffset = v:getInitialHeight()
@@ -181,7 +177,7 @@ local function renderTrailer(ctxt, veh)
             end
             tagPos.z = tagPos.z + zOffset
 
-            ShapeDrawer.Text(label, tagPos, getNametagColor(alpha, ownerSpectating, not ownerSpectating),
+            BJI.Utils.ShapeDrawer.Text(label, tagPos, getNametagColor(alpha, ownerSpectating, not ownerSpectating),
                 getNametagBgColor(alpha, ownerSpectating, not ownerSpectating),
                 false)
         end
@@ -190,31 +186,31 @@ local function renderTrailer(ctxt, veh)
 end
 
 local function renderVehicle(ctxt, veh)
-    local v = BJIVeh.getVehicleObject(veh.gameVehicleID)
+    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
 
     local ownVeh = veh.ownerID == ctxt.user.playerID
     local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
-    local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
+    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerDriving = veh.spectators[veh.ownerID]
 
     if ownVeh then
         if not currentVeh or freecaming then
-            local tagPos = BJIVeh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJICam.getPositionRotation().pos or
+            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
                 (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
             if not ownPos then return end
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
-            local label = M.renderConstants.self
+            local label = M.labels.self
             if settings.getValue("nameTagShowDistance", true) then
-                label = string.var("{1}({2})", { label, PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
             tagPos.z = tagPos.z + v:getInitialHeight()
 
-            ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 getNametagColor(alpha, false, not currentVeh),
                 getNametagBgColor(alpha, false, not currentVeh),
                 false)
@@ -222,8 +218,8 @@ local function renderVehicle(ctxt, veh)
             renderSpecs(ctxt, veh)
         end
     else
-        local tagPos = BJIVeh.getPositionRotation(v).pos
-        local ownPos = freecaming and BJICam.getPositionRotation().pos or
+        local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
+        local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
             (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
         if not ownPos then return end
         local distance = ownPos:distance(tagPos)
@@ -233,24 +229,21 @@ local function renderVehicle(ctxt, veh)
         local showDist = settings.getValue("nameTagShowDistance", true) and
             (not currentVeh or freecaming) and distance > 10
 
-        local owner = BJIContext.Players[veh.ownerID] or error()
-        local label = owner.playerName
-        if settings.getValue("shortenNametags", false) then
-            label = owner.shorten
-        end
+        local owner = BJI.Managers.Context.Players[veh.ownerID] or error()
+        local label = owner.tagName
         if showTag then
             local tag = ""
-            if BJIPerm.isStaff(veh.ownerID) then
-                tag = M.renderConstants.staffTag
+            if BJI.Managers.Perm.isStaff(veh.ownerID) then
+                tag = M.labels.staffTag
             else
                 local reputationTag = string.var("{1}{2}",
-                    { M.renderConstants.reputationTag, BJIReputation.getReputationLevel(owner.reputation) })
+                    { M.labels.reputationTag, BJI.Managers.Reputation.getReputationLevel(owner.reputation) })
                 tag = reputationTag
             end
             label = string.var("[{1}]{2}", { tag, label })
         end
         if showDist then
-            label = string.var("{1}({2})", { label, PrettyDistance(distance) })
+            label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
         end
 
         local zOffset = v:getInitialHeight()
@@ -259,7 +252,7 @@ local function renderVehicle(ctxt, veh)
         end
         tagPos.z = tagPos.z + zOffset
 
-        ShapeDrawer.Text(label, tagPos,
+        BJI.Utils.ShapeDrawer.Text(label, tagPos,
             getNametagColor(alpha, false, not ownerDriving),
             getNametagBgColor(alpha, false, not ownerDriving),
             false)
@@ -272,7 +265,7 @@ local lastHideNametags = nil
 local function detectVisibilityEvent()
     local val = settings.getValue("hideNameTags", false)
     if val ~= lastHideNametags then
-        BJIEvents.trigger(BJIEvents.EVENTS.NAMETAGS_VISIBILITY_CHANGED, {
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NAMETAGS_VISIBILITY_CHANGED, {
             visible = not val
         })
         lastHideNametags = val
@@ -286,36 +279,21 @@ local function renderTick(ctxt)
 
     if settings.getValue("hideNameTags", false) then
         return
-    elseif (not BJIContext.BJC.Freeroam or not BJIContext.BJC.Freeroam.Nametags) and
-        not BJIPerm.isStaff() then
+    elseif (not BJI.Managers.Context.BJC.Freeroam or not BJI.Managers.Context.BJC.Freeroam.Nametags) and
+        not BJI.Managers.Perm.isStaff() then
         return
     end
 
     if M.state then
-        -- pre-render constants
-        if not settings.getValue("shortenNametags", false) then
-            M.renderConstants.staffTag = BJILang.get("nametags.staffTag")
-            M.renderConstants.reputationTag = BJILang.get("nametags.reputationTag")
-            local nameLength = tonumber(settings.getValue("nametagCharLimit", 50))
-            for _, p in pairs(BJIContext.Players) do
-                local short = p.playerName:sub(1, nameLength)
-                if #short ~= #p.playerName then short = string.var("{1}...", { short }) end
-                p.shortName = short
-            end
-        end
-        M.renderConstants.self = BJILang.get("nametags.self")
-        M.renderConstants.selfTrailer = BJILang.get("nametags.selfTrailer")
-        M.renderConstants.trailer = BJILang.get("nametags.trailer")
-
         -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
-        for _, veh in pairs(BJIVeh.getMPVehicles()) do
+        for _, veh in pairs(BJI.Managers.Veh.getMPVehicles()) do
             if not veh.isDeleted and veh.isSpawned then
-                local vehType = BJIVeh.getType(veh.jbeam)
-                if vehType ~= "Prop" and BJIScenario.doShowNametag({
+                local vehType = BJI.Managers.Veh.getType(veh.jbeam)
+                if vehType ~= "Prop" and BJI.Managers.Scenario.doShowNametag({
                         gameVehicleID = veh.gameVehicleID,
                         ownerID = veh.ownerID
                     }) then
-                    if BJIAI.isAIVehicle(veh.gameVehicleID) then
+                    if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
                         pcall(renderAI, ctxt, veh)
                     elseif vehType == "Trailer" then
                         pcall(renderTrailer, ctxt, veh)
@@ -328,6 +306,28 @@ local function renderTick(ctxt)
     end
 end
 
+local function slowTick(ctxt)
+    if M.state then
+        -- pre-render constants
+        if settings.getValue("shortenNametags", false) then
+            M.labels.staffTag = BJI.Managers.Lang.get("nametags.staffTag")
+            M.labels.reputationTag = BJI.Managers.Lang.get("nametags.reputationTag")
+            local nameLength = tonumber(settings.getValue("nametagCharLimit", 50))
+            for _, p in pairs(BJI.Managers.Context.Players) do
+                if #p.playerName > nameLength and (not p.tagName or #p.tagName ~= nameLength) then
+                    local short = p.playerName:sub(1, nameLength)
+                    p.tagName = string.var("{1}...", { short })
+                else
+                    p.tagName = p.playerName
+                end
+            end
+        end
+        M.labels.self = BJI.Managers.Lang.get("nametags.self")
+        M.labels.selfTrailer = BJI.Managers.Lang.get("nametags.selfTrailer")
+        M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
+    end
+end
+
 M.getNametagColor = getNametagColor
 M.getNametagBgColor = getNametagBgColor
 
@@ -337,5 +337,8 @@ M.tryUpdate = tryUpdate
 
 M.renderTick = renderTick
 
-RegisterBJIManager(M)
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
+
 return M

@@ -204,11 +204,16 @@ local function consoleEnv(args)
 end
 
 local function getCache()
-    return table.deepcopy(M.Data), M.getCacheHash()
+    return Table(M.Data):clone(), M.getCacheHash()
 end
 
 local function getCacheHash()
-    return Hash(M.Data)
+    ---@type table<string, any>
+    local data = Table(M.Data):clone()
+    if data.timePlay then
+        data.ToD = nil
+    end
+    return Hash(data)
 end
 
 local function tickTime()

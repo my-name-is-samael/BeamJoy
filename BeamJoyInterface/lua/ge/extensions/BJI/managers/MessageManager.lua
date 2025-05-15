@@ -1,5 +1,7 @@
+---@class BJIManagerMessage : BJIManager
 local M = {
-    _name = "BJIMessage",
+    _name = "Message",
+
     flashQueue = {},
 
     realtimeData = {
@@ -60,9 +62,9 @@ local function flashCountdown(key, targetTimeMs, big, zeroLabel, max, callback, 
             local sound = nil
             if withSounds and i <= 3 then
                 if i == 0 then
-                    sound = BJISound.SOUNDS.RACE_START
+                    sound = BJI.Managers.Sound.SOUNDS.RACE_START
                 else
-                    sound = BJISound.SOUNDS.RACE_COUNTDOWN
+                    sound = BJI.Managers.Sound.SOUNDS.RACE_COUNTDOWN
                 end
             end
             M.flash(key, label, i == 0 and 2 or 1, big, time, i == 0 and callback or nil, sound)
@@ -99,7 +101,7 @@ local function renderTick(ctxt)
             _flash({ el.msg, el.delay, nil, el.big })
         end
         if el.sound then
-            BJISound.play(el.sound)
+            BJI.Managers.Sound.play(el.sound)
         end
         if type(el.callback) == "function" then
             el.callback(ctxt)
@@ -131,12 +133,12 @@ end
 M.flash = flash
 M.flashCountdown = flashCountdown
 M.cancelFlash = cancelFlash
-M.renderTick = renderTick
 
 M.realtimeDisplay = realtimeDisplay
 M.stopRealtimeDisplay = stopRealtimeDisplay
 
 M.message = message
 
-RegisterBJIManager(M)
+M.renderTick = renderTick
+
 return M

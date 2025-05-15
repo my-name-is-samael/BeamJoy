@@ -1,5 +1,7 @@
+---@class BJIManagerEnvironment : BJIManager
 local M = {
-    _name = "BJIEnvironment",
+    _name = "Env",
+
     Data = {
         controlSun = false,
         ToD = .78,
@@ -61,52 +63,16 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
 }
 
-local function onLoad()
-    BJICache.addRxHandler(BJICache.CACHES.ENVIRONMENT, function(cacheData)
-        local previous = table.clone(M.Data)
-        for k, v in pairs(cacheData) do
-            M.Data[k] = v
-
-            if k == "shadowTexSize" then
-                local shadowTexVal = 5
-                while 2 ^ shadowTexVal < v do
-                    shadowTexVal = shadowTexVal + 1
-                end
-                M.Data.shadowTexSizeInput = shadowTexVal - 4
-            end
-        end
-
-        M.updateCurrentPreset()
-
-        -- events detection
-        local keysChanged = {}
-        for k, v in pairs(M.Data) do
-            if v ~= previous[k] then
-                keysChanged[k] = {
-                    previousValue = previous[k],
-                    currentValue = v,
-                }
-            end
-        end
-
-        if table.length(keysChanged) > 0 then
-            BJIEvents.trigger(BJIEvents.EVENTS.ENV_CHANGED, {
-                keys = keysChanged
-            })
-        end
-    end)
-end
-
 local function _getObjectWithCache(category)
-    if BJIContext.WorldCache[category] then
-        return scenetree.findObjectById(BJIContext.WorldCache[category])
+    if BJI.Managers.Context.WorldCache[category] then
+        return scenetree.findObjectById(BJI.Managers.Context.WorldCache[category])
     end
     local names = scenetree.findClassObjects(category)
     if names and table.length(names) > 0 then
         for _, name in pairs(names) do
             local obj = scenetree.findObject(name)
             if obj then
-                BJIContext.WorldCache[category] = obj:getID()
+                BJI.Managers.Context.WorldCache[category] = obj:getID()
                 return obj
             end
         end
@@ -123,10 +89,9 @@ local function _tryApplyTime()
     end
 end
 
-local function _tryApplyTimeFromServer(ToD)
-    if ToD ~= nil and M.Data.controlSun and M.Data.timePlay then
+local function tryApplyTimeFromServer(ToD)
+    if ToD ~= nil and M.Data.controlSun then
         M.Data.ToD = ToD
-        -- no event fired because can flood too much
     end
 end
 
@@ -136,8 +101,8 @@ local function _tryApplySun()
         if ToD then
             ToD.play = M.Data.timePlay
             ToD.dayLength = M.Data.dayLength
-            ToD.dayScale = M.Data.dayScale / BJIContext.physics.physmult
-            ToD.nightScale = M.Data.nightScale / BJIContext.physics.physmult
+            ToD.dayScale = M.Data.dayScale / BJI.Physics.physmult
+            ToD.nightScale = M.Data.nightScale / BJI.Physics.physmult
             ToD.azimuthOverride = M.Data.sunAzimuthOverride
             core_environment.setTimeOfDay(ToD)
         end
@@ -192,7 +157,7 @@ local function _tryApplyWeather()
         local precipitation = _getObjectWithCache("Precipitation")
         if precipitation then
             precipitation.numDrops = M.Data.rainDrops
-            precipitation.dropSize = M.Data.dropSize * (BJIContext.UI.dropSizeRatio or 1)
+            precipitation.dropSize = M.Data.dropSize * (BJI.Managers.Context.UI.dropSizeRatio or 1)
             precipitation.minSpeed = M.Data.dropMinSpeed
             precipitation.maxSpeed = M.Data.dropMaxSpeed
             if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
@@ -232,26 +197,17 @@ local function _tryApplyGravity()
     end
 end
 
-local function slowTick(ctxt) -- server tick
-    if BJIContext.WorldReadyState == 2 and BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) then
+local function slowTick() -- server tick
+    if BJI.Managers.Context.WorldReadyState == 2 and BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
         _tryApplySun()
         _tryApplyWeather()
         _tryApplyTemperature()
         M.init = true
-
-        if ctxt.ToD then
-            _tryApplyTimeFromServer(ctxt.ToD)
-
-
-            -- when updating time, updating hash as well to prevent cache invalidation and preserve bandwidth
-            -- /!\ THIS MANAGER MUST BE DECLARED BEFORE CACHE MANAGER /!\
-            BJICache._hashes[BJICache.CACHES.ENVIRONMENT] = ctxt.cachesHashes[BJICache.CACHES.ENVIRONMENT]
-        end
     end
 end
 
 local function renderTick(ctxt) -- render tick
-    if BJIContext.WorldReadyState == 2 then
+    if BJI.Managers.Context.WorldReadyState == 2 then
         -- disable pause on multiplayer
         if bullettime:getPause() then
             --_be:toggleEnabled()
@@ -259,21 +215,21 @@ local function renderTick(ctxt) -- render tick
         end
 
         -- applying environment
-        if BJICache.isFirstLoaded(BJICache.CACHES.ENVIRONMENT) then
+        if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
             _tryApplyTime()
             _tryApplySimSpeed()
             _tryApplyGravity()
         end
 
         -- adjust environment settings in bigmap view
-        if ctxt.camera == BJICam.CAMERAS.BIG_MAP and not BJIAsync.exists("BJIBigmapEnv") then
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP and not BJI.Managers.Async.exists("BJIBigmapEnv") then
             local oldFog = M.Data.fogDensity
             local oldVisibleDistance = M.Data.visibleDistance
             M.Data.fogDensity = 0
             M.Data.visibleDistance = 20000
-            BJIAsync.task(
+            BJI.Managers.Async.task(
                 function(ctxt2)
-                    return ctxt2.camera ~= BJICam.CAMERAS.BIG_MAP
+                    return ctxt2.camera ~= BJI.Managers.Cam.CAMERAS.BIG_MAP
                 end,
                 function()
                     M.Data.fogDensity = oldFog
@@ -283,6 +239,44 @@ local function renderTick(ctxt) -- render tick
             )
         end
     end
+end
+
+local function onLoad()
+    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.ENVIRONMENT, function(cacheData)
+        local previous = table.clone(M.Data)
+        for k, v in pairs(cacheData) do
+            M.Data[k] = v
+
+            if k == "shadowTexSize" then
+                local shadowTexVal = 5
+                while 2 ^ shadowTexVal < v do
+                    shadowTexVal = shadowTexVal + 1
+                end
+                M.Data.shadowTexSizeInput = shadowTexVal - 4
+            end
+        end
+
+        M.updateCurrentPreset()
+
+        -- events detection
+        local keysChanged = {}
+        for k, v in pairs(M.Data) do
+            if v ~= previous[k] then
+                keysChanged[k] = {
+                    previousValue = previous[k],
+                    currentValue = v,
+                }
+            end
+        end
+
+        if table.length(keysChanged) > 0 then
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ENV_CHANGED, {
+                keys = keysChanged
+            })
+        end
+    end)
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
 end
 
 local function getTime()
@@ -318,15 +312,12 @@ local function updateCurrentPreset()
     end
 end
 
-M.onLoad = onLoad
-
 M.getTime = getTime
 M.getTemperature = getTemperature
+M.updateCurrentPreset = updateCurrentPreset
+M.tryApplyTimeFromServer = tryApplyTimeFromServer
 
-M.slowTick = slowTick
+M.onLoad = onLoad
 M.renderTick = renderTick
 
-M.updateCurrentPreset = updateCurrentPreset
-
-RegisterBJIManager(M)
 return M

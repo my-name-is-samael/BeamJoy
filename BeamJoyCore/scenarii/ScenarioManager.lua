@@ -190,6 +190,8 @@ local function checkCameraPos(camData)
     return checkVehPos(camData)
 end
 
+---@param race table
+---@return integer raceID
 local function saveRace(race)
     local function checkParents(raceData, wpData, wpStep)
         if type(wpData.parents) ~= "table" or #wpData.parents == 0 or table.includes(wpData.parents, wpData.name) then
@@ -322,13 +324,15 @@ local function saveRace(race)
     -- removing unwanted values
     race.keepRecord = nil
 
-    BJCDao.scenario.Races.save(race)
+    local raceID = BJCDao.scenario.Races.save(race)
     M.Races = BJCDao.scenario.Races.findAll()
 
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.RACES,
         BJCPerm.PERMISSIONS.SCENARIO,
         BJCPerm.PERMISSIONS.START_SERVER_SCENARIO,
         BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+
+    return raceID
 end
 
 local function raceDelete(raceID)
