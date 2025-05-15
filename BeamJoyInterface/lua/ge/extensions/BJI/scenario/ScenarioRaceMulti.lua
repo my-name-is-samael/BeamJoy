@@ -833,7 +833,7 @@ local function initRace(data)
     end, S.race.startTime, "BJIRaceStartTime")
 end
 
-local function updateRace()
+local function updateRace(data)
     if not S.isRaceFinished() and BJI.Managers.Veh.isCurrentVehicleOwn() then
         if S.isFinished() or S.isEliminated() then
             BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
@@ -854,6 +854,10 @@ local function updateRace()
                 BJI.Managers.RaceWaypoint.resetAll()
             end
             specRandomRacer()
+
+            -- parse steps again for spectating
+            parseRaceData(data.steps)
+            showSpecWaypoints()
         end
     end
 end
@@ -918,7 +922,7 @@ local function rxData(data)
             if not S.state or S.state == S.STATES.GRID then
                 initRace(data)
             elseif S.state == S.STATES.RACE then
-                updateRace()
+                updateRace(data)
             end
         elseif data.state == S.STATES.FINISHED then
             initRaceFinish()
@@ -1077,10 +1081,6 @@ local function slowTick(ctxt)
                 end
             end
         end
-    end
-
-    if S.isSpec() then
-        --displaySpecWaypoints()
     end
 end
 
