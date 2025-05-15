@@ -1,7 +1,9 @@
-BJIBENCH = false
+BJI.BENCH = {
+    STATE = false,
+}
 local bench = {}
 
-function BenchAdd(manager, event, time)
+function BJI.BENCH.BenchAdd(manager, event, time)
     if not bench[manager] then
         bench[manager] = {}
     end
@@ -14,7 +16,7 @@ function BenchAdd(manager, event, time)
     end
 end
 
-function BenchGet()
+function BJI.BENCH.BenchGet()
     local lines = {}
     for manager, events in pairs(bench) do
         for event, times in pairs(events) do
@@ -49,18 +51,18 @@ function BenchGet()
     return out
 end
 
-function BenchReset()
+function BJI.BENCH.BenchReset()
     bench = {}
 end
 
 --[[
 -- USAGE
 local start
-if BJIBENCH then
+if BJI.BENCH.STATE then
     start = GetCurrentTimeMillis()
 end
 -- BENCHMARKED CODE EXEC HERE
-if BJIBENCH then
+if BJI.BENCH.STATE then
     BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
 end
 ]]

@@ -68,9 +68,13 @@ BJC_EVENTS = {
     },
     DATABASE = {
         EVENT = "BJCDatabase",
-        TX = {},
+        TX = {
+            PLAYERS_GET = "playersGet",
+            PLAYERS_UPDATED = "playersUpdated",
+        },
         RX = {
-            VEHICLE = "Vehicle",
+            PLAYERS_GET = "playersGet",
+            VEHICLE = "vehicle",
         },
     },
     VOTEKICK = {

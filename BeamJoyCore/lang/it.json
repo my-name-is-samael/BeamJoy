@@ -17,7 +17,8 @@
       "enabled": "Abilitato",
       "disabled": "Disabilitato",
       "allPlayers": "SERVER",
-      "empty": "Vuoto"
+      "empty": "Vuoto",
+      "startMessage": "Digita \"help\" per l'elenco dei comandi"
     },
     "messages": {
       "missing": "Errore durante la ricerca del messaggio {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} ha finito {raceName} in {time}"
     },
     "hunter": {
-      "invalidHunted": "Nessun fuggitivo oppure il fuggitivo non ha veicolo",
+      "invalidHunted": "Nessun fuggitivo",
       "huntedWinner": "Il fuggitivo ha vinto!",
       "huntersWinners": "I cacciatori hanno vinto!",
       "draw": "Disegno"
@@ -299,27 +300,27 @@
       "selfTrailer": "La tua roulotte"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Le mie impostazioni",
-      "BJIEvents": "Eventi",
-      "BJIRacesLeaderboard": "Classifica delle gare",
-      "BJIRaceSettings": "Impostazioni di gara",
-      "BJIRace": "Gara",
-      "BJIDeliveryMulti": "Consegna insieme",
-      "BJIVehicleSelector": "Selettore del veicolo",
-      "BJIStation": "Stazione",
-      "BJIBusMissionPreparation": "Preparazione della missione in autobus",
-      "BJIScenarioEditor": "Redattore di scenari",
-      "BJIFreeroamSettings": "Impostazioni di freeroam",
-      "BJIEnvironment": "Redattore dell'ambiente",
-      "BJIServer": "Impostazioni del server",
-      "BJISpeed": "Gioco di velocità",
-      "BJIDatabase": "Banca dati",
-      "BJIHunterSettings": "Impostazioni di gioco del cacciatore",
-      "BJIHunter": "Gioco del cacciatore",
-      "BJITheme": "Redattore del tema",
-      "BJIDerby": "Derby della distruzione",
-      "BJIVehicleSelectorPreview": "Anteprima del veicolo"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Le mie impostazioni",
+      "Events": "Eventi",
+      "RacesLeaderboard": "Classifica delle gare",
+      "RaceSettings": "Impostazioni di gara",
+      "Race": "Gara",
+      "DeliveryMulti": "Consegna insieme",
+      "VehicleSelector": "Selettore del veicolo",
+      "Station": "Stazione",
+      "BusMissionPreparation": "Preparazione della missione in autobus",
+      "ScenarioEditor": "Redattore di scenari",
+      "FreeroamSettings": "Impostazioni di freeroam",
+      "Environment": "Redattore dell'ambiente",
+      "Server": "Impostazioni del server",
+      "Speed": "Gioco di velocità",
+      "Database": "Banca dati",
+      "HunterSettings": "Impostazioni di gioco del cacciatore",
+      "Hunter": "Gioco del cacciatore",
+      "Theme": "Redattore del tema",
+      "Derby": "Derby della distruzione",
+      "VehicleSelectorPreview": "Anteprima del veicolo"
     },
     "menu": {
       "me": {
@@ -733,6 +734,7 @@
         "server": {
           "title": "Impostazioni del server",
           "lang": "Lingua della console del server",
+          "allowMods": "Consenti mod dei giocatori",
           "driftBigBroadcast": "Trasmetti grandi derive",
           "broadcasts": {
             "title": "Trasmissioni",
@@ -894,7 +896,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Reimposta il tempo di recupero",
+      "resetDelayTooltip": "Durata in secondi prima che un giocatore possa resettare",
       "teleportDelay": "Tempo di recupero del teletrasporto",
+      "teleportDelayTooltip": "Durata in secondi prima che un giocatore possa teletrasportarsi a un altro",
       "vehicleSpawning": "Generazione globale di veicoli",
       "quickTravel": "Viaggio veloce",
       "nametags": "Targhette con i nomi dei giocatori",
@@ -905,14 +909,16 @@
       "emergencyRefuelPercentTooltip": "Percentuale del serbatoio rifornita dopo il processo",
       "driftGood": "Punteggio minimo di buone derive",
       "driftBig": "Punteggio minimo per grandi derive",
-      "allowUnicycle": "Consentire di camminare"
+      "allowUnicycle": "Consentire di camminare",
+      "cancelModal": "Perderai le modifiche non salvate. Sei sicuro di voler chiudere la finestra?"
     },
     "races": {
       "races": "Razze",
       "names": {},
       "tools": {
         "title": "Utensili",
-        "rotation": "Rotazione"
+        "rotation": "Rotazione",
+        "reverse": "Inverti passaggi"
       },
       "edit": {
         "title": "Redattore di gara",
@@ -944,7 +950,6 @@
         "addBranch": "Aggiungi ramo qui",
         "addStep": "Aggiungi passaggio qui",
         "errors": {
-          "invalidName": "Nome non valido",
           "noChild": "Nessun bambino"
         },
         "hasRecordConfirm": "È stato stabilito un record per questa gara e il salvataggio lo eliminerà. ",
@@ -1192,7 +1197,11 @@
       "defaultVeh": "Il mio veicolo predefinito",
       "noVeh": "Nessun veicolo trovato",
       "paints": "Vernici",
-      "applyPaint": "Dipingi {position}"
+      "applyPaint": "Dipingi {position}",
+      "cars": "Auto",
+      "trucks": "Camion",
+      "trailers": "Rimorchi",
+      "props": "Oggetti"
     },
     "database": {
       "players": {
@@ -1234,6 +1243,8 @@
         "hunterConfigsTooltip": "Configurazioni del veicolo tra cui i cacciatori possono scegliere (se non ce n'è nessuna, è possibile scegliere qualsiasi configurazione di gioco)",
         "toastConfigAlreadySaved": "Configurazione già salvata",
         "specificConfig": "{model} specifico",
+        "lastWaypointGPS": "Rivelazione ultimo punto di passaggio",
+        "lastWaypointGPSTooltip": "Quando rimane solo un punto di passaggio, i cacciatori possono vedere dove si trova il fuggitivo (Nome e GPS)",
         "notEnoughPlayers": "Non ci sono abbastanza giocatori per avviare la modalità cacciatore"
       },
       "play": {
@@ -1243,9 +1254,9 @@
         "preparationTimeoutIn": "Timeout di preparazione tra {delay}",
         "preparationTimeoutAboutToEnd": "Il timeout di preparazione sta per scadere",
         "startIn": "Inizierai tra {delay}",
-        "aboutToStart": "Stai per iniziare",
         "huntedLooseIn": "Perderai tra {delay}",
         "huntedAboutToLoose": "Stai per perdere",
+        "hunterResumeIn": "Riprenderai tra {delay}",
         "configChoose": "Scegli il tuo veicolo",
         "readyMark": "PRONTO",
         "notReadyMark": "NON PRONTO",

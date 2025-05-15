@@ -48,7 +48,7 @@ local ctrls = {}
 -- route events categories to controller files
 Table(BJC_EVENTS):forEach(function(v, k)
     if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
-        ctrls[k] = require("rx/" .. k .. "Rx")
+        ctrls[k] = require("rx/" .. k:capitalizeWords():gsub(" ", "") .. "Rx")
         ctrls[k].dispatchEvent = controllerDispatch
     end
 end)

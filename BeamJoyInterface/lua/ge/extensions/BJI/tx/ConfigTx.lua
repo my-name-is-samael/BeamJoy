@@ -1,43 +1,52 @@
-local event = BJI_EVENTS.CONFIG
+---@param TX BJITX
+return function(TX)
+    local event = BJI.CONSTANTS.EVENTS.CONFIG
+    local config = {
+        _name = "config"
+    }
 
-BJITx.config = {}
+    function config.bjc(key, value)
+        TX._send(event.EVENT, event.TX.BJC, { key, value })
+    end
 
-function BJITx.config.bjc(key, value)
-    BJITx._send(event.EVENT, event.TX.BJC, { key, value })
-end
+    function config.env(key, value)
+        TX._send(event.EVENT, event.TX.ENV, { key, value })
+    end
 
-function BJITx.config.env(key, value)
-    BJITx._send(event.EVENT, event.TX.ENV, { key, value })
-end
+    function config.switchMap(mapName)
+        TX._send(event.EVENT, event.TX.MAP_SWITCH, mapName)
+    end
 
-function BJITx.config.switchMap(mapName)
-    BJITx._send(event.EVENT, event.TX.MAP_SWITCH, mapName)
-end
+    function config.core(key, value)
+        TX._send(event.EVENT, event.TX.CORE, { key, value })
+    end
 
-function BJITx.config.core(key, value)
-    BJITx._send(event.EVENT, event.TX.CORE, { key, value })
-end
+    function config.permissions(key, value)
+        TX._send(event.EVENT, event.TX.PERMISSIONS, { key, value })
+    end
 
-function BJITx.config.permissions(key, value)
-    BJITx._send(event.EVENT, event.TX.PERMISSIONS, { key, value })
-end
+    ---@param groupName string
+    ---@param key string
+    ---@param value? any
+    function config.permissionsGroup(groupName, key, value)
+        TX._send(event.EVENT, event.TX.PERMISSIONS_GROUP, { groupName, key, value })
+    end
 
-function BJITx.config.permissionsGroup(groupName, key, value)
-    BJITx._send(event.EVENT, event.TX.PERMISSIONS_GROUP, { groupName, key, value })
-end
+    function config.permissionsGroupSpecific(groupName, permissionName, state)
+        TX._send(event.EVENT, event.TX.PERMISSIONS_GROUP_SPECIFIC, { groupName, permissionName, state })
+    end
 
-function BJITx.config.permissionsGroupSpecific(groupName, permissionName, state)
-    BJITx._send(event.EVENT, event.TX.PERMISSIONS_GROUP_SPECIFIC, { groupName, permissionName, state })
-end
+    function config.maps(map, label, archiveName)
+        TX._send(event.EVENT, event.TX.MAPS, { map, label, archiveName })
+    end
 
-function BJITx.config.maps(map, label, archiveName)
-    BJITx._send(event.EVENT, event.TX.MAPS, { map, label, archiveName })
-end
+    function config.mapState(map, state)
+        TX._send(event.EVENT, event.TX.MAPS, { map, state })
+    end
 
-function BJITx.config.mapState(map, state)
-    BJITx._send(event.EVENT, event.TX.MAPS, { map, state })
-end
+    function config.stop()
+        TX._send(event.EVENT, event.TX.STOP)
+    end
 
-function BJITx.config.stop()
-    BJITx._send(event.EVENT, event.TX.STOP)
+    return config
 end

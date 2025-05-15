@@ -144,6 +144,7 @@ local function setModelBlacklist(model, state)
         end
     end
     BJCDao.vehicles.save(M.Data)
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DATABASE_VEHICLES)
 end
 
 local function getCache()

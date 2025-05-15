@@ -21,7 +21,7 @@ end
 --- Create a table filled with range
 ---@param startIndex integer
 ---@param endIndex integer
----@return tablelib<integer>
+---@return tablelib<integer, integer>
 function Range(startIndex, endIndex)
     if type(endIndex) ~= "number" or type(startIndex) ~= "number" then return Table() end
     local res = Table()
@@ -45,7 +45,7 @@ table.remove = table.remove
 
 -- RECOVER FROM CLIENT FUNCTIONS
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return tablelib
 table.clear = table.clear or function(tab)
     if type(tab) ~= "table" then return Table() end
@@ -54,10 +54,10 @@ table.clear = table.clear or function(tab)
     return tab
 end
 
----@generic V
----@param obj V
+---@generic O
+---@param obj O
 ---@param level? integer
----@return V
+---@return O
 table.clone = table.clone or function(obj, level)
     if type(obj) ~= "table" then return Table() end
     if not level then
@@ -75,18 +75,18 @@ table.clone = table.clone or function(obj, level)
     end
     return type(res) == "table" and Table(res) or res
 end
----@generic V
----@param obj V
----@return V
+---@generic O
+---@param obj O
+---@return O
 table.deepcopy = function(obj) return table.clone(obj) end
----@generic V
----@param obj V
----@return V
+---@generic O
+---@param obj O
+---@return O
 table.shallowcopy = function(obj) return table.clone(obj, 19) end
 
 ---@generic K, V
----@param tab table<K, V>
----@param foreachFn fun(index: K, el: V)
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param foreachFn fun(index: K, el: V|integer)
 table.foreach = table.foreach or function(tab, foreachFn)
     if type(tab) ~= "table" then return end
     for k, v in pairs(tab) do
@@ -95,7 +95,7 @@ table.foreach = table.foreach or function(tab, foreachFn)
 end
 
 ---@generic V
----@param tab table<any, V>
+---@param tab tablelib<integer,V>|table<integer,V>|V[]
 ---@param foreachiFn fun(index: integer, el: V)
 table.foreachi = table.foreachi or function(tab, foreachiFn)
     if type(tab) ~= "table" then return end
@@ -104,13 +104,13 @@ table.foreachi = table.foreachi or function(tab, foreachiFn)
     end
 end
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return integer
 table.getn = table.getn or function(tab)
     return type(tab) == "table" and #tab or 0
 end
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return integer|nil
 table.maxn = table.maxn or function(tab)
     return Table(tab)
@@ -120,28 +120,30 @@ end
 
 ---@param narr integer
 ---@param nrec? integer
----@return tablelib<nil>
+---@return tablelib
 table.new = table.new or function(narr, nrec)
     return Table()
 end
 
 -- ADD-ONS
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return boolean
 table.isArray = table.isArray or function(tab)
     return type(tab) == "table" and #tab == Table(tab):length()
 end
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return boolean
 table.isObject = table.isObject or function(tab)
     return type(tab) == "table" and #tab ~= Table(tab):length()
 end
 
----@param tab table
+
+---@generic K, V
+---@param tab table<K,V>
 ---@param distinct? boolean
----@return tablelib
+---@return tablelib<integer, V>
 table.duplicates = table.duplicates or function(tab, distinct)
     if type(tab) ~= "table" then return Table() end
     if type(distinct) ~= "boolean" then distinct = false end
@@ -158,7 +160,7 @@ table.duplicates = table.duplicates or function(tab, distinct)
 end
 
 ---@generic K, V
----@param tab table<K,V>|V[]
+---@param tab tablelib<K,V>|table<K,V>|V[]
 ---@return V
 table.random = table.random or function(tab)
     if type(tab) ~= "table" then return nil end
@@ -174,9 +176,10 @@ table.random = table.random or function(tab)
     end, { found = nil, i = 1 }).found
 end
 
----@param tab table
+---@generic K, V
+---@param tab tablelib<K,V>|table<K,V>|V[]
 ---@param index any
----@return integer|string|nil
+---@return K|integer
 table.nextIndex = table.nextIndex or function(tab, index)
     if type(tab) ~= "table" then return nil end
     if table.isArray(tab) then
@@ -194,10 +197,11 @@ table.nextIndex = table.nextIndex or function(tab, index)
     end, { next = false, found = nil }).found
 end
 
----@param tab1 table
----@param tab2 table
+---@generic K, L, V, W
+---@param tab1 tablelib<K,V>|table<K,V>|V[]
+---@param tab2 tablelib<L,W>|table<L,W>|W[]
 ---@param distinct? boolean
----@return tablelib
+---@return tablelib<K|L, V|W>
 table.addAll = table.addAll or function(tab1, tab2, distinct)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return Table() end
     return Table({ tab1, tab2 })
@@ -212,10 +216,12 @@ table.addAll = table.addAll or function(tab1, tab2, distinct)
         end, Table())
 end
 
---- table.concat only works on arrays, table.join is working on objects too
----@param tab table
+-- table.concat only works on arrays, table.join is working on objects too
+---@generic K, V
+---@param tab tablelib<K,V>|table<K,V>|V[]
 ---@param sep? string
 ---@param keys? boolean
+---@return string
 table.join = table.join or function(tab, sep, keys)
     if type(tab) ~= "table" then return "" end
     if type(sep) ~= "string" then sep = "" end
@@ -231,7 +237,7 @@ table.join = table.join or function(tab, sep, keys)
     end, "")
 end
 
----@param tab table
+---@param tab tablelib|table
 ---@return tablelib
 table.flat = table.flat or function(tab)
     if type(tab) ~= "table" then return Table() end
@@ -245,17 +251,19 @@ table.flat = table.flat or function(tab)
     end, Table())
 end
 
----@param tab table
----@param val any
----@return any result nil if not found
+---@generic K, V
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param val V
+---@return K|nil
 table.indexOf = table.indexOf or function(tab, val)
     return Table(tab):reduce(function(acc, el, k) return el == val and k or acc end)
 end
 
----@param target table
----@param source table
+---@generic K, L, V, W
+---@param target tablelib<K,V>|table<K,V>|V[]
+---@param source tablelib<L,W>|table<L,W>|W[]
 ---@param level? integer
----@return table
+---@return table<K|L,V|W>
 table.assign = table.assign or function(target, source, level)
     if type(target) ~= "table" or type(source) ~= "table" then return target end
     if type(level) ~= "number" then
@@ -279,10 +287,10 @@ table.assign = table.assign or function(target, source, level)
     return Table(target)
 end
 
----@generic K, V, T
----@param tab table<K, V>
----@param mapFn fun(el: V, index: K, tab: table<K, V>): T
----@return tablelib<K, T>
+---@generic K, V, W
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param mapFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): W
+---@return tablelib<K,W>
 table.map = table.map or function(tab, mapFn)
     if type(tab) ~= "table" then return Table() end
     if type(mapFn) ~= "function" then return Table() end
@@ -298,9 +306,9 @@ table.map = table.map or function(tab, mapFn)
 end
 
 ---@generic K, V
----@param tab table<K, V>
----@param filterFn fun(el: V, index: K, tab: table<K, V>): boolean
----@return tablelib<K, V>
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param filterFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): boolean
+---@return tablelib<K,V>
 table.filter = table.filter or function(tab, filterFn)
     if type(tab) ~= "table" then return Table() end
     if type(filterFn) ~= "function" then return Table() end
@@ -319,8 +327,8 @@ table.filter = table.filter or function(tab, filterFn)
 end
 
 ---@generic K, V
----@param tab table<K, V>
----@param someFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param someFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): boolean
 ---@return boolean
 table.some = table.some or function(tab, someFn)
     if type(tab) ~= "table" then return false end
@@ -336,8 +344,8 @@ end
 table.any = table.any or table.some
 
 ---@generic K, V
----@param tab table<K, V>
----@param everyFn fun(el: V, index: K, tab: table<K, V>): boolean
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param everyFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): boolean
 ---@return boolean
 table.every = table.every or function(tab, everyFn)
     if type(tab) ~= "table" then return false end
@@ -353,8 +361,8 @@ end
 table.all = table.all or table.every
 
 ---@generic K, V, T
----@param tab table<K, V>
----@param reduceFn fun(value: T, el: V, index: K, tab: table<K, V>): T
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param reduceFn fun(value: T, el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): T
 ---@param initialValue? T
 ---@return T
 table.reduce = table.reduce or function(tab, reduceFn, initialValue)
@@ -371,8 +379,8 @@ table.reduce = table.reduce or function(tab, reduceFn, initialValue)
 end
 
 ---@generic K, V
----@param tab table<K, V>
----@param foreachFn fun(el: V, index: K, tab: table<K, V>)
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param foreachFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[])
 table.forEach = table.forEach or function(tab, foreachFn)
     if type(tab) ~= "table" then return end
     if type(foreachFn) ~= "function" then return end
@@ -382,10 +390,10 @@ table.forEach = table.forEach or function(tab, foreachFn)
 end
 
 ---@generic K, V
----@param tab table<K, V>
----@param findFn fun(el: V, index: K, tab: table<K, V>): boolean
----@param callbackFn? fun(el: V, index: K)
----@return V, K | nil
+---@param tab tablelib<K,V>|table<K,V>|V[]
+---@param findFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): boolean
+---@param callbackFn? fun(el: V, index: K|integer)
+---@return V|nil, K|nil
 table.find = table.find or function(tab, findFn, callbackFn)
     if type(tab) ~= "table" then return nil end
     if type(findFn) ~= "function" then return nil end
@@ -401,7 +409,7 @@ table.find = table.find or function(tab, findFn, callbackFn)
     return nil
 end
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@return integer
 table.length = table.length or function(tab)
     if type(tab) ~= "table" then return 0 end
@@ -409,8 +417,8 @@ table.length = table.length or function(tab)
 end
 
 ---@generic K
----@param tab table<K, any>
----@return tablelib<K>
+---@param tab tablelib<K,any>|table<K,any>|any[]
+---@return tablelib<K>|integer[]
 table.keys = table.keys or function(tab)
     if type(tab) ~= "table" then return Table() end
     return Table(tab):reduce(function(acc, _, k)
@@ -420,7 +428,7 @@ table.keys = table.keys or function(tab)
 end
 
 ---@generic V
----@param tab table<any, V>
+---@param tab tablelib<any,V>|table<any,V>|V[]
 ---@return tablelib<V>
 table.values = table.values or function(tab)
     if type(tab) ~= "table" then return Table() end
@@ -430,7 +438,7 @@ table.values = table.values or function(tab)
     end, Table())
 end
 
----@param tab table
+---@param tab tablelib|table|any[]
 ---@param el any
 ---@return boolean
 table.includes = table.includes or function(tab, el)
@@ -441,8 +449,8 @@ table.includes = table.includes or function(tab, el)
 end
 table.contains = table.contains or table.includes
 
----@param tab1 table
----@param tab2 table
+---@param tab1 tablelib|table|any[]
+---@param tab2 tablelib|table|any[]
 ---@param deep? boolean DEFAULT to false
 ---@return boolean
 table.compare = table.compare or function(tab1, tab2, deep)
@@ -466,14 +474,14 @@ table.compare = table.compare or function(tab1, tab2, deep)
     end
     return true
 end
----@param tab1 table
----@param tab2 table
+---@param tab1 tablelib|table|any[]
+---@param tab2 tablelib|table|any[]
 ---@return boolean
 table.deepcompare = table.deepcompare or function(tab1, tab2)
     return table.compare(tab1, tab2, true)
 end
----@param tab1 table
----@param tab2 table
+---@param tab1 tablelib|table|any[]
+---@param tab2 tablelib|table|any[]
 ---@return boolean
 table.shallowcompare = table.shallowcompare or function(tab1, tab2)
     return table.compare(tab1, tab2)
@@ -481,7 +489,7 @@ end
 
 local baseSort = table.sort
 ---@generic T
----@param tab T[]
+---@param tab tablelib<integer,T>|table<integer,T>|T[]
 ---@param sortFn? fun(a: T, b: T): boolean
 ---@return tablelib<T>
 table.sort = function(tab, sortFn) ---@diagnostic disable-line

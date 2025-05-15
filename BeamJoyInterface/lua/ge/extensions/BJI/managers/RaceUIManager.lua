@@ -1,5 +1,7 @@
+---@class BJIManagerRaceUI : BJIManager
 local M = {
-    _name = "BJIRaceUI",
+    _name = "RaceUI",
+
     lap = {
         current = nil,
         count = nil,
@@ -97,13 +99,13 @@ local function drawHotlap()
             symbol = "+"
         end
         if diff ~= 0 then
-            diffLabel = string.var("{1}{2}", { symbol, RaceDelay(math.abs(diff)) })
+            diffLabel = string.var("{1}{2}", { symbol, BJI.Utils.Common.RaceDelay(math.abs(diff)) })
         end
         table.insert(rows, {
             lap = i,
-            duration = RaceDelay(row.duration),
+            duration = BJI.Utils.Common.RaceDelay(row.duration),
             diff = diffLabel,
-            total = RaceDelay(row.total),
+            total = BJI.Utils.Common.RaceDelay(row.total),
         })
     end
 
@@ -161,7 +163,7 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
         diffRace = nil
     end
 
-    BJIAsync.removeTask("BJIRaceUIRaceTimeClear")
+    BJI.Managers.Async.removeTask("BJIRaceUIRaceTimeClear")
 
     if diffCheckpoint then
         guihooks.trigger("RaceCheckpointComparison", { timeOut = timeoutMS, time = diffCheckpoint / 1000 })
@@ -171,7 +173,7 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
     end
 
     if (diffCheckpoint or diffRace) and type(timeoutMS) == "number" and timeoutMS > 0 then
-        BJIAsync.delayTask(M.clearRaceTime, timeoutMS, "BJIRaceUIRaceTimeClear")
+        BJI.Managers.Async.delayTask(M.clearRaceTime, timeoutMS, "BJIRaceUIRaceTimeClear")
     end
 end
 

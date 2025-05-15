@@ -60,7 +60,7 @@ end
 
 local function setMapDropSizeRatio(mapName, ratio)
     local map = M.Data[mapName]
-    if not map or type(ratio) ~= "number" then
+    if not map or (type(ratio) ~= "number" and ratio ~= nil) then
         error({ key = "rx.errors.invalidData" })
     end
 

@@ -1,5 +1,7 @@
+---@class BJIManagerCollisions : BJIManager
 local M = {
-    _name = "BJICollisions",
+    _name = "Collisions",
+
     TYPES = {
         FORCED = 1,
         DISABLED = 2,
@@ -18,14 +20,14 @@ local M = {
 }
 
 local function getVehAlpha(gameVehID)
-    local veh = BJIVeh.getVehicleObject(gameVehID)
+    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
     if not veh then
         return
     end
 
-    local vData = core_vehicle_manager.getVehicleData(gameVehID).vdata
-    if vData.flexbodies and vData.flexbodies[0] then
-        return veh:getMeshAlpha(vData.flexbodies[0].mesh)
+    local vData = core_vehicle_manager.getVehicleData(gameVehID).vdata.flexbodies
+    if vData and vData[0] then
+        return veh:getMeshAlpha(vData[0].mesh)
     else
         return
     end
@@ -34,16 +36,16 @@ end
 ---@param gameVehID integer
 ---@return boolean
 local function isVehicle(gameVehID)
-    local veh = BJIVeh.getVehicleObject(gameVehID)
-    return veh ~= nil and not BJIVeh.isUnicycle(gameVehID) and
-        not table.includes({ BJI_VEHICLE_TYPES.TRAILER, BJI_VEHICLE_TYPES.PROP },
-            BJIVeh.getType(veh.jbeam))
+    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+    return veh ~= nil and not BJI.Managers.Veh.isUnicycle(gameVehID) and
+        not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
+            BJI.Managers.Veh.getType(veh.jbeam))
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function canBecomeGhost(gameVehID)
-    return isVehicle(gameVehID) and not BJIAI.isAIVehicle(gameVehID)
+    return isVehicle(gameVehID) and not BJI.Managers.AI.isAIVehicle(gameVehID)
 end
 
 local function setCollisions(state)
@@ -54,7 +56,7 @@ local function setCollisions(state)
 end
 
 local function setAlpha(gameVehID, alpha)
-    if BJIVeh.getVehicleObject(gameVehID) then
+    if BJI.Managers.Veh.getVehicleObject(gameVehID) then
         core_vehicle_partmgmt.setHighlightedPartsVisiblity(alpha, gameVehID)
     end
 end
@@ -70,20 +72,20 @@ local function getCloseVehicles(gameVehID)
         return false
     end
 
-    local veh = BJIVeh.getVehicleObject(gameVehID)
+    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
     if not veh then
         return false
     end
 
     local attachedVehs = Table(core_vehicle_partmgmt.findAttachedVehicles(veh:getID()))
-    return Table(BJIVeh.getMPVehicles()):values()
+    return Table(BJI.Managers.Veh.getMPVehicles()):values()
         :map(function(v)
-            return BJIVeh.getVehicleObject(v.gameVehicleID)
+            return BJI.Managers.Veh.getVehicleObject(v.gameVehicleID)
         end)
         :filter(function(v)
             return v:getID() ~= gameVehID and not attachedVehs:includes(v:getID()) and
-                isVehicle(v:getID()) and BJIVeh.getPositionRotation(veh).pos:distance(
-                    BJIVeh.getPositionRotation(v).pos) < getGhostDistance(veh, v)
+                isVehicle(v:getID()) and BJI.Managers.Veh.getPositionRotation(veh).pos:distance(
+                    BJI.Managers.Veh.getPositionRotation(v).pos) < getGhostDistance(veh, v)
         end)
 end
 
@@ -94,8 +96,8 @@ local function applyGhostTransparency(gameVehID, onReset)
         -- apply multiple times to prevent desyncs
         table.forEach({ 0, 300, 600 }, function(delay)
             -- apply alpha if not my current veh
-            BJIAsync.delayTask(function(ctxt)
-                if BJIVeh.getVehicleObject(gameVehID) and
+            BJI.Managers.Async.delayTask(function(ctxt)
+                if BJI.Managers.Veh.getVehicleObject(gameVehID) and
                     (not ctxt.veh or ctxt.veh:getID() ~= gameVehID) then
                     setAlpha(gameVehID, M.ghostAlpha)
                 end
@@ -116,7 +118,7 @@ local function addGhost(gameVehID, ctxt, onReset)
         return -- not a valid target
     end
 
-    ctxt = ctxt or BJITick.getContext()
+    ctxt = ctxt or BJI.Managers.Tick.getContext()
     M.ghosts[gameVehID] = true
     if ctxt.veh and ctxt.veh:getID() == gameVehID then
         setCollisions(false)
@@ -126,17 +128,17 @@ local function addGhost(gameVehID, ctxt, onReset)
 
     local minTime = GetCurrentTimeMillis() + M.ghostDelay
     local eventName = string.var(M.ghostProcessKey, { gameVehID })
-    BJIAsync.removeTask(eventName)
-    BJIAsync.task(function(ctxt2)
+    BJI.Managers.Async.removeTask(eventName)
+    BJI.Managers.Async.task(function(ctxt2)
         -- collisions changed or not valid anymore
-        if M.type ~= M.TYPES.GHOSTS or not BJIVeh.getVehicleObject(gameVehID) or BJIAI.isAIVehicle(gameVehID) then
+        if M.type ~= M.TYPES.GHOSTS or not BJI.Managers.Veh.getVehicleObject(gameVehID) or BJI.Managers.AI.isAIVehicle(gameVehID) then
             return true
         end
 
         -- ghost contamination here ^^
         local closeVehs = getCloseVehicles(gameVehID)
         if #closeVehs > 0 then
-            BJIAsync.delayTask(function(ctxt3)
+            BJI.Managers.Async.delayTask(function(ctxt3)
                 closeVehs:filter(function(veh)
                     return not M.ghosts[veh:getID()] and not M.permaGhosts[veh:getID()]
                 end)
@@ -149,7 +151,7 @@ local function addGhost(gameVehID, ctxt, onReset)
         -- delay passed and not close to another vehicle
         return ctxt2.now >= minTime and #closeVehs == 0
     end, function(ctxt2)
-        if M.type ~= M.TYPES.GHOSTS or not BJIVeh.getVehicleObject(gameVehID) then
+        if M.type ~= M.TYPES.GHOSTS or not BJI.Managers.Veh.getVehicleObject(gameVehID) then
             return
         end
 
@@ -164,8 +166,9 @@ local function addGhost(gameVehID, ctxt, onReset)
 end
 
 -- on spawn or reset
+---@param gameVehID integer
 local function onVehicleResetted(gameVehID)
-    if gameVehID == -1 or BJIAI.isAIVehicle(gameVehID) then
+    if gameVehID == -1 or BJI.Managers.AI.isAIVehicle(gameVehID) then
         return
     end
 
@@ -175,20 +178,22 @@ local function onVehicleResetted(gameVehID)
     end
 
     if M.type == M.TYPES.GHOSTS then
-        local veh = BJIVeh.getVehicleObject(gameVehID)
+        local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
         if not veh or not isVehicle(gameVehID) then
             return
         end
 
         addGhost(gameVehID, nil, true)
     elseif M.type == M.TYPES.DISABLED then
-        local ctxt = BJITick.getContext()
+        local ctxt = BJI.Managers.Tick.getContext()
         if not (ctxt.isOwner and ctxt.veh:getID() == gameVehID) then
             applyGhostTransparency(gameVehID, true)
         end
     end
 end
 
+---@param oldGameVehID integer
+---@param newGameVehID integer
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if M.type == M.TYPES.GHOSTS then
         if oldGameVehID ~= -1 then
@@ -216,10 +221,11 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     end
 end
 
+---@param gameVehID integer
 local function onVehicleDeleted(gameVehID)
     if M.ghosts[gameVehID] then
         M.ghosts[gameVehID] = nil
-        BJIAsync.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+        BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
     end
     if M.permaGhosts[gameVehID] then
         M.permaGhosts[gameVehID] = nil
@@ -239,8 +245,8 @@ local function renderTick(ctxt)
         M.state and Table({ M.ghosts, M.permaGhosts })
         :any(function(ghosts)
             return ghosts:any(function(_, gameVehID)
-                local target = BJIVeh.getVehicleObject(gameVehID)
-                local distance = ctxt.vehPosRot.pos:distance(BJIVeh.getPositionRotation(target).pos)
+                local target = BJI.Managers.Veh.getVehicleObject(gameVehID)
+                local distance = ctxt.vehPosRot.pos:distance(BJI.Managers.Veh.getPositionRotation(target).pos)
                 return distance < M.ghostsRadius
             end)
         end) then
@@ -248,14 +254,41 @@ local function renderTick(ctxt)
     end
 end
 
+-- when spawning AI vehicles, alpha can get desynced
+local function checkAIVehicles()
+    local start = GetCurrentTimeMillis()
+    if table.includes({ M.TYPES.GHOSTS, M.TYPES.FORCED }, M.type) then
+        Table(BJI.Managers.Context.Players)
+            :map(function(p)
+                return p.ai
+            end):flat()
+            :forEach(function(vid)
+                BJI.Managers.Async.task(function()
+                    return BJI.Managers.Veh.isVehReady(vid)
+                end, function()
+                    local a = getVehAlpha(vid)
+                    if a and a ~= M.playerAlpha then
+                        setAlpha(vid, M.playerAlpha)
+                        LogWarn(("Restored desync alpha from {1}"):var({ a }))
+                    end
+                end, string.var("CheckAIAlpha-{1}", { vid }))
+            end)
+    end
+    LogInfo(string.var("AI ghosts desync check executed in {1}ms", { GetCurrentTimeMillis() - start }))
+end
+
 ---@param ctxt SlowTickContext
 local function slowTick(ctxt)
     if M.type == M.TYPES.GHOSTS then
         -- clear invalid ghosts
         M.ghosts:forEach(function(_, gameVehID)
-            if not BJIVeh.getVehicleObject(gameVehID) or
-                BJIAI.isAIVehicle(gameVehID) then
+            if not BJI.Managers.Veh.getVehicleObject(gameVehID) or
+                BJI.Managers.AI.isAIVehicle(gameVehID) then
                 M.ghosts[gameVehID] = nil
+                BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+                if not ctxt.veh or ctxt.veh:getID() ~= gameVehID then
+                    setAlpha(gameVehID, M.ghostAlpha)
+                end
             end
         end)
     end
@@ -263,22 +296,20 @@ end
 
 local function updatePermaGhosts()
     if M.type == M.TYPES.GHOSTS then
-        Table(BJIContext.Players)
-            :filter(function(p) return p.playerID ~= BJIContext.User.PlayerID end)
+        Table(BJI.Managers.Context.Players)
+            :filter(function(p) return p.playerID ~= BJI.Managers.Context.User.playerID end)
             :forEach(function(player)
                 Table(player.vehicles)
-                    :map(function(v)
-                        return v.finalGameVehID
-                    end):values()
+                    :map(function(v) return v.finalGameVehID end)
                     :filter(function(gameVehID)
-                        local veh = BJIVeh.getVehicleObject(gameVehID)
+                        local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
                         return veh ~= nil and canBecomeGhost(gameVehID)
                     end)
                     :forEach(function(gameVehID)
                         if player.isGhost and not M.permaGhosts[gameVehID] then
                             M.permaGhosts[gameVehID] = true
                             if M.ghosts[gameVehID] then
-                                BJIAsync.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+                                BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
                             else
                                 applyGhostTransparency(gameVehID)
                             end
@@ -295,14 +326,14 @@ end
 ---@param nextType integer
 local function onTypeChange(ctxt, nextType)
     M.ghosts:forEach(function(_, gameVehID)
-        BJIAsync.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+        BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
         setAlpha(gameVehID, M.playerAlpha)
     end)
     M.ghosts:clear()
     M.permaGhosts:clear()
     if nextType ~= M.TYPES.GHOSTS then
         if nextType == M.TYPES.DISABLED then
-            table.forEach(BJIVeh.getMPVehicles(), function(veh)
+            table.forEach(BJI.Managers.Veh.getMPVehicles(), function(veh)
                 if veh.gameVehicleID ~= ctxt.veh:getID() then
                     setAlpha(veh.gameVehicleID, M.ghostAlpha)
                 end
@@ -321,37 +352,38 @@ local function onTypeChange(ctxt, nextType)
 end
 
 local listeners = Table()
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
 local function onLoad()
-    listeners:insert(BJIEvents.addListener({
-        BJIEvents.EVENTS.SCENARIO_CHANGED,
-        BJIEvents.EVENTS.SCENARIO_UPDATED,
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
     }, function(ctxt)
-        local nextType = BJIScenario.getCollisionsType(ctxt)
+        local nextType = BJI.Managers.Scenario.getCollisionsType(ctxt)
         if nextType ~= M.type then
             onTypeChange(ctxt, nextType)
             M.type = nextType
         end
     end))
 
-    listeners:insert(BJIEvents.addListener(BJIEvents.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJICache.CACHES.PLAYERS then
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
             updatePermaGhosts()
         end
     end))
-end
-local function onUnload()
-    listeners:forEach(BJIEvents.removeListener)
-end
 
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
-M.onVehicleDeleted = onVehicleDeleted
-
-M.renderTick = renderTick
-M.slowTick = slowTick
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDeleted)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
 
 M.onLoad = onLoad
-M.onUnload = onUnload
+M.checkAIVehicles = checkAIVehicles
+M.renderTick = renderTick
 
-RegisterBJIManager(M)
 return M

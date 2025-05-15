@@ -1,5 +1,7 @@
+---@class BJIManagerCache : BJIManager
 local M = {
-    _name = "BJICache",
+    _name = "Cache",
+
     CACHES = {
         -- default
         LANG = "lang",
@@ -25,7 +27,6 @@ local M = {
         DERBY = "derby",
         TAG_DUO = "tagduo",
         -- admin
-        DATABASE_PLAYERS = "databasePlayers",
         DATABASE_VEHICLES = "databaseVehicles",
         -- owner
         CORE = "core",
@@ -40,27 +41,12 @@ local M = {
     _states = {},
     _firstLoaded = {},
     _firstInit = false, -- true if all base caches are ready at least once
-}
-M.BASE_CACHES = {
-    M.CACHES.USER,
-    M.CACHES.GROUPS,
-    M.CACHES.PERMISSIONS,
-    M.CACHES.LANG
-}
-M.CACHE_PERMISSIONS = {
-    [M.CACHES.DELIVERIES] = BJIPerm.PERMISSIONS.START_PLAYER_SCENARIO,
 
-    [M.CACHES.DATABASE_PLAYERS] = BJIPerm.PERMISSIONS.DATABASE_PLAYERS,
-
-    [M.CACHES.CORE] = BJIPerm.PERMISSIONS.SET_CORE,
-    [M.CACHES.MAPS] = BJIPerm.PERMISSIONS.VOTE_MAP,
+    ---@type table<string, tablelib<function>>
+    CACHE_HANDLERS = {},
 }
-for _, cacheType in pairs(M.CACHES) do
-    M._states[cacheType] = M.CACHE_STATES.EMPTY
-end
 
----@type table<string, tablelib<function>>
-M.CACHE_HANDLERS = {}
+
 
 local function addRxHandler(cacheType, callback)
     if not Table(M.CACHES):includes(cacheType) then
@@ -101,7 +87,7 @@ end
 local function _tryRequestCaches(cachesToRequest)
     ---@type tablelib<string>
     local finalCaches = cachesToRequest:filter(function(cacheType)
-        return not M.CACHE_PERMISSIONS[cacheType] or BJIPerm.hasPermission(M.CACHE_PERMISSIONS[cacheType])
+        return not M.CACHE_PERMISSIONS[cacheType] or BJI.Managers.Perm.hasPermission(M.CACHE_PERMISSIONS[cacheType])
     end)
 
     if finalCaches:length() > 0 then
@@ -109,7 +95,7 @@ local function _tryRequestCaches(cachesToRequest)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
         end)
         LogDebug(string.var("Requesting caches : {1}", { finalCaches:join(", ") }), M._name)
-        BJITx.cache.require(finalCaches)
+        BJI.Tx.cache.require(finalCaches)
     end
 end
 
@@ -122,7 +108,7 @@ end
 local function handleRx(cacheType, cacheData, cacheHash)
     LogDebug(string.var("Received cache {1}", { cacheType }), M._name)
 
-    BJIEvents.trigger(BJIEvents.EVENTS.CACHE_LOADED, {
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CACHE_LOADED, {
         cache = cacheType,
         hash = cacheHash,
     })
@@ -144,11 +130,9 @@ end
 
 ---@param ctxt SlowTickContext
 local function slowTick(ctxt)
-    if not BJICONNECTED then
+    if not BJI.CLIENT_READY then
         return
     end
-
-    -- Table:addAll doesn't work here for a mystical reason Ô_Ô
 
     local cachesToRequest = Table()
     if ctxt.cachesHashes then
@@ -156,22 +140,12 @@ local function slowTick(ctxt)
         cachesToRequest:addAll(Table(ctxt.cachesHashes):filter(function(hash, cacheType)
             return M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash
         end):keys())
-        --[[Table(ctxt.cachesHashes):forEach(function(hash, cacheType)
-            if M.isCacheReady(cacheType) and M._hashes[cacheType] ~= hash then
-                cachesToRequest:insert(cacheType)
-            end
-        end)]]
     end
 
     -- base caches
     cachesToRequest:addAll(Table(M.BASE_CACHES):filter(function(cacheType)
         return M._states[cacheType] == M.CACHE_STATES.EMPTY
     end))
-    --[[Table(M.BASE_CACHES):forEach(function(cacheType)
-        if M._states[cacheType] == M.CACHE_STATES.EMPTY then
-            cachesToRequest:insert(cacheType)
-        end
-    end)]]
 
     if M.areBaseCachesFirstLoaded() then
         -- post base caches load, other caches
@@ -179,12 +153,6 @@ local function slowTick(ctxt)
             return not table.includes(M.BASE_CACHES, cacheType) and
                 M._states[cacheType] == M.CACHE_STATES.EMPTY
         end):values())
-        --[[Table(M.CACHES):forEach(function(cacheType)
-            if not table.includes(M.BASE_CACHES, cacheType) and
-                M._states[cacheType] == M.CACHE_STATES.EMPTY then
-                cachesToRequest:insert(cacheType)
-            end
-        end)]]
     end
 
     _tryRequestCaches(cachesToRequest)
@@ -197,7 +165,24 @@ M.areBaseCachesFirstLoaded = areBaseCachesFirstLoaded
 M.invalidate = invalidate
 M.handleRx = handleRx
 
-M.slowTick = slowTick
+M.onLoad = function()
+    M.BASE_CACHES = {
+        M.CACHES.USER,
+        M.CACHES.GROUPS,
+        M.CACHES.PERMISSIONS,
+        M.CACHES.LANG
+    }
+    M.CACHE_PERMISSIONS = {
+        [M.CACHES.DELIVERIES] = BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO,
 
-RegisterBJIManager(M)
+        [M.CACHES.CORE] = BJI.Managers.Perm.PERMISSIONS.SET_CORE,
+        [M.CACHES.MAPS] = BJI.Managers.Perm.PERMISSIONS.VOTE_MAP,
+    }
+    for _, cacheType in pairs(M.CACHES) do
+        M._states[cacheType] = M.CACHE_STATES.EMPTY
+    end
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
+
 return M

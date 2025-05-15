@@ -1,5 +1,7 @@
+---@class BJIManagerPopup : BJIManager
 local M = {
-    _name = "BJIPopup",
+    _name = "Popup",
+
     callbacks = {},
 }
 
@@ -51,7 +53,7 @@ local function createModal(text, buttons)
     local btns = {}
     for i, btn in ipairs(buttons) do
         local callbackName = createCallback(btn.onClick)
-        local cmd = string.var("BJIPopup.callbacks.{1}()", { callbackName })
+        local cmd = string.var("BJI.Managers.Popup.callbacks.{1}()", { callbackName })
         table.insert(btns, {
             action = tostring(i), -- mandatory
             text = btn.label,
@@ -74,5 +76,4 @@ end
 M.createModal = createModal
 M.closeModal = closeModal
 
-RegisterBJIManager(M)
 return M

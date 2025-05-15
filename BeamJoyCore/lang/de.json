@@ -17,7 +17,8 @@
       "enabled": "Ermoglicht",
       "disabled": "Deaktiviert",
       "allPlayers": "SERVER",
-      "empty": "Leer"
+      "empty": "Leer",
+      "startMessage": "Gib \"help\" ein, um die Befehlsliste zu sehen"
     },
     "messages": {
       "missing": "Fehler beim Finden der Nachricht {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} beendete {raceName} in {time}"
     },
     "hunter": {
-      "invalidHunted": "Kein Flüchtling oder der Flüchtling hat kein Fahrzeug",
+      "invalidHunted": "Kein Flüchtiger",
       "huntedWinner": "Der Flüchtling hat gewonnen!",
       "huntersWinners": "Jäger haben gewonnen!",
       "draw": "Ziehen"
@@ -299,27 +300,27 @@
       "selfTrailer": "Ihr Anhänger"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Meine Einstellungen",
-      "BJIEvents": "Veranstaltungen",
-      "BJIRacesLeaderboard": "Rennen-Rangliste",
-      "BJIRaceSettings": "Renneinstellungen",
-      "BJIRace": "Wettrennen",
-      "BJIDeliveryMulti": "Lieferung zusammen",
-      "BJIVehicleSelector": "Fahrzeugauswahl",
-      "BJIStation": "Station",
-      "BJIBusMissionPreparation": "Vorbereitung der Busmission",
-      "BJIScenarioEditor": "Szenario-Editor",
-      "BJIFreeroamSettings": "Freeroam-Einstellungen",
-      "BJIEnvironment": "Umgebungseditor",
-      "BJIServer": "Servereinstellungen",
-      "BJISpeed": "Geschwindigkeitsspiel",
-      "BJIDatabase": "Datenbank",
-      "BJIHunterSettings": "Hunter-Spieleinstellungen",
-      "BJIHunter": "Jägerspiel",
-      "BJITheme": "Theme-Editor",
-      "BJIDerby": "Zerstörungsderby",
-      "BJIVehicleSelectorPreview": "Fahrzeugvorschau"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Meine Einstellungen",
+      "Events": "Veranstaltungen",
+      "RacesLeaderboard": "Rennen-Rangliste",
+      "RaceSettings": "Renneinstellungen",
+      "Race": "Wettrennen",
+      "DeliveryMulti": "Lieferung zusammen",
+      "VehicleSelector": "Fahrzeugauswahl",
+      "Station": "Station",
+      "BusMissionPreparation": "Vorbereitung der Busmission",
+      "ScenarioEditor": "Szenario-Editor",
+      "FreeroamSettings": "Freeroam-Einstellungen",
+      "Environment": "Umgebungseditor",
+      "Server": "Servereinstellungen",
+      "Speed": "Geschwindigkeitsspiel",
+      "Database": "Datenbank",
+      "HunterSettings": "Hunter-Spieleinstellungen",
+      "Hunter": "Jägerspiel",
+      "Theme": "Theme-Editor",
+      "Derby": "Zerstörungsderby",
+      "VehicleSelectorPreview": "Fahrzeugvorschau"
     },
     "menu": {
       "me": {
@@ -733,6 +734,7 @@
         "server": {
           "title": "Servereinstellungen",
           "lang": "Sprache der Serverkonsole",
+          "allowMods": "Spieler-Mods erlauben",
           "driftBigBroadcast": "Übertragen Sie große Drifts",
           "broadcasts": {
             "title": "Sendungen",
@@ -894,7 +896,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Abklingzeit zurücksetzen",
+      "resetDelayTooltip": "Dauer in Sekunden, bevor ein Spieler zurücksetzen kann",
       "teleportDelay": "Abklingzeit der Teleportation",
+      "teleportDelayTooltip": "Dauer in Sekunden, bevor ein Spieler zu einem anderen teleportieren kann",
       "vehicleSpawning": "Globales Fahrzeug-Laichen",
       "quickTravel": "Schnelle Reise",
       "nametags": "Namensschilder der Spieler",
@@ -905,14 +909,16 @@
       "emergencyRefuelPercentTooltip": "Prozent des Tanks, der nach dem Prozess betankt wird",
       "driftGood": "Mindestpunktzahl für gute Drifts",
       "driftBig": "Mindestpunktzahl für große Drifts",
-      "allowUnicycle": "Erlauben Sie das Gehen"
+      "allowUnicycle": "Erlauben Sie das Gehen",
+      "cancelModal": "Du wirst deine ungespeicherten Änderungen verlieren. Bist du sicher, dass du das Fenster schließen möchtest?"
     },
     "races": {
       "races": "Rennen",
       "names": {},
       "tools": {
         "title": "Werkzeuge",
-        "rotation": "Drehung"
+        "rotation": "Drehung",
+        "reverse": "Schritte umkehren"
       },
       "edit": {
         "title": "Rennredakteur",
@@ -944,7 +950,6 @@
         "addBranch": "Zweig hier hinzufügen",
         "addStep": "Schritt hier hinzufügen",
         "errors": {
-          "invalidName": "Ungültiger Name",
           "noChild": "Kein Kind"
         },
         "hasRecordConfirm": "Für dieses Rennen wurde ein Rekord aufgestellt und durch Speichern wird dieser gelöscht. ",
@@ -1192,7 +1197,11 @@
       "defaultVeh": "Mein Standardfahrzeug",
       "noVeh": "Kein Fahrzeug gefunden",
       "paints": "Farben",
-      "applyPaint": "Farbe {position}"
+      "applyPaint": "Farbe {position}",
+      "cars": "Autos",
+      "trucks": "Lastwagen",
+      "trailers": "Anhänger",
+      "props": "Requisiten"
     },
     "database": {
       "players": {
@@ -1234,6 +1243,8 @@
         "hunterConfigsTooltip": "Fahrzeugkonfigurationen, aus denen Jäger wählen können (falls keine vorhanden sind, kann jede beliebige Spielkonfiguration ausgewählt werden)",
         "toastConfigAlreadySaved": "Konfiguration bereits gespeichert",
         "specificConfig": "Spezifisches {model}",
+        "lastWaypointGPS": "Letzter Wegpunkt enthüllen",
+        "lastWaypointGPSTooltip": "Wenn nur noch ein Wegpunkt übrig ist, können die Jäger sehen, wo sich der Flüchtige befindet (Namensschild & GPS)",
         "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um den Jägermodus zu starten"
       },
       "play": {
@@ -1243,9 +1254,9 @@
         "preparationTimeoutIn": "Zeitüberschreitung bei der Vorbereitung in {delay}",
         "preparationTimeoutAboutToEnd": "Das Vorbereitungs-Timeout ist bald zu Ende",
         "startIn": "Sie beginnen in {delay}",
-        "aboutToStart": "Sie fangen gleich an",
         "huntedLooseIn": "Sie werden in {delay} verlieren",
         "huntedAboutToLoose": "Du bist kurz davor zu verlieren",
+        "hunterResumeIn": "Du wirst in {delay} fortsetzen",
         "configChoose": "Wählen Sie Ihr Fahrzeug",
         "readyMark": "BEREIT",
         "notReadyMark": "NICHT BEREIT",

@@ -2,8 +2,9 @@
 ---@field restrictions string[] list of restrictions
 ---@field state boolean should be restricted
 
+---@class BJIManagerRestrictions : BJIManager
 local M = {
-    _name = "BJIRestrictions",
+    _name = "Restrictions",
 
     STATE = {
         RESTRICTED = true,
@@ -47,6 +48,7 @@ local M = {
         VEHICLE_DEBUG = { "vehicledebugMenu" },
         AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
         VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
+        CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7", "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down", "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right", "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next", "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs", "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
         FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
         WALKING = { "toggleWalkingMode" },
         BIG_MAP = { "toggleBigMap" },
@@ -55,11 +57,6 @@ local M = {
     _tag = "BeamjoyRestrictions",
     _restrictions = Table({ "pause", "toggleTrackBuilder" }),
 }
-
-local function onLoad()
-    extensions.core_input_actionFilter.setGroup(M._tag, {})
-    extensions.core_input_actionFilter.addAction(0, M._tag, false)
-end
 
 --- Applies reset restrictions and removes not specified
 ---@param resets string[]
@@ -113,11 +110,12 @@ local function getState(restrictions)
 end
 
 local function slowTick()
-    update(BJIScenario.getRestrictions())
+    update(BJI.Managers.Scenario.getRestrictions())
 end
 
 local previous = Table()
-local function renderTick()
+---@param ctxt TickContext
+local function renderTick(ctxt)
     if not previous:compare(M._restrictions) then
         M._restrictions:sort()
         extensions.core_input_actionFilter.addAction(0, M._tag, false)
@@ -127,7 +125,12 @@ local function renderTick()
     end
 end
 
-M.onLoad = onLoad
+local function onLoad()
+    extensions.core_input_actionFilter.setGroup(M._tag, {})
+    extensions.core_input_actionFilter.addAction(0, M._tag, false)
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
 
 M.updateResets = updateResets
 M.updateCEN = updateCEN
@@ -135,8 +138,7 @@ M.update = update
 M.getCurrentResets = getCurrentResets
 M.getState = getState
 
-M.slowTick = slowTick
+M.onLoad = onLoad
 M.renderTick = renderTick
 
-RegisterBJIManager(M)
 return M

@@ -122,3 +122,70 @@ math.angleFromQuatRotation = math.angleFromQuatRotation or function(rot)
     local angle = math.atan2(sin_yaw, cos_yaw) + math.pi
     return math.scale(angle, 0, math.pi * 2, math.pi * 2, 0)
 end
+
+---@param pos1 vec3
+---@param pos2 vec3
+---@return number|nil
+math.horizontalDistance = math.horizontalDistance or function(pos1, pos2)
+    local _, _, err = pcall(vec3, pos1)
+    local _, _, err2 = pcall(vec3, pos2)
+    if err or err2 then
+        LogError("invalid position", "GetHorizontalDistance")
+        return 0
+    end
+
+    local p1 = vec3(pos1.x, pos1.y, 0)
+    local p2 = vec3(pos2.x, pos2.y, 0)
+    return p1:distance(p2)
+end
+
+---@param obj table
+---@return BJIPositionRotation
+math.tryParsePosRot = math.tryParsePosRot or function(obj)
+    if type(obj) ~= "table" then
+        return obj
+    end
+
+    if table.includes({ "table", "userdata" }, type(obj.pos)) and
+        table.every({ "x", "y", "z" }, function(k) return obj.pos[k] ~= nil end) then
+        obj.pos = vec3(obj.pos.x, obj.pos.y, obj.pos.z)
+    end
+    if table.includes({ "table", "userdata" }, type(obj.rot)) and
+        table.every({ "x", "y", "z", "w" }, function(k) return obj.rot[k] ~= nil end) then
+        obj.rot = quat(obj.rot.x, obj.rot.y, obj.rot.z, obj.rot.w)
+    end
+    return obj
+end
+
+---@param posRot BJIPositionRotation
+---@return BJIPositionRotation
+math.roundPositionRotation = math.roundPositionRotation or function(posRot)
+    if posRot and posRot.pos then
+        posRot.pos.x = math.round(posRot.pos.x, 3)
+        posRot.pos.y = math.round(posRot.pos.y, 3)
+        posRot.pos.z = math.round(posRot.pos.z, 3)
+    end
+    if posRot and posRot.rot then
+        posRot.rot.x = math.round(posRot.rot.x, 4)
+        posRot.rot.y = math.round(posRot.rot.y, 4)
+        posRot.rot.z = math.round(posRot.rot.z, 4)
+        posRot.rot.w = math.round(posRot.rot.w, 4)
+    end
+    return posRot
+end
+
+---@class Timer
+---@field get fun(self): number
+---@field reset fun(self)
+math.timer = math.timer or function()
+    return ({
+        _timer = hptimer(),
+        get = function(self)
+            local timeStr = tostring(self._timer):gsub("s", "")
+            return math.floor(tonumber(timeStr) or 0)
+        end,
+        reset = function(self)
+            self._timer:stopAndReset()
+        end
+    })
+end

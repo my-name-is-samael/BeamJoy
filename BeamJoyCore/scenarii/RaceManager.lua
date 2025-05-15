@@ -42,6 +42,7 @@ local M = {
     },
 
     race = {
+        ---@type Timer
         raceTimer = nil,
         startTime = nil,
         raceData = nil,
@@ -127,7 +128,7 @@ local function startRace()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
 
     BJCAsync.programTask(function()
-        M.race.raceTimer = TimerCreate()
+        M.race.raceTimer = math.timer()
         for _, playerID in ipairs(M.grid.participants) do
             BJCPlayers.Players[playerID].stats.race = BJCPlayers.Players[playerID].stats.race + 1
             BJCPlayers.reward(playerID, BJCConfig.Data.Reputation.RaceParticipationReward)

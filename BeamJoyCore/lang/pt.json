@@ -17,7 +17,8 @@
       "enabled": "Habilitado",
       "disabled": "Desabilitado",
       "allPlayers": "SERVIDOR",
-      "empty": "Vazio"
+      "empty": "Vazio",
+      "startMessage": "Digite \"help\" para a lista de comandos"
     },
     "messages": {
       "missing": "Erro ao localizar mensagem {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} terminou {raceName} em {time}"
     },
     "hunter": {
-      "invalidHunted": "Nenhum fugitivo ou o fugitivo não tem veículo",
+      "invalidHunted": "Sem fugitivo",
       "huntedWinner": "O fugitivo venceu!",
       "huntersWinners": "Caçadores venceram!",
       "draw": "Empate"
@@ -299,27 +300,27 @@
       "selfTrailer": "Seu trailer"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Minhas configurações",
-      "BJIEvents": "Eventos",
-      "BJIRacesLeaderboard": "Tabela de classificação das corridas",
-      "BJIRaceSettings": "Configurações de corrida",
-      "BJIRace": "Corrida",
-      "BJIDeliveryMulti": "Entrega Juntos",
-      "BJIVehicleSelector": "Seletor de veículos",
-      "BJIStation": "Estação",
-      "BJIBusMissionPreparation": "Preparação para missão de ônibus",
-      "BJIScenarioEditor": "Editor de cenário",
-      "BJIFreeroamSettings": "Configurações de modo livre",
-      "BJIEnvironment": "Editor de ambiente",
-      "BJIServer": "Configurações do servidor",
-      "BJISpeed": "Jogo de velocidade",
-      "BJIDatabase": "Banco de dados",
-      "BJIHunterSettings": "Configurações do jogo de caçador",
-      "BJIHunter": "Jogo de Caçador",
-      "BJITheme": "Editor de Tema",
-      "BJIDerby": "Corrida de Destruição",
-      "BJIVehicleSelectorPreview": "Pré-visualização do veículo"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Minhas configurações",
+      "Events": "Eventos",
+      "RacesLeaderboard": "Tabela de classificação das corridas",
+      "RaceSettings": "Configurações de corrida",
+      "Race": "Corrida",
+      "DeliveryMulti": "Entrega Juntos",
+      "VehicleSelector": "Seletor de veículos",
+      "Station": "Estação",
+      "BusMissionPreparation": "Preparação para missão de ônibus",
+      "ScenarioEditor": "Editor de cenário",
+      "FreeroamSettings": "Configurações de modo livre",
+      "Environment": "Editor de ambiente",
+      "Server": "Configurações do servidor",
+      "Speed": "Jogo de velocidade",
+      "Database": "Banco de dados",
+      "HunterSettings": "Configurações do jogo de caçador",
+      "Hunter": "Jogo de Caçador",
+      "Theme": "Editor de Tema",
+      "Derby": "Corrida de Destruição",
+      "VehicleSelectorPreview": "Pré-visualização do veículo"
     },
     "menu": {
       "me": {
@@ -733,6 +734,7 @@
         "server": {
           "title": "Configurações do servidor",
           "lang": "Idioma do console do servidor",
+          "allowMods": "Permitir mods de jogadores",
           "driftBigBroadcast": "Transmitir grandes desvios",
           "broadcasts": {
             "title": "Transmissões",
@@ -894,7 +896,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Redefinir o tempo de espera",
+      "resetDelayTooltip": "Duração em segundos antes que um jogador possa reiniciar",
       "teleportDelay": "Tempo de espera de teletransporte",
+      "teleportDelayTooltip": "Duração em segundos antes que um jogador possa teletransportar-se para outro",
       "vehicleSpawning": "Desova global de veículos",
       "quickTravel": "Viagem rápida",
       "nametags": "Crachás dos jogadores",
@@ -905,14 +909,16 @@
       "emergencyRefuelPercentTooltip": "Percentual do tanque reabastecido após o processo",
       "driftGood": "Boa pontuação mínima de drifts",
       "driftBig": "Pontuação mínima de grandes desvios",
-      "allowUnicycle": "Permitir caminhar"
+      "allowUnicycle": "Permitir caminhar",
+      "cancelModal": "Você perderá as alterações não salvas. Tem certeza de que deseja fechar a janela?"
     },
     "races": {
       "races": "Corridas",
       "names": {},
       "tools": {
         "title": "Ferramentas",
-        "rotation": "Rotação"
+        "rotation": "Rotação",
+        "reverse": "Inverter passos"
       },
       "edit": {
         "title": "Editor de corrida",
@@ -944,7 +950,6 @@
         "addBranch": "Adicione filial aqui",
         "addStep": "Adicione a etapa aqui",
         "errors": {
-          "invalidName": "Nome inválido",
           "noChild": "Nenhuma criança"
         },
         "hasRecordConfirm": "Um recorde foi estabelecido nesta corrida e salvá-lo irá excluí-lo. ",
@@ -1192,7 +1197,11 @@
       "defaultVeh": "Meu veículo padrão",
       "noVeh": "Nenhum veículo encontrado",
       "paints": "Tintas",
-      "applyPaint": "Pintar {position}"
+      "applyPaint": "Pintar {position}",
+      "cars": "Carros",
+      "trucks": "Caminhões",
+      "trailers": "Reboques",
+      "props": "Objetos"
     },
     "database": {
       "players": {
@@ -1234,6 +1243,8 @@
         "hunterConfigsTooltip": "Os caçadores de configurações de veículos podem escolher (se não houver nenhuma, qualquer configuração de jogo pode ser escolhida)",
         "toastConfigAlreadySaved": "Configuração já salva",
         "specificConfig": "{model} específico",
+        "lastWaypointGPS": "Revelar último ponto de passagem",
+        "lastWaypointGPSTooltip": "Quando restar apenas um ponto de passagem, os caçadores podem ver onde está o fugitivo (Nome e GPS)",
         "notEnoughPlayers": "Não há jogadores suficientes para iniciar o modo caçador"
       },
       "play": {
@@ -1243,9 +1254,9 @@
         "preparationTimeoutIn": "Tempo limite de preparação em {delay}",
         "preparationTimeoutAboutToEnd": "O tempo limite de preparação está prestes a terminar",
         "startIn": "Você começará em {delay}",
-        "aboutToStart": "Você está prestes a começar",
         "huntedLooseIn": "Você perderá em {delay}",
         "huntedAboutToLoose": "Você está prestes a perder",
+        "hunterResumeIn": "Você retomará em {delay}",
         "configChoose": "Escolha seu veículo",
         "readyMark": "PREPARAR",
         "notReadyMark": "NÃO ESTÁ PRONTO",

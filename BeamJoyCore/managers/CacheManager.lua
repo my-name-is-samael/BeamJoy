@@ -23,7 +23,6 @@ local M = {
         DERBY = "derby",
         TAG_DUO = "tagduo",
         -- admin
-        DATABASE_PLAYERS = "databasePlayers",
         DATABASE_VEHICLES = "databaseVehicles",
         -- owner
         CORE = "core",
@@ -49,7 +48,6 @@ local function getTargetMap()
         [M.CACHES.STATIONS] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.getCacheStations },
         [M.CACHES.BUS_LINES] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.getCacheBusLines },
         [M.CACHES.SPEED] = { permission = nil, fn = BJCScenario.SpeedManager.getCache },
-        [M.CACHES.DATABASE_PLAYERS] = { permission = BJCPerm.PERMISSIONS.DATABASE_PLAYERS, fn = BJCPlayers.getCacheDatabasePlayers },
         [M.CACHES.DATABASE_VEHICLES] = { permission = nil, fn = BJCVehicles.getCache },
         [M.CACHES.CORE] = { permission = BJCPerm.PERMISSIONS.SET_CORE, fn = BJCCore.getCache },
         [M.CACHES.MAPS] = { permission = BJCPerm.PERMISSIONS.VOTE_MAP, fn = BJCMaps.getCacheMaps },
@@ -100,7 +98,6 @@ local function slowTick()
             [BJCCache.CACHES.STATIONS] = BJCScenario.getCacheStationsHash(),
             [BJCCache.CACHES.BUS_LINES] = BJCScenario.getCacheBusLinesHash(),
             [BJCCache.CACHES.SPEED] = BJCScenario.SpeedManager.getCacheHash(),
-            [BJCCache.CACHES.DATABASE_PLAYERS] = BJCPlayers.getCacheDatabasePlayersHash(),
             [BJCCache.CACHES.DATABASE_VEHICLES] = BJCVehicles.getCacheHash(),
             [BJCCache.CACHES.CORE] = BJCCore.getCacheHash(),
             [BJCCache.CACHES.MAPS] = BJCMaps.getCacheMapsHash(),

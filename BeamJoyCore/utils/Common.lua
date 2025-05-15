@@ -153,16 +153,6 @@ end
 
 -- DISTANCE / POSITIONS
 
-function GetHorizontalDistance(pos1, pos2)
-    if not pos1.x or not pos1.y or
-        not pos2.x or not pos2.y then
-        LogError("invalid position")
-        return 0
-    end
-
-    return math.sqrt((pos1.x - pos2.x) ^ 2 + (pos1.y - pos2.y) ^ 2)
-end
-
 -- FORMAT
 function PrettyDelay(secs)
     local mins, hours, days, months = 0, 0, 0, 0
@@ -305,20 +295,6 @@ function RaceDelay(ms)
             string.normalizeInt(ms, 3)
         })
     end
-end
-
----@return Timer
-function TimerCreate()
-    return {
-        _timer = MP.CreateTimer(),
-        get = function(self)
-            local secTime = self._timer:GetCurrent()
-            return math.round(secTime * 1000)
-        end,
-        reset = function(self)
-            self._timer:Start()
-        end
-    }
 end
 
 ---@param delaySec integer 2-60

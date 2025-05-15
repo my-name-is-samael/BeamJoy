@@ -1,4 +1,5 @@
-local M = {
+---@class BJIScenarioDeliveryMulti : BJIScenario
+local S = {
     -- server data
     participants = {},
     ---@type {pos: vec3, rot: vec3, radius: number}?
@@ -9,111 +10,92 @@ local M = {
     nextResetGarage = false,    -- exempt reset when repairing at a garage
     tanksSaved = nil,
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
-
-    ui = {
-        participants = {},
-        playerLabelWidth = 0,
-    }
 }
-
-local function updateUI()
-    M.ui.playerLabelWidth = 0
-    for playerID in pairs(M.participants) do
-        local player = BJIContext.Players[playerID]
-        M.ui.participants[playerID] = player.playerName
-
-        local w = GetColumnTextWidth(M.ui.participants[playerID])
-        if w > M.ui.playerLabelWidth then
-            M.ui.playerLabelWidth = w
-        end
-    end
-end
 
 local function stop()
     -- server data
-    M.participants = {}
-    M.target = nil
+    S.participants = {}
+    S.target = nil
 
-    M.baseDistance = nil
-    M.distance = nil
-    M.tanksSaved = nil
-    M.nextResetGarage = false
+    S.baseDistance = nil
+    S.distance = nil
+    S.tanksSaved = nil
+    S.nextResetGarage = false
 
-    BJIMessage.flash("BJIDeliveryMultiStop", BJILang.get("packageDelivery.flashEnd"), 3, false)
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    BJI.Managers.Message.flash("BJIDeliveryMultiStop", BJI.Managers.Lang.get("packageDelivery.flashEnd"), 3, false)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
 end
 
 local function getRadiusMultiplier()
-    return math.clamp(table.length(M.participants), 1, 4)
+    return math.clamp(table.length(S.participants), 1, 4)
 end
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
-    return BJIScenario.isFreeroam() and
+    return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJIVeh.isUnicycle(ctxt.veh:getID()) and
-        BJIContext.Scenario.Data.Deliveries and
-        #BJIContext.Scenario.Data.Deliveries > 1
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) and
+        BJI.Managers.Context.Scenario.Data.Deliveries and
+        #BJI.Managers.Context.Scenario.Data.Deliveries > 1
 end
 
 -- load hook
 local function onLoad(ctxt)
-    BJIVehSelector.tryClose()
-    BJIRestrictions.update({
+    BJI.Windows.VehSelector.tryClose()
+    BJI.Managers.Restrictions.update({
         {
             restrictions = Table({
-                BJIRestrictions.RESET.TELEPORT,
-                BJIRestrictions.RESET.HEAVY_RELOAD,
-                BJIRestrictions.OTHER.VEHICLE_SWITCH,
-                BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-                BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                BJIRestrictions.OTHER.VEHICLE_DEBUG,
-                BJIRestrictions.OTHER.WALKING,
+                BJI.Managers.Restrictions.RESET.TELEPORT,
+                BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+                BJI.Managers.Restrictions.OTHER.WALKING,
             }):flat(),
-            state = BJIRestrictions.STATE.RESTRICTED,
+            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         },
         {
-            restrictions = BJIRestrictions.OTHER.AI_CONTROL,
-            state = BJIPerm.canSpawnAI() and
-                BJIRestrictions.STATE.ALLOWED or
-                BJIRestrictions.STATE.RESTRICTED,
+            restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            state = BJI.Managers.Perm.canSpawnAI() and
+                BJI.Managers.Restrictions.STATE.ALLOWED,
         }
     })
-    BJIBigmap.toggleQuickTravel(false)
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
+    BJI.Managers.Bigmap.toggleQuickTravel(false)
+    BJI.Managers.GPS.reset()
+    BJI.Managers.RaceWaypoint.resetAll()
 end
 
 -- player vehicle spawn hook
 local function onVehicleSpawned(gameVehID)
-    --[[if BJIVeh.isVehicleOwn(gameVehID) then
-        BJITx.scenario.DeliveryMultiLeave()
+    --[[if BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        BJI.Tx.scenario.DeliveryMultiLeave()
     end]]
 end
 
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJIContext.User.currentVehicle then
+    if gameVehID ~= BJI.Managers.Context.User.currentVehicle then
         return
-    elseif M.nextResetGarage then
-        if M.tanksSaved then
-            for tankName, tank in pairs(M.tanksSaved) do
+    elseif S.nextResetGarage then
+        if S.tanksSaved then
+            for tankName, tank in pairs(S.tanksSaved) do
                 local fuel = tank.currentEnergy
-                BJIVeh.setFuel(tankName, fuel)
+                BJI.Managers.Veh.setFuel(tankName, fuel)
             end
-            M.tanksSaved = nil
+            S.tanksSaved = nil
         end
-        M.nextResetGarage = false
+        S.nextResetGarage = false
         return
     end
 
-    BJITx.scenario.DeliveryMultiResetted()
+    BJI.Tx.scenario.DeliveryMultiResetted()
 end
 
 -- player vehicle destroy hook
 local function onVehicleDestroyed(gameVehID)
-    if BJIVeh.isVehicleOwn(gameVehID) then
-        BJITx.scenario.DeliveryMultiLeave()
+    if BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        BJI.Tx.scenario.DeliveryMultiLeave()
     end
 end
 
@@ -129,74 +111,74 @@ end
 
 -- player garage repair hook
 local function onGarageRepair()
-    M.nextResetGarage = true
+    S.nextResetGarage = true
     local veh
-    for _, v in pairs(BJIContext.User.vehicles) do
-        if v.gameVehID == BJIContext.User.currentVehicle then
+    for _, v in pairs(BJI.Managers.Context.User.vehicles) do
+        if v.gameVehID == BJI.Managers.Context.User.currentVehicle then
             veh = v
             break
         end
     end
     if veh then
-        M.tanksSaved = table.clone(veh.tanks)
+        S.tanksSaved = table.clone(veh.tanks)
     end
 end
 
 local function onTargetReached(ctxt)
     if not ctxt.isOwner then
-        BJITx.scenario.DeliveryMultiLeave()
+        BJI.Tx.scenario.DeliveryMultiLeave()
         return
     end
 
-    M.baseDistance = nil
-    M.distance = nil
-    BJIRaceWaypoint.resetAll()
-    BJITx.scenario.DeliveryMultiReached()
+    S.baseDistance = nil
+    S.distance = nil
+    BJI.Managers.RaceWaypoint.resetAll()
+    BJI.Tx.scenario.DeliveryMultiReached()
 end
 
 -- each second tick hook
 local function slowTick(ctxt)
-    if not ctxt.isOwner or not M.participants[BJIContext.User.playerID] then
-        BJITx.scenario.DeliveryMultiLeave()
+    if not ctxt.isOwner or not S.participants[BJI.Managers.Context.User.playerID] then
+        BJI.Tx.scenario.DeliveryMultiLeave()
         return
     end
 
-    if M.participants[BJIContext.User.playerID].reached then
-        BJIMessage.realtimeDisplay("deliverymulti", BJILang.get("deliveryTogether.waitingForOtherPlayers"))
-    elseif not M.target then
-        BJIMessage.realtimeDisplay("deliverymulti", BJILang.get("deliveryTogether.waitingForTarget"))
+    if S.participants[BJI.Managers.Context.User.playerID].reached then
+        BJI.Managers.Message.realtimeDisplay("deliverymulti", BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"))
+    elseif not S.target then
+        BJI.Managers.Message.realtimeDisplay("deliverymulti", BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
     else
-        BJIMessage.stopRealtimeDisplay()
-        M.distance = BJIGPS.getCurrentRouteLength() or 0
-        if not M.baseDistance or M.distance > M.baseDistance then
-            M.baseDistance = M.distance
+        BJI.Managers.Message.stopRealtimeDisplay()
+        S.distance = BJI.Managers.GPS.getCurrentRouteLength() or 0
+        if not S.baseDistance or S.distance > S.baseDistance then
+            S.baseDistance = S.distance
         end
 
-        if #BJIRaceWaypoint._targets == 0 then
-            BJIRaceWaypoint.addWaypoint({
+        if #BJI.Managers.RaceWaypoint._targets == 0 then
+            BJI.Managers.RaceWaypoint.addWaypoint({
                 name = "BJIDeliveryMultiTarget",
-                pos = M.target.pos,
-                radius = M.target.radius * getRadiusMultiplier(),
-                color = BJIRaceWaypoint.COLORS.BLUE
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                color = BJI.Managers.RaceWaypoint.COLORS.BLUE
             })
         end
 
-        local distance = ctxt.vehPosRot.pos:distance(M.target.pos)
-        if distance < M.target.radius * getRadiusMultiplier() then
-            if not M.checkTargetProcess then
-                BJIMessage.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false,
-                    BJILang.get("deliveryTogether.flashPackage"), nil,
+        local distance = ctxt.vehPosRot.pos:distance(S.target.pos)
+        if distance < S.target.radius * getRadiusMultiplier() then
+            if not S.checkTargetProcess then
+                BJI.Managers.Message.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false,
+                    BJI.Managers.Lang.get("deliveryTogether.flashPackage"), nil,
                     onTargetReached)
-                M.checkTargetProcess = true
+                S.checkTargetProcess = true
             end
         else
-            if M.checkTargetProcess then
-                BJIMessage.cancelFlash("BJIDeliveryMultiTarget")
-                M.checkTargetProcess = false
+            if S.checkTargetProcess then
+                BJI.Managers.Message.cancelFlash("BJIDeliveryMultiTarget")
+                S.checkTargetProcess = false
             end
-            if #BJIGPS.targets == 0 then
-                BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-                    M.target.radius * getRadiusMultiplier(), nil, nil, false)
+            if #BJI.Managers.GPS.targets == 0 then
+                BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
+                    S.target.radius * getRadiusMultiplier(), nil, nil, false)
             end
         end
     end
@@ -206,12 +188,12 @@ end
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    if BJIVote.Kick.canStartVote(player.playerID) then
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            label = BJILang.get("playersBlock.buttons.voteKick"),
+            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
-                BJIVote.Kick.start(player.playerID)
+                BJI.Managers.Votes.Kick.start(player.playerID)
             end
         })
     end
@@ -221,98 +203,97 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJIRestrictions.update({ {
+    BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJIRestrictions.RESET.TELEPORT,
-            BJIRestrictions.RESET.HEAVY_RELOAD,
-            BJIRestrictions.OTHER.AI_CONTROL,
-            BJIRestrictions.OTHER.VEHICLE_SWITCH,
-            BJIRestrictions.OTHER.VEHICLE_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJIRestrictions.OTHER.VEHICLE_DEBUG,
-            BJIRestrictions.OTHER.WALKING,
+            BJI.Managers.Restrictions.RESET.TELEPORT,
+            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
+            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
+            BJI.Managers.Restrictions.OTHER.WALKING,
         }):flat(),
-        state = BJIRestrictions.STATE.ALLOWED,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
-    BJIBigmap.toggleQuickTravel(true)
-    BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
-    BJIMessage.stopRealtimeDisplay()
-    BJIRaceWaypoint.resetAll()
+    BJI.Managers.Bigmap.toggleQuickTravel(true)
+    BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
+    BJI.Managers.Message.stopRealtimeDisplay()
+    BJI.Managers.RaceWaypoint.resetAll()
 end
 
 local function onTargetChange()
-    BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-        M.target.radius * getRadiusMultiplier(), nil, nil, false)
-    BJIMessage.flash("BJIDeliveryMultiNextTarget", BJILang.get("packageDelivery.flashStart"), 3, false)
-    BJIRaceWaypoint.resetAll()
-    BJIRaceWaypoint.addWaypoint({
+    BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
+        S.target.radius * getRadiusMultiplier(), nil, nil, false)
+    BJI.Managers.Message.flash("BJIDeliveryMultiNextTarget", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3, false)
+    BJI.Managers.RaceWaypoint.resetAll()
+    BJI.Managers.RaceWaypoint.addWaypoint({
         name = "BJIDeliveryMultiTarget",
-        pos = M.target.pos,
-        radius = M.target.radius * getRadiusMultiplier(),
-        color = BJIRaceWaypoint.COLORS.BLUE
+        pos = S.target.pos,
+        radius = S.target.radius * getRadiusMultiplier(),
+        color = BJI.Managers.RaceWaypoint.COLORS.BLUE
     })
 end
 
 local function rxData(data)
-    local wasParticipant = not not M.participants[BJIContext.User.playerID]
+    local wasParticipant = not not S.participants[BJI.Managers.Context.User.playerID]
     local previousRadius = getRadiusMultiplier()
-    M.participants = data.participants
-    local previousTarget = M.target and TryParsePosRot(M.target) or nil
-    M.target = TryParsePosRot(data.target)
+    S.participants = data.participants
+    local previousTarget = S.target and math.tryParsePosRot(S.target) or nil
+    S.target = math.tryParsePosRot(data.target)
 
-    updateUI()
-
-    if not wasParticipant and M.participants[BJIContext.User.playerID] and M.target then
-        BJIScenario.switchScenario(BJIScenario.TYPES.DELIVERY_MULTI)
-    elseif wasParticipant and (not M.participants[BJIContext.User.playerID] or not M.target) then
+    if not wasParticipant and S.participants[BJI.Managers.Context.User.playerID] and S.target then
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DELIVERY_MULTI)
+    elseif wasParticipant and (not S.participants[BJI.Managers.Context.User.playerID] or not S.target) then
         stop()
     end
 
-    if M.participants[BJIContext.User.playerID] and M.target then
-        if not previousTarget or previousTarget.pos:distance(M.target.pos) > 0 then
+    if S.participants[BJI.Managers.Context.User.playerID] and S.target then
+        if not previousTarget or previousTarget.pos:distance(S.target.pos) > 0 then
             onTargetChange()
         end
     end
 
     if previousRadius ~= getRadiusMultiplier() then
-        if BJIGPS.getByKey(BJIGPS.KEYS.DELIVERY_TARGET) then
-            BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
-            BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-                M.target.radius * getRadiusMultiplier(), nil, nil, false)
+        if BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET) then
+            BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
+            BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
+                S.target.radius * getRadiusMultiplier(), nil, nil, false)
         end
-        if #BJIRaceWaypoint._targets > 0 then
-            BJIRaceWaypoint.resetAll()
-            BJIRaceWaypoint.addWaypoint({
+        if #BJI.Managers.RaceWaypoint._targets > 0 then
+            BJI.Managers.RaceWaypoint.resetAll()
+            BJI.Managers.RaceWaypoint.addWaypoint({
                 name = "BJIDeliveryMultiTarget",
-                pos = M.target.pos,
-                radius = M.target.radius * getRadiusMultiplier(),
-                color = BJIRaceWaypoint.COLORS.BLUE
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                color = BJI.Managers.RaceWaypoint.COLORS.BLUE
             })
         end
     end
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleDestroyed = onVehicleDestroyed
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.onGarageRepair = onGarageRepair
+S.onVehicleSpawned = onVehicleSpawned
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleDestroyed = onVehicleDestroyed
+S.canRefuelAtStation = canRefuelAtStation
+S.canRepairAtGarage = canRepairAtGarage
+S.onGarageRepair = onGarageRepair
 
-M.canSpawnNewVehicle = FalseFn
-M.canReplaceVehicle = FalseFn
-M.canDeleteVehicle = FalseFn
-M.canDeleteOtherVehicles = FalseFn
+S.canSpawnNewVehicle = FalseFn
+S.canReplaceVehicle = FalseFn
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
 
-M.getPlayerListActions = getPlayerListActions
+S.getPlayerListActions = getPlayerListActions
 
-M.slowTick = slowTick
+S.slowTick = slowTick
 
-M.onUnload = onUnload
+S.onUnload = onUnload
 
-M.rxData = rxData
+S.rxData = rxData
 
-return M
+return S

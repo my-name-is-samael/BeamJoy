@@ -3,7 +3,7 @@ local M = {
         if BJCCore.Data.General.Debug then
             return 1
         end
-        return 3
+        return 2
     end,
     STATES = {
         PREPARATION = 1,
@@ -18,11 +18,14 @@ local M = {
     },
 
     state = nil,
-    participants = {},
+    -- keep track of players joined participant to have valid hunted everytime
+    joinOrder = Table(),
+    participants = Table(),
     preparationTimeout = nil,
     huntedConfig = nil,
     hunterConfigs = {},
     waypoints = 0,
+    lastWaypointGPS = false,
     huntedStartTime = nil,
     hunterStartTime = nil,
 }
@@ -30,11 +33,13 @@ local M = {
 local function stop()
     BJCAsync.removeTask("BJCHunterPreparation")
     M.state = nil
-    M.participants = {}
+    M.joinOrder = Table()
+    M.participants = Table()
     M.preparationTimeout = nil
     M.huntedConfig = nil
     M.hunterConfigs = {}
     M.waypoints = 0
+    M.lastWaypointGPS = false
     M.huntedStartTime = nil
     M.hunterStartTime = nil
 end
@@ -48,6 +53,7 @@ local function getCache()
         huntedConfig = M.huntedConfig,
         hunterConfigs = M.hunterConfigs,
         waypoints = M.waypoints,
+        lastWaypointGPS = M.lastWaypointGPS,
         huntedStartTime = M.huntedStartTime,
         hunterStartTime = M.hunterStartTime,
         huntersRespawnDelay = BJCConfig.Data.Hunter.HuntersRespawnDelay,
@@ -63,6 +69,7 @@ local function getCacheHash()
         M.huntedConfig,
         M.hunterConfigs,
         M.waypoints,
+        M.lastWaypointGPS,
         M.huntedStartTime,
         M.hunterStartTime,
         BJCConfig.Data.Hunter.HuntersRespawnDelay,
@@ -70,41 +77,17 @@ local function getCacheHash()
 end
 
 local function onPreparationTimeout()
-    -- remove no vehicle players from participants, and add vehIDs
-    for playerID, participant in pairs(M.participants) do
-        local p = BJCPlayers.Players[playerID]
-        if table.length(p.vehicles) == 0 then
-            M.participants[playerID] = nil
-        else
-            if not participant.gameVehID then
-                for _, v in pairs(p.vehicles) do
-                    participant.gameVehID = v.vid
-                    break
-                end
-            end
-            participant.ready = true
-        end
-    end
-
+    M.participants = M.participants:filter(function(p) return p.ready end)
     -- check players amount
-    if table.length(M.participants) < M.MINIMUM_PARTICIPANTS() then
+    if M.participants:length() < M.MINIMUM_PARTICIPANTS() then
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "rx.errors.insufficientPlayers")
         stop()
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
         return
     end
 
-    local hunted, firstID = false, nil
-    for playerID, p in pairs(M.participants) do
-        if not firstID then
-            firstID = playerID
-        end
-        if p.hunted then
-            hunted = true
-            break
-        end
-    end
-    if not hunted then
+    if not M.participants:any(function(p) return p.hunted end) and
+        not BJCCore.Data.General.Debug then
         LogError("Hunted player not found")
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "hunter.invalidHunted")
         stop()
@@ -137,7 +120,8 @@ local function onStart(settings)
     end
 
     BJCScenario.stopServerScenarii()
-    M.participants = {}
+    M.joinOrder = Table()
+    M.participants = Table()
     M.huntedConfig = settings.huntedConfig
     M.hunterConfigs = settings.hunterConfigs
     M.waypoints = settings.waypoints
@@ -148,23 +132,14 @@ local function onStart(settings)
 end
 
 local function sanitizePreparationHunted()
-    if table.length(M.participants) > 0 then
-        local hunted, firstID = false, nil
-        for playerID, p in pairs(M.participants) do
-            if not firstID then
-                firstID = playerID
-            end
-            if p.hunted then
-                hunted = true
-                break
-            end
-        end
-        if not hunted and firstID then
-            M.participants[firstID].hunted = true
-            M.participants[firstID].ready = false
-            M.participants[firstID].waypoint = 0
-            M.participants[firstID].eliminated = false
-        end
+    M.joinOrder = M.joinOrder:filter(function(playerID)
+        return not not M.participants[playerID]
+    end)
+    if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
+        M.participants[M.joinOrder[1]].hunted = true
+        M.participants[M.joinOrder[1]].hunted.waypoint = 0
+        M.participants[M.joinOrder[1]].ready = false
+        M.participants[M.joinOrder[1]].eliminated = false
     end
 end
 
@@ -173,36 +148,35 @@ local function onJoin(senderID)
         -- leave participants
         M.participants[senderID] = nil
         sanitizePreparationHunted()
-    elseif table.length(M.participants) == 0 then
-        -- first to join is hunted
+    elseif M.participants:length() == 0 then
+        -- first to join is hunted (or debug)
+        local hunted = true
+        if BJCCore.Data.General.Debug and MP.GetPlayerCount() == 1 then
+            hunted = math.random() > 0.5
+        end
         M.participants[senderID] = {
-            hunted = true,
+            hunted = hunted,
             ready = false,
             waypoint = 0,
         }
+        M.joinOrder:insert(senderID)
     else
         -- others are hunters
         M.participants[senderID] = {
             hunted = false,
             ready = false,
         }
+        M.joinOrder:insert(senderID)
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
 end
 
 local function onReady(senderID, gameVehID)
+    BJCAsync.removeTask("BJCHunterPreparation")
     M.participants[senderID].ready = true
     M.participants[senderID].gameVehID = gameVehID
-    if table.length(M.participants) >= M.MINIMUM_PARTICIPANTS() then
-        local allReady = true
-        for _, p in pairs(M.participants) do
-            if not p.ready then
-                allReady = false
-                break
-            end
-        end
-        if allReady then
-            BJCAsync.removeTask("BJCHunterPreparation")
+    if M.participants:length() >= M.MINIMUM_PARTICIPANTS() then
+        if M.participants:every(function(p) return p.ready end) then
             onPreparationTimeout()
         end
     end
@@ -212,7 +186,7 @@ end
 local function onLeave(senderID)
     local needStop = M.participants[senderID].hunted
     M.participants[senderID] = nil
-    if needStop or table.length(M.participants) < 3 then
+    if needStop or M.participants:length() < M.MINIMUM_PARTICIPANTS() then
         stop()
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
@@ -240,7 +214,7 @@ local function onRx(senderID, event, data)
             if participant.hunted then
                 -- hunters win
                 onGameEnd(false)
-            elseif table.length(M.participants) < 3 then
+            elseif table.length(M.participants) < M.MINIMUM_PARTICIPANTS() then
                 -- hunted win
                 onGameEnd(true)
             else
@@ -273,7 +247,13 @@ local function onPlayerDisconnect(playerID)
                 stop()
             end
         else
+            M.joinOrder:remove(M.joinOrder:indexOf(playerID))
             sanitizePreparationHunted()
+            if not M.participants:any(function(p) return p.ready end) then
+                -- relaunch preparation timeout
+                M.preparationTimeout = GetCurrentTime() + BJCConfig.Data.Hunter.PreparationTimeout
+                BJCAsync.programTask(onPreparationTimeout, M.preparationTimeout, "BJCHunterPreparation")
+            end
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
     end

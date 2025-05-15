@@ -1,4 +1,10 @@
-local M = {}
+---@class BJIScenarioMultiExample : BJIScenario
+local M = {
+    _name = "MultiExample",
+    _key = "MULTI_EXAMPLE",
+    _isSolo = false,
+    _skip = true,
+}
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
@@ -8,17 +14,17 @@ end
 -- load hook
 local function onLoad(ctxt)
     -- declare restrictions
-    BJIRestrictions.update({
+    BJI.Managers.Restrictions.update({
         {
             restrictions = Table({
-                BJIRestrictions.RESET.TELEPORT,
-                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.RESET.TELEPORT,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             }):flat(),
-            state = BJIRestrictions.STATE.RESTRICTED,
+            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         },
         {
-            restrictions = BJIRestrictions.OTHER.FREE_CAM,
-            state = BJIRestrictions.STATE.ALLOWED,
+            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            state = BJI.Managers.Restrictions.STATE.ALLOWED,
         }
     })
 end
@@ -104,7 +110,7 @@ local function doShowNametag(vehData)
 end
 
 local function getCollisionsType(ctxt)
-    return BJICollisions.TYPES.GHOSTS
+    return BJI.Managers.Collisions.TYPES.GHOSTS
 end
 
 -- player list contextual actions getter
@@ -122,16 +128,16 @@ end
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
     -- rollback restrictions
-    BJIRestrictions.update({
+    BJI.Managers.Restrictions.update({
         {
             restrictions = Table({
-                BJIRestrictions.RESET.TELEPORT,
-                BJIRestrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.RESET.TELEPORT,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             }):flat(),
             state = false, -- forbidden bindings
         },
         {
-            restrictions = BJIRestrictions.OTHER.FREE_CAM,
+            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
             state = true, -- allowed bindings
         }
     })

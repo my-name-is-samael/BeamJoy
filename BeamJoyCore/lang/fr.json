@@ -17,7 +17,8 @@
       "enabled": "Active",
       "disabled": "Desactive",
       "allPlayers": "SERVEUR",
-      "empty": "Vide"
+      "empty": "Vide",
+      "startMessage": "Tapez \"help\" pour afficher la liste des commandes"
     },
     "messages": {
       "missing": "Erreur lors de la recherche du message {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} a terminé {raceName} en {time}"
     },
     "hunter": {
-      "invalidHunted": "Pas de fugitif ou le fugitif n'a pas de véhicule",
+      "invalidHunted": "Aucun fugitif",
       "huntedWinner": "Le fugitif a gagné !",
       "huntersWinners": "Les chasseurs ont gagné !",
       "draw": "Égalité"
@@ -299,27 +300,27 @@
       "selfTrailer": "Ta remorque"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Mes Paramètres",
-      "BJIEvents": "Événements",
-      "BJIRacesLeaderboard": "Classement des courses",
-      "BJIRaceSettings": "Paramètres de Course",
-      "BJIRace": "Course",
-      "BJIDeliveryMulti": "Livraison en Groupe",
-      "BJIVehicleSelector": "Sélecteur de Véhicule",
-      "BJIStation": "Station",
-      "BJIBusMissionPreparation": "Préparation d'Itinéraire Bus",
-      "BJIScenarioEditor": "Éditeur de Scénario",
-      "BJIFreeroamSettings": "Paramètres du Freeroam",
-      "BJIEnvironment": "Éditeur d'Environnement",
-      "BJIServer": "Paramètres du Serveur",
-      "BJISpeed": "Jeu de Speed",
-      "BJIDatabase": "Base de Données",
-      "BJIHunterSettings": "Paramètres du Hunter",
-      "BJIHunter": "Jeu du Hunter",
-      "BJITheme": "Éditeur de Thème",
-      "BJIDerby": "Destruction Derby",
-      "BJIVehicleSelectorPreview": "Aperçu du véhicule"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Mes Paramètres",
+      "Events": "Événements",
+      "RacesLeaderboard": "Classement des courses",
+      "RaceSettings": "Paramètres de Course",
+      "Race": "Course",
+      "DeliveryMulti": "Livraison en Groupe",
+      "VehicleSelector": "Sélecteur de Véhicule",
+      "Station": "Station",
+      "BusMissionPreparation": "Préparation d'Itinéraire Bus",
+      "ScenarioEditor": "Éditeur de Scénario",
+      "FreeroamSettings": "Paramètres du Freeroam",
+      "Environment": "Éditeur d'Environnement",
+      "Server": "Paramètres du Serveur",
+      "Speed": "Jeu de Speed",
+      "Database": "Base de Données",
+      "HunterSettings": "Paramètres du Hunter",
+      "Hunter": "Jeu du Hunter",
+      "Theme": "Éditeur de Thème",
+      "Derby": "Destruction Derby",
+      "VehicleSelectorPreview": "Aperçu du véhicule"
     },
     "menu": {
       "me": {
@@ -733,6 +734,7 @@
         "server": {
           "title": "Paramètres du Serveur",
           "lang": "Langue de la Console du Serveur",
+          "allowMods": "Autoriser les mods des joueurs",
           "driftBigBroadcast": "Annonce des gros drifts",
           "broadcasts": {
             "title": "Annonces",
@@ -894,7 +896,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Temps de recharge du reset",
+      "resetDelayTooltip": "Durée en secondes avant qu'un joueur puisse réinitialiser",
       "teleportDelay": "Temps de recharge de la téléportation",
+      "teleportDelayTooltip": "Durée en secondes avant qu'un joueur puisse se téléporter à un autre",
       "vehicleSpawning": "Spawn de véhicules",
       "quickTravel": "Voyage rapide",
       "nametags": "Nametags des joueurs",
@@ -905,14 +909,16 @@
       "emergencyRefuelPercentTooltip": "Pourcentage du réservoir ravitaillé après le processus",
       "driftGood": "Score minimum pour de bons dérapages",
       "driftBig": "Score minimum pour des gros dérapages",
-      "allowUnicycle": "Autoriser la marche à pied (monocycle)"
+      "allowUnicycle": "Autoriser les piétons (monocycle)",
+      "cancelModal": "Vous perdrez vos modifications non enregistrées. Êtes-vous sûr de vouloir fermer la fenêtre ?"
     },
     "races": {
       "races": "Courses",
       "names": {},
       "tools": {
         "title": "Outils",
-        "rotation": "Rotation"
+        "rotation": "Rotation",
+        "reverse": "Inverser les étapes"
       },
       "edit": {
         "title": "Éditeur de course",
@@ -944,7 +950,6 @@
         "addBranch": "Ajouter une branche ici",
         "addStep": "Ajouter une étape ici",
         "errors": {
-          "invalidName": "Nom invalide",
           "noChild": "Aucun enfant"
         },
         "hasRecordConfirm": "Un record a été établi sur cette course et l'enregistrement le supprimera. Es-tu sûr ?",
@@ -1192,7 +1197,11 @@
       "defaultVeh": "Mon véhicule par défaut",
       "noVeh": "Aucun véhicule correspondant",
       "paints": "Peintures",
-      "applyPaint": "Peindre {position}"
+      "applyPaint": "Peindre {position}",
+      "cars": "Voitures",
+      "trucks": "Camions",
+      "trailers": "Remorques",
+      "props": "Objets"
     },
     "database": {
       "players": {
@@ -1234,6 +1243,8 @@
         "hunterConfigsTooltip": "Configurations de véhicule que les chasseurs peuvent choisir (si aucune, n'importe quelle configuration du jeu peut être choisie)",
         "toastConfigAlreadySaved": "Configuration déjà enregistrée",
         "specificConfig": "{model} spécifique",
+        "lastWaypointGPS": "Révélation du dernier point de passage",
+        "lastWaypointGPSTooltip": "Lorsqu'il ne reste qu'un point de passage, les chasseurs peuvent voir où se trouve le fugitif (Nom et GPS)",
         "notEnoughPlayers": "Il n'y a pas assez de joueurs pour lancer un Hunter"
       },
       "play": {
@@ -1243,9 +1254,9 @@
         "preparationTimeoutIn": "Fin de la préparation dans {delay}",
         "preparationTimeoutAboutToEnd": "La préparation est sur le point de se terminer",
         "startIn": "Tu commenceras dans {delay}",
-        "aboutToStart": "Tu es sur le point de commencer",
         "huntedLooseIn": "Tu perdras dans {delay}",
         "huntedAboutToLoose": "Tu es sur le point de perdre",
+        "hunterResumeIn": "Vous reprendrez dans {delay}",
         "configChoose": "Choisissez votre véhicule",
         "readyMark": "PRÊT",
         "notReadyMark": "PAS PRÊT",

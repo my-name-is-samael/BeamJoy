@@ -1,5 +1,7 @@
+---@class BJIManagerGPS : BJIManager
 local M = {
-    _name = "BJIGPS",
+    _name = "GPS",
+
     baseFunctions = {},
     targets = {},
     defaultRadius = 5,
@@ -57,14 +59,6 @@ local function navigateToMission(poiID)
     end
 end
 
-local function onLoad()
-    if freeroam_bigMapMode then
-        M.baseFunctions.navigateToMission = freeroam_bigMapMode.navigateToMission
-
-        freeroam_bigMapMode.navigateToMission = navigateToMission
-    end
-end
-
 local function onUnload()
     M.reset()
     if M.baseFunctions.navigateToMission then
@@ -106,7 +100,7 @@ local function renderTargets()
         end
         core_groundMarkers.setFocus(waypoints, nil, nil, nil, nil, nil, color)
     end
-    BJIEvents.trigger(BJIEvents.EVENTS.GPS_CHANGED)
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.GPS_CHANGED)
 end
 
 local function reset()
@@ -154,7 +148,7 @@ local function _insertWaypoint(index, previousIndex, target)
     table.insert(M.targets, index, target)
 
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
+    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
 end
 
 local function _commonCreateWaypoint(key, pos, radius, callback, playerName, prepend)
@@ -166,8 +160,8 @@ local function _commonCreateWaypoint(key, pos, radius, callback, playerName, pre
             return
         end
 
-        local targetPlayer = false
-        for _, player in pairs(BJIContext.Players) do
+        local targetPlayer = nil
+        for _, player in pairs(BJI.Managers.Context.Players) do
             if player.playerName == playerName then
                 targetPlayer = player
                 break
@@ -178,8 +172,8 @@ local function _commonCreateWaypoint(key, pos, radius, callback, playerName, pre
             return
         end
 
-        local veh = BJIVeh.getVehicleObject(targetPlayer.currentVehicle)
-        local posrot = BJIVeh.getPositionRotation(veh)
+        local veh = BJI.Managers.Veh.getVehicleObject(targetPlayer.currentVehicle)
+        local posrot = BJI.Managers.Veh.getPositionRotation(veh)
         if posrot then
             pos = posrot.pos
         else
@@ -201,7 +195,7 @@ local function _commonCreateWaypoint(key, pos, radius, callback, playerName, pre
     end
 
     if #M.targets > 0 then
-        if GetHorizontalDistance(M.targets[prepend and 1 or #M.targets].pos, pos) < M.defaultRadius then
+        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, pos) < M.defaultRadius then
             LogError("waypoint already exists")
             return
         end
@@ -298,7 +292,7 @@ local function getRouteLength(points)
     return length
 end
 
-local function checkNextTargetReached(ctxt)
+local function renderTick(ctxt)
     local wp = #M.targets > 0 and M.targets[1] or nil
     if ctxt.vehPosRot and wp then
         local distance = ctxt.vehPosRot.pos:distance(wp.pos)
@@ -313,7 +307,7 @@ local function checkNextTargetReached(ctxt)
         if distance < wp.radius then
             table.remove(M.targets, 1)
             renderTargets()
-            BJISound.play(BJISound.SOUNDS.INFO_OPEN)
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
             pcall(wp.callback, ctxt)
         end
     end
@@ -321,10 +315,10 @@ end
 
 local function _onLastTargetReached()
     renderTargets()
-    BJISound.play(BJISound.SOUNDS.INFO_OPEN)
+    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
 end
 
-local function updatePlayerTarget()
+local function slowTick()
     local playerTargetIndex
     for i, t in ipairs(M.targets) do
         if t.key == M.KEYS.PLAYER then
@@ -332,7 +326,7 @@ local function updatePlayerTarget()
                 table.remove(M.targets, i)
             end
             local playerFound = false
-            for _, player in pairs(BJIContext.Players) do
+            for _, player in pairs(BJI.Managers.Context.Players) do
                 if player.playerName == t.playerName then
                     playerFound = true
                     break
@@ -354,7 +348,7 @@ local function updatePlayerTarget()
         local target = M.targets[playerTargetIndex]
         local playerName = target.playerName
         local playerFound
-        for _, player in pairs(BJIContext.Players) do
+        for _, player in pairs(BJI.Managers.Context.Players) do
             if player.playerName == playerName then
                 playerFound = player
                 break
@@ -367,8 +361,8 @@ local function updatePlayerTarget()
                 _onLastTargetReached()
             end
         else
-            local veh = BJIVeh.getVehicleObject(playerFound.currentVehicle)
-            local posrot = BJIVeh.getPositionRotation(veh)
+            local veh = BJI.Managers.Veh.getVehicleObject(playerFound.currentVehicle)
+            local posrot = BJI.Managers.Veh.getPositionRotation(veh)
             if posrot then
                 target.pos = posrot.pos
                 renderTargets()
@@ -383,8 +377,16 @@ local function updatePlayerTarget()
     end
 end
 
-M.onLoad = onLoad
-M.onUnload = onUnload
+local function onLoad()
+    if freeroam_bigMapMode then
+        M.baseFunctions.navigateToMission = freeroam_bigMapMode.navigateToMission
+
+        freeroam_bigMapMode.navigateToMission = navigateToMission
+    end
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+end
 
 M.isClearable = isClearable
 M.reset = reset
@@ -397,8 +399,7 @@ M.appendWaypoint = appendWaypoint
 M.getCurrentRouteLength = getCurrentRouteLength
 M.getRouteLength = getRouteLength
 
-M.renderTick = checkNextTargetReached
-M.slowTick = updatePlayerTarget
+M.onLoad = onLoad
+M.renderTick = renderTick
 
-RegisterBJIManager(M)
 return M

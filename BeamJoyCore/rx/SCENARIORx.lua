@@ -23,9 +23,10 @@ function ctrl.RaceSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveRace, ctxt.data[1])
-    BJCTx.scenario.RaceSave(ctxt.senderID, not err)
-    if err then
+    local status, raceID = pcall(BJCScenario.saveRace, ctxt.data[1])
+    BJCTx.scenario.RaceSave(ctxt.senderID, status and raceID or false)
+    if not status then
+        local err = raceID
         error(err)
     end
 end
@@ -39,7 +40,7 @@ function ctrl.RaceToggle(ctxt)
     local race = BJCScenario.getRace(raceID)
     if race then
         race.enabled = state
-        BJCScenario.saveRace(race)
+        local raceID = BJCScenario.saveRace(race)
     else
         error({ key = "rx.errors.invalidData" })
     end
