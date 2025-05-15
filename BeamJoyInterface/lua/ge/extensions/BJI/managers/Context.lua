@@ -466,6 +466,10 @@ local function loadConfig()
             M.BJC.Hunter = cacheData.Hunter
         end
 
+        if cacheData.Derby then
+            M.BJC.Derby = cacheData.Derby
+        end
+
         if cacheData.VehicleDelivery then
             M.BJC.VehicleDelivery = cacheData.VehicleDelivery
         end

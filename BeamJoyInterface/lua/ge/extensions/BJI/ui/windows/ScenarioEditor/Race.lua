@@ -282,7 +282,6 @@ local function updateMarkers()
     end, Table())), W.raceData.loopable)
 end
 
--- TODO CHECK NR
 local function getNewWPName()
     return "wp" .. tostring(W.raceData.steps:reduce(function(max, step)
         return step:reduce(function(max2, wp)
@@ -293,18 +292,6 @@ local function getNewWPName()
             return max2
         end, max)
     end, 0) + 1)
-    --[[local max = 0
-    for _, step in ipairs(W.raceData.steps) do
-        for _, wp in ipairs(step) do
-            if wp.name:find("^wp%d+$") then
-                local num = tonumber(wp.name:sub(3))
-                if num and num > max then
-                    max = num
-                end
-            end
-        end
-    end
-    return string.var("wp{1}", { max + 1 })]]
 end
 
 local function getNewWaypointRadius(iStep, iWp)

@@ -1,15 +1,14 @@
-local fields = {
-    { key = "PreparationTimeout",  type = "int", step = 1, min = 5, max = 120, },
-    { key = "HuntedStartDelay",    type = "int", step = 1, min = 0, max = 30, },
-    { key = "HuntersStartDelay",   type = "int", step = 1, min = 0, max = 60, },
-    { key = "HuntedStuckTimeout",  type = "int", step = 1, min = 3, max = 30, },
-    { key = "HuntersRespawnDelay", type = "int", step = 1, min = 0, max = 300, },
-}
+local fields = Table({
+    { key = "PreparationTimeout",  type = "int", step = 1, min = 5, max = 180 },
+    { key = "HuntedStartDelay",    type = "int", step = 1, min = 0, max = 60 },
+    { key = "HuntersStartDelay",   type = "int", step = 1, min = 0, max = 60 },
+    { key = "HuntedStuckTimeout",  type = "int", step = 1, min = 3, max = 20 },
+    { key = "HuntersRespawnDelay", type = "int", step = 1, min = 0, max = 60 },
+})
 
 return function(ctxt, labels, cache)
-    local cols = ColumnsBuilder("bjcHunter", { cache.hunter.labelsWidth, -1 })
-    for _, v in ipairs(fields) do
-        cols = cols:addRow({
+    fields:reduce(function(cols, v)
+        return cols:addRow({
             cells = {
                 function()
                     local line = LineBuilder():text(labels.hunter.keys[v.key])
@@ -36,6 +35,5 @@ return function(ctxt, labels, cache)
                 end
             }
         })
-    end
-    cols:build()
+    end, ColumnsBuilder("bjcHunter", { cache.hunter.labelsWidth, -1 })):build()
 end

@@ -774,6 +774,15 @@
           "HuntersRespawnDelay": "Retraso en la reaparición de los cazadores",
           "HuntersRespawnDelayTooltip": "Tiempo en segundos en el que los cazadores quedan atrapados cuando respawnean"
         },
+        "derby": {
+          "title": "Configuración de Destruction Derby",
+          "PreparationTimeout": "Duración de preparación",
+          "PreparationTimeoutTooltip": "Tiempo en segundos durante el cual los jugadores pueden unirse al derby",
+          "StartCountdown": "Cuenta regresiva de inicio",
+          "StartCountdownTooltip": "Tiempo en segundos antes de que comience el derby",
+          "DestroyedTimeout": "Cuenta regresiva de eliminación",
+          "DestroyedTimeoutTooltip": "Duración en segundos antes de eliminar a un jugador atascado o destruido"
+        },
         "vehicleDelivery": {
           "title": "Configuración de entrega de vehículos",
           "modelBlacklist": "Lista negra de vehículos"
@@ -781,6 +790,15 @@
       },
       "reputation": {
         "title": "Reputación",
+        "categories": {
+          "freeroam": "Mundo libre",
+          "delivery": "Entrega",
+          "bus": "Misión de autobús",
+          "race": "Carrera",
+          "speed": "Velocidad",
+          "hunter": "Cazador",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Recompensa de conducción /km",
         "DeliveryVehicleReward": "Recompensa por entrega de vehículo",
         "DeliveryVehiclePristineReward": "Recompensa por entrega de vehículo por vehículo intacto",
@@ -802,7 +820,8 @@
         "HunterWinnerReward": "Recompensa del ganador del cazador",
         "HunterWinnerRewardTooltip": "Se aplica a todos los jugadores del equipo ganador (cazadores o fugitivos)",
         "DerbyParticipationReward": "Recompensa por participación en la derby",
-        "DerbyWinnerReward": "Recompensa del ganador de la derby"
+        "DerbyWinnerReward": "Recompensa del ganador de la derby",
+        "DerbyWinnerRewardTooltip": "Se dividirá según la posición del jugador en la clasificación"
       },
       "permissions": {
         "title": "Grupos y permisos",

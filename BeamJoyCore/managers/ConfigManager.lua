@@ -149,6 +149,12 @@ local function getCache(senderID)
             HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
             HuntersRespawnDelay = M.Data.Hunter.HuntersRespawnDelay,
         }
+
+        data.Derby = {
+            PreparationTimeout = M.Data.Derby.PreparationTimeout,
+            StartCountdown = M.Data.Derby.StartCountdown,
+            DestroyedTimeout = M.Data.Derby.DestroyedTimeout
+        }
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) or
@@ -241,6 +247,18 @@ local function clampValue(parent, key, value)
             return math.clamp(value, 10)
         elseif key == "VoteThresholdRatio" then
             return math.clamp(value, 0.01, 1)
+        end
+    elseif table.includes({ "Hunter", "Derby" }, parent) then
+        if key == "PreparationTimeout" then
+            return math.clamp(value, 5, 180)
+        elseif table.includes({ "HuntedStartDelay", "HuntersStartDelay" }, key) then
+            return math.clamp(value, 0, 60)
+        elseif table.includes({ "HuntedStuckTimeout", "DestroyedTimeout" }, key) then
+            return math.clamp(value, 3, 20)
+        elseif key == "StartCountdown" then
+            return math.clamp(value, 10, 60)
+        elseif key == "HuntersRespawnDelay" then
+            return math.clamp(value, 0, 60)
         end
     end
     return value

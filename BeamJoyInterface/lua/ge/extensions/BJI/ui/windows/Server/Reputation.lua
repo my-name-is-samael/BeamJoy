@@ -1,5 +1,16 @@
+local categories = Table({
+    { category = "freeroam", keys = Table({ "KmDriveReward", "DriftGoodReward", "DriftBigReward" }) },
+    { category = "delivery", keys = Table({ "DeliveryVehicleReward", "DeliveryVehiclePristineReward", "DeliveryPackageReward", "DeliveryPackageStreakReward" }) },
+    { category = "bus",      keys = Table({ "BusMissionReward" }) },
+    { category = "race",     keys = Table({ "RaceParticipationReward", "RaceWinnerReward", "RaceSoloReward", "RaceRecordReward" }) },
+    { category = "speed",    keys = Table({ "SpeedReward" }) },
+    { category = "hunter",   keys = Table({ "HunterParticipationReward", "HunterWinnerReward" }) },
+    { category = "derby",    keys = Table({ "DerbyParticipationReward", "DerbyWinnerReward" }) },
+})
+
 local W = {
     labels = {
+        categories = {},
         keys = {},
         tooltips = {},
     },
@@ -7,6 +18,10 @@ local W = {
 }
 
 local function updateLabels()
+    categories:forEach(function(c)
+        W.labels.categories[c.category] = BJI.Managers.Lang.get("serverConfig.reputation.categories." ..
+            tostring(c.category))
+    end)
     Table(BJI.Managers.Context.BJC.Reputation):keys()
         :forEach(function(k)
             W.labels.keys[k] = string.var("{1} :",
@@ -48,38 +63,44 @@ local function onUnload()
 end
 
 local function body(ctxt)
-    Table(BJI.Managers.Context.BJC.Reputation):reduce(function(cols, v, k)
-        return cols:addRow({
-            cells = {
-                function()
-                    if W.labels.tooltips[k] then
+    categories:forEach(function(c)
+        LineLabel(W.labels.categories[c.category])
+        Indent(1)
+        Table(c.keys):reduce(function(cols, k)
+            local v = BJI.Managers.Context.BJC.Reputation[k]
+            return cols:addRow({
+                cells = {
+                    function()
+                        if W.labels.tooltips[k] then
+                            LineBuilder()
+                                :text(W.labels.keys[k])
+                                :helpMarker(W.labels.tooltips[k])
+                                :build()
+                        else
+                            LineLabel(W.labels.keys[k])
+                        end
+                    end,
+                    function()
                         LineBuilder()
-                            :text(W.labels.keys[k])
-                            :helpMarker(W.labels.tooltips[k])
+                            :inputNumeric({
+                                id = tostring(k),
+                                type = "int",
+                                value = v,
+                                min = 0,
+                                step = 1,
+                                onUpdate = function(val)
+                                    BJI.Managers.Context.BJC.Reputation[k] = val
+                                    BJI.Tx.config.bjc(string.var("Reputation.{1}", { k }), val)
+                                end,
+                            })
                             :build()
-                    else
-                        LineLabel(W.labels.keys[k])
-                    end
-                end,
-                function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = tostring(k),
-                            type = "int",
-                            value = v,
-                            min = 0,
-                            step = 1,
-                            onUpdate = function(val)
-                                BJI.Managers.Context.BJC.Reputation[k] = val
-                                BJI.Tx.config.bjc(string.var("Reputation.{1}", { k }), val)
-                            end,
-                        })
-                        :build()
-                end,
-            }
-        })
-    end, ColumnsBuilder("reputationSettings", { W.labelsWidth, -1 }))
-        :build()
+                    end,
+                }
+            })
+        end, ColumnsBuilder("reputationSettings", { W.labelsWidth, -1 })):build()
+        Indent(-1)
+        Separator()
+    end)
 end
 
 W.onLoad = onLoad
