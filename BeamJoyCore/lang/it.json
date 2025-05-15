@@ -774,6 +774,15 @@
           "HuntersRespawnDelay": "Ritardo nel respawn dei cacciatori",
           "HuntersRespawnDelayTooltip": "Tempo in secondi in cui i cacciatori sono bloccati quando rinascono"
         },
+        "derby": {
+          "title": "Impostazioni Destruction Derby",
+          "PreparationTimeout": "Durata preparazione",
+          "PreparationTimeoutTooltip": "Tempo in secondi durante il quale i giocatori possono unirsi al derby",
+          "StartCountdown": "Conto alla rovescia",
+          "StartCountdownTooltip": "Tempo in secondi prima dell'inizio del derby",
+          "DestroyedTimeout": "Conto alla rovescia eliminazione",
+          "DestroyedTimeoutTooltip": "Durata in secondi prima che un giocatore bloccato/distrutto venga eliminato"
+        },
         "vehicleDelivery": {
           "title": "Impostazioni di consegna del veicolo",
           "modelBlacklist": "Lista nera dei veicoli"
@@ -781,6 +790,15 @@
       },
       "reputation": {
         "title": "Reputazione",
+        "categories": {
+          "freeroam": "Libera",
+          "delivery": "Consegna",
+          "bus": "Missione Bus",
+          "race": "Gara",
+          "speed": "Velocità",
+          "hunter": "Cacciatore",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Guida ricompensa/km",
         "DeliveryVehicleReward": "Premio per la consegna del veicolo",
         "DeliveryVehiclePristineReward": "Premio per la consegna del veicolo per il veicolo intatto",
@@ -802,7 +820,8 @@
         "HunterWinnerReward": "Premio vincitore cacciatore",
         "HunterWinnerRewardTooltip": "Si applica a tutti i giocatori della squadra vincente (cacciatori o fuggitivi)",
         "DerbyParticipationReward": "Premio per la partecipazione al derby",
-        "DerbyWinnerReward": "Premio vincitore derby"
+        "DerbyWinnerReward": "Premio vincitore derby",
+        "DerbyWinnerRewardTooltip": "Sarà diviso in base alla posizione del giocatore nella classifica"
       },
       "permissions": {
         "title": "Gruppi e autorizzazioni",

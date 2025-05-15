@@ -100,14 +100,15 @@ local function onLoad()
                 mustClose, msg = true, BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
             end
         else
-            if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
-                mustClose, msg = true, "Scenario changed"     -- TODO i18n
-            elseif not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
-                mustClose, msg = true, "Permission decreased" -- TODO i18n
+            if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) or
+                not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+                mustClose = true
             end
         end
         if mustClose then
-            BJI.Managers.Toast.warning(msg)
+            if msg then
+                BJI.Managers.Toast.warning(msg)
+            end
             onClose()
         end
     end))

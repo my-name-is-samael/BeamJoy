@@ -774,6 +774,15 @@
           "HuntersRespawnDelay": "Atraso no respawn dos caçadores",
           "HuntersRespawnDelayTooltip": "Tempo em segundos que os caçadores ficam presos ao respawn"
         },
+        "derby": {
+          "title": "Configurações do Destruction Derby",
+          "PreparationTimeout": "Duração da preparação",
+          "PreparationTimeoutTooltip": "Tempo em segundos em que os jogadores podem entrar no derby",
+          "StartCountdown": "Contagem regressiva de início",
+          "StartCountdownTooltip": "Tempo em segundos antes do início do derby",
+          "DestroyedTimeout": "Contagem regressiva de eliminação",
+          "DestroyedTimeoutTooltip": "Duração em segundos antes de eliminar um jogador preso/destruído"
+        },
         "vehicleDelivery": {
           "title": "Configurações de entrega de veículos",
           "modelBlacklist": "Lista negra de veículos"
@@ -781,6 +790,15 @@
       },
       "reputation": {
         "title": "Reputação",
+        "categories": {
+          "freeroam": "Mundo livre",
+          "delivery": "Entrega",
+          "bus": "Missão de Ônibus",
+          "race": "Corrida",
+          "speed": "Velocidade",
+          "hunter": "Caçador",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Recompensa de condução/km",
         "DeliveryVehicleReward": "Recompensa de entrega de veículo",
         "DeliveryVehiclePristineReward": "Recompensa de entrega de veículo para veículo intacto",
@@ -802,7 +820,8 @@
         "HunterWinnerReward": "Recompensa do Vencedor do Caçador",
         "HunterWinnerRewardTooltip": "Aplica-se a todos os jogadores da equipe vencedora (caçadores ou fugitivos)",
         "DerbyParticipationReward": "Recompensa de Participação na derby",
-        "DerbyWinnerReward": "Recompensa do Vencedor da derby"
+        "DerbyWinnerReward": "Recompensa do Vencedor da derby",
+        "DerbyWinnerRewardTooltip": "Será dividido de acordo com a posição do jogador no placar"
       },
       "permissions": {
         "title": "Grupos e permissões",

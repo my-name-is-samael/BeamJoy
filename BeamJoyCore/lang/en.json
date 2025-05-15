@@ -775,6 +775,15 @@
           "HuntersRespawnDelay": "Hunters Respawn Delay",
           "HuntersRespawnDelayTooltip": "Time in seconds hunters are stuck when they respawn"
         },
+        "derby": {
+          "title": "Destruction Derby Settings",
+          "PreparationTimeout": "Preparation Duration",
+          "PreparationTimeoutTooltip": "Time in seconds during which players can join the derby",
+          "StartCountdown": "Start Countdown",
+          "StartCountdownTooltip": "Time in seconds before the derby starts",
+          "DestroyedTimeout": "Elimination Countdown",
+          "DestroyedTimeoutTooltip": "Duration in seconds before a stuck/wrecked player gets eliminated"
+        },
         "vehicleDelivery": {
           "title": "Vehicle Delivery Settings",
           "modelBlacklist": "Vehicles Blacklist"
@@ -782,6 +791,15 @@
       },
       "reputation": {
         "title": "Reputation",
+        "categories": {
+          "freeroam": "Freeroam",
+          "delivery": "Delivery",
+          "bus": "Bus Mission",
+          "race": "Race",
+          "speed": "Speed",
+          "hunter": "Hunter",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Drive Reward /km",
         "DeliveryVehicleReward": "Vehicle Delivery Reward",
         "DeliveryVehiclePristineReward": "Vehicle Delivery Reward for intact vehicle",
@@ -803,7 +821,8 @@
         "HunterWinnerReward": "Hunter Winner Reward",
         "HunterWinnerRewardTooltip": "Applies to every players in the winning team (hunters or fugitive)",
         "DerbyParticipationReward": "Derby Participation Reward",
-        "DerbyWinnerReward": "Derby Winner Reward"
+        "DerbyWinnerReward": "Derby Winner Reward",
+        "DerbyWinnerRewardTooltip": "Will be divided by the player position in the leaderboard"
       },
       "permissions": {
         "title": "Groups & Permissions",

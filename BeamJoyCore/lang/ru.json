@@ -647,6 +647,15 @@
           "HuntersRespawnDelay": "Задержка респауна охотников",
           "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне"
         },
+        "derby": {
+          "title": "Настройки Destruction Derby",
+          "PreparationTimeout": "Время подготовки",
+          "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться к дерби",
+          "StartCountdown": "Обратный отсчет старта",
+          "StartCountdownTooltip": "Время в секундах до начала дерби",
+          "DestroyedTimeout": "Обратный отсчет до выбытия",
+          "DestroyedTimeoutTooltip": "Время в секундах до устранения застрявшего/разрушенного игрока"
+        },
         "vehicleDelivery": {
           "title": "Настройки доставки автомобиля",
           "modelBlacklist": "Черный список транспортных средств"
@@ -654,6 +663,15 @@
       },
       "reputation": {
         "title": "Репутация",
+        "categories": {
+          "freeroam": "Свободная езда",
+          "delivery": "Доставка",
+          "bus": "Миссия автобуса",
+          "race": "Гонка",
+          "speed": "Скорость",
+          "hunter": "Охотник",
+          "derby": "Дерби"
+        },
         "KmDriveReward": "Награда за проезд/км",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
         "DeliveryVehiclePristineReward": "Вознаграждение за доставку автомобиля в целости и сохранности",
@@ -675,7 +693,8 @@
         "HunterWinnerReward": "Награда победителю-охотнику",
         "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам).",
         "DerbyParticipationReward": "Награда за участие в дерби",
-        "DerbyWinnerReward": "Награда победителю дерби"
+        "DerbyWinnerReward": "Награда победителю дерби",
+        "DerbyWinnerRewardTooltip": "Будет разделено в зависимости от позиции игрока в таблице лидеров"
       },
       "permissions": {
         "title": "Группы и разрешения",

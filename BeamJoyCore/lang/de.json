@@ -774,6 +774,15 @@
           "HuntersRespawnDelay": "Jäger Respawn Verzögerung",
           "HuntersRespawnDelayTooltip": "Zeit in Sekunden, in der Jäger nach ihrem Respawn feststecken"
         },
+        "derby": {
+          "title": "Destruction Derby Einstellungen",
+          "PreparationTimeout": "Vorbereitungsdauer",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden, in der Spieler dem Derby beitreten können",
+          "StartCountdown": "Start-Countdown",
+          "StartCountdownTooltip": "Zeit in Sekunden bis zum Start des Derbys",
+          "DestroyedTimeout": "Eliminierungs-Countdown",
+          "DestroyedTimeoutTooltip": "Dauer in Sekunden, bevor ein feststeckender/beschädigter Spieler eliminiert wird"
+        },
         "vehicleDelivery": {
           "title": "Einstellungen für die Fahrzeuglieferung",
           "modelBlacklist": "Schwarze Liste für Fahrzeuge"
@@ -781,6 +790,15 @@
       },
       "reputation": {
         "title": "Ruf",
+        "categories": {
+          "freeroam": "Freies Fahren",
+          "delivery": "Lieferung",
+          "bus": "Busmission",
+          "race": "Rennen",
+          "speed": "Geschwindigkeit",
+          "hunter": "Jagd",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Fahrtprämie/km",
         "DeliveryVehicleReward": "Belohnung für Fahrzeuglieferung",
         "DeliveryVehiclePristineReward": "Fahrzeuglieferungsprämie für intaktes Fahrzeug",
@@ -802,7 +820,8 @@
         "HunterWinnerReward": "Jäger-Gewinner-Belohnung",
         "HunterWinnerRewardTooltip": "Gilt für alle Spieler im Gewinnerteam (Jäger oder Flüchtling)",
         "DerbyParticipationReward": "Belohnung für die Teilnahme an der Derby",
-        "DerbyWinnerReward": "Derby Gewinner-Belohnung"
+        "DerbyWinnerReward": "Derby Gewinner-Belohnung",
+        "DerbyWinnerRewardTooltip": "Wird entsprechend der Platzierung in der Rangliste aufgeteilt"
       },
       "permissions": {
         "title": "Gruppen und Berechtigungen",

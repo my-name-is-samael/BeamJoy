@@ -61,8 +61,15 @@ function BJCTx.sendByPermissions(eventName, endpoint, data, ...)
     end
 end
 
--- TODO auto parse
-require("tx/CacheTx")
-require("tx/DatabaseTx")
-require("tx/PlayerTx")
-require("tx/ScenarioTx")
+-- Autoload Tx controllers
+Table(FS.ListFiles(BJCPluginPath.."/Tx/"))
+:filter(function(filename)
+    return filename:endswith(".lua") and filename ~= "Tx.lua"
+end):map(function(filename)
+    return filename:gsub(".lua$", "")
+end):forEach(function(txName)
+    local ok, err = pcall(require, string.var("tx/{1}", { txName }))
+    if not ok then
+        LogError(string.var("Error loading TX \"{1}.lua\" : {2}", { txName, err }))
+    end
+end)

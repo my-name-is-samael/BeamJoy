@@ -774,6 +774,15 @@
           "HuntersRespawnDelay": "Délai de réapparition des chasseurs",
           "HuntersRespawnDelayTooltip": "Temps en secondes pendant lequel les chasseurs sont bloqués lorsqu'ils resettent"
         },
+        "derby": {
+          "title": "Paramètres du Destruction Derby",
+          "PreparationTimeout": "Durée de préparation",
+          "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre le derby",
+          "StartCountdown": "Décompte de départ",
+          "StartCountdownTooltip": "Temps en secondes avant le début du derby",
+          "DestroyedTimeout": "Décompte d’élimination",
+          "DestroyedTimeoutTooltip": "Durée en secondes avant qu’un joueur bloqué/détruit ne soit éliminé"
+        },
         "vehicleDelivery": {
           "title": "Paramètres de Livraison de Véhicule",
           "modelBlacklist": "Blacklist de Véhicules"
@@ -781,6 +790,15 @@
       },
       "reputation": {
         "title": "Réputation",
+        "categories": {
+          "freeroam": "Libre",
+          "delivery": "Livraison",
+          "bus": "Mission Bus",
+          "race": "Course",
+          "speed": "Vitesse",
+          "hunter": "Chasseur",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Récompense par Km conduit",
         "DeliveryVehicleReward": "Récompense de Livraison de Véhicule",
         "DeliveryVehiclePristineReward": "Récompense pour Véhicule Livré Intact",
@@ -802,7 +820,8 @@
         "HunterWinnerReward": "Récompense de Victoire du Hunter",
         "HunterWinnerRewardTooltip": "S'applique à tous les joueurs de l'équipe gagnante (chasseurs ou fugitif)",
         "DerbyParticipationReward": "Récompense de Participation au Derby",
-        "DerbyWinnerReward": "Récompense de Victoire du Derby"
+        "DerbyWinnerReward": "Récompense de Victoire du Derby",
+        "DerbyWinnerRewardTooltip": "Sera répartie selon la position du joueur dans le classement"
       },
       "permissions": {
         "title": "Groupes & Permissions",

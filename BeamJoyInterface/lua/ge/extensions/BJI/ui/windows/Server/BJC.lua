@@ -34,10 +34,14 @@ local W = {
         },
         {
             permission = BJI.Managers.Perm.PERMISSIONS.SCENARIO,
+            labelKey = "derby",
+            render = require("ge/extensions/BJI/ui/windows/Server/BJC/Derby"),
+        },
+        {
+            permission = BJI.Managers.Perm.PERMISSIONS.SCENARIO,
             labelKey = "vehicleDelivery",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/VehicleDelivery"),
         },
-        -- TODO add derby options
         {
             minimumGroup = BJI.CONSTANTS.GROUP_NAMES.OWNER,
             labelKey = "server",
@@ -79,6 +83,10 @@ local W = {
             keys = {},
         },
         hunter = {
+            title = "",
+            keys = {},
+        },
+        derby = {
             title = "",
             keys = {},
         },
@@ -133,6 +141,9 @@ local W = {
         hunter = {
             labelsWidth = 0,
         },
+        derby = {
+            labelsWidth = 0,  
+        },
         vehicleDelivery = {
             displayList = Table(),
             ---@type {value: string, label: string}[]
@@ -162,6 +173,7 @@ local function updateLabels()
     W.labels.race.title = BJI.Managers.Lang.get("serverConfig.bjc.race.title")
     W.labels.speed.title = BJI.Managers.Lang.get("serverConfig.bjc.speed.title")
     W.labels.hunter.title = BJI.Managers.Lang.get("serverConfig.bjc.hunter.title")
+    W.labels.derby.title = BJI.Managers.Lang.get("serverConfig.bjc.derby.title")
     W.labels.vehicleDelivery.title = BJI.Managers.Lang.get("serverConfig.bjc.vehicleDelivery.title")
     W.labels.server.title = BJI.Managers.Lang.get("serverConfig.bjc.server.title")
 
@@ -204,6 +216,14 @@ local function updateLabels()
             "")
         if #W.labels.hunter.keys[k .. "Tooltip"] == 0 then
             W.labels.hunter.keys[k .. "Tooltip"] = nil
+        end
+    end)
+
+    Table(BJI.Managers.Context.BJC.Derby):forEach(function(_, k)
+        W.labels.derby.keys[k] = BJI.Managers.Lang.get("serverConfig.bjc.derby." .. k)
+        W.labels.derby.keys[k .. "Tooltip"] = BJI.Managers.Lang.get("serverConfig.bjc.derby." .. k .. "Tooltip", "")
+        if #W.labels.derby.keys[k .. "Tooltip"] == 0 then
+            W.labels.derby.keys[k .. "Tooltip"] = nil
         end
     end)
 
@@ -268,6 +288,19 @@ local function updateWidths()
         end)
         :map(function(l, k)
             return l .. (W.labels.hunter.keys[k .. "Tooltip"] and HELPMARKER_TEXT or "")
+        end)
+        :reduce(function(acc, l)
+            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            return w > acc and w or acc
+        end, 0)
+    
+    W.cache.derby.labelsWidth = Table(W.labels.derby.keys)
+        ---@param k string
+        :filter(function(_, k)
+            return not k:endswith("Tooltip")
+        end)
+        :map(function(l, k)
+            return l .. (W.labels.derby.keys[k .. "Tooltip"] and HELPMARKER_TEXT or "")
         end)
         :reduce(function(acc, l)
             local w = BJI.Utils.Common.GetColumnTextWidth(l)
