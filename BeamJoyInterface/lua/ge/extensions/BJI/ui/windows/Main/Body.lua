@@ -166,7 +166,7 @@ local function updateCachePlayers(ctxt)
         return not BJI.Managers.Perm.canSpawnVehicle(playerID) and not BJI.Managers.Perm.isStaff(playerID)
     end):forEach(function(player, playerID)
         local showPromote = player.isGroupLower and
-            not table.includes({ BJI.CONSTANTS.GROUP_NAMES.OWNER }, BJI.Managers.Perm.getNextGroup(player.group))
+            BJI.Managers.Perm.getNextGroup(player.group) ~= BJI.CONSTANTS.GROUP_NAMES.OWNER
         local promoteGroup = showPromote and BJI.Managers.Perm.getNextGroup(player.group) or ""
         local promoteLabel = showPromote and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil
@@ -208,7 +208,7 @@ local function updateCachePlayers(ctxt)
         local demoteLabel = (showDemote and demoteGroup) and BJI.Managers.Lang.get("moderationBlock.buttons.demoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. demoteGroup, demoteGroup) }) or nil
         local showPromote = isGroupLower and
-            not table.includes({ BJI.CONSTANTS.GROUP_NAMES.OWNER }, BJI.Managers.Perm.getNextGroup(p.group))
+            BJI.Managers.Perm.getNextGroup(p.group) ~= BJI.CONSTANTS.GROUP_NAMES.OWNER
         local promoteGroup = showPromote and BJI.Managers.Perm.getNextGroup(p.group) or nil
         local promoteLabel = (showPromote and promoteGroup) and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil

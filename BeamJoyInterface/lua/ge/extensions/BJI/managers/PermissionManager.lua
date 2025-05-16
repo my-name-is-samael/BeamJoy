@@ -371,6 +371,8 @@ local function isStaff(playerID)
     return group.staff == true
 end
 
+---@param groupName string
+---@return string?
 local function getNextGroup(groupName)
     local baseG = M.Groups[groupName]
     if not baseG then
@@ -378,6 +380,7 @@ local function getNextGroup(groupName)
     end
 
     local next = Table(M.Groups)
+        ---@param k string
         :reduce(function(acc, g, k)
             return (g.level > baseG.level and
                     (not acc or acc.level > g.level)) and
@@ -386,6 +389,8 @@ local function getNextGroup(groupName)
     return next and next.name or nil
 end
 
+---@param groupName string
+---@return string?
 local function getPreviousGroup(groupName)
     local baseG = M.Groups[groupName]
     if not baseG then
@@ -393,6 +398,7 @@ local function getPreviousGroup(groupName)
     end
 
     local previous = Table(M.Groups)
+        ---@param k string
         :reduce(function(acc, g, k)
             return (g.level < baseG.level and
                     (not acc or acc.level < g.level)) and
