@@ -1,5 +1,16 @@
 local drawer = {}
 
+---@class BJIColor
+---@field r number 0-1
+---@field g number 0-1
+---@field b number 0-1
+---@field a number 0-1
+
+---@param r number 0-1
+---@param g number 0-1
+---@param b number 0-1
+---@param a? number 0-1
+---@return BJIColor
 local function Color(r, g, b, a)
     return { r = r, g = g, b = b, a = a or 1 }
 end
