@@ -1,5 +1,5 @@
 ---@class BJIScenarioMultiExample : BJIScenario
-local M = {
+local S = {
     _name = "MultiExample",
     _key = "MULTI_EXAMPLE",
     _isSolo = false,
@@ -121,6 +121,10 @@ end
 local function renderTick(ctxt)
 end
 
+-- max 4x/sec tick
+local function fastTick(ctxt)
+end
+
 -- each second tick hook
 local function slowTick(ctxt)
 end
@@ -143,36 +147,37 @@ local function onUnload(ctxt)
     })
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onDropPlayerAtCamera = onDropPlayerAtCamera
-M.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
-M.onVehicleDestroyed = onVehicleDestroyed
-M.updateVehicles = updateVehicles
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.onGarageRepair = onGarageRepair
-M.tryTeleportToPlayer = tryTeleportToPlayer
-M.tryTeleportToPos = tryTeleportToPos
-M.tryFocus = tryFocus
-M.canSpawnAI = canSpawnAI
-M.canSpawnNewVehicle = canSpawnNewVehicle
-M.canReplaceVehicle = canReplaceVehicle
-M.canDeleteVehicle = canDeleteVehicle
-M.canDeleteOtherVehicles = canDeleteOtherVehicles
-M.getModelList = getModelList
-M.doShowNametag = doShowNametag
-M.getCollisionsType = getCollisionsType
+S.onVehicleSpawned = onVehicleSpawned
+S.onDropPlayerAtCamera = onDropPlayerAtCamera
+S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleSwitched = onVehicleSwitched
+S.onVehicleDestroyed = onVehicleDestroyed
+S.updateVehicles = updateVehicles
+S.canRefuelAtStation = canRefuelAtStation
+S.canRepairAtGarage = canRepairAtGarage
+S.onGarageRepair = onGarageRepair
+S.tryTeleportToPlayer = tryTeleportToPlayer
+S.tryTeleportToPos = tryTeleportToPos
+S.tryFocus = tryFocus
+S.canSpawnAI = canSpawnAI
+S.canSpawnNewVehicle = canSpawnNewVehicle
+S.canReplaceVehicle = canReplaceVehicle
+S.canDeleteVehicle = canDeleteVehicle
+S.canDeleteOtherVehicles = canDeleteOtherVehicles
+S.getModelList = getModelList
+S.doShowNametag = doShowNametag
+S.getCollisionsType = getCollisionsType
 
-M.getPlayerListActions = getPlayerListActions
+S.getPlayerListActions = getPlayerListActions
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.renderTick = renderTick
+S.fastTick = fastTick
+S.slowTick = slowTick
 
-M.onUnload = onUnload
+S.onUnload = onUnload
 
-return M
+return S

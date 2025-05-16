@@ -197,11 +197,13 @@ end
 local function renderTick(ctxt)
     if ctxt.camera ~= M.lastCamera then
         M.onCameraChange(ctxt.camera)
+        ctxt.camera = M.getCamera()
+        M.lastCamera = ctxt.camera
     end
+end
 
-    ctxt.camera = M.getCamera()
-
-    -- Update forced camera
+local function fastTick(ctxt)
+    -- Update forced camera -- TODO CHECK WITH FAST_TICK
     if M.isForcedCamera() then
         if ctxt.camera ~= M.forced.cam then
             M.setCamera(M.forced.cam, false)
@@ -222,7 +224,6 @@ local function renderTick(ctxt)
             M.setFreeCamSmooth(false)
         end
     end
-    M.lastCamera = ctxt.camera
 end
 
 local function slowTick(ctxt)
@@ -264,6 +265,7 @@ local function onLoad()
     end
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
 
 M.getCamera = getCamera

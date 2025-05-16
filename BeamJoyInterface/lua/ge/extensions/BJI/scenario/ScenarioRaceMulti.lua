@@ -1000,6 +1000,15 @@ local function renderTick(ctxt)
     end
 
     if ctxt.isOwner and isStateGridOrRace() and not S.isRaceStarted(ctxt) and S.isParticipant() then
+        -- prevent jato usage before start
+        if not S.race.startTime or ctxt.now < S.race.startTime then
+            ctxt.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
+        end
+    end
+end
+
+local function fastTick(ctxt)
+    if ctxt.isOwner and isStateGridOrRace() and not S.isRaceStarted(ctxt) and S.isParticipant() then
         -- fix vehicle position / damages on grid
         if not S.race.startTime or ctxt.now < S.race.startTime - 1000 then
             local startPos = S.grid.startPositions
@@ -1018,14 +1027,9 @@ local function renderTick(ctxt)
                 end
             end
             if moved or damaged then
-                BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot)
+                BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
                 BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
             end
-        end
-
-        -- prevent jato usage before start
-        if not S.race.startTime or ctxt.now < S.race.startTime then
-            ctxt.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
         end
     end
 
@@ -1107,6 +1111,7 @@ S.getModelList = getModelList
 S.getPlayerListActions = getPlayerListActions
 
 S.renderTick = renderTick
+S.fastTick = fastTick
 S.slowTick = slowTick
 
 S.onUnload = onUnload

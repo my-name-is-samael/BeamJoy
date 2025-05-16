@@ -61,7 +61,7 @@ local function onChat(event, data)
     })
 end
 
-local function renderTick(ctxt)
+local function fastTick(ctxt)
     if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.LANG) and M.queue[1] then
         local event, data = M.queue[1].event, M.queue[1].data
         data.color = parseColor(data.color)
@@ -96,7 +96,7 @@ M.onChat = onChat
 
 M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
-M.renderTick = renderTick
 
 return M

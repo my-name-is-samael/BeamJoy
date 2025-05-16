@@ -277,20 +277,39 @@ local function checkAIVehicles()
     LogInfo(string.var("AI ghosts desync check executed in {1}ms", { GetCurrentTimeMillis() - start }))
 end
 
+local ghostsFixingProcess = { time = 10, count = 0 } -- check every 10 seconds
 ---@param ctxt SlowTickContext
 local function slowTick(ctxt)
-    if M.type == M.TYPES.GHOSTS then
-        -- clear invalid ghosts
-        M.ghosts:forEach(function(_, gameVehID)
-            if not BJI.Managers.Veh.getVehicleObject(gameVehID) or
-                BJI.Managers.AI.isAIVehicle(gameVehID) then
-                M.ghosts[gameVehID] = nil
-                BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
-                if not ctxt.veh or ctxt.veh:getID() ~= gameVehID then
-                    setAlpha(gameVehID, M.ghostAlpha)
-                end
-            end
-        end)
+    ghostsFixingProcess.count = ghostsFixingProcess.count + 1
+    if ghostsFixingProcess.count >= ghostsFixingProcess.time then
+        if M.type == M.TYPES.GHOSTS then
+            -- clear invalid ghosts
+            local saw = {}
+            Table(BJI.Managers.Veh.getMPVehicles())
+            ---@param mpVeh BJIMPVehicle
+                :forEach(function(mpVeh)
+                    if not M.ghosts[mpVeh.gameVehicleID] and not M.permaGhosts[mpVeh.gameVehicleID] then
+                        local alpha = getVehAlpha(mpVeh.gameVehicleID)
+                        if alpha and alpha < M.playerAlpha then
+                            setAlpha(mpVeh.gameVehicleID, M.playerAlpha)
+                            LogDebug(string.var("Fixed veh alpha for {1}", { mpVeh.gameVehicleID }))
+                        end
+                    elseif not isVehicle(mpVeh.gameVehicleID) or
+                        BJI.Managers.AI.isAIVehicle(mpVeh.gameVehicleID) then
+                        M.ghosts[mpVeh.gameVehicleID] = nil
+                        BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { mpVeh.gameVehicleID }))
+                        M.permaGhosts[mpVeh.gameVehicleID] = nil
+                        setAlpha(mpVeh.gameVehicleID, M.playerAlpha)
+                    end
+                    saw[mpVeh.gameVehicleID] = true
+                end)
+            M.ghosts:filter(function(_, id) return not saw[id] end)
+                :forEach(function(_, id)
+                    M.ghosts[id] = nil
+                    BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { id }))
+                end)
+        end
+        ghostsFixingProcess.count = 0
     end
 end
 

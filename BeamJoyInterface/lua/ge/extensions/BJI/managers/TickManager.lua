@@ -47,6 +47,15 @@ local function getContext()
     }
 end
 
+local lastFastTickTime = 0
+---@param ctxt TickContext
+local function processFastTick(ctxt)
+    if ctxt.now >= lastFastTickTime + 250 then
+        lastFastTickTime = ctxt.now
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.FAST_TICK, ctxt)
+    end
+end
+
 -- ClientTick (each render tick)
 local function client()
     if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
@@ -56,6 +65,7 @@ local function client()
                 m.renderTick(ctxt)
             end
         end)
+        processFastTick(ctxt)
     end
 end
 

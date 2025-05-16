@@ -262,7 +262,7 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
-local function renderTick(ctxt)
+local function fastTick(ctxt)
     local participant = S.getParticipant()
     if participant and not S.isEliminated() and ctxt.isOwner then
         if S.state == S.STATES.PREPARATION then
@@ -586,7 +586,7 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleResetted = onVehicleResetted
-S.renderTick = renderTick
+S.fastTick = fastTick
 S.slowTick = slowTick
 
 S.onUnload = onUnload
