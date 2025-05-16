@@ -137,17 +137,12 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
     local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerSpectating = (ownVeh and veh.gameVehicleID or veh.remoteVehID) ==
         BJI.Managers.Context.Players[veh.ownerID].currentVehicle
-    local ownerTracting = false
-    if not ownerSpectating then
-        for _, vid in ipairs(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID)) do
-            local v2 = BJI.Managers.Veh.getVehicleObject(vid)
-            if v2 and BJI.Managers.Veh.getType(v2.jbeam) ~= "Trailer" and
-                veh.ownerID and BJI.Managers.Veh.getVehOwnerID(vid) == veh.ownerID then
-                ownerTracting = true
-                break
-            end
-        end
-    end
+    local ownerTracting = not ownerSpectating and Table(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID))
+        :any(function(vid)
+            local attachedVeh = BJI.Managers.Veh.getVehicleObject(vid)
+            return attachedVeh ~= nil and BJI.Managers.Veh.getType(attachedVeh.jbeam) ~= "Trailer" and
+                veh.ownerID and BJI.Managers.Veh.getVehOwnerID(attachedVeh:getID()) == veh.ownerID
+        end)
 
     if ownVeh then
         if not ownerTracting then
@@ -155,9 +150,7 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
             local label = M.labels.selfTrailer
 
             local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
-                (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
-            if not ownPos then return end
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -185,9 +178,7 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
             local label = M.labels.trailer:var({ playerName = name })
 
             local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
-                (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
-            if not ownPos then return end
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -227,9 +218,7 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
     if ownVeh then
         if not currentVeh or freecaming then
             local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
-                (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
-            if not ownPos then return end
+            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -249,9 +238,7 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
         end
     else
         local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-        local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or
-            (ctxt.vehPosRot and ctxt.vehPosRot.pos or nil)
-        if not ownPos then return end
+        local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
         local distance = ownPos:distance(tagPos)
         local alpha = getAlphaByDistance(distance)
 
