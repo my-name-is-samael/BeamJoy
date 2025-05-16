@@ -1102,6 +1102,18 @@ local function getCollisionsType(ctxt)
     return S.isRaceStarted(ctxt) and BJI.Managers.Collisions.TYPES.GHOSTS or BJI.Managers.Collisions.TYPES.FORCED
 end
 
+---@param vehData { gameVehicleID: integer, ownerID: integer }
+---@return boolean, BJIColor?, BJIColor?
+local function doShowNametag(vehData)
+    if not S.isParticipant(vehData.ownerID) or
+        S.isEliminated(vehData.ownerID) or
+        S.isFinished(vehData.ownerID) then
+        return false
+    end
+
+    return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, .33)
+end
+
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 
@@ -1136,5 +1148,7 @@ S.canReplaceVehicle = canVehUpdate
 S.canDeleteVehicle = canVehUpdate
 S.canDeleteOtherVehicles = FalseFn
 S.getCollisionsType = getCollisionsType
+
+S.doShowNametag = doShowNametag
 
 return S

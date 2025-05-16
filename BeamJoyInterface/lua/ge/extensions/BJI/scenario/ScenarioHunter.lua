@@ -248,6 +248,7 @@ local function canSpawnNewVehicle()
 end
 
 ---@param vehData { gameVehicleID: integer, ownerID: integer }
+---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     if S.state == S.STATES.PREPARATION then
         -- no nametags during preparation
