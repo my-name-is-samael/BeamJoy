@@ -254,10 +254,13 @@ end
 local function onClientUpdate(senderID, event, data)
     if M.state == M.STATES.PREPARATION then
         if event == M.CLIENT_EVENTS.JOIN then
-            if not M.participants:find(function(p) return p.playerID == senderID end, function(_, pos)
-                    table.remove(M.participants, pos)
-                    checkDerbyReady()
-                end) then
+            local pos
+            M.participants:find(function(p) return p.playerID == senderID end, function(_, position)
+                pos = position
+                table.remove(M.participants, pos)
+                checkDerbyReady()
+            end)
+            if not pos then
                 M.participants:insert({
                     playerID = senderID,
                     lives = M.settings.lives,
