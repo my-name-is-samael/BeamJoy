@@ -256,7 +256,6 @@ end
 
 -- when spawning AI vehicles, alpha can get desynced
 local function checkAIVehicles()
-    local start = GetCurrentTimeMillis()
     if table.includes({ M.TYPES.GHOSTS, M.TYPES.FORCED }, M.type) then
         Table(BJI.Managers.Context.Players)
             :map(function(p)
@@ -274,7 +273,6 @@ local function checkAIVehicles()
                 end, string.var("CheckAIAlpha-{1}", { vid }))
             end)
     end
-    LogInfo(string.var("AI ghosts desync check executed in {1}ms", { GetCurrentTimeMillis() - start }))
 end
 
 local ghostsFixingProcess = { time = 10, count = 0 } -- check every 10 seconds
