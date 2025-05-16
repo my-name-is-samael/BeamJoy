@@ -370,7 +370,9 @@ local function menuDerby(ctxt)
         local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         local errorMessage = nil
-        if #BJI.Managers.Context.Scenario.Data.Derby == 0 then
+        local countArena = #Table(BJI.Managers.Context.Scenario.Data.Derby)
+            :filter(function(arena) return arena.enabled end)
+        if countArena == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.noArena")
         elseif potentialPlayers < minimumParticipants then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.missingPlayers"):var({
