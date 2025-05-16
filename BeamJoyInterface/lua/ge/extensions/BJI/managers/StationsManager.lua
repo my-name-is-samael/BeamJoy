@@ -74,7 +74,7 @@ local function detectChunk(ctxt)
     end
 end
 
-local function renderStations(ctxt)
+local function renderTick(ctxt)
     if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP then
         return
     end
@@ -126,14 +126,12 @@ local function renderStations(ctxt)
     end
 end
 
-local function renderTick(ctxt)
-    renderStations(ctxt)
-
+local function fastTick(ctxt) -- TODO CHECK REACTIVITY (maybe roll back to single chunk detection)
     local veh = ctxt.isOwner and ctxt.veh or nil
     if M.station then
-        if not BJI.Managers.Perm.canSpawnVehicle() or
-            (not BJI.Managers.Scenario.canRefuelAtStation() and not BJI.Managers.Scenario.canRepairAtGarage()) or
-            not veh or
+        if not veh or not BJI.Managers.Perm.canSpawnVehicle() or
+            (not BJI.Managers.Scenario.canRefuelAtStation() and
+                not BJI.Managers.Scenario.canRepairAtGarage()) or
             BJI.Managers.Veh.isUnicycle(veh:getID()) then
             M.station = nil
         elseif ctxt.vehPosRot.pos:distance(M.station.pos) > M.station.radius then
@@ -239,6 +237,9 @@ end
 
 M.tryRefillVehicle = tryRefillVehicle
 
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
+end
 M.renderTick = renderTick
 
 return M

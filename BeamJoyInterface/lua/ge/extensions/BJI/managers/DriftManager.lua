@@ -29,7 +29,7 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     end
 end
 
-local function renderTick(ctxt)
+local function fastTick(ctxt)
     if not gameplay_drift_scoring then
         return
     end
@@ -45,7 +45,7 @@ end
 M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
-M.renderTick = renderTick
 
 return M

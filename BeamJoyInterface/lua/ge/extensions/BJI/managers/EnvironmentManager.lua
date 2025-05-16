@@ -206,7 +206,7 @@ local function slowTick() -- server tick
     end
 end
 
-local function renderTick(ctxt) -- render tick
+local function fastTick(ctxt) -- render tick
     if BJI.Managers.Context.WorldReadyState == 2 then
         -- disable pause on multiplayer
         if bullettime:getPause() then
@@ -222,7 +222,8 @@ local function renderTick(ctxt) -- render tick
         end
 
         -- adjust environment settings in bigmap view
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP and not BJI.Managers.Async.exists("BJIBigmapEnv") then
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP and
+            not BJI.Managers.Async.exists("BJIBigmapEnv") then
             local oldFog = M.Data.fogDensity
             local oldVisibleDistance = M.Data.visibleDistance
             M.Data.fogDensity = 0
@@ -277,6 +278,7 @@ local function onLoad()
     end)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
 
 local function getTime()
@@ -318,6 +320,5 @@ M.updateCurrentPreset = updateCurrentPreset
 M.tryApplyTimeFromServer = tryApplyTimeFromServer
 
 M.onLoad = onLoad
-M.renderTick = renderTick
 
 return M

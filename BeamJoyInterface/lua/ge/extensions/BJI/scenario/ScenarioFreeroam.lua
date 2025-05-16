@@ -89,7 +89,7 @@ local function tryApplyEngineState(gameVehID)
     end
 end
 
-local function renderTick(ctxt)
+local function fastTick(ctxt)
     if not BJI.Managers.Context.User.engine then
         for _, veh in pairs(BJI.Managers.Context.User.vehicles) do
             BJI.Managers.Veh.engine(false, veh.gameVehID)
@@ -425,7 +425,7 @@ S.doShowNametagsSpecs = TrueFn
 
 S.getModelList = getModelList
 
-S.renderTick = renderTick
+S.fastTick = fastTick
 S.slowTick = slowTick
 
 S.exemptNextReset = exemptNextReset

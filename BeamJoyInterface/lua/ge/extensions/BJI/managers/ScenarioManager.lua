@@ -270,29 +270,59 @@ local function getRestrictions()
     end
 end
 
-local renderTickErrorLimitTime = nil
+local tickErrorProcess = { countRender = 0, countFast = 0, countSlow = 0 }
+
+---@param ctxt TickContext
 local function renderTick(ctxt)
-    if _curr().renderTick then
-        local status, err = pcall(_curr().renderTick, ctxt or BJI.Managers.Tick.getContext())
+    if type(_curr().renderTick) == "function" then
+        local status, err = pcall(_curr().renderTick, ctxt)
         if not status then
-            LogError(string.var("Error during scenario tick : {1}", { err }))
-            if not renderTickErrorLimitTime then
-                renderTickErrorLimitTime = ctxt.now + 3000
-            elseif ctxt.now >= renderTickErrorLimitTime then
-                BJI.Managers.Toast.error("Continuous error during scenario, backup to Freeroam")
-                renderTickErrorLimitTime = nil
+            LogError(string.var("Error during scenario render tick : {1}", { err }))
+            tickErrorProcess.countRender = tickErrorProcess.countRender + 1
+            if tickErrorProcess.countRender >= 20 then
+                BJI.Managers.Toast.error("Continuous error during scenario render tick, backup to Freeroam")
+                tickErrorProcess.countRender = 0
                 M.switchScenario(M.TYPES.FREEROAM)
             end
-            error(err)
-        elseif renderTickErrorLimitTime then
-            renderTickErrorLimitTime = nil
+        elseif tickErrorProcess.countRender > 0 then
+            tickErrorProcess.countRender = 0
         end
     end
 end
 
+---@param ctxt TickContext
+local function fastTick(ctxt)
+    if type(_curr().fastTick) == "function" then
+        local status, err = pcall(_curr().fastTick, ctxt)
+        if not status then
+            LogError(string.var("Error during scenario fast tick : {1}", { err }))
+            tickErrorProcess.countFast = tickErrorProcess.countFast + 1
+            if tickErrorProcess.countFast >= 20 then
+                BJI.Managers.Toast.error("Continuous error during scenario fast tick, backup to Freeroam")
+                tickErrorProcess.countFast = 0
+                M.switchScenario(M.TYPES.FREEROAM)
+            end
+        elseif tickErrorProcess.countFast > 0 then
+            tickErrorProcess.countFast = 0
+        end
+    end
+end
+
+---@param ctxt TickContext
 local function slowTick(ctxt)
-    if _curr().slowTick then
-        _curr().slowTick(ctxt or BJI.Managers.Tick.getContext())
+    if type(_curr().slowTick) == "function" then
+        local status, err = pcall(_curr().slowTick, ctxt)
+        if not status then
+            LogError(string.var("Error during scenario slow tick : {1}", { err }))
+            tickErrorProcess.countSlow = tickErrorProcess.countSlow + 1
+            if tickErrorProcess.countSlow >= 5 then
+                BJI.Managers.Toast.error("Continuous error during scenario slow tick, backup to Freeroam")
+                tickErrorProcess.countSlow = 0
+                M.switchScenario(M.TYPES.FREEROAM)
+            end
+        elseif tickErrorProcess.countSlow > 0 then
+            tickErrorProcess.countSlow = 0
+        end
     end
 end
 
@@ -406,6 +436,7 @@ local function onLoad()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_DROP_PLAYER_AT_CAMERA_NO_RESET,
         onDropPlayerAtCameraNoReset)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
 
 M.updateVehicles = updateVehicles

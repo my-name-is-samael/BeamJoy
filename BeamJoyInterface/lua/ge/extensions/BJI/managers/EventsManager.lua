@@ -43,6 +43,7 @@ local M = {
 
         ON_UNLOAD = "on_unload",
         SLOW_TICK = "slow_tick",
+        FAST_TICK = "fast_tick",
         RENDER_TICK = "render_tick",
         CACHE_LOADED = "cache_loaded",
         UI_UPDATE_REQUEST = "ui_update_request",

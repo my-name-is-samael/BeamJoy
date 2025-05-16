@@ -292,7 +292,7 @@ local function getRouteLength(points)
     return length
 end
 
-local function renderTick(ctxt)
+local function fastTick(ctxt)
     local wp = #M.targets > 0 and M.targets[1] or nil
     if ctxt.vehPosRot and wp then
         local distance = ctxt.vehPosRot.pos:distance(wp.pos)
@@ -386,6 +386,7 @@ local function onLoad()
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
 end
 
 M.isClearable = isClearable
@@ -400,6 +401,5 @@ M.getCurrentRouteLength = getCurrentRouteLength
 M.getRouteLength = getRouteLength
 
 M.onLoad = onLoad
-M.renderTick = renderTick
 
 return M
