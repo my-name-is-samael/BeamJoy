@@ -80,9 +80,10 @@ local function getNametagBgColor(alpha, spec, idle)
     return color
 end
 
+---@param ctxt TickContext
+---@param veh BJIMPVehicle
 local function renderSpecs(ctxt, veh)
-    if not settings.getValue("showSpectators", true) or table.length(veh.spectators) == 0 or
-        not BJI.Managers.Scenario.doShowNametagsSpecs(veh) then
+    if not settings.getValue("showSpectators", true) or not BJI.Managers.Scenario.doShowNametagsSpecs(veh) then
         return
     end
 
@@ -101,21 +102,32 @@ local function renderSpecs(ctxt, veh)
     end
     tagPos.z = tagPos.z + zOffset + .1 -- .1 offset downward for specs
 
-    for playerID in pairs(veh.spectators) do
-        if playerID ~= ctxt.user.playerID and playerID ~= veh.ownerID then
-            local name = BJI.Managers.Context.Players[playerID].tagName
+    Table(BJI.Managers.Context.Players)
+        :filter(function(p)
+            return p.playerID ~= ctxt.user.playerID and
+                p.playerID ~= veh.ownerID and
+                veh.remoteVehID == p.currentVehicle
+        end)
+    ---@param spec BJIPlayer
+        :forEach(function(spec)
+            local name = BJI.Managers.Context.Players[spec.playerID].tagName
             BJI.Utils.ShapeDrawer.Text(name, tagPos,
                 getNametagColor(alpha, true),
                 getNametagBgColor(alpha, true),
                 false)
-        end
-    end
+        end)
 end
 
+---@param ctxt TickContext
+---@param veh BJIMPVehicle
 local function renderAI(ctxt, veh)
     renderSpecs(ctxt, veh)
 end
 
+---@param ctxt TickContext
+---@param veh BJIMPVehicle
+---@param forcedTextColor BJIColor
+---@param forcedBgColor BJIColor
 local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
     local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
@@ -123,14 +135,17 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
     local ownVeh = veh.ownerID == ctxt.user.playerID
     local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
     local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
-    local ownerSpectating = veh.spectators[veh.ownerID]
+    local ownerSpectating = (ownVeh and veh.gameVehicleID or veh.remoteVehID) ==
+        BJI.Managers.Context.Players[veh.ownerID].currentVehicle
     local ownerTracting = false
-    for _, vid in ipairs(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID)) do
-        local v2 = BJI.Managers.Veh.getVehicleObject(vid)
-        if v2 and BJI.Managers.Veh.getType(v2.jbeam) ~= "Trailer" and
-            veh.ownerID and BJI.Managers.Veh.getVehOwnerID(vid) == veh.ownerID then
-            ownerTracting = true
-            break
+    if not ownerSpectating then
+        for _, vid in ipairs(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID)) do
+            local v2 = BJI.Managers.Veh.getVehicleObject(vid)
+            if v2 and BJI.Managers.Veh.getType(v2.jbeam) ~= "Trailer" and
+                veh.ownerID and BJI.Managers.Veh.getVehOwnerID(vid) == veh.ownerID then
+                ownerTracting = true
+                break
+            end
         end
     end
 
@@ -195,6 +210,10 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
     end
 end
 
+---@param ctxt TickContext
+---@param veh BJIMPVehicle
+---@param forcedTextColor BJIColor
+---@param forcedBgColor BJIColor
 local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
     local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
@@ -202,7 +221,8 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
     local ownVeh = veh.ownerID == ctxt.user.playerID
     local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
     local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
-    local ownerDriving = veh.spectators[veh.ownerID]
+    local ownerDriving = (ownVeh and veh.gameVehicleID or veh.remoteVehID) ==
+        BJI.Managers.Context.Players[veh.ownerID].currentVehicle
 
     if ownVeh then
         if not currentVeh or freecaming then
@@ -239,7 +259,7 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
         local showDist = settings.getValue("nameTagShowDistance", true) and
             (not currentVeh or freecaming) and distance > 10
 
-        local owner = BJI.Managers.Context.Players[veh.ownerID] or error()
+        local owner = BJI.Managers.Context.Players[veh.ownerID]
         local label = owner.tagName
         if showTag then
             local tag = ""
@@ -282,6 +302,7 @@ local function detectVisibilityEvent()
     end
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     detectVisibilityEvent()
 
@@ -321,19 +342,24 @@ end
 
 local function slowTick(ctxt)
     if M.state then
-        -- pre-render constants
         if settings.getValue("shortenNametags", false) then
             M.labels.staffTag = BJI.Managers.Lang.get("nametags.staffTag")
             M.labels.reputationTag = BJI.Managers.Lang.get("nametags.reputationTag")
             local nameLength = tonumber(settings.getValue("nametagCharLimit", 50))
-            for _, p in pairs(BJI.Managers.Context.Players) do
-                if #p.playerName > nameLength and (not p.tagName or #p.tagName ~= nameLength) then
-                    local short = p.playerName:sub(1, nameLength)
-                    p.tagName = string.var("{1}...", { short })
-                else
+            Table(BJI.Managers.Context.Players)
+                :forEach(function(p)
+                    if #p.playerName > nameLength and (not p.tagName or #p.tagName ~= nameLength) then
+                        local short = p.playerName:sub(1, nameLength)
+                        p.tagName = string.var("{1}...", { short })
+                    else
+                        p.tagName = p.playerName
+                    end
+                end)
+        else
+            Table(BJI.Managers.Context.Players)
+                :forEach(function(p)
                     p.tagName = p.playerName
-                end
-            end
+                end)
         end
         M.labels.self = BJI.Managers.Lang.get("nametags.self")
         M.labels.selfTrailer = BJI.Managers.Lang.get("nametags.selfTrailer")
