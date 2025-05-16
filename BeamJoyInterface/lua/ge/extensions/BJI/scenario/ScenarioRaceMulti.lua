@@ -451,6 +451,7 @@ local function onCheckpointReached(wp, remainingSteps)
             speed = math.round(S.currentSpeed * 3.6, 2),
         }
 
+        BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
         BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.RACE_WAYPOINT)
 
@@ -503,6 +504,7 @@ local function onCheckpointReached(wp, remainingSteps)
             end
         end
 
+
         -- temp leaderboard assign
         table.find(S.race.leaderboard, function(lb)
             return BJI.Managers.Context.isSelf(lb.playerID)
@@ -534,7 +536,7 @@ local function onCheckpointReached(wp, remainingSteps)
         end)
 
         waitForServerWp(S.race.lap, S.race.waypoint, function(lb)
-            S.lapData[lastWp.wp].time = lb.wpTime
+            S.lapData[lastWp.wp].time = lb.time - lb.lapStartTime
 
             -- detect new pb
             local pb = BJI.Managers.RaceWaypoint.getPB(S.raceHash)
