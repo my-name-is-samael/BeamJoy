@@ -93,8 +93,9 @@ local function onLoad()
     }, function(_, data)
         if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
             table.includes({
-                BJI.Managers.Cache.CACHES.BJC,
-                BJI.Managers.Cache.CACHES.CORE,
+                BJI.Managers.Cache.CACHES.PERMISSIONS,
+                BJI.Managers.Cache.CACHES.USER,
+                BJI.Managers.Cache.CACHES.GROUPS,
             }, data.cache) then
             if not W.TABS:any(function(t) return t.show() end) then
                 onClose()
@@ -132,7 +133,10 @@ end
 ---@param ctxt TickContext
 local function header(ctxt)
     local t = TabBarBuilder("BJIEnvironmentTabs")
-    W.TABS:forEach(function(tab, i)
+    W.TABS:filter(function(tab)
+        return tab.show()
+    end)
+    :forEach(function(tab, i)
         t:addTab(W.labels[tab.labelKey], function()
             updateTab(i)
         end)
