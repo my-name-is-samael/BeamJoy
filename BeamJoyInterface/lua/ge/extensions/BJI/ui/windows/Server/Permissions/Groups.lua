@@ -101,7 +101,7 @@ local function drawGroupData(labels, cache, gKey, group)
                         coloredIcon = true,
                         onClick = function()
                             group.staff = not group.staff
-                            BJI.Tx.config.permissionsGroup(gKey, "staff", not group.staff)
+                            BJI.Tx.config.permissionsGroup(gKey, "staff", group.staff)
                         end
                     })
                     :build()
@@ -118,7 +118,7 @@ local function drawGroupData(labels, cache, gKey, group)
                         coloredIcon = true,
                         onClick = function()
                             group.banned = not group.banned
-                            BJI.Tx.config.permissionsGroup(gKey, "banned", not group.banned)
+                            BJI.Tx.config.permissionsGroup(gKey, "banned", group.banned)
                         end
                     })
                     :build()
@@ -135,7 +135,7 @@ local function drawGroupData(labels, cache, gKey, group)
                         coloredIcon = true,
                         onClick = function()
                             group.muted = not group.muted
-                            BJI.Tx.config.permissionsGroup(gKey, "muted", not group.muted)
+                            BJI.Tx.config.permissionsGroup(gKey, "muted", group.muted)
                         end
                     })
                     :build()
@@ -152,7 +152,7 @@ local function drawGroupData(labels, cache, gKey, group)
                         coloredIcon = true,
                         onClick = function()
                             group.whitelisted = not group.whitelisted
-                            BJI.Tx.config.permissionsGroup(gKey, "whitelisted", not group.whitelisted)
+                            BJI.Tx.config.permissionsGroup(gKey, "whitelisted", group.whitelisted)
                         end
                     })
                     :build()
