@@ -276,7 +276,7 @@ function ctrl.SpeedFail(ctxt)
     end
 
     local time = ctxt.data[1]
-    BJCScenario.SpeedManager.fail(ctxt.senderID, time)
+    BJCScenario.SpeedManager.onPlayerFail(ctxt.senderID, time)
 end
 
 function ctrl.SpeedStop(ctxt)

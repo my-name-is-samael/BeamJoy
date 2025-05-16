@@ -5,10 +5,9 @@ local M = {
     _name = "Chat",
 
     EVENTS = {
-        JOIN = "join",
-        LEAVE = "leave",
         PLAYER_CHAT = "playerchat",
         SERVER_CHAT = "serverchat",
+        EVENT = "event",
         DIRECT_MESSAGE = "directmessage",
         DIRECT_MESSAGE_SENT = "directmessagesent",
     },
@@ -48,10 +47,26 @@ local function _onPlayerChat(playerName, message, color)
         return
     end
     local playerTag = player.staff and BJI.Managers.Lang.get("chat.staffTag") or
-        string.var("{1}{2}", { BJI.Managers.Lang.get("chat.reputationTag"), BJI.Managers.Reputation.getReputationLevel(player.reputation) })
+        string.var("{1}{2}",
+            { BJI.Managers.Lang.get("chat.reputationTag"), BJI.Managers.Reputation.getReputationLevel(player.reputation) })
     playerName = string.var("[{1}]{2}", { playerTag, playerName })
 
     _printChat(playerName, message, color)
+end
+
+---@param eventKey string
+---@param data table
+local function printChatEvent(eventKey, data, color)
+    LogWarn("printChatEvent")
+    dump({ eventKey, data, color })
+    local str = BJI.Managers.Lang.get(eventKey)
+    data = Table(data):map(function(s)
+        return BJI.Managers.Lang.get(tostring(s), tostring(s))
+    end)
+    str = string.var(str, data)
+
+    LogWarn(str)
+    _printChat(nil, str, color)
 end
 
 local function onChat(event, data)
@@ -79,9 +94,8 @@ local function fastTick(ctxt)
         elseif event == M.EVENTS.DIRECT_MESSAGE_SENT then
             _printChat(BJI.Managers.Lang.get("chat.directMessageSent"):var({ playerName = data.playerName }),
                 data.message, data.color)
-        elseif table.includes({ M.EVENTS.JOIN, M.EVENTS.LEAVE }, event) then
-            local key = event == M.EVENTS.JOIN and "chat.playerJoined" or "chat.playerLeft"
-            _printChat(nil, BJI.Managers.Lang.get(key):var({ playerName = data.playerName }))
+        elseif event == M.EVENTS.EVENT then
+            printChatEvent(data.event, data.data, data.color)
         end
         table.remove(M.queue, 1)
     end

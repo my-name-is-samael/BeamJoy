@@ -90,6 +90,10 @@ local function onClientStopRace()
         error({ key = "rx.errors.invalidData" })
     end
 
+    BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
+        gamemode = "chat.events.gamemodes.race",
+        reason = "chat.events.gamemodeStopReasons.manual",
+    })
     stopRace()
 end
 
@@ -159,6 +163,10 @@ local function onGridTimeout()
     end
 
     if #M.grid.participants < M.MINIMUM_PARTICIPANTS() then
+        BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
+            gamemode = "chat.events.gamemodes.race",
+            reason = "chat.events.gamemodeStopReasons.notEnoughParticipants",
+        })
         stopRace()
     else
         checkRaceReady()
@@ -190,6 +198,10 @@ end
 
 local function stop()
     if M.state then
+        BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
+            gamemode = "chat.events.gamemodes.race",
+            reason = "chat.events.gamemodeStopReasons.manual",
+        })
         stopRace()
     end
 end
@@ -446,6 +458,11 @@ local function onClientUpdate(senderID, event, data)
             else
                 table.insert(M.grid.participants, senderID)
             end
+            BJCChat.sendChatEvent(pos and "chat.events.gamemodeLeave" or
+                "chat.events.gamemodeJoin", {
+                    playerName = BJCPlayers.Players[senderID].playerName,
+                    gamemode = "chat.events.gamemodes.race",
+                })
 
             BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
         elseif event == M.CLIENT_EVENTS.READY then
@@ -467,6 +484,13 @@ local function onClientUpdate(senderID, event, data)
                 table.insert(M.race.eliminated, senderID)
             end
             sortLeaderboard()
+            BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                playerName = BJCPlayers.Players[senderID].playerName,
+                gamemode = "chat.events.gamemodes.race",
+                gamemodePosition = table.reduce(M.race.leaderboard, function(acc, lb, pos)
+                    return lb[1] == senderID and pos or acc
+                end),
+            })
             BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
             if #M.grid.participants - (#M.race.eliminated + #M.race.finished) == 0 then
                 startFinishRace()
@@ -479,6 +503,13 @@ local function onClientUpdate(senderID, event, data)
                 table.insert(M.race.finished, senderID)
             end
             sortLeaderboard()
+            BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                playerName = BJCPlayers.Players[senderID].playerName,
+                gamemode = "chat.events.gamemodes.race",
+                gamemodePosition = table.reduce(M.race.leaderboard, function(acc, lb, pos)
+                    return lb[1] == senderID and pos or acc
+                end),
+            })
             -- apply winner rewards
             if #M.grid.participants > 1 then
                 for _, playerID in ipairs(M.grid.participants) do

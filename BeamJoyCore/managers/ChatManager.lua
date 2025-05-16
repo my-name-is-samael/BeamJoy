@@ -2,10 +2,9 @@ SetLogType("BJCChat", CONSOLE_COLORS.FOREGROUNDS.LIGHT_GREEN, nil, CONSOLE_COLOR
 
 local M = {
     EVENTS = {
-        JOIN = "join",
-        LEAVE = "leave",
         PLAYER_CHAT = "playerchat",
         SERVER_CHAT = "serverchat",
+        EVENT = "event",
         DIRECT_MESSAGE = "directmessage",
         DIRECT_MESSAGE_SENT = "directmessagesent",
     },
@@ -37,13 +36,12 @@ local function onWelcome(playerID)
 end
 
 local function onPlayerConnected(playerID)
-    Table(BJCPlayers.Players)
-        :filter(function(_, pid) return pid ~= playerID end)
-        :forEach(function(player)
-            BJCTx.player.chat(playerID, M.EVENTS.JOIN, {
-                playerName = player.playerName,
-            })
-        end)
+    local player = Table(BJCPlayers.Players):find(function(_, pid) return pid == playerID end)
+    if player then
+        M.sendChatEvent("chat.events.playerJoined", {
+            playerName = player.playerName
+        })
+    end
     onWelcome(playerID)
 end
 
@@ -106,12 +104,18 @@ local function onServerChat(targetID, message, color)
     })
 end
 
+local function sendChatEvent(eventKey, eventData, color)
+    BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.EVENT, {
+        event = eventKey,
+        data = eventData,
+        color = color or { .6, .6, .6, 1 }, -- RGBA (COLORS NOT WORKING YET IN THE CHAT)
+    })
+end
+
 local function onPlayerDisconnect(playerID, playerName)
-    BJCAsync.delayTask(function()
-        BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.LEAVE, {
-            playerName = playerName,
-        })
-    end, 1)
+    M.sendChatEvent("chat.events.playerLeft", {
+        playerName = playerName
+    })
 end
 
 local function broadcastTick()
@@ -141,9 +145,11 @@ end
 BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_CONNECTED, onPlayerConnected)
 BJCEvents.addListener(BJCEvents.EVENTS.CHAT_MESSAGE, onChatMessage)
 M.onServerChat = onServerChat
+M.sendChatEvent = sendChatEvent
 M.onPlayerDisconnect = onPlayerDisconnect
 
 BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, broadcastTick)
+
 
 init()
 return M

@@ -288,10 +288,40 @@
     "chat": {
       "staffTag": "STAFF",
       "reputationTag": "RP",
-      "playerJoined": "{playerName} joined",
-      "playerLeft": "{playerName} left",
       "directMessage": "from {playerName}",
-      "directMessageSent": "to {playerName}"
+      "directMessageSent": "to {playerName}",
+      "events": {
+        "playerJoined": "{playerName} joined",
+        "playerLeft": "{playerName} left",
+        "voteEvents": {
+          "mapSwitch": "switching to map ",
+          "playerKick": "kicking ",
+          "raceStart": "starting race ",
+          "speedStart": "starting a speed game"
+        },
+        "vote": "{playerName} started a vote for {voteEvent}{suffix}",
+        "voteAccepted": "Vote for {voteEvent}{suffix} accepted",
+        "voteDenied": "Vote for {voteEvent}{suffix} denied: not enough voters",
+        "voteCancelled": "Vote for {voteEvent}{suffix} cancelled by moderation",
+        "gamemodes": {
+          "race": "Race",
+          "speed": "Speed game",
+          "hunter": "Hunter mode",
+          "derby": "Destruction derby",
+          "delivery": "Delivery Together"
+        },
+        "gamemodeStopReasons": {
+          "manual": "moderation",
+          "notEnoughParticipants": "not enough participants",
+          "timedout": "timed out"
+        },
+        "gamemodeStarted": "{gamemode} started",
+        "gamemodeEnded": "{gamemode} ended",
+        "gamemodeStopped": "{gamemode} stopped: {reason}",
+        "gamemodeJoin": "{playerName} joined {gamemode}",
+        "gamemodeLeave": "{playerName} left {gamemode}",
+        "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}"
+      }
     },
     "nametags": {
       "staffTag": "STAFF",

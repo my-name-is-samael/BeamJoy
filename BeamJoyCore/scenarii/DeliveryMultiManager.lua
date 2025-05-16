@@ -46,6 +46,10 @@ local function join(playerID, gameVehID, pos)
         nextTargetReward = isStarting,
         reached = false,
     }
+    BJCChat.sendChatEvent("chat.events.gamemodeJoin", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
@@ -107,6 +111,10 @@ local function leave(playerID)
 
     M.participants[playerID] = nil
     checkEnd()
+    BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
