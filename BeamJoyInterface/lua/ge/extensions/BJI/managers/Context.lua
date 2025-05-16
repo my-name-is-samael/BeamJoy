@@ -72,9 +72,9 @@ local M = {
     UserStats = {},
 
     -- CONFIG DATA
-    BJC = {},      -- BeamJoy config
+    BJC = {},     -- BeamJoy config
     ---@type table<string, BJIPlayer>
-    Players = {},  -- player list
+    Players = {}, -- player list
     ---@type table<string, {}>
     Maps = {},
     Scenario = {
@@ -225,13 +225,13 @@ local function loadPlayers()
             -- parse vehicles finalGameVehID
             table.forEach(player.vehicles or {}, function(veh)
                 veh.finalGameVehID = M.isSelf(player.playerID) and veh.gameVehID or
-                    BJI.Managers.Veh.getRemoteVehID(veh.gameVehID)
+                    BJI.Managers.Veh.getGameVehIDByRemoteVehID(veh.gameVehID)
             end)
 
             -- parse ai final IDs
             if not M.isSelf(player.playerID) then
                 player.ai = Table(player.ai):map(function(remoteVid)
-                    return BJI.Managers.Veh.getRemoteVehID(remoteVid)
+                    return BJI.Managers.Veh.getGameVehIDByRemoteVehID(remoteVid)
                 end):values()
             end
         end)
@@ -481,7 +481,6 @@ local function loadConfig()
 end
 
 local function loadDatabase()
-
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.DATABASE_VEHICLES, function(cacheData)
         if not M.Database then
             M.Database = {}
