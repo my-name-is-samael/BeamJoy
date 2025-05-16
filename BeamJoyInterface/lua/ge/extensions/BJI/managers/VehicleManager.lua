@@ -255,7 +255,7 @@ end
 
 ---@param callback fun(ctxt: TickContext)
 local function waitForVehicleSpawn(callback)
-    local delay = GetCurrentTimeMillis() + 100
+    local delay = GetCurrentTimeMillis() + 200
     local timeout = delay + 20000
     BJI.Managers.Async.task(function(ctxt)
         if ctxt.now >= timeout then

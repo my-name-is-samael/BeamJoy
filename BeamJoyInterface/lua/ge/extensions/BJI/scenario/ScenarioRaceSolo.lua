@@ -636,7 +636,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     local previousCam = ctxt.camera
     BJI.Managers.Veh.saveHome({ pos = S.startPosition.pos, rot = S.startPosition.rot })
     BJI.Managers.Veh.loadHome(function()
-        BJI.Managers.Veh.freeze(true)
+        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
         if table.includes({
                 BJI.Managers.Cam.CAMERAS.FREE,
                 BJI.Managers.Cam.CAMERAS.BIG_MAP,
