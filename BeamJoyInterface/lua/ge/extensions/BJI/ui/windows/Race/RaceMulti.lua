@@ -240,7 +240,8 @@ local function updateCache(ctxt)
                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
             local cells = {}
             if isSpec then
-                table.insert(cells, function(ctxt2)
+                table.insert(cells, function()
+                    local ctxt2 = BJI.Managers.Tick.getContext()
                     local target = BJI.Managers.Context.Players[lb.playerID]
                     local disabled = table.includes(W.scenario.race.finished, lb.playerID) or
                         table.includes(W.scenario.race.eliminated, lb.playerID) or
@@ -263,23 +264,11 @@ local function updateCache(ctxt)
                         :build()
                 end)
             end
-            table.insert(cells, function()
-                LineBuilder()
-                    :text(playerNames[i], color)
-                    :build()
-            end)
+            table.insert(cells, function() LineLabel(playerNames[i], color) end)
             if showLapCol then
-                table.insert(cells, function()
-                    LineBuilder()
-                        :text(W.cache.labels.lapCounter:var({ lap = lb.lap }), color)
-                        :build()
-                end)
+                table.insert(cells, function() LineLabel(W.cache.labels.lapCounter:var({ lap = lb.lap }), color) end)
             end
-            table.insert(cells, function()
-                LineBuilder()
-                    :text(W.cache.labels.wpCounter:var({ wp = lb.wp }), color)
-                    :build()
-            end)
+            table.insert(cells, function() LineLabel(W.cache.labels.wpCounter:var({ wp = lb.wp }), color) end)
             local playerTime = BJI.Utils.Common.RaceDelay(lb.time or 0)
             local diffLabel = i > 1 and W.cache.labels.wpDifference
                 :var({ wpDifference = firstPlayerCurrentWp - playerCurrentWP }) or ""
@@ -289,7 +278,7 @@ local function updateCache(ctxt)
             table.insert(cells, function()
                 if i == 1 then
                     -- first player
-                    LineBuilder():text(playerTime):build()
+                    LineLabel(playerTime)
                 else
                     -- next players
                     local line = LineBuilder()
