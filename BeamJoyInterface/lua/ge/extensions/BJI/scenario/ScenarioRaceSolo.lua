@@ -552,7 +552,9 @@ local function stopWithLoop()
         BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     if loop then
-        S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
+        BJI.Managers.Async.delayTask(function() -- wait for Tx.RaceSoloEnd received before sending Tx.RaceSoloStart
+            S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
+        end, 100)
     end
 end
 
