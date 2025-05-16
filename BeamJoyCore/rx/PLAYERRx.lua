@@ -29,10 +29,6 @@ function ctrl.explodeVehicle(ctxt)
 end
 
 function ctrl.UpdateAI(ctxt)
-    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
     local listVehIDs = ctxt.data[1]
     BJCPlayers.updateAI(ctxt.senderID, listVehIDs)
 end
