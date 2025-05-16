@@ -77,6 +77,10 @@ local function updateCache(ctxt)
     W.cache.showPreparation = W.scenario.state == W.scenario.STATES.PREPARATION
     W.cache.showGame = W.scenario.state == W.scenario.STATES.GAME
 
+    if not W.cache.showPreparation and not W.cache.showGame then
+        return
+    end
+
     W.cache.arenaName = W.labels.arenaName:var({ name = W.scenario.baseArena.name })
     W.cache.places = W.labels.places:var({ places = #W.scenario.baseArena.startPositions })
     W.cache.disableButtons = not BJI.Managers.Perm.canSpawnVehicle()
