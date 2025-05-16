@@ -201,6 +201,7 @@ returns array =
     <li>lap: number (current lap)</li>
     <li>wp: number (last lap waypoint reached)</li>
     <li>time: number (if first, race time)</li>
+    <li>lapStartTime: number (the lap start time)</li>
     <li>lapTime: number (if last wp was lap or finish, lap time)</li>
     <li>diff: number (if not first, last common waypoint difference with first player)</li>
 </ul>
@@ -252,6 +253,7 @@ local function parseLeaderboard()
             end
         end
 
+        local lapStartTime = lb[2][lap].start
         if M.settings.laps and M.settings.laps > 1 and
             wp == wpPerLap then
             -- lap / finish
@@ -263,18 +265,13 @@ local function parseLeaderboard()
             end
         end
 
-        local wpTime = time
-        if lap > 1 and wp > 0 then
-            wpTime = wpTime - lb[2][lap].start
-        end
-
         table.insert(res, {
             playerID = lb[1],
             lap = lap,
             wp = wp,
             time = time,
             lapTime = lapTime,
-            wpTime = wpTime,
+            lapStartTime = lapStartTime,
             diff = diff,
         })
     end
