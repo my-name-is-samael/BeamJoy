@@ -44,7 +44,6 @@ local M = {
         ON_UNLOAD = "on_unload",
         SLOW_TICK = "slow_tick",
         FAST_TICK = "fast_tick",
-        RENDER_TICK = "render_tick",
         CACHE_LOADED = "cache_loaded",
         UI_UPDATE_REQUEST = "ui_update_request",
     },
@@ -56,7 +55,7 @@ local M = {
 }
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
-    M.EVENTS.RENDER_TICK,
+    M.EVENTS.FAST_TICK,
 })
 
 ---@param events string[]|string
