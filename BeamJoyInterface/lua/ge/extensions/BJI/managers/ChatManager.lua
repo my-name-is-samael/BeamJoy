@@ -57,7 +57,6 @@ end
 ---@param eventKey string
 ---@param data table
 local function printChatEvent(eventKey, data, color)
-    LogWarn("printChatEvent")
     dump({ eventKey, data, color })
     local str = BJI.Managers.Lang.get(eventKey)
     data = Table(data):map(function(s)
@@ -65,7 +64,6 @@ local function printChatEvent(eventKey, data, color)
     end)
     str = string.var(str, data)
 
-    LogWarn(str)
     _printChat(nil, str, color)
 end
 
