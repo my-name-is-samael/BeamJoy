@@ -137,6 +137,22 @@ local function postSpawnActions(ctxt)
     end
 end
 
+---@param model string
+local function checkSpawnTypePermissions(model)
+    local vehModel = BJI.Managers.Veh.getAllVehicleConfigs(true, true)[model]
+    if not vehModel then
+        return false
+    end
+    if vehModel.Type == BJI.Managers.Veh.TYPES.TRAILER and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS) then
+        return false
+    elseif vehModel.Type == BJI.Managers.Veh.TYPES.PROP and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_PROPS) then
+        return false
+    end
+    return true
+end
+
 local function cloneCurrent(...)
     if not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
@@ -156,6 +172,12 @@ local function cloneCurrent(...)
             -- cannot spawn veh in current scenario
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
+        else
+            local current = BJI.Managers.Veh.getCurrentVehicle()
+            if current and not checkSpawnTypePermissions(current.jbeam) then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+                return -- invalid type spawn
+            end
         end
     end
 
@@ -180,6 +202,11 @@ local function spawnDefault(...)
                 -- cannot spawn veh in current scenario
                 BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
                 return
+            end
+            local defaultVeh = BJI.Managers.Veh.getDefaultModelAndConfig()
+            if defaultVeh and not checkSpawnTypePermissions(defaultVeh.model) then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+                return -- invalid type spawn
             end
         end
     end
@@ -208,13 +235,18 @@ local function spawnNewVehicle(model, opts)
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
+
+        if not checkSpawnTypePermissions(model) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+            return -- invalid type spawn
+        end
     end
 
     BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnNewVehicle(model, opts)
 end
 
-local function replaceVehicle(...)
+local function replaceVehicle(model, opt, otherVeh)
     if BJI.Managers.Veh.isCurrentVehicleOwn() then
         if not BJI.Managers.Scenario.canReplaceVehicle() then
             -- cannot update veh in current scenario
@@ -230,11 +262,14 @@ local function replaceVehicle(...)
             -- cannot spawn veh in current scenario
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
+        elseif not checkSpawnTypePermissions(model) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+            return -- invalid type spawn
         end
     end
 
     BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
-    return M.baseFunctions.replaceVehicle(...)
+    return M.baseFunctions.replaceVehicle(model, opt, otherVeh)
 end
 
 local function removeCurrent(...)
