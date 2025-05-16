@@ -174,9 +174,8 @@ local function onUnload(ctxt)
         BJI.Managers.Veh.freeze(false, veh.gameVehID)
         if S.preRaceCam then
             BJI.Managers.Cam.setCamera(S.preRaceCam)
-        elseif ctxt.veh and ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-            ctxt.camera = BJI.Managers.Cam.CAMERAS.ORBIT
-            BJI.Managers.Cam.setCamera(ctxt.camera)
+        elseif ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
         end
         break
     end
@@ -601,49 +600,54 @@ end
 
 local function onFinishReached()
     BJI.Tx.scenario.RaceMultiUpdate(S.CLIENT_EVENTS.FINISH_REACHED)
-
-    local racePosition
-    for i, lb in ipairs(S.race.leaderboard) do
-        if BJI.Managers.Context.isSelf(lb.playerID) then
-            racePosition = i
-            break
+    local postFinishTimeout = GetCurrentTimeMillis() + BJI.Managers.Context.BJC.Race.FinishTimeout * 1000
+    BJI.Managers.Async.task(function()
+        return S.isFinished() -- wait for server validating finish before showing anything
+    end, function()
+        local racePosition
+        for i, lb in ipairs(S.race.leaderboard) do
+            if BJI.Managers.Context.isSelf(lb.playerID) then
+                racePosition = i
+                break
+            end
         end
-    end
-    local isLast = racePosition == #S.race.leaderboard
+        local isLast = racePosition == #S.race.leaderboard
 
-    local postFinishTimeout = BJI.Managers.Context.BJC.Race.FinishTimeout * 1000
-    if not isLast then
-        -- multiplayer and not last
-        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-        BJI.Managers.Veh.freeze(true)
+        if not isLast then
+            -- multiplayer and not last
+            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+            BJI.Managers.Veh.freeze(true)
 
-        local isLappedRacer = false
-        if S.settings.laps and S.settings.laps > 1 then
-            for i = racePosition + 1, #S.race.leaderboard do
-                local lb = S.race.leaderboard[i]
-                if not BJI.Managers.Context.isSelf(lb.playerID) and
-                    not table.includes(S.race.eliminated, lb.playerID) and
-                    not table.includes(S.race.finished, lb.playerID) then
-                    if lb.lap < S.settings.laps then
-                        isLappedRacer = true
-                        break
+            local isLappedRacer = false
+            if S.settings.laps and S.settings.laps > 1 then
+                for i = racePosition + 1, #S.race.leaderboard do
+                    local lb = S.race.leaderboard[i]
+                    if not BJI.Managers.Context.isSelf(lb.playerID) and
+                        not table.includes(S.race.eliminated, lb.playerID) and
+                        not table.includes(S.race.finished, lb.playerID) then
+                        if lb.lap < S.settings.laps then
+                            isLappedRacer = true
+                            break
+                        end
                     end
                 end
             end
-        end
-        BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.finishFlashMulti")
-            :var({ place = racePosition }), 3, false)
-        BJI.Managers.Async.delayTask(function()
-            if isLappedRacer then
-                BJI.Managers.Veh.deleteAllOwnVehicles()
-            else
-                for _, v in ipairs(BJI.Managers.Veh.getMPOwnVehicles()) do
-                    BJI.Managers.Veh.freeze(false, v.gameVehicleID)
+
+            BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.finishFlashMulti")
+                :var({ place = racePosition }), 3, false)
+
+            BJI.Managers.Async.programTask(function()
+                if isLappedRacer then
+                    BJI.Managers.Veh.deleteAllOwnVehicles()
+                else
+                    for _, v in ipairs(BJI.Managers.Veh.getMPOwnVehicles()) do
+                        BJI.Managers.Veh.freeze(false, v.gameVehicleID)
+                    end
+                    specRandomRacer()
                 end
-                specRandomRacer()
-            end
-        end, postFinishTimeout, "BJIRacePostFinish")
-    end
+            end, postFinishTimeout, "BJIRacePostFinish")
+        end
+    end)
 end
 
 -- prepare complete race steps list
