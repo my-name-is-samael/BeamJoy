@@ -42,6 +42,10 @@ local function tryUpdate()
     end
 end
 
+---@param alpha number 0-1
+---@param spec? boolean
+---@param idle? boolean
+---@return BJIColor
 local function getNametagColor(alpha, spec, idle)
     local color
     if spec then
@@ -56,6 +60,11 @@ local function getNametagColor(alpha, spec, idle)
     color.a = alpha
     return color
 end
+
+---@param alpha number 0-1
+---@param spec? boolean
+---@param idle? boolean
+---@return BJIColor
 local function getNametagBgColor(alpha, spec, idle)
     local color
     if spec then
@@ -107,7 +116,7 @@ local function renderAI(ctxt, veh)
     renderSpecs(ctxt, veh)
 end
 
-local function renderTrailer(ctxt, veh)
+local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
     local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
 
@@ -148,8 +157,8 @@ local function renderTrailer(ctxt, veh)
             tagPos.z = tagPos.z + zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
-                getNametagColor(alpha, false, not currentVeh),
-                getNametagBgColor(alpha, false, not currentVeh),
+                forcedTextColor or getNametagColor(alpha, false, not currentVeh),
+                forcedBgColor or getNametagBgColor(alpha, false, not currentVeh),
                 false)
         end
 
@@ -177,15 +186,16 @@ local function renderTrailer(ctxt, veh)
             end
             tagPos.z = tagPos.z + zOffset
 
-            BJI.Utils.ShapeDrawer.Text(label, tagPos, getNametagColor(alpha, ownerSpectating, not ownerSpectating),
-                getNametagBgColor(alpha, ownerSpectating, not ownerSpectating),
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+                forcedTextColor or getNametagColor(alpha, ownerSpectating, not ownerSpectating),
+                forcedBgColor or getNametagBgColor(alpha, ownerSpectating, not ownerSpectating),
                 false)
         end
         renderSpecs(ctxt, veh)
     end
 end
 
-local function renderVehicle(ctxt, veh)
+local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
     local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
     if not v then return end
 
@@ -211,8 +221,8 @@ local function renderVehicle(ctxt, veh)
             tagPos.z = tagPos.z + v:getInitialHeight()
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
-                getNametagColor(alpha, false, not currentVeh),
-                getNametagBgColor(alpha, false, not currentVeh),
+                forcedTextColor or getNametagColor(alpha, false, not currentVeh),
+                forcedBgColor or getNametagBgColor(alpha, false, not currentVeh),
                 false)
 
             renderSpecs(ctxt, veh)
@@ -253,8 +263,8 @@ local function renderVehicle(ctxt, veh)
         tagPos.z = tagPos.z + zOffset
 
         BJI.Utils.ShapeDrawer.Text(label, tagPos,
-            getNametagColor(alpha, false, not ownerDriving),
-            getNametagBgColor(alpha, false, not ownerDriving),
+            forcedTextColor or getNametagColor(alpha, false, not ownerDriving),
+            forcedBgColor or getNametagBgColor(alpha, false, not ownerDriving),
             false)
 
         renderSpecs(ctxt, veh)
@@ -289,16 +299,19 @@ local function renderTick(ctxt)
         for _, veh in pairs(BJI.Managers.Veh.getMPVehicles()) do
             if not veh.isDeleted and veh.isSpawned then
                 local vehType = BJI.Managers.Veh.getType(veh.jbeam)
-                if vehType ~= "Prop" and BJI.Managers.Scenario.doShowNametag({
+                if vehType ~= "Prop" then
+                    local scenarioShow, forcedTextColor, forcedBgColor = BJI.Managers.Scenario.doShowNametag({
                         gameVehicleID = veh.gameVehicleID,
                         ownerID = veh.ownerID
-                    }) then
-                    if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
-                        pcall(renderAI, ctxt, veh)
-                    elseif vehType == "Trailer" then
-                        pcall(renderTrailer, ctxt, veh)
-                    else
-                        pcall(renderVehicle, ctxt, veh)
+                    })
+                    if scenarioShow then
+                        if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
+                            pcall(renderAI, ctxt, veh)
+                        elseif vehType == "Trailer" then
+                            pcall(renderTrailer, ctxt, veh, forcedTextColor, forcedBgColor)
+                        else
+                            pcall(renderVehicle, ctxt, veh, forcedTextColor, forcedBgColor)
+                        end
                     end
                 end
             end

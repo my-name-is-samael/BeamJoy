@@ -245,11 +245,13 @@ local function doShowNametag(vehData)
     end
 end
 
+---@param vehData {gameVehicleID: integer, ownerID: integer}
+---@return boolean, BJIColor?, BJIColor?
 local function doShowNametagsSpecs(vehData)
     if _curr().doShowNametagsSpecs then
         return _curr().doShowNametagsSpecs(vehData)
     else
-        return false
+        return false, nil, nil
     end
 end
 
