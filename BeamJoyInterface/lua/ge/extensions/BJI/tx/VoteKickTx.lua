@@ -1,15 +1,21 @@
-local event = BJI_EVENTS.VOTEKICK
+---@param TX BJITX
+return function(TX)
+    local event = BJI.CONSTANTS.EVENTS.VOTEKICK
+    local votekick = {
+        _name = "votekick"
+    }
 
-BJITx.votekick = {}
+    function votekick.start(targetID)
+        TX._send(event.EVENT, event.TX.START, targetID)
+    end
 
-function BJITx.votekick.start(targetID)
-    BJITx._send(event.EVENT, event.TX.START, targetID)
-end
+    function votekick.vote()
+        TX._send(event.EVENT, event.TX.VOTE)
+    end
 
-function BJITx.votekick.vote()
-    BJITx._send(event.EVENT, event.TX.VOTE)
-end
+    function votekick.stop()
+        TX._send(event.EVENT, event.TX.STOP)
+    end
 
-function BJITx.votekick.stop()
-    BJITx._send(event.EVENT, event.TX.STOP)
+    return votekick
 end

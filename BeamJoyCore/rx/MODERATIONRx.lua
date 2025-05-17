@@ -5,7 +5,7 @@ function ctrl.mute(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.MUTE) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.toggleMute(ctxt.senderID, targetName, reason)
+    BJCPlayers.toggleMute(ctxt, targetName, reason)
 end
 
 --[[

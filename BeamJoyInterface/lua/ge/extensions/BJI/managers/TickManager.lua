@@ -1,55 +1,96 @@
+---@class TickContext
+---@field now integer
+---@field user BJIUser
+---@field group BJIGroup
+---@field veh? userdata|any
+---@field vehPosRot? BJIPositionRotation
+---@field isOwner boolean
+---@field vehData? BJIVehicleData
+---@field camera string
+
+---@class SlowTickContext : TickContext
+---@field serverTime integer
+---@field cachesHashes table<string, string>
+---@field ToD? number
+
+---@class BJIManagerTick : BJIManager
 local M = {
-    _name = "BJITick",
+    _name = "Tick",
+
     timeOffsets = {}, -- time offsets in sec
 }
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
-local function getContext()
-    local veh = BJIVeh.getCurrentVehicle()
-    local isOwner = veh and BJIVeh.isVehicleOwn(veh:getID())
+
+local lastServerData = nil
+
+---@param slow? boolean
+---@return TickContext
+local function getContext(slow)
+    local veh = BJI.Managers.Veh.getCurrentVehicle()
+    local isOwner = veh and BJI.Managers.Veh.isVehicleOwn(veh:getID())
     local vehData
     if isOwner then
-        for _, v in pairs(BJIContext.User.vehicles) do
+        for _, v in pairs(BJI.Managers.Context.User.vehicles) do
             if v.gameVehID == veh:getID() then
                 vehData = v
                 break
             end
         end
     end
-    return {
+    local ctxt = {
         now = GetCurrentTimeMillis(),
-        user = BJIContext.User,
-        group = BJIPerm.Groups[BJIContext.User.group],
+        user = BJI.Managers.Context.User,
+        group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
         veh = veh,
-        vehPosRot = veh and BJIVeh.getPositionRotation(veh) or nil,
+        vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil,
         isOwner = isOwner,
         vehData = vehData,
-        camera = BJICam.getCamera(),
+        camera = BJI.Managers.Cam.getCamera(),
     }
+    if slow and lastServerData then
+        return table.assign(ctxt, lastServerData)
+    end
+    return ctxt
 end
 
-local function client()
-    -- ClientTick (each render tick)
-
-    if BJIContext.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
-        TriggerBJIEvent("renderTick", getContext())
+local lastFastTickTime = 0
+---@param ctxt TickContext
+local function processFastTick(ctxt)
+    if ctxt.now >= lastFastTickTime + 250 then
+        lastFastTickTime = ctxt.now
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.FAST_TICK, ctxt)
     end
 end
 
-local function server(serverData)
-    -- ServerTick (~1s)
+-- ClientTick (each render tick)
+local function client()
+    if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
+        local ctxt = getContext()
+        Table(BJI.Managers):forEach(function(m)
+            if m.renderTick then
+                m.renderTick(ctxt)
+            end
+        end)
+        processFastTick(ctxt)
+    end
+end
 
+-- ServerTick (~1s)
+local function server(serverData)
     if type(serverData.serverTime) == "number" then
-        -- local offsetMs = (serverData.serverTime - GetCurrentTime()) * 1000
         table.insert(M.timeOffsets, serverData.serverTime - GetCurrentTime())
         if #M.timeOffsets > 100 then
             table.remove(M.timeOffsets, 1)
         end
     end
 
-    local ctxt = getContext()
-    tdeepassign(ctxt, serverData or {})
-    TriggerBJIEvent("slowTick", ctxt)
+    if serverData.ToD then
+        BJI.Managers.Env.tryApplyTimeFromServer(serverData.ToD)
+    end
+
+    lastServerData = serverData
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SLOW_TICK)
 end
 
 local function getAvgOffsetMs()
@@ -62,7 +103,7 @@ local function getAvgOffsetMs()
         count = count + offset
     end
     local avgSec = count / #M.timeOffsets
-    return Round(avgSec * 1000, 3)
+    return math.round(avgSec * 1000, 3)
 end
 
 local function applyTimeOffset(timeSec)
@@ -80,5 +121,4 @@ M.server = server
 M.getAvgOffsetMs = getAvgOffsetMs
 M.applyTimeOffset = applyTimeOffset
 
-RegisterBJIManager(M)
 return M

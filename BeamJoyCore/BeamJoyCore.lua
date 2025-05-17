@@ -18,16 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJCVERSION = "1.1.6"
+BJCVERSION = "1.2.0"
 
 BJCPluginPath = debug.getinfo(1).source:gsub("\\", "/")
 BJCPluginPath = BJCPluginPath:sub(1, (BJCPluginPath:find("BeamJoyCore.lua")) - 2)
 
+require("utils/Lua")
+require("utils/Math")
 require("utils/String")
 require("utils/Table")
-require("utils/LUA")
-require("utils/MATH")
-SHA = require("utils/sha2")
+SHA = require("utils/SHA")
 JSON = require("utils/JSON")
 TOML = require("utils/TOML")
 
@@ -36,21 +36,28 @@ require("utils/Common")
 
 SetLogType("BJC", CONSOLE_COLORS.FOREGROUNDS.LIGHT_BLUE)
 
-local _bjcManagers = {}
-function RegisterBJCManager(manager)
-    table.insert(_bjcManagers, manager)
+local function printLogo()
+    -- https://patorjk.com/software/taag/#p=display&f=Big%20Money-se&t=BeamJoy1.2.0
+    print([[
+
+ _______                                        _____
+|       \                                      |     \
+| $$$$$$$\  ______    ______   ______ ____      \$$$$$  ______   __    __
+| $$__/ $$ /      \  |      \ |      \    \       | $$ /      \ |  \  |  \
+| $$    $$|  $$$$$$\  \$$$$$$\| $$$$$$\$$$$\ __   | $$|  $$$$$$\| $$  | $$
+| $$$$$$$\| $$    $$ /      $$| $$ | $$ | $$|  \  | $$| $$  | $$| $$  | $$
+| $$__/ $$| $$$$$$$$|  $$$$$$$| $$ | $$ | $$| $$__| $$| $$__/ $$| $$__/ $$
+| $$    $$ \$$     \ \$$    $$| $$ | $$ | $$ \$$    $$ \$$    $$ \$$    $$
+ \$$$$$$$   \$$$$$$$  \$$$$$$$ \$$  \$$  \$$  \$$$$$$   \$$$$$$  _\$$$$$$$
+                                                                |  \__| $$
+                                                                 \$$    $$
+                                                                  \$$$$$$]])
 end
 
-function TriggerBJCManagers(eventName, ...)
-    for _, manager in ipairs(_bjcManagers) do
-        if type(manager[eventName]) == "function" then
-            manager[eventName](...)
-        end
-    end
-end
+local function loadBeamJoy()
+    Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
 
-function _G.onInit()
-    Log(svar("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
+    BJCEvents = require("managers/EventManager")
 
     BJCAsync = require("managers/AsyncManager")
     BJCDefaults = require("managers/Defaults")
@@ -66,10 +73,8 @@ function _G.onInit()
     BJCMaps = require("managers/MapsManager")
     BJCCommand = require("managers/CommandManager")
     BJCVote = require("managers/VotesManager")
-    --[[BJCTx]]
-    require("tx/Tx")
+    require("tx/Tx") ---[[BJCTx]]
     BJCEnvironment = require("managers/EnvironmentManager")
-    BJCTickManager = require("managers/TickManager")
     BJCChatCommand = require("managers/ChatCommandManager")
     BJCChat = require("managers/ChatManager")
 
@@ -77,5 +82,14 @@ function _G.onInit()
 
     require("rx/Rx")
 
-    Log(svar("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
+    printLogo()
+    Log(string.var("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
+    Log(BJCLang.getConsoleMessage("common.startMessage"))
+end
+
+function _G.onInit()
+    local ok, err = pcall(loadBeamJoy)
+    if not ok then
+        LogError(string.var("BeamJoyCore failed to load: {1}", { err }))
+    end
 end

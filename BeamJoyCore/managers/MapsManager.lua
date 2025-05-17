@@ -4,7 +4,7 @@ local M = {
 
 local function init()
     M.Data = BJCDefaults.maps()
-    tdeepassign(M.Data, BJCDao.maps.findAll())
+    table.assign(M.Data, BJCDao.maps.findAll())
 end
 
 --[[
@@ -60,7 +60,7 @@ end
 
 local function setMapDropSizeRatio(mapName, ratio)
     local map = M.Data[mapName]
-    if not map or type(ratio) ~= "number" then
+    if not map or (type(ratio) ~= "number" and ratio ~= nil) then
         error({ key = "rx.errors.invalidData" })
     end
 
@@ -141,6 +141,4 @@ M.getCacheMaps = getCacheMaps
 M.getCacheMapsHash = getCacheMapsHash
 
 init()
-
-RegisterBJCManager(M)
 return M

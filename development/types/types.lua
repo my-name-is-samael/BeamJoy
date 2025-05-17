@@ -1,0 +1,26 @@
+---@class BJIManager
+---@field _name string
+---@field onLoad? fun()
+
+---@class BJIScenario
+---@field _name string
+---@field _key string
+---@field _isSolo boolean
+---@field _skip? boolean
+
+---@class BJIWindow
+---@field name string
+---@field getState fun(ctxt): boolean
+---@field onLoad? fun()
+---@field onUnload? fun()
+---@field menu? fun(ctxt: TickContext)
+---@field header? fun(ctxt: TickContext)
+---@field body fun(ctxt: TickContext)
+---@field footer? fun(ctxt: TickContext)
+---@field footerLines? fun(ctxt: TickContext): integer
+---@field flags? number[]
+---@field onClose? fun()
+---@field w? integer
+---@field h? integer
+---@field x? integer
+---@field y? integer

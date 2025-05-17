@@ -1405,9 +1405,9 @@ end
 table.sort(ICONS_FLAT, function(a, b) return a:lower() < b:lower() end)
 
 function GetIcon(icon)
-    local res = BJIContext.GUI.icons[icon]
+    local res = BJI.Managers.Context.GUI.icons[icon]
     if not res then
-        LogError(svar("Invalid icon '{1}'", { icon }))
+        LogError(string.var("Invalid icon '{1}'", { icon }))
         return
     end
 
@@ -1415,10 +1415,10 @@ function GetIcon(icon)
 end
 
 function GetIconSize(big)
-    return Round((big and 32 or 20) * (BJIContext and BJIContext.UserSettings.UIScale or 1))
+    return math.round((big and 32 or 20) * BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
 end
 
 ICON_BTN_MARGIN = 10
 function GetBtnIconSize(big)
-    return GetIconSize(big) + ICON_BTN_MARGIN * (BJIContext and BJIContext.UserSettings.UIScale or 1)
+    return GetIconSize(big) + math.round(ICON_BTN_MARGIN * BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
 end

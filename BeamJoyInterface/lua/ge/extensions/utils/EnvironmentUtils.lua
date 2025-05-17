@@ -1,5 +1,6 @@
 local utils = {}
 
+---@return table<string, {step: number, stepFast?: number, min: number, max: number}>
 function utils.numericData()
     return {
         -- SUN
@@ -40,6 +41,7 @@ function utils.numericData()
         dropSize = { step = 1, stepFast = 10, min = 0, max = 2 },
         dropMinSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
         dropMaxSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
+        dropSizeRatio = { step = .001, min = .001 },
         -- GRAVITY
         gravityRate = { step = .5, stepFast = 10, min = -280, max = 10 },
         --TEMPERATURE
@@ -52,6 +54,7 @@ function utils.numericData()
     }
 end
 
+---@return {key: string, value: number, default?: boolean}[]
 function utils.gravityPresets()
     return {
         { key = "zero",    value = 0, },
@@ -68,6 +71,7 @@ function utils.gravityPresets()
     }
 end
 
+---@return {key: string, value: number, default?: boolean}[]
 function utils.speedPresets()
     return {
         { key = "slowextreme", value = 0.01 },
@@ -82,6 +86,7 @@ function utils.speedPresets()
     }
 end
 
+---@return {label: string, ToD: number, icon: string}[]
 function utils.timePresets()
     return {
         { label = "dawn",     ToD = .791, icon = ICONS.brightness_3 },
@@ -91,6 +96,7 @@ function utils.timePresets()
     }
 end
 
+---@return {label: string, keys: table, icon: string}[]
 function utils.weatherPresets()
     return {
         {

@@ -1,7 +1,9 @@
 local ctrl = {}
 
 local function require(ctxt)
-    BJCCache.getCache(ctxt, ctxt.data[1])
+    Table(ctxt.data):forEach(function(cacheType)
+        BJCCache.getCache(ctxt, cacheType)
+    end)
 end
 
 ctrl.require = require

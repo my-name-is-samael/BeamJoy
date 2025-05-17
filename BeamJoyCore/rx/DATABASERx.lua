@@ -1,6 +1,14 @@
 local ctrl = {}
 
-function ctrl.Vehicle(ctxt)
+function ctrl.playersGet(ctxt)
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.DATABASE_PLAYERS) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    BJCTx.database.playersGet(ctxt.senderID, BJCPlayers.getDatabasePlayers())
+end
+
+function ctrl.vehicle(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.DATABASE_VEHICLES) then
         error({ key = "rx.errors.insufficientPermissions" })
     end

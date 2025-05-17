@@ -25,7 +25,7 @@ local function init()
 end
 
 function BJCDao._saveFile(filePath, data)
-    local tempFilePath = svar("{1}.temp", { filePath })
+    local tempFilePath = string.var("{1}.temp", { filePath })
     local tmpfile, error = io.open(tempFilePath, "w")
     if tmpfile and not error then
         tmpfile:write(JSON.stringify(data))

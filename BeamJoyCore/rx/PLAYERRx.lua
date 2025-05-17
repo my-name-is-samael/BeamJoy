@@ -4,11 +4,6 @@ function ctrl.connected(ctxt)
     BJCPlayers.onPlayerConnect(ctxt.senderID)
 end
 
-function ctrl.settings(ctxt)
-    local key, value = ctxt.data[1], ctxt.data[2]
-    BJCPlayers.settings(ctxt.senderID, key, value)
-end
-
 function ctrl.switchVehicle(ctxt)
     local gameVehID = tonumber(ctxt.data[1])
     BJCPlayers.onVehicleSwitched(ctxt.senderID, gameVehID)
@@ -34,10 +29,6 @@ function ctrl.explodeVehicle(ctxt)
 end
 
 function ctrl.UpdateAI(ctxt)
-    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
     local listVehIDs = ctxt.data[1]
     BJCPlayers.updateAI(ctxt.senderID, listVehIDs)
 end

@@ -1,6 +1,8 @@
+local C = {}
+
 -- SHARED CONSTANTS BETWEEN SERVER & CLIENT
 
-BJI_GROUP_NAMES = {
+C.GROUP_NAMES = {
     NONE = "none",
     PLAYER = "player",
     MOD = "mod",
@@ -8,7 +10,7 @@ BJI_GROUP_NAMES = {
     OWNER = "owner",
 }
 
-BJI_EVENTS = {
+C.EVENTS = {
     SERVER_EVENT = "BJCEvent",
     SERVER_EVENT_PARTS = "BJCEventData",
     CACHE = {
@@ -34,7 +36,6 @@ BJI_EVENTS = {
         },
         TX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",
@@ -77,9 +78,13 @@ BJI_EVENTS = {
     },
     DATABASE = {
         EVENT = "BJCDatabase",
-        RX = {},
+        RX = {
+            PLAYERS_GET = "playersGet",
+            PLAYERS_UPDATED = "playersUpdated",
+        },
         TX = {
-            VEHICLE = "Vehicle",
+            PLAYERS_GET = "playersGet",
+            VEHICLE = "vehicle",
         },
     },
     VOTEKICK = {
@@ -173,7 +178,9 @@ BJI_EVENTS = {
     }
 }
 
-BJI_ENV_TYPES = {
+-- BJI Constants
+
+C.ENV_TYPES = {
     SUN = "sun",
     WEATHER = "weather",
     GRAVITY = "gravity",
@@ -181,9 +188,19 @@ BJI_ENV_TYPES = {
     SPEED = "speed"
 }
 
-BJI_ENERGY_STATION_TYPES = {
+C.ENERGY_STATION_TYPES = {
     GASOLINE = "gasoline",
     DIESEL = "diesel",
     KEROSINE = "kerosine",
     ELECTRIC = "electricEnergy",
 }
+
+---@type table<string, {key: string, order: integer}>
+C.RACES_RESPAWN_STRATEGIES = {
+    ALL_RESPAWNS = { key = "all", order = 1 },
+    NO_RESPAWN = { key = "norespawn", order = 2 },
+    LAST_CHECKPOINT = { key = "lastcheckpoint", order = 3 },
+    STAND = { key = "stand", order = 4 },
+}
+
+return C
