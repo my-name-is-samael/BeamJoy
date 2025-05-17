@@ -22,8 +22,11 @@ local M = {
 
 -- CONTEXT SHARED WITH ALL MANAGERS / RENDERS
 
+local lastServerData = nil
+
+---@param slow? boolean
 ---@return TickContext
-local function getContext()
+local function getContext(slow)
     local veh = BJI.Managers.Veh.getCurrentVehicle()
     local isOwner = veh and BJI.Managers.Veh.isVehicleOwn(veh:getID())
     local vehData
@@ -35,7 +38,7 @@ local function getContext()
             end
         end
     end
-    return {
+    local ctxt = {
         now = GetCurrentTimeMillis(),
         user = BJI.Managers.Context.User,
         group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
@@ -45,6 +48,10 @@ local function getContext()
         vehData = vehData,
         camera = BJI.Managers.Cam.getCamera(),
     }
+    if slow and lastServerData then
+        return table.assign(ctxt, lastServerData)
+    end
+    return ctxt
 end
 
 local lastFastTickTime = 0
@@ -82,8 +89,8 @@ local function server(serverData)
         BJI.Managers.Env.tryApplyTimeFromServer(serverData.ToD)
     end
 
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SLOW_TICK,
-        table.assign(getContext(), serverData or {}))
+    lastServerData = serverData
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SLOW_TICK)
 end
 
 local function getAvgOffsetMs()
