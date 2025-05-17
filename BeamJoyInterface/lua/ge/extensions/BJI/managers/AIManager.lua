@@ -25,7 +25,11 @@ local function removeVehicles()
 end
 
 local function toggle(state)
-    M.state = state ~= nil and state or not M.state
+    if state ~= nil then
+        M.state = state
+    else
+        M.state = not M.state
+    end
     if not M.state and M.isTrafficSpawned() then
         M.removeVehicles()
     end
@@ -78,8 +82,10 @@ end
 local function updateVehicle(gameVehID, aiState)
     local state = aiState ~= "disabled"
     if state and not M.selfVehs:includes(gameVehID) then
+        LogWarn("Add AI vehicle")
         M.selfVehs:insert(gameVehID)
     elseif not state and M.selfVehs:includes(gameVehID) then
+        LogWarn("Remove AI vehicle")
         M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
 end
@@ -148,7 +154,7 @@ M.isTrafficSpawned = isTrafficSpawned
 M.removeVehicles = removeVehicles
 M.toggle = toggle
 
-M.updateVehicles = updateAllAIVehicles
+M.updateAllAIVehicles = updateAllAIVehicles
 M.isAIVehicle = isAIVehicle
 
 M.onLoad = onLoad
