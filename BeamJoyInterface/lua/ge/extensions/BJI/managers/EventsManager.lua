@@ -52,6 +52,8 @@ local M = {
     listeners = {},
     ---@type {event: string, data: table}[]
     queued = {},
+    ---@type fun(ctxt: SlowTickContext)[]
+    slowQueued = {},
 }
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
@@ -117,11 +119,25 @@ local function trigger(events, ...)
     end
 
     for _, event in ipairs(events) do
-        table.insert(M.queued, { event = event, data = { ... } })
+        if event == M.EVENTS.SLOW_TICK then
+            Table(M.listeners[M.EVENTS.SLOW_TICK])
+                :forEach(function(fn)
+                    table.insert(M.slowQueued, fn)
+                end)
+        else
+            table.insert(M.queued, { event = event, data = { ... } })
+        end
     end
 end
 
 local function renderTick(ctxt)
+    if #M.slowQueued > 0 then
+        local fn = table.remove(M.slowQueued, 1)
+        local ok, err = pcall(fn, BJI.Managers.Tick.getContext(true))
+        if not ok then
+            LogError(string.var("Error executing slow tick : {1}", { err }), M._name)
+        end
+    end
     while #M.queued > 0 do
         ---@type {event: string, data: table|nil}
         local el = table.remove(M.queued, 1)
