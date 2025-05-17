@@ -501,15 +501,22 @@ local function drawListPlayers(ctxt, cache)
             if not player.showModeration and not player.showVehicles then
                 Indent(1)
                 LineBuilder()
-                    :text(player.playerName, player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-                    :text(player.nameSuffix, player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+                    :text(player.playerName,
+                        player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+                    :text(player.nameSuffix,
+                        player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
                     :build()
                 drawHeaderActions(player, false)
                 Indent(-1)
             else
                 AccordionBuilder(0)
-                    :label(string.var("{1} {2}", { player.playerName, player.nameSuffix }),
+                    :label(player.playerName,
                         player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+                    :commonStart(function()
+                        LineBuilder(true):text(player.nameSuffix,
+                            player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+                            :build()
+                    end)
                     :closedBehavior(
                         function()
                             drawHeaderActions(player, false)
