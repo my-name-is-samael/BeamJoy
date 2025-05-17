@@ -96,6 +96,7 @@ local function loadUser()
         BJI.Managers.Async.task(function()
             return BJI.Managers.Cache.areBaseCachesFirstLoaded()
         end, function()
+            ---@type BJIGroup
             local group = BJI.Managers.Perm.Groups[M.User.group]
             BJI.Managers.AI.toggle(group.canSpawnAI)
             if not group.canSpawn and BJI.Managers.Veh.hasVehicle() then
@@ -250,7 +251,7 @@ local function loadPlayers()
         end
 
         -- update AI vehicles (to hide their nametags)
-        BJI.Managers.AI.updateVehicles(Table(M.Players)
+        BJI.Managers.AI.updateAllAIVehicles(Table(M.Players)
             :filter(function(player) return #player.ai > 0 end)
             :map(function(player) return player.ai end)
             :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table()))
