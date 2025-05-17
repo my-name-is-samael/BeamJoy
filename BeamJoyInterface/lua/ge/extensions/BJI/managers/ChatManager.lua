@@ -57,7 +57,6 @@ end
 ---@param eventKey string
 ---@param data table
 local function printChatEvent(eventKey, data, color)
-    dump({ eventKey, data, color })
     local str = BJI.Managers.Lang.get(eventKey)
     data = Table(data):map(function(s)
         return BJI.Managers.Lang.get(tostring(s), tostring(s))
