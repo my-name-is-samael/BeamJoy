@@ -1309,12 +1309,12 @@ end
 ---@param ctxt TickContext
 local function forceVehsSync(ctxt)
     local listIDs = Table(ctxt.user.vehicles)
-        :filter(function(v) return M.getVehicleObject(v.gameVehID) ~= nil end)
+        :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
         :map(function(v) return v.gameVehID end)
         :values()
         :addAll(
             Table(BJI.Managers.Context.Players[ctxt.user.playerID].vehicles)
-            :filter(function(v) return M.getVehicleObject(v.gameVehID) ~= nil end)
+            :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
             :map(function(v) return v.gameVehID end)
             :values(),
             true)
