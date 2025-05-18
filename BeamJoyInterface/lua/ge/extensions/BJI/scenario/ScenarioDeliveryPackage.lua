@@ -94,7 +94,7 @@ local function onLoad(ctxt)
             initDelivery()
             BJI.Tx.scenario.DeliveryPackageStart()
             BJI.Managers.Message.flash("BJIDeliveryPackageStart", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3,
-            false)
+                false)
             init = true
         end
     end
@@ -139,16 +139,12 @@ end
 
 local function onGarageRepair()
     S.nextResetGarage = true
-    local veh
-    for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-        if v.gameVehID == BJI.Managers.Context.User.currentVehicle then
-            veh = v
-            break
-        end
-    end
-    if veh then
-        S.tanksSaved = table.clone(veh.tanks)
-    end
+    Table(BJI.Managers.Context.User.vehicles)
+        :find(function(v)
+            return v.gameVehID == BJI.Managers.Context.User.currentVehicle
+        end, function(v)
+            S.tanksSaved = table.clone(v.tanks)
+        end)
 end
 
 local function onStopDelivery()

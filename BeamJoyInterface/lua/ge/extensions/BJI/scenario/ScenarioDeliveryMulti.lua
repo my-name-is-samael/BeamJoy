@@ -56,17 +56,10 @@ local function onLoad(ctxt)
     BJI.Managers.RaceWaypoint.resetAll()
 end
 
--- player vehicle spawn hook
-local function onVehicleSpawned(gameVehID)
-    --[[if BJI.Managers.Veh.isVehicleOwn(gameVehID) then
-        BJI.Tx.scenario.DeliveryMultiLeave()
-    end]]
-end
-
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJI.Managers.Context.User.currentVehicle then
-        return
+    if gameVehID ~= S.participants[BJI.Managers.Context.User.playerID].gameVehID then
+        return -- is not player delivery vehicle
     elseif S.nextResetGarage then
         if S.tanksSaved then
             for tankName, tank in pairs(S.tanksSaved) do
@@ -102,16 +95,12 @@ end
 -- player garage repair hook
 local function onGarageRepair()
     S.nextResetGarage = true
-    local veh
-    for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-        if v.gameVehID == BJI.Managers.Context.User.currentVehicle then
-            veh = v
-            break
-        end
-    end
-    if veh then
-        S.tanksSaved = table.clone(veh.tanks)
-    end
+    Table(BJI.Managers.Context.User.vehicles)
+        :find(function(v)
+            return v.gameVehID == BJI.Managers.Context.User.currentVehicle
+        end, function(v)
+            S.tanksSaved = table.clone(v.tanks)
+        end)
 end
 
 local function onTargetReached(ctxt)
@@ -134,7 +123,8 @@ local function slowTick(ctxt)
     end
 
     if S.participants[BJI.Managers.Context.User.playerID].reached then
-        BJI.Managers.Message.realtimeDisplay("deliverymulti", BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"))
+        BJI.Managers.Message.realtimeDisplay("deliverymulti",
+            BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"))
     elseif not S.target then
         BJI.Managers.Message.realtimeDisplay("deliverymulti", BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
     else
@@ -209,7 +199,8 @@ end
 local function onTargetChange()
     BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
         S.target.radius * getRadiusMultiplier(), nil, nil, false)
-    BJI.Managers.Message.flash("BJIDeliveryMultiNextTarget", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3, false)
+    BJI.Managers.Message.flash("BJIDeliveryMultiNextTarget", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3,
+        false)
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.RaceWaypoint.addWaypoint({
         name = "BJIDeliveryMultiTarget",
@@ -260,7 +251,6 @@ end
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 
-S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleDestroyed = onVehicleDestroyed
 S.canRefuelAtStation = canRefuelAtStation
