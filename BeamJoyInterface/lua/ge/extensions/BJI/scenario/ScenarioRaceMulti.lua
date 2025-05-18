@@ -762,6 +762,15 @@ local function initRace(data)
             BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
         end
         BJI.Managers.RaceUI.setWaypoint(S.race.waypoint, S.race.raceData.wpPerLap)
+    else
+        -- spec
+        if BJI.managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+            local veh = BJI.Managers.Veh.getCurrentVehicle()
+            if not veh then
+                specRandomRacer()
+            end
+            BJI.Managers.Cam.toggleFreeCam()
+        end
     end
 
     if S.race.startTime > ctxt.now then
