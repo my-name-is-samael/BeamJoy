@@ -487,7 +487,22 @@ local function onCheckpointReached(wp, remainingSteps)
             lb.wp = S.race.waypoint
             lb.time = raceTime
             lb.lapTime = wp.lap and raceTime or nil
-
+        end)
+        table.sort(S.race.leaderboard, function(a, b)
+            if S.isEliminated(a.playerID) ~= S.isEliminated(b.playerID) then
+                return S.isEliminated(a.playerID)
+            elseif a.lap ~= b.lap then
+                return a.lap > b.lap
+            elseif a.wp ~= b.wp then
+                return a.wp > b.wp
+            else
+                return a.time < b.time
+            end
+        end)
+        table.find(S.race.leaderboard, function(lb)
+            return BJI.Managers.Context.isSelf(lb.playerID)
+        end, function(lb, pos)
+            lb.diff = pos == 1 and 0 or lb.diff
             ---@type MapRacePBWP[]?
             local pb = BJI.Managers.RaceWaypoint.getPB(S.raceHash)
             -- UI update before server data
