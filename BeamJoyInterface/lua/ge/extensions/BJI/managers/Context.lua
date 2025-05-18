@@ -171,6 +171,8 @@ local function loadPlayers()
                 })
             else
                 table.assign(M.Players[p.playerID], p)
+                M.Players[p.playerID].vehicles = p.vehicles or {}
+                M.Players[p.playerID].ai = p.ai or {}
             end
         end
 
@@ -206,7 +208,10 @@ local function loadPlayers()
         BJI.Managers.AI.updateAllAIVehicles(Table(M.Players)
             :filter(function(player) return #player.ai > 0 end)
             :map(function(player) return player.ai end)
-            :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table()))
+            :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table())
+            :filter(function(vid)
+                return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
+            end))
 
         -- events detection
         local previousPlayersCount = table.length(previousPlayers)

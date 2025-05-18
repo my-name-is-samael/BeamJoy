@@ -29,8 +29,12 @@ return function(TX)
         TX._send(event.EVENT, event.TX.EXPLODE_VEHICLE, { gameVehID })
     end
 
-    function player.UpdateAI(listGameVehID)
-        TX._send(event.EVENT, event.TX.UPDATE_AI, { listGameVehID })
+    function player.UpdateAI(listGameVehIDs)
+        TX._send(event.EVENT, event.TX.UPDATE_AI, { listGameVehIDs })
+    end
+
+    function player.markInvalidVehs(listVehIDs)
+        TX._send(event.EVENT, event.TX.MARK_INVALID_VEHS, { listVehIDs })
     end
 
     return player

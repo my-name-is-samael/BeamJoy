@@ -19,12 +19,14 @@ local cache = newCache()
 local function updateCache(ctxt)
     cache = newCache()
 
-    for _, station in ipairs(BJI.Managers.Context.Scenario.Data.EnergyStations) do
-        for _, energyType in ipairs(station.types) do
-            if not cache.stationsCounts[energyType] then
-                cache.stationsCounts[energyType] = 0
+    if BJI.Managers.Context.Scenario.Data.EnergyStations then
+        for _, station in ipairs(BJI.Managers.Context.Scenario.Data.EnergyStations) do
+            for _, energyType in ipairs(station.types) do
+                if not cache.stationsCounts[energyType] then
+                    cache.stationsCounts[energyType] = 0
+                end
+                cache.stationsCounts[energyType] = cache.stationsCounts[energyType] + 1
             end
-            cache.stationsCounts[energyType] = cache.stationsCounts[energyType] + 1
         end
     end
 
@@ -35,7 +37,8 @@ local function updateCache(ctxt)
         for _, tank in pairs(ctxt.vehData.tanks) do
             if not cache.tanksMaxes[tank.energyType] then
                 -- labels by energy type
-                cache.labels.tanks[tank.energyType] = BJI.Managers.Lang.get(string.var("energy.tankNames.{1}", { tank.energyType }))
+                cache.labels.tanks[tank.energyType] = BJI.Managers.Lang.get(string.var("energy.tankNames.{1}",
+                { tank.energyType }))
                 cache.labels.energyTypes[tank.energyType] = BJI.Managers.Lang.get(string.var("energy.energyUnits.{1}",
                     { tank.energyType }))
 

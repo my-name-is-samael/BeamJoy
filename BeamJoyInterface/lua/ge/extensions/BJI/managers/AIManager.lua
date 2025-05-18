@@ -19,7 +19,35 @@ local function isTrafficSpawned()
     return gameplay_traffic and #M.selfVehs > 0 or #M.parkedVehs > 0
 end
 
+local function getCurrentSelfAIList()
+    local listVehs = M.parkedVehs:clone()
+    M.selfVehs:forEach(function(v)
+        listVehs:insert(v)
+    end)
+    listVehs:sort()
+    return listVehs
+end
+
 local function removeVehicles()
+    M.parkedVehs:forEach(function(vid)
+        BJI.Managers.Veh.deleteVehicle(vid)
+    end)
+    M.parkedVehs:clear()
+    local newVehs = Table()
+    M.selfVehs:filter(function(vid, i)
+        local veh = BJI.Managers.Veh.getVehicleObject(vid)
+        if not veh then M.selfVehs:remove(i) end
+        if veh and not veh.isTraffic then
+            newVehs:insert(vid)
+        end
+        return veh ~= nil and veh.isTraffic == true
+    end)
+        :forEach(function(vid)
+            BJI.Managers.Veh.deleteVehicle(vid)
+        end)
+    M.selfVehs = getCurrentSelfAIList()
+    BJI.Tx.player.UpdateAI(newVehs)
+
     gameplay_parking.deleteVehicles()
     gameplay_traffic.deleteVehicles()
 end
@@ -44,12 +72,8 @@ local function slowTick(ctxt)
     end)
 
     --detect changes and update if needed
-    --[[if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
-        local listVehs = M.parkedVehs:clone()
-        M.selfVehs:forEach(function(v)
-            listVehs:insert(v)
-        end)
-        listVehs:sort()
+    if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
+        local listVehs = getCurrentSelfAIList()
         table.sort(BJI.Managers.Context.Players[ctxt.user.playerID].ai)
         if not listVehs:compare(BJI.Managers.Context.Players[ctxt.user.playerID].ai) then
             BJI.Tx.player.UpdateAI(listVehs)
@@ -58,7 +82,7 @@ local function slowTick(ctxt)
         BJI.Managers.Context.Players[ctxt.user.playerID].ai and
         #BJI.Managers.Context.Players[ctxt.user.playerID].ai > 0 then
         BJI.Tx.player.UpdateAI({})
-    end]]
+    end
 end
 
 local function updateAllAIVehicles(aiVehs)
@@ -82,14 +106,20 @@ end
 local function updateVehicle(gameVehID, aiState)
     local state = aiState ~= "disabled"
     if state and not M.selfVehs:includes(gameVehID) then
-        LogWarn("Add AI vehicle")
-        dump({ gameVehID, aiState, state })
         M.selfVehs:insert(gameVehID)
     elseif not state and M.selfVehs:includes(gameVehID) then
-        LogWarn("Remove AI vehicle")
-        dump({ gameVehID, aiState, state })
         M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
+end
+
+local function onVehicleRemoved()
+    M.parkedVehs = M.parkedVehs:filter(function(vid)
+        return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
+    end)
+    M.selfVehs = M.selfVehs:filter(function(vid)
+        return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
+    end)
+    BJI.Tx.player.UpdateAI(getCurrentSelfAIList())
 end
 
 local function onUpdateState()
@@ -99,7 +129,7 @@ local function onUpdateState()
             {
                 -- update AI restriction
                 restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL,
-                state = M.state and BJI.Managers.Restrictions.STATE.ALLOWED,
+                state = not M.state and BJI.Managers.Restrictions.STATE.RESTRICTED,
             }
         })
     end
@@ -155,18 +185,10 @@ local function onLoad()
         end
     end, "BJIAsyncInitMultispawn")
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, function()
-        M.selfVehs = M.selfVehs:filter(function(gameVehID)
-            return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
-        end)
-
-        M.parkedVehs = M.parkedVehs:filter(function(gameVehID)
-            return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
-        end)
-    end)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, onVehicleRemoved)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,

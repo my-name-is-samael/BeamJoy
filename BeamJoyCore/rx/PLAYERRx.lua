@@ -33,4 +33,9 @@ function ctrl.UpdateAI(ctxt)
     BJCPlayers.updateAI(ctxt.senderID, listVehIDs)
 end
 
+function ctrl.markInvalidVehs(ctxt)
+    local listVehIDs = ctxt.data[1]
+    BJCPlayers.markInvalidVehs(ctxt.senderID, listVehIDs)
+end
+
 return ctrl
