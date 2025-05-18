@@ -135,38 +135,6 @@ local function bindNGHooks()
 end
 bindNGHooks()
 
---[[commands.dropPlayerAtCamera = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, { ... })
-end
-commands.dropPlayerAtCameraNoReset = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET, { ... })
-end
-M.onVehicleSpawned = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, { ... })
-end
-M.onVehicleSwitched = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, { ... })
-end
-M.onVehicleResetted = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, { ... })
-    BJI.Managers.Async.delayTask(function()
-        -- delay execution or else vehicle can't be own
-        TriggerBJIManagerEvent("onVehicleResetted", gameVehID)
-    end, 100, string.var("BJIVehReset{1}", { gameVehID }))
-end
-M.onVehicleReplaced = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED, { ... })
-end
-M.onAiModeChange = function(gameVehID, aiState)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, { gameVehID, aiState })
-end
-M.onVehicleDestroyed = function(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, { ... })
-end
-function M.onDriftCompletedScored(...)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, { ... })
-end]]
-
 M.setPhysicsSpeed = function(val)
     BJI.Physics.physmult = val
 end
