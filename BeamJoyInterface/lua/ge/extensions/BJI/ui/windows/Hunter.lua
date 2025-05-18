@@ -117,7 +117,7 @@ local function updateCache(ctxt)
         end):values()
         :sort(function(a, b)
             -- sort hunted first
-            if a.hunted or a.hunted then return a.hunted end
+            if a.hunted or b.hunted then return a.hunted end
             -- then alphabetically
             return a.playerName < b.playerName
         end)
