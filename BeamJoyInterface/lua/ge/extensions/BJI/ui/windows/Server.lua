@@ -7,7 +7,7 @@ local W = {
     w = 470,
     h = 450,
 
-    ---@type tablelib<integer, {show: fun(): boolean, labelKey: string, content: {onLoad: fun()?, onUnload: fun()?, body: fun(ctxt: TickContext)}}>
+    ---@type tablelib<integer, {show: (fun(): boolean), labelKey: string, content: table}>
     TABS = Table({
         {
             show = function()
@@ -57,7 +57,7 @@ local W = {
     }),
 
     show = false,
-    ---@type {show: fun(): boolean, labelKey: string, content: {onLoad: fun()?, onUnload: fun()?, body: fun(ctxt: TickContext)}}?
+    ---@type {show: (fun(): boolean), labelKey: string, content: table}?
     tab = nil,
     labels = {
         bjc = "",
@@ -124,7 +124,7 @@ local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
----@param newTab {show: fun(): boolean, labelKey: string, content: table}?
+---@param newTab {show: (fun(): boolean), labelKey: string, content: table}?
 local function updateTab(newTab)
     if newTab and newTab ~= W.tab then
         if W.tab and W.tab.content.onUnload then
