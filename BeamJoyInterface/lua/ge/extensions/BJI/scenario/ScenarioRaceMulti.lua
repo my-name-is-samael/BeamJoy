@@ -117,7 +117,7 @@ local function onLoad(ctxt)
     BJI.Managers.WaypointEdit.reset()
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
-    BJI.Managers.RaceUI.clear()
+    BJI.Managers.RaceUI.clearRaceTime()
 end
 
 -- player list contextual actions getter
@@ -184,7 +184,7 @@ local function onUnload(ctxt)
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Windows.VehSelector.tryClose(true)
-    guihooks.trigger('ScenarioResetTimer')
+    BJI.Managers.RaceUI.clearRaceTime()
 end
 
 local function initGrid(data)
@@ -424,7 +424,9 @@ local function onCheckpointReached(wp, remainingSteps)
             speed = math.round(S.currentSpeed * 3.6, 2),
         }
 
-        BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
+        if S.settings.laps and S.settings.laps > 1 then
+            BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
+        end
         BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.RACE_WAYPOINT)
 
@@ -488,6 +490,7 @@ local function onCheckpointReached(wp, remainingSteps)
             lb.time = raceTime
             lb.lapTime = wp.lap and raceTime or nil
         end)
+        -- temp leaderboard sort
         table.sort(S.race.leaderboard, function(a, b)
             if S.isEliminated(a.playerID) ~= S.isEliminated(b.playerID) then
                 return S.isEliminated(a.playerID)
@@ -499,6 +502,7 @@ local function onCheckpointReached(wp, remainingSteps)
                 return a.time < b.time
             end
         end)
+        -- temp print race wp times
         table.find(S.race.leaderboard, function(lb)
             return BJI.Managers.Context.isSelf(lb.playerID)
         end, function(lb, pos)
