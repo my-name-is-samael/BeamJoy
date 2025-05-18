@@ -237,24 +237,22 @@ local function getCacheUser(playerID)
             playerName = player.playerName,
             group = player.group,
             lang = player.lang,
+            reputation = player.reputation,
             freeze = player.freeze,
             engine = player.engine,
-            vehicles = {},
             currentVehicle = player.currentVehicle,
-
-            reputation = player.reputation,
-
+            vehicles = Table(player.vehicles)
+                :map(function(vehicle, vehID)
+                    return {
+                        vehID = vehID,
+                        gameVehID = vehicle.vid,
+                        model = vehicle.name,
+                        freeze = vehicle.freeze,
+                        engine = vehicle.engine,
+                    }
+                end),
             stats = table.deepcopy(player.stats),
         }
-        for vehID, vehicle in pairs(player.vehicles) do
-            data.vehicles[vehID] = {
-                vehID = vehID,
-                gameVehID = vehicle.vid,
-                model = vehicle.name,
-                freeze = vehicle.freeze,
-                engine = vehicle.engine,
-            }
-        end
         return data, M.getCacheUserHash(playerID)
     end
 end
@@ -832,9 +830,12 @@ local function updateAI(playerID, listVehIDs)
         error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
+    local previous = table.clone(player.ai)
     player.ai = listVehIDs or {}
     table.sort(player.ai)
-    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
+    if not table.compare(previous, player.ai) then
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
+    end
 end
 
 local function setPlayerScenario(playerID, scenario)
