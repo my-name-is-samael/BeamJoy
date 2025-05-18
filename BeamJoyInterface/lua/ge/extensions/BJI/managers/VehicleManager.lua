@@ -103,17 +103,6 @@ local function getMPOwnVehicles()
     return vehs
 end
 
-local function _getPlayerVehicleAndPosAndRotation(thenFn)
-    local playerVehicle = M.getCurrentVehicle()
-    if not playerVehicle then return end
-    local pos = core_camera.getPosition()
-    local camDir = core_camera.getForward()
-    camDir.z = 0
-    local camRot = quatFromDir(camDir, vec3(0, 0, 1))
-    camRot = quat(0, 0, 1, 0) * camRot -- vehicles' forward is inverted
-    thenFn(playerVehicle, pos, camRot)
-end
-
 local function dropPlayerAtCamera(withReset)
     if M.isCurrentVehicleOwn() and
         BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.BIG_MAP then
@@ -132,25 +121,6 @@ local function dropPlayerAtCamera(withReset)
             core_camera.resetCamera(0)
         end
     end
-end
-
-local function dropPlayerAtCameraNoReset()
-    _getPlayerVehicleAndPosAndRotation(
-        function(vehicle, pos, camRot)
-            local vehRot = quat(vehicle:getClusterRotationSlow(vehicle:getRefNodeId()))
-            local diffRot = vehRot:inversed() * camRot
-            vehicle:setClusterPosRelRot(vehicle:getRefNodeId(), pos.x, pos.y, pos.z, diffRot.x, diffRot.y, diffRot.z,
-                diffRot.w)
-            vehicle:applyClusterVelocityScaleAdd(vehicle:getRefNodeId(), 0, 0, 0, 0)
-            core_camera.setGlobalCameraByName(nil)
-
-            if core_camera.getActiveCamName(0) == "bigMap" then
-                core_camera.setByName(0, "orbit", false)
-            end
-            core_camera.resetCamera(0)
-            vehicle:setOriginalTransform(pos.x, pos.y, pos.z, camRot.x, camRot.y, camRot.z, camRot.w)
-        end
-    )
 end
 
 local function getCurrentVehicle()
@@ -1409,7 +1379,6 @@ M.getMPVehicles = getMPVehicles
 M.getMPOwnVehicles = getMPOwnVehicles
 
 M.dropPlayerAtCamera = dropPlayerAtCamera
-M.dropPlayerAtCameraNoReset = dropPlayerAtCameraNoReset
 
 M.getCurrentVehicle = getCurrentVehicle
 M.getVehicleObject = getVehicleObject
