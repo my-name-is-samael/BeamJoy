@@ -463,7 +463,7 @@ local function onLoad()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, onDropPlayerAtCamera)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_DROP_PLAYER_AT_CAMERA_NO_RESET,
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
         onDropPlayerAtCameraNoReset)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
