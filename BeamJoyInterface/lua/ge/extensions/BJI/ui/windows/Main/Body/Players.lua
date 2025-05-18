@@ -33,6 +33,10 @@ local function drawWaiting(cache)
 end
 
 local function drawPlayers(cache, ctxt)
+    if #cache.data.players.list == 0 then
+        return
+    end
+
     LineBuilder():text(cache.labels.players.list):build()
     Indent(1)
     for _, player in ipairs(cache.data.players.list) do
@@ -63,7 +67,7 @@ local function drawPlayers(cache, ctxt)
     Indent(-1)
 end
 
-local function draw(ctxt, cache)
+return function(ctxt, cache)
     local waitingPlayers, players = {}, {}
     for playerID, player in pairs(BJI.Managers.Context.Players) do
         if BJI.Managers.Perm.canSpawnVehicle(playerID) then
@@ -82,4 +86,3 @@ local function draw(ctxt, cache)
     drawWaiting(cache)
     drawPlayers(cache, ctxt)
 end
-return draw

@@ -264,56 +264,55 @@ local function getCacheUserHash(playerID)
 end
 
 local function getCachePlayers(senderID)
-    local players = {}
-    for playerID, player in pairs(M.Players) do
-        if player.ready then
-            -- basic data
-            players[playerID] = {
-                playerID = playerID,
-                playerName = player.playerName,
-                guest = player.guest,
-                group = player.group,
-                reputation = player.reputation,
-                staff = BJCPerm.isStaff(playerID),
-                currentVehicle = player.currentVehicle,
-                vehicles = {},
-                ai = table.deepcopy(player.ai),
+    return Table(M.Players)
+        :filter(function(p) return p.ready end, true)
+        :map(function(p, pid)
+            local res = {
+                playerID = pid,
+                playerName = p.playerName,
+                guest = p.guest,
+                group = p.group,
+                reputation = p.reputation,
+                staff = BJCPerm.isStaff(pid),
+                currentVehicle = p.currentVehicle,
+                ai = table.deepcopy(p.ai),
                 isGhost = table.includes({
                     BJCScenario.PLAYER_SCENARII.RACE_SOLO
-                }, player.scenario),
+                }, p.scenario),
+                vehicles = Table(p.vehicles):map(function(v, vid)
+                    return {
+                        vehID = vid,
+                        gameVehID = v.vid,
+                        model = v.name,
+                    }
+                end),
             }
-            for vehID, vehicle in pairs(player.vehicles) do
-                players[playerID].vehicles[vehID] = {
-                    vehID = vehID,
-                    gameVehID = vehicle.vid,
-                    model = vehicle.name,
-                }
-            end
-            -- moderation data
-            if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.MOD) then
-                players[playerID].freeze = player.freeze
-                players[playerID].engine = player.engine
-                players[playerID].muted = player.muted
-                players[playerID].muteReason = player.muteReason
-                players[playerID].kickReason = player.kickReason
-                players[playerID].banReason = player.banReason
-
-                for vehID, vehicle in pairs(player.vehicles) do
-                    players[playerID].vehicles[vehID].freeze = vehicle.freeze
-                    players[playerID].vehicles[vehID].engine = vehicle.engine
-                end
-
-                players[playerID].messages = {}
-                for _, msg in ipairs(player.messages) do
-                    table.insert(players[playerID].messages, {
+            dump({ res.vehicles, res.ai })
+            return not BJCPerm.isStaff(senderID) and res or table.assign(res, {
+                -- staff additional data
+                freeze = p.freeze,
+                engine = p.engine,
+                muted = p.muted,
+                muteReason = p.muteReason,
+                kickReason = p.kickReason,
+                banReason = p.banReason,
+                vehicles = Table(p.vehicles):map(function(v, vid)
+                    return {
+                        vehID = vid,
+                        gameVehID = v.vid,
+                        model = v.name,
+                        freeze = v.freeze,
+                        engine = v.engine,
+                    }
+                end),
+                messages = Table(p.messages):map(function(msg)
+                    return {
                         time = msg.time,
                         message = msg.message,
-                    })
-                end
-            end
-        end
-    end
-    return players, M.getCachePlayersHash()
+                    }
+                end)
+            })
+        end), M.getCachePlayersHash()
 end
 
 local function getCachePlayersHash()
@@ -386,21 +385,20 @@ local function dropMultiple(playerIDs, reasonKey)
 end
 
 local function setGroup(ctxt, targetName, groupName)
-    local target
-    local connected = false
-    for _, player in pairs(M.Players) do
-        if player.playerName == targetName then
+    local target, connected = nil, false
+    if not Table(M.Players):find(function(player)
+            return player.playerName == targetName
+        end, function(player)
             target = player
             connected = true
-        end
-    end
-    if not target then
+        end) then
         target = BJCDao.players.findByPlayerName(targetName)
     end
     if not target then
         error({ key = "rx.errors.invalidPlayer", data = { playerName = targetName } })
     end
 
+    local previousGroup = BJCGroups.Data[target.group]
     local groupToAssign = BJCGroups.Data[groupName]
     if not groupToAssign then
         error({ key = "rx.errors.invalidGroup", data = { group = groupName } })
@@ -408,9 +406,30 @@ local function setGroup(ctxt, targetName, groupName)
 
     if ctxt.origin == "player" then
         local senderGroup = BJCGroups.Data[ctxt.sender.group]
-        local targetGroup = BJCGroups.Data[target.group]
-        if groupToAssign.level >= senderGroup.level or targetGroup.level >= senderGroup.level then
+        if groupToAssign.level >= senderGroup.level or previousGroup.level >= senderGroup.level then
             error({ key = "rx.errors.insufficientPermissions" })
+        end
+    end
+
+    if connected then
+        if previousGroup.vehicleCap == -1 and groupToAssign.vehicleCap ~= -1 then
+            -- remove AI vehicles
+            Table(target.ai):forEach(function(vid)
+                Log("remove ai veh " .. tostring(vid))
+                M.deleteVehicle(ctxt, target.playerID, vid)
+                Table(target.vehicles):find(function(v)
+                    return v.gameVehID == vid
+                end, function(_, k)
+                    target.vehicles[k] = nil
+                end)
+            end)
+            target.ai = {}
+        end
+        if previousGroup.vehicleCap ~= 0 and groupToAssign.vehicleCap == 0 then
+            -- remove actual vehicles
+            Table(target.vehicles):forEach(function(v)
+                M.deleteVehicle(ctxt, target.playerID, v.vid)
+            end)
         end
     end
 
@@ -562,17 +581,19 @@ local function toggleMute(ctxt, targetName, reason)
     BJCTx.database.playersUpdated()
 end
 
-local function deleteVehicle(senderID, targetID, gameVehID)
+local function deleteVehicle(ctxt, targetID, gameVehID)
     local target = M.Players[targetID]
     if not target then
         error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
     end
 
-    local self = M.Players[senderID]
-    local selfGroup = BJCGroups.Data[self.group]
-    local targetGroup = BJCGroups.Data[target.group]
-    if selfGroup.level <= targetGroup.level and senderID ~= targetID then
-        error({ key = "rx.errors.insufficientPermissions" })
+    if ctxt.origin == "player" then
+        local self = M.Players[ctxt.senderID]
+        local selfGroup = BJCGroups.Data[self.group]
+        local targetGroup = BJCGroups.Data[target.group]
+        if selfGroup.level <= targetGroup.level and ctxt.senderID ~= targetID then
+            error({ key = "rx.errors.insufficientPermissions" })
+        end
     end
 
     if table.length(target.vehicles) == 0 then
@@ -589,22 +610,19 @@ local function deleteVehicle(senderID, targetID, gameVehID)
         local multipleVehicles = table.length(target.vehicles) > 1
         local current = target.currentVehicle == gameVehID
         local vehID
-        for id, veh in pairs(target.vehicles) do
-            if veh.vid == gameVehID then
-                vehID = id
-                break
-            end
-        end
+        Table(target.vehicles):find(function(v) return v.vid == gameVehID end, function(_, id)
+            vehID = id
+        end)
         local vehicle = vehID and target.vehicles[vehID] or nil
         if not gameVehID or not vehicle then
             -- invalid veh, continue without error
             return
         end
 
-        if senderID ~= targetID then
-            local prefix = BJCLang.getServerMessage(senderID, "rx.vehicleRemoveMain")
+        if ctxt.origin ~= "player" or ctxt.senderID ~= targetID then
+            local prefix = BJCLang.getServerMessage(targetID, "rx.vehicleRemoveMain")
             if multipleVehicles and not current then
-                prefix = BJCLang.getServerMessage(senderID, "rx.vehicleRemoveOneOf")
+                prefix = BJCLang.getServerMessage(targetID, "rx.vehicleRemoveOneOf")
             end
             BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveSuffix",
                 { typeVehicleRemove = prefix }, 7)
@@ -614,7 +632,7 @@ local function deleteVehicle(senderID, targetID, gameVehID)
             target.currentVehicle = nil
         end
         MP.RemoveVehicle(targetID, vehID)
-        target.vehicles[gameVehID] = nil
+        target.vehicles[vehID] = nil
         BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
     else
         --remove all player vehicles
@@ -625,11 +643,37 @@ local function deleteVehicle(senderID, targetID, gameVehID)
             BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
         end
 
-        BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveAll",
-            nil, 7)
+        if ctxt.origin ~= "player" or ctxt.senderID ~= targetID then
+            BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveAll",
+                nil, 7)
+        end
     end
 
     BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
+end
+
+local function markInvalidVehs(senderID, listVehIDs)
+    local player = M.Players[senderID]
+    if not player then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+    elseif not BJCPerm.canSpawnVehicles(senderID) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    Table(listVehIDs):forEach(function(vid)
+        Table(player.vehicles):find(function(v)
+            return v.vid == vid
+        end, function(_, vehID)
+            player.vehicles[vehID] = nil
+        end)
+        local pos = table.indexOf(player.ai, vid)
+        if pos then
+            table.remove(player.ai, pos)
+        end
+    end)
+
+    BJCTx.cache.invalidate(senderID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
@@ -1274,6 +1318,7 @@ M.toggleFreeze = toggleFreeze
 M.toggleEngine = toggleEngine
 M.teleportFrom = teleportFrom
 M.deleteVehicle = deleteVehicle
+M.markInvalidVehs = markInvalidVehs
 
 M.changeLang = changeLang
 M.updateAI = updateAI

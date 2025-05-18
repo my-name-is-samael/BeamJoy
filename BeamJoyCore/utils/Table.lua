@@ -308,15 +308,17 @@ end
 ---@generic K, V
 ---@param tab tablelib<K,V>|table<K,V>|V[]
 ---@param filterFn fun(el: V, index: K|integer, tab: tablelib<K,V>|table<K,V>|V[]): boolean
+---@param keepIndices? boolean
 ---@return tablelib<K,V>
-table.filter = table.filter or function(tab, filterFn)
+table.filter = table.filter or function(tab, filterFn, keepIndices)
     if type(tab) ~= "table" then return Table() end
     if type(filterFn) ~= "function" then return Table() end
     local res = Table()
+    local isArray = table.isArray(tab) and not keepIndices
     for k, v in pairs(tab) do
         local status, cond = pcall(filterFn, v, k, tab)
         if status and cond then
-            if table.isArray(tab) then
+            if isArray then
                 table.insert(res, v)
             else
                 res[k] = v

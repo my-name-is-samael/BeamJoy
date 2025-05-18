@@ -78,39 +78,21 @@ end
 ---@param ctxt? TickContext
 local function updateCachePaints(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
-    W.cache.paints = {}
+    W.cache.paints = Table()
 
     if ctxt.isOwner then
-        W.cache.paints = table.map(BJI.Managers.Veh.getAllPaintsForModel(ctxt.veh.jbeam),
-            function(paintData, paintLabel)
-                return {
-                    label = paintLabel,
-                    paint = paintData,
-                }
-            end):values()
+        W.cache.paints = type(ctxt.veh) == "userdata" and
+            table.map(BJI.Managers.Veh.getAllPaintsForModel(ctxt.veh.jbeam),
+                function(paintData, paintLabel)
+                    return {
+                        label = paintLabel,
+                        paint = paintData,
+                    }
+                end):values() or Table()
         table.sort(W.cache.paints, function(a, b)
             return a.label < b.label
         end)
     end
-end
-
-local listeners = Table()
-local function onLoad()
-    updateCacheLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCacheLabels))
-
-    updateCachePaints()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
-        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-    }, updateCachePaints))
-end
-local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
 ---@param ctxt TickContext
@@ -667,6 +649,32 @@ local function tryClose(force)
         updateOnClose(true)
         W.onClose()
     end
+end
+
+local listeners = Table()
+local function onLoad()
+    updateCacheLabels()
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    }, updateCacheLabels))
+
+    updateCachePaints()
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
+        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+    }, updateCachePaints))
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        function()
+            if not BJI.Managers.Perm.canSpawnVehicle() then
+                tryClose(true)
+            end
+        end))
+end
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
 W.onLoad = onLoad

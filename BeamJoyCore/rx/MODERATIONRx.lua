@@ -97,7 +97,7 @@ function ctrl.deleteVehicle(ctxt)
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.DELETE_VEHICLE) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.deleteVehicle(ctxt.senderID, targetID, gameVehID)
+    BJCPlayers.deleteVehicle(ctxt, targetID, gameVehID)
 end
 
 function ctrl.whitelist(ctxt)

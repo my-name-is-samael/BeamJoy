@@ -42,6 +42,7 @@ C.EVENTS = {
             KM_REWARD = "KmReward",
             EXPLODE_VEHICLE = "explodeVehicle",
             UPDATE_AI = "UpdateAI",
+            MARK_INVALID_VEHS = "markInvalidVehs",
         }
     },
     MODERATION = {
