@@ -197,10 +197,10 @@ local function permissions()
         Scenario = 7,
         SwitchMap = 7,
 
-        SetPermissions = 10,
-        SetCore = 10,
-        SetMaps = 10,
-        SetCEN = 10,
+        SetPermissions = 100,
+        SetCore = 100,
+        SetMaps = 100,
+        SetCEN = 100,
     }
 end
 
@@ -243,7 +243,7 @@ local function groups()
             permissions = {},
         },
         owner  = {
-            level = 10,
+            level = 100,
             vehicleCap = -1,
             banned = false,
             whitelisted = true,

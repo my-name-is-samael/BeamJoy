@@ -14,6 +14,8 @@ return function(labels, cache)
                             label = labels.groups[gkey],
                             style = permLevel <= group.level and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                                 BJI.Utils.Style.BTN_PRESETS.INFO,
+                            disabled = cache.readOnlyGroups:includes(gkey) or
+                                cache.readOnlyPermissions:includes(permName),
                             onClick = function()
                                 if permLevel ~= group.level then
                                     BJI.Managers.Perm.Permissions[permName] = group.level

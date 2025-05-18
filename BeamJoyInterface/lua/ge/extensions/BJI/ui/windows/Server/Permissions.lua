@@ -40,6 +40,9 @@ local W = {
     cache = {
         ---@type string[]
         orderedGroups = Table(),
+        readOnlyGroups = Table(),
+        selfGroup = nil,
+        readOnlyPermissions = Table(),
         permissionsNamesWidth = 0,
         groupsKeys = Table({ "level", "vehicleCap", "staff", "banned", "muted", "whitelisted", "permissions" }),
         groupKeysWidth = 0,
@@ -81,7 +84,9 @@ local function updateLabels()
     W.labels.newGroup.level = BJI.Managers.Lang.get("serverConfig.permissions.newGroup.level") .. " :"
 end
 
-local function updateCache()
+---@param ctxt? TickContext
+local function updateCache(ctxt)
+    ctxt = ctxt or BJI.Managers.Tick.getContext()
     W.cache.disableInputs = false
 
     W.cache.orderedGroups = Range(1, Table(BJI.Managers.Perm.Groups):length() + 1)
@@ -95,7 +100,21 @@ local function updateCache()
             end
         end, { group = BJI.CONSTANTS.GROUP_NAMES.NONE, res = Table() })
 
+    W.cache.selfGroup = ctxt.group.level
+    W.cache.readOnlyGroups = W.cache.orderedGroups:map(function(gkey)
+            return {
+                key = gkey,
+                group = BJI.Managers.Perm.Groups[gkey],
+            }
+        end)
+        :filter(function(data) return data.group.level > ctxt.group.level end)
+        :map(function(data) return data.key end):values()
+
     W.cache.groupsPermissionsInputs = Table()
+
+    W.cache.readOnlyPermissions = W.labels.permissionsNames:filter(function(pname)
+        return ctxt.group.level < BJI.Managers.Perm.Permissions[pname]
+    end)
 end
 
 local function updateWidths()
@@ -129,11 +148,16 @@ local function onLoad()
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
-    }, function(_, data)
-        if table.includes({ BJI.Managers.Cache.CACHES.GROUPS,
-                BJI.Managers.Cache.CACHES.PERMISSIONS }, data.cache) then
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    }, function(ctxt, data)
+        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            table.includes({
+                BJI.Managers.Cache.CACHES.BJC,
+                BJI.Managers.Cache.CACHES.GROUPS,
+                BJI.Managers.Cache.CACHES.PERMISSIONS
+            }, data.cache) then
             updateLabels()
-            updateCache()
+            updateCache(ctxt)
         end
     end))
 

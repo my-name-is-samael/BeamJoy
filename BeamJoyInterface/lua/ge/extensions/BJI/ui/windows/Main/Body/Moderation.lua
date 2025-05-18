@@ -408,11 +408,13 @@ local function drawModeration(player, ctxt, cache)
     })
         :build()
 
-    local min, max = BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
-    BJI.Utils.Common.DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
-        inputs.tempBanDuration, min, max, BJI.Managers.Context.BJC.TempBan.minTime, function(val)
-            inputs.tempBanDuration = val
-        end)
+    if BJI.Managers.Context.BJC.TempBan then
+        local min, max = BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
+        BJI.Utils.Common.DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
+            inputs.tempBanDuration, min, max, BJI.Managers.Context.BJC.TempBan.minTime, function(val)
+                inputs.tempBanDuration = val
+            end)
+    end
 
     if player.demoteGroup or player.promoteGroup then
         local line = LineBuilder()
