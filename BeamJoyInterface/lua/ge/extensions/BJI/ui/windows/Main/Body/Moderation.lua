@@ -450,10 +450,21 @@ local function drawWaitingPlayers(cache)
     Indent(1)
     for _, player in ipairs(cache.data.players.waiting) do
         if player.promoteGroup then
-            LineBuilder()
+            local line = LineBuilder()
                 :text(player.playerName)
                 :text(player.groupLabel)
-                :btn({
+            if cache.data.players.demoteGroup then
+                line:btn({
+                    id = string.var("demotewaiting{1}", { player.playerID }),
+                    label = cache.labels.players.moderation.demoteWaitingTo
+                        :var({ groupName = player.demoteLabel }),
+                    onClick = function()
+                        BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
+                    end
+                })
+            end
+            if cache.data.players.promoteGroup then
+                line:btn({
                     id = string.var("promotewaiting{1}", { player.playerID }),
                     label = cache.labels.players.moderation.promoteWaitingTo
                         :var({ groupName = player.promoteLabel }),
@@ -461,7 +472,8 @@ local function drawWaitingPlayers(cache)
                         BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
                     end
                 })
-                :build()
+            end
+            line:build()
         end
     end
     Indent(-1)
