@@ -132,7 +132,7 @@ local function sanitizeMapRacesPBs()
                 end
             end)
         end
-    elseif pbRaces > 0 then
+    elseif table.length(pbRaces) > 0 then
         M.data.values[M.VALUES.RACES_PB.key][mapName] = {}
         changes = true
     end

@@ -54,6 +54,20 @@ local function formatPoiForBigmap(poi)
     }
 end
 
+local function updateQuickTravelState()
+    local function _update()
+        M.quickTravel = BJI.Managers.Scenario.canQuickTravel()
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update()
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
+end
+
 local function onUnload()
     extensions.gameplay_rawPois.getRawPoiListByLevel = M.baseFunctions.getRawPoiListByLevel
     extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = M.baseFunctions.formatPoiForBigmap
@@ -68,13 +82,17 @@ local function onLoad()
         extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = formatPoiForBigmap
     end
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, function(_, data)
+        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.BJC then
+            updateQuickTravelState()
+        end
+    end)
 end
-
-local function toggleQuickTravel(state)
-    M.quickTravel = state
-end
-
-M.toggleQuickTravel = toggleQuickTravel
 
 M.onLoad = onLoad
 

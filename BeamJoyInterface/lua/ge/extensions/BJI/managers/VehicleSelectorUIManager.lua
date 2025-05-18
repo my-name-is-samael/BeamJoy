@@ -1,7 +1,10 @@
 ---@class BJIManagerVehSelectorUI : BJIManager
 local M = {
     _name = "VehSelectorUI",
-    baseFunctions = {}
+    baseFunctions = {},
+
+    stateSelector = true,
+    stateEditor = true,
 }
 
 -- VEHICLE SELECTOR
@@ -83,14 +86,9 @@ end
 local function createVehiclesData()
     local resModels, resConfigs = {}, {}
 
-    if not BJI.Managers.Perm.canSpawnVehicle() then
+    if not M.stateSelector then
         -- cannot spawn veh
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
-        BJI.Utils.Common.HideGameMenu()
-        return resModels, resConfigs
-    elseif BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR) then
-        -- cannot spawn veh in current scenario
-        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         BJI.Utils.Common.HideGameMenu()
         return resModels, resConfigs
     end
@@ -154,7 +152,9 @@ local function checkSpawnTypePermissions(model)
 end
 
 local function cloneCurrent(...)
-    if not BJI.Managers.Perm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
@@ -186,7 +186,9 @@ local function cloneCurrent(...)
 end
 
 local function spawnDefault(...)
-    if not BJI.Managers.Perm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
@@ -216,7 +218,9 @@ local function spawnDefault(...)
 end
 
 local function spawnNewVehicle(model, opts)
-    if not BJI.Managers.Perm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
@@ -247,7 +251,9 @@ local function spawnNewVehicle(model, opts)
 end
 
 local function replaceVehicle(model, opt, otherVeh)
-    if BJI.Managers.Veh.isCurrentVehicleOwn() then
+    if not M.stateSelector then
+        return
+    elseif BJI.Managers.Veh.isCurrentVehicleOwn() then
         if not BJI.Managers.Scenario.canReplaceVehicle() then
             -- cannot update veh in current scenario
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
@@ -273,7 +279,9 @@ local function replaceVehicle(model, opt, otherVeh)
 end
 
 local function removeCurrent(...)
-    if BJI.Managers.Veh.isCurrentVehicleOwn() then
+    if not M.stateSelector then
+        return
+    elseif BJI.Managers.Veh.isCurrentVehicleOwn() then
         -- my own veh
         if BJI.Managers.Scenario.canDeleteVehicle() then
             BJI.Managers.Veh.deleteCurrentOwnVehicle()
@@ -293,7 +301,9 @@ local function removeCurrent(...)
 end
 
 local function removeAllExceptCurrent(...)
-    if not BJI.Managers.Scenario.canDeleteOtherVehicles() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Scenario.canDeleteOtherVehicles() then
         -- cannot delete other vehs in current scenario
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         return
@@ -305,7 +315,7 @@ end
 
 -- VEHICLE CONFIGURATION
 local function getAvailableParts(ioCtx)
-    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR) then
+    if not M.stateEditor then
         -- cannot edit veh in current scenario
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         BJI.Utils.Common.HideGameMenu()
@@ -313,6 +323,34 @@ local function getAvailableParts(ioCtx)
     end
 
     return M.baseFunctions.getAvailableParts(ioCtx)
+end
+
+local function onUpdateRestrictions()
+    local function _update()
+        M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and
+            (BJI.Managers.Scenario.canSpawnNewVehicle() or BJI.Managers.Scenario.canReplaceVehicle())
+        M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam()
+        BJI.Managers.Restrictions.update({
+            {
+                -- update selector restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR,
+                state = not M.stateSelector and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            },
+            {
+                -- update editor restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR,
+                state = not M.stateEditor and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            },
+        })
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update()
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
 end
 
 local function onUnload()
@@ -358,6 +396,12 @@ local function onLoad()
     jbeamIO.getAvailableParts = getAvailableParts
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, onUpdateRestrictions)
 end
 
 M.onLoad = onLoad

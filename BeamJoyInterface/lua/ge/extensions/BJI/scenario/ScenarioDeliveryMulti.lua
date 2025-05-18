@@ -48,20 +48,10 @@ local function onLoad(ctxt)
                 BJI.Managers.Restrictions.RESET.TELEPORT,
                 BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
                 BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-                BJI.Managers.Restrictions.OTHER.WALKING,
             }):flat(),
             state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         },
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            state = BJI.Managers.Perm.canSpawnAI() and
-                BJI.Managers.Restrictions.STATE.ALLOWED,
-        }
     })
-    BJI.Managers.Bigmap.toggleQuickTravel(false)
     BJI.Managers.GPS.reset()
     BJI.Managers.RaceWaypoint.resetAll()
 end
@@ -207,16 +197,10 @@ local function onUnload(ctxt)
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.TELEPORT,
             BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
     BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
     BJI.Managers.Message.stopRealtimeDisplay()
     BJI.Managers.RaceWaypoint.resetAll()
@@ -287,6 +271,7 @@ S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
+S.canSpawnAI = TrueFn
 
 S.getPlayerListActions = getPlayerListActions
 

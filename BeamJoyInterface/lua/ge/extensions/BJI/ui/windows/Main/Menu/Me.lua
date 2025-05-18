@@ -23,8 +23,7 @@ local function updateCache(ctxt)
     })
 
     -- VEHICLE SELECTOR
-    if BJI.Managers.Perm.canSpawnVehicle() and
-        not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR) then
+    if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.me.vehicleSelector"),
             active = BJI.Windows.VehSelector.show,
@@ -39,14 +38,14 @@ local function updateCache(ctxt)
                 end
             end
         })
+    end
 
-        -- CLEAR GPS
-        if BJI.Managers.GPS.isClearable() then
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.me.clearGPS"),
-                onClick = BJI.Managers.GPS.clear,
-            })
-        end
+    -- CLEAR GPS
+    if BJI.Managers.GPS.isClearable() then
+        table.insert(M.cache.elems, {
+            label = BJI.Managers.Lang.get("menu.me.clearGPS"),
+            onClick = BJI.Managers.GPS.clear,
+        })
     end
 end
 

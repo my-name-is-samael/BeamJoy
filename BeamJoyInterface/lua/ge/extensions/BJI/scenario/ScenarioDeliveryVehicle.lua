@@ -12,12 +12,10 @@ local S = {
     startPosition = nil,
     ---@type { pos: vec3, radius: number, distance?: number }?
     targetPosition = nil,
-    init = false,
     gameVehID = nil,
     baseDistance = nil,
     distance = nil,
 
-    nextResetExempt = true,     -- exempt reset fail for vehicle creation
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
 }
 
@@ -31,12 +29,10 @@ local function reset()
     S.paints = {}
     S.startPosition = nil
     S.targetPosition = nil
-    S.init = false
     S.gameVehID = nil
     S.baseDistance = nil
     S.distance = nil
 
-    S.nextResetExempt = true
     S.checkTargetProcess = false
 end
 
@@ -146,59 +142,56 @@ local function initDelivery()
 end
 
 local function onLoad(ctxt)
+    BJI.Managers.Restrictions.update({
+        {
+            restrictions = Table({
+                BJI.Managers.Restrictions.OTHER.BIG_MAP,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            }):flat(),
+            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+        }
+    })
+
+    BJI.Tx.scenario.DeliveryVehicleStart()
+    S.gameVehID = ctxt.veh:getID()
+    BJI.Managers.Message.flash("BJIDeliveryVehicleStart",
+        BJI.Managers.Lang.get("vehicleDelivery.flashStart"), 5, false)
+end
+
+local function start()
     reset()
     BJI.Windows.VehSelector.tryClose()
 
     BJI.Managers.UI.applyLoading(true, function()
         initPositions()
-
         initVehicle()
-
         if S.startPosition and S.targetPosition and S.model then
-            BJI.Managers.Restrictions.update({
-                {
-                    restrictions = Table({
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-                        BJI.Managers.Restrictions.OTHER.WALKING,
-                        BJI.Managers.Restrictions.OTHER.BIG_MAP,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                        BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                    }):flat(),
-                    state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-                },
-                {
-                    restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-                    state = BJI.Managers.Perm.canSpawnAI() and
-                        BJI.Managers.Restrictions.STATE.ALLOWED,
-                }
-            })
-            BJI.Managers.Bigmap.toggleQuickTravel(false)
-            BJI.Managers.Nametags.tryUpdate()
-            BJI.Managers.GPS.reset()
-            BJI.Managers.RaceWaypoint.resetAll()
-
+    BJI.Managers.GPS.reset()
+    BJI.Managers.RaceWaypoint.resetAll()
             initDelivery()
-
-            BJI.Managers.Async.task(function(ctxt2)
-                    return ctxt2.isOwner and
-                        BJI.Managers.Veh.compareConfigs(S.config,
-                            BJI.Managers.Veh.getFullConfig(ctxt2.veh.partConfig) or {})
-                end,
-                function(ctxt2)
-                    BJI.Tx.scenario.DeliveryVehicleStart()
-                    S.init = true
-                    S.gameVehID = ctxt2.veh:getID()
-                    BJI.Managers.Message.flash("BJIDeliveryVehicleStart",
-                        BJI.Managers.Lang.get("vehicleDelivery.flashStart"), 5, false)
-                    BJI.Managers.UI.applyLoading(false)
-                end, "BJIDeliveryVehicleInit")
+            BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
+                BJI.Managers.UI.applyLoading(false)
+            end)
         else
             BJI.Managers.UI.applyLoading(false)
-            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
         end
     end)
+end
+
+local function onUnload(ctxt)
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Managers.GPS.reset()
+    BJI.Managers.RaceWaypoint.resetAll()
 end
 
 local function onDeliveryFailed()
@@ -210,13 +203,7 @@ local function onDeliveryFailed()
 end
 
 local function onVehicleResetted(gameVehID)
-    if not S.init or gameVehID ~= S.gameVehID then
-        return
-    end
-
-    if S.nextResetExempt then
-        -- used only for vehicle creation
-        S.nextResetExempt = false
+    if gameVehID ~= S.gameVehID then
         return
     end
 
@@ -283,7 +270,7 @@ local function onTargetReached(ctxt)
     if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
         BJI.Managers.Async.delayTask(function()
             if BJI.Managers.Scenario.isFreeroam() then
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
+                S.start()
             end
         end, 3000, "BJIVehDeliveryLoop")
     end
@@ -292,14 +279,8 @@ local function onTargetReached(ctxt)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
 end
 
-local function canSpawnVehicle()
-    return not S.init
-end
-
 local function slowTick(ctxt)
-    if not S.init then
-        return
-    elseif not ctxt.isOwner then
+    if not ctxt.isOwner then
         S.onStopDelivery()
         return
     end
@@ -349,28 +330,11 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
-    BJI.Managers.Nametags.toggle(true)
-    BJI.Managers.GPS.reset()
-    BJI.Managers.RaceWaypoint.resetAll()
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
+
+S.start = start
 
 S.drawUI = drawUI
 
@@ -379,16 +343,16 @@ S.onStopDelivery = onStopDelivery
 S.onTargetReached = onTargetReached
 
 S.canRefuelAtStation = TrueFn
+S.canSpawnAI = TrueFn
+S.doShowNametagsSpecs = TrueFn
 
-S.canSpawnNewVehicle = canSpawnVehicle
-S.canSpawnNewVehicle = canSpawnVehicle
+S.canSpawnNewVehicle = FalseFn
+S.canReplaceVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
-S.doShowNametagsSpecs = TrueFn
 
 S.slowTick = slowTick
 
 S.getPlayerListActions = getPlayerListActions
 
-S.onUnload = onUnload
 return S

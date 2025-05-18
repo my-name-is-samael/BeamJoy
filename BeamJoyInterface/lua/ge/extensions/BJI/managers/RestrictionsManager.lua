@@ -43,15 +43,16 @@ local M = {
         },
     },
     OTHER = {
-        VEHICLE_SELECTOR = { "vehicle_selector" },
-        VEHICLE_PARTS_SELECTOR = { "parts_selector" },
-        VEHICLE_DEBUG = { "vehicledebugMenu" },
-        AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
         VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
         CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7", "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down", "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right", "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next", "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs", "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
         FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
-        WALKING = { "toggleWalkingMode" },
         BIG_MAP = { "toggleBigMap" },
+    },
+    _SCENARIO_DRIVEN = {
+        VEHICLE_SELECTOR = { "vehicle_selector" },
+        VEHICLE_PARTS_SELECTOR = { "parts_selector", "vehicledebugMenu" },
+        AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
+        WALKING = { "toggleWalkingMode" },
     },
 
     _tag = "BeamjoyRestrictions",

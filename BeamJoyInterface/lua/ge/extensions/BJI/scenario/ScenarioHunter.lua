@@ -101,19 +101,13 @@ local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJI.Managers.Bigmap.toggleQuickTravel(false)
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
@@ -141,12 +135,7 @@ local function onUnload()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
@@ -154,7 +143,6 @@ local function onUnload()
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Windows.VehSelector.tryClose(true)
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 local function tryReplaceOrSpawn(model, config)
@@ -372,12 +360,6 @@ local function onJoinParticipants(isHunted)
             -- forced config
             model, config = S.settings.huntedConfig.model, S.settings.huntedConfig.config
         else
-            BJI.Managers.Restrictions.update({
-                {
-                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
-                }
-            })
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)
             BJI.Windows.VehSelector.open(getModelList(), false)
@@ -403,12 +385,6 @@ local function onJoinParticipants(isHunted)
             -- forced config
             model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1].config
         elseif #S.settings.hunterConfigs == 0 then
-            BJI.Managers.Restrictions.update({
-                {
-                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
-                }
-            })
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)
             BJI.Windows.VehSelector.open(getModelList(), false)
@@ -442,12 +418,6 @@ local function updatePreparation(data)
         onJoinParticipants(participant.hunted)
     elseif wasParticipant and not participant then
         onLeaveParticipants()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-            }
-        })
         BJI.Windows.VehSelector.tryClose(true)
         S.waypoints = {}
     elseif wasParticipant and participant and

@@ -93,16 +93,6 @@ local function loadUser()
         M.User.lang = cacheData.lang
         M.User.freeze = cacheData.freeze == true
         M.User.engine = cacheData.engine == true
-        BJI.Managers.Async.task(function()
-            return BJI.Managers.Cache.areBaseCachesFirstLoaded()
-        end, function()
-            ---@type BJIGroup
-            local group = BJI.Managers.Perm.Groups[M.User.group]
-            BJI.Managers.AI.toggle(group.canSpawnAI)
-            if not group.canSpawn and BJI.Managers.Veh.hasVehicle() then
-                BJI.Managers.Veh.deleteAllOwnVehicles()
-            end
-        end, "BJIUpdateUserByGroup")
 
         -- vehicles
         M.User.currentVehicle = cacheData.currentVehicle
@@ -127,41 +117,6 @@ local function loadUser()
         BJI.Managers.Reputation.updateReputationSmooth(cacheData.reputation)
 
         M.UserStats = cacheData.stats
-
-        BJI.Managers.Async.task(function()
-            return not not M.BJC.Freeroam
-        end, function()
-            -- update quick travel
-            if BJI.Managers.Scenario.isFreeroam() then
-                BJI.Managers.Bigmap.toggleQuickTravel(M.BJC.Freeroam.QuickTravel or BJI.Managers.Perm.isStaff())
-            end
-            -- update nametags
-            BJI.Managers.Nametags.tryUpdate()
-        end, "BJICacheFreeroamReady")
-
-        if M.User.group ~= previous.group then
-            BJI.Managers.Async.task(function()
-                return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
-            end, function()
-                BJI.Managers.Restrictions.update({
-                    {
-                        -- update AI restriction
-                        restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-                        state = BJI.Managers.Perm.canSpawnAI() and
-                            BJI.Managers.Restrictions.STATE.ALLOWED,
-                    },
-                    {
-                        -- update vehSelector restriction
-                        restrictions = Table({
-                            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                        }):flat(),
-                        state = BJI.Managers.Perm.canSpawnVehicle() and
-                            BJI.Managers.Restrictions.STATE.ALLOWED,
-                    }
-                })
-            end)
-        end
 
         -- events detection
         local previousVehCount = table.length(previous.vehicles)
@@ -197,10 +152,7 @@ local function loadUser()
         end
 
         if previous.group ~= M.User.group then
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, {
-                self = true,
-                type = "group_assign",
-            })
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
         end
     end)
 end
@@ -364,27 +316,6 @@ local function loadConfig()
             end
             for k, v in pairs(cacheData.Freeroam) do
                 M.BJC.Freeroam[k] = v
-            end
-
-            if BJI.Managers.Scenario.isFreeroam() then
-                --update unicycle policy
-                if not M.BJC.Freeroam.AllowUnicycle and BJI.Managers.Veh.isUnicycle() then
-                    BJI.Managers.Veh.deleteCurrentOwnVehicle()
-                end
-                BJI.Managers.Restrictions.update({ {
-                    restrictions = BJI.Managers.Restrictions.OTHER.WALKING,
-                    state = M.BJC.Freeroam.AllowUnicycle and
-                        BJI.Managers.Restrictions.STATE.ALLOWED,
-                } })
-
-                -- update quick travel
-                BJI.Managers.Bigmap.toggleQuickTravel(M.BJC.Freeroam.QuickTravel or BJI.Managers.Perm.isStaff())
-            end
-
-            -- update nametags
-            if BJI.Managers.Scenario.isFreeroam() or BJI.Managers.Scenario.isPlayerScenarioInProgress() then
-                BJI.Managers.Nametags.toggle((M.BJC.Freeroam.Nametags or BJI.Managers.Perm.isStaff()) and
-                    not settings.getValue("hideNameTags", false))
             end
         end
 

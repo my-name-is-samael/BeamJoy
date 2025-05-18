@@ -1309,6 +1309,31 @@ local function compareConfigs(conf1, conf2)
     return false
 end
 
+local function onUpdateRestrictions(ctxt)
+    local function _update(ctxt2)
+        local stateWalking = BJI.Managers.Perm.canSpawnVehicle() and
+            (BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.AllowUnicycle)
+        if not stateWalking and ctxt.isOwner and M.isUnicycle(ctxt.veh:getID()) then
+            M.deleteCurrentOwnVehicle()
+        end
+        BJI.Managers.Restrictions.update({
+            {
+                -- update selector restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.WALKING,
+                state = not stateWalking and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            }
+        })
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update(ctxt)
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
+end
+
 local function onUnload()
     if extensions.core_vehicle_partmgmt then
         if M.baseFunctions.saveConfigBaseFunction then
@@ -1344,6 +1369,18 @@ M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, function(ctxt, data)
+        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.BJC then
+            onUpdateRestrictions(ctxt)
+        end
+    end)
 end
 
 M.isGEInit = isGEInit

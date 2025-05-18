@@ -221,6 +221,20 @@ local function canDeleteOtherPlayersVehicle()
     return false
 end
 
+local function canSpawnAI()
+    if _curr().canSpawnAI then
+        return _curr().canSpawnAI()
+    end
+    return false
+end
+
+local function canWalk()
+    if _curr().canWalk then
+        return _curr().canWalk()
+    end
+    return false
+end
+
 local function getModelList()
     if _curr().getModelList then
         return _curr().getModelList()
@@ -234,6 +248,20 @@ local function getPlayerListActions(player, ctxt)
     else
         return {}
     end
+end
+
+local function canQuickTravel()
+    if _curr().canQuickTravel then
+        return _curr().canQuickTravel()
+    end
+    return false
+end
+
+local function canShowNametags()
+    if _curr().canShowNametags then
+        return _curr().canShowNametags()
+    end
+    return true
 end
 
 ---@param vehData { gameVehicleID: integer, ownerID: integer }
@@ -459,8 +487,12 @@ M.canReplaceVehicle = canReplaceVehicle
 M.canDeleteVehicle = canDeleteVehicle
 M.canDeleteOtherVehicles = canDeleteOtherVehicles
 M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
+M.canSpawnAI = canSpawnAI
+M.canWalk = canWalk
 M.getModelList = getModelList
 M.getPlayerListActions = getPlayerListActions
+M.canQuickTravel = canQuickTravel
+M.canShowNametags = canShowNametags
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType

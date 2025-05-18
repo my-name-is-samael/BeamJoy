@@ -46,8 +46,6 @@ local M = {
     CACHE_HANDLERS = {},
 }
 
-
-
 local function addRxHandler(cacheType, callback)
     if not Table(M.CACHES):includes(cacheType) then
         error(string.var("Invalid cache type: {1}", { cacheType }))

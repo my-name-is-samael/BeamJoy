@@ -22,27 +22,16 @@ local function onLoad(ctxt)
     BJI.Managers.Cam.resetForceCamera(true)
     BJI.Managers.Cam.resetRestrictedCameras()
 
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            not BJI.Managers.Perm.canSpawnAI() and BJI.Managers.Restrictions.OTHER.AI_CONTROL or nil,
-            not BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR or nil,
-            not BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR or nil,
-            (BJI.Managers.Context.BJC.Freeroam and not BJI.Managers.Context.BJC.Freeroam.AllowUnicycle) and
-            BJI.Managers.Restrictions.OTHER.WALKING or nil,
-        }):values():flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
-
     S.reset.restricted = false
     S.reset.nextExempt = false
     S.teleport.restricted = false
+end
 
-    BJI.Managers.Async.task(function()
-        return not not BJI.Managers.Context.BJC.Freeroam
-    end, function()
-        BJI.Managers.Bigmap.toggleQuickTravel(BJI.Managers.Context.BJC.Freeroam.QuickTravel)
-    end, "BJIScenarioFreeroamLoadUpdateQuickTravel")
-    BJI.Managers.Nametags.tryUpdate()
+local function onUnload(ctxt)
+    BJI.Managers.Restrictions.update({ {
+        restrictions = BJI.Managers.Restrictions.RESET.ALL,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
 end
 
 local function tryApplyFreeze(gameVehID)
@@ -251,6 +240,19 @@ local function tryPaint(paint, paintNumber)
     end
 end
 
+local function canWalk()
+    return BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.AllowUnicycle
+end
+
+local function canShowNametags()
+    return BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.Nametags == true
+end
+
+local function canQuickTravel()
+    return BJI.Managers.Perm.isStaff() or
+        (BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.QuickTravel)
+end
+
 local function getModelList()
     local models = BJI.Managers.Veh.getAllVehicleConfigs(
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS),
@@ -383,24 +385,9 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.WALKING,
-        }):values():flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
-    BJI.Managers.Nametags.toggle(true)
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted
@@ -417,10 +404,14 @@ S.tryFocus = tryFocus
 S.trySpawnNew = trySpawnNew
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
+S.canWalk = canWalk
+S.canShowNametags = canShowNametags
+S.canQuickTravel = canQuickTravel
 
 S.canRefuelAtStation = TrueFn
 S.canRepairAtGarage = TrueFn
 S.canDeleteOtherPlayersVehicle = TrueFn
+S.canSpawnAI = TrueFn
 S.doShowNametagsSpecs = TrueFn
 
 S.getModelList = getModelList
@@ -432,6 +423,5 @@ S.exemptNextReset = exemptNextReset
 
 S.getPlayerListActions = getPlayerListActions
 
-S.onUnload = onUnload
 
 return S

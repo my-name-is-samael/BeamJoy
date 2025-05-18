@@ -22,18 +22,12 @@ local function onLoad(ctxt)
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.TELEPORT,
             BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJI.Managers.Bigmap.toggleQuickTravel(false)
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.WaypointEdit.reset()
     BJI.Managers.GPS.reset()
@@ -212,11 +206,6 @@ local function onUnload(ctxt)
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.TELEPORT,
             BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -226,7 +215,6 @@ local function onUnload(ctxt)
     BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
     BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
     BJI.Managers.GPS.reset()
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 S.canChangeTo = canChangeTo

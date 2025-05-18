@@ -160,8 +160,7 @@ local function draw(ctxt)
                                     BJI.Windows.UserSettings.show = not BJI.Windows.UserSettings.show
                                 end
                             })
-                        if BJI.Managers.Perm.canSpawnVehicle() and
-                            not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR) then
+                        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
                             line:btnIcon({
                                 id = "toggleVehicleSelector",
                                 icon = ICONS.directions_car,
@@ -186,7 +185,7 @@ local function draw(ctxt)
                             coloredIcon = true,
                             onClick = function()
                                 settings.setValue("hideNameTags", cache.data.nametagsVisible)
-                                BJI.Managers.Nametags.tryUpdate()
+                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
                             end,
                         })
                         if BJI.Managers.GPS.isClearable() then

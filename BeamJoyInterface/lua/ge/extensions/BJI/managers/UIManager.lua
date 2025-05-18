@@ -5,6 +5,8 @@ local M = {
     callbackDelay = 500,
 }
 
+---@param state boolean
+---@param callbackFn? fun(ctxt: TickContext)
 local function applyLoading(state, callbackFn)
     guihooks.trigger('app:waiting', state)
     if type(callbackFn) == "function" then

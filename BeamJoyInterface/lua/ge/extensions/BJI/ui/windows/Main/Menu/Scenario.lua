@@ -103,7 +103,7 @@ local function menuVehicleDelivery(ctxt)
             table.insert(M.cache.elems, {
                 label = BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
                 onClick = function()
-                    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
+                    BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).start()
                 end,
             })
         end

@@ -118,7 +118,7 @@ local function drawHeader(ctxt)
     if #W.models.cars + #W.models.trucks +
         #W.models.trailers + #W.models.props > 0 then
         local line = LineBuilder()
-        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR) then
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
             line:btnIcon({
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
