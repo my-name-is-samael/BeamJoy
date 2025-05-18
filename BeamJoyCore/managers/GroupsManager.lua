@@ -9,8 +9,59 @@ local M = {
     }
 }
 
+local function restoreGroupsLevels()
+    local function getNext(gkey)
+        local baseG = M.Data[gkey] or {}
+        local next = Table(M.Data)
+            ---@param k string
+            :reduce(function(acc, g, k)
+                return (g.level > baseG.level and
+                        (not acc or acc.level > g.level)) and
+                    { name = k, level = g.level } or acc
+            end)
+        return next and next.name or nil
+    end
+
+    local groupOrder = Range(1, Table(M.Data):length() + 1)
+        :reduce(function(acc)
+            if acc.group then
+                acc.res:insert(acc.group)
+                acc.group = getNext(acc.group)
+                return acc
+            else
+                return acc.res
+            end
+        end, { group = M.GROUPS.NONE, res = Table() })
+    local level = 0
+    local permProcessed = Table()
+    groupOrder:forEach(function(gkey)
+        permProcessed:addAll(Table(BJCPerm.Data):filter(function(pname, plevel)
+                return not permProcessed:includes(pname) and plevel == M.Data[gkey].level
+            end)
+            :map(function(_, pname)
+                BJCPerm.Data[pname] = level
+                return pname
+            end))
+        M.Data[gkey].level = level
+        level = level + 1
+    end)
+end
+
 local function init()
     M.Data = BJCDao.groups.findAll()
+
+    --- sanitize levels from bj update
+    if Table(M.Data):filter(function(g) return g.level > 100 end):length() > 0 then
+        BJCAsync.task(function()
+            return table.length(BJCPerm.Data) > 0
+        end, restoreGroupsLevels)
+    else
+        -- force assign owner level to 100
+        if M.Data[M.GROUPS.OWNER].level ~= 100 then
+            M.Data[M.GROUPS.OWNER].level = 100
+            BJCDao.groups.save(M.Data)
+        end
+    end
 end
 
 local function _isLevelAssignedToAnotherGroup(groupName, level)
@@ -147,7 +198,7 @@ local function setPermission(groupName, key, value)
             -- try creating without level or invalid level or empty groupName
             error({ key = "rx.errors.invalidData" })
         end
-        if value < 0 or _isLevelAssignedToAnotherGroup(groupName, value) then
+        if value <= 0 or value >= 100 or _isLevelAssignedToAnotherGroup(groupName, value) then
             error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
         M.Data[groupName] = {
@@ -175,7 +226,7 @@ local function setPermission(groupName, key, value)
             -- group modification
             if key == "level" then
                 value = tonumber(value)
-                if value < 0 or _isLevelAssignedToAnotherGroup(groupName, value) then
+                if value <= 0 or value >= 100 or _isLevelAssignedToAnotherGroup(groupName, value) then
                     error({ key = "rx.errors.invalidValue", data = { value = value } })
                 end
                 local oldLevel = M.Data[groupName].level

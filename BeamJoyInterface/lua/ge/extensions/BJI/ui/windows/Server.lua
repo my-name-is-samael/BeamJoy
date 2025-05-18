@@ -7,6 +7,7 @@ local W = {
     w = 470,
     h = 450,
 
+    ---@type tablelib<integer, {show: fun(): boolean, labelKey: string, content: {onLoad: fun()?, onUnload: fun()?, body: fun(ctxt: TickContext)}}>
     TABS = Table({
         {
             show = function()
@@ -14,28 +15,28 @@ local W = {
                     BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG)
             end,
             labelKey = "bjc",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/BJC"),
+            content = require("ge/extensions/BJI/ui/windows/Server/BJC"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_REPUTATION)
             end,
             labelKey = "reputation",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/Reputation"),
+            content = require("ge/extensions/BJI/ui/windows/Server/Reputation"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_PERMISSIONS)
             end,
             labelKey = "permissions",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/Permissions"),
+            content = require("ge/extensions/BJI/ui/windows/Server/Permissions"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_MAPS)
             end,
             labelKey = "maps",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/Maps"),
+            content = require("ge/extensions/BJI/ui/windows/Server/Maps"),
         },
         {
             show = function()
@@ -43,7 +44,7 @@ local W = {
                     BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CEN)
             end,
             labelKey = "core",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/CoreCEN"),
+            content = require("ge/extensions/BJI/ui/windows/Server/CoreCEN"),
         },
         {
             show = function()
@@ -51,11 +52,13 @@ local W = {
                     BJI.Managers.Context.Core.Debug
             end,
             labelKey = "icons",
-            subWindow = require("ge/extensions/BJI/ui/windows/Server/Icons"),
+            content = require("ge/extensions/BJI/ui/windows/Server/Icons"),
         },
     }),
 
     show = false,
+    ---@type {show: fun(): boolean, labelKey: string, content: {onLoad: fun()?, onUnload: fun()?, body: fun(ctxt: TickContext)}}?
+    tab = nil,
     labels = {
         bjc = "",
         reputation = "",
@@ -103,29 +106,33 @@ local function onLoad()
         end
     end))
 
-    if not W.tab or not W.TABS[W.tab] then
-        W.tab = 1
-        if W.TABS[W.tab].subWindow.onLoad then
-            W.TABS[W.tab].subWindow.onLoad()
-        end
+    if not W.tab then
+        W.TABS:find(function(t) return t.show() end, function(t)
+            W.tab = t
+            if t.content.onLoad then
+                t.content.onLoad()
+            end
+        end)
     end
 end
 
 local function onUnload()
-    if W.TABS[W.tab] and W.TABS[W.tab].subWindow.onUnload then
-        W.TABS[W.tab].subWindow.onUnload()
+    if W.tab and W.tab.content.onUnload then
+        W.tab.content.onUnload()
     end
+    W.tab = nil
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function updateTab(newIndex)
-    if newIndex ~= W.tab and W.TABS[newIndex] then
-        if W.TABS[W.tab] and W.TABS[W.tab].subWindow.onUnload then
-            W.TABS[W.tab].subWindow.onUnload()
+---@param newTab {show: fun(): boolean, labelKey: string, content: table}?
+local function updateTab(newTab)
+    if newTab and newTab ~= W.tab then
+        if W.tab and W.tab.content.onUnload then
+            W.tab.content.onUnload()
         end
-        W.tab = newIndex
-        if W.TABS[W.tab].subWindow.onLoad then
-            W.TABS[W.tab].subWindow.onLoad()
+        W.tab = newTab
+        if W.tab and W.tab.content.onLoad then
+            W.tab.content.onLoad()
         end
     end
 end
@@ -136,18 +143,18 @@ local function header(ctxt)
     W.TABS:filter(function(tab)
         return tab.show()
     end)
-    :forEach(function(tab, i)
-        t:addTab(W.labels[tab.labelKey], function()
-            updateTab(i)
+        :forEach(function(tab)
+            t:addTab(W.labels[tab.labelKey], function()
+                updateTab(tab)
+            end)
         end)
-    end)
     t:build()
 end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    if W.TABS[W.tab] and W.TABS[W.tab].subWindow.body then
-        W.TABS[W.tab].subWindow.body(ctxt)
+    if W.tab and W.tab.content.body then
+        W.tab.content.body(ctxt)
     end
 end
 

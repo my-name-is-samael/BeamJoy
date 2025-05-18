@@ -1,4 +1,5 @@
 local function drawGroupNewPermission(labels, cache, gkey, group, cols)
+    local readOnly = cache.readOnlyGroups:includes(gkey) or group.level == cache.selfGroup
     return cols:addRow({
         cells = {
             function() LineLabel(labels.groupKeys.newPermission) end,
@@ -8,7 +9,7 @@ local function drawGroupNewPermission(labels, cache, gkey, group, cols)
                         id = string.var("newPerm{1}", { gkey }),
                         icon = ICONS.done,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        disabled = cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
+                        disabled = readOnly or cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
                         onClick = function()
                             cache.disableInputs = true
                             BJI.Tx.config.permissionsGroupSpecific(gkey, cache.groupsPermissionsInputs[gkey], true)
@@ -17,10 +18,11 @@ local function drawGroupNewPermission(labels, cache, gkey, group, cols)
                     })
                     :inputCombo({
                         id = "newPerm" .. gkey,
-                        items = labels.permissionsNames:filter(function(pn)
-                            return not table.includes(group.permissions, pn)
+                        items = readOnly and {} or labels.permissionsNames:filter(function(pn)
+                            return not table.includes(group.permissions, pn) and
+                                not cache.readOnlyPermissions:includes(pn)
                         end),
-                        value = cache.groupsPermissionsInputs[gkey],
+                        value = readOnly and "" or cache.groupsPermissionsInputs[gkey],
                         onChange = function(val)
                             cache.groupsPermissionsInputs[gkey] = val
                         end
@@ -36,35 +38,37 @@ local function isLevelAssignedToAnotherGroup(groupName, level)
         :find(function(g, k) return k ~= groupName and g.level == level end)
 end
 
-local function drawGroupData(labels, cache, gKey, group)
-    local cols = ColumnsBuilder(string.var("group{1}permissions", { gKey }), { cache.groupKeysWidth, -1 }):addRow({
+local function drawGroupData(labels, cache, gkey, group)
+    local readOnly = cache.readOnlyGroups:includes(gkey) or group.level == cache.selfGroup
+    local cols = ColumnsBuilder(string.var("group{1}permissions", { gkey }), { cache.groupKeysWidth, -1 }):addRow({
         cells = { -- level
             function() LineLabel(labels.groupKeys.level) end,
             function()
                 LineBuilder()
                     :inputNumeric({
-                        id = string.var("perm-{1}-level", { gKey }),
+                        id = string.var("perm-{1}-level", { gkey }),
                         type = "int",
                         value = group.level,
                         step = 1,
-                        min = 0,
-                        disabled = gKey == BJI.CONSTANTS.GROUP_NAMES.NONE,
+                        min = 1,
+                        max = 99,
+                        disabled = readOnly or gkey == BJI.CONSTANTS.GROUP_NAMES.NONE,
                         onUpdate = function(val)
-                            local free = not isLevelAssignedToAnotherGroup(gKey, val)
+                            local free = not isLevelAssignedToAnotherGroup(gkey, val)
                             if val < group.level then
                                 while not free do
                                     val = val - 1
-                                    free = not isLevelAssignedToAnotherGroup(gKey, val)
+                                    free = not isLevelAssignedToAnotherGroup(gkey, val)
                                 end
                             else
                                 while not free do
                                     val = val + 1
-                                    free = not isLevelAssignedToAnotherGroup(gKey, val)
+                                    free = not isLevelAssignedToAnotherGroup(gkey, val)
                                 end
                             end
                             if val > 0 then
                                 group.level = val
-                                BJI.Tx.config.permissionsGroup(gKey, "level", val)
+                                BJI.Tx.config.permissionsGroup(gkey, "level", val)
                             end
                         end
                     })
@@ -77,14 +81,15 @@ local function drawGroupData(labels, cache, gKey, group)
             function()
                 LineBuilder()
                     :inputNumeric({
-                        id = string.var("perm-{1}-vehicleCap", { gKey }),
+                        id = string.var("perm-{1}-vehicleCap", { gkey }),
                         type = "int",
                         value = group.vehicleCap,
                         step = 1,
                         min = -1,
+                        disabled = readOnly,
                         onUpdate = function(val)
                             group.vehicleCap = val
-                            BJI.Tx.config.permissionsGroup(gKey, "vehicleCap", val)
+                            BJI.Tx.config.permissionsGroup(gkey, "vehicleCap", val)
                         end
                     })
                     :build()
@@ -96,12 +101,13 @@ local function drawGroupData(labels, cache, gKey, group)
             function()
                 LineBuilder()
                     :btnIconToggle({
-                        id = string.var("perm-{1}-staff", { gKey }),
+                        id = string.var("perm-{1}-staff", { gkey }),
                         state = group.staff or false,
                         coloredIcon = true,
+                        disabled = readOnly,
                         onClick = function()
                             group.staff = not group.staff
-                            BJI.Tx.config.permissionsGroup(gKey, "staff", group.staff)
+                            BJI.Tx.config.permissionsGroup(gkey, "staff", group.staff)
                         end
                     })
                     :build()
@@ -113,12 +119,13 @@ local function drawGroupData(labels, cache, gKey, group)
             function()
                 LineBuilder()
                     :btnIconToggle({
-                        id = string.var("perm-{1}-banned", { gKey }),
+                        id = string.var("perm-{1}-banned", { gkey }),
                         state = group.banned or false,
                         coloredIcon = true,
+                        disabled = readOnly,
                         onClick = function()
                             group.banned = not group.banned
-                            BJI.Tx.config.permissionsGroup(gKey, "banned", group.banned)
+                            BJI.Tx.config.permissionsGroup(gkey, "banned", group.banned)
                         end
                     })
                     :build()
@@ -130,12 +137,13 @@ local function drawGroupData(labels, cache, gKey, group)
             function()
                 LineBuilder()
                     :btnIconToggle({
-                        id = string.var("perm-{1}-muted", { gKey }),
+                        id = string.var("perm-{1}-muted", { gkey }),
                         state = group.muted or false,
                         coloredIcon = true,
+                        disabled = readOnly,
                         onClick = function()
                             group.muted = not group.muted
-                            BJI.Tx.config.permissionsGroup(gKey, "muted", group.muted)
+                            BJI.Tx.config.permissionsGroup(gkey, "muted", group.muted)
                         end
                     })
                     :build()
@@ -147,12 +155,13 @@ local function drawGroupData(labels, cache, gKey, group)
             function()
                 LineBuilder()
                     :btnIconToggle({
-                        id = string.var("perm-{1}-whitelisted", { gKey }),
+                        id = string.var("perm-{1}-whitelisted", { gkey }),
                         state = group.whitelisted or false,
                         coloredIcon = true,
+                        disabled = readOnly,
                         onClick = function()
                             group.whitelisted = not group.whitelisted
-                            BJI.Tx.config.permissionsGroup(gKey, "whitelisted", group.whitelisted)
+                            BJI.Tx.config.permissionsGroup(gkey, "whitelisted", group.whitelisted)
                         end
                     })
                     :build()
@@ -167,13 +176,13 @@ local function drawGroupData(labels, cache, gKey, group)
                 function()
                     LineBuilder()
                         :btnIcon({
-                            id = string.var("deleteGroupPerm-{1}-{2}", { gKey, permName }),
+                            id = string.var("deleteGroupPerm-{1}-{2}", { gkey, permName }),
                             icon = ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            disabled = cache.disableInputs,
+                            disabled = readOnly or cache.disableInputs,
                             onClick = function()
                                 cache.disableInputs = true
-                                BJI.Tx.config.permissionsGroupSpecific(gKey, permName, false)
+                                BJI.Tx.config.permissionsGroupSpecific(gkey, permName, false)
                             end
                         })
                         :text(string.var("- {1}", { permName }))
@@ -182,7 +191,7 @@ local function drawGroupData(labels, cache, gKey, group)
             }
         })
     end)
-    drawGroupNewPermission(labels, cache, gKey, group, cols)
+    drawGroupNewPermission(labels, cache, gkey, group, cols)
     cols:build()
 end
 
@@ -217,6 +226,7 @@ local function drawNewGroup(labels, cache)
                             value = cache.newGroup.level,
                             step = 1,
                             min = 1,
+                            max = cache.selfGroup - 1,
                             onUpdate = function(val)
                                 cache.newGroup.level = val
                             end
@@ -255,11 +265,12 @@ return function(labels, cache)
     cache.orderedGroups:forEach(function(gkey, i)
         local group = BJI.Managers.Perm.Groups[gkey]
         AccordionBuilder()
-            :label(labels.groups[gkey])
+            :label(labels.groups[gkey], cache.selfGroup == group.level and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil)
             :commonStart(function()
                 local line = LineBuilder(true)
                     :text(string.var("({1})", { group.level }))
-                if not table.includes(BJI.CONSTANTS.GROUP_NAMES, gkey) then
+                if not table.includes(BJI.CONSTANTS.GROUP_NAMES, gkey) and
+                    group.level < cache.selfGroup then
                     line:btnIcon({
                         id = "deleteGroup" .. gkey,
                         icon = ICONS.delete_forever,
