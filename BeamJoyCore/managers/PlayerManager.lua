@@ -655,7 +655,7 @@ local function markInvalidVehs(senderID, listVehIDs)
     local player = M.Players[senderID]
     if not player then
         error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
-    elseif not BJCPerm.canSpawnVehicles(senderID) then
+    elseif not BJCPerm.canSpawnVehicle(senderID) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 

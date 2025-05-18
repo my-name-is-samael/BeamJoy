@@ -32,10 +32,14 @@ end
 ---@param current integer
 ---@param count integer
 local function setLap(current, count)
-    M.lap = {
-        current = current,
-        count = count
-    }
+    if count and count > 1 then
+        M.lap = {
+            current = current,
+            count = count
+        }
+    else
+        M.lap = {}
+    end
     drawLap()
 end
 
@@ -50,10 +54,14 @@ end
 ---@param current integer
 ---@param count integer
 local function setWaypoint(current, count)
-    M.waypoint = {
-        current = current,
-        count = count
-    }
+    if count and count > 1 then
+        M.waypoint = {
+            current = current,
+            count = count
+        }
+    else
+        M.waypoint = {}
+    end
     drawWaypoint()
 end
 
@@ -178,9 +186,10 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
 end
 
 local function clearRaceTime()
+    LogWarn("ScenarioNotRunning")
     guihooks.trigger("ScenarioNotRunning")
-    drawLap()
-    drawWaypoint()
+    M.clearLap()
+    M.clearWaypoint()
 end
 
 local function clear()
