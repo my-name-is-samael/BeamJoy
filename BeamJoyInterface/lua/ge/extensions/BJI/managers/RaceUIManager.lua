@@ -186,7 +186,6 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
 end
 
 local function clearRaceTime()
-    LogWarn("ScenarioNotRunning")
     guihooks.trigger("ScenarioNotRunning")
     M.clearLap()
     M.clearWaypoint()

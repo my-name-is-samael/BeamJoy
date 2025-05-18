@@ -279,25 +279,17 @@ local function onJoinGridParticipants()
         }
     })
 
-    -- prepare vehicle selector
-    local models = BJI.Managers.Veh.getAllVehicleConfigs()
-    if S.settings.model then
-        models = { [S.settings.model] = models[S.settings.model] }
-        if not models[S.settings.model] then
-            LogError("No model available after race filter")
-        else
-            if S.settings.config then
-                models = {}
-            end
-        end
-    end
-    BJI.Windows.VehSelector.open(models, false)
-
     if S.settings.config then
         -- if forced config, then no callback from vehicle selector
         tryReplaceOrSpawn(S.settings.model, S.settings.config)
+        BJI.Windows.VehSelector.open({}, false)
     else
         BJI.Managers.Message.flash("BJIRaceGridChooseVehicle", BJI.Managers.Lang.get("races.play.joinFlash"))
+        local models = BJI.Managers.Veh.getAllVehicleConfigs()
+        if S.settings.model then
+            models = { [S.settings.model] = models[S.settings.model] }
+        end
+        BJI.Windows.VehSelector.open(models, false)
     end
 end
 
