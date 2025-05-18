@@ -24,11 +24,6 @@ local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -36,7 +31,6 @@ local function onLoad(ctxt)
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
     BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.Bigmap.toggleQuickTravel(false)
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
     S.processCheck = nil
@@ -164,8 +158,6 @@ local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -174,7 +166,6 @@ local function onUnload(ctxt)
     } })
     BJI.Managers.Message.stopRealtimeDisplay()
     BJI.Managers.Message.cancelFlash("BJISpeedCheck")
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 local function showMinSpeedDisplay(kmh)
@@ -192,9 +183,6 @@ local function initScenario(data)
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })

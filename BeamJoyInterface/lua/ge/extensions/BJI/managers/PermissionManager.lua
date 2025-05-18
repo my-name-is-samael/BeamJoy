@@ -59,48 +59,14 @@ local M = {
 
 local function onLoad()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PERMISSIONS, function(cacheData)
-        local previous = table.clone(M.Permissions) or {}
         for k, v in pairs(cacheData) do
             M.Permissions[k] = v
         end
 
-        -- events detection
-        if not table.compare(previous, M.Permissions, true) then
-            local changed = {}
-            for k, v in pairs(M.Permissions) do
-                if v ~= previous[k] then
-                    table.insert(changed, {
-                        permission = k,
-                        previousLevel = previous[k] or -1,
-                        currentLevel = v,
-                    })
-                end
-            end
-
-            BJI.Managers.Async.task(function()
-                return not not M.Groups[BJI.Managers.Context.User.group]
-            end, function()
-                local selfLevel = M.Groups[BJI.Managers.Context.User.group].level
-                local selfImpact = false
-                for _, change in pairs(changed) do
-                    if not selfImpact and (
-                            (selfLevel >= change.previousLevel and selfLevel < change.currentLevel) or
-                            (selfLevel < change.previousLevel and selfLevel >= change.currentLevel)
-                        ) then
-                        selfImpact = true
-                    end
-                end
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, {
-                    self = selfImpact,
-                    type = "permission_change",
-                    changes = changed,
-                })
-            end, "BJIPermissionsCacheHandler")
-        end
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
     end)
 
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.GROUPS, function(cacheData)
-        local previous = table.clone(M.Groups) or {}
         for groupName, group in pairs(cacheData) do
             M.Groups[groupName] = M.Groups[groupName] or {}
             -- bind values
@@ -121,125 +87,7 @@ local function onLoad()
             end
         end
 
-        local selfGroup = M.Groups[BJI.Managers.Context.User.group]
-        if not table.compare(selfGroup, previous[BJI.Managers.Context.User.group]) then
-            BJI.Managers.Async.task(function()
-                return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
-            end, function()
-                -- update AI restriction
-                BJI.Managers.Restrictions.update({ {
-                    restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-                    state = M.canSpawnAI() and
-                        BJI.Managers.Restrictions.STATE.ALLOWED,
-                } })
-
-                -- update vehSelector restriction
-                BJI.Managers.Restrictions.update({ {
-                    restrictions = Table({
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                    }):flat(),
-                    state = M.canSpawnVehicle() and
-                        BJI.Managers.Restrictions.STATE.ALLOWED,
-                } })
-            end)
-        end
-
-        -- events detection
-        if not table.compare(previous, M.Groups, true) then
-            local changedLevels = {}
-            for groupName, group in pairs(M.Groups) do
-                if previous[groupName] and group.level ~= previous[groupName].level then
-                    changedLevels[groupName] = {
-                        previousLevel = previous[groupName].level,
-                        currentLevel = group.level,
-                    }
-                end
-            end
-
-            local changedPermissions = {}
-            for groupName, group in pairs(M.Groups) do
-                if previous[groupName] and not table.compare(group.permissions, previous[groupName].permissions, true) then
-                    changedPermissions[groupName] = {}
-                    for _, p in ipairs(group.permissions) do
-                        if not table.includes(previous[groupName].permissions, p) then
-                            table.insert(changedPermissions[groupName], {
-                                permission = p,
-                                added = true,
-                            })
-                        end
-                    end
-                    for _, p in ipairs(previous[groupName].permissions) do
-                        if not table.includes(group.permissions, p) then
-                            table.insert(changedPermissions[groupName], {
-                                permission = p,
-                                removed = true,
-                            })
-                        end
-                    end
-                end
-            end
-
-            local changedAttributes = {}
-            for groupName, group in pairs(M.Groups) do
-                local previousGroup = previous[groupName] or {}
-                for k, v in pairs(group) do
-                    if not table.includes({ "level", "permissions" }, k) and v ~= previousGroup[k] then
-                        changedAttributes[groupName] = changedAttributes[groupName] or {}
-                        changedAttributes[groupName][k] = {
-                            previousValue = previousGroup[k],
-                            currentValue = v,
-                        }
-                    end
-                end
-                for k, v in pairs(previousGroup) do
-                    if not table.includes({ "level", "permissions" }, k) and
-                        (not changedAttributes[groupName] or not changedAttributes[groupName][k]) then
-                        if group[k] == nil then
-                            changedAttributes[groupName] = changedAttributes[groupName] or {}
-                            changedAttributes[groupName][k] = {
-                                previousValue = v,
-                                currentValue = nil,
-                            }
-                        end
-                    end
-                end
-            end
-
-            if table.length(changedLevels) > 0 or
-                table.length(changedPermissions) > 0 or
-                table.length(changedAttributes) > 0 then
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, {
-                    self = changedLevels[BJI.Managers.Context.User.group] or
-                        changedPermissions[BJI.Managers.Context.User.group] or
-                        changedAttributes[BJI.Managers.Context.User.group],
-                    type = "group_change",
-                    changedLevels = changedLevels,
-                    changedPermissions = changedPermissions,
-                    changedAttributes = changedAttributes,
-                })
-            end
-
-            local previousGroupsCount = table.length(previous)
-            local currentGroupsCount = table.length(M.Groups)
-            if previousGroupsCount ~= currentGroupsCount then
-                if previousGroupsCount > currentGroupsCount then
-                    table.find(previous, function(_, groupName)
-                        return not M.Groups[groupName]
-                    end, function(_, groupName)
-                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, {
-                            type = "group_remove",
-                            group = groupName,
-                        })
-                    end)
-                else
-                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, {
-                        type = "group_change",
-                        added = true,
-                    })
-                end
-            end
-        end
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
     end)
 end
 

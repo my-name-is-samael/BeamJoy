@@ -66,16 +66,10 @@ local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJI.Managers.Bigmap.toggleQuickTravel(false)
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
 end
@@ -341,12 +335,7 @@ local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
         }):flat(),
@@ -360,7 +349,6 @@ local function onUnload(ctxt)
             BJI.Managers.Cam.setCamera(ctxt.camera)
         end
     end
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
 end
 
 local function initPreparation(data)
@@ -379,11 +367,6 @@ end
 
 local function onJoinParticipants()
     BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-        state = #S.configs > 0 and
-            BJI.Managers.Restrictions.STATE.RESTRICTED or
-            BJI.Managers.Restrictions.STATE.ALLOWED,
-    }, {
         restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
@@ -398,9 +381,6 @@ end
 
 local function onLeaveParticipants()
     BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    }, {
         restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
@@ -415,7 +395,6 @@ local function onReady()
     BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
         }):flat(),

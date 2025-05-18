@@ -32,16 +32,6 @@ local function getAlphaByDistance(distance)
     return alpha
 end
 
-local function toggle(state)
-    M.state = state
-end
-
-local function tryUpdate()
-    if BJI.Managers.Scenario.isFreeroam() or BJI.Managers.Scenario.isPlayerScenarioInProgress() then
-        M.toggle(not settings.getValue("hideNameTags", false))
-    end
-end
-
 ---@param alpha number 0-1
 ---@param spec? boolean
 ---@param idle? boolean
@@ -327,44 +317,78 @@ local function renderTick(ctxt)
     end
 end
 
+local function updateLabels()
+    M.labels.staffTag = BJI.Managers.Lang.get("nametags.staffTag")
+    M.labels.reputationTag = BJI.Managers.Lang.get("nametags.reputationTag")
+    M.labels.self = BJI.Managers.Lang.get("nametags.self")
+    M.labels.selfTrailer = BJI.Managers.Lang.get("nametags.selfTrailer")
+    M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
+end
+
+local lastShorten, lastShortenLength = false, 0
 local function slowTick(ctxt)
     if M.state then
-        if settings.getValue("shortenNametags", false) then
-            M.labels.staffTag = BJI.Managers.Lang.get("nametags.staffTag")
-            M.labels.reputationTag = BJI.Managers.Lang.get("nametags.reputationTag")
-            local nameLength = tonumber(settings.getValue("nametagCharLimit", 50))
-            Table(BJI.Managers.Context.Players)
-                :forEach(function(p)
-                    if #p.playerName > nameLength and (not p.tagName or #p.tagName ~= nameLength) then
-                        local short = p.playerName:sub(1, nameLength)
-                        p.tagName = string.var("{1}...", { short })
-                    else
+        local shorten, shortenLength = settings.getValue("shortenNametags", false),
+            tonumber(settings.getValue("nametagCharLimit", 50))
+        if shorten ~= lastShorten or (shorten and shortenLength ~= lastShortenLength) then
+            if shorten then
+                Table(BJI.Managers.Context.Players)
+                    :forEach(function(p)
+                        if #p.playerName > shortenLength and (not p.tagName or #p.tagName ~= shortenLength) then
+                            local short = p.playerName:sub(1, shortenLength)
+                            p.tagName = string.var("{1}...", { short })
+                        else
+                            p.tagName = p.playerName
+                        end
+                    end)
+            else
+                Table(BJI.Managers.Context.Players)
+                    :forEach(function(p)
                         p.tagName = p.playerName
-                    end
-                end)
-        else
-            Table(BJI.Managers.Context.Players)
-                :forEach(function(p)
-                    p.tagName = p.playerName
-                end)
+                    end)
+            end
+            lastShorten = shorten
+            lastShortenLength = shortenLength or 0
         end
-        M.labels.self = BJI.Managers.Lang.get("nametags.self")
-        M.labels.selfTrailer = BJI.Managers.Lang.get("nametags.selfTrailer")
-        M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
+    end
+end
+
+local function updateState()
+    local function _update()
+        M.state = BJI.Managers.Perm.isStaff() or BJI.Managers.Scenario.canShowNametags()
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update()
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
     end
 end
 
 M.getNametagColor = getNametagColor
 M.getNametagBgColor = getNametagBgColor
 
-M.toggle = toggle
-
-M.tryUpdate = tryUpdate
-
 M.renderTick = renderTick
 
 M.onLoad = function()
+    updateLabels()
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.LANG_CHANGED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    }, updateLabels)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, function(_, data)
+        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.BJC then
+            updateState()
+        end
+    end)
 end
 
 return M

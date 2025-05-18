@@ -44,7 +44,7 @@ local function slowTick(ctxt)
     end)
 
     --detect changes and update if needed
-    if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
+    --[[if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
         local listVehs = M.parkedVehs:clone()
         M.selfVehs:forEach(function(v)
             listVehs:insert(v)
@@ -58,7 +58,7 @@ local function slowTick(ctxt)
         BJI.Managers.Context.Players[ctxt.user.playerID].ai and
         #BJI.Managers.Context.Players[ctxt.user.playerID].ai > 0 then
         BJI.Tx.player.UpdateAI({})
-    end
+    end]]
 end
 
 local function updateAllAIVehicles(aiVehs)
@@ -83,21 +83,40 @@ local function updateVehicle(gameVehID, aiState)
     local state = aiState ~= "disabled"
     if state and not M.selfVehs:includes(gameVehID) then
         LogWarn("Add AI vehicle")
+        dump({ gameVehID, aiState, state })
         M.selfVehs:insert(gameVehID)
     elseif not state and M.selfVehs:includes(gameVehID) then
         LogWarn("Remove AI vehicle")
+        dump({ gameVehID, aiState, state })
         M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
 end
 
-local listeners = Table()
+local function onUpdateState()
+    local function _update()
+        toggle(BJI.Managers.Perm.canSpawnAI() and BJI.Managers.Scenario.canSpawnAI())
+        BJI.Managers.Restrictions.update({
+            {
+                -- update AI restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL,
+                state = M.state and BJI.Managers.Restrictions.STATE.ALLOWED,
+            }
+        })
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update()
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
+end
 
 local function onUnload()
     gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
     gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
     core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
-
-    listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
 local function onLoad()
@@ -105,7 +124,7 @@ local function onLoad()
 
     M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
     gameplay_traffic.setupTrafficWaitForUi = function(...)
-        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
             return M.baseFunctions.setupTrafficWaitForUi(...)
         else
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
@@ -114,7 +133,7 @@ local function onLoad()
 
     M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
     gameplay_traffic.createTrafficGroup = function(...)
-        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
             return M.baseFunctions.createTrafficGroup(...)
         else
             -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
@@ -127,7 +146,7 @@ local function onLoad()
     end, function()
         M.baseFunctions.spawnGroup = core_multiSpawn.spawnGroup
         core_multiSpawn.spawnGroup = function(...)
-            if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.AI_CONTROL) then
+            if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
                 return M.baseFunctions.spawnGroup(...)
             else
                 BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
@@ -136,7 +155,7 @@ local function onLoad()
         end
     end, "BJIAsyncInitMultispawn")
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, function()
         M.selfVehs = M.selfVehs:filter(function(gameVehID)
             return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
         end)
@@ -144,10 +163,15 @@ local function onLoad()
         M.parkedVehs = M.parkedVehs:filter(function(gameVehID)
             return BJI.Managers.Veh.getVehicleObject(gameVehID) ~= nil
         end)
-    end))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick))
+    end)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, onUpdateState)
 end
 
 M.isTrafficSpawned = isTrafficSpawned

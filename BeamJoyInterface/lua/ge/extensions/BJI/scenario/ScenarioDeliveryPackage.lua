@@ -84,36 +84,32 @@ local function onLoad(ctxt)
         if S.targetPosition then
             BJI.Managers.Restrictions.update({
                 {
-                    restrictions = Table({
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-                        BJI.Managers.Restrictions.OTHER.WALKING,
-                    }):flat(),
+                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                     state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-                },
-                {
-                    restrictions = BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-                    state = BJI.Managers.Perm.canSpawnAI() and
-                        BJI.Managers.Restrictions.STATE.ALLOWED,
                 }
             })
-            BJI.Managers.Bigmap.toggleQuickTravel(false)
-            BJI.Managers.Nametags.tryUpdate()
             BJI.Managers.GPS.reset()
             BJI.Managers.RaceWaypoint.resetAll()
-            BJI.Managers.GPS.reset()
 
             initDelivery()
             BJI.Tx.scenario.DeliveryPackageStart()
-            BJI.Managers.Message.flash("BJIDeliveryPackageStart", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3, false)
+            BJI.Managers.Message.flash("BJIDeliveryPackageStart", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3,
+            false)
             init = true
         end
     end
     if not init then
         BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
     end
+end
+
+local function onUnload(ctxt)
+    BJI.Managers.Restrictions.update({ {
+        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Managers.GPS.reset()
+    BJI.Managers.RaceWaypoint.resetAll()
 end
 
 local function onDeliveryEnded()
@@ -265,26 +261,9 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.AI_CONTROL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_PARTS_SELECTOR,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_DEBUG,
-            BJI.Managers.Restrictions.OTHER.WALKING,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Bigmap.toggleQuickTravel(true)
-    BJI.Managers.Nametags.toggle(true)
-    BJI.Managers.GPS.reset()
-    BJI.Managers.RaceWaypoint.resetAll()
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.drawUI = drawUI
 
@@ -300,6 +279,7 @@ S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
+S.canSpawnAI = TrueFn
 
 S.rxStreak = rxStreak
 
@@ -307,6 +287,5 @@ S.slowTick = slowTick
 
 S.getPlayerListActions = getPlayerListActions
 
-S.onUnload = onUnload
 
 return S
