@@ -1,25 +1,38 @@
 local utils = {}
 
----@return table<string, {step: number, stepFast?: number, min: number, max: number}>
+---@return table<string, {min: number, max: number, step?: number, stepFast?: number, type: "int"|"float"?, precision: integer?}>
 function utils.numericData()
     return {
+        -- SUN
+        visibleDistance = { type = "int", min = 1000, max = 32000 },
+        shadowDistance = { type = "int", min = 1000, max = 12800 },
+        shadowSoftness = { type = "float", min = 0, max = 50, precision = 1 },
+        shadowSplits = { type = "int", min = 1, max = 4 },
+        shadowLogWeight = { type = "float", min = 0, max = .99, precision = 2 },
+        brightness = { type = "float", min = -1, max = 50, precision = 1 },
+        sunAzimuthOverride = { type = "int", min = 1, max = 360 },
+        moonAzimuth = { type = "int", min = 0, max = 360 },
+        sunSize = { type = "float", min = 0, max = 10, precision = 2 },
+        moonScale = { type = "float", min = 0, max = 2, precision = 2 },
+        skyBrightness = { type = "float", min = 0, max = 100, precision = 1 },
+        moonElevation = { type = "float", min = 10, max = 80, precision = 1 },
+        rayleighScattering = { type = "float", min = -.002, max = .3 },
+        exposure = { type = "float", min = .001, max = 3},
+        flareScale = { type = "float", min = 0, max = 10, precision = 1 },
+        occlusionScale = { type = "float", min = 0, max = 1.6, precision = 1 },
         -- WEATHER
-        fogDensity = { step = .001, stepFast = .01, min = 0, max = .2 },
-        fogDensityOffset = { step = 1, stepFast = 1000, min = 0, max = 100 },
-        fogAtmosphereHeight = { step = 1, stepFast = 1000, min = 0, max = 10000 },
-        cloudHeight = { step = 1, stepFast = 1000, min = 0, max = 20 },
-        cloudHeightOne = { step = 1, stepFast = 1000, min = 0, max = 20 },
-        cloudCover = { step = 1, stepFast = 100, min = 0, max = 5 },
-        cloudCoverOne = { step = 1, stepFast = 100, min = 0, max = 5 },
-        cloudSpeed = { step = 1, stepFast = 10, min = 0, max = 10 },
-        cloudSpeedOne = { step = 1, stepFast = 10, min = 0, max = 10 },
-        cloudExposure = { step = 1, stepFast = 10, min = 0, max = 10 },
-        cloudExposureOne = { step = 1, stepFast = 10, min = 0, max = 10 },
-        rainDrops = { step = 1, stepFast = 20000, min = 0, max = 20000 },
-        dropSize = { step = 1, stepFast = 10, min = 0, max = 2 },
-        dropMinSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
-        dropMaxSpeed = { step = 1, stepFast = 10, min = 0, max = 2 },
-        dropSizeRatio = { step = .001, min = .001 },
+        fogDensity = { type = "float", min = 0, max = .1 },
+        fogDensityOffset = { type = "int", min = 0, max = 5000 },
+        fogAtmosphereHeight = { type = "float", min = 50, max = 500, precision = 1 },
+        cloudHeight = { type = "float", min = 2, max = 20, precision = 2 },
+        cloudCover = { type = "float", min = 2, max = 1, precision = 2 },
+        cloudSpeed = { type = "float", min = 0, max = 3, precision = 2 },
+        cloudExposure = { type = "float", min = .2, max = 5, precision = 1 },
+        rainDrops = { type = "int", min = 0, max = 10000 },
+        dropSize = { type = "float", min = 0, max = 1, precision = 2 },
+        dropMinSpeed = { type = "float", min = .01, max = 5, precision = 2 },
+        dropMaxSpeed = { type = "float", min = .01, max = 5, precision = 2 },
+        dropSizeRatio = { type = "float", min = .001, max = 10, precision = 2 },
         -- GRAVITY
         gravityRate = { step = .5, stepFast = 10, min = -280, max = 10 },
         --TEMPERATURE

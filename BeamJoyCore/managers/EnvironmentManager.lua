@@ -26,8 +26,8 @@ local function convertSkyUpdate()
     M.Data.skyNight = {
         nightScale = M.Data.nightScale,
         moonAzimuth = M.Data.moonAzimuth,
-        moonScale = M.Data.sunSize,
-        brightness = M.Data.sunLightBrightness,
+        moonScale = M.Data.moonScale,
+        brightness = 30,
         moonElevation = 45,
     }
 
@@ -66,10 +66,10 @@ local function getRanges()
         nightScale = { min = .01, max = .99 },
         sunAzimuthOverride = { min = 1, max = 360 },
         moonAzimuth = { min = 0, max = 360 },
-        sunSize = { min = 0, max = 100 },
+        sunSize = { min = 0, max = 10 },
         moonScale = { min = 0, max = 2 },
         skyBrightness = { min = 0, max = 100 },
-        brightness = { min = -1, max = 100 },
+        brightness = { min = -1, max = 50 },
         rayleighScattering = { min = -.002, max = .3 },
         exposure = { min = .001, max = 3 },
         flareScale = { min = 0, max = 10 },
@@ -81,21 +81,21 @@ local function getRanges()
         shadowTexSize = { min = 32, max = 2048 },
         shadowLogWeight = { min = 0, max = .99 },
 
-        fogDensity = { min = 0, max = .02 },
-        fogDensityOffset = { min = 0, max = 500 },
-        fogAtmosphereHeight = { min = .001, max = 10000 },
-        cloudHeight = { min = 0, max = 20 },
-        cloudHeightOne = { min = 0, max = 20 },
-        cloudCover = { min = 0, max = 5 },
-        cloudCoverOne = { min = 0, max = 5 },
-        cloudSpeed = { min = 0, max = 10 },
-        cloudSpeedOne = { min = 0, max = 10 },
-        cloudExposure = { min = 0, max = 10 },
-        cloudExposureOne = { min = 0, max = 10 },
-        rainDrops = { min = 0, max = 20000 },
-        dropSize = { min = 0, max = 2 },
-        dropMinSpeed = { min = 0, max = 2 },
-        dropMaxSpeed = { min = 0, max = 2 },
+        fogDensity = { min = 0, max = .1 },
+        fogDensityOffset = { min = 0, max = 5000 },
+        fogAtmosphereHeight = { min = 50, max = 500 },
+        cloudHeight = { min = 2, max = 10 },
+        cloudHeightOne = { min = 2, max = 10 },
+        cloudCover = { min = 0, max = 1 },
+        cloudCoverOne = { min = 0, max = 1 },
+        cloudSpeed = { min = 0, max = 3 },
+        cloudSpeedOne = { min = 0, max = 3 },
+        cloudExposure = { min = .2, max = 5 },
+        cloudExposureOne = { min = .2, max = 5 },
+        rainDrops = { min = 0, max = 10000 },
+        dropSize = { min = 0, max = 1 },
+        dropMinSpeed = { min = .01, max = 5 },
+        dropMaxSpeed = { min = .01, max = 5 },
 
         simSpeed = { min = .01, max = 10 },
 
@@ -207,7 +207,6 @@ local function resetType(type)
 
     local defaults = BJCDefaults.environment()
     fields:forEach(function(k)
-        Log(string.var("reset val {1} => {2}", { k, defaults[k] }))
         M.Data[k] = defaults[k]
     end)
     BJCDao.environment.save(M.Data)
