@@ -1,8 +1,7 @@
 local numericData = require("ge/extensions/utils/EnvironmentUtils").numericData()
 
 local function getEnvNumericType(key)
-    if table.includes({ "dayLength", "shadowDistance", "shadowSplits", "visibleDistance", "fogAtmosphereHeight",
-            "rainDrops", "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }, key) then
+    if table.includes({ "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }, key) then
         return "int"
     end
     return "float"
@@ -16,12 +15,7 @@ local function getNumericWithReset(key, disabled, inputsCallback)
         return
     end
     return function()
-        local value = 0
-        if key == "dropSizeRatio" then
-            value = BJI.Managers.Context.UI.dropSizeRatio
-        else
-            value = tonumber(BJI.Managers.Env.Data[key]) or 0
-        end
+        local value = tonumber(BJI.Managers.Env.Data[key]) or 0
         local line = LineBuilder()
             :inputNumeric({
                 id = key,
@@ -34,11 +28,6 @@ local function getNumericWithReset(key, disabled, inputsCallback)
                 max = numericData[key].max,
                 disabled = disabled,
                 onUpdate = function(val)
-                    if key == "dropSizeRatio" then
-                        BJI.Managers.Context.UI.dropSizeRatio = val
-                    else
-                        BJI.Managers.Env.Data[key] = val
-                    end
                     BJI.Tx.config.env(key, val)
                 end
             })
@@ -48,9 +37,6 @@ local function getNumericWithReset(key, disabled, inputsCallback)
                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                 onClick = function()
                     BJI.Tx.config.env(key)
-                    if key == "dropSizeRatio" then
-                        BJI.Managers.Context.UI.dropSizeRatio = 1
-                    end
                 end
             })
         if type(inputsCallback) == "function" then

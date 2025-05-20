@@ -117,6 +117,8 @@ local function _tryApplyDayNightSunValues()
     elseif ToD.time > M.duskLimits[2] and ToD.time <= M.dawnLimits[1] then
         -- night
         scatterSky.brightness = M.Data.skyNight.brightness
+        scatterSky.moonAzimuth = (M.Data.skyNight.moonAzimuth +
+            math.scale(ToD.time, M.duskLimits[2], M.dawnLimits[1], -45, 45)) % 360
     elseif ToD.time > M.dawnLimits[1] and ToD.time <= M.dawnLimits[2] then
         -- dawn
         scatterSky.brightness = math.scale(ToD.time, M.dawnLimits[1], M.dawnLimits[2], M.Data.skyNight.brightness,
@@ -153,7 +155,6 @@ local function _tryApplySun()
             scatterSky.exposure = M.Data.skyDay.exposure
             scatterSky.flareScale = M.Data.skyDay.flareScale
             scatterSky.occlusionScale = M.Data.skyDay.occlusionScale
-            scatterSky.moonAzimuth = M.Data.skyNight.moonAzimuth
             scatterSky.moonElevation = M.Data.skyNight.moonElevation
             scatterSky.moonScale = M.Data.skyNight.moonScale
             scatterSky:postApply()
@@ -340,6 +341,7 @@ local function onLoad()
         end
 
         if table.length(keysChanged) > 0 then
+            M.forceUpdate()
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ENV_CHANGED, {
                 keys = keysChanged
             })
