@@ -23,7 +23,7 @@ function utils.numericData()
         -- WEATHER
         fogDensity = { type = "float", min = 0, max = .1 },
         fogDensityOffset = { type = "int", min = 0, max = 5000 },
-        fogAtmosphereHeight = { type = "float", min = 50, max = 500, precision = 1 },
+        fogAtmosphereHeight = { type = "float", min = 50, max = 2000, precision = 1 },
         cloudHeight = { type = "float", min = 2, max = 20, precision = 2 },
         cloudCover = { type = "float", min = 2, max = 1, precision = 2 },
         cloudSpeed = { type = "float", min = 0, max = 3, precision = 2 },

@@ -83,7 +83,7 @@ local function getRanges()
 
         fogDensity = { min = 0, max = .1 },
         fogDensityOffset = { min = 0, max = 5000 },
-        fogAtmosphereHeight = { min = 50, max = 500 },
+        fogAtmosphereHeight = { min = 50, max = 2000 },
         cloudHeight = { min = 2, max = 10 },
         cloudHeightOne = { min = 2, max = 10 },
         cloudCover = { min = 0, max = 1 },
