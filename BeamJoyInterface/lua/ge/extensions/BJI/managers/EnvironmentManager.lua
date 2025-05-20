@@ -118,7 +118,7 @@ local function _tryApplyDayNightSunValues()
         -- night
         scatterSky.brightness = M.Data.skyNight.brightness
         scatterSky.moonAzimuth = (M.Data.skyNight.moonAzimuth +
-            math.scale(ToD.time, M.duskLimits[2], M.dawnLimits[1], -45, 45)) % 360
+            math.scale(ToD.time, M.duskLimits[2], M.dawnLimits[1], -45, 45) + 360) % 360
     elseif ToD.time > M.dawnLimits[1] and ToD.time <= M.dawnLimits[2] then
         -- dawn
         scatterSky.brightness = math.scale(ToD.time, M.dawnLimits[1], M.dawnLimits[2], M.Data.skyNight.brightness,
@@ -298,7 +298,11 @@ local function renderTick(ctxt)
                 else
                     partDuration = M.Data.dayLength * M.Data.skyDay.dayScale
                 end
-                local step = math.round(.5 / partDuration, 6) * (delta / 1000)
+                local step = (.5 / partDuration) * (delta / 1000)
+                if M.Data.controlSimSpeed and M.Data.simSpeed ~= 1 then
+                    step = step * M.Data.simSpeed
+                end
+                step = math.round(step, 6)
                 M.Data.ToD = (M.Data.ToD + step) % 1
                 _tryApplyTime()
             end

@@ -1,5 +1,3 @@
-local common = require("ge/extensions/BJI/ui/windows/Environment/Common")
-
 local W = {
     KEYS = Table({ "controlSpeed", "simSpeed" }),
 
@@ -7,6 +5,7 @@ local W = {
     labels = Table(), -- auto-alimented
     labelsWidth = 0,
     cols = Table(),
+    presets = require("ge/extensions/utils/EnvironmentUtils").speedPresets(),
 }
 
 local function updateLabels()
@@ -18,9 +17,15 @@ local function updateLabels()
             W.labelsWidth = w
         end
     end)
+
+    W.presets:forEach(function(p)
+        W.labels[p.key] = string.var("{1} (x{2})",
+            { BJI.Managers.Lang.get(string.var("presets.speed.{1}", { p.key })), p.value })
+    end)
 end
 
 local function updateCols()
+    local ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
     W.cols = Table({
         {
             function() LineLabel(W.labels.controlSimSpeed) end,
@@ -40,7 +45,30 @@ local function updateCols()
         },
         {
             function() LineLabel(W.labels.simSpeed) end,
-            common.getNumericWithReset("simSpeed", not BJI.Managers.Env.Data.controlSimSpeed),
+            function()
+                LineBuilder():btnIcon({
+                    id = "resetsimSpeed",
+                    icon = ICONS.refresh,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSimSpeed,
+                    onClick = function()
+                        BJI.Tx.config.env("simSpeed")
+                    end
+                }):slider({
+                    id = "simSpeed",
+                    type = ranges.simSpeed.type,
+                    value = BJI.Managers.Env.Data.simSpeed,
+                    min = ranges.simSpeed.min,
+                    max = ranges.simSpeed.max,
+                    precision = ranges.simSpeed.precision,
+                    disabled = not BJI.Managers.Env.Data.controlSimSpeed,
+                    onUpdate = function(val)
+                        BJI.Managers.Env.Data.simSpeed = val
+                        BJI.Tx.config.env("simSpeed", val)
+                        BJI.Managers.Env.forceUpdate()
+                    end
+                }):build()
+            end
         }
     }):map(function(el) return { cells = el } end)
 end
@@ -60,8 +88,8 @@ local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function drawSpeedPresets(presets)
-    for _, p in ipairs(presets) do
+local function drawSpeedPresets()
+    W.presets:forEach(function(p)
         local value = math.round(p.value, 2)
         local selected = math.round(BJI.Managers.Env.Data.simSpeed, 3) == value
         local style = BJI.Utils.Style.BTN_PRESETS.INFO
@@ -71,10 +99,7 @@ local function drawSpeedPresets(presets)
         LineBuilder()
             :btn({
                 id = p.key,
-                label = string.var("{1} (x{2})", {
-                    BJI.Managers.Lang.get(string.var("presets.speed.{1}", { p.key })),
-                    value
-                }),
+                label = W.labels[p.key],
                 style = style,
                 disabled = selected,
                 onClick = function()
@@ -85,7 +110,7 @@ local function drawSpeedPresets(presets)
                 end
             })
             :build()
-    end
+    end)
 end
 
 local function body()
@@ -103,7 +128,7 @@ local function body()
         :build()
 
     if BJI.Managers.Env.Data.controlSimSpeed then
-        drawSpeedPresets(require("ge/extensions/utils/EnvironmentUtils").speedPresets())
+        drawSpeedPresets()
     end
 end
 

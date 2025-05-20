@@ -1,5 +1,3 @@
-local common = require("ge/extensions/BJI/ui/windows/Environment/Common")
-
 local W = {
     KEYS = {
         common = Table({ "controlSun", "timePlay", "ToD", "dayLength", "visibleDistance", "shadowDistance",
@@ -48,7 +46,7 @@ local W = {
     labelsCommonWidth = 0,
     labelsDayWidth = 0,
     labelsNightWidth = 0,
-    timePresets = require("ge/extensions/utils/EnvironmentUtils").timePresets(),
+    presets = require("ge/extensions/utils/EnvironmentUtils").timePresets(),
 }
 
 local function updateLabels()
@@ -129,7 +127,7 @@ local function body()
             function()
                 BJI.Utils.Common.DrawTimePlayPauseButtons("envSunTimePlay", true,
                     not BJI.Managers.Env.Data.controlSun)
-                Table(W.timePresets):reduce(function(line, p)
+                W.presets:reduce(function(line, p)
                     return line:btn({
                         id = "timepreset" .. p.label,
                         label = W.labelsPresets[p.label],

@@ -1,6 +1,6 @@
 local utils = {}
 
----@return table<string, {min: number, max: number, step?: number, stepFast?: number, type: "int"|"float"?, precision: integer?}>
+---@return table<string, {type: "int"|"float", min: number, max: number, precision: integer?}>
 function utils.numericData()
     return {
         -- SUN
@@ -17,7 +17,7 @@ function utils.numericData()
         skyBrightness = { type = "float", min = 0, max = 100, precision = 1 },
         moonElevation = { type = "float", min = 10, max = 80, precision = 1 },
         rayleighScattering = { type = "float", min = -.002, max = .3 },
-        exposure = { type = "float", min = .001, max = 3},
+        exposure = { type = "float", min = .001, max = 3 },
         flareScale = { type = "float", min = 0, max = 10, precision = 1 },
         occlusionScale = { type = "float", min = 0, max = 1.6, precision = 1 },
         -- WEATHER
@@ -34,20 +34,20 @@ function utils.numericData()
         dropMaxSpeed = { type = "float", min = .01, max = 5, precision = 2 },
         dropSizeRatio = { type = "float", min = .001, max = 10, precision = 2 },
         -- GRAVITY
-        gravityRate = { step = .5, stepFast = 10, min = -280, max = 10 },
+        gravityRate = { type = "float", min = -280, max = 10, precision = 2 },
         --TEMPERATURE
-        tempCurveNoon = { step = 1, stepFast = 2, min = -50, max = 50 },
-        tempCurveDusk = { step = 1, stepFast = 2, min = -50, max = 50 },
-        tempCurveMidnight = { step = 1, stepFast = 2, min = -50, max = 50 },
-        tempCurveDawn = { step = 1, stepFast = 2, min = -50, max = 50 },
+        tempCurveNoon = { type = "int", min = -50, max = 50 },
+        tempCurveDusk = { type = "int", min = -50, max = 50 },
+        tempCurveMidnight = { type = "int", min = -50, max = 50 },
+        tempCurveDawn = { type = "int", min = -50, max = 50 },
         --SPEED
-        simSpeed = { step = .01, stepFast = .1, min = .01, max = 10 },
+        simSpeed = { type = "float", min = .01, max = 10, precision = 2 },
     }
 end
 
----@return {key: string, value: number, default?: boolean}[]
+---@return tablelib<integer, {key: string, value: number, default?: boolean}>
 function utils.gravityPresets()
-    return {
+    return Table({
         { key = "zero",    value = 0, },
         { key = "pluto",   value = -0.58, },
         { key = "moon",    value = -1.62, },
@@ -59,12 +59,12 @@ function utils.gravityPresets()
         { key = "neptune", value = -11.15, },
         { key = "jupiter", value = -24.92, },
         { key = "sun",     value = -274, },
-    }
+    })
 end
 
----@return {key: string, value: number, default?: boolean}[]
+---@return tablelib<integer, {key: string, value: number, default?: boolean}>
 function utils.speedPresets()
-    return {
+    return Table({
         { key = "slowextreme", value = 0.01 },
         { key = "slowest",     value = 0.1 },
         { key = "slower",      value = 0.5 },
@@ -74,22 +74,22 @@ function utils.speedPresets()
         { key = "faster",      value = 2 },
         { key = "fastest",     value = 5 },
         { key = "fastextreme", value = 10 },
-    }
+    })
 end
 
----@return {label: string, ToD: number, icon: string}[]
+---@return tablelib<integer, {label: string, ToD: number, icon: string}>
 function utils.timePresets()
-    return {
+    return Table({
         { label = "dawn",     ToD = .791, icon = ICONS.brightness_3 },
         { label = "midday",   ToD = 0,    icon = ICONS.brightness_high },
         { label = "dusk",     ToD = .210, icon = ICONS.brightness_3 },
         { label = "midnight", ToD = .5,   icon = ICONS.brightness_low }
-    }
+    })
 end
 
----@return {label: string, keys: table, icon: string}[]
+---@return tablelib<integer, {label: string, keys: table, icon: string}>
 function utils.weatherPresets()
-    return {
+    return Table({
         {
             label = "clear",
             keys = {
@@ -232,7 +232,7 @@ function utils.weatherPresets()
             },
             icon = ICONS.ac_unit,
         }
-    }
+    })
 end
 
 return utils

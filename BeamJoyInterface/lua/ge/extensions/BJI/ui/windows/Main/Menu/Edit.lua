@@ -25,7 +25,6 @@ end
 local function menuTimePresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJI.Managers.Env.Data.controlSun then
-        local presets = require("ge/extensions/utils/EnvironmentUtils").timePresets()
         local elems = {
             [1] = {
                 render = function()
@@ -33,7 +32,7 @@ local function menuTimePresets(ctxt)
                 end,
             }
         }
-        for _, preset in ipairs(presets) do
+        require("ge/extensions/utils/EnvironmentUtils").timePresets():forEach(function(preset)
             local disabled = not BJI.Managers.Env.Data.timePlay and
                 math.round(BJI.Managers.Env.Data.ToD, 3) == math.round(preset.ToD, 3)
             table.insert(elems, {
@@ -60,7 +59,7 @@ local function menuTimePresets(ctxt)
                         :build()
                 end,
             })
-        end
+        end)
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.edit.time"),
             elems = elems,
@@ -71,9 +70,8 @@ end
 local function menuWeatherPresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJI.Managers.Env.Data.controlWeather then
-        local presets = require("ge/extensions/utils/EnvironmentUtils").weatherPresets()
         local elems = {}
-        for _, preset in ipairs(presets) do
+        require("ge/extensions/utils/EnvironmentUtils").weatherPresets():forEach(function(preset)
             local disabled = preset.label == BJI.Managers.Env.currentWeatherPreset
             local onClick = function()
                 if not disabled then
@@ -101,7 +99,7 @@ local function menuWeatherPresets(ctxt)
                         :build()
                 end,
             })
-        end
+        end)
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.edit.weather"),
             elems = elems,
@@ -111,9 +109,8 @@ end
 
 local function menuGravityPresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) and BJI.Managers.Env.Data.controlGravity then
-        local presets = require("ge/extensions/utils/EnvironmentUtils").gravityPresets()
         local elems = {}
-        table.forEach(presets, function(preset)
+        require("ge/extensions/utils/EnvironmentUtils").gravityPresets():forEach(function(preset)
             local value = math.round(preset.value, 3)
             local disabled = value == math.round(BJI.Managers.Env.Data.gravityRate, 3)
             table.insert(elems, {
@@ -137,9 +134,8 @@ end
 
 local function menuSpeedPresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) then
-        local presets = require("ge/extensions/utils/EnvironmentUtils").speedPresets()
         local elems = {}
-        table.forEach(presets, function(preset)
+        require("ge/extensions/utils/EnvironmentUtils").speedPresets():forEach(function(preset)
             local value = math.round(preset.value, 3)
             local disabled = value == math.round(BJI.Managers.Env.Data.simSpeed, 3)
             table.insert(elems, {

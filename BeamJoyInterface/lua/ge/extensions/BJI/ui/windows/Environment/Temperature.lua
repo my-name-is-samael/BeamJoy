@@ -1,5 +1,3 @@
-local common = require("ge/extensions/BJI/ui/windows/Environment/Common")
-
 local W = {
     KEYS = Table({ "controlTemperature", "tempCurveNoon",
         "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }),
@@ -24,6 +22,7 @@ local function updateLabels()
 end
 
 local function updateCols()
+    local ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
     W.cols = Table({
         {
             function() LineLabel(W.labels.controlTemperature) end,
@@ -46,15 +45,37 @@ local function updateCols()
         :map(function(k)
             return {
                 function() LineLabel(W.labels[k]) end,
-                common.getNumericWithReset(k, not BJI.Managers.Env.Data.useTempCurve, function(line)
+                function()
                     local kelvin = math.celsiusToKelvin(BJI.Managers.Env.Data[k])
-                    local labels = Table({
-                        string.var("{1}°C", { math.round(BJI.Managers.Env.Data[k] or 0, 2) }),
-                        string.var("{1}°F", { math.round(math.kelvinToFahrenheit(kelvin or 0) or 0, 2) }),
-                        string.var("{1}K", { math.round(kelvin or 0, 2) }),
+                    local renderFormat = string.var("({1}°C | {2}°F | {3}K)", {
+                        math.round(BJI.Managers.Env.Data[k] or 0, 2),
+                        math.round(math.kelvinToFahrenheit(kelvin or 0) or 0, 2),
+                        math.round(kelvin or 0, 2)
                     })
-                    line:text(labels:join(W.labels.vSeparator))
-                end),
+                    LineBuilder():btnIcon({
+                        id = "reset" .. k,
+                        icon = ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = not BJI.Managers.Env.Data.useTempCurve,
+                        onClick = function()
+                            BJI.Tx.config.env(k)
+                        end
+                    }):slider({
+                        id = k,
+                        type = ranges[k].type,
+                        value = BJI.Managers.Env.Data[k],
+                        min = ranges[k].min,
+                        max = ranges[k].max,
+                        precision = ranges[k].precision,
+                        disabled = not BJI.Managers.Env.Data.useTempCurve,
+                        renderFormat = renderFormat,
+                        onUpdate = function(val)
+                            BJI.Managers.Env.Data[k] = val
+                            BJI.Tx.config.env(k, val)
+                            BJI.Managers.Env.forceUpdate()
+                        end
+                    }):build()
+                end,
             }
         end)
     ):map(function(el) return { cells = el } end)
