@@ -7,26 +7,31 @@ local M = {
         ToD = .78,
         timePlay = true,
         dayLength = 1800,
-        dayScale = .02,
-        nightScale = 5,
-        sunAzimuthOverride = 0.0,
-        skyBrightness = 40,
-        sunSize = 10,
-        rayleighScattering = 0.003,
-        sunLightBrightness = 1,
-        flareScale = 25,
-        occlusionScale = 1,
-        exposure = 1,
+        visibleDistance = 8000,
         shadowDistance = 1000,
         shadowSoftness = 0.1,
         shadowSplits = 4,
-        shadowTexSize = 2048,
-        shadowTexSizeInput = 11,
+        shadowTexSize = 1024,
+        shadowTexSizeInput = 6,
         shadowLogWeight = 0.99,
-        visibleDistance = 8000,
-        moonAzimuth = 0.0,
-        moonElevation = 45,
-        moonScale = 0.03,
+        skyDay = {
+            dayScale = .02,
+            sunAzimuthOverride = 0.0,
+            sunSize = 10,
+            skyBrightness = 40,
+            rayleighScattering = 0.003,
+            brightness = 1,
+            exposure = 1,
+            flareScale = 25,
+            occlusionScale = 1,
+        },
+        skyNight = {
+            nightScale = 5,
+            moonAzimuth = 0.0,
+            moonScale = 0.03,
+            brightness = 1,
+            moonElevation = 45,
+        },
 
         controlWeather = false,
         fogDensity = 10,
@@ -60,7 +65,9 @@ local M = {
     },
     init = false, -- true if env is applied at least once after joining
 
-    PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
+    PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" },
+    duskLimits = { .245, .25 },
+    dawnLimits = { .75, .755 },
 }
 
 local function _getObjectWithCache(category)
@@ -90,8 +97,33 @@ local function _tryApplyTime()
 end
 
 local function tryApplyTimeFromServer(ToD)
-    if ToD ~= nil and M.Data.controlSun then
+    if ToD ~= nil and M.Data.controlSun and
+        math.abs(M.Data.ToD - ToD) > .01 then
+        -- sync only if client got offset
         M.Data.ToD = ToD
+    end
+end
+
+local function _tryApplyDayNightSunValues()
+    local scatterSky = _getObjectWithCache("ScatterSky")
+    local ToD = core_environment.getTimeOfDay()
+    if not scatterSky or not ToD then
+        return
+    end
+    if ToD.time > M.duskLimits[1] and ToD.time <= M.duskLimits[2] then
+        -- dusk
+        scatterSky.brightness = math.scale(ToD.time, M.duskLimits[1], M.duskLimits[2], M.Data.skyDay.brightness,
+            M.Data.skyNight.brightness)
+    elseif ToD.time > M.duskLimits[2] and ToD.time <= M.dawnLimits[1] then
+        -- night
+        scatterSky.brightness = M.Data.skyNight.brightness
+    elseif ToD.time > M.dawnLimits[1] and ToD.time <= M.dawnLimits[2] then
+        -- dawn
+        scatterSky.brightness = math.scale(ToD.time, M.dawnLimits[1], M.dawnLimits[2], M.Data.skyNight.brightness,
+            M.Data.skyDay.brightness)
+    else
+        -- day
+        scatterSky.brightness = M.Data.skyDay.brightness
     end
 end
 
@@ -99,31 +131,31 @@ local function _tryApplySun()
     if M.Data.controlSun then
         local ToD = core_environment.getTimeOfDay()
         if ToD then
-            ToD.play = M.Data.timePlay
-            ToD.dayLength = M.Data.dayLength
-            ToD.dayScale = M.Data.dayScale / BJI.Physics.physmult
-            ToD.nightScale = M.Data.nightScale / BJI.Physics.physmult
-            ToD.azimuthOverride = M.Data.sunAzimuthOverride
+            -- TimePlay is manually done in rendertick (sync purpose)
+            ToD.play = false      --M.Data.timePlay
+            ToD.dayLength = 84600 --M.Data.dayLength
+            ToD.dayScale = 1      -- M.Data.skyDay.dayScale * 2
+            ToD.nightScale = 1    -- M.Data.skyNight.nightScale * 2
+            ToD.azimuthOverride = M.Data.skyDay.sunAzimuthOverride / 360 * 6.25
             core_environment.setTimeOfDay(ToD)
         end
 
         local scatterSky = _getObjectWithCache("ScatterSky")
         if scatterSky then
-            scatterSky.sunSize = M.Data.sunSize
-            scatterSky.skyBrightness = M.Data.skyBrightness
-            scatterSky.rayleighScattering = M.Data.rayleighScattering
-            scatterSky.brightness = M.Data.sunLightBrightness
-            scatterSky.flareScale = M.Data.flareScale
-            scatterSky.occlusionScale = M.Data.occlusionScale
-            scatterSky.exposure = M.Data.exposure
             scatterSky.shadowDistance = M.Data.shadowDistance
             scatterSky.shadowSoftness = M.Data.shadowSoftness
-            scatterSky.shadowSplits = M.Data.shadowSplits
+            scatterSky.numSplits = M.Data.shadowSplits
             scatterSky.texSize = M.Data.shadowTexSize
             scatterSky.logWeight = M.Data.shadowLogWeight
-            scatterSky.moonAzimuth = M.Data.moonAzimuth
-            scatterSky.moonElevation = M.Data.moonElevation
-            scatterSky.moonScale = M.Data.moonScale
+            scatterSky.sunSize = M.Data.skyDay.sunSize
+            scatterSky.skyBrightness = M.Data.skyDay.skyBrightness
+            scatterSky.rayleighScattering = M.Data.skyDay.rayleighScattering
+            scatterSky.exposure = M.Data.skyDay.exposure
+            scatterSky.flareScale = M.Data.skyDay.flareScale
+            scatterSky.occlusionScale = M.Data.skyDay.occlusionScale
+            scatterSky.moonAzimuth = M.Data.skyNight.moonAzimuth
+            scatterSky.moonElevation = M.Data.skyNight.moonElevation
+            scatterSky.moonScale = M.Data.skyNight.moonScale
             scatterSky:postApply()
         end
 
@@ -197,8 +229,18 @@ local function _tryApplyGravity()
     end
 end
 
-local function slowTick() -- server tick
-    if BJI.Managers.Context.WorldReadyState == 2 and BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+local function forceUpdate()
+    _tryApplyTime()
+    _tryApplySun()
+    _tryApplyWeather()
+    _tryApplyTemperature()
+    _tryApplyDayNightSunValues()
+end
+
+local function slowTick()
+    if BJI.Managers.Context.WorldReadyState == 2 and
+        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+        _tryApplyTime()
         _tryApplySun()
         _tryApplyWeather()
         _tryApplyTemperature()
@@ -206,7 +248,7 @@ local function slowTick() -- server tick
     end
 end
 
-local function fastTick(ctxt) -- render tick
+local function fastTick(ctxt)
     if BJI.Managers.Context.WorldReadyState == 2 then
         -- disable pause on multiplayer
         if bullettime:getPause() then
@@ -216,7 +258,6 @@ local function fastTick(ctxt) -- render tick
 
         -- applying environment
         if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
-            _tryApplyTime()
             _tryApplySimSpeed()
             _tryApplyGravity()
         end
@@ -239,6 +280,34 @@ local function fastTick(ctxt) -- render tick
                 "BJIBigmapEnv"
             )
         end
+    end
+end
+
+local lastRenderTick = nil
+local lastToD = nil
+local function renderTick(ctxt)
+    if BJI.Managers.Context.WorldReadyState == 2 and
+        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+        if M.Data.controlSun and M.Data.timePlay then -- ToD auto-update
+            if lastRenderTick then
+                local delta = ctxt.now - lastRenderTick
+                local partDuration
+                if M.Data.ToD >= 0.25 and M.Data.ToD <= 0.75 then
+                    partDuration = M.Data.dayLength * M.Data.skyNight.nightScale
+                else
+                    partDuration = M.Data.dayLength * M.Data.skyDay.dayScale
+                end
+                local step = math.round(.5 / partDuration, 6) * (delta / 1000)
+                M.Data.ToD = (M.Data.ToD + step) % 1
+                _tryApplyTime()
+            end
+            lastRenderTick = ctxt.now
+        end
+
+        if not lastToD or lastToD ~= M.Data.ToD then -- on ToD change (timePlay or server change)
+            _tryApplyDayNightSunValues()
+        end
+        lastToD = M.Data.ToD
     end
 end
 
@@ -318,6 +387,9 @@ M.getTime = getTime
 M.getTemperature = getTemperature
 M.updateCurrentPreset = updateCurrentPreset
 M.tryApplyTimeFromServer = tryApplyTimeFromServer
+M.forceUpdate = forceUpdate
+
+M.renderTick = renderTick
 
 M.onLoad = onLoad
 

@@ -530,7 +530,8 @@ end
 ---@field icon fun(self, data: {icon: string, big: boolean?, border: vec4?, style: vec4[]?, coloredIcon: boolean?}): LineBuilder
 ---@field btnIcon fun(self, data: {id: string, icon: string, onClick: fun(), big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?}): LineBuilder
 ---@field btnIconToggle fun(self, data: {id: string, state: boolean, onClick: fun(), icon: string?, big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?}): LineBuilder
----@field colorPicker fun(self, data: {id: string, value: number[]|table<string, number>, onChange: fun(value: number[]), alpha: boolean?, disabled: boolean?})
+---@field colorPicker fun(self, data: {id: string, value: number[]|table<string, number>, onChange: fun(value: number[]), alpha: boolean?, disabled: boolean?}): LineBuilder
+---@field slider fun(self, data: {id: string, type: "int"|"float", value: number, min: number, max: number, onUpdate: fun(value: number), precision: number?, width: number?, disabled: boolean?, style: number[][]?, renderFormat: string?}): LineBuilder
 ---@field build fun(self)
 
 ---@param startSameLine? boolean
@@ -1167,6 +1168,75 @@ LineBuilder = function(startSameLine)
                 math.round(color[3], BJI.Utils.Style.RGBA_PRECISION),
             })
         end
+        self._elemCount = self._elemCount + 1
+        return self
+    end
+
+    builder.slider = function(self, data)
+        if not data.id or not data.type or not data.value or not data.min or not data.max or not data.onUpdate then
+            LogError("slider requires id, value, min, max and onChange", logTag)
+            return self
+        elseif not table.includes({ "int", "float" }, data.type) then
+            LogError("slider type must be int or float", logTag)
+            return self
+        end
+
+        if data.type == "int" then
+            data.precision = 0
+            data.renderFormat = data.renderFormat or "%d"
+        else
+            data.precision = data.precision and math.round(math.clamp(data.precision, 0)) or 3
+            data.renderFormat = data.renderFormat or string.var("%.{1}f", { data.precision })
+        end
+
+        self:_commonStartElem()
+
+        local flags = { im.SliderFlags_AlwaysClamp }
+        local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        -- WIDTH
+        if data.width then
+            im.PushItemWidth(data.width * scale)
+        else
+            im.PushItemWidth(-1)
+        end
+
+        -- DISABLED / STYLE
+        if data.disabled then
+            data.style = {
+                BJI.Utils.Style.INPUT_PRESETS.DISABLED[1],
+                BJI.Utils.Style.INPUT_PRESETS.DISABLED[2],
+            }
+        end
+        if not data.style then
+            data.style = {
+                BJI.Utils.Style.INPUT_PRESETS.DEFAULT[1],
+                BJI.Utils.Style.INPUT_PRESETS.DEFAULT[2],
+            }
+        end
+        if not data.style[2] then
+            data.style[2] = BJI.Utils.Style.TEXT_COLORS.DEFAULT
+        end
+        inputStylePreset(data.style, true)
+
+        local drawFn, val = im.SliderInt, im.IntPtr(data.value)
+        if data.type == "float" then
+            drawFn = im.SliderFloat
+            val = im.FloatPtr(data.value)
+        end
+        if drawFn("##" .. tostring(data.id), val, data.min, data.max, data.renderFormat, im.flags(table.unpack(flags))) and
+            not data.disabled then
+            local parsed = math.round(val[0], data.precision)
+            if data.parsed ~= math.round(data.value, data.precision) then
+                data.onUpdate(parsed)
+            end
+        end
+
+        -- REMOVE STYLE
+        resetInputStyle(true)
+
+        -- REMOVE WIDTH
+        im.PopItemWidth()
+
         self._elemCount = self._elemCount + 1
         return self
     end

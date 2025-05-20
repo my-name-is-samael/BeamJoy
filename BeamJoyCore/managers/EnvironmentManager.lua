@@ -10,37 +10,80 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
 }
 
+-- 2.0.0 update data conversion
+local function convertSkyUpdate()
+    M.Data.skyDay = {
+        dayScale = M.Data.dayScale,
+        sunAzimuthOverride = M.Data.sunAzimuthOverride / 6.25 * 360,
+        sunSize = M.Data.sunSize,
+        skyBrightness = M.Data.skyBrightness,
+        rayleighScattering = M.Data.rayleighScattering,
+        brightness = M.Data.sunLightBrightness,
+        exposure = M.Data.exposure,
+        flareScale = M.Data.flareScale,
+        occlusionScale = M.Data.occlusionScale,
+    }
+    M.Data.skyNight = {
+        nightScale = M.Data.nightScale,
+        moonAzimuth = M.Data.moonAzimuth,
+        moonScale = M.Data.sunSize,
+        brightness = M.Data.sunLightBrightness,
+        moonElevation = 45,
+    }
+
+    M.Data.dayScale = nil
+    M.Data.nightScale = nil
+    M.Data.sunAzimuthOverride = nil
+    M.Data.sunSize = nil
+    M.Data.skyBrightness = nil
+    M.Data.rayleighScattering = nil
+    M.Data.sunLightBrightness = nil
+    M.Data.flareScale = nil
+    M.Data.occlusionScale = nil
+    M.Data.exposure = nil
+    M.Data.moonAzimuth = nil
+    M.Data.moonElevation = nil
+    M.Data.moonScale = nil
+
+    BJCDao.environment.save(M.Data)
+end
+
 local function init()
     M.Data = BJCDao.environment.findAll()
+
+    if not M.Data.skyDay then
+        -- 2.0.0 update data conversion
+        convertSkyUpdate()
+    end
 end
 
 local function getRanges()
     return {
         ToD = { min = 0, max = 1 },
-        dayLength = { min = 1, max = 14400 },
-        dayScale = { min = .01, max = 100 },
-        nightScale = { min = .01, max = 100 },
-        sunAzimuthOverride = { min = .001, max = 6.25 },
-        sunSize = { min = 0, max = 100 },
-        skyBrightness = { min = 0, max = 200 },
-        sunLightBrightness = { min = 0, max = 10 },
-        rayleighScattering = { min = .001, max = .15 },
-        flareScale = { min = 0, max = 25 },
-        occlusionScale = { min = 0, max = 1 },
-        exposure = { min = 0, max = 3 },
-        shadowDistance = { min = 0, max = 12800 },
-        shadowSoftness = { min = -10, max = 10 },
-        shadowSplits = { min = 0, max = 4 },
-        shadowTexSize = { min = 32, max = 2048 },
-        shadowLogWeight = { min = .001, max = .999 },
+        dayLength = { min = 60, max = 86400 },
         visibleDistance = { min = 1000, max = 32000 },
+        dayScale = { min = .01, max = .99 },
+        nightScale = { min = .01, max = .99 },
+        sunAzimuthOverride = { min = 1, max = 360 },
         moonAzimuth = { min = 0, max = 360 },
-        moonElevation = { min = 0, max = 360 },
-        moonScale = { min = .005, max = 1 },
+        sunSize = { min = 0, max = 100 },
+        moonScale = { min = 0, max = 2 },
+        skyBrightness = { min = 0, max = 100 },
+        brightness = { min = -1, max = 100 },
+        rayleighScattering = { min = -.002, max = .3 },
+        exposure = { min = .001, max = 3 },
+        flareScale = { min = 0, max = 10 },
+        moonElevation = { min = 10, max = 80 },
+        occlusionScale = { min = 0, max = 1.6 },
+        shadowDistance = { min = 1000, max = 12800 },
+        shadowSoftness = { min = 0, max = 50 },
+        shadowSplits = { min = 1, max = 4 },
+        shadowTexSize = { min = 32, max = 2048 },
+        shadowLogWeight = { min = 0, max = .99 },
 
-        fogDensity = { min = 0, max = .2 },
-        fogDensityOffset = { min = 0, max = 100 },
-        fogAtmosphereHeight = { min = 0, max = 10000 },
+        fogDensity = { min = 0, max = .02 },
+        fogDensityOffset = { min = 0, max = 500 },
+        fogAtmosphereHeight = { min = .001, max = 10000 },
         cloudHeight = { min = 0, max = 20 },
         cloudHeightOne = { min = 0, max = 20 },
         cloudCover = { min = 0, max = 5 },
@@ -66,14 +109,46 @@ local function getRanges()
 end
 
 local function set(key, value)
-    if M.Data[key] == nil then
+    local function _get()
+        local parts = key:split(".")
+        if #parts == 1 then
+            return M.Data[key]
+        else
+            return M.Data[parts[1]][parts[2]]
+        end
+    end
+    local function getDefault()
+        local parts = key:split(".")
+        if #parts == 1 then
+            return BJCDefaults.environment()[key]
+        else
+            return BJCDefaults.environment()[parts[1]][parts[2]]
+        end
+    end
+    local function getRange()
+        local parts = key:split(".")
+        if #parts == 1 then
+            return getRanges()[key]
+        else
+            return getRanges()[parts[2]]
+        end
+    end
+    local function _set(val)
+        local parts = key:split(".")
+        if #parts == 1 then
+            M.Data[key] = val
+        else
+            M.Data[parts[1]][parts[2]] = val
+        end
+    end
+    if _get() == nil then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     end
 
     if value == nil then
-        value = BJCDefaults.environment()[key]
+        value = getDefault()
     else
-        if M.Data[key] ~= nil and type(M.Data[key]) ~= type(value) then
+        if type(_get()) ~= type(value) then
             error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
 
@@ -85,21 +160,22 @@ local function set(key, value)
         end
 
         -- parse ints
-        local intFields = { "dayLength", "shadowDistance", "shadowSplits", "visibleDistance", "fogAtmosphereHeight",
-            "rainDrops", "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }
-        if table.includes(intFields, key) then
+        local intFields = Table({ "dayLength", "sunAzimuthOverride", "moonAzimuth", "shadowDistance", "shadowSplits",
+            "shadowTexSize", "visibleDistance", "fogAtmosphereHeight", "rainDrops", "tempCurveNoon", "tempCurveDusk",
+            "tempCurveMidnight", "tempCurveDawn" })
+        if intFields:any(function(k) return k:endswith(key) end) then
             value = math.floor(value)
         end
 
         -- clamp numerics
         if type(value) == "number" then
-            local range = getRanges()[key]
+            local range = getRange()
             value = math.clamp(value, range.min, range.max)
         end
     end
 
-    M.Data[key] = value
-    BJCDao.environment.save(key, value)
+    _set(value)
+    BJCDao.environment.save(M.Data)
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
 end
@@ -109,41 +185,37 @@ local function resetType(type)
         error({ key = "rx.errors.invalidValue", data = { value = type } })
     end
 
-    local fields = {}
+    local fields = Table()
     if type == M.TYPES.SUN then
-        fields = { "ToD", "timePlay", "dayLength", "dayScale", "nightScale", "sunAzimuthOverride", "skyBrightness",
-            "sunSize", "rayleighScattering", "sunLightBrightness", "flareScale", "occlusionScale", "exposure",
-            "shadowDistance", "shadowSoftness", "shadowSplits", "shadowTexSize", "shadowLogWeight", "visibleDistance",
-            "moonAzimuth", "moonElevation", "moonScale" }
+        fields:addAll({ "ToD", "timePlay", "dayLength", "visibleDistance", "shadowDistance", "shadowSoftness",
+            "shadowSplits", "shadowTexSize", "skyDay", "skyNight" })
     elseif type == M.TYPES.WEATHER then
-        fields = { "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight", "cloudHeightOne",
+        fields:addAll({ "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight", "cloudHeightOne",
             "cloudCover", "cloudCoverOne", "cloudSpeed", "cloudSpeedOne", "cloudExposure", "cloudExposureOne",
-            "rainDrops", "dropSize", "dropMinSpeed", "dropMaxSpeed", "precipType" }
+            "rainDrops", "dropSize", "dropMinSpeed", "dropMaxSpeed", "precipType" })
     elseif type == M.TYPES.GRAVITY then
-        fields = { "gravityRate" }
+        fields:addAll({ "gravityRate" })
     elseif type == M.TYPES.TEMPERATURE then
-        fields = { "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" }
+        fields:addAll({ "tempCurveNoon", "tempCurveDusk", "tempCurveMidnight", "tempCurveDawn" })
     elseif type == M.TYPES.SPEED then
-        fields = { "simSpeed" }
+        fields:addAll({ "simSpeed" })
     else
         error({ key = "rx.errors.invalidValue", data = { value = type } })
     end
 
-    local defaults = BJCDefaults.environment()
-    for _, k in ipairs(fields) do
-        M.Data[k] = defaults[k]
-        BJCDao.environment.save(k, defaults[k])
-    end
+    dump(fields)
 
+    local defaults = BJCDefaults.environment()
+    fields:forEach(function(k)
+        Log(string.var("reset val {1} => {2}", { k, defaults[k] }))
+        M.Data[k] = defaults[k]
+    end)
+    BJCDao.environment.save(M.Data)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
 end
 
 local function consoleEnv(args)
-    local validKeys = {}
-    for k in pairs(M.Data) do
-        table.insert(validKeys, k)
-    end
-    table.sort(validKeys, function(a, b) return a:lower() < b:lower() end)
+    local validKeys = Table({ "ToD", "dayLength", "simSpeed", "gravityRate" })
 
     local key, value = args[1], args[2]
     if not key then -- print all keys and values
@@ -218,15 +290,15 @@ end
 
 local function tickTime()
     if M.Data.controlSun and M.Data.timePlay then
+        local partDuration
         if M.Data.ToD >= 0.25 and M.Data.ToD <= 0.75 then
-            M.Data.ToD = M.Data.ToD + (M.Data.nightScale * (1 / M.Data.dayLength))
+            partDuration = M.Data.dayLength * M.Data.skyNight.nightScale
         else
-            M.Data.ToD = M.Data.ToD + (M.Data.dayScale * (1 / M.Data.dayLength))
+            partDuration = M.Data.dayLength * M.Data.skyDay.dayScale
         end
-        if M.Data.ToD > 1 then
-            M.Data.ToD = M.Data.ToD % 1
-        end
-        BJCDao.environment.save("ToD", M.Data.ToD)
+        local step = math.round(.5 / partDuration, 6)
+        M.Data.ToD = (M.Data.ToD + step) % 1
+        BJCDao.environment.save(M.Data)
     end
 end
 
