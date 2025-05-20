@@ -1,5 +1,3 @@
-local common = require("ge/extensions/BJI/ui/windows/Environment/Common")
-
 local W = {
     KEYS = Table({ "controlGravity", "gravityRate" }),
 
@@ -7,6 +5,7 @@ local W = {
     labels = Table(), -- auto-alimented
     labelsWidth = 0,
     cols = Table(),
+    presets = require("ge/extensions/utils/EnvironmentUtils").gravityPresets(),
 }
 
 local function updateLabels()
@@ -18,9 +17,15 @@ local function updateLabels()
             W.labelsWidth = w
         end
     end)
+
+    W.presets:forEach(function(p)
+        W.labels[p.key] = string.var("{1} ({2})",
+            { BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { p.key })), p.value })
+    end)
 end
 
 local function updateCols()
+    local ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
     W.cols = Table({
         {
             function() LineLabel(W.labels.controlGravity) end,
@@ -40,7 +45,30 @@ local function updateCols()
         },
         {
             function() LineLabel(W.labels.gravityRate) end,
-            common.getNumericWithReset("gravityRate", not BJI.Managers.Env.Data.controlGravity),
+            function()
+                LineBuilder():btnIcon({
+                    id = "resetgravityRate",
+                    icon = ICONS.refresh,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlGravity,
+                    onClick = function()
+                        BJI.Tx.config.env("gravityRate")
+                    end
+                }):slider({
+                    id = "gravityRate",
+                    type = ranges.gravityRate.type,
+                    value = BJI.Managers.Env.Data.gravityRate,
+                    min = ranges.gravityRate.min,
+                    max = ranges.gravityRate.max,
+                    precision = ranges.gravityRate.precision,
+                    disabled = not BJI.Managers.Env.Data.controlGravity,
+                    onUpdate = function(val)
+                        BJI.Managers.Env.Data.gravityRate = val
+                        BJI.Tx.config.env("gravityRate", val)
+                        BJI.Managers.Env.forceUpdate()
+                    end
+                }):build()
+            end
         }
     }):map(function(el) return { cells = el } end)
 end
@@ -60,8 +88,8 @@ local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function drawGravityPresets(presets)
-    for _, p in ipairs(presets) do
+local function drawGravityPresets()
+    W.presets:forEach(function(p)
         local value = math.round(p.value, 3)
         local selected = math.round(BJI.Managers.Env.Data.gravityRate, 3) == value
         local style = BJI.Utils.Style.BTN_PRESETS.INFO
@@ -71,10 +99,7 @@ local function drawGravityPresets(presets)
         LineBuilder()
             :btn({
                 id = p.key,
-                label = string.var("{1} ({2})", {
-                    BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { p.key })),
-                    p.value,
-                }),
+                label = W.labels[p.key],
                 style = style,
                 disabled = selected,
                 onClick = function()
@@ -85,7 +110,7 @@ local function drawGravityPresets(presets)
                 end
             })
             :build()
-    end
+    end)
 end
 
 local function body()
@@ -103,7 +128,7 @@ local function body()
         :build()
 
     if BJI.Managers.Env.Data.controlGravity then
-        drawGravityPresets(require("ge/extensions/utils/EnvironmentUtils").gravityPresets())
+        drawGravityPresets()
     end
 end
 

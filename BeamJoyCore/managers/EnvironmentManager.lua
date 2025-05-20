@@ -295,7 +295,11 @@ local function tickTime()
         else
             partDuration = M.Data.dayLength * M.Data.skyDay.dayScale
         end
-        local step = math.round(.5 / partDuration, 6)
+        local step = .5 / partDuration
+        if M.Data.controlSimSpeed and M.Data.simSpeed ~= 1 then
+            step = step * M.Data.simSpeed
+        end
+        step = math.round(step, 6)
         M.Data.ToD = (M.Data.ToD + step) % 1
         BJCDao.environment.save(M.Data)
     end

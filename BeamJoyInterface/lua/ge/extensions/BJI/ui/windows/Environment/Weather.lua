@@ -1,5 +1,3 @@
-local common = require("ge/extensions/BJI/ui/windows/Environment/Common")
-
 local W = {
     KEYS = Table({ "controlWeather", "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight",
         "cloudCover", "cloudSpeed", "cloudExposure", "rainDrops", "dropSize", "dropSizeRatio", "dropMinSpeed",
