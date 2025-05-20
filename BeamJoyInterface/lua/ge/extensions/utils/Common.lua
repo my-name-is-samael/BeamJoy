@@ -186,17 +186,16 @@ end
 ---@param ToD integer
 ---@return string
 function U.PrettyTime(ToD)
-    local curSecs = ToD * 86400
+    local secs = ToD * 86400
     if ToD >= 0 and ToD < .5 then
-        curSecs = curSecs + 43200
+        secs = secs + 43200
     elseif ToD >= .5 and ToD <= 1 then
-        curSecs = curSecs - 43200
+        secs = secs - 43200
     end
-    local curHours = math.floor(curSecs / 3600)
-    curSecs = curSecs - curHours * 3600
-    local curMins = math.floor(curSecs / 60)
-    curSecs = curSecs - curMins * 60
-    return string.format("%02d:%02d:%02d", curHours, curMins, curSecs)
+    local curHours = math.floor(secs / 3600)
+    secs = secs - curHours * 3600
+    local curMins = math.floor(secs / 60)
+    return string.format("%02d:%02d", curHours, curMins)
 end
 
 ---@param id string

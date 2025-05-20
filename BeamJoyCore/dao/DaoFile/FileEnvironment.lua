@@ -20,9 +20,7 @@ local function findAll()
     return {}
 end
 
-local function save(key, value)
-    local data = findAll()
-    data[key] = value
+local function save(data)
     BJCDao._saveFile(M._dbPath, data)
 end
 

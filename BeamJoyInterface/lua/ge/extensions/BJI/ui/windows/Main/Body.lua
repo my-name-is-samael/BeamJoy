@@ -143,7 +143,8 @@ local function updateLabels()
     cache.labels.busMission.stopCount = BJI.Managers.Lang.get("buslines.play.stopCount")
 
     -- PLAYERS LIST
-    cache.labels.players.moderation.waiting = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.waitingPlayers") })
+    cache.labels.players.moderation.waiting = string.var("{1}:",
+        { BJI.Managers.Lang.get("moderationBlock.waitingPlayers") })
     cache.labels.players.moderation.list = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.players") })
     cache.labels.players.moderation.promoteWaitingTo = BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
     cache.labels.players.moderation.muteReason = BJI.Managers.Lang.get("moderationBlock.muteReason")
@@ -220,7 +221,8 @@ local function updateCachePlayers(ctxt)
         local showPromote = isGroupLower and
             BJI.Managers.Perm.getNextGroup(p.group) ~= BJI.CONSTANTS.GROUP_NAMES.OWNER
         local promoteGroup = showPromote and BJI.Managers.Perm.getNextGroup(p.group) or nil
-        local promoteLabel = (showPromote and promoteGroup) and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
+        local promoteLabel = (showPromote and promoteGroup) and
+            BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil
 
         local vehicleCursor = "@ => "
