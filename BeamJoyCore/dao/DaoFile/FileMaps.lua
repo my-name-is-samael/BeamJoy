@@ -3,7 +3,6 @@ local M = {
     _fields = {
         label = "string",
         custom = "boolean",
-        dropSizeRatio = "number",
         archive = "string",
         enabled = "boolean",
     }

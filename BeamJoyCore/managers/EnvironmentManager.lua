@@ -1,4 +1,5 @@
 local M = {
+    ---@type table<string, any>
     Data = {},
     TYPES = {
         SUN = "sun",
@@ -10,8 +11,7 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" }
 }
 
--- 2.0.0 update data conversion
-local function convertSkyUpdate()
+local function updateEnvToV2_0()
     M.Data.skyDay = {
         dayScale = M.Data.dayScale,
         sunAzimuthOverride = M.Data.sunAzimuthOverride / 6.25 * 360,
@@ -30,7 +30,6 @@ local function convertSkyUpdate()
         brightness = 30,
         moonElevation = 45,
     }
-
     M.Data.dayScale = nil
     M.Data.nightScale = nil
     M.Data.sunAzimuthOverride = nil
@@ -44,6 +43,7 @@ local function convertSkyUpdate()
     M.Data.moonAzimuth = nil
     M.Data.moonElevation = nil
     M.Data.moonScale = nil
+    M.Data.fogColor = { 0.275, 0.325, 0.359 }
 
     BJCDao.environment.save(M.Data)
 end
@@ -53,7 +53,16 @@ local function init()
 
     if not M.Data.skyDay then
         -- 2.0.0 update data conversion
-        convertSkyUpdate()
+        updateEnvToV2_0()
+    end
+
+    M.Data = table.assign(BJCDefaults.environment(), M.Data)
+
+    if not M.Data.presets or not Table(BJC_ENV_PRESETS)
+        :any(function(pkey) return not M.Data.presets[pkey] end) then
+        ---@type table<string, any>
+        M.Data.presets = BJCDefaults.envPresets()
+        BJCDao.environment.save(M.Data)
     end
 end
 
@@ -76,7 +85,7 @@ local function getRanges()
         moonElevation = { min = 10, max = 80 },
         occlusionScale = { min = 0, max = 1.6 },
         shadowDistance = { min = 1000, max = 12800 },
-        shadowSoftness = { min = 0, max = 50 },
+        shadowSoftness = { min = 0, max = 3 },
         shadowSplits = { min = 1, max = 4 },
         shadowTexSize = { min = 32, max = 2048 },
         shadowLogWeight = { min = 0, max = .99 },
@@ -157,6 +166,9 @@ local function set(key, value)
             error({ key = "rx.errors.invalidValue", { value = value } })
         elseif key == "precipType" and not table.includes(M.PRECIP_TYPES, value) then
             error({ key = "rx.errors.invalidValue", { value = value } })
+        elseif key == "fogColor" and (not table.isArray(value) or table.length(value) ~= 3 or
+                Table(value):any(function(v) return type(v) ~= "number" end)) then
+            error({ key = "rx.errors.invalidValue", { value = value } })
         end
 
         -- parse ints
@@ -164,13 +176,17 @@ local function set(key, value)
             "shadowTexSize", "visibleDistance", "fogAtmosphereHeight", "rainDrops", "tempCurveNoon", "tempCurveDusk",
             "tempCurveMidnight", "tempCurveDawn" })
         if intFields:any(function(k) return k:endswith(key) end) then
-            value = math.floor(value)
+            value = math.round(value)
         end
 
         -- clamp numerics
         if type(value) == "number" then
             local range = getRange()
             value = math.clamp(value, range.min, range.max)
+        end
+
+        if key == "fogColor" then
+            value = Table(value):map(function(c) return math.round(c, 3) end)
         end
     end
 
@@ -190,7 +206,8 @@ local function resetType(type)
         fields:addAll({ "ToD", "timePlay", "dayLength", "visibleDistance", "shadowDistance", "shadowSoftness",
             "shadowSplits", "shadowTexSize", "skyDay", "skyNight" })
     elseif type == M.TYPES.WEATHER then
-        fields:addAll({ "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight", "cloudHeightOne",
+        fields:addAll({ "fogDensity", "fogColor", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight",
+            "cloudHeightOne",
             "cloudCover", "cloudCoverOne", "cloudSpeed", "cloudSpeedOne", "cloudExposure", "cloudExposureOne",
             "rainDrops", "dropSize", "dropMinSpeed", "dropMaxSpeed", "precipType" })
     elseif type == M.TYPES.GRAVITY then
@@ -202,8 +219,6 @@ local function resetType(type)
     else
         error({ key = "rx.errors.invalidValue", data = { value = type } })
     end
-
-    dump(fields)
 
     local defaults = BJCDefaults.environment()
     fields:forEach(function(k)
@@ -274,8 +289,47 @@ local function consoleEnv(args)
     return BJCLang.getConsoleMessage("command.envValueSetTo"):var({ key = key, value = value })
 end
 
-local function getCache()
-    return Table(M.Data):clone(), M.getCacheHash()
+local function applyPreset(pkey)
+    local preset = M.Data.presets[pkey]
+    if not preset then
+        error({ key = "rx.errors.invalidValue", data = { value = pkey } })
+    end
+
+    table.assign(M.Data, preset.keys)
+    BJCDao.environment.save(M.Data)
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.ENVIRONMENT)
+end
+
+---@return string?
+local function findAppliedPreset()
+    local function comparePresetValues(data, presetKeys)
+        return Table(presetKeys):every(function(v, k)
+            if type(v) == "table" then
+                return comparePresetValues(data[k], v)
+            else
+                return data[k] == v
+            end
+        end)
+    end
+    return Table(M.Data.presets):reduce(function(found, preset, pkey)
+        if not found and comparePresetValues(M.Data, preset.keys) then
+            return tostring(pkey)
+        end
+        return found
+    end)
+end
+
+local function getCache(senderID)
+    ---@type table<string, any>
+    local cache = Table(M.Data):clone()
+    if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) then
+        cache:assign({ preset = findAppliedPreset() })
+        cache.presets = Table(M.Data.presets)
+            :map(function(p) return p.icon end)
+    else
+        cache.presets = nil
+    end
+    return cache, M.getCacheHash()
 end
 
 local function getCacheHash()
@@ -299,8 +353,7 @@ local function tickTime()
         if M.Data.controlSimSpeed and M.Data.simSpeed ~= 1 then
             step = step * M.Data.simSpeed
         end
-        step = math.round(step, 6)
-        M.Data.ToD = (M.Data.ToD + step) % 1
+        M.Data.ToD = math.round((M.Data.ToD + step) % 1, 7)
         BJCDao.environment.save(M.Data)
     end
 end
@@ -308,6 +361,8 @@ end
 M.set = set
 M.resetType = resetType
 M.consoleEnv = consoleEnv
+
+M.applyPreset = applyPreset
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash

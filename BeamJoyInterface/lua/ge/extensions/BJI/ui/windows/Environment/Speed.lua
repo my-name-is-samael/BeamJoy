@@ -36,7 +36,6 @@ local function updateCols()
                         state = BJI.Managers.Env.Data.controlSimSpeed,
                         coloredIcon = true,
                         onClick = function()
-                            BJI.Tx.config.env("controlSimSpeed", not BJI.Managers.Env.Data.controlSimSpeed)
                             BJI.Managers.Env.Data.controlSimSpeed = not BJI.Managers.Env.Data.controlSimSpeed
                         end,
                     })
@@ -64,7 +63,6 @@ local function updateCols()
                     disabled = not BJI.Managers.Env.Data.controlSimSpeed,
                     onUpdate = function(val)
                         BJI.Managers.Env.Data.simSpeed = val
-                        BJI.Tx.config.env("simSpeed", val)
                         BJI.Managers.Env.forceUpdate()
                     end
                 }):build()

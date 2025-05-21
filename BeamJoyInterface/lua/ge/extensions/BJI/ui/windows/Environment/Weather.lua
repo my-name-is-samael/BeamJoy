@@ -1,6 +1,6 @@
 local W = {
-    KEYS = Table({ "controlWeather", "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight",
-        "cloudCover", "cloudSpeed", "cloudExposure", "rainDrops", "dropSize", "dropSizeRatio", "dropMinSpeed",
+    KEYS = Table({ "controlWeather", "fogDensity", "fogColor", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight",
+        "cloudCover", "cloudSpeed", "cloudExposure", "rainDrops", "dropSize", "dropMinSpeed",
         "dropMaxSpeed", "precipType" }),
 
     ---@type table<string, string>
@@ -45,7 +45,6 @@ local function updateCols()
                         state = BJI.Managers.Env.Data.controlWeather,
                         coloredIcon = true,
                         onClick = function()
-                            BJI.Tx.config.env("controlWeather", not BJI.Managers.Env.Data.controlWeather)
                             BJI.Managers.Env.Data.controlWeather = not BJI.Managers.Env.Data.controlWeather
                         end,
                     }):btn({
@@ -59,8 +58,58 @@ local function updateCols()
                 }):build()
             end
         }
+    }):addAll({
+        {
+            function() LineLabel(W.labels.fogDensity) end,
+            function()
+                LineBuilder():btnIcon({
+                    id = "resetfogDensity",
+                    icon = ICONS.refresh,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlWeather,
+                    onClick = function()
+                        BJI.Tx.config.env("fogDensity")
+                    end
+                }):slider({
+                    id = "fogDensity",
+                    type = ranges.fogDensity.type,
+                    value = BJI.Managers.Env.Data.fogDensity,
+                    min = ranges.fogDensity.min,
+                    max = ranges.fogDensity.max,
+                    precision = ranges.fogDensity.precision,
+                    disabled = not BJI.Managers.Env.Data.controlWeather,
+                    onUpdate = function(val)
+                        BJI.Managers.Env.Data.fogDensity = val
+                        BJI.Managers.Env.forceUpdate()
+                    end
+                }):build()
+            end,
+            function() LineLabel(W.labels.fogColor) end,
+            function()
+                local col = table.clone(BJI.Managers.Env.Data.fogColor)
+                col[4] = 1
+                LineBuilder():btnIcon({
+                    id = "resetfogColor",
+                    icon = ICONS.refresh,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlWeather,
+                    onClick = function()
+                        BJI.Tx.config.env("fogColor")
+                    end
+                }):colorPicker({
+                    id = "fogColor",
+                    value = col,
+                    disabled = not BJI.Managers.Env.Data.controlWeather,
+                    onChange = function(val)
+                        val[4] = nil
+                        BJI.Managers.Env.Data.fogColor = val
+                        BJI.Managers.Env.forceUpdate()
+                    end,
+                }):build()
+            end,
+        }
     }):addAll(
-        Table({ "fogDensity", "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight", "cloudCover", "cloudSpeed",
+        Table({ "fogDensityOffset", "fogAtmosphereHeight", "cloudHeight", "cloudCover", "cloudSpeed",
             "cloudExposure", "rainDrops", "dropSize", "dropMinSpeed", "dropMaxSpeed" }):map(function(k)
             return {
                 function() LineLabel(W.labels[k]) end,
@@ -83,7 +132,6 @@ local function updateCols()
                         disabled = not BJI.Managers.Env.Data.controlWeather,
                         onUpdate = function(val)
                             BJI.Managers.Env.Data[k] = val
-                            BJI.Tx.config.env(k, val)
                             BJI.Managers.Env.forceUpdate()
                         end
                     }):build()
@@ -109,7 +157,6 @@ local function updateCols()
                         disabled = not BJI.Managers.Env.Data.controlWeather,
                         onUpdate = function(val)
                             BJI.Managers.Env.Data[k2] = val
-                            BJI.Tx.config.env(k2, val)
                             BJI.Managers.Env.forceUpdate()
                         end
                     }):build()
@@ -117,34 +164,6 @@ local function updateCols()
             }
         end)
     ):addAll({
-        {
-            function() LineLabel(W.labels.dropSizeRatio) end,
-            function()
-                LineBuilder():btnIcon({
-                    id = "resetdropSizeRatio",
-                    icon = ICONS.refresh,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    disabled = not BJI.Managers.Env.Data.controlWeather,
-                    onClick = function()
-                        BJI.Tx.config.env("dropSizeRatio")
-                        BJI.Managers.Context.UI.dropSizeRatio = 1
-                    end
-                }):slider({
-                    id = "dropSizeRatio",
-                    type = ranges.dropSizeRatio.type,
-                    value = BJI.Managers.Context.UI.dropSizeRatio or 1,
-                    min = ranges.dropSizeRatio.min,
-                    max = ranges.dropSizeRatio.max,
-                    precision = ranges.dropSizeRatio.precision,
-                    disabled = not BJI.Managers.Env.Data.controlWeather,
-                    onUpdate = function(val)
-                        BJI.Managers.Context.UI.dropSizeRatio = val ~= 1 and val or nil
-                        BJI.Tx.config.env("dropSizeRatio", val)
-                        BJI.Managers.Env.forceUpdate()
-                    end
-                }):build()
-            end,
-        },
         {
             function() LineLabel(W.labels.precipType) end,
             function()
@@ -156,7 +175,6 @@ local function updateCols()
                             disabled = BJI.Managers.Env.Data.precipType == p,
                             onClick = function()
                                 BJI.Managers.Env.Data.precipType = p
-                                BJI.Tx.config.env("precipType", BJI.Managers.Env.Data.precipType)
                                 BJI.Managers.Env.forceUpdate()
                             end
                         })

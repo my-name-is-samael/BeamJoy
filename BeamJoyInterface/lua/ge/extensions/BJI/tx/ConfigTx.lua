@@ -13,6 +13,10 @@ return function(TX)
         TX._send(event.EVENT, event.TX.ENV, { key, value })
     end
 
+    function config.envPreset(preset)
+        TX._send(event.EVENT, event.TX.ENV_PRESET, preset)
+    end
+
     function config.switchMap(mapName)
         TX._send(event.EVENT, event.TX.MAP_SWITCH, mapName)
     end

@@ -36,7 +36,6 @@ local function updateCols()
                         state = BJI.Managers.Env.Data.controlGravity,
                         coloredIcon = true,
                         onClick = function()
-                            BJI.Tx.config.env("controlGravity", not BJI.Managers.Env.Data.controlGravity)
                             BJI.Managers.Env.Data.controlGravity = not BJI.Managers.Env.Data.controlGravity
                         end,
                     })
@@ -64,7 +63,6 @@ local function updateCols()
                     disabled = not BJI.Managers.Env.Data.controlGravity,
                     onUpdate = function(val)
                         BJI.Managers.Env.Data.gravityRate = val
-                        BJI.Tx.config.env("gravityRate", val)
                         BJI.Managers.Env.forceUpdate()
                     end
                 }):build()

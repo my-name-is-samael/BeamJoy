@@ -47,6 +47,8 @@ local W = {
     labelsDayWidth = 0,
     labelsNightWidth = 0,
     presets = require("ge/extensions/utils/EnvironmentUtils").timePresets(),
+
+    cachedShared = {},
 }
 
 local function updateLabels()
@@ -180,7 +182,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onUpdate = function(val)
                             finalParent1[finalKey1] = val
-                            BJI.Tx.config.env(rowData[1], val)
                             BJI.Managers.Env.forceUpdate()
                         end,
                     }):build()
@@ -205,7 +206,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onUpdate = function(val)
                             finalParent2[finalKey2] = val
-                            BJI.Tx.config.env(rowData[2], val)
                             BJI.Managers.Env.forceUpdate()
                         end,
                     }):build()
@@ -234,9 +234,20 @@ local function body()
                         max = 1,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onUpdate = function(val)
-                            BJI.Managers.Env.Data.ToD = (val + .5) % 1
-                            BJI.Tx.config.env("ToD", BJI.Managers.Env.Data.ToD)
+                            local newToD = math.round((val + .5) % 1, 6)
+                            BJI.Managers.Env.Data.ToD = newToD
                             BJI.Managers.Env.forceUpdate()
+                            if BJI.Managers.Env.Data.timePlay then
+                                BJI.Managers.Env.ToDEdit = true
+                                BJI.Managers.Async.removeTask("EnvToDManualChange")
+                                BJI.Managers.Async.delayTask(function()
+                                    if newToD ~= BJI.Managers.Env.Data.ToD then
+                                        BJI.Tx.config.env("ToD", newToD)
+                                    end
+                                end, 1000, "EnvToDManualChange")
+                            else
+                                BJI.Tx.config.env("ToD", newToD)
+                            end
                         end
                     }):build()
                 end,
@@ -268,7 +279,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onUpdate = function(val)
                             BJI.Managers.Env.Data.dayLength = val
-                            BJI.Tx.config.env("dayLength", val)
                         end
                     }):build()
                 end,
@@ -279,7 +289,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onClick = function()
                             BJI.Managers.Env.Data.dayLength = 86400
-                            BJI.Tx.config.env("dayLength", BJI.Managers.Env.Data.dayLength)
                         end,
                     }):btn({
                         id = "dayLength20min",
@@ -287,7 +296,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onClick = function()
                             BJI.Managers.Env.Data.dayLength = 1200
-                            BJI.Tx.config.env("dayLength", BJI.Managers.Env.Data.dayLength)
                         end,
                     }):btn({
                         id = "dayLength1hour",
@@ -295,7 +303,6 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onClick = function()
                             BJI.Managers.Env.Data.dayLength = 3600
-                            BJI.Tx.config.env("dayLength", BJI.Managers.Env.Data.dayLength)
                         end,
                     }):text(BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength))
                         :build()
@@ -331,7 +338,6 @@ local function body()
                             val = 2 ^ (val + 4)
                             if val >= 32 and val <= 2048 then
                                 BJI.Managers.Env.Data.shadowTexSize = val
-                                BJI.Tx.config.env("shadowTexSize", BJI.Managers.Env.Data.shadowTexSize)
                                 BJI.Managers.Env.forceUpdate()
                             end
                         end
@@ -382,8 +388,6 @@ local function body()
                         onUpdate = function(val)
                             BJI.Managers.Env.Data.skyDay.dayScale = val
                             BJI.Managers.Env.Data.skyNight.nightScale = 1 - val
-                            BJI.Tx.config.env("skyDay.dayScale", BJI.Managers.Env.Data.skyDay.dayScale)
-                            BJI.Tx.config.env("skyNight.nightScale", BJI.Managers.Env.Data.skyNight.nightScale)
                         end
                     }):build()
                 end,
@@ -414,8 +418,6 @@ local function body()
                         onUpdate = function(val)
                             BJI.Managers.Env.Data.skyNight.nightScale = val
                             BJI.Managers.Env.Data.skyDay.dayScale = 1 - val
-                            BJI.Tx.config.env("skyNight.nightScale", BJI.Managers.Env.Data.skyNight.nightScale)
-                            BJI.Tx.config.env("skyDay.dayScale", BJI.Managers.Env.Data.skyDay.dayScale)
                         end
                     }):build()
                 end,

@@ -34,9 +34,10 @@ local M = {
         },
 
         controlWeather = false,
-        fogDensity = 10,
-        fogDensityOffset = 0,
-        fogAtmosphereHeight = 0,
+        fogDensity = .001,
+        fogColor = { .66, .87, .99 },
+        fogDensityOffset = 2,
+        fogAtmosphereHeight = 1000,
         cloudHeight = 2.5,
         cloudHeightOne = 5,
         cloudCover = 0.2,
@@ -63,7 +64,9 @@ local M = {
         tempCurveMidnight = -15,
         tempCurveDawn = 12,
     },
-    init = false, -- true if env is applied at least once after joining
+    init = false,    -- true if env is applied at least once after joining
+
+    ToDEdit = false, -- flag when editing ToD in env configurator window
 
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" },
     duskLimits = { .245, .25 },
@@ -86,18 +89,40 @@ local function _getObjectWithCache(category)
     end
 end
 
+--- Fog color needs to be applied after core_env update
+local function applyFogColor()
+    local newFogColor = Point4F(M.Data.fogColor[1],
+        M.Data.fogColor[2], M.Data.fogColor[3], 1)
+    local levelInfo = _getObjectWithCache("LevelInfo")
+    if levelInfo then
+        levelInfo.visibleDistance = M.Data.visibleDistance
+        levelInfo.fogColor = newFogColor
+        levelInfo:postApply()
+    end
+
+    local scatterSky = _getObjectWithCache("ScatterSky")
+    if scatterSky then
+        scatterSky.fogScale = newFogColor
+        scatterSky:postApply()
+    end
+end
+
 local function _tryApplyTime()
     if M.Data.controlSun then
         local ToD = core_environment.getTimeOfDay()
         if ToD then
             ToD.time = M.Data.ToD
             core_environment.setTimeOfDay(ToD)
+            if M.Data.controlWeather then
+                applyFogColor()
+            end
         end
     end
 end
 
 local function tryApplyTimeFromServer(ToD)
-    if ToD ~= nil and M.Data.controlSun and
+    if not M.ToDEdit and ToD ~= nil and
+        M.Data.controlSun and
         math.abs(M.Data.ToD - ToD) > .01 then
         -- sync only if client got offset
         M.Data.ToD = ToD
@@ -140,6 +165,9 @@ local function _tryApplySun()
             ToD.nightScale = 1    -- M.Data.skyNight.nightScale * 2
             ToD.azimuthOverride = M.Data.skyDay.sunAzimuthOverride / 360 * 6.25
             core_environment.setTimeOfDay(ToD)
+            if M.Data.controlWeather then
+                applyFogColor()
+            end
         end
 
         local scatterSky = _getObjectWithCache("ScatterSky")
@@ -173,6 +201,7 @@ local function _tryApplyWeather()
         core_environment.setFogDensity(M.Data.fogDensity)
         core_environment.setFogDensityOffset(M.Data.fogDensityOffset)
         core_environment.setFogAtmosphereHeight(M.Data.fogAtmosphereHeight)
+        applyFogColor()
 
         local cloudLayer = _getObjectWithCache("CloudLayer")
         if cloudLayer then
@@ -190,7 +219,7 @@ local function _tryApplyWeather()
         local precipitation = _getObjectWithCache("Precipitation")
         if precipitation then
             precipitation.numDrops = M.Data.rainDrops
-            precipitation.dropSize = M.Data.dropSize * (BJI.Managers.Context.UI.dropSizeRatio or 1)
+            precipitation.dropSize = M.Data.dropSize
             precipitation.minSpeed = M.Data.dropMinSpeed
             precipitation.maxSpeed = M.Data.dropMaxSpeed
             if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
@@ -331,8 +360,6 @@ local function onLoad()
             end
         end
 
-        M.updateCurrentPreset()
-
         -- events detection
         local keysChanged = {}
         for k, v in pairs(M.Data) do
@@ -364,34 +391,8 @@ local function getTemperature()
     return core_environment.getTemperatureK()
 end
 
-local function updateCurrentPreset()
-    M.currentWeatherPreset = nil
-    local presets = require("ge/extensions/utils/EnvironmentUtils").weatherPresets()
-    for _, preset in ipairs(presets) do
-        local allMatch = true
-        for k, v in pairs(preset.keys) do
-            if type(v) == "number" then
-                if math.round(M.Data[k], 4) ~= math.round(v, 4) then
-                    allMatch = false
-                    break
-                end
-            else
-                if M.Data[k] ~= v then
-                    allMatch = false
-                    break
-                end
-            end
-        end
-        if allMatch then
-            M.currentWeatherPreset = preset.label
-            break
-        end
-    end
-end
-
 M.getTime = getTime
 M.getTemperature = getTemperature
-M.updateCurrentPreset = updateCurrentPreset
 M.tryApplyTimeFromServer = tryApplyTimeFromServer
 M.forceUpdate = forceUpdate
 

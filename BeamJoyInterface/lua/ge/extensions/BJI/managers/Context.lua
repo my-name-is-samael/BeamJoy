@@ -49,7 +49,6 @@ local M = {
     UI = {
         mapName = "",
         mapLabel = "",
-        dropSizeRatio = 1,
         ---@type {value: number, key: string, default: boolean}
         gravity = nil, -- save current gravity preset if there is one
         ---@type {value: number, key: string, default: boolean}
@@ -288,7 +287,6 @@ local function loadUI()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.MAP, function(cacheData)
         M.UI.mapName = cacheData.name
         M.UI.mapLabel = cacheData.label
-        M.UI.dropSizeRatio = cacheData.dropSizeRatio or 1
     end)
 end
 

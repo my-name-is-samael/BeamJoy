@@ -33,7 +33,6 @@ local function updateCols()
                         state = BJI.Managers.Env.Data.useTempCurve,
                         coloredIcon = true,
                         onClick = function()
-                            BJI.Tx.config.env("useTempCurve", not BJI.Managers.Env.Data.useTempCurve)
                             BJI.Managers.Env.Data.useTempCurve = not BJI.Managers.Env.Data.useTempCurve
                         end,
                     })
@@ -71,7 +70,6 @@ local function updateCols()
                         renderFormat = renderFormat,
                         onUpdate = function(val)
                             BJI.Managers.Env.Data[k] = val
-                            BJI.Tx.config.env(k, val)
                             BJI.Managers.Env.forceUpdate()
                         end
                     }):build()

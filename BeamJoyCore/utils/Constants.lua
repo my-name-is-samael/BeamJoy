@@ -58,6 +58,7 @@ BJC_EVENTS = {
         RX = {
             BJC = "bjc",
             ENV = "env",
+            ENV_PRESET = "envPreset",
             CORE = "core",
             MAP_SWITCH = "switchMap",
             PERMISSIONS = "permissions",
@@ -167,4 +168,13 @@ BJC_EVENTS = {
             TAG_SERVER_STOP = "TagServerStop",
         }
     }
+}
+
+BJC_ENV_PRESETS = {
+    CLEAR = "clear",
+    CLOUD = "cloud",
+    LIGHT_RAIN = "lightrain",
+    RAIN = "rain",
+    LIGHT_SNOW = "lightsnow",
+    SNOW = "snow",
 }

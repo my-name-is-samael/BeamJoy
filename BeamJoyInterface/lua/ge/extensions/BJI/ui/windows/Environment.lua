@@ -32,8 +32,8 @@ local W = {
     tab = nil,
 
     show = false,
-    data = Table {},
-    changed = false,
+    ---@type table<string, any>
+    sharedCache = Table(),
 
     labels = {
         sun = "",
@@ -56,6 +56,34 @@ local function updateLabels()
     W.labels.speed = BJI.Managers.Lang.get("environment.speed")
 end
 
+local function updateSharedCache()
+    W.sharedCache = table.clone(BJI.Managers.Env.Data)
+end
+
+local saveProcess = false
+local function tickSave()
+    if not saveProcess and not table.compare(W.sharedCache, BJI.Managers.Env.Data, true) then
+        local function checkAndSend(cached, data, prefix)
+            prefix = prefix or ""
+            Table(cached):forEach(function(v, k)
+                if k == "fogColor" then
+                    if not table.compare(v, data[k]) then
+                        BJI.Tx.config.env("fogColor", data[k])
+                    end
+                elseif type(v) == "table" and type(data[k]) == "table" then
+                    checkAndSend(v, data[k], string.var("{1}{2}.", { prefix, k }))
+                else
+                    if k ~= "ToD" and cached[k] ~= data[k] then
+                        BJI.Tx.config.env(prefix .. tostring(k), data[k])
+                    end
+                end
+            end)
+        end
+        checkAndSend(W.sharedCache, BJI.Managers.Env.Data)
+        saveProcess = true
+    end
+end
+
 local listeners = Table()
 local function onLoad()
     updateLabels()
@@ -72,6 +100,19 @@ local function onLoad()
         end
     end))
 
+    updateSharedCache()
+    saveProcess = false
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        function(_, data)
+            if data.cache == BJI.Managers.Cache.CACHES.ENVIRONMENT then
+                updateSharedCache()
+                saveProcess = false
+                BJI.Managers.Env.ToDEdit = false
+            end
+        end))
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, tickSave))
+
     if not W.tab or not W.TABS[W.tab] then
         W.tab = 1
         if W.TABS[W.tab].subWindow.onLoad then
@@ -85,6 +126,7 @@ local function onUnload()
         W.TABS[W.tab].subWindow.onUnload()
     end
     listeners:forEach(BJI.Managers.Events.removeListener)
+    W.sharedCache = Table()
 end
 
 local function updateTab(newIndex)
@@ -137,7 +179,6 @@ W.footer = footer
 W.onClose = onClose
 W.getState = function() return W.show end
 W.open = function()
-    W.data = Table(BJI.Managers.Env.Data):clone()
     W.show = true
 end
 
