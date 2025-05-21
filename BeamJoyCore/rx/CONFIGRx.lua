@@ -10,17 +10,22 @@ end
 
 function ctrl.env(ctxt)
     local key, value = ctxt.data[1], ctxt.data[2]
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_ENVIRONMENT) and
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_ENVIRONMENT) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
     if key == "reset" then
         BJCEnvironment.resetType(value)
-    elseif key == "dropSizeRatio" then
-        BJCMaps.setMapDropSizeRatio(BJCCore.getMap(), value)
     else
         BJCEnvironment.set(key, value)
     end
+end
+
+function ctrl.envPreset(ctxt)
+    local preset = ctxt.data[1]
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SET_ENVIRONMENT_PRESET) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+    BJCEnvironment.applyPreset(preset)
 end
 
 function ctrl.permissions(ctxt)

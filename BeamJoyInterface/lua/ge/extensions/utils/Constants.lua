@@ -68,6 +68,7 @@ C.EVENTS = {
         TX = {
             BJC = "bjc",
             ENV = "env",
+            ENV_PRESET = "envPreset",
             CORE = "core",
             MAP_SWITCH = "switchMap",
             PERMISSIONS = "permissions",

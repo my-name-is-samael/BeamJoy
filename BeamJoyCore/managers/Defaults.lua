@@ -275,11 +275,11 @@ local function environment()
             rayleighScattering = .003,
             exposure = .75,
             flareScale = 5,
-            occlusionScale = 1.2,
+            occlusionScale = 1,
         },
         skyNight = {
             nightScale = .3,
-            brightness = 30,
+            brightness = 40,
             moonAzimuth = 135,
             moonScale = 1,
             moonElevation = 50,
@@ -287,8 +287,9 @@ local function environment()
 
         controlWeather = true,
         fogDensity = .001,
+        fogColor = { 0.275, 0.325, 0.359 },
         fogDensityOffset = 250,
-        fogAtmosphereHeight = 500,
+        fogAtmosphereHeight = 2000,
         cloudHeight = 2.2,
         cloudHeightOne = 2,
         cloudCover = .25,
@@ -317,6 +318,202 @@ local function environment()
     }
 end
 
+---@return table<string, table>
+local function envPresets()
+    return {
+        [BJC_ENV_PRESETS.CLEAR] = {
+            icon = "simobject_sun",
+            keys = {
+                skyDay = {
+                    skyBrightness = 40,
+                    brightness = 1,
+                    sunSize = 1.3,
+                    occlusionScale = 1,
+                },
+                skyNight = {
+                    brightness = 40,
+                    moonScale = 1,
+                },
+                shadowSoftness = .1,
+                fogDensity = .001,
+                fogColor = { 0.506, 0.631, 0.725 },
+                fogDensityOffset = 250,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 9,
+                cloudHeightOne = 2,
+                cloudCover = .2,
+                cloudCoverOne = .2,
+                cloudSpeed = .2,
+                cloudSpeedOne = .8,
+                cloudExposure = 1.5,
+                cloudExposureOne = 2,
+                rainDrops = 0,
+            },
+        },
+        [BJC_ENV_PRESETS.CLOUD] = {
+            icon = "simobject_cloud_layer",
+            keys = {
+                skyDay = {
+                    skyBrightness = 20,
+                    brightness = .8,
+                    sunSize = 0,
+                    occlusionScale = 1.6,
+                },
+                skyNight = {
+                    brightness = 30,
+                    moonScale = 0,
+                },
+                shadowSoftness = 2,
+                fogDensity = 0.002,
+                fogColor = { 0.589, 0.6, 0.606 },
+                fogDensityOffset = 60,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 4.2,
+                cloudHeightOne = 2.5,
+                cloudCover = 1,
+                cloudCoverOne = 1,
+                cloudSpeed = .1,
+                cloudSpeedOne = .2,
+                cloudExposure = .8,
+                cloudExposureOne = 1.3,
+                rainDrops = 0,
+            },
+        },
+        [BJC_ENV_PRESETS.LIGHT_RAIN] = {
+            icon = "simobject_precipitation",
+            keys = {
+                skyDay = {
+                    skyBrightness = 15,
+                    brightness = .5,
+                    sunSize = .5,
+                    occlusionScale = 1.5,
+                },
+                skyNight = {
+                    brightness = 25,
+                    moonScale = .3,
+                },
+                shadowSoftness = 2.5,
+                fogDensity = 0.003,
+                fogColor = { 0.465, 0.681, 0.803 },
+                fogDensityOffset = 50,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 4,
+                cloudHeightOne = 2,
+                cloudCover = .4,
+                cloudCoverOne = .25,
+                cloudSpeed = .2,
+                cloudSpeedOne = .45,
+                cloudExposure = 1.6,
+                cloudExposureOne = 3,
+                rainDrops = 500,
+                dropSize = .05,
+                dropMinSpeed = .2,
+                dropMaxSpeed = .6,
+                precipType = "rain_drop",
+            },
+        },
+        [BJC_ENV_PRESETS.RAIN] = {
+            icon = "simobject_precipitation",
+            keys = {
+                skyDay = {
+                    skyBrightness = 7,
+                    brightness = .5,
+                    sunSize = 0,
+                    occlusionScale = 1.6,
+                },
+                skyNight = {
+                    brightness = 20,
+                    moonScale = 0,
+                },
+                shadowSoftness = 3,
+                fogDensity = 0.006,
+                fogColor = { 0.33, 0.398, 0.404 },
+                fogDensityOffset = 0,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 4,
+                cloudHeightOne = 2,
+                cloudCover = 1,
+                cloudCoverOne = 1,
+                cloudSpeed = .1,
+                cloudSpeedOne = .2,
+                cloudExposure = .5,
+                cloudExposureOne = .4,
+                rainDrops = 5000,
+                dropSize = .15,
+                dropMinSpeed = .5,
+                dropMaxSpeed = 1,
+                precipType = "rain_drop",
+            },
+        },
+        [BJC_ENV_PRESETS.LIGHT_SNOW] = {
+            icon = "ac_unit",
+            keys = {
+                skyDay = {
+                    skyBrightness = 25,
+                    brightness = 1.4,
+                    sunSize = .5,
+                    occlusionScale = 1.5,
+                },
+                skyNight = {
+                    brightness = 30,
+                    moonScale = .5,
+                },
+                shadowSoftness = 2.5,
+                fogDensity = 0.002,
+                fogColor = { 0.739, 0.732, 0.732 },
+                fogDensityOffset = 50,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 4,
+                cloudHeightOne = 2,
+                cloudCover = .4,
+                cloudCoverOne = .25,
+                cloudSpeed = .2,
+                cloudSpeedOne = .45,
+                cloudExposure = 1.6,
+                cloudExposureOne = 3,
+                rainDrops = 500,
+                dropSize = .2,
+                dropMinSpeed = .01,
+                dropMaxSpeed = .2,
+                precipType = "Snow_menu",
+            },
+        },
+        [BJC_ENV_PRESETS.SNOW] = {
+            icon = "ac_unit",
+            keys = {
+                skyDay = {
+                    skyBrightness = 20,
+                    brightness = 1.5,
+                    sunSize = 0,
+                    occlusionScale = 1.6,
+                },
+                skyNight = {
+                    brightness = 20,
+                    moonScale = 0,
+                },
+                shadowSoftness = 3,
+                fogDensity = 0.01,
+                fogColor = { 0.826, 0.826, 0.826 },
+                fogDensityOffset = 0,
+                fogAtmosphereHeight = 2000,
+                cloudHeight = 4,
+                cloudHeightOne = 2,
+                cloudCover = 1,
+                cloudCoverOne = 1,
+                cloudSpeed = .1,
+                cloudSpeedOne = .6,
+                cloudExposure = 1,
+                cloudExposureOne = .7,
+                rainDrops = 10000,
+                dropSize = .3,
+                dropMinSpeed = .17,
+                dropMaxSpeed = .65,
+                precipType = "Snow_menu",
+            },
+        },
+    }
+end
+
 local function maps()
     return {
         smallgrid = {
@@ -338,7 +535,6 @@ local function maps()
             label = "East Coast",
             custom = false,
             enabled = true,
-            dropSizeRatio = .17,
         },
         hirochi_raceway = {
             label = "Hirochi Raceway",
@@ -349,25 +545,21 @@ local function maps()
             label = "Italy",
             custom = false,
             enabled = true,
-            dropSizeRatio = .14,
         },
         jungle_rock_island = {
             label = "Jungle Rock Island",
             custom = false,
             enabled = true,
-            dropSizeRatio = .08,
         },
         industrial = {
             label = "Industrial",
             custom = false,
             enabled = true,
-            dropSizeRatio = .08,
         },
         small_island = {
             label = "Small Island",
             custom = false,
             enabled = true,
-            dropSizeRatio = .07,
         },
         utah = {
             label = "Utah",
@@ -378,13 +570,11 @@ local function maps()
             label = "West Coast",
             custom = false,
             enabled = true,
-            dropSizeRatio = .4,
         },
         driver_training = {
             label = "Driver Training",
             custom = false,
             enabled = true,
-            dropSizeRatio = .12,
         },
         derby = {
             label = "Derby Arena",
@@ -409,6 +599,7 @@ M.config = config
 M.permissions = permissions
 M.groups = groups
 M.environment = environment
+M.envPresets = envPresets
 M.maps = maps
 M.vehicles = vehicles
 

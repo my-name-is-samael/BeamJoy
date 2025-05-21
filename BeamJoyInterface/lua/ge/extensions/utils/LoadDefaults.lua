@@ -16,6 +16,8 @@ quatFromDir = quatFromDir or function(dir, up) return quat() end
 quatFromEuler = quatFromEuler or function(x, y, a) return quat() end
 ---@return point
 Point2F = Point2F or function(x, y) return {} end
+---@return vec4
+Point4F = Point4F or function(x, y, z, w) return {} end
 ---@return string
 String = String or function(str) return tostring(str) end
 

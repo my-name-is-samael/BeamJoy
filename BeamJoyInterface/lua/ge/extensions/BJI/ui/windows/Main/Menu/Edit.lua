@@ -1,6 +1,5 @@
 local M = {
     cache = {
-        label = nil,
         elems = {},
     },
 }
@@ -71,28 +70,45 @@ local function menuWeatherPresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJI.Managers.Env.Data.controlWeather then
         local elems = {}
-        require("ge/extensions/utils/EnvironmentUtils").weatherPresets():forEach(function(preset)
-            local disabled = preset.label == BJI.Managers.Env.currentWeatherPreset
+        local order = Table({ "clear", "cloud", "lightrain", "rain", "lightsnow", "snow" })
+        Table(BJI.Managers.Env.Data.presets):map(function(icon, preset)
+            return {
+                key = preset,
+                label = BJI.Managers.Lang.get(string.var("presets.weather.{1}", { preset }),
+                    tostring(preset)),
+                icon = icon,
+            }
+        end):sort(function(a, b) -- following function is correct but table.sort process both 2 lasts wrongly :shrug:
+            local res
+            order:forEach(function(k)
+                if res == nil and (a.key == k or b.key == k) then
+                    res = a.key == k
+                end
+            end)
+            if res ~= nil then
+                return res
+            end
+            return a.label < b.label
+        end):forEach(function(preset)
+            local disabled = preset.key == BJI.Managers.Env.Data.preset
             local onClick = function()
                 if not disabled then
-                    for k, v in pairs(preset.keys) do
-                        BJI.Tx.config.env(k, v)
-                    end
+                    BJI.Tx.config.envPreset(preset.key)
                 end
             end
             table.insert(elems, {
                 render = function()
                     LineBuilder()
                         :btnIcon({
-                            id = string.var("weatherPreset{1}Button", { preset.label }),
+                            id = string.var("weatherPreset{1}Button", { preset.key }),
                             icon = preset.icon,
-                            style = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or BJI.Utils.Style.BTN_PRESETS
-                                .INFO,
+                            style = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or
+                                BJI.Utils.Style.BTN_PRESETS.INFO,
                             onClick = onClick,
                         })
                         :btn({
-                            id = string.var("weatherPreset{1}Label", { preset.label }),
-                            label = BJI.Managers.Lang.get(string.var("presets.weather.{1}", { preset.label })),
+                            id = string.var("weatherPreset{1}Label", { preset.key }),
+                            label = preset.label,
                             disabled = disabled,
                             onClick = onClick,
                         })
@@ -100,10 +116,12 @@ local function menuWeatherPresets(ctxt)
                 end,
             })
         end)
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.edit.weather"),
-            elems = elems,
-        })
+        if #elems > 0 then
+            table.insert(M.cache.elems, {
+                label = BJI.Managers.Lang.get("menu.edit.weather"),
+                elems = elems,
+            })
+        end
     end
 end
 

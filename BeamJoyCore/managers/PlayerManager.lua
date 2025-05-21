@@ -285,7 +285,6 @@ local function getCachePlayers(senderID)
                     }
                 end),
             }
-            dump({ res.vehicles, res.ai })
             return not BJCPerm.isStaff(senderID) and res or table.assign(res, {
                 -- staff additional data
                 freeze = p.freeze,
