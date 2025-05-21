@@ -540,16 +540,21 @@ local function stopWithLoop()
         BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     if loop then
-        BJI.Managers.Async.delayTask(function() -- wait for Tx.RaceSoloEnd received before sending Tx.RaceSoloStart
-            S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
-        end, 100)
+        BJI.Managers.Async.task(function(ctxt)
+            return Table(BJI.Managers.Context.Players):any(function(p)
+                return p.playerID == ctxt.user.playerID and not p.isGhost
+            end)
+        end, function()
+            if BJI.Managers.Scenario.isFreeroam() then
+                S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
+            end
+        end)
     end
 end
 
 local function onFinishReached()
-    local postFinishTimeout = BJI.Managers.Context.BJC.Race.FinishTimeout * 1000
     BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.finishFlashSolo"), 3, false)
-    BJI.Managers.Async.delayTask(stopWithLoop, postFinishTimeout, "BJIRacePostFinish")
+    BJI.Managers.Async.delayTask(stopWithLoop, 3000, "BJIRacePostFinish")
 end
 
 local function initWaypoints()
