@@ -61,7 +61,7 @@ local function updateCache(ctxt)
 
     W.data.labelsWidth = Table({
         W.labels.lives,
-        W.labels.configs .. HELPMARKER_TEXT,
+        W.labels.configs,
     }):reduce(function(acc, label)
         local w = BJI.Utils.Common.GetColumnTextWidth(label)
         return w > acc and w or acc
@@ -222,8 +222,7 @@ local function body(ctxt)
                 function()
                     if i == 1 then
                         LineBuilder()
-                            :text(W.labels.configs)
-                            :helpMarker(W.labels.configsTooltip)
+                            :text(W.labels.configs, nil, W.labels.configsTooltip)
                             :build()
                     end
                 end,

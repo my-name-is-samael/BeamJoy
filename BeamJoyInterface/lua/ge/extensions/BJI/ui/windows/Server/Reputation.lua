@@ -36,7 +36,7 @@ end
 local function updateWidths()
     W.labelsWidth = Table(W.labels.keys)
         :reduce(function(acc, l, k)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l .. (W.labels.tooltips[k] and HELPMARKER_TEXT or ""))
+            local w = BJI.Utils.Common.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 end
@@ -71,14 +71,7 @@ local function body(ctxt)
             return cols:addRow({
                 cells = {
                     function()
-                        if W.labels.tooltips[k] then
-                            LineBuilder()
-                                :text(W.labels.keys[k])
-                                :helpMarker(W.labels.tooltips[k])
-                                :build()
-                        else
-                            LineLabel(W.labels.keys[k])
-                        end
+                        LineLabel(W.labels.keys[k], nil, false, W.labels.tooltips[k])
                     end,
                     function()
                         LineBuilder()

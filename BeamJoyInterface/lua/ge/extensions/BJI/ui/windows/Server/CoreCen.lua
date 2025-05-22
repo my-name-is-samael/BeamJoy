@@ -30,7 +30,7 @@ local FORMATTING_CODES = {
 local FAVORITE_NAME_OFFLINE_SUFFIX = "[OFFLINE]"
 
 local W = {
-    labels = {
+    labelsCore = {
         formatting = {
             title = "",
             hints = {},
@@ -39,32 +39,49 @@ local W = {
         previewTooltip = "",
         keys = {},
     },
+    labelsCen = {
+        title = "",
+        titleTooltip = "",
+        keys = {},
+    },
     showCore = false,
     showCEN = false,
-    labelsWidth = 0,
+    coreLabelsWidth = 0,
+    cenLabelsWidth = 0,
 }
 
 local function updateLabels()
-    W.labels.formatting.title = BJI.Managers.Lang.get("serverConfig.core.formattingHints.title")
+    W.labelsCore.formatting.title = BJI.Managers.Lang.get("serverConfig.core.formattingHints.title")
     Range(1, math.max(#FORMATTING_CODES[1], #FORMATTING_CODES[2], #FORMATTING_CODES[3]))
         :forEach(function(i)
             Range(1, 3):forEach(function(j)
                 if FORMATTING_CODES[j][i] then
-                    W.labels.formatting[FORMATTING_CODES[j][i].key] = BJI.Managers.Lang.get(string.var(
+                    W.labelsCore.formatting[FORMATTING_CODES[j][i].key] = BJI.Managers.Lang.get(string.var(
                         "serverConfig.core.formattingHints.{1}", { FORMATTING_CODES[j][i].key }))
                 end
             end)
         end)
 
-    W.labels.title = BJI.Managers.Lang.get("serverConfig.core.title") .. " :"
-    W.labels.previewTooltip = BJI.Managers.Lang.get("serverConfig.core.previewTooltip")
+    W.labelsCore.title = BJI.Managers.Lang.get("serverConfig.core.title") .. " :"
+    W.labelsCore.previewTooltip = BJI.Managers.Lang.get("serverConfig.core.previewTooltip")
     Table(BJI.Managers.Context.Core):keys():forEach(function(k)
-        W.labels.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}", { k })) .. " :"
+        W.labelsCore.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}", { k })) .. " :"
+    end)
+
+    W.labelsCen.title = BJI.Managers.Lang.get("serverConfig.cen.title") .. " :"
+    W.labelsCen.titleTooltip = BJI.Managers.Lang.get("serverConfig.cen.tooltip")
+    Table(BJI.Managers.Context.BJC.CEN):keys():forEach(function(k)
+        W.labelsCen.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.cen.{1}", { k })) .. " :"
     end)
 end
 
 local function updateWidths()
-    W.labelsWidth = Table(W.labels.keys):reduce(function(acc, l)
+    W.coreLabelsWidth = Table(W.labelsCore.keys):reduce(function(acc, l)
+        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        return w > acc and w or acc
+    end, 0)
+
+    W.cenLabelsWidth = Table(W.labelsCen.keys):reduce(function(acc, l)
         local w = BJI.Utils.Common.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
@@ -103,7 +120,7 @@ local function drawCoreFormattingHints()
     local function renderCode(el)
         LineBuilder()
             :text(el.code .. " :")
-            :text(W.labels.formatting[el.key], el.color)
+            :text(W.labelsCore.formatting[el.key], el.color)
             :build()
     end
     AccordionBuilder()
@@ -194,7 +211,7 @@ local function drawCoreTextPreview(cols, value, key)
 
     cols:addRow({
         cells = {
-            function() LineBuilder():helpMarker(W.labels.previewTooltip):build() end,
+            nil,
             function()
                 local line = LineBuilder()
                 for _, s in ipairs(str) do
@@ -202,7 +219,7 @@ local function drawCoreTextPreview(cols, value, key)
                         line:build()
                         line = LineBuilder()
                     end
-                    line:text(s.text, s.color)
+                    line:text(s.text, s.color, W.labelsCore.previewTooltip)
                 end
                 line:build()
             end
@@ -211,16 +228,16 @@ local function drawCoreTextPreview(cols, value, key)
 end
 
 local function drawCoreConfig(ctxt)
-    LineLabel(W.labels.title)
+    LineLabel(W.labelsCore.title)
 
     Indent(2)
     drawCoreFormattingHints()
 
-    local cols = ColumnsBuilder("CoreSettings", { W.labelsWidth, -1 })
+    local cols = ColumnsBuilder("CoreSettings", { W.coreLabelsWidth, -1 })
     for k, v in pairs(BJI.Managers.Context.Core) do
         cols:addRow({
             cells = {
-                function() LineLabel(W.labels.keys[k]) end,
+                function() LineLabel(W.labelsCore.keys[k]) end,
                 function()
                     if table.includes({ "Tags", "Description" }, k) then
                         LineBuilder()
@@ -302,29 +319,14 @@ local function drawCoreConfig(ctxt)
 end
 
 local function drawCEN(ctxt)
-    LineBuilder()
-        :text(string.var("{1}:", { BJI.Managers.Lang.get("serverConfig.cen.title") }))
-        :helpMarker(BJI.Managers.Lang.get("serverConfig.cen.tooltip"))
-        :build()
+    LineLabel(W.labelsCen.title, nil, false, W.labelsCen.titleTooltip)
 
-    local labelWidth = 0
-    for k in pairs(BJI.Managers.Context.BJC.CEN) do
-        local label = BJI.Managers.Lang.get(string.var("serverConfig.cen.{1}", { k }))
-        local w = BJI.Utils.Common.GetColumnTextWidth(label .. ":")
-        if w > labelWidth then
-            labelWidth = w
-        end
-    end
     Indent(2)
-    local cols = ColumnsBuilder("CENSettings", { labelWidth, -1 })
+    local cols = ColumnsBuilder("CENSettings", { W.cenLabelsWidth, -1 })
     for k, v in pairs(BJI.Managers.Context.BJC.CEN) do
         cols:addRow({
             cells = {
-                function()
-                    LineBuilder()
-                        :text(string.var("{1}:", { BJI.Managers.Lang.get(string.var("serverConfig.cen.{1}", { k })) }))
-                        :build()
-                end,
+                function() LineLabel(W.labelsCen.keys[k]) end,
                 function()
                     LineBuilder()
                         :btnIconToggle({

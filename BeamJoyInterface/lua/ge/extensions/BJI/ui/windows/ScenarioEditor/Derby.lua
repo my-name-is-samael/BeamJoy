@@ -64,12 +64,15 @@ local function updateLabels()
 end
 
 local function udpateWidths()
-    W.cache.labelsWidth = Table({ W.labels.name, W.labels.enabled .. HELPMARKER_TEXT,
-            W.labels.previewPosition .. HELPMARKER_TEXT, W.labels.startPositionName })
-        :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
+    W.cache.labelsWidth = Table({
+        W.labels.name,
+        W.labels.enabled,
+        W.labels.previewPosition,
+        W.labels.startPositionName
+    }):reduce(function(acc, l)
+        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        return w > acc and w or acc
+    end, 0)
 end
 
 local function updateCache()
@@ -202,8 +205,7 @@ local function drawArena(ctxt, iArena, arena)
         :addRow({
             cells = {
                 function()
-                    LineBuilder():text(W.labels.enabled)
-                        :helpMarker(W.labels.enabledTooltip):build()
+                    LineLabel(W.labels.enabled, nil, false, W.labels.enabledTooltip)
                 end,
                 function()
                     LineBuilder()
@@ -225,9 +227,9 @@ local function drawArena(ctxt, iArena, arena)
         :addRow({
             cells = {
                 function()
-                    LineBuilder():text(W.labels.previewPosition, not arena.previewPosition and
-                        BJI.Utils.Style.TEXT_COLORS.ERROR or nil)
-                        :helpMarker(W.labels.previewPositionTooltip):build()
+                    LineLabel(W.labels.previewPosition, not arena.previewPosition and
+                        BJI.Utils.Style.TEXT_COLORS.ERROR or nil, false,
+                        W.labels.previewPositionTooltip)
                 end,
                 function()
                     local line = LineBuilder():btnIcon({

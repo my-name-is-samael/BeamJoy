@@ -64,20 +64,8 @@ local function body(ctxt)
                                 :icon({
                                     icon = filtered[j],
                                     big = true,
+                                    tooltip = filtered[j],
                                 })
-                                :build()
-                        end)
-                    end
-                end
-                cols:addRow({
-                    cells = cells
-                })
-                cells = {}
-                for j = i, i + colsAmount - 1 do
-                    if j <= #filtered then
-                        table.insert(cells, function()
-                            LineBuilder()
-                                :helpMarker(filtered[j])
                                 :build()
                         end)
                     end

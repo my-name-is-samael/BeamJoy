@@ -65,8 +65,10 @@ end
 local function updateCacheData(ctxt)
     cache.data.nametagsVisible = not settings.getValue("hideNameTags", false)
 
-    cache.data.showTime = BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) and not not BJI.Managers.Env.getTime()
-    cache.data.showTemp = BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) and not not BJI.Managers.Env.getTemperature()
+    cache.data.showTime = BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) and
+        not not BJI.Managers.Env.getTime()
+    cache.data.showTemp = BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) and
+        not not BJI.Managers.Env.getTemperature()
     if BJI.Managers.Env.Data.timePlay then
         -- moving time, not cached
         cache.data.time = nil
@@ -84,7 +86,8 @@ local function updateCacheData(ctxt)
             cache.data.temp = string.var("{1}°F", { math.round(math.round(math.kelvinToFahrenheit(temp) or 0, 2)) })
         end
     end
-    cache.data.showCorePublic = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) and BJI.Managers.Context.Core
+    cache.data.showCorePublic = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) and
+        BJI.Managers.Context.Core
 
     updateGravitySpeedLabel()
 
@@ -217,7 +220,8 @@ local function draw(ctxt)
                                 onClick = function()
                                     local scale = math.clamp(value - 0.05, minScale, maxScale)
                                     if scale ~= value then
-                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
+                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
+                                            scale)
                                         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })
@@ -230,7 +234,8 @@ local function draw(ctxt)
                                 onClick = function()
                                     local scale = math.clamp(value + 0.05, minScale, maxScale)
                                     if scale ~= value then
-                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
+                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
+                                            scale)
                                         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
                                             scale = scale
                                         })
@@ -257,7 +262,8 @@ local function draw(ctxt)
                         -- TIME & TEMPERATURE
                         local labels = {}
                         if cache.data.showTime then
-                            table.insert(labels, cache.data.time or BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time))
+                            table.insert(labels,
+                                cache.data.time or BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time))
                         end
 
                         if cache.data.showTemp then
@@ -344,7 +350,8 @@ local function draw(ctxt)
                 local resetDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER)
                 if resetDelay then
                     line:text(cache.labels.resetCooldownLabel)
-                        :text(BJI.Utils.Common.PrettyDelay(math.round(resetDelay / 1000)), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+                        :text(BJI.Utils.Common.PrettyDelay(math.round(resetDelay / 1000)),
+                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(cache.labels.resetCooldownAvailable)
                 end
@@ -354,10 +361,12 @@ local function draw(ctxt)
                 if showReset then
                     line:text(cache.labels.vSeparator)
                 end
-                local teleportDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_TELEPORT_TIMER)
+                local teleportDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS
+                    .RESTRICTIONS_TELEPORT_TIMER)
                 if teleportDelay then
                     line:text(cache.labels.teleportCooldownLabel)
-                        :text(BJI.Utils.Common.PrettyDelay(math.round(teleportDelay / 1000)), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+                        :text(BJI.Utils.Common.PrettyDelay(math.round(teleportDelay / 1000)),
+                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(cache.labels.teleportCooldownAvailable)
                 end
@@ -381,15 +390,16 @@ local function draw(ctxt)
         local reputation = BJI.Managers.Reputation.reputation
         local nextLevel = BJI.Managers.Reputation.getReputationLevelAmount(level + 1)
 
+        local repTooltip = string.var("{1}/{2}", { reputation, nextLevel })
         LineBuilder()
-            :text(string.var("{1}:", { BJI.Managers.Lang.get("header.reputation") }))
-            :text(level, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-            :helpMarker(string.var("{1}/{2}", { reputation, nextLevel }))
+            :text(string.var("{1}:", { BJI.Managers.Lang.get("header.reputation") }), nil, repTooltip)
+            :text(level, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT, repTooltip)
             :build()
 
         ProgressBar({
             floatPercent = (reputation - levelReputation) / (nextLevel - levelReputation),
             width = "100%",
+            tooltip = repTooltip,
         })
     end
 

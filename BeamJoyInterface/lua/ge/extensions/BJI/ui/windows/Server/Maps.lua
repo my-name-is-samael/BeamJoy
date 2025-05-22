@@ -23,14 +23,14 @@ local function updateLabels()
     W.labels.newMapTitle = BJI.Managers.Lang.get("serverConfig.maps.new.title")
     W.labels.newMapName = BJI.Managers.Lang.get("serverConfig.maps.new.name") .. ":"
     W.labels.newMapNameTooltip = BJI.Managers.Lang.get("serverConfig.maps.new.nameTooltip")
-    W.labels.mapLabel = BJI.Managers.Lang.get("serverConfig.maps.label") .. " :"
-    W.labels.mapArchive = BJI.Managers.Lang.get("serverConfig.maps.archive") .. " :"
+    W.labels.mapLabel = "    " .. BJI.Managers.Lang.get("serverConfig.maps.label") .. " :"
+    W.labels.mapArchive = "    " .. BJI.Managers.Lang.get("serverConfig.maps.archive") .. " :"
     W.labels.mapCustom = BJI.Managers.Lang.get("votemap.targetMapCustom")
 end
 
 local function updateWidths()
-    W.labelsWidth = Table({ W.labels.newMapName .. HELPMARKER_TEXT, W.labels.mapLabel, W.labels.mapArchive })
-        :addAll(Table(BJI.Managers.Context.Maps):map(function(_, n) return n .. HELPMARKER_TEXT end))
+    W.labelsWidth = Table({ W.labels.newMapName, W.labels.mapLabel, W.labels.mapArchive })
+        :addAll(Table(BJI.Managers.Context.Maps):keys())
         :reduce(function(acc, l)
             local w = BJI.Utils.Common.GetColumnTextWidth(l)
             return w > acc and w or acc
@@ -78,12 +78,8 @@ local function drawMapsList(ctxt)
         cols:addRow({
             cells = {
                 function()
-                    local line = LineBuilder()
-                        :text(mapName)
-                    if map.custom then
-                        line:helpMarker(W.labels.mapCustom)
-                    end
-                    line:build()
+                    LineLabel(mapName, map.custom and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil,
+                        false, map.custom and W.labels.mapCustom or nil)
                 end,
                 function()
                     local line = LineBuilder()
@@ -214,10 +210,7 @@ local function drawNewMap(ctxt)
         :addRow({
             cells = {
                 function()
-                    LineBuilder()
-                        :text(W.labels.newMapName)
-                        :helpMarker(W.labels.newMapNameTooltip)
-                        :build()
+                    LineLabel(W.labels.newMapName, nil, false, W.labels.newMapNameTooltip)
                 end,
                 function()
                     LineBuilder()

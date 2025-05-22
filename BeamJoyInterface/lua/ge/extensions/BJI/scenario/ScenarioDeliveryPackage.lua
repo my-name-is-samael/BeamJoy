@@ -153,13 +153,11 @@ end
 
 local function drawUI(ctxt, cache)
     if S.distance then
-        LineBuilder()
-            :text(string.var("{1}: {2}", {
-                cache.labels.delivery.current,
-                cache.labels.delivery.distanceLeft
-                    :var({ distance = BJI.Utils.Common.PrettyDistance(S.distance) })
-            }))
-            :build()
+        LineLabel(string.var("{1}: {2}", {
+            cache.labels.delivery.current,
+            cache.labels.delivery.distanceLeft
+                :var({ distance = BJI.Utils.Common.PrettyDistance(S.distance) })
+        }))
 
         ProgressBar({
             floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
@@ -167,10 +165,8 @@ local function drawUI(ctxt, cache)
         })
     end
 
-    LineBuilder()
-        :text(cache.labels.delivery.package.streak:var({ streak = S.streak }))
-        :helpMarker(cache.labels.delivery.package.streakTooltip)
-        :build()
+    LineLabel(cache.labels.delivery.package.streak:var({ streak = S.streak }), nil,
+        false, cache.labels.delivery.package.streakTooltip)
 
     LineBuilder()
         :btnIcon({
