@@ -325,28 +325,25 @@ local function updateLabels()
     M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
 end
 
+local function getPlayerTagName(playerName, shorten, shortenLength)
+    shorten = shorten or settings.getValue("shortenNametags", false)
+    shortenLength = shortenLength or tonumber(settings.getValue("nametagCharLimit", 50))
+    if not shorten or shortenLength > #playerName then
+        return tostring(playerName)
+    else
+        return tostring(playerName):sub(1, shortenLength) .. "..."
+    end
+end
+
 local lastShorten, lastShortenLength = false, 0
 local function slowTick(ctxt)
     if M.state then
         local shorten, shortenLength = settings.getValue("shortenNametags", false),
             tonumber(settings.getValue("nametagCharLimit", 50))
         if shorten ~= lastShorten or (shorten and shortenLength ~= lastShortenLength) then
-            if shorten then
-                Table(BJI.Managers.Context.Players)
-                    :forEach(function(p)
-                        if #p.playerName > shortenLength and (not p.tagName or #p.tagName ~= shortenLength) then
-                            local short = p.playerName:sub(1, shortenLength)
-                            p.tagName = string.var("{1}...", { short })
-                        else
-                            p.tagName = p.playerName
-                        end
-                    end)
-            else
-                Table(BJI.Managers.Context.Players)
-                    :forEach(function(p)
-                        p.tagName = p.playerName
-                    end)
-            end
+            Table(BJI.Managers.Context.Players):forEach(function(p)
+                p.tagName = getPlayerTagName(p.playerName, shorten, shortenLength)
+            end)
             lastShorten = shorten
             lastShortenLength = shortenLength or 0
         end
@@ -371,6 +368,7 @@ M.getNametagColor = getNametagColor
 M.getNametagBgColor = getNametagBgColor
 
 M.renderTick = renderTick
+M.getPlayerTagName = getPlayerTagName
 
 M.onLoad = function()
     updateLabels()
