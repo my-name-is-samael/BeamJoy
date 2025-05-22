@@ -417,7 +417,7 @@ local function drawNametagsSettings(ctxt)
                 function()
                     LineLabel(W.labels.nametags[sc.label],
                         disabled and BJI.Utils.Style.TEXT_COLORS.DISABLED or
-                        BJI.Utils.Style.TEXT_COLORS.DEFAULT,
+                        BJI.Utils.Style.TEXT_COLORS.DEFAULT, false,
                         W.labels.nametags[sc.tooltip])
                 end,
                 function()
