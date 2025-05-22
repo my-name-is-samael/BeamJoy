@@ -44,7 +44,7 @@ local function updateCache(ctxt)
             W.data.amountPBs = W.data.amountPBs + table.length(mapPBs)
         end)
 
-    W.data.PBsWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.pb .. "   " .. HELPMARKER_TEXT) + GetIconSize()
+    W.data.PBsWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.pb) + GetIconSize()
     W.data.namesWidth = 0
     W.data.leaderboardCols = Table(BJI.Managers.Context.Scenario.Data.Races):clone()
         :filter(function(map)
@@ -89,8 +89,7 @@ local function updateCache(ctxt)
                     local pb, pbTime = BJI.Managers.RaceWaypoint.getPB(race.hash)
                     if pb then
                         LineBuilder()
-                            :text(W.labels.pb)
-                            :helpMarker(BJI.Utils.Common.RaceDelay(pbTime or 0))
+                            :text(W.labels.pb, nil, BJI.Utils.Common.RaceDelay(pbTime or 0))
                             :btnIcon({
                                 id = string.var("removePb-{1}", { race.id }),
                                 icon = ICONS.delete_forever,

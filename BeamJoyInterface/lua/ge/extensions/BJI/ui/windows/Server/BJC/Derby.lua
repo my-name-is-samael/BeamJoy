@@ -9,11 +9,7 @@ return function(ctxt, labels, cache)
         return cols:addRow({
             cells = {
                 function()
-                    local line = LineBuilder():text(labels.derby.keys[v.key])
-                    if labels.derby.keys[v.key .. "Tooltip"] then
-                        line:helpMarker(labels.derby.keys[v.key .. "Tooltip"])
-                    end
-                    line:build()
+                    LineLabel(labels.derby.keys[v.key], nil, false, labels.derby.keys[v.key .. "Tooltip"])
                 end,
                 function()
                     LineBuilder()

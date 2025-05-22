@@ -86,8 +86,7 @@ local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
     W.cache.labelsWidth = Table(W.labels)
-        :filter(function(_, k) return not k:endswith("Tooltip") end)
-        :map(function(v, k) return v .. (W.labels[k .. "Tooltip"] and HELPMARKER_TEXT or "") end)
+        :filter(function(_, k) return not tostring(k):endswith("Tooltip") end)
         :reduce(function(acc, label)
             local w = BJI.Utils.Common.GetColumnTextWidth(label)
             return w > acc and w or acc
@@ -122,7 +121,9 @@ local function updateCache(ctxt)
             tooltip = W.labels.resetDelayTooltip,
             type = "number",
             keyData = "ResetDelay",
-            min = 0
+            min = 0,
+            max = 120,
+            renderFormat = "%ds",
         },
         {
             label = W.labels.teleportDelay,
@@ -130,7 +131,9 @@ local function updateCache(ctxt)
             type = "number",
             keyData =
             "TeleportDelay",
-            min = 0
+            min = 0,
+            max = 120,
+            renderFormat = "%ds",
         },
         {
             label = W.labels.driftGood,
@@ -158,6 +161,7 @@ local function updateCache(ctxt)
             keyData = "EmergencyRefuelDuration",
             min = 5,
             max = 60,
+            renderFormat = "%ds",
             disabled = function() return not W.data.PreserveEnergy end
         },
         {
@@ -167,6 +171,7 @@ local function updateCache(ctxt)
             keyData = "EmergencyRefuelPercent",
             min = 5,
             max = 100,
+            renderFormat = "%d%%",
             disabled = function() return not W.data.PreserveEnergy end
         },
     })
@@ -178,10 +183,7 @@ local function updateCache(ctxt)
             return {
                 cells = {
                     function()
-                        local line = LineBuilder():text(conf.label)
-                        if conf.tooltip then
-                            line:helpMarker(conf.tooltip)
-                        end
+                        local line = LineBuilder():text(conf.label, nil, conf.tooltip)
                         line:build()
                     end,
                     function()
@@ -202,14 +204,13 @@ local function updateCache(ctxt)
                             local max = conf.max and
                                 (type(conf.max) == "function" and conf.max() or conf.max) or
                                 nil
-                            LineBuilder():inputNumeric({
+                            LineBuilder():slider({
                                 id = conf.keyData,
                                 type = "int",
-                                value = W.data[conf.keyData],
-                                step = 1,
-                                stepFast = 5,
-                                min = min,
-                                max = max,
+                                value = W.data[conf.keyData] or 0,
+                                min = min or 0,
+                                max = max or 0,
+                                renderFormat = conf.renderFormat,
                                 disabled = type(conf.disabled) == "function" and conf.disabled() or false,
                                 onUpdate = function(val)
                                     W.data[conf.keyData] = val

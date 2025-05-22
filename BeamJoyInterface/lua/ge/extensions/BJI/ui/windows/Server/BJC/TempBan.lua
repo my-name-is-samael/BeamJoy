@@ -1,7 +1,5 @@
 return function(ctxt, labels, cache)
-    LineBuilder()
-        :text(labels.tempban.minTime)
-        :helpMarker(labels.tempban.zeroTooltip)
+    LineBuilder():text(labels.tempban.minTime, nil, labels.tempban.zeroTooltip)
         :inputNumeric({
             id = "tempbanMinTime",
             type = "int",
@@ -22,9 +20,7 @@ return function(ctxt, labels, cache)
             cache.tempban.minTimePretty = BJI.Utils.Common.PrettyDelay(val)
         end, cache.disableInputs)
 
-    LineBuilder()
-        :text(labels.tempban.maxTime)
-        :helpMarker(labels.tempban.zeroTooltip)
+    LineBuilder():text(labels.tempban.maxTime, nil, labels.tempban.zeroTooltip)
         :inputNumeric({
             id = "tempbanMaxTime",
             type = "int",

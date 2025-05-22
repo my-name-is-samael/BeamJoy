@@ -100,17 +100,14 @@ local function updateLabels()
 end
 
 local function updateWidths()
-    W.widths.vehicleLabels = BJI.Utils.Common.GetColumnTextWidth(W.labels.vehicle.automaticLights ..
-        HELPMARKER_TEXT)
+    W.widths.vehicleLabels = BJI.Utils.Common.GetColumnTextWidth(W.labels.vehicle.automaticLights)
 
     W.widths.nametagsLabels = 0
     table.forEach({ "hide", "showDistance", "fade", "fadeDistance", "invertFade",
         "dontFullyHide", "shorten", "nametagLength", "showSpecs",
         "colorsPlayerText", "colorsPlayerBg", "colorsIdleText",
         "colorsIdleBg", "colorsSpecText", "colorsSpecBg" }, function(k)
-        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.nametags[k] .. (
-            W.labels.nametags[k .. "Tooltip"] and HELPMARKER_TEXT or ""
-        ))
+        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.nametags[k])
         if w > W.widths.nametagsLabels then
             W.widths.nametagsLabels = w
         end
@@ -167,10 +164,7 @@ local function drawVehicleSettings(ctxt)
         :addRow({
             cells = {
                 function()
-                    LineBuilder()
-                        :text(W.labels.vehicle.automaticLights)
-                        :helpMarker(W.labels.vehicle.automaticLightsTooltip)
-                        :build()
+                    LineLabel(W.labels.vehicle.automaticLights, nil, false, W.labels.vehicle.automaticLightsTooltip)
                 end,
                 function()
                     local state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
@@ -421,14 +415,10 @@ local function drawNametagsSettings(ctxt)
         cols:addRow({
             cells = {
                 function()
-                    local line = LineBuilder()
-                    line:text(W.labels.nametags[sc.label],
-                        disabled and BJI.Utils.Style.TEXT_COLORS.DISABLED or BJI.Utils.Style.TEXT_COLORS
-                        .DEFAULT)
-                    if sc.tooltip and #W.labels.nametags[sc.tooltip] > 0 then
-                        line:helpMarker(W.labels.nametags[sc.tooltip])
-                    end
-                    line:build()
+                    LineLabel(W.labels.nametags[sc.label],
+                        disabled and BJI.Utils.Style.TEXT_COLORS.DISABLED or
+                        BJI.Utils.Style.TEXT_COLORS.DEFAULT,
+                        W.labels.nametags[sc.tooltip])
                 end,
                 function()
                     local line = LineBuilder()

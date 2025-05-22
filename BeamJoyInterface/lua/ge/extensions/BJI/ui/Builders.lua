@@ -514,7 +514,7 @@ AccordionBuilder = function(indentAmount)
 end
 
 ---@class LineBuilder
----@field text fun(self, text: string|any?, color: number[]|table<string, number>?): LineBuilder
+---@field text fun(self, text: string|any?, color: number[]|table<string, number>?, tooltip: string?): LineBuilder
 ---@field bgText fun(self, id: string, text: string|any, color: number[]|table<string, number>, bgColor: number[]|table<string, number>): LineBuilder
 ---@field btn fun(self, data: {id: string, label: string, onClick: fun(), style: number[][]?}, active: boolean?, sound: string?, disabled: boolean?): LineBuilder
 ---@field btnSwitch fun(self, data: {id: string, labelOn: string, labelOff: string, state: boolean, onClick: fun(), style: number[][]?, active: boolean?, sound: string?, disabled: boolean?})
@@ -527,10 +527,10 @@ end
 ---@field inputString fun(self, data: {id: string, value: string, placeholder: string?, width: integer?, disabled: boolean?, style: number[][]?, multiline: boolean?, onUpdate: fun(value: string)?, autoheight: boolean?, lines: integer?}): LineBuilder
 ---@field inputCombo fun(self, data: {id: string, items: string[]|table[], value: string|table?, label: string?, getLabelFn: (fun(item: string|table): string), width: integer?, onChange: fun(item: string|table)?}?): LineBuilder
 ---@field helpMarker fun(self, text: string): LineBuilder
----@field icon fun(self, data: {icon: string, big: boolean?, border: vec4?, style: vec4[]?, coloredIcon: boolean?}): LineBuilder
----@field btnIcon fun(self, data: {id: string, icon: string, onClick: fun(), big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?}): LineBuilder
----@field btnIconToggle fun(self, data: {id: string, state: boolean, onClick: fun(), icon: string?, big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?}): LineBuilder
----@field colorPicker fun(self, data: {id: string, value: number[]|table<string, number>, onChange: fun(value: number[]), alpha: boolean?, disabled: boolean?}): LineBuilder
+---@field icon fun(self, data: {icon: string, big: boolean?, border: vec4?, style: vec4[]?, coloredIcon: boolean?, tooltip: string?}): LineBuilder
+---@field btnIcon fun(self, data: {id: string, icon: string, onClick: fun(), big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field btnIconToggle fun(self, data: {id: string, state: boolean, onClick: fun(), icon: string?, big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field colorPicker fun(self, data: {id: string, value: number[]|BJIColor, onChange: fun(value: number[]), alpha: boolean?, disabled: boolean?}): LineBuilder
 ---@field slider fun(self, data: {id: string, type: "int"|"float", value: number, min: number, max: number, onUpdate: fun(value: number), precision: number?, width: number?, disabled: boolean?, style: number[][]?, renderFormat: string?}): LineBuilder
 ---@field build fun(self)
 
@@ -550,12 +550,15 @@ LineBuilder = function(startSameLine)
         end
     end
 
-    builder.text = function(self, text, color)
+    builder.text = function(self, text, color, tooltip)
         text = text or ""
         self:_commonStartElem()
         BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.HEADER, BJI.Utils.Style.RGBA(1, 0, 0, 1))
         color = color and convertColorToVec4(color) or BJI.Utils.Style.TEXT_COLORS.DEFAULT
         im.TextColored(color, tostring(text))
+        if type(tooltip) == "string" and #tooltip > 0 then
+            im.tooltip(tooltip)
+        end
         BJI.Utils.Style.PopStyleColor(1)
         self._elemCount = self._elemCount + 1
         return self
@@ -1042,6 +1045,9 @@ LineBuilder = function(startSameLine)
             border,                                -- BORDER COLOR
             nil                                    -- LABEL
         )
+        if data.tooltip then
+            im.tooltip(data.tooltip)
+        end
         self._elemCount = self._elemCount + 1
         return self
     end
@@ -1111,6 +1117,9 @@ LineBuilder = function(startSameLine)
                 BJI.Managers.Sound.play(data.sound)
             end
             data.onClick()
+        end
+        if data.tooltip then
+            im.tooltip(data.tooltip)
         end
         im.PopStyleColor(2)
         self._elemCount = self._elemCount + 1
@@ -1255,11 +1264,12 @@ end
 ---@param label string
 ---@param color? table
 ---@param startSameLine? boolean
-LineLabel = function(label, color, startSameLine)
-    LineBuilder(startSameLine):text(label, color):build()
+---@param tooltip? string
+LineLabel = function(label, color, startSameLine, tooltip)
+    LineBuilder(startSameLine):text(label, color, tooltip):build()
 end
 
----@param data {floatPercent: number, width: number|string?, text: string?}
+---@param data {floatPercent: number, width: number|string?, text: string?, tooltip: string?}
 ProgressBar = function(data)
     data.floatPercent = data.floatPercent or 0
     if tonumber(data.width) then
@@ -1277,6 +1287,9 @@ ProgressBar = function(data)
     local size = im.ImVec2(data.width, height)
 
     im.ProgressBar(data.floatPercent, size, text)
+    if data.tooltip then
+        im.tooltip(data.tooltip)
+    end
 end
 
 ---@class ColumnsBuilder

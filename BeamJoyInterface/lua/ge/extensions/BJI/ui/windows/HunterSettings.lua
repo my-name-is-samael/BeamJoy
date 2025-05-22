@@ -60,7 +60,7 @@ local function updateCache(ctxt)
         W.labels.hunterConfigs,
         W.labels.lastWaypointGPS,
     }):reduce(function(acc, label)
-        local w = BJI.Utils.Common.GetColumnTextWidth(label .. HELPMARKER_TEXT)
+        local w = BJI.Utils.Common.GetColumnTextWidth(label)
         return w > acc and w or acc
     end, 0)
 end
@@ -145,8 +145,7 @@ local function drawBody(ctxt)
         :addRow({
             cells = {
                 function()
-                    LineBuilder():text(W.labels.huntedWaypoints)
-                        :helpMarker(W.labels.huntedWaypointsTooltip):build()
+                    LineLabel(W.labels.huntedWaypoints, nil, false, W.labels.huntedWaypointsTooltip)
                 end,
                 function()
                     LineBuilder()
@@ -169,8 +168,7 @@ local function drawBody(ctxt)
     cols:addRow({
         cells = {
             function()
-                LineBuilder():text(W.labels.huntedConfig)
-                    :helpMarker(W.labels.huntedConfigTooltip):build()
+                LineLabel(W.labels.huntedConfig, nil, false, W.labels.huntedConfigTooltip)
             end,
             function()
                 local line = LineBuilder()
@@ -234,10 +232,7 @@ local function drawBody(ctxt)
             cells = {
                 function()
                     if i == 1 then
-                        LineBuilder()
-                            :text(W.labels.hunterConfigs)
-                            :helpMarker(W.labels.hunterConfigsTooltip)
-                            :build()
+                        LineLabel(W.labels.hunterConfigs, nil, false, W.labels.hunterConfigsTooltip)
                     end
                 end,
                 function()
@@ -295,10 +290,7 @@ local function drawBody(ctxt)
     cols:addRow({
         cells = {
             function()
-                LineBuilder()
-                    :text(W.labels.lastWaypointGPS)
-                    :helpMarker(W.labels.lastWaypointGPSTooltip)
-                    :build()
+                LineLabel(W.labels.lastWaypointGPS, nil, false, W.labels.lastWaypointGPSTooltip)
             end,
             function()
                 LineBuilder()

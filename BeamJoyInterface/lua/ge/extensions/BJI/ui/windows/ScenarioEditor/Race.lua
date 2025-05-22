@@ -126,7 +126,7 @@ end
 local function updateWidths()
     W.widths.startPositionsLabelsWidth = W.raceData.startPositions
         :reduce(function(acc, _, i)
-            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.startPosition:var({ index = i }) .. HELPMARKER_TEXT)
+            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.startPosition:var({ index = i }))
             return w > acc and w or acc
         end, 0)
 
@@ -576,8 +576,7 @@ end
 ---@param ctxt TickContext
 local function drawNameAndAuthor(ctxt)
     LineBuilder()
-        :text(W.labels.name)
-        :helpMarker(W.labels.nameTooltip)
+        :text(W.labels.name, nil, W.labels.nameTooltip)
         :inputString({
             id = "raceName",
             style = W.cache.invalid.name and BJI.Utils.Style.INPUT_PRESETS.ERROR or nil,
@@ -606,8 +605,8 @@ local function drawPreviewPosition(ctxt)
             style = { W.cache.invalid.previewPosition and
             BJI.Utils.Style.TEXT_COLORS.ERROR or BJI.Utils.Style.TEXT_COLORS.DEFAULT },
         })
-        :text(W.labels.previewPosition, W.cache.invalid.previewPosition and BJI.Utils.Style.TEXT_COLORS.ERROR or nil)
-        :helpMarker(W.labels.previewPositionTooltip)
+        :text(W.labels.previewPosition, W.cache.invalid.previewPosition and BJI.Utils.Style.TEXT_COLORS.ERROR or nil,
+            W.labels.previewPositionTooltip)
         :btnIcon({
             id = "setPreviewPos",
             icon = W.raceData.previewPosition and ICONS.edit_location or ICONS.add_location,
@@ -690,8 +689,8 @@ local function drawStartPositions(ctxt)
                 return cols:addRow({
                     cells = {
                         function()
-                            LineBuilder():text(W.labels.startPosition:var({ index = iSp }))
-                                :helpMarker(W.labels.startPositionTooltip):build()
+                            LineLabel(W.labels.startPosition:var({ index = iSp }), nil, false,
+                                W.labels.startPositionTooltip)
                         end,
                         function()
                             LineBuilder()
@@ -936,8 +935,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
                 function() LineLabel(W.labels.parent) end,
                 function()
                     if iStep == 1 then
-                        LineBuilder():text(wp.parents[1])
-                            :helpMarker(W.labels.parentStartTooltip):build()
+                        LineLabel(wp.parents[1], nil, false, W.labels.parentStartTooltip)
                     else
                         wp.parents:forEach(function(parent, iParent)
                             line = LineBuilder()
@@ -1187,7 +1185,7 @@ local function footer(ctxt)
             end,
         })
     if W.raceData.loopable then
-        line:text(W.labels.laps):helpMarker(W.labels.lapsTooltip)
+        line:text(W.labels.laps, nil, W.labels.lapsTooltip)
             :inputNumeric({
                 id = "raceLaps",
                 type = "int",

@@ -36,11 +36,7 @@ return function(ctxt, labels, cache)
         cols = cols:addRow({
             cells = {
                 function()
-                    local line = LineBuilder():text(labels.race.keys[v.key])
-                    if labels.race.keys[v.key .. "Tooltip"] then
-                        line:helpMarker(labels.race.keys[v.key .. "Tooltip"])
-                    end
-                    line:build()
+                    LineLabel(labels.race.keys[v.key], nil, false, labels.race.keys[v.key .. "Tooltip"])
                 end,
                 function()
                     if v.type == "bool" then

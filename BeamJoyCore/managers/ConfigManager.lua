@@ -228,7 +228,7 @@ local function clampValue(parent, key, value)
         end
     elseif parent == "Freeroam" then
         if table.includes({ "ResetDelay", "TeleportDelay" }, key) then
-            return math.clamp(value, 0)
+            return math.clamp(value, 0, 120)
         elseif key == "EmergencyRefuelDuration" then
             return math.clamp(value, 5, 60)
         elseif key == "EmergencyRefuelPercent" then

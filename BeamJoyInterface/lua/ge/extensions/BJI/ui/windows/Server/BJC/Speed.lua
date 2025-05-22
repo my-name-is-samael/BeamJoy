@@ -13,11 +13,7 @@ return function(ctxt, labels, cache)
         cols = cols:addRow({
             cells = {
                 function()
-                    local line = LineBuilder():text(labels.speed.keys[v.key])
-                    if labels.speed.keys[v.key .. "Tooltip"] then
-                        line:helpMarker(labels.speed.keys[v.key .. "Tooltip"])
-                    end
-                    line:build()
+                    LineLabel(labels.speed.keys[v.key], nil, false, labels.speed.keys[v.key .. "Tooltip"])
                 end,
                 function()
                     LineBuilder()
