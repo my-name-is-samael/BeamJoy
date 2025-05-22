@@ -57,6 +57,7 @@ getAllVehicles = getAllVehicles or function() return {} end
 getCurrentLevelIdentifier = getCurrentLevelIdentifier or function() return "" end
 LuaProfiler = LuaProfiler or function(msg) return {} end
 createObject = createObject or function(name) return {} end
+resetGameplay = resetGameplay or function(playerID) end
 hptimer = hptimer or function() return {} end
 setExtensionUnloadMode = setExtensionUnloadMode or function(module, type) end
 getMissionFilename = getMissionFilename or function() return "/levels//[(main.level)|(info)].json" end

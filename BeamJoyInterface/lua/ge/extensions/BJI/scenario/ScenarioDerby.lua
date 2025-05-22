@@ -112,15 +112,13 @@ local function tryReplaceOrSpawn(model, config)
             S.startPos = findFreeStartPosition(BJI.Managers.Veh.getCurrentVehicleOwn():getID())
         end
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, S.startPos)
-        BJI.Managers.Async.task(function(ctxt)
-            return ctxt.isOwner
-        end, function()
+        BJI.Managers.Veh.waitForVehicleSpawn(function()
             BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
             BJI.Managers.Veh.freeze(true)
             if not BJI.Windows.VehSelector.show then
-                BJI.Windows.VehSelector.open({}, false)
+                BJI.Windows.VehSelector.open(false)
             end
-        end, "BJIDerbyPostSpawn")
+        end)
     end
 end
 
@@ -133,12 +131,14 @@ local function tryPaint(paint, paintNumber)
     end
 end
 
+---@return table<string, table>?
 local function getModelList()
     local participant = S.getParticipant()
     if S.state ~= S.STATES.PREPARATION or
-        not participant or participant.ready or
-        #S.configs > 0 then
-        return {}
+        not participant or participant.ready then
+        return    -- veh selector should not be opened
+    elseif #S.configs > 0 then
+        return {} -- only paints
     end
 
     local models = BJI.Managers.Veh.getAllVehicleConfigs()
@@ -183,7 +183,7 @@ end
 
 local function canVehUpdate()
     local participant = S.getParticipant()
-    return S.state == S.STATES.PREPARATION and participant and not participant.ready
+    return S.state == S.STATES.PREPARATION and participant ~= nil and not participant.ready
 end
 
 local function doShowNametag(vehData)
@@ -372,10 +372,13 @@ local function onJoinParticipants()
     } })
     S.startPos = findFreeStartPosition()
     if #S.configs == 0 then
-        BJI.Windows.VehSelector.open(S.getModelList(), false)
+        BJI.Windows.VehSelector.open(false)
     elseif #S.configs == 1 then
-        -- no models in veh selector cause configs can be absent from others clients
-        S.trySpawnNew(S.configs[1].model, S.configs[1].config)
+        BJI.Managers.Async.task(function()
+            return S.canSpawnNewVehicle()
+        end, function()
+            S.trySpawnNew(S.configs[1].model, S.configs[1].config)
+        end)
     end
 end
 

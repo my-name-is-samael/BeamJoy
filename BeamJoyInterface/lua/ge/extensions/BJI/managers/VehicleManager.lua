@@ -682,6 +682,12 @@ local function saveCurrentVehicle()
         end
         if veh then
             BJI.Managers.Context.User.previousVehConfig = M.getFullConfig(veh.partConfig)
+            if BJI.Managers.Context.User.previousVehConfig and
+                not BJI.Managers.Context.User.previousVehConfig.model then
+                -- a very low amount of configs have no model, don't know why
+                LogWarn("Last vehicle doesn't have model in its config, safe adding it")
+                BJI.Managers.Context.User.previousVehConfig.model = veh.jbeam
+            end
         end
     end
 end
@@ -1324,12 +1330,8 @@ local function forceVehsSync(ctxt)
 end
 
 local function onUnload()
-    if extensions.core_vehicle_partmgmt then
-        if M.baseFunctions.saveConfigBaseFunction then
-            extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
-            extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
-        end
-    end
+    extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
+    extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
 end
 
 M.onLoad = function()
@@ -1344,12 +1346,14 @@ M.onLoad = function()
             M.baseFunctions.saveConfigBaseFunction(...)
             BJI.Managers.Async.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
             end, 3000, "BJIVehPostSaveConfig")
         end
         extensions.core_vehicle_partmgmt.removeLocal = function(...)
             M.baseFunctions.removeConfigBaseFunction(...)
             BJI.Managers.Async.delayTask(function()
                 M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
             end, 1000, "BJIVehPostRemoveConfig")
         end
     end, "BJIVehSaveRemoveConfigOverride")

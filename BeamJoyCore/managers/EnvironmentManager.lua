@@ -1,3 +1,6 @@
+local logTag = "BJCEnv"
+SetLogType(logTag, CONSOLE_COLORS.FOREGROUNDS.LIGHT_BLUE)
+
 local M = {
     ---@type table<string, any>
     Data = {},
@@ -46,6 +49,7 @@ local function updateEnvToV2_0()
     M.Data.fogColor = { 0.275, 0.325, 0.359 }
 
     BJCDao.environment.save(M.Data)
+    Log("Environment data updated to v2.0.0", logTag)
 end
 
 local function init()

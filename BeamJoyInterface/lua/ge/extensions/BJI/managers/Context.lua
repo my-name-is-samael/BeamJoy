@@ -8,6 +8,7 @@
 ---@field vehicles table<integer, BJIVehicleData>
 ---@field currentVehicle? integer gameVehID
 ---@field stationProcess? boolean (auto injected)
+---@field previousVehConfig? table
 
 ---@class BJIPlayerVehicle
 ---@field vehID integer
@@ -66,6 +67,7 @@ local M = {
         currentVehicle = nil,
         delivery = 0,
         vehicles = {},
+        previousVehConfig = nil,
     },
 
     UserStats = {},

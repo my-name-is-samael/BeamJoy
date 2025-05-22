@@ -173,10 +173,7 @@ local function draw(ctxt)
                                     if BJI.Windows.VehSelector.show then
                                         BJI.Windows.VehSelector.tryClose()
                                     else
-                                        local models = BJI.Managers.Scenario.getModelList()
-                                        if table.length(models) > 0 then
-                                            BJI.Windows.VehSelector.open(models, true)
-                                        end
+                                        BJI.Windows.VehSelector.open(true)
                                     end
                                 end
                             })
