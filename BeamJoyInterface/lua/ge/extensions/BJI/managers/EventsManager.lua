@@ -26,6 +26,8 @@ local M = {
         RACE_NEW_PB = "race_new_pb",
         DATABASE_PLAYERS_UPDATED = "database_players_updated",
         SCENARIO_EDITOR_UPDATED = "scenario_editor_updated",
+        CONFIG_SAVED = "config_saved",
+        CONFIG_REMOVED = "config_removed",
 
         -- base game events
 
@@ -61,7 +63,7 @@ M.LOG_BLACKLIST_EVENTS = Table({
 })
 
 ---@param events string[]|string
----@param callback fun(ctxt: any, data: table)
+---@param callback fun(ctxt: TickContext, data: table)
 ---@return string|nil
 local function addListener(events, callback)
     if type(events) ~= "table" then

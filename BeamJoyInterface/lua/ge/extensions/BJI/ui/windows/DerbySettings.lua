@@ -233,7 +233,7 @@ local function body(ctxt)
                                 id = string.var("showDerbyConfig{1}", { i }),
                                 icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
                                 style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                                BJI.Utils.Style.BTN_PRESETS.INFO,
+                                BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                                 onClick = function()
                                     local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle

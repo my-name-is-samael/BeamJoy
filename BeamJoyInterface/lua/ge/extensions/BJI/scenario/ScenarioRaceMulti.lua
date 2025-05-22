@@ -248,8 +248,10 @@ end
 
 local function getModelList()
     if S.state ~= S.STATES.GRID or
-        not S.isParticipant() or S.isReady() or S.settings.config then
-        return {}
+        not S.isParticipant() or S.isReady() then
+        return        -- veh selector should not be opened
+    elseif S.settings.config then
+        return {}     -- only paints
     end
 
     local models = BJI.Managers.Veh.getAllVehicleConfigs()
@@ -282,14 +284,14 @@ local function onJoinGridParticipants()
     if S.settings.config then
         -- if forced config, then no callback from vehicle selector
         tryReplaceOrSpawn(S.settings.model, S.settings.config)
-        BJI.Windows.VehSelector.open({}, false)
+        BJI.Windows.VehSelector.open(false)
     else
         BJI.Managers.Message.flash("BJIRaceGridChooseVehicle", BJI.Managers.Lang.get("races.play.joinFlash"))
         local models = BJI.Managers.Veh.getAllVehicleConfigs()
         if S.settings.model then
             models = { [S.settings.model] = models[S.settings.model] }
         end
-        BJI.Windows.VehSelector.open(models, false)
+        BJI.Windows.VehSelector.open(false)
     end
 end
 

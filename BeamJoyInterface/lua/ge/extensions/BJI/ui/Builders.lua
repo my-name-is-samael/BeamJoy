@@ -516,13 +516,13 @@ end
 ---@class LineBuilder
 ---@field text fun(self, text: string|any?, color: number[]|table<string, number>?, tooltip: string?): LineBuilder
 ---@field bgText fun(self, id: string, text: string|any, color: number[]|table<string, number>, bgColor: number[]|table<string, number>): LineBuilder
----@field btn fun(self, data: {id: string, label: string, onClick: fun(), style: number[][]?}, active: boolean?, sound: string?, disabled: boolean?): LineBuilder
----@field btnSwitch fun(self, data: {id: string, labelOn: string, labelOff: string, state: boolean, onClick: fun(), style: number[][]?, active: boolean?, sound: string?, disabled: boolean?})
----@field btnToggle fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?}): LineBuilder
----@field btnSwitchAllowBlocked fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?}): LineBuilder
----@field btnSwitchEnabledDisabled fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?}): LineBuilder
----@field btnSwitchPlayStop fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?}): LineBuilder
----@field btnSwitchYesNo fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?}): LineBuilder
+---@field btn fun(self, data: {id: string, label: string, onClick: fun(), style: number[][]?}, active: boolean?, sound: string?, disabled: boolean?, tooltip: string?): LineBuilder
+---@field btnSwitch fun(self, data: {id: string, labelOn: string, labelOff: string, state: boolean, onClick: fun(), style: number[][]?, active: boolean?, sound: string?, disabled: boolean?, tooltip: string?})
+---@field btnToggle fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field btnSwitchAllowBlocked fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field btnSwitchEnabledDisabled fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field btnSwitchPlayStop fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
+---@field btnSwitchYesNo fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
 ---@field inputNumeric fun(self, data: {id: string, type: "int"|"float", value: number, precision: integer?, step: number?, stepFast: number?, width: integer?, disabled: boolean?, style: number[][]?, onUpdate: fun(value: number)?}): LineBuilder
 ---@field inputString fun(self, data: {id: string, value: string, placeholder: string?, width: integer?, disabled: boolean?, style: number[][]?, multiline: boolean?, onUpdate: fun(value: string)?, autoheight: boolean?, lines: integer?}): LineBuilder
 ---@field inputCombo fun(self, data: {id: string, items: string[]|table[], value: string|table?, label: string?, getLabelFn: (fun(item: string|table): string), width: integer?, onChange: fun(item: string|table)?}?): LineBuilder
@@ -556,10 +556,10 @@ LineBuilder = function(startSameLine)
         BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.HEADER, BJI.Utils.Style.RGBA(1, 0, 0, 1))
         color = color and convertColorToVec4(color) or BJI.Utils.Style.TEXT_COLORS.DEFAULT
         im.TextColored(color, tostring(text))
+        BJI.Utils.Style.PopStyleColor(1)
         if type(tooltip) == "string" and #tooltip > 0 then
             im.tooltip(tooltip)
         end
-        BJI.Utils.Style.PopStyleColor(1)
         self._elemCount = self._elemCount + 1
         return self
     end
@@ -640,6 +640,9 @@ LineBuilder = function(startSameLine)
             data.onClick()
         end
         resetBtnStyle()
+        if data.tooltip then
+            im.tooltip(data.tooltip)
+        end
 
         self._elemCount = self._elemCount + 1
         return self
@@ -650,14 +653,10 @@ LineBuilder = function(startSameLine)
             LogError("btnSwitch requires id, labelOn, labelOff, state and onClick", logTag)
             return self
         end
-        if data.state then
-            data.style = BJI.Utils.Style.BTN_PRESETS.SUCCESS
-            data.label = data.labelOn
-        else
-            data.style = BJI.Utils.Style.BTN_PRESETS.ERROR
-            data.label = data.labelOff
-        end
-        self = self:btn(data)
+        self = self:btn(table.assign(data, {
+            style = data.state and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+            label = data.state and data.labelOn or data.labelOff,
+        }))
         return self
     end
     builder.btnToggle = function(self, data)
@@ -667,45 +666,31 @@ LineBuilder = function(startSameLine)
         end
         local label = BJI.Managers.Lang.get("common.buttons.toggle")
         -- invert state to print in Red when active
-        return self:btnSwitch({
-            id = data.id,
+        return self:btnSwitch(table.assign(data, {
             labelOn = label,
             labelOff = label,
             state = not data.state,
-            disabled = data.disabled,
-            onClick = data.onClick,
-            sound = data.sound,
-        })
+        }))
     end
     builder.btnSwitchAllowBlocked = function(self, data)
         if not data or not data.id or data.state == nil or not data.onClick then
             LogError("btnSwitchAllowBlocked requires id, state and onClick", logTag)
             return self
         end
-        return self:btnSwitch({
-            id = data.id,
+        return self:btnSwitch(table.assign(data, {
             labelOn = BJI.Managers.Lang.get("common.buttons.allowed"),
             labelOff = BJI.Managers.Lang.get("common.buttons.blocked"),
-            state = data.state,
-            disabled = data.disabled,
-            onClick = data.onClick,
-            sound = data.sound,
-        })
+        }))
     end
     builder.btnSwitchEnabledDisabled = function(self, data)
         if not data or not data.id or data.state == nil or not data.onClick then
             LogError("btnSwitchEnabledDisabled requires id, state and onClick", logTag)
             return self
         end
-        return self:btnSwitch({
-            id = data.id,
+        return self:btnSwitch(table.assign(data, {
             labelOn = BJI.Managers.Lang.get("common.enabled"),
             labelOff = BJI.Managers.Lang.get("common.disabled"),
-            state = data.state,
-            disabled = data.disabled,
-            onClick = data.onClick,
-            sound = data.sound,
-        })
+        }))
     end
     builder.btnSwitchPlayStop = function(self, data)
         if not data or not data.id or data.state == nil or not data.onClick then
@@ -713,30 +698,21 @@ LineBuilder = function(startSameLine)
             return self
         end
         -- invert state to show "Stop" when active
-        return self:btnSwitch({
-            id = data.id,
+        return self:btnSwitch(table.assign(data, {
             labelOn = BJI.Managers.Lang.get("common.buttons.play"),
             labelOff = BJI.Managers.Lang.get("common.buttons.stop"),
             state = not data.state,
-            disabled = data.disabled,
-            onClick = data.onClick,
-            sound = data.sound,
-        })
+        }))
     end
     builder.btnSwitchYesNo = function(self, data)
         if not data or not data.id or data.state == nil or not data.onClick then
             LogError("btnSwitchYesNo requires id, state and onClick", logTag)
             return self
         end
-        return self:btnSwitch({
-            id = data.id,
+        return self:btnSwitch(table.assign(data, {
             labelOn = BJI.Managers.Lang.get("common.yes"),
             labelOff = BJI.Managers.Lang.get("common.no"),
-            state = data.state,
-            disabled = data.disabled,
-            onClick = data.onClick,
-            sound = data.sound,
-        })
+        }))
     end
 
     local function inputStylePreset(preset, numeric)
@@ -1118,10 +1094,10 @@ LineBuilder = function(startSameLine)
             end
             data.onClick()
         end
+        im.PopStyleColor(2)
         if data.tooltip then
             im.tooltip(data.tooltip)
         end
-        im.PopStyleColor(2)
         self._elemCount = self._elemCount + 1
         return self
     end

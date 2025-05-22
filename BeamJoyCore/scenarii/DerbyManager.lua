@@ -345,7 +345,8 @@ local function onPlayerDisconnect(targetID)
             if pos then
                 table.remove(M.participants, pos)
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-                if not M.participants[2] or M.participants[2].eliminationTime then
+                if not M.participants[2] or M.participants[2].eliminationTime and
+                    M.participants[1] then
                     BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
                         playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
                         gamemode = "chat.events.gamemodes.derby",

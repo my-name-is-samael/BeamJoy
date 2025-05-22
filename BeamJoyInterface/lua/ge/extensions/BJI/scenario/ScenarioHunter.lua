@@ -166,7 +166,7 @@ local function tryReplaceOrSpawn(model, config)
         BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
             BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
             if not BJI.Windows.VehSelector.show then
-                BJI.Windows.VehSelector.open({}, false)
+                BJI.Windows.VehSelector.open(false)
             end
         end)
     end
@@ -183,16 +183,19 @@ local function tryPaint(paint, paintNumber)
     end
 end
 
+---@return table<string, table>?
 local function getModelList()
-    local models = {}
     local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if S.state ~= S.STATES.PREPARATION or not participant or participant.ready then
+        return -- veh selector should not be opened
+    end
+
+    local models = {}
     if S.state == S.STATES.PREPARATION and participant and not participant.ready then
         if participant.hunted and S.settings.huntedConfig then
-            -- forced config
-            return models
+            return models -- only paints
         elseif not participant.hunted and #S.settings.hunterConfigs > 0 then
-            -- forced configs (spawned automatically or by hunter window)
-            return models
+            return models -- only paints
         end
 
         models = BJI.Managers.Veh.getAllVehicleConfigs(
@@ -362,7 +365,7 @@ local function onJoinParticipants(isHunted)
         else
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)
-            BJI.Windows.VehSelector.open(getModelList(), false)
+            BJI.Windows.VehSelector.open(false)
         end
     else
         -- hunter
@@ -387,7 +390,7 @@ local function onJoinParticipants(isHunted)
         elseif #S.settings.hunterConfigs == 0 then
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)
-            BJI.Windows.VehSelector.open(getModelList(), false)
+            BJI.Windows.VehSelector.open(false)
         end
     end
 
@@ -405,6 +408,7 @@ local function onLeaveParticipants()
     if S.state == S.STATES.PREPARATION then
         -- prevents from switching to another participant (spoil)
         BJI.Managers.Cam.forceFreecamPos()
+        BJI.Windows.VehSelector.tryClose(true)
     end
     BJI.Managers.Veh.deleteAllOwnVehicles()
 end
