@@ -37,6 +37,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
     - [Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?](#why-some-players-can-spawn-traffic-and-some-dont--how-can-i-spawn-traffic-during-a-scenario-)
     - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
+    - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
+    - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
   - [Roadmap](#roadmap)
@@ -288,6 +290,16 @@ Here the scenarii list players can toggle traffic in:
 ![Image](https://github.com/user-attachments/assets/fc667d0e-45e4-4ee4-ac9e-ec9c7d364c84)
 
 Unfortunately, I have no exact solution for now, since I never did experience this myself. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket.](https://github.com/my-name-is-samael/BeamJoy/issues/100).
+
+### Can I enable GPS path in races ?
+
+The GPS route system is fully integrated into the base game, but unfortunately, it fails in one-way roads, prohibited directions, and off-road sections. This often makes the route guidance useless in many parts of a race.
+
+If your race layout isn't intuitive, the best approach is to improve your level design. Keep in mind that at each checkpoint, racers should be able to see the next one (checkpoints are visible high in the sky when there are no buildings obstructing the view). Also, avoid placing checkpoints too far apart in classic races.
+
+### Can I completely disable the "ghost mode" when somebody respawns ?
+
+This is a respawn protection system, and it is a key component of the mod. You can implement it yourself by following the instructions in [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/58), but please note that I cannot be held responsible if other parts of the mod no longer function as intended.
 
 ## Video tutorials
 
