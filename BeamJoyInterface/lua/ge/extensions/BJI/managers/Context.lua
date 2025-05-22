@@ -169,6 +169,7 @@ local function loadPlayers()
                     banReason = "",
                     tempBanDuration = M.BJC.TempBan and M.BJC.TempBan.minTime or 0, -- input for mods+
                     hideNametag = false,                                            -- future use ?
+                    tagName = BJI.Managers.Nametags.getPlayerTagName(p.playerName),
                 })
             else
                 table.assign(M.Players[p.playerID], p)
