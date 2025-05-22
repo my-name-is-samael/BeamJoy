@@ -13,6 +13,10 @@ function json.stringifyRaw(obj)
 end
 
 function json.parse(str)
+    if type(str) ~= "string" or #str == 0 then
+        LogWarn("Tried to parse empty or not string value")
+        return nil
+    end
     return Util.JsonDecode(str)
 end
 
