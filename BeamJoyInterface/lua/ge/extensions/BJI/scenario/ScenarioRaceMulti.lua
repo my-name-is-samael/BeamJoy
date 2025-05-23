@@ -310,7 +310,7 @@ local function onLeaveGridParticipants()
             state = BJI.Managers.Restrictions.STATE.ALLOWED,
         }
     })
-    BJI.Utils.Common.HideGameMenu()
+    BJI.Managers.UI.hideGameMenu()
     BJI.Managers.Cam.resetForceCamera()
     --BJI.Managers.Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
     BJI.Managers.Veh.deleteAllOwnVehicles()

@@ -44,7 +44,7 @@ local function onLoad()
         local function stopProcess()
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.modManagementDisabled"))
             guihooks.trigger("app:waiting", false)
-            BJI.Utils.Common.HideGameMenu()
+            BJI.Managers.UI.hideGameMenu()
         end
 
         core_modmanager.activateModId = function(...)

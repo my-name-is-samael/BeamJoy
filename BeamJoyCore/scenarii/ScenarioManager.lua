@@ -143,7 +143,7 @@ local function getCacheHunter(senderID)
     }
     if M.Hunter.enabled or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        cache = table.deepcopy(M.Hunter)
+        cache = table.deepcopy(M.Hunter) or {}
     end
 
     return cache, M.getCacheHunterHash()
