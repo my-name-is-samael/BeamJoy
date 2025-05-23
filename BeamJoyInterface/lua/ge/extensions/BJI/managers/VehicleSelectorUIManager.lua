@@ -89,7 +89,7 @@ local function createVehiclesData()
     if not M.stateSelector then
         -- cannot spawn veh
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
-        BJI.Utils.Common.HideGameMenu()
+        BJI.Managers.UI.hideGameMenu()
         return resModels, resConfigs
     end
 
@@ -318,7 +318,7 @@ local function getAvailableParts(ioCtx)
     if not M.stateEditor then
         -- cannot edit veh in current scenario
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
-        BJI.Utils.Common.HideGameMenu()
+        BJI.Managers.UI.hideGameMenu()
         return {}
     end
 

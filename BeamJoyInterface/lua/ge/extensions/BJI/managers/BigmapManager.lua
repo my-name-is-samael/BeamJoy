@@ -12,7 +12,7 @@ local M = {
 -- remove missions from bigmap
 local function getRawPoiListByLevel(level)
     if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.BIG_MAP) then
-        BJI.Utils.Common.HideGameMenu()
+        BJI.Managers.UI.hideGameMenu()
     end
     local status, list, generation = pcall(M.baseFunctions.getRawPoiListByLevel, level)
     if status then

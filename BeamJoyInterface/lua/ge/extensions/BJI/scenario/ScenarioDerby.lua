@@ -387,7 +387,7 @@ local function onLeaveParticipants()
         restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
-    BJI.Utils.Common.HideGameMenu()
+    BJI.Managers.UI.hideGameMenu()
     BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
     BJI.Managers.Cam.setPositionRotation(S.baseArena.previewPosition.pos, S.baseArena.previewPosition.rot)

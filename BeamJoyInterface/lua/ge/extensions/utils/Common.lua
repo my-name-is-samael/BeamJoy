@@ -352,9 +352,4 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
         :build()
 end
 
----@param keepMenuBar? boolean
-function U.HideGameMenu(keepMenuBar)
-    guihooks.trigger('MenuHide', keepMenuBar == true)
-end
-
 return U

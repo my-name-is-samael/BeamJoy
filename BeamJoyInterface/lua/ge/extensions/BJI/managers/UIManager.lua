@@ -14,6 +14,16 @@ local function applyLoading(state, callbackFn)
     end
 end
 
+---@param keepMenuBar? boolean
+local function hideGameMenu(keepMenuBar)
+    guihooks.trigger('MenuHide', keepMenuBar == true)
+end
+
 M.applyLoading = applyLoading
+M.hideGameMenu = hideGameMenu
+
+M.onLoad = function()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, hideGameMenu)
+end
 
 return M
