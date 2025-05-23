@@ -19,6 +19,9 @@ local W = {
         specificConfig = "",
         lastWaypointGPS = "",
         lastWaypointGPSTooltip = "",
+
+        protectedVehicle = "",
+        selfProtected = "",
     },
     data = {
         waypoints = 3,
@@ -26,6 +29,9 @@ local W = {
         ---@type tablelib<integer, {label: string, model: string, config: {parts: table<string,string>}}>
         hunterConfigs = Table(),
         lastWaypointGPS = true,
+
+        currentVehProtected = false,
+        selfProtected = false,
     },
     widths = {
         labels = 0,
@@ -48,6 +54,9 @@ local function updateLabels()
     W.labels.lastWaypointGPS = BJI.Managers.Lang.get("hunter.settings.lastWaypointGPS")
     W.labels.lastWaypointGPSTooltip = BJI.Managers.Lang.get("hunter.settings.lastWaypointGPSTooltip")
     W.labels.specificConfig = BJI.Managers.Lang.get("hunter.settings.specificConfig")
+
+    W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
 end
 
 ---@param ctxt? TickContext
@@ -63,6 +72,10 @@ local function updateCache(ctxt)
         local w = BJI.Utils.Common.GetColumnTextWidth(label)
         return w > acc and w or acc
     end, 0)
+
+    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and
+        BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+    W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
 end
 
 local listeners = Table()
@@ -79,6 +92,8 @@ local function onLoad()
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache))
 
@@ -148,19 +163,17 @@ local function drawBody(ctxt)
                     LineLabel(W.labels.huntedWaypoints, nil, false, W.labels.huntedWaypointsTooltip)
                 end,
                 function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = "huntedWaypoints",
-                            type = "int",
-                            value = W.data.waypoints,
-                            min = 1,
-                            max = 50,
-                            step = 1,
-                            onUpdate = function(val)
-                                W.data.waypoints = val
-                            end
-                        })
-                        :build()
+                    LineBuilder():inputNumeric({
+                        id = "huntedWaypoints",
+                        type = "int",
+                        value = W.data.waypoints,
+                        min = 1,
+                        max = 50,
+                        step = 1,
+                        onUpdate = function(val)
+                            W.data.waypoints = val
+                        end
+                    }):build()
                 end,
             }
         })
@@ -183,35 +196,39 @@ local function drawBody(ctxt)
                                 BJI.Managers.Veh.spawnNewVehicle
                             fn(W.data.huntedConfig.model, W.data.huntedConfig.config)
                         end,
-                    })
-                        :btnIcon({
-                            id = "refreshHuntedConfig",
-                            icon = ICONS.refresh,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = not ctxt.veh,
-                            onClick = function()
-                                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
-                                else
-                                    W.data.huntedConfig = getConfig(ctxt)
-                                end
-                            end,
-                        })
-                        :btnIcon({
-                            id = "removeHuntedConfig",
-                            icon = ICONS.delete_forever,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            onClick = function()
-                                W.data.huntedConfig = nil
-                            end,
-                        })
-                        :text(W.data.huntedConfig.label)
+                    }):btnIcon({
+                        id = "refreshHuntedConfig",
+                        icon = ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = not ctxt.veh,
+                        onClick = function()
+                            if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                            else
+                                W.data.huntedConfig = getConfig(ctxt)
+                            end
+                        end,
+                    }):btnIcon({
+                        id = "removeHuntedConfig",
+                        icon = ICONS.delete_forever,
+                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        onClick = function()
+                            W.data.huntedConfig = nil
+                        end,
+                    }):text(W.data.huntedConfig.label)
                 else
+                    local tooltip
+                    if W.data.currentVehProtected then
+                        tooltip = W.labels.protectedVehicle
+                    elseif W.data.selfProtected then
+                        tooltip = W.labels.selfProtected
+                    end
                     line:btnIcon({
                         id = "addHuntedConfig",
                         icon = ICONS.addListItem,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        disabled = not ctxt.veh,
+                        disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
+                        tooltip = tooltip,
                         onClick = function()
                             if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
                                 BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
@@ -237,50 +254,51 @@ local function drawBody(ctxt)
                 end,
                 function()
                     if confData then
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("showHunterConfig{1}", { i }),
-                                icon = ctxt.isOwner and ICONS.carSensors or ICONS.visibility,
-                                style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                                    BJI.Utils.Style.BTN_PRESETS.INFO,
-                                disabled = not ctxt.isOwner,
-                                onClick = function()
-                                    local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
-                                        BJI.Managers.Veh.spawnNewVehicle
-                                    fn(confData.model, confData.config)
-                                end,
-                            })
-                            :btnIcon({
-                                id = string.var("removeHunterConfig{1}", { i }),
-                                icon = ICONS.delete_forever,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    table.remove(W.data.hunterConfigs, i)
-                                end,
-                            })
-                            :text(confData.label)
-                            :build()
+                        LineBuilder():btnIcon({
+                            id = string.var("showHunterConfig{1}", { i }),
+                            icon = ctxt.isOwner and ICONS.carSensors or ICONS.visibility,
+                            style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                                BJI.Utils.Style.BTN_PRESETS.INFO,
+                            disabled = not ctxt.isOwner,
+                            onClick = function()
+                                local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
+                                    BJI.Managers.Veh.spawnNewVehicle
+                                fn(confData.model, confData.config)
+                            end,
+                        }):btnIcon({
+                            id = string.var("removeHunterConfig{1}", { i }),
+                            icon = ICONS.delete_forever,
+                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                            onClick = function()
+                                table.remove(W.data.hunterConfigs, i)
+                            end,
+                        }):text(confData.label):build()
                     else
-                        LineBuilder()
-                            :btnIcon({
-                                id = "addHunterConfig",
-                                icon = ICONS.addListItem,
-                                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                disabled = not ctxt.veh,
-                                onClick = function()
-                                    local config = getConfig(ctxt) or {}
-                                    if W.data.hunterConfigs:any(function(c)
-                                            return config.model == c.model and
-                                                table.compare(config.config, c.config)
-                                        end) then
-                                        BJI.Managers.Toast.error(BJI.Managers.Lang.get(
-                                            "hunter.settings.toastConfigAlreadySaved"))
-                                    else
-                                        table.insert(W.data.hunterConfigs, config)
-                                    end
-                                end,
-                            })
-                            :build()
+                        local tooltip
+                        if W.data.currentVehProtected then
+                            tooltip = W.labels.protectedVehicle
+                        elseif W.data.selfProtected then
+                            tooltip = W.labels.selfProtected
+                        end
+                        LineBuilder():btnIcon({
+                            id = "addHunterConfig",
+                            icon = ICONS.addListItem,
+                            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                            disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
+                            tooltip = tooltip,
+                            onClick = function()
+                                local config = getConfig(ctxt) or {}
+                                if W.data.hunterConfigs:any(function(c)
+                                        return config.model == c.model and
+                                            table.compare(config.config, c.config)
+                                    end) then
+                                    BJI.Managers.Toast.error(BJI.Managers.Lang.get(
+                                        "hunter.settings.toastConfigAlreadySaved"))
+                                else
+                                    table.insert(W.data.hunterConfigs, config)
+                                end
+                            end,
+                        }):build()
                     end
                 end,
             }
@@ -311,28 +329,25 @@ end
 
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "closeHunterSettings",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = onClose,
-        })
-        :btnIcon({
-            id = "startHunter",
-            icon = ICONS.videogame_asset,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            onClick = function()
-                BJI.Tx.scenario.HunterStart({
-                    waypoints = W.data.waypoints,
-                    huntedConfig = W.data.huntedConfig,
-                    hunterConfigs = W.data.hunterConfigs,
-                    lastWaypointGPS = W.data.lastWaypointGPS,
-                })
-                onClose()
-            end
-        })
-        :build()
+    LineBuilder():btnIcon({
+        id = "closeHunterSettings",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        onClick = onClose,
+    }):btnIcon({
+        id = "startHunter",
+        icon = ICONS.videogame_asset,
+        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+        onClick = function()
+            BJI.Tx.scenario.HunterStart({
+                waypoints = W.data.waypoints,
+                huntedConfig = W.data.huntedConfig,
+                hunterConfigs = W.data.hunterConfigs,
+                lastWaypointGPS = W.data.lastWaypointGPS,
+            })
+            onClose()
+        end
+    }):build()
 end
 
 local function open()

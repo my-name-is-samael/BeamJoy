@@ -28,6 +28,7 @@ local M = {
         SCENARIO_EDITOR_UPDATED = "scenario_editor_updated",
         CONFIG_SAVED = "config_saved",
         CONFIG_REMOVED = "config_removed",
+        CONFIG_PROTECTION_UPDATED = "config_protection_updated",
 
         -- base game events
 

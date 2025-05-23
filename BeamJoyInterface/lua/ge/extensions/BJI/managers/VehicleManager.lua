@@ -58,6 +58,7 @@ end
 ---@field serverVehicleID integer
 ---@field serverVehicleString string format "<ownerID>-<serverVehicleID>"
 ---@field spectators table<integer, boolean>
+---@field protected boolean
 
 ---@return BJIMPVehicle[]
 local function getMPVehicles()
@@ -76,6 +77,7 @@ local function getMPVehicles()
             serverVehicleID = v.serverVehicleID,
             serverVehicleString = v.serverVehicleString,
             spectators = v.spectators,
+            protected = v.protected == "1"
         })
     end
     return vehs
@@ -191,6 +193,16 @@ local function getGameVehicleID(playerID, vehID)
         return nil
     end
     return MPVehicleGE.getGameVehicleID(srvVehID)
+end
+
+---@param gameVehID integer
+---@return boolean
+local function isVehProtected(gameVehID)
+    return Table(M.getMPVehicles())
+        ---@param v BJIMPVehicle
+        :any(function(v)
+            return v.gameVehicleID == gameVehID and v.protected
+        end)
 end
 
 local function isVehicleOwn(gameVehID)
@@ -1175,6 +1187,7 @@ local function updateVehDamages(vehID, damageState)
     end
 end
 
+local lastConfigProtectionState = settings.getValue("protectConfigFromClone", false)
 local function slowTick(ctxt)
     if not ctxt.vehData then
         return
@@ -1207,6 +1220,13 @@ local function slowTick(ctxt)
         if not v then
             BJI.Tx.moderation.deleteVehicle(BJI.Managers.Context.User.playerID, vehData.gameVehID)
         end
+    end
+
+    -- check for config protection changed
+    local configProtection = settings.getValue("protectConfigFromClone", false)
+    if configProtection ~= lastConfigProtectionState then
+        lastConfigProtectionState = configProtection
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED)
     end
 end
 
@@ -1391,6 +1411,7 @@ M.getGameVehIDByRemoteVehID = getGameVehIDByRemoteVehID
 M.getVehOwnerID = getVehOwnerID
 M.getVehIDByGameVehID = getVehIDByGameVehID
 M.getGameVehicleID = getGameVehicleID
+M.isVehProtected = isVehProtected
 
 M.isVehicleOwn = isVehicleOwn
 M.isCurrentVehicleOwn = isCurrentVehicleOwn

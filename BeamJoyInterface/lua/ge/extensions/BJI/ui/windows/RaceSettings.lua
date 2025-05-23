@@ -44,6 +44,8 @@ local W = {
             comboRespawnStrategies = {},
             respawnStrategySelected = nil,
 
+            currentVehicleProtected = false,
+            selfProtected = false,
             ---@type {value?: string, label: string}[]
             comboVehicle = {},
             ---@type {value?: string, label: string}?
@@ -70,6 +72,8 @@ local W = {
                 all = "",
                 currentModel = "",
                 currentConfig = "",
+                vehicleProtected = "",
+                selfProtected = "",
             },
         },
         widths = {
@@ -93,13 +97,15 @@ local function updateLabels()
     W.cache.labels.respawnStrategies.all = BJI.Managers.Lang.get("races.settings.respawnStrategies.all")
     W.cache.labels.respawnStrategies.norespawn = BJI.Managers.Lang.get("races.settings.respawnStrategies.norespawn")
     W.cache.labels.respawnStrategies.lastcheckpoint = BJI.Managers.Lang.get(
-    "races.settings.respawnStrategies.lastcheckpoint")
+        "races.settings.respawnStrategies.lastcheckpoint")
     W.cache.labels.respawnStrategies.stand = BJI.Managers.Lang.get("races.settings.respawnStrategies.stand")
 
     W.cache.labels.vehicle.title = BJI.Managers.Lang.get("races.settings.vehicles.playerVehicle")
     W.cache.labels.vehicle.all = BJI.Managers.Lang.get("races.settings.vehicles.all")
     W.cache.labels.vehicle.currentModel = BJI.Managers.Lang.get("races.settings.vehicles.currentModel")
     W.cache.labels.vehicle.currentConfig = BJI.Managers.Lang.get("races.settings.vehicles.currentConfig")
+    W.cache.labels.vehicle.vehicleProtected = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
+    W.cache.labels.vehicle.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
 end
 
 local function updateWidths()
@@ -164,6 +170,9 @@ local function updateCache(ctxt)
     end
 
     if W.settings.multi then
+        W.cache.data.currentVehicleProtected = ctxt.veh and not ctxt.isOwner and
+            BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+        W.cache.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
         -- vehicle combo
         table.insert(W.cache.data.comboVehicle, {
             value = W.VEHICLE_MODES.ALL,
@@ -174,10 +183,12 @@ local function updateCache(ctxt)
                 value = W.VEHICLE_MODES.MODEL,
                 label = W.cache.labels.vehicle.currentModel,
             })
-            table.insert(W.cache.data.comboVehicle, {
-                value = W.VEHICLE_MODES.CONFIG,
-                label = W.cache.labels.vehicle.currentConfig,
-            })
+            if not W.cache.data.currentVehicleProtected and not W.cache.data.selfProtected then
+                table.insert(W.cache.data.comboVehicle, {
+                    value = W.VEHICLE_MODES.CONFIG,
+                    label = W.cache.labels.vehicle.currentConfig,
+                })
+            end
             if not W.cache.data.vehicleSelected then
                 if W.settings.vehicleMode then
                     W.cache.data.vehicleSelected = table.find(W.cache.data.comboVehicle, function(v)
@@ -215,7 +226,7 @@ local function updateCache(ctxt)
     end
 
     W.cache.data.showVoteBtn = W.settings.multi and
-    BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
     W.cache.data.showStartBtn = (W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
         (not W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO))
 end
@@ -245,6 +256,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
@@ -288,25 +300,25 @@ end
 local function drawVehicleSelector(cols, ctxt)
     cols:addRow({
         cells = {
+            function() LineLabel(W.cache.labels.vehicle.title) end,
             function()
-                LineBuilder()
-                    :text(W.cache.labels.vehicle.title)
-                    :build()
-            end,
-            function()
-                LineBuilder()
-                    :inputCombo({
-                        id = "settingsVehicle",
-                        items = W.cache.data.comboVehicle,
-                        getLabelFn = function(v)
-                            return v.label
-                        end,
-                        value = W.cache.data.vehicleSelected,
-                        onChange = function(v)
-                            W.cache.data.vehicleSelected = v
-                        end,
-                    })
-                    :build()
+                local line = LineBuilder()
+                if W.cache.data.selfProtected then
+                    line:helpMarker(W.cache.labels.vehicle.selfProtected)
+                elseif W.cache.data.currentVehicleProtected then
+                    line:helpMarker(W.cache.labels.vehicle.vehicleProtected)
+                end
+                line:inputCombo({
+                    id = "settingsVehicle",
+                    items = W.cache.data.comboVehicle,
+                    getLabelFn = function(v)
+                        return v.label
+                    end,
+                    value = W.cache.data.vehicleSelected,
+                    onChange = function(v)
+                        W.cache.data.vehicleSelected = v
+                    end,
+                }):build()
             end
         }
     })
@@ -318,8 +330,7 @@ local function drawVehicleSelector(cols, ctxt)
                     LineBuilder()
                         :text(W.cache.data.vehicleSelected.value == W.VEHICLE_MODES.MODEL and
                             W.cache.data.currentVeh.modelLabel or
-                            W.cache.data.currentVeh.configLabel)
-                        :build()
+                            W.cache.data.currentVeh.configLabel):build()
                 end
             }
         })
@@ -327,8 +338,8 @@ local function drawVehicleSelector(cols, ctxt)
 end
 
 local function drawHeader()
-    LineBuilder():text(W.cache.labels.title, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
-    LineBuilder():text(W.cache.labels.raceName):build()
+    LineLabel(W.cache.labels.title, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+    LineLabel(W.cache.labels.raceName)
 end
 
 local function drawBody(ctxt)
@@ -338,22 +349,20 @@ local function drawBody(ctxt)
         cols:addRow({
             cells = {
                 function()
-                    LineBuilder():text(W.cache.labels.laps):build()
+                    LineLabel(W.cache.labels.laps)
                 end,
                 function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = "raceSettingsLaps",
-                            type = "int",
-                            value = W.settings.laps,
-                            min = 1,
-                            max = 50,
-                            step = 1,
-                            onUpdate = function(val)
-                                W.settings.laps = val
-                            end,
-                        })
-                        :build()
+                    LineBuilder():inputNumeric({
+                        id = "raceSettingsLaps",
+                        type = "int",
+                        value = W.settings.laps,
+                        min = 1,
+                        max = 50,
+                        step = 1,
+                        onUpdate = function(val)
+                            W.settings.laps = val
+                        end,
+                    }):build()
                 end
             }
         })
@@ -362,7 +371,7 @@ local function drawBody(ctxt)
                 cells = {
                     nil,
                     function()
-                        LineBuilder():text(W.cache.labels.manyLapsWarning, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
+                        LineLabel(W.cache.labels.manyLapsWarning, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                     end
                 }
             })
@@ -390,15 +399,14 @@ local function drawFooter(ctxt)
     if not W.settings then
         return
     end
-    local line = LineBuilder()
-        :btnIcon({
-            id = "cancelRaceStart",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = function()
-                W.onClose()
-            end
-        })
+    local line = LineBuilder():btnIcon({
+        id = "cancelRaceStart",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        onClick = function()
+            W.onClose()
+        end
+    })
     if W.cache.data.showVoteBtn then
         line:btnIcon({
             id = "voteRaceStart",
