@@ -158,10 +158,40 @@ local function loadUser()
     end)
 end
 
+local function updateAllVehiclesAndAI()
+    table.forEach(M.Players, function(player)
+        if M.isSelf(player.playerID) then
+            -- parse vehicles finalGameVehID
+            table.forEach(player.vehicles or {}, function(veh)
+                veh.finalGameVehID = veh.gameVehID
+            end)
+        else
+            -- parse vehicles finalGameVehID
+            table.forEach(player.vehicles or {}, function(veh)
+                veh.finalGameVehID = BJI.Managers.Veh.getGameVehIDByRemoteVehID(veh.gameVehID)
+            end)
+
+            -- parse ai final IDs
+            player.ai = Table(player.ai):map(function(remoteVid)
+                return BJI.Managers.Veh.getGameVehIDByRemoteVehID(remoteVid)
+            end)
+        end
+    end)
+
+    -- update AI vehicles (to hide their nametags)
+    BJI.Managers.AI.updateAllAIVehicles(Table(M.Players)
+        :filter(function(player) return #player.ai > 0 end)
+        :map(function(player) return player.ai end)
+        :reduce(function(acc, aiVehs) return acc:addAll(aiVehs, true) end, Table())
+        :filter(function(vid)
+            return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
+        end))
+end
+
 local function loadPlayers()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PLAYERS, function(cacheData)
         local previousPlayers = table.clone(M.Players)
-        for _, p in pairs(cacheData) do
+        Table(cacheData):forEach(function(p)
             if not M.Players[p.playerID] then
                 M.Players[p.playerID] = table.assign(p, {
                     muteReason = "",
@@ -175,21 +205,6 @@ local function loadPlayers()
                 table.assign(M.Players[p.playerID], p)
                 M.Players[p.playerID].vehicles = p.vehicles or {}
                 M.Players[p.playerID].ai = p.ai or {}
-            end
-        end
-
-        table.forEach(M.Players, function(player)
-            -- parse vehicles finalGameVehID
-            table.forEach(player.vehicles or {}, function(veh)
-                veh.finalGameVehID = M.isSelf(player.playerID) and veh.gameVehID or
-                    BJI.Managers.Veh.getGameVehIDByRemoteVehID(veh.gameVehID)
-            end)
-
-            -- parse ai final IDs
-            if not M.isSelf(player.playerID) then
-                player.ai = Table(player.ai):map(function(remoteVid)
-                    return BJI.Managers.Veh.getGameVehIDByRemoteVehID(remoteVid)
-                end):values()
             end
         end)
 
@@ -206,14 +221,12 @@ local function loadPlayers()
             end
         end
 
-        -- update AI vehicles (to hide their nametags)
-        BJI.Managers.AI.updateAllAIVehicles(Table(M.Players)
-            :filter(function(player) return #player.ai > 0 end)
-            :map(function(player) return player.ai end)
-            :reduce(function(acc, aiVehs) return acc:addAll(aiVehs) end, Table())
-            :filter(function(vid)
-                return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
-            end))
+        BJI.Managers.Async.removeTask("BJILoadPlayersUpdateVehicles")
+        BJI.Managers.Async.task(function()
+            return Table(BJI.Managers.Veh.getMPVehicles()):every(function(v)
+                return v.gameVehicleID ~= -1 and v.isSpawned
+            end)
+        end, updateAllVehiclesAndAI, "BJILoadPlayersUpdateVehicles")
 
         -- events detection
         local previousPlayersCount = table.length(previousPlayers)
