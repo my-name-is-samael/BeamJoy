@@ -304,7 +304,7 @@ local function drawHeader(ctxt)
             if ctxt.isOwner then
                 BJI.Managers.Veh.deleteCurrentOwnVehicle()
             else
-                BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("deleteOtherPlayerVehicleModal"),
+                BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("vehicleSelector.deleteOtherPlayerVehicleModal"),
                     {
                         {
                             label = BJI.Managers.Lang.get("common.buttons.cancel"),
