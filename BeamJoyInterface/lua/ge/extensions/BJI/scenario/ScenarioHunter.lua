@@ -347,7 +347,7 @@ local function onJoinParticipants(isHunted)
                     return el.wp
                 end)
                 :filter(function(_, i)
-                    return i < math.ceil(#BJI.Managers.Context.Scenario.Data.Hunter.targets / 2)
+                    return i <= math.ceil(#BJI.Managers.Context.Scenario.Data.Hunter.targets / 2)
                 end)
                 :random()
         end
