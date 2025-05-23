@@ -675,22 +675,23 @@ local function slowTick(ctxt)
 
         if not participant.hunted and S.hunterStartTime and S.hunterStartTime <= ctxt.now then
             -- proximity reveal
-            local waypoint = 0
             if S.proximityProcess.huntedVeh and #S.proximityProcess.huntersVehs > 0 then
                 Table(S.participants):find(function(p) return p.hunted end,
-                    function(hunted) waypoint = hunted.waypoint end)
-                if not S.settings.lastWaypointGPS or waypoint < S.settings.waypoints - 1 then
-                    local minDistance = S.proximityProcess.huntersVehs:map(function(hunter)
-                        return BJI.Managers.Veh.getPositionRotation(hunter).pos:distance(
-                            BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh).pos
-                        )
-                    end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
-                    if S.revealHunted and minDistance > S.HUNTED_REVEAL_DISTANCE then
-                        S.revealHunted = false
-                    elseif not S.revealHunted and minDistance <= S.HUNTED_REVEAL_DISTANCE then
-                        S.revealHunted = true
-                    end
-                end
+                    function(hunted)
+                        if not S.settings.lastWaypointGPS or hunted.waypoint < S.settings.waypoints - 1 then
+                            local minDistance = S.proximityProcess.huntersVehs:map(function(hunter)
+                                return BJI.Managers.Veh.getPositionRotation(hunter).pos:distance(
+                                    BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh).pos
+                                )
+                            end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
+                            if S.revealHunted and minDistance > S.HUNTED_REVEAL_DISTANCE then
+                                S.revealHunted = false
+                                BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
+                            elseif not S.revealHunted and minDistance <= S.HUNTED_REVEAL_DISTANCE then
+                                S.revealHunted = true
+                            end
+                        end
+                    end)
             end
 
             -- auto gps
