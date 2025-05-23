@@ -166,16 +166,19 @@ local function updateCachePlayers(ctxt)
     table.filter(BJI.Managers.Context.Players, function(_, playerID)
         return not BJI.Managers.Perm.canSpawnVehicle(playerID) and not BJI.Managers.Perm.isStaff(playerID)
     end):forEach(function(player, playerID)
+        local playerGroup = BJI.Managers.Perm.Groups[player.group] or { level = 0 }
+        local isGroupLower = ctxt.group.level > playerGroup.level or BJI.DEBUG
+
         local previousGroupName = BJI.Managers.Perm.getPreviousGroup(player.group)
         local previousGroup = BJI.Managers.Perm.Groups[previousGroupName]
-        local showDemote = player.isGroupLower and previousGroup
+        local showDemote = isGroupLower and previousGroup
         local demoteGroup = showDemote and previousGroupName or ""
         local demoteLabel = showDemote and BJI.Managers.Lang.get("moderationBlock.buttons.demoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. demoteGroup, demoteGroup) }) or nil
 
         local nextGroupName = BJI.Managers.Perm.getNextGroup(player.group)
         local nextGroup = BJI.Managers.Perm.Groups[nextGroupName]
-        local showPromote = player.isGroupLower and nextGroup.level < ctxt.group.level
+        local showPromote = isGroupLower and nextGroup.level < ctxt.group.level
         local promoteGroup = showPromote and nextGroupName or ""
         local promoteLabel = showPromote and BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
             :var({ groupName = BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) }) or nil
@@ -197,8 +200,8 @@ local function updateCachePlayers(ctxt)
     end):forEach(function(p, playerID)
         local isSelf = BJI.Managers.Context.isSelf(playerID) and not BJI.DEBUG
         local groupLabel = BJI.Managers.Lang.get(string.var("groups.{1}", { p.group }), p.group)
-        local targetGroup = BJI.Managers.Perm.Groups[p.group] or { level = 0 }
-        local isGroupLower = ctxt.group.level > targetGroup.level or BJI.DEBUG
+        local playerGroup = BJI.Managers.Perm.Groups[p.group] or { level = 0 }
+        local isGroupLower = ctxt.group.level > playerGroup.level or BJI.DEBUG
         local vehiclesCount = table.length(p.vehicles or {})
         local nameSuffix
         if selfStaff then
