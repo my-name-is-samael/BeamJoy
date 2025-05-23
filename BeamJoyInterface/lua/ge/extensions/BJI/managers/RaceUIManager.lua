@@ -187,11 +187,12 @@ end
 
 local function clearRaceTime()
     guihooks.trigger("ScenarioNotRunning")
-    M.clearLap()
-    M.clearWaypoint()
+    drawLap()
+    drawWaypoint()
 end
 
 local function clear()
+    guihooks.trigger("ScenarioNotRunning")
     M.clearLap()
     M.clearWaypoint()
 end

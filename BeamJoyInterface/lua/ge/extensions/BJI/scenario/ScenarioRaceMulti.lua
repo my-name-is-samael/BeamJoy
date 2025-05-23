@@ -184,7 +184,7 @@ local function onUnload(ctxt)
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Windows.VehSelector.tryClose(true)
-    BJI.Managers.RaceUI.clearRaceTime()
+    BJI.Managers.RaceUI.clear()
 end
 
 local function initGrid(data)
@@ -249,9 +249,9 @@ end
 local function getModelList()
     if S.state ~= S.STATES.GRID or
         not S.isParticipant() or S.isReady() then
-        return        -- veh selector should not be opened
+        return    -- veh selector should not be opened
     elseif S.settings.config then
-        return {}     -- only paints
+        return {} -- only paints
     end
 
     local models = BJI.Managers.Veh.getAllVehicleConfigs()
@@ -282,9 +282,13 @@ local function onJoinGridParticipants()
     })
 
     if S.settings.config then
-        -- if forced config, then no callback from vehicle selector
-        tryReplaceOrSpawn(S.settings.model, S.settings.config)
-        BJI.Windows.VehSelector.open(false)
+        BJI.Managers.Async.task(function()
+            return S.canSpawnNewVehicle()
+        end, function()
+            -- if forced config, then no callback from vehicle selector
+            tryReplaceOrSpawn(S.settings.model, S.settings.config)
+            BJI.Windows.VehSelector.open(false)
+        end)
     else
         BJI.Managers.Message.flash("BJIRaceGridChooseVehicle", BJI.Managers.Lang.get("races.play.joinFlash"))
         local models = BJI.Managers.Veh.getAllVehicleConfigs()
@@ -421,7 +425,9 @@ local function onCheckpointReached(wp, remainingSteps)
         if S.settings.laps and S.settings.laps > 1 then
             BJI.Managers.RaceUI.setLap(S.race.lap, S.settings.laps)
         end
-        BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
+        local drawnCheckpoint = remainingSteps == 0 and S.race.raceData.wpPerLap or
+            S.race.waypoint % S.race.raceData.wpPerLap
+        BJI.Managers.RaceUI.setWaypoint(drawnCheckpoint, S.race.raceData.wpPerLap)
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.RACE_WAYPOINT)
 
         if remainingSteps == 0 then
