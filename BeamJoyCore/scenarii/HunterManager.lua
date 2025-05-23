@@ -280,9 +280,9 @@ end
 
 local function onPlayerDisconnect(playerID)
     if M.state and M.participants[playerID] then
-        M.participants[playerID] = nil
         if M.state == M.STATES.GAME then
-            if M.participants[playerID].hunted or M.participants:length() < M.MINIMUM_PARTICIPANTS() then
+            if M.participants[playerID].hunted or
+                M.participants:length() < M.MINIMUM_PARTICIPANTS() then
                 BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
                     gamemode = "chat.events.gamemodes.hunter",
                     reason = "chat.events.gamemodeStopReasons.notEnoughParticipants",
@@ -299,6 +299,7 @@ local function onPlayerDisconnect(playerID)
             end
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+        M.participants[playerID] = nil
     end
 end
 
