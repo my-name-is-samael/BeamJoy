@@ -1253,6 +1253,7 @@
       "noVeh": "Vehicle not found",
       "notAllowed": "Not allowed now",
       "protectedVehicle": "The vehicle is protected",
+      "selfProtected": "Config cloning protection is enabled. Make sure to toggle it off if you want to use your specific vehicle.",
       "invalidVeh": "Invalid vehicle",
       "paints": "Paints",
       "applyPaint": "Paint {position}",
@@ -1340,6 +1341,7 @@
       "settings": {
         "title": "Destruction Derby Settings",
         "places": "{places} places",
+        "presets": "Presets",
         "lives": "Lives",
         "configs": "Vehicle configs",
         "configsTooltip": "Vehicle configs players can choose from (if none, any game config can be picked)",

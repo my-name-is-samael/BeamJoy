@@ -1222,6 +1222,7 @@
       "noVeh": "Veículo não encontrado",
       "notAllowed": "Não permitido agora",
       "protectedVehicle": "O veículo está protegido",
+      "selfProtected": "A proteção contra clonagem de configuração está ativada. Desativa-a se quiseres usar o teu veículo específico.",
       "invalidVeh": "Veículo inválido",
       "paints": "Tintas",
       "applyPaint": "Pintar {position}",
@@ -1309,6 +1310,7 @@
       "settings": {
         "title": "Configurações do Derby de Destruição",
         "places": "{places} lugares",
+        "presets": "Predefinições",
         "lives": "Vidas",
         "configs": "Configurações do veículo",
         "configsTooltip": "Os jogadores podem escolher as configurações do veículo (se não houver nenhuma, qualquer configuração do jogo pode ser escolhida)",

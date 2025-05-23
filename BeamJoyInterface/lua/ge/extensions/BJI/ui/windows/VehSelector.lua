@@ -131,9 +131,10 @@ local function isValidVeh(model)
 end
 
 local function isVehicleInCache(model)
-    return Table({ W.models.cars, W.models.trucks }):any(function(models)
-        return Table(models):any(function(m) return m.key == model end)
-    end)
+    return Table({ W.models.cars, W.models.trucks })
+        :any(function(models)
+            return Table(models):any(function(m) return m.key == model end)
+        end)
 end
 
 ---@param ctxt? TickContext
@@ -144,7 +145,7 @@ local function updateButtonsStates(ctxt)
         (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and table.length(ctxt.user.vehicles) < ctxt.group.vehicleCap)) and
         (ctxt.isOwner and BJI.Managers.Scenario.canReplaceVehicle() or BJI.Managers.Scenario.canSpawnNewVehicle())
 
-    local currentVehIsProtected = false -- TODO #107
+    local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
 
     W.headerBtns.loadPreviousDisabled = not canSpawnOrReplace or not ctxt.user.previousVehConfig or
         not isVehicleInCache(ctxt.user.previousVehConfig.model)

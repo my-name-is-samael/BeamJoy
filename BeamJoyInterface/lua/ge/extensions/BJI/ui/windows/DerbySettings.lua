@@ -12,10 +12,14 @@ local W = {
     labels = {
         title = "",
         places = "",
+        presets = "",
         lives = "",
         configs = "",
         configsTooltip = "",
         specificConfig = "",
+
+        protectedVehicle = "",
+        selfProtected = "",
     },
     data = {
         arenaIndex = 0,
@@ -25,8 +29,10 @@ local W = {
         configs = Table(),
 
         places = "",
-        headerWidth = 0,
         labelsWidth = 0,
+
+        currentVehProtected = false,
+        selfProtected = false,
     },
 
     presets = require("ge/extensions/utils/VehiclePresets").getDerbyPresets(),
@@ -39,10 +45,14 @@ end
 local function updateLabels()
     W.labels.title = BJI.Managers.Lang.get("derby.settings.title")
     W.labels.places = BJI.Managers.Lang.get("derby.settings.places")
+    W.labels.presets = BJI.Managers.Lang.get("derby.settings.presets") .. " :"
     W.labels.lives = BJI.Managers.Lang.get("derby.settings.lives")
     W.labels.configs = BJI.Managers.Lang.get("derby.settings.configs")
     W.labels.configsTooltip = BJI.Managers.Lang.get("derby.settings.configsTooltip")
     W.labels.specificConfig = BJI.Managers.Lang.get("derby.settings.specificConfig")
+
+    W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
 end
 
 ---@param ctxt? TickContext
@@ -51,14 +61,6 @@ local function updateCache(ctxt)
 
     W.data.places = string.var("({1})", { W.labels.places:var({ places = #W.data.arena.startPositions }) })
 
-    W.data.headerWidth = Table({
-        W.labels.title,
-        W.data.arena.name .. " " .. W.data.places
-    }):reduce(function(acc, v)
-        local w = BJI.Utils.Common.GetColumnTextWidth(v)
-        return w > acc and w or acc
-    end, 0)
-
     W.data.labelsWidth = Table({
         W.labels.lives,
         W.labels.configs,
@@ -66,6 +68,10 @@ local function updateCache(ctxt)
         local w = BJI.Utils.Common.GetColumnTextWidth(label)
         return w > acc and w or acc
     end, 0)
+
+    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and
+        BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+    W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
 end
 
 local listeners = Table()
@@ -79,6 +85,8 @@ local function onLoad()
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache))
 
@@ -112,7 +120,7 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    ColumnsBuilder("BJIDerbyHeader", { W.data.headerWidth, -1 })
+    ColumnsBuilder("BJIDerbyHeader", { -1, -1 })
         :addRow({
             cells = {
                 function()
@@ -120,7 +128,7 @@ local function header(ctxt)
                     LineBuilder():text(W.data.arena.name):text(W.data.places):build()
                 end,
                 function()
-                    LineLabel("Presets :")
+                    LineLabel(W.labels.presets)
                     local line = LineBuilder()
                     Table(W.presets):forEach(function(preset, i)
                         line:btn({
@@ -154,8 +162,8 @@ local function header(ctxt)
                                             label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(gen.model),
                                                 BJI.Managers.Veh.getConfigLabel(gen.model, gen.key) }),
                                             config = BJI.Managers.Veh.getFullConfig(BJI.Managers.Veh
-                                            .getConfigByModelAndKey(gen.model,
-                                                gen.key)),
+                                                .getConfigByModelAndKey(gen.model,
+                                                    gen.key)),
                                         }
                                     end)
                                 )
@@ -174,8 +182,10 @@ local function addCurrentConfig(ctxt)
         model = ctxt.veh.jbeam,
         key = BJI.Managers.Veh.getCurrentConfigKey(),
         label = BJI.Managers.Veh.isConfigCustom(ctxt.veh.partConfig) and
-            BJI.Managers.Lang.get("derby.settings.specificConfig"):var({ model = BJI.Managers.Veh.getModelLabel(ctxt.veh
-            .jbeam) }) or
+            BJI.Managers.Lang.get("derby.settings.specificConfig"):var({
+                model = BJI.Managers.Veh.getModelLabel(ctxt.veh
+                    .jbeam)
+            }) or
             string.var("{1} {2}",
                 { BJI.Managers.Veh.getModelLabel(ctxt.veh.jbeam), BJI.Managers.Veh.getCurrentConfigLabel() }),
         config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig),
@@ -194,23 +204,19 @@ local function body(ctxt)
     local cols = ColumnsBuilder("BJIDerbySettings", { W.data.labelsWidth, -1 })
         :addRow({
             cells = {
+                function() LineLabel(W.labels.lives) end,
                 function()
-                    LineLabel(W.labels.lives)
-                end,
-                function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = "derbyLives",
-                            type = "int",
-                            value = W.data.lives,
-                            min = 0,
-                            max = 5,
-                            step = 1,
-                            onUpdate = function(val)
-                                W.data.lives = val
-                            end
-                        })
-                        :build()
+                    LineBuilder():inputNumeric({
+                        id = "derbyLives",
+                        type = "int",
+                        value = W.data.lives,
+                        min = 0,
+                        max = 5,
+                        step = 1,
+                        onUpdate = function(val)
+                            W.data.lives = val
+                        end
+                    }):build()
                 end,
             }
         })
@@ -221,47 +227,46 @@ local function body(ctxt)
             cells = {
                 function()
                     if i == 1 then
-                        LineBuilder()
-                            :text(W.labels.configs, nil, W.labels.configsTooltip)
-                            :build()
+                        LineLabel(W.labels.configs, nil, false, W.labels.configsTooltip)
                     end
                 end,
                 function()
                     if config then
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("showDerbyConfig{1}", { i }),
-                                icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
-                                style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        LineBuilder():btnIcon({
+                            id = string.var("showDerbyConfig{1}", { i }),
+                            icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
+                            style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                                 BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                onClick = function()
-                                    local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
+                            onClick = function()
+                                local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle
-                                    fn(config.model, config.key or { parts = config.config })
-                                end,
-                            })
-                            :btnIcon({
-                                id = string.var("removeDerbyConfig{1}", { i }),
-                                icon = ICONS.delete_forever,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    W.data.configs:remove(i)
-                                end,
-                            })
-                            :text(config.label)
-                            :build()
+                                fn(config.model, config.key or { parts = config.config })
+                            end,
+                        }):btnIcon({
+                            id = string.var("removeDerbyConfig{1}", { i }),
+                            icon = ICONS.delete_forever,
+                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                            onClick = function()
+                                W.data.configs:remove(i)
+                            end,
+                        }):text(config.label):build()
                     else
-                        LineBuilder()
-                            :btnIcon({
-                                id = "addDerbyConfig",
-                                icon = ICONS.addListItem,
-                                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                disabled = not ctxt.veh,
-                                onClick = function()
-                                    addCurrentConfig(ctxt)
-                                end,
-                            })
-                            :build()
+                        local tooltip
+                        if W.data.currentVehProtected then
+                            tooltip = W.labels.protectedVehicle
+                        elseif W.data.selfProtected then
+                            tooltip = W.labels.selfProtected
+                        end
+                        LineBuilder():btnIcon({
+                            id = "addDerbyConfig",
+                            icon = ICONS.addListItem,
+                            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                            disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
+                            tooltip = tooltip,
+                            onClick = function()
+                                addCurrentConfig(ctxt)
+                            end,
+                        }):build()
                     end
                 end,
             }
@@ -272,23 +277,20 @@ end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "closeDerbySettings",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = onClose,
-        })
-        :btnIcon({
-            id = "startDerby",
-            icon = ICONS.check,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            onClick = function()
-                BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
-                onClose()
-            end
-        })
-        :build()
+    LineBuilder():btnIcon({
+        id = "closeDerbySettings",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        onClick = onClose,
+    }):btnIcon({
+        id = "startDerby",
+        icon = ICONS.check,
+        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+        onClick = function()
+            BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
+            onClose()
+        end
+    }):build()
 end
 
 W.onLoad = onLoad
