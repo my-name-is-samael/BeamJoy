@@ -760,6 +760,25 @@ local function isModelBlacklisted(model)
         table.includes(BJI.Managers.Context.Database.Vehicles.ModelBlacklist, model)
 end
 
+local function convertPartsTree(tree)
+    local parts = {}
+    local function recursParts(data)
+        for k, v in pairs(data) do
+            if v.chosenPartName then
+                parts[k] = v.chosenPartName
+            end
+            if v.children then
+                recursParts(v.children)
+            end
+        end
+    end
+    local start = GetCurrentTimeMillis()
+    recursParts(tree.children)
+    LogWarn(string.var("Converted manually modified veh config to standard parts in {1}ms",
+        { GetCurrentTimeMillis() - start }))
+    return parts
+end
+
 --- return the full config raw data
 ---@param config? string|table
 ---@return table|nil
@@ -774,7 +793,14 @@ local function getFullConfig(config)
         local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
         if type(fn) == "function" then
             local status, data = pcall(fn)
-            return status and data or nil
+            if not status then
+                return nil
+            end
+            if data.partsTree then -- vehicle has been manually modified = > simplify parts
+                data.parts = convertPartsTree(data.partsTree)
+                data.partsTree = nil
+            end
+            return data
         end
     else
         return jsonReadFile(config)
