@@ -6,18 +6,18 @@ local W = {
 
     show = false,
     data = {
-        hasPBs = false,
-        PBsWidth = 0,
-        namesWidth = 0,
         amountPBs = 0,
-        leaderboardCols = {},
+        ---@type ColumnsBuilder?
+        leaderboardCols = nil,
     },
 
     labels = {
         vSeparator = "",
         amountPBs = "",
         removeAllPBsButton = "",
-        pb = "",
+        columnRace = "",
+        columnPB = "",
+        columnRecord = "",
     }
 }
 
@@ -27,16 +27,17 @@ end
 
 local function updateLabels()
     W.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
-    W.labels.amountPBs = string.var("{1} :", { BJI.Managers.Lang.get("races.leaderboard.amountPBs") })
+    W.labels.amountPBs = BJI.Managers.Lang.get("races.leaderboard.amountPBs") .. " :"
     W.labels.removeAllPBsButton = BJI.Managers.Lang.get("races.leaderboard.removeAllPBsButton")
-    W.labels.pb = string.var("{1} :", { BJI.Managers.Lang.get("races.leaderboard.pb") })
+    W.labels.columnRace = BJI.Managers.Lang.get("races.leaderboard.race")
+    W.labels.columnPB = BJI.Managers.Lang.get("races.leaderboard.pb")
+    W.labels.columnRecord = BJI.Managers.Lang.get("races.leaderboard.record")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
-    W.data.hasPBs = false
     W.data.amountPBs = 0
     table.forEach(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB) or {},
         ---@param mapPBs table<string, MapRacePBWP[]>
@@ -44,108 +45,107 @@ local function updateCache(ctxt)
             W.data.amountPBs = W.data.amountPBs + table.length(mapPBs)
         end)
 
-    W.data.PBsWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.pb) + GetIconSize()
-    W.data.namesWidth = 0
-    W.data.leaderboardCols = Table(BJI.Managers.Context.Scenario.Data.Races):clone()
-        :filter(function(map)
-            return type(map) == "table"
-        end)
-        :map(function(race)
-            local res = {
-                id = race.id,
-                name = race.name,
-                hash = race.hash,
-                record = race.record and table.clone(race.record) or nil,
-            }
-            if race.record then
-                local pb = BJI.Managers.RaceWaypoint.getPB(race.hash)
-                if pb then
-                    W.data.hasPBs = true
-                    res.pb = pb
+    W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", {})
+    if table.length(BJI.Managers.Context.Scenario.Data.Races) > 0 then
+        local namesWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.columnRace)
+        local PBsWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.columnPB)
+        local cols = Table(BJI.Managers.Context.Scenario.Data.Races):filter(function(race)
+                return type(race) == "table"
+            end):map(function(race)
+                local _, pb = BJI.Managers.RaceWaypoint.getPB(race.hash)
+                local res = {
+                    id = race.id,
+                    name = race.name,
+                    hash = race.hash,
+                    pb = pb,
+                    record = race.record and table.clone(race.record) or nil,
+                }
+                return res
+            end):map(function(race)
+                local w = BJI.Utils.Common.GetColumnTextWidth(race.name)
+                if w > namesWidth then
+                    namesWidth = w
                 end
-            end
-            return res
-        end)
-        :map(function(race)
-            local w = BJI.Utils.Common.GetColumnTextWidth(race.name)
-            if w > W.data.namesWidth then
-                W.data.namesWidth = w
-            end
-            local cells = {
-                function()
-                    LineBuilder()
-                        :text(race.name,
-                            (race.record and race.record.playerName == ctxt.user.playerName) and
-                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                            BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-                        :build()
-                end
-            }
-            if W.data.hasPBs then
-                table.insert(cells, function()
-                    if not race.record then
-                        return
+
+                local pbLabel = ""
+                if race.pb then
+                    pbLabel = BJI.Utils.Common.RaceDelay(race.pb or 0)
+                    w = BJI.Utils.Common.GetColumnTextWidth(pbLabel)
+                    if w + GetBtnIconSize() > PBsWidth then
+                        PBsWidth = w + GetBtnIconSize()
                     end
-                    local pb, pbTime = BJI.Managers.RaceWaypoint.getPB(race.hash)
-                    if pb then
-                        LineBuilder()
-                            :text(W.labels.pb, nil, BJI.Utils.Common.RaceDelay(pbTime or 0))
-                            :btnIcon({
-                                id = string.var("removePb-{1}", { race.id }),
-                                icon = ICONS.delete_forever,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                onClick = function()
-                                    BJI.Managers.Popup.createModal(
-                                        string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
-                                            { raceName = race.name }), {
-                                            {
-                                                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                            },
-                                            {
-                                                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                                onClick = function()
-                                                    BJI.Managers.RaceWaypoint.setPB(race.hash)
-                                                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
-                                                        raceName = race.name,
-                                                        raceID = race.id,
-                                                        raceHash = race.hash,
-                                                    })
-                                                end
-                                            }
-                                        })
-                                end,
-                            })
-                            :build()
-                    end
-                end)
-            end
-            table.insert(cells, function()
-                if race.record then
-                    LineLabel(string.var("{time} - {playerName} - {model}", {
-                            time = BJI.Utils.Common.RaceDelay(race.record.time),
-                            playerName = race.record.playerName,
-                            model = BJI.Managers.Veh.getModelLabel(race.record.model)
-                        }),
-                        race.record.playerName == ctxt.user.playerName and
-                        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                        BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-                else
-                    LineLabel("/")
                 end
+
+                local hasRecord = race.record and race.record.playerName == ctxt.user.playerName
+                local recordLabel = race.record and BJI.Utils.Common.RaceDelay(race.record.time) or ""
+                return {
+                    name = race.name,
+                    cells = {
+                        function()
+                            LineLabel(race.name, hasRecord and
+                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+                        end,
+                        race.pb and function()
+                            LineBuilder():text(pbLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+                                :btnIcon({
+                                    id = string.var("removePb-{1}", { race.id }),
+                                    icon = ICONS.delete_forever,
+                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                    onClick = function()
+                                        BJI.Managers.Popup.createModal(
+                                            string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
+                                                { raceName = race.name }), {
+                                                {
+                                                    label = BJI.Managers.Lang.get("common.buttons.cancel"),
+                                                },
+                                                {
+                                                    label = BJI.Managers.Lang.get("common.buttons.confirm"),
+                                                    onClick = function()
+                                                        BJI.Managers.RaceWaypoint.setPB(race.hash)
+                                                        BJI.Managers.Events.trigger(
+                                                            BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                                                                raceName = race.name,
+                                                                raceID = race.id,
+                                                                raceHash = race.hash,
+                                                            })
+                                                    end
+                                                }
+                                            })
+                                    end,
+                                }):build()
+                        end,
+                        race.record and function()
+                            LineLabel(recordLabel, hasRecord and
+                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT,
+                                false,
+                                race.record and string.var("{1} - {2}", { race.record.playerName,
+                                    BJI.Managers.Veh.getModelLabel(race.record.model) }) or nil
+                            )
+                        end
+                    },
+                }
+            end):values()
+            :sort(function(a, b)
+                if a.name:find(b.name) then
+                    return false
+                elseif b.name:find(a.name) then
+                    return true
+                end
+                return a.name < b.name
             end)
-            return {
-                cells = cells,
-                name = race.name,
-            }
-        end):values()
-        :sort(function(a, b)
-            if a.name:find(b.name) then
-                return false
-            elseif b.name:find(a.name) then
-                return true
-            end
-            return a.name < b.name
+
+        W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", { namesWidth, PBsWidth, -1 })
+            :addRow({
+                cells = {
+                    function() LineLabel(W.labels.columnRace) end,
+                    function() LineLabel(W.labels.columnPB) end,
+                    function() LineLabel(W.labels.columnRecord) end,
+                }
+            })
+        Table(cols):forEach(function(col)
+            W.data.leaderboardCols:addRow(col)
         end)
+    end
 end
 
 local listeners = Table()
@@ -179,8 +179,7 @@ end
 
 local function header()
     if W.data.amountPBs > 0 then
-        LineBuilder()
-            :text(W.labels.amountPBs)
+        LineBuilder():text(W.labels.amountPBs)
             :text(W.data.amountPBs, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :text(W.labels.vSeparator)
             :btn({
@@ -202,20 +201,14 @@ local function header()
                             }
                         })
                 end,
-            })
+            }):build()
     end
 end
 
 local function body()
-    local widths = { W.data.namesWidth, -1 }
-    if W.data.hasPBs then
-        widths = { W.data.namesWidth, W.data.PBsWidth, -1 }
+    if W.data.leaderboardCols then
+        W.data.leaderboardCols:build()
     end
-    local cols = ColumnsBuilder("BJIRacesLeaderboard", widths)
-    table.forEach(W.data.leaderboardCols, function(el)
-        cols:addRow(el)
-    end)
-    cols:build()
 end
 
 W.onLoad = onLoad

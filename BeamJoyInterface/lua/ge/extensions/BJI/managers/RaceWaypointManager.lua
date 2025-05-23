@@ -453,9 +453,16 @@ local function getPB(raceHash)
         dump(raceHash)
         return
     end
-    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)[GetMapName() or BJI.Managers.Context.UI.mapName]
+    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)
+        [GetMapName() or BJI.Managers.Context.UI.mapName]
     if pbs then
         local pb = pbs[raceHash]
+        if pb and table.maxn(pb) == 0 then
+            -- pb is coming from cookies and has string indices
+            local parsedPb = {}
+            Table(pb):forEach(function(v, k) parsedPb[tonumber(k) or k] = v end)
+            pb = parsedPb
+        end
         local time
         if pb then
             time = pb[table.maxn(pb)].time
