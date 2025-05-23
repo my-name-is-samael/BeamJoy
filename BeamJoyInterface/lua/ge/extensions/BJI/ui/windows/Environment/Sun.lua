@@ -376,18 +376,17 @@ local function body()
                         end
                     }):slider({
                         id = "skyDay.dayScale",
-                        type = "float",
-                        value = BJI.Managers.Env.Data.skyDay.dayScale,
-                        min = .01,
-                        max = .99,
-                        precision = 2,
+                        type = "int",
+                        value = math.round(BJI.Managers.Env.Data.skyDay.dayScale * 100),
+                        min = 1,
+                        max = 99,
                         disabled = not BJI.Managers.Env.Data.controlSun,
-                        renderFormat = string.var("%.2f ({1})",
+                        renderFormat = string.var("%d%% ({1})",
                             { BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength *
                                 BJI.Managers.Env.Data.skyDay.dayScale) }),
                         onUpdate = function(val)
-                            BJI.Managers.Env.Data.skyDay.dayScale = val
-                            BJI.Managers.Env.Data.skyNight.nightScale = 1 - val
+                            BJI.Managers.Env.Data.skyDay.dayScale = math.round(val / 100, 2)
+                            BJI.Managers.Env.Data.skyNight.nightScale = 1 - BJI.Managers.Env.Data.skyDay.dayScale
                         end
                     }):build()
                 end,
@@ -406,18 +405,17 @@ local function body()
                         end
                     }):slider({
                         id = "skyNight.nightScale",
-                        type = "float",
-                        value = BJI.Managers.Env.Data.skyNight.nightScale,
-                        min = .01,
-                        max = .99,
-                        precision = 2,
+                        type = "int",
+                        value = math.round(BJI.Managers.Env.Data.skyNight.nightScale * 100),
+                        min = 1,
+                        max = 99,
                         disabled = not BJI.Managers.Env.Data.controlSun,
-                        renderFormat = string.var("%.2f ({1})",
+                        renderFormat = string.var("%d%% ({1})",
                             { BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength *
                                 BJI.Managers.Env.Data.skyNight.nightScale) }),
                         onUpdate = function(val)
-                            BJI.Managers.Env.Data.skyNight.nightScale = val
-                            BJI.Managers.Env.Data.skyDay.dayScale = 1 - val
+                            BJI.Managers.Env.Data.skyNight.nightScale = math.round(val / 100, 2)
+                            BJI.Managers.Env.Data.skyDay.dayScale = 1 - BJI.Managers.Env.Data.skyNight.nightScale
                         end
                     }):build()
                 end,
