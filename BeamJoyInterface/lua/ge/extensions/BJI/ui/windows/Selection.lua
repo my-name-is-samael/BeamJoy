@@ -70,9 +70,9 @@ local function open(titleKey, elems, footerRender, callback, permissions)
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels))
+    }, updateLabels, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, onClose))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, onClose, W.name))
 
     permissions = Table(permissions)
     if #permissions > 0 then
@@ -82,7 +82,7 @@ local function open(titleKey, elems, footerRender, callback, permissions)
                 if permissions:any(function(p) return not BJI.Managers.Perm.hasPermission(p) end) then
                     onClose()
                 end
-            end))
+            end, W.name))
     end
 end
 

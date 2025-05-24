@@ -56,7 +56,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
         BJI.Managers.Events.EVENTS.GPS_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateCache))
+    }, updateCache, "MainMenuMe"))
 end
 
 function M.onUnload()

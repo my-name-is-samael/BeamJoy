@@ -81,7 +81,7 @@ local function onLoad()
         M.baseFunctions.formatPoiForBigmap = extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap
         extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = formatPoiForBigmap
     end
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
@@ -91,7 +91,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.BJC then
             updateQuickTravelState()
         end
-    end)
+    end, M._name)
 end
 
 M.onLoad = onLoad

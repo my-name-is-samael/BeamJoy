@@ -86,7 +86,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels))
+    }, updateLabels, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -94,7 +94,7 @@ local function onLoad()
         if not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) then
             onClose()
         end
-    end))
+    end, W.name))
 
     updateSharedCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -103,9 +103,9 @@ local function onLoad()
                 updateSharedCache()
                 BJI.Managers.Env.ToDEdit = false
             end
-        end))
+        end, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, tickSave))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, tickSave, W.name))
 
     if not W.tab or not W.TABS[W.tab] then
         W.tab = 1

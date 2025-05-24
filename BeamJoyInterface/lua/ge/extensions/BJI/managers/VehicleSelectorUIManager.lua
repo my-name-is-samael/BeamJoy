@@ -395,13 +395,12 @@ local function onLoad()
     M.baseFunctions.getAvailableParts = jbeamIO.getAvailableParts
     jbeamIO.getAvailableParts = getAvailableParts
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
-
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-    }, onUpdateRestrictions)
+    }, onUpdateRestrictions, M._name)
 end
 
 M.onLoad = onLoad

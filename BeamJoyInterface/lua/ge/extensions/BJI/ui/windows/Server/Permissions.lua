@@ -1,4 +1,6 @@
 local W = {
+    name = "ServerPermissions",
+
     ACCORDIONS = Table({
         {
             labelKey = "groups",
@@ -143,7 +145,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels))
+    }, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -159,7 +161,7 @@ local function onLoad()
             updateLabels()
             updateCache(ctxt)
         end
-    end))
+    end, W.name))
 
     W.labels.permissionsNames = Table()
     Table(BJI.Managers.Perm.PERMISSIONS):forEach(function(permName)
@@ -170,7 +172,7 @@ local function onLoad()
     end)
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
 end
 
 local function onUnload()

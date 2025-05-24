@@ -42,7 +42,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels))
+    }, updateLabels, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -52,7 +52,7 @@ local function onLoad()
             end) then
             onClose()
         end
-    end))
+    end, W.name))
 
     if not W.tab or (W.tab.permission and not BJI.Managers.Perm.hasPermission(W.tab.permission)) then
         W.tab = W.TABS:find(function(t)

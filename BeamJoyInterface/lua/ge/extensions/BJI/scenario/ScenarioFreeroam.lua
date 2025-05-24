@@ -105,7 +105,8 @@ local function slowTick(ctxt)
 end
 
 local function onVehicleSpawned(gameVehID)
-    if BJI.Managers.Context.BJC.Freeroam.PreserveEnergy then
+    if BJI.Managers.Context.BJC.Freeroam and
+        BJI.Managers.Context.BJC.Freeroam.PreserveEnergy then
         S.exemptPreserveEnergy = true
     end
 

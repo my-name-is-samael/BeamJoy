@@ -119,7 +119,7 @@ local function onLoad()
             return M.baseFunctions.requestMods(...)
         end
     end, "BJIModsInit")
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 
 

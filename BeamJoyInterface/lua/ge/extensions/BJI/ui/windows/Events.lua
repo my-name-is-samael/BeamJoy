@@ -201,7 +201,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.VOTE_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCaches))
+    }, updateCaches, W.name))
 end
 
 local function onUnload()

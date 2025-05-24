@@ -508,7 +508,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateCache))
+    }, updateCache, "MainMenuScenario"))
 
     ---@param data {cache: string}
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
@@ -523,7 +523,7 @@ function M.onLoad()
             }, data.cache) then
             updateCache(ctxt)
         end
-    end))
+    end, "MainMenuScenario"))
 end
 
 function M.onUnload()

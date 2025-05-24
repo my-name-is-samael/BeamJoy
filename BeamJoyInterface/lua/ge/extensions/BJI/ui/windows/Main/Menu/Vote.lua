@@ -224,7 +224,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateCache))
+    }, updateCache, "MainMenuVote"))
 
     ---@param data {cache: string}
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
@@ -239,7 +239,7 @@ function M.onLoad()
             }, data.cache) then
             updateCache(ctxt)
         end
-    end))
+    end, "MainMenuVote"))
 end
 
 function M.onUnload()

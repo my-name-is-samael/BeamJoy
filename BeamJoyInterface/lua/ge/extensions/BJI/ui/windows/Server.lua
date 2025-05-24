@@ -88,7 +88,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels))
+    }, updateLabels, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -104,7 +104,7 @@ local function onLoad()
                 onClose()
             end
         end
-    end))
+    end, W.name))
 
     if not W.tab then
         W.TABS:find(function(t) return t.show() end, function(t)

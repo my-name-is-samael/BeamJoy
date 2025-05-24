@@ -23,7 +23,7 @@ M.applyLoading = applyLoading
 M.hideGameMenu = hideGameMenu
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, hideGameMenu)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, hideGameMenu, M._name)
 end
 
 return M

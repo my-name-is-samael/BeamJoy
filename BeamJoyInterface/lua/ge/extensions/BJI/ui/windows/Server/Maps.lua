@@ -1,4 +1,6 @@
 local W = {
+    name = "ServerMaps",
+
     labels = {
         newMapTitle = "",
         newMapName = "",
@@ -53,10 +55,10 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -65,7 +67,7 @@ local function onLoad()
         if data.cache == BJI.Managers.Cache.CACHES.MAPS then
             updateCache()
         end
-    end))
+    end, W.name))
 end
 
 local function onUnload()

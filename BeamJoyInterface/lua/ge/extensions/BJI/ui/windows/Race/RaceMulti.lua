@@ -1,4 +1,6 @@
 local W = {
+    name = "RaceMulti",
+
     cache = {
         data = {
             showRecord = false,
@@ -304,7 +306,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end))
+    end, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -315,12 +317,12 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateCache))
+    }, updateCache, W.name))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCache(ctxt)
         end
-    end))
+    end, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         function()
@@ -330,7 +332,7 @@ local function onLoad()
                 -- permission loss
                 BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
             end
-        end))
+        end, W.name))
 end
 
 local function onUnload()
