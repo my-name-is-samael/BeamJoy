@@ -1,24 +1,40 @@
-BJI.BENCH = {
+local M = {
     STATE = false,
-}
-local bench = {}
 
-function BJI.BENCH.BenchAdd(manager, event, time)
-    if not bench[manager] then
-        bench[manager] = {}
+    data = Table(),
+}
+
+--[[
+-- USAGE
+local start
+if BJI.BENCH.STATE then
+    start = GetCurrentTimeMillis()
+end
+-- BENCHMARKED CODE EXEC HERE
+if BJI.BENCH.STATE then
+    BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
+end
+]]
+
+---@param wrapperName string
+---@param eventName string
+---@param time integer
+function M.add(wrapperName, eventName, time)
+    if not M.data[wrapperName] then
+        M.data[wrapperName] = Table()
     end
-    if not bench[manager][event] then
-        bench[manager][event] = {}
+    if not M.data[wrapperName][eventName] then
+        M.data[wrapperName][eventName] = Table()
     end
-    table.insert(bench[manager][event], time)
-    if #bench[manager][event] > 1000 then
-        table.remove(bench[manager][event], 1)
+    table.insert(M.data[wrapperName][eventName], time)
+    if #M.data[wrapperName][eventName] > 1000 then
+        table.remove(M.data[wrapperName][eventName], 1)
     end
 end
 
-function BJI.BENCH.BenchGet()
+function M.get()
     local lines = {}
-    for manager, events in pairs(bench) do
+    for wrapperName, events in pairs(M.data) do
         for event, times in pairs(events) do
             if #times > 0 then
                 local sum, min, max = 0, times[1], times[1]
@@ -32,7 +48,7 @@ function BJI.BENCH.BenchGet()
                     end
                 end
                 table.insert(lines, {
-                    manager = manager,
+                    manager = wrapperName,
                     event = event,
                     min = min,
                     max = max,
@@ -51,18 +67,14 @@ function BJI.BENCH.BenchGet()
     return out
 end
 
-function BJI.BENCH.BenchReset()
-    bench = {}
+function M.reset()
+    M.data = Table()
 end
 
---[[
--- USAGE
-local start
-if BJI.BENCH.STATE then
-    start = GetCurrentTimeMillis()
+function M.startWindow()
+    M.STATE = true
+    M.reset()
+    BJI.DEBUG = function() return M.get() end
 end
--- BENCHMARKED CODE EXEC HERE
-if BJI.BENCH.STATE then
-    BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
-end
-]]
+
+return M
