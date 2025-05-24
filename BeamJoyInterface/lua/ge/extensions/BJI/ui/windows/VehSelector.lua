@@ -304,19 +304,13 @@ local function drawHeader(ctxt)
             if ctxt.isOwner then
                 BJI.Managers.Veh.deleteCurrentOwnVehicle()
             else
-                BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("vehicleSelector.deleteOtherPlayerVehicleModal"),
-                    {
-                        {
-                            label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                        },
-                        {
-                            label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                            onClick = function()
-                                BJI.Managers.Veh.deleteOtherPlayerVehicle()
-                                extensions.hook("trackNewVeh")
-                            end
-                        }
-                    })
+                BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("vehicleSelector.deleteOtherPlayerVehicleModal"), {
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                        BJI.Managers.Veh.deleteOtherPlayerVehicle()
+                        extensions.hook("trackNewVeh")
+                    end),
+                })
             end
         end,
     }):btn({

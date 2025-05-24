@@ -270,7 +270,6 @@
       "no": "NEIN",
       "state": "Zustand",
       "unknown": "Unbekannt",
-      "tooBigData": "Die Daten sind zu groß, um gespeichert zu werden!",
       "and": "&"
     },
     "errors": {
@@ -320,7 +319,8 @@
       "Hunter": "Jägerspiel",
       "Theme": "Theme-Editor",
       "Derby": "Zerstörungsderby",
-      "VehicleSelectorPreview": "Fahrzeugvorschau"
+      "VehicleSelectorPreview": "Fahrzeugvorschau",
+      "Selection": "Auswahl"
     },
     "menu": {
       "me": {
@@ -407,7 +407,7 @@
         "garages": "Garagen ({amount})",
         "deliveries": "Lieferungen ({amount})",
         "buslines": "Buslinien ({amount})",
-        "races": "Rennen ({amount})",
+        "races": "Rennen",
         "raceCreate": "Rennen erstellen",
         "raceDeleteModal": "Sind Sie sicher, dass Sie das Rennen „{raceName}“ löschen möchten?",
         "hunter": "Jäger ({visibility}, {amount} Wegpunkte)",

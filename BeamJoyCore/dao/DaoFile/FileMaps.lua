@@ -16,12 +16,13 @@ local function init(dbPath)
     end
 end
 
+---@return table
 local function findAll()
     local file, error = io.open(M._dbPath, "r")
     if file and not error then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        return #data > 0 and JSON.parse(data) or {}
     end
     return {}
 end

@@ -271,7 +271,6 @@
       "no": "No",
       "state": "State",
       "unknown": "Unknown",
-      "tooBigData": "Data are too big to be saved !",
       "and": "&"
     },
     "errors": {
@@ -351,7 +350,8 @@
       "Hunter": "Hunter Game",
       "Theme": "Theme Editor",
       "Derby": "Destruction Derby",
-      "VehSelectorPreview": "Vehicle Preview"
+      "VehSelectorPreview": "Vehicle Preview",
+      "Selection": "Selection"
     },
     "menu": {
       "me": {
@@ -438,7 +438,7 @@
         "garages": "Garages ({amount})",
         "deliveries": "Deliveries ({amount})",
         "buslines": "Bus lines ({amount})",
-        "races": "Races ({amount})",
+        "races": "Races",
         "raceCreate": "Create Race",
         "raceDeleteModal": "Are you sure you want to delete the race \"{raceName}\"",
         "hunter": "Hunter ({visibility}, {amount} waypoints)",
@@ -1079,7 +1079,9 @@
         "amountPBs": "Total PBs",
         "removeAllPBsButton": "Remove all PBs",
         "removeAllPBsModal": "Are your sure you want to remove all your PBs on the server ?",
+        "race": "Race",
         "pb": "PB",
+        "record": "Record",
         "removePBModal": "Are your sure you want to remove your PB on {raceName} ?"
       }
     },

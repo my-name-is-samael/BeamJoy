@@ -1,3 +1,7 @@
+---@class BJIPopupButton
+---@field label string
+---@field onClick? fun()
+
 ---@class BJIManagerPopup : BJIManager
 local M = {
     _name = "Popup",
@@ -21,18 +25,8 @@ local function createCallback(fn)
     return callbackName
 end
 
---[[
-<ul>
-    <li>text: string</li>
-    <li>buttons: array (length >= 1)</li>
-    <li>
-        <ul>
-            <li>label: string</li>
-            <li>onClick: function</li>
-        </ul>
-    </li>
-</ul>
-]]
+---@param text string
+---@param buttons BJIPopupButton[]
 local function createModal(text, buttons)
     if type(text) ~= "string" or
         type(buttons) ~= "table" or
@@ -69,11 +63,22 @@ local function createModal(text, buttons)
     })
 end
 
+---@param label string
+---@param callback? fun()
+---@return BJIPopupButton
+local function createButton(label, callback)
+    return {
+        label = label,
+        onClick = callback,
+    }
+end
+
 local function closeModal()
     ui_missionInfo.closeDialogue()
 end
 
 M.createModal = createModal
+M.createButton = createButton
 M.closeModal = closeModal
 
 return M

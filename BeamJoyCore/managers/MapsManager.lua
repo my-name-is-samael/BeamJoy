@@ -92,10 +92,11 @@ local function getCacheMapHash()
 end
 
 local function getCacheMaps(senderID)
+    local canVote = BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.VOTE_MAP)
     local canEdit = BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_MAPS)
     local maps = {}
     for k, v in pairs(M.Data) do
-        if canEdit or v.enabled then
+        if canEdit or (canVote and v.enabled) then
             maps[k] = {
                 label = v.label,
                 custom = v.custom,

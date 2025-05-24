@@ -270,7 +270,6 @@
       "no": "NO",
       "state": "Stato",
       "unknown": "Sconosciuto",
-      "tooBigData": "I dati sono troppo grandi per essere salvati!",
       "and": "&"
     },
     "errors": {
@@ -320,7 +319,8 @@
       "Hunter": "Gioco del cacciatore",
       "Theme": "Redattore del tema",
       "Derby": "Derby della distruzione",
-      "VehicleSelectorPreview": "Anteprima del veicolo"
+      "VehicleSelectorPreview": "Anteprima del veicolo",
+      "Selection": "Selezione"
     },
     "menu": {
       "me": {
@@ -407,7 +407,7 @@
         "garages": "Garage ({amount})",
         "deliveries": "Consegne ({amount})",
         "buslines": "Linee di autobus ({amount})",
-        "races": "Gare ({amount})",
+        "races": "Gare",
         "raceCreate": "Crea gara",
         "raceDeleteModal": "Sei sicuro di voler eliminare la gara \"{raceName}\"",
         "hunter": "Cacciatore ({visibility}, {amount} waypoint)",

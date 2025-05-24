@@ -11,12 +11,8 @@ local function menuSoloRace(ctxt)
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO) and
         BJI.Managers.Context.Scenario.Data.Races and
         BJI.Managers.Scenario.isFreeroam() and BJI.Managers.Perm.canSpawnVehicle() then
-        local rawRaces = {}
-        for _, race in ipairs(BJI.Managers.Context.Scenario.Data.Races) do
-            if race.enabled then
-                table.insert(rawRaces, race)
-            end
-        end
+        local rawRaces = Table(BJI.Managers.Context.Scenario.Data.Races)
+            :filter(function(race) return race.enabled end)
 
         local errorMessage = nil
         if #rawRaces == 0 then
@@ -36,36 +32,64 @@ local function menuSoloRace(ctxt)
                 end
             })
         else
-            local races = {}
-            for _, race in ipairs(rawRaces) do
-                local respawnStrategies = table.filter(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES, function(rs)
-                        return race.hasStand or rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
-                    end)
-                    :sort(function(a, b) return a.order < b.order end)
-                    :map(function(el) return el.key end)
+            local respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
+                :sort(function(a, b) return a.order < b.order end)
+                :map(function(el) return el.key end)
 
-                table.insert(races, {
-                    label = race.name,
+            if #rawRaces <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+                -- sub elems
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
+                    elems = rawRaces:map(function(race)
+                        return {
+                            label = race.name,
+                            onClick = function()
+                                BJI.Windows.RaceSettings.open({
+                                    multi = false,
+                                    raceID = race.id,
+                                    raceName = race.name,
+                                    loopable = race.loopable,
+                                    laps = 1,
+                                    defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
+                                    respawnStrategies = respawnStrategies:filter(function(rs)
+                                        return race.hasStand or
+                                            rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                    end),
+                                })
+                            end
+                        }
+                    end):sort(function(a, b) return a.label < b.label end)
+                })
+            else
+                -- selection window
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
                     onClick = function()
-                        BJI.Windows.RaceSettings.open({
-                            multi = false,
-                            raceID = race.id,
-                            raceName = race.name,
-                            loopable = race.loopable,
-                            laps = 1,
-                            defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
-                            respawnStrategies = respawnStrategies,
-                        })
-                    end
+                        BJI.Windows.Selection.open("menu.vote.race.title", rawRaces
+                            :map(function(race)
+                                return { label = race.name, value = race.id }
+                            end):sort(function(a, b) return a.label < b.label end) or Table(), nil,
+                            function(raceID)
+                                rawRaces:find(function(r) return r.id == raceID end,
+                                    function(race)
+                                        BJI.Windows.RaceSettings.open({
+                                            multi = false,
+                                            raceID = race.id,
+                                            raceName = race.name,
+                                            loopable = race.loopable,
+                                            laps = 1,
+                                            defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
+                                                .LAST_CHECKPOINT.key,
+                                            respawnStrategies = respawnStrategies:filter(function(rs)
+                                                return race.hasStand or
+                                                    rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                            end),
+                                        })
+                                    end)
+                            end)
+                    end,
                 })
             end
-            table.sort(races, function(a, b)
-                return a.label < b.label
-            end)
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
-                elems = races
-            })
         end
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) and
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).isRaceStarted() then
@@ -367,12 +391,13 @@ local function menuDerby(ctxt)
     if not BJI.Managers.Scenario.isServerScenarioInProgress() and
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
         BJI.Managers.Context.Scenario.Data.Derby then
+        local rawArenas = Table(BJI.Managers.Context.Scenario.Data.Derby)
+            :filter(function(arena) return arena.enabled end)
+
         local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         local errorMessage = nil
-        local countArena = #Table(BJI.Managers.Context.Scenario.Data.Derby)
-            :filter(function(arena) return arena.enabled end)
-        if countArena == 0 then
+        if #rawArenas == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.noArena")
         elseif potentialPlayers < minimumParticipants then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.missingPlayers"):var({
@@ -390,29 +415,43 @@ local function menuDerby(ctxt)
                 end
             })
         else
-            local arenas = {}
-            for i, arena in ipairs(BJI.Managers.Context.Scenario.Data.Derby) do
-                if arena.enabled then
-                    table.insert(arenas, {
-                        label = string.var("{1} ({2})", {
-                            arena.name,
-                            BJI.Managers.Lang.get("derby.settings.places")
-                                :var({ places = #arena.startPositions }),
-                        }),
-                        onClick = function()
-                            BJI.Managers.Context.Scenario.DerbyEdit = nil
-                            BJI.Windows.DerbySettings.open(i)
-                        end
-                    })
-                end
+            if #rawArenas <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+                -- sub elems
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
+                    elems = rawArenas:map(function(arena, iArena)
+                        return {
+                            label = string.var("{1} ({2})", { arena.name,
+                                BJI.Managers.Lang.get("derby.settings.places")
+                                    :var({ places = #arena.startPositions })
+                            }),
+                            onClick = function()
+                                BJI.Windows.DerbySettings.open(iArena)
+                            end
+                        }
+                    end):sort(function(a, b)
+                        return a.label < b.label
+                    end)
+                })
+            else
+                -- selection window
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
+                    onClick = function()
+                        BJI.Windows.Selection.open("menu.scenario.derby.start", rawArenas:map(function(arena, iArena)
+                            return {
+                                label = string.var("{1} ({2})", { arena.name,
+                                    BJI.Managers.Lang.get("derby.settings.places")
+                                        :var({ places = #arena.startPositions })
+                                }),
+                                value = iArena,
+                            }
+                        end), nil, function(iArena)
+                            BJI.Windows.DerbySettings.open(iArena)
+                        end, { BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO })
+                    end,
+                })
             end
-            table.sort(arenas, function(a, b)
-                return a.label < b.label
-            end)
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
-                elems = arenas
-            })
         end
     elseif BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
         BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then

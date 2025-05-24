@@ -466,7 +466,7 @@ local function drawGrid(ctxt)
             local showReadyCooldown = ctxt.now < W.cache.data.grid.readyCooldownTime
             line:btnIcon({
                 id = "raceReady",
-                icon = ICONS.done,
+                icon = ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.data.disableButtons or showReadyCooldown,
                 onClick = function()

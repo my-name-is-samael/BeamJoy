@@ -26,16 +26,11 @@ local W = {
 local function onClose(ctxt)
     if W.changed then
         BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("themeEditor.cancelModal"), {
-            {
-                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-            },
-            {
-                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                onClick = function()
-                    BJI.Utils.Style.LoadTheme(BJI.Managers.Context.BJC.Server.Theme)
-                    W.show = false
-                end
-            }
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                BJI.Utils.Style.LoadTheme(BJI.Managers.Context.BJC.Server.Theme)
+                W.show = false
+            end),
         })
     else
         W.show = false

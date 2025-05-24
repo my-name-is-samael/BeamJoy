@@ -7,7 +7,7 @@ local function drawGroupNewPermission(labels, cache, gkey, group, cols)
                 LineBuilder()
                     :btnIcon({
                         id = string.var("newPerm{1}", { gkey }),
-                        icon = ICONS.done,
+                        icon = ICONS.check,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = readOnly or cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
                         onClick = function()
@@ -279,18 +279,13 @@ return function(labels, cache)
                         onClick = function()
                             BJI.Managers.Popup.createModal(
                                 BJI.Managers.Lang.get("serverConfig.permissions.deleteModal")
-                                :var({ groupName = gkey }),
-                                {
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                    },
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        onClick = function()
+                                :var({ groupName = gkey }), {
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                        function()
                                             cache.disableInputs = true
                                             BJI.Tx.config.permissionsGroup(gkey, "level")
-                                        end
-                                    },
+                                        end),
                                 })
                         end
                     })

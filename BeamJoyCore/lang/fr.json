@@ -270,7 +270,6 @@
       "no": "Non",
       "state": "État",
       "unknown": "Inconnu",
-      "tooBigData": "Les données sont trop volumineuses pour être sauvegardées !",
       "and": "&"
     },
     "errors": {
@@ -320,7 +319,8 @@
       "Hunter": "Jeu du Hunter",
       "Theme": "Éditeur de Thème",
       "Derby": "Destruction Derby",
-      "VehicleSelectorPreview": "Aperçu du véhicule"
+      "VehicleSelectorPreview": "Aperçu du véhicule",
+      "Selection": "Sélection"
     },
     "menu": {
       "me": {
@@ -407,7 +407,7 @@
         "garages": "Garages ({amount})",
         "deliveries": "Livraisons ({amount})",
         "buslines": "Lignes de Bus ({amount})",
-        "races": "Courses ({amount})",
+        "races": "Courses",
         "raceCreate": "Créer une Course",
         "raceDeleteModal": "Es-tu sûr de vouloir supprimer la course \"{raceName}\"",
         "hunter": "Hunter ({visibility}, {amount} points de passage)",

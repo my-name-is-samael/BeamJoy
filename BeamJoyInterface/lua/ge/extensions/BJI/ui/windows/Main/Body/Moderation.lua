@@ -51,19 +51,13 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
                     onClick = function()
                         BJI.Managers.Popup.createModal(
                             BJI.Managers.Lang.get("moderationBlock.kickModal")
-                            :var({ playerName = player.playerName }),
-                            {
-                                {
-                                    label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                },
-                                {
-                                    label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                    onClick = function()
+                            :var({ playerName = player.playerName }), {
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                    function()
                                         BJI.Tx.moderation.kick(player.playerID)
-                                    end
-                                }
-                            }
-                        )
+                                    end),
+                            })
                     end
                 })
             end
@@ -279,20 +273,14 @@ local function drawModeration(player, ctxt, cache)
                         onClick = function()
                             BJI.Managers.Popup.createModal(
                                 BJI.Managers.Lang.get("moderationBlock.kickModal")
-                                :var({ playerName = player.playerName }),
-                                {
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                    },
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        onClick = function()
+                                :var({ playerName = player.playerName }), {
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                        function()
                                             BJI.Tx.moderation.kick(player.playerID, inputs.kickReason)
                                             inputs.kickReason = ""
-                                        end
-                                    }
-                                }
-                            )
+                                        end),
+                                })
                         end
                     })
                     :build()
@@ -336,20 +324,14 @@ local function drawModeration(player, ctxt, cache)
                         onClick = function()
                             BJI.Managers.Popup.createModal(
                                 BJI.Managers.Lang.get("moderationBlock.banModal")
-                                :var({ playerName = player.playerName }),
-                                {
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                    },
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        onClick = function()
+                                :var({ playerName = player.playerName }), {
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                        function()
                                             BJI.Tx.moderation.ban(player.playerName, inputs.banReason)
                                             inputs.banReason = ""
-                                        end
-                                    }
-                                }
-                            )
+                                        end),
+                                })
                         end
                     })
                     :build()
@@ -385,21 +367,15 @@ local function drawModeration(player, ctxt, cache)
                         onClick = function()
                             BJI.Managers.Popup.createModal(
                                 BJI.Managers.Lang.get("moderationBlock.tempBanModal")
-                                :var({ playerName = player.playerName }),
-                                {
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                    },
-                                    {
-                                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        onClick = function()
+                                :var({ playerName = player.playerName }), {
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                        function()
                                             BJI.Tx.moderation.tempban(player.playerName,
                                                 inputs.tempBanDuration,
                                                 player.banReason)
-                                        end
-                                    }
-                                }
-                            )
+                                        end),
+                                })
                         end
                     })
                     :build()
