@@ -705,10 +705,7 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Temp Ban",
-        "ban": "Ban",
-        "demoteTo": "Demote To {groupName}",
-        "promoteTo": "Promote To {groupName}",
-        "promote": "Promote"
+        "ban": "Ban"
       },
       "muteReason": "Mute reason",
       "kickReason": "Kick reason",

@@ -674,10 +674,7 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Temporäres Verbot",
-        "ban": "Verbot",
-        "demoteTo": "Herabstufen zu {groupName}",
-        "promoteTo": "Befördern zu {groupName}",
-        "promote": "Fördern"
+        "ban": "Verbot"
       },
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",

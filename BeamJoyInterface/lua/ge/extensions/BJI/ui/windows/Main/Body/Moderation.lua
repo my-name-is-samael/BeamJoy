@@ -395,20 +395,22 @@ local function drawModeration(player, ctxt, cache)
     if player.demoteGroup or player.promoteGroup then
         local line = LineBuilder()
         if player.demoteGroup then
-            line:btn({
+            line:btnIcon({
                 id = string.var("demote{1}", { player.playerID }),
-                label = player.demoteLabel,
+                icon = ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = player.demoteLabel,
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
                 end
             })
         end
         if player.promoteGroup then
-            line:btn({
+            line:btnIcon({
                 id = string.var("promote{1}", { player.playerID }),
-                label = player.promoteLabel,
+                icon = ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                tooltip = player.promoteLabel,
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
                 end
@@ -427,32 +429,32 @@ local function drawWaitingPlayers(cache)
     LineBuilder():text(cache.labels.players.moderation.waiting):build()
     Indent(1)
     for _, player in ipairs(cache.data.players.waiting) do
-        if player.promoteGroup then
-            local line = LineBuilder()
-                :text(player.playerName)
-                :text(player.groupLabel)
-            if cache.data.players.demoteGroup then
-                line:btn({
-                    id = string.var("demotewaiting{1}", { player.playerID }),
-                    label = cache.labels.players.moderation.demoteWaitingTo
-                        :var({ groupName = player.demoteLabel }),
-                    onClick = function()
-                        BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
-                    end
-                })
-            end
-            if cache.data.players.promoteGroup then
-                line:btn({
-                    id = string.var("promotewaiting{1}", { player.playerID }),
-                    label = cache.labels.players.moderation.promoteWaitingTo
-                        :var({ groupName = player.promoteLabel }),
-                    onClick = function()
-                        BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
-                    end
-                })
-            end
-            line:build()
+        local line = LineBuilder()
+            :text(player.playerName)
+            :text(player.groupLabel)
+        if player.demoteGroup then
+            line:btnIcon({
+                id = string.var("demotewaiting{1}", { player.playerID }),
+                icon = ICONS.person,
+                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = player.demoteLabel,
+                onClick = function()
+                    BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
+                end
+            })
         end
+        if player.promoteGroup then
+            line:btnIcon({
+                id = string.var("promotewaiting{1}", { player.playerID }),
+                icon = ICONS.person_add,
+                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                tooltip = player.promoteLabel,
+                onClick = function()
+                    BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
+                end
+            })
+        end
+        line:build()
     end
     Indent(-1)
     EmptyLine()

@@ -48,19 +48,21 @@ local function getCache(senderID)
         NodeGrabber = M.Data.CEN.NodeGrabber,
     }
 
+    data.Freeroam = {
+        Nametags = M.Data.Freeroam.Nametags,
+    }
     if BJCPerm.canSpawnVehicle(senderID) then
-        data.Freeroam = {
+        table.assign(data.Freeroam, {
             AllowUnicycle = M.Data.Freeroam.AllowUnicycle,
             ResetDelay = M.Data.Freeroam.ResetDelay,
             TeleportDelay = M.Data.Freeroam.TeleportDelay,
             QuickTravel = M.Data.Freeroam.QuickTravel,
-            Nametags = M.Data.Freeroam.Nametags,
             DriftGood = M.Data.Freeroam.DriftGood,
             DriftBig = M.Data.Freeroam.DriftBig,
             PreserveEnergy = M.Data.Freeroam.PreserveEnergy,
             EmergencyRefuelDuration = M.Data.Freeroam.EmergencyRefuelDuration,
             EmergencyRefuelPercent = M.Data.Freeroam.EmergencyRefuelPercent,
-        }
+        })
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.TEMP_BAN) or

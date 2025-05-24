@@ -77,4 +77,9 @@ function M.startWindow()
     BJI.DEBUG = function() return M.get() end
 end
 
+function M.stop()
+    M.STATE = false
+    M.reset()
+end
+
 return M

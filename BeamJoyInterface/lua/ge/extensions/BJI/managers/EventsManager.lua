@@ -104,11 +104,15 @@ local function removeListener(id)
 end
 
 local function processSlowTick()
-    local callbacks = Table(M.listeners[M.EVENTS.SLOW_TICK]):values()
-    callbacks:forEach(function(fn, i)
-        BJI.Managers.Async.delayTask(function()
+    local callbacks = Table(M.listeners[M.EVENTS.SLOW_TICK])
+        :map(function(e) return e end)
+    callbacks:forEach(function(fn, k)
+        BJI.Managers.Async.delayTask(function(ctxt)
             fn(BJI.Managers.Tick.getContext(true))
-        end, i / #callbacks * 1000)
+            if BJI.Bench.STATE then
+                BJI.Bench.add(tostring(k), M.EVENTS.SLOW_TICK, GetCurrentTimeMillis() - ctxt.now)
+            end
+        end, k / #callbacks * 1000)
     end)
 end
 

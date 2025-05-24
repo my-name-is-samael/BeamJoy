@@ -265,11 +265,12 @@ local function canShowNametags()
 end
 
 ---@param vehData { gameVehicleID: integer, ownerID: integer }
+---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     if _curr().doShowNametag then
         return _curr().doShowNametag(vehData)
     else
-        return not BJI.Managers.AI.isAIVehicle(vehData.gameVehicleID)
+        return false, nil, nil
     end
 end
 
