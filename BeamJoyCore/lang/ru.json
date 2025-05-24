@@ -547,10 +547,7 @@
       "buttons": {
         "kick": "Кик",
         "tempBan": "Временный запрет",
-        "ban": "Запретить",
-        "demoteTo": "Понизить уровень до {groupName}",
-        "promoteTo": "Продвигать в {groupName}",
-        "promote": "Продвигать"
+        "ban": "Запретить"
       },
       "muteReason": "Немая причина",
       "kickReason": "Причина удара",
