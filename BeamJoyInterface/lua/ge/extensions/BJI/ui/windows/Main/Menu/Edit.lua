@@ -178,27 +178,45 @@ end
 local function menuSwitchMap(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP) and
         BJI.Managers.Context.Maps then
-        local maps = {}
         local customMapLabel = BJI.Managers.Lang.get("menu.edit.mapCustom")
-        for mapName, map in pairs(BJI.Managers.Context.Maps) do
-            if map.enabled then
-                table.insert(maps, {
-                    label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
-                    disabled = mapName == BJI.Managers.Context.UI.mapName,
-                    active = mapName == BJI.Managers.Context.UI.mapName,
-                    onClick = function()
-                        BJI.Tx.config.switchMap(mapName)
-                    end
-                })
-            end
+        local rawMaps = Table(BJI.Managers.Context.Maps)
+            :filter(function(map) return map.enabled end)
+
+        if rawMaps:length() <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+            -- sub elems
+            table.insert(M.cache.elems, {
+                label = BJI.Managers.Lang.get("menu.edit.map"),
+                elems = rawMaps:map(function(map, mapName)
+                    return {
+                        label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                        disabled = mapName == BJI.Managers.Context.UI.mapName,
+                        active = mapName == BJI.Managers.Context.UI.mapName,
+                        onClick = function()
+                            BJI.Tx.config.switchMap(mapName)
+                        end
+                    }
+                end):sort(function(a, b) return a.label < b.label end)
+            })
+        else
+            -- selection window
+            table.insert(M.cache.elems, {
+                label = BJI.Managers.Lang.get("menu.edit.map"),
+                onClick = function()
+                    BJI.Windows.Selection.open("menu.edit.map", rawMaps
+                        :filter(function(_, mapName) return mapName ~= BJI.Managers.Context.UI.mapName end)
+                        :map(function(map, mapName)
+                            return {
+                                label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or
+                                    map.label,
+                                value = mapName,
+                            }
+                        end):values():sort(function(a, b) return a.label < b.label end) or {}, nil,
+                        function(mapName)
+                            BJI.Tx.config.switchMap(mapName)
+                        end, { BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP })
+                end,
+            })
         end
-        table.sort(maps, function(a, b)
-            return a.label < b.label
-        end)
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.edit.map"),
-            elems = maps
-        })
     end
 end
 
@@ -293,8 +311,9 @@ end
 local function menuRaces(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
         BJI.Managers.Context.Scenario.Data.Races then
-        local label = BJI.Managers.Lang.get("menu.edit.races")
-            :var({ amount = #BJI.Managers.Context.Scenario.Data.Races })
+        local rawRaces = Table(BJI.Managers.Context.Scenario.Data.Races)
+            :filter(function(r) return type(r) == "table" end):values()
+        local label = string.var("{1} ({2})", { BJI.Managers.Lang.get("menu.edit.races"), #rawRaces })
         if BJI.Windows.ScenarioEditor.getState() then
             -- editor already open
             local isEditorRace = BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.RACE
@@ -305,71 +324,139 @@ local function menuRaces(ctxt)
                 onClick = BJI.Windows.ScenarioEditor.onClose,
             })
         else
-            table.insert(M.cache.elems, {
-                label = label,
-                elems = Table({
-                    {
-                        label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
-                        onClick = BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID,
-                    }
-                }):addAll(Table(BJI.Managers.Context.Scenario.Data.Races)
-                    :filter(function(r) return type(r) == "table" end)
-                    :map(function(race)
+            if #BJI.Managers.Context.Scenario.Data.Races + 1 <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+                table.insert(M.cache.elems, {
+                    label = label,
+                    elems = Table({
+                        {
+                            label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
+                            onClick = BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID,
+                        }
+                    }):addAll(rawRaces:map(function(race)
                         return {
                             render = function()
-                                LineBuilder()
-                                    :btnIcon({
-                                        id = "editRace-" .. tostring(race.id),
-                                        icon = ICONS.mode_edit,
-                                        style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                                        onClick = function()
-                                            BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
-                                        end
-                                    })
-                                    :btnIcon({
-                                        id = "copyRace-" .. tostring(race.id),
-                                        icon = ICONS.content_copy,
-                                        style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                                        onClick = function()
-                                            BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
-                                        end
-                                    })
-                                    :btnIcon({
-                                        id = "deleteRace-" .. tostring(race.id),
-                                        icon = ICONS.delete_forever,
-                                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                        onClick = function()
-                                            BJI.Managers.Popup.createModal(
-                                                BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
-                                                :var({ raceName = race.name }),
-                                                {
-                                                    {
-                                                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                                    },
-                                                    {
-                                                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                                        onClick = function()
-                                                            BJI.Tx.scenario.RaceDelete(race.id)
-                                                        end
-                                                    }
-                                                }
-                                            )
-                                        end
-                                    })
-                                    :btnIconToggle({
-                                        id = "toggle-" .. tostring(race.id),
-                                        icon = race.enabled and ICONS.visibility or ICONS.visibility_off,
-                                        state = race.enabled == true,
-                                        onClick = function()
-                                            BJI.Tx.scenario.RaceToggle(race.id, not race.enabled)
-                                        end
-                                    })
-                                    :text(race.name)
-                                    :build()
+                                LineBuilder():btnIconToggle({
+                                    id = "toggle-" .. tostring(race.id),
+                                    icon = race.enabled and ICONS.visibility or ICONS.visibility_off,
+                                    state = race.enabled == true,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.toggle"),
+                                    onClick = function()
+                                        BJI.Tx.scenario.RaceToggle(race.id, not race.enabled)
+                                    end
+                                }):btnIcon({
+                                    id = "editRace-" .. tostring(race.id),
+                                    icon = ICONS.mode_edit,
+                                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
+                                    onClick = function()
+                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                    end
+                                }):btnIcon({
+                                    id = "copyRace-" .. tostring(race.id),
+                                    icon = ICONS.content_copy,
+                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
+                                    onClick = function()
+                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                    end
+                                }):btnIcon({
+                                    id = "deleteRace-" .. tostring(race.id),
+                                    icon = ICONS.delete_forever,
+                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
+                                    onClick = function()
+                                        BJI.Managers.Popup.createModal(
+                                            BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                            :var({ raceName = race.name }), {
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.cancel"
+                                                )),
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                        "common.buttons.confirm"
+                                                    ),
+                                                    function()
+                                                        BJI.Tx.scenario.RaceDelete(race.id)
+                                                    end)
+                                            })
+                                    end
+                                }):text(race.name):build()
                             end,
                         }
                     end)),
-            })
+                })
+            else
+                table.insert(M.cache.elems, {
+                    label = label,
+                    onClick = function()
+                        BJI.Windows.Selection.open("menu.edit.races", Table({ {
+                            label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
+                            value = nil,
+                        } }):addAll(rawRaces:map(function(r)
+                            return {
+                                label = r.name,
+                                value = r.id,
+                            }
+                        end)), function(line, raceID, onClose)
+                            if not raceID then
+                                -- create race
+                                line:btnIcon({
+                                    id = "createRace",
+                                    icon = ICONS.add,
+                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.create"),
+                                    onClick = function()
+                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID()
+                                        onClose()
+                                    end
+                                })
+                                return
+                            end
+                            rawRaces:find(function(r) return r.id == raceID end, function(race)
+                                line:btnIcon({
+                                    id = "editRace-" .. tostring(raceID),
+                                    icon = ICONS.mode_edit,
+                                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
+                                    onClick = function()
+                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                        onClose()
+                                    end
+                                }):btnIcon({
+                                    id = "copyRace-" .. tostring(race.id),
+                                    icon = ICONS.content_copy,
+                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
+                                    onClick = function()
+                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                        onClose()
+                                    end
+                                }):btnIcon({
+                                    id = "deleteRace-" .. tostring(race.id),
+                                    icon = ICONS.delete_forever,
+                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                    tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
+                                    onClick = function()
+                                        BJI.Managers.Popup.createModal(
+                                            BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                            :var({ raceName = race.name }),
+                                            {
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.cancel"
+                                                )),
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.confirm"
+                                                ), function()
+                                                    BJI.Tx.scenario.RaceDelete(race.id)
+                                                    onClose()
+                                                end),
+                                            })
+                                    end
+                                })
+                            end)
+                        end, nil, { BJI.Managers.Perm.PERMISSIONS.SCENARIO })
+                    end,
+                })
+            end
         end
     end
 end

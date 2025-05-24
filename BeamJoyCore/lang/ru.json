@@ -143,7 +143,6 @@
       "no": "Нет",
       "state": "Состояние",
       "unknown": "Неизвестный",
-      "tooBigData": "Данные слишком велики, чтобы их можно было сохранить!",
       "and": "&"
     },
     "errors": {
@@ -193,7 +192,8 @@
       "Hunter": "Охотничья игра",
       "Theme": "Редактор тем",
       "Derby": "Дерби Разрушения",
-      "VehicleSelectorPreview": "Предпросмотр транспорта"
+      "VehicleSelectorPreview": "Предпросмотр транспорта",
+      "Selection": "Выбор"
     },
     "menu": {
       "me": {
@@ -280,7 +280,7 @@
         "garages": "Гаражи ({amount})",
         "deliveries": "Поставки ({amount})",
         "buslines": "Автобусные маршруты ({amount})",
-        "races": "Гонки ({amount})",
+        "races": "Гонки",
         "raceCreate": "Создать гонку",
         "raceDeleteModal": "Вы уверены, что хотите удалить гонку \"{raceName}\"?",
         "hunter": "Охотник ({visibility}, {amount} путевых точек)",

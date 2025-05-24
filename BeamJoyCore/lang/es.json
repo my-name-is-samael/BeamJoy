@@ -270,7 +270,6 @@
       "no": "No",
       "state": "Estado",
       "unknown": "Desconocido",
-      "tooBigData": "¡Los datos son demasiado grandes para guardarlos!",
       "and": "&"
     },
     "errors": {
@@ -320,7 +319,8 @@
       "Hunter": "Juego de cazador",
       "Theme": "Editor de temas",
       "Derby": "Derbi de destrucción",
-      "VehicleSelectorPreview": "Vista previa del vehículo"
+      "VehicleSelectorPreview": "Vista previa del vehículo",
+      "Selection": "Selección"
     },
     "menu": {
       "me": {
@@ -407,7 +407,7 @@
         "garages": "Garajes ({amount})",
         "deliveries": "Entregas ({amount})",
         "buslines": "Líneas de autobús ({amount})",
-        "races": "Carreras ({amount})",
+        "races": "Carreras",
         "raceCreate": "Crear carrera",
         "raceDeleteModal": "¿Estás seguro de que quieres eliminar la carrera \"{raceName}\"?",
         "hunter": "Cazador ({visibility}, {amount} puntos de referencia)",

@@ -76,13 +76,11 @@ local function menuStopServer(ctxt)
             label = BJI.Managers.Lang.get("menu.config.stop"),
             onClick = function()
                 BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("menu.config.stopModal"), {
-                    {
-                        label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                    },
-                    {
-                        label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                        onClick = BJI.Tx.config.stop,
-                    }
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                        function()
+                            BJI.Tx.config.stop()
+                        end),
                 })
             end,
         })

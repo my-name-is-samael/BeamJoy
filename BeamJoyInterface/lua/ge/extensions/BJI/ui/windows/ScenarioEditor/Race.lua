@@ -383,13 +383,8 @@ local function saveRace(callback)
 
     if W.raceData.hasRecord and not W.raceData.keepRecord then
         BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("races.edit.hasRecordConfirm"), {
-            {
-                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-            },
-            {
-                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                onClick = _finalSave,
-            },
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), _finalSave),
         })
     else
         _finalSave()
@@ -511,15 +506,9 @@ local function reverseRace()
         validateRace()
     end
     BJI.Managers.Popup.createModal(
-        BJI.Managers.Lang.get("races.edit.reverseConfirm"),
-        {
-            {
-                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-            },
-            {
-                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                onClick = _process(),
-            }
+        BJI.Managers.Lang.get("races.edit.reverseConfirm"), {
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), _process),
         })
 end
 

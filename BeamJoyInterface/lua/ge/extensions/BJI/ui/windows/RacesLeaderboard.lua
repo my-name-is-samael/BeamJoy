@@ -95,21 +95,20 @@ local function updateCache(ctxt)
                                         BJI.Managers.Popup.createModal(
                                             string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
                                                 { raceName = race.name }), {
-                                                {
-                                                    label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                                                },
-                                                {
-                                                    label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                                    onClick = function()
-                                                        BJI.Managers.RaceWaypoint.setPB(race.hash)
-                                                        BJI.Managers.Events.trigger(
-                                                            BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
-                                                                raceName = race.name,
-                                                                raceID = race.id,
-                                                                raceHash = race.hash,
-                                                            })
-                                                    end
-                                                }
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.cancel"
+                                                )),
+                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.confirm"
+                                                ), function()
+                                                    BJI.Managers.RaceWaypoint.setPB(race.hash)
+                                                    BJI.Managers.Events.trigger(
+                                                        BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                                                            raceName = race.name,
+                                                            raceID = race.id,
+                                                            raceHash = race.hash,
+                                                        })
+                                                end),
                                             })
                                     end,
                                 }):build()
@@ -189,16 +188,11 @@ local function header()
                 onClick = function()
                     BJI.Managers.Popup.createModal(
                         BJI.Managers.Lang.get("races.leaderboard.removeAllPBsModal"), {
-                            {
-                                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-                            },
-                            {
-                                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                                onClick = function()
-                                    BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, {})
-                                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {})
-                                end
-                            }
+                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, {})
+                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {})
+                            end),
                         })
                 end,
             }):build()

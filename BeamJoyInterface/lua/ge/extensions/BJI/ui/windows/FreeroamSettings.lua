@@ -40,17 +40,12 @@ local W = {
 local function onClose()
     if W.changed then
         BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("freeroamSettings.cancelModal"), {
-            {
-                label = BJI.Managers.Lang.get("common.buttons.cancel"),
-            },
-            {
-                label = BJI.Managers.Lang.get("common.buttons.confirm"),
-                onClick = function()
-                    W.data = Table()
-                    W.changed = false
-                    W.show = false
-                end,
-            }
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                W.data = Table()
+                W.changed = false
+                W.show = false
+            end),
         })
     else
         W.show = false

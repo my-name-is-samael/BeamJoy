@@ -130,6 +130,8 @@ BJI.Windows.Database = require("ge/extensions/BJI/ui/windows/Database")
 BJI.Windows.Server = require("ge/extensions/BJI/ui/windows/Server")
 ---@type BJIWindowScenarioEditor
 BJI.Windows.ScenarioEditor = require("ge/extensions/BJI/ui/windows/ScenarioEditor")
+---@type BJIWindowSelection
+BJI.Windows.Selection = require("ge/extensions/BJI/ui/windows/Selection")
 
 
 BJI.Managers.Scenario.TYPES.FREEROAM = "FREEROAM"
