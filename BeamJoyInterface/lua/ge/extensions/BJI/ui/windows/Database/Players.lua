@@ -135,17 +135,17 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateWidths))
+    }, updateWidths, W.name))
 
     requestPlayersDatabase()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.DATABASE_PLAYERS_UPDATED,
-    }, requestPlayersDatabase))
+    }, requestPlayersDatabase, W.name))
 end
 
 local function onUnload()

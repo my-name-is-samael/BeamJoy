@@ -180,7 +180,7 @@ M.onLoad = function()
         M._states[cacheType] = M.CACHE_STATES.EMPTY
     end
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 
 return M

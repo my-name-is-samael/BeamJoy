@@ -30,6 +30,8 @@ local FORMATTING_CODES = {
 local FAVORITE_NAME_OFFLINE_SUFFIX = "[OFFLINE]"
 
 local W = {
+    name = "ServerCoreCen",
+
     labelsCore = {
         formatting = {
             title = "",
@@ -101,15 +103,15 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-    }, updateCache))
+    }, updateCache, W.name))
 end
 
 local function onUnload()

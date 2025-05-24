@@ -1,4 +1,6 @@
 local W = {
+    name = "ScenarioEditorStations",
+
     labels = {
         vSeparator = "",
         title = "",
@@ -77,10 +79,10 @@ local function onLoad()
     }, function()
         updateLabels()
         udpateWidths()
-    end))
+    end, W.name))
 
     udpateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, udpateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, udpateWidths, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -88,7 +90,7 @@ local function onLoad()
             if data.cache == BJI.Managers.Cache.CACHES.STATIONS then
                 updateCache()
             end
-        end))
+        end, W.name))
 end
 
 local function onUnload()

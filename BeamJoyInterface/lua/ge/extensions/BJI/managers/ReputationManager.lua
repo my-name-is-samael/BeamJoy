@@ -105,7 +105,7 @@ M.vehicleTeleported = onResetOrTeleport
 M.onGarageRepair = onGarageRepair
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 M.renderTick = renderTick
 

@@ -156,7 +156,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end))
+    end, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -169,7 +169,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCache(ctxt)
         end
-    end))
+    end, W.name))
 end
 
 local function onUnload()

@@ -3,6 +3,8 @@ local healthIndicator = require("ge/extensions/BJI/ui/windows/Main/Body/VehicleH
 local deliveryLeaderboard = require("ge/extensions/BJI/ui/windows/Main/Body/DeliveryLeaderBoard")
 
 local cache = {
+    name = "MainBody",
+
     data = {
         showVehIndicators = false,
         showDeliveryLeaderboard = false,
@@ -316,14 +318,14 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateCache))
+    }, updateCache, cache.name))
 
     updateLabels()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateLabels))
+    }, updateLabels, cache.name))
 
     deliveryLeaderboard.updateCache(ctxt)
     listeners:insert(BJI.Managers.Events.addListener({
@@ -336,7 +338,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.DELIVERIES then
             deliveryLeaderboard.updateCache(ctxt2)
         end
-    end))
+    end, cache.name))
 
     updateCacheRaces()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -347,7 +349,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCacheRaces()
         end
-    end))
+    end, cache.name))
 
     updateCachePlayers(ctxt)
     listeners:insert(BJI.Managers.Events.addListener({
@@ -367,7 +369,7 @@ local function onLoad()
             }, data.cache) then
             updateCachePlayers(ctxt2)
         end
-    end))
+    end, cache.name))
 end
 
 local function onUnload()

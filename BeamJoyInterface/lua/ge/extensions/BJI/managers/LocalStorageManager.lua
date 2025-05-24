@@ -194,8 +194,8 @@ local function onLoad()
         if table.includes({ BJI.Managers.Cache.CACHES.RACES }, data.cache) then
             sanitizeMapRacesPBs()
         end
-    end))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload))
+    end, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name))
 end
 
 ---@param key LocalStorageElement

@@ -55,8 +55,6 @@ local M = {
     listeners = {},
     ---@type {event: string, data: table}[]
     queued = {},
-    ---@type fun(ctxt: SlowTickContext)[]
-    slowQueued = {},
 }
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
@@ -65,8 +63,9 @@ M.LOG_BLACKLIST_EVENTS = Table({
 
 ---@param events string[]|string
 ---@param callback fun(ctxt: TickContext, data: table)
+---@param id? string
 ---@return string|nil
-local function addListener(events, callback)
+local function addListener(events, callback, id)
     if type(events) ~= "table" then
         events = { events }
     end
@@ -81,7 +80,7 @@ local function addListener(events, callback)
         return
     end
 
-    local id = UUID()
+    id = id and tostring(id) or UUID()
     table.forEach(events, function(event)
         if not M.listeners[event] then
             M.listeners[event] = Table()
@@ -104,6 +103,15 @@ local function removeListener(id)
     return found
 end
 
+local function processSlowTick()
+    local callbacks = Table(M.listeners[M.EVENTS.SLOW_TICK]):values()
+    callbacks:forEach(function(fn, i)
+        BJI.Managers.Async.delayTask(function()
+            fn(BJI.Managers.Tick.getContext(true))
+        end, i / #callbacks * 1000)
+    end)
+end
+
 ---@param events string[]|string
 ---@param ... any
 local function trigger(events, ...)
@@ -123,10 +131,7 @@ local function trigger(events, ...)
 
     for _, event in ipairs(events) do
         if event == M.EVENTS.SLOW_TICK then
-            Table(M.listeners[M.EVENTS.SLOW_TICK])
-                :forEach(function(fn)
-                    table.insert(M.slowQueued, fn)
-                end)
+            processSlowTick()
         else
             table.insert(M.queued, { event = event, data = { ... } })
         end
@@ -134,13 +139,6 @@ local function trigger(events, ...)
 end
 
 local function renderTick(ctxt)
-    if #M.slowQueued > 0 then
-        local fn = table.remove(M.slowQueued, 1)
-        local ok, err = pcall(fn, BJI.Managers.Tick.getContext(true))
-        if not ok then
-            LogError(string.var("Error executing slow tick : {1}", { err }), M._name)
-        end
-    end
     while #M.queued > 0 do
         ---@type {event: string, data: table|nil}
         local el = table.remove(M.queued, 1)
@@ -182,7 +180,7 @@ M.removeListener = removeListener
 M.trigger = trigger
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 M.renderTick = renderTick
 

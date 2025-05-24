@@ -375,8 +375,8 @@ M.onLoad = function()
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    }, updateLabels, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
@@ -386,7 +386,7 @@ M.onLoad = function()
             data.cache == BJI.Managers.Cache.CACHES.BJC then
             updateState()
         end
-    end)
+    end, M._name)
 end
 
 return M

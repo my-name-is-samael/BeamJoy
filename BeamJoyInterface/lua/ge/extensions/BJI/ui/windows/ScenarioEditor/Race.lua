@@ -28,6 +28,8 @@ local function resetData()
 end
 
 local W = {
+    name         = "ScenarioEditorRace",
+
     raceData     = resetData(),
     tryLaps      = 1,
     labels       = {
@@ -146,10 +148,10 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
 end
 
 local function onUnload()

@@ -38,7 +38,7 @@ W.onLoad = function()
             not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) then
             W.onClose()
         end
-    end))
+    end, W.name))
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED)
 end
 W.onUnload = function()

@@ -43,9 +43,9 @@ local function fastTick(ctxt)
 end
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 return M

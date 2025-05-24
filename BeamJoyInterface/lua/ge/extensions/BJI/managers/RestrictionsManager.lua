@@ -130,7 +130,7 @@ local function onLoad()
     extensions.core_input_actionFilter.setGroup(M._tag, {})
     extensions.core_input_actionFilter.addAction(0, M._tag, false)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 
 M.updateResets = updateResets

@@ -1,4 +1,6 @@
 local W = {
+    name = "ServerBJC",
+
     ACCORDION = Table({
         {
             labelKey = "whitelist",
@@ -142,7 +144,7 @@ local W = {
             labelsWidth = 0,
         },
         derby = {
-            labelsWidth = 0,  
+            labelsWidth = 0,
         },
         vehicleDelivery = {
             displayList = Table(),
@@ -284,7 +286,7 @@ local function updateWidths()
             local w = BJI.Utils.Common.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
-    
+
     W.cache.derby.labelsWidth = Table(W.labels.derby.keys)
         ---@param k string
         :filter(function(_, k)
@@ -358,10 +360,10 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -373,7 +375,7 @@ local function onLoad()
                 BJI.Managers.Cache.CACHES.PLAYERS }, data.cache) then
             updateCache()
         end
-    end))
+    end, W.name))
 
     W.cache.server.broadcasts.langs = Table(BJI.Managers.Lang.Langs)
         :map(function(l)

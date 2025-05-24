@@ -9,6 +9,8 @@ local categories = Table({
 })
 
 local W = {
+    name = "ServerReputation",
+
     labels = {
         categories = {},
         keys = {},
@@ -50,12 +52,12 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end))
+    end, W.name))
 
     updateWidths()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateWidths))
+    }, updateWidths, W.name))
 end
 
 local function onUnload()

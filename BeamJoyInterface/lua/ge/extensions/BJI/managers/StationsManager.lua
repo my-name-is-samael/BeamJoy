@@ -238,7 +238,7 @@ end
 M.tryRefillVehicle = tryRefillVehicle
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 M.renderTick = renderTick
 

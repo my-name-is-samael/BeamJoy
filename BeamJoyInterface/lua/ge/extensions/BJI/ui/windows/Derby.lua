@@ -159,7 +159,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end))
+    end, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -167,7 +167,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCache))
+    }, updateCache, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         function(ctxt)
@@ -175,7 +175,7 @@ local function onLoad()
                 -- permission loss
                 BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
             end
-        end))
+        end, W.name))
 end
 
 local function onUnload()

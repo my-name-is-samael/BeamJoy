@@ -1,4 +1,6 @@
 local W = {
+    name = "RaceSolo",
+
     SHOW_ALL_THRESHOLD = 3,
     ELLIPSIS_MARKER = "...",
 
@@ -265,19 +267,19 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end))
+    end, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.RACE_NEW_PB,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateCache))
+    }, updateCache, W.name))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCache(ctxt)
         end
-    end))
+    end, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         function()
@@ -285,7 +287,7 @@ local function onLoad()
                 -- permission loss
                 BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
             end
-        end))
+        end, W.name))
 end
 
 local function onUnload()
