@@ -1,6 +1,10 @@
+---@class BJIManagerVehSelectorUI : BJIManager
 local M = {
-    _name = "BJIVehicleSelectorUIManager",
-    baseFunctions = {}
+    _name = "VehSelectorUI",
+    baseFunctions = {},
+
+    stateSelector = true,
+    stateEditor = true,
 }
 
 -- VEHICLE SELECTOR
@@ -11,7 +15,7 @@ local filtersWhiteList = { "Drivetrain", "Type", "Config Type", "Transmission", 
 local range = { 'Years' }
 local convertToRange = { 'Value', 'Weight', 'Top Speed', '0-100 km/h', '0-60 mph', 'Weight/Power', "Off-Road Score" }
 local finalRanges = {}
-tdeepassign(tdeepassign(finalRanges, convertToRange), range)
+table.assign(table.assign(finalRanges, convertToRange), range)
 
 local displayInfo = {
     ranges = {
@@ -48,12 +52,12 @@ local function createFilters(models)
     if models then
         for _, value in pairs(models) do
             for propName, propVal in pairs(value.aggregates) do
-                if tincludes(finalRanges, propName, true) then
+                if table.includes(finalRanges, propName) then
                     if filter[propName] then
                         filter[propName].min = math.min(value.aggregates[propName].min, filter[propName].min)
                         filter[propName].max = math.max(value.aggregates[propName].max, filter[propName].max)
                     else
-                        filter[propName] = tdeepcopy(value.aggregates[propName])
+                        filter[propName] = table.clone(value.aggregates[propName])
                     end
                 else
                     if not filter[propName] then
@@ -82,28 +86,21 @@ end
 local function createVehiclesData()
     local resModels, resConfigs = {}, {}
 
-    if not BJIPerm.canSpawnVehicle() then
+    if not M.stateSelector then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
-        return resModels, resConfigs
-    elseif not BJIScenario.canSelectVehicle() then
-        -- cannot spawn veh in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.UI.hideGameMenu()
         return resModels, resConfigs
     end
 
-    local models = BJIScenario.getModelList()
-    for _, model in pairs(models) do
-        for _, config in pairs(model.configs) do
-            table.insert(resConfigs, config)
-        end
-
+    local res = Table(BJI.Managers.Scenario.getModelList()):reduce(function(acc, model)
+        acc.configs:addAll(model.configs)
         model.configs = nil
+        acc.models:insert(model)
+        return acc
+    end, { models = Table(), configs = Table() })
 
-        table.insert(resModels, model)
-    end
-
-    return resModels, resConfigs
+    return res.models, res.configs
 end
 
 local function notifyUI()
@@ -127,142 +124,249 @@ local function notifyUIEnd()
     p = nil
 end
 
+local function postSpawnActions(ctxt)
+    if BJI.Managers.AI.selfVehs:includes(ctxt.veh:getID()) then
+        -- was manually toggled, resume state
+        ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
+    end
+    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Cam.toggleFreeCam()
+        ctxt.camera = BJI.Managers.Cam.getCamera()
+    end
+end
+
+---@param model string
+local function checkSpawnTypePermissions(model)
+    local vehModel = BJI.Managers.Veh.getAllVehicleConfigs(true, true)[model]
+    if not vehModel then
+        return false
+    end
+    if vehModel.Type == BJI.Managers.Veh.TYPES.TRAILER and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS) then
+        return false
+    elseif vehModel.Type == BJI.Managers.Veh.TYPES.PROP and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_PROPS) then
+        return false
+    end
+    return true
+end
+
 local function cloneCurrent(...)
-    if not BJIPerm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     else
         -- maximum vehs reached
-        local group = BJIPerm.Groups[BJIContext.User.group]
+        local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= tlength(BJIContext.User.vehicles) then
-            BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
+            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
 
-        if not BJIScenario.canSpawnNewVehicle() then
+        if not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
+        else
+            local current = BJI.Managers.Veh.getCurrentVehicle()
+            if current and not checkSpawnTypePermissions(current.jbeam) then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+                return -- invalid type spawn
+            end
         end
     end
 
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.cloneCurrent(...)
 end
 
 local function spawnDefault(...)
-    if not BJIPerm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     else
-        if BJIVeh.isCurrentVehicleOwn() then
-            if not BJIScenario.canReplaceVehicle() then
+        if BJI.Managers.Veh.isCurrentVehicleOwn() then
+            if not BJI.Managers.Scenario.canReplaceVehicle() then
                 -- cannot spawn veh in current scenario
-                BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
                 return
             end
         else
-            if not BJIScenario.canSpawnNewVehicle() then
+            if not BJI.Managers.Scenario.canSpawnNewVehicle() then
                 -- cannot spawn veh in current scenario
-                BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
                 return
+            end
+            local defaultVeh = BJI.Managers.Veh.getDefaultModelAndConfig()
+            if defaultVeh and not checkSpawnTypePermissions(defaultVeh.model) then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+                return -- invalid type spawn
             end
         end
     end
 
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnDefault(...)
 end
 
 local function spawnNewVehicle(model, opts)
-    if not BJIPerm.canSpawnVehicle() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Perm.canSpawnVehicle() then
         -- cannot spawn veh
-        BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
         return
     elseif model ~= "unicycle" then
-        -- maximum vehs reached
-        local group = BJIPerm.Groups[BJIContext.User.group]
+        -- check maximum vehs reached
+        local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= tlength(BJIContext.User.vehicles) then
-            BJIToast.error(BJILang.get("errors.cannotSpawnAnyMoreVeh"))
+            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
 
-        if not BJIScenario.canSpawnNewVehicle() then
+        if not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
+        end
+
+        if not checkSpawnTypePermissions(model) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+            return -- invalid type spawn
         end
     end
 
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
     return M.baseFunctions.spawnNewVehicle(model, opts)
 end
 
-local function replaceVehicle(...)
-    if BJIVeh.isCurrentVehicleOwn() then
-        if not BJIScenario.canReplaceVehicle() then
+local function replaceVehicle(model, opt, otherVeh)
+    if not M.stateSelector then
+        return
+    elseif BJI.Managers.Veh.isCurrentVehicleOwn() then
+        if not BJI.Managers.Scenario.canReplaceVehicle() then
             -- cannot update veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
     else
-        if not BJIPerm.canSpawnVehicle() then
+        if not BJI.Managers.Perm.canSpawnVehicle() then
             -- cannot spawn veh
-            BJIToast.error(BJILang.get("errors.cannotSpawnVeh"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
             return
-        elseif not BJIScenario.canSpawnNewVehicle() then
+        elseif not BJI.Managers.Scenario.canSpawnNewVehicle() then
             -- cannot spawn veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
+        elseif not checkSpawnTypePermissions(model) then
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnVeh"))
+            return -- invalid type spawn
         end
     end
 
-    return M.baseFunctions.replaceVehicle(...)
+    BJI.Managers.Veh.waitForVehicleSpawn(postSpawnActions)
+    return M.baseFunctions.replaceVehicle(model, opt, otherVeh)
 end
 
 local function removeCurrent(...)
-    if BJIVeh.isCurrentVehicleOwn() then
+    if not M.stateSelector then
+        return
+    elseif BJI.Managers.Veh.isCurrentVehicleOwn() then
         -- my own veh
-        if BJIScenario.canDeleteVehicle() then
-            BJIVeh.deleteCurrentOwnVehicle()
+        if BJI.Managers.Scenario.canDeleteVehicle() then
+            BJI.Managers.Veh.deleteCurrentOwnVehicle()
             --return M.baseFunctions.removeCurrent(...)
         else
             -- cannot delete veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         end
     else
-        if BJIScenario.canDeleteOtherPlayersVehicle() then
-            BJIVeh.deleteOtherPlayerVehicle()
+        if BJI.Managers.Scenario.canDeleteOtherPlayersVehicle() then
+            BJI.Managers.Veh.deleteOtherPlayerVehicle()
         else
             -- cannot delete veh in current scenario
-            BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         end
     end
 end
 
 local function removeAllExceptCurrent(...)
-    if not BJIScenario.canDeleteOtherVehicles() then
+    if not M.stateSelector then
+        return
+    elseif not BJI.Managers.Scenario.canDeleteOtherVehicles() then
         -- cannot delete other vehs in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
         return
     end
 
-    BJIVeh.deleteOtherOwnVehicles()
+    BJI.Managers.Veh.deleteOtherOwnVehicles()
     -- return M.baseFunctions.removeAllExceptCurrent(...)
 end
 
 -- VEHICLE CONFIGURATION
 local function getAvailableParts(ioCtx)
-    if not BJIScenario.canEditVehicle() then
+    if not M.stateEditor then
         -- cannot edit veh in current scenario
-        BJIToast.error(BJILang.get("errors.unavailableDuringScenario"))
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
+        BJI.Managers.UI.hideGameMenu()
         return {}
     end
 
     return M.baseFunctions.getAvailableParts(ioCtx)
+end
+
+local function onUpdateRestrictions()
+    local function _update()
+        M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and
+            (BJI.Managers.Scenario.canSpawnNewVehicle() or BJI.Managers.Scenario.canReplaceVehicle())
+        M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam()
+        BJI.Managers.Restrictions.update({
+            {
+                -- update selector restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR,
+                state = not M.stateSelector and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            },
+            {
+                -- update editor restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR,
+                state = not M.stateEditor and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            },
+        })
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update()
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
+end
+
+local function onUnload()
+    -- vehicle selector
+    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
+    core_vehicles.requestList = M.baseFunctions.requestList
+    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
+    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
+    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
+    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
+    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
+    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
+    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
+    -- vehicle configuration
+    local jbeamIO = require('jbeam/io')
+    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
 end
 
 local function onLoad()
@@ -290,26 +394,16 @@ local function onLoad()
     local jbeamIO = require('jbeam/io')
     M.baseFunctions.getAvailableParts = jbeamIO.getAvailableParts
     jbeamIO.getAvailableParts = getAvailableParts
-end
 
-local function onUnload()
-    -- vehicle selector
-    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
-    core_vehicles.requestList = M.baseFunctions.requestList
-    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
-    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
-    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
-    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
-    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
-    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
-    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
-    -- vehicle configuration
-    local jbeamIO = require('jbeam/io')
-    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload)
+
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, onUpdateRestrictions)
 end
 
 M.onLoad = onLoad
-M.onUnload = onUnload
 
-RegisterBJIManager(M)
 return M

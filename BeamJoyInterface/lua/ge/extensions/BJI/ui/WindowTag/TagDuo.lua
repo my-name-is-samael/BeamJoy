@@ -1,11 +1,11 @@
 local mgr, opponentID
 
 local function drawHeader(ctxt)
-    mgr = BJIScenario.get(BJIScenario.TYPES.TAG_SOLO)
+    mgr = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_SOLO)
 
     local line = LineBuilder()
         :text("Tag Duo")
-    if tlength(mgr.selfLobby.players) == 1 then
+    if table.length(mgr.selfLobby.players) == 1 then
         opponentID = nil
         line:text("(Waiting for an opponent)")
     else
@@ -17,26 +17,26 @@ local function drawHeader(ctxt)
                 end
             end
         end
-        line:text(svar("with {1}", { BJIContext.Players[opponentID].playerName }))
+        line:text(string.var("with {1}", { BJI.Managers.Context.Players[opponentID].playerName }))
     end
     line:build()
     EmptyLine()
 
     if mgr.waitForSpread then -- waiting for spread to begin
         LineBuilder()
-            :text("Spread out to begin the chase !", TEXT_COLORS.HIGHLIGHT)
+            :text("Spread out to begin the chase !", BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :build()
     elseif mgr.tagMessage then -- recent tag
         LineBuilder()
-            :text("Tagged !", TEXT_COLORS.HIGHLIGHT)
+            :text("Tagged !", BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :build()
     elseif mgr.isTagger() then -- tagger
         LineBuilder()
-            :text("Chase your opponent !", TEXT_COLORS.HIGHLIGHT)
+            :text("Chase your opponent !", BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :build()
     else -- tagged
         LineBuilder()
-            :text("Flee from your opponent !", TEXT_COLORS.HIGHLIGHT)
+            :text("Flee from your opponent !", BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :build()
     end
     EmptyLine()
@@ -47,10 +47,10 @@ local function drawBody(ctxt)
         :btnIcon({
             id = "tagLeave",
             icon = ICONS.exit_to_app,
-            style = BTN_PRESETS.ERROR,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             onClick = function()
-                if BJIScenario.is(BJIScenario.TYPES.TAG_SOLO) then
-                    BJITx.scenario.TagDuoLeave()
+                if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_SOLO) then
+                    BJI.Tx.scenario.TagDuoLeave()
                 end
             end,
         })
@@ -58,7 +58,7 @@ local function drawBody(ctxt)
 
     local lobbies = {}
     for i, l in pairs(mgr.lobbies) do
-        if not l.players[ctxt.user.playerID] and tlength(l.players) < 2 then
+        if not l.players[ctxt.user.playerID] and table.length(l.players) < 2 then
             table.insert(lobbies, {
                 id = i,
                 host = l.host,
@@ -72,13 +72,13 @@ local function drawBody(ctxt)
         for i, l in ipairs(lobbies) do
             LineBuilder()
                 :btnIcon({
-                    id = svar("joinLobby-{1}", { i }),
+                    id = string.var("joinLobby-{1}", { i }),
                     icon = ICONS.videogame_asset,
-                    style = BTN_PRESETS.SUCCESS,
+                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     onClick = function()
-                        BJITx.scenario.TagDuoLeave()
-                        BJIAsync.delayTask(function() -- clears properly the scenario with a delay
-                            BJITx.scenario.TagDuoJoin(l.id, ctxt.veh:getID())
+                        BJI.Tx.scenario.TagDuoLeave()
+                        BJI.Managers.Async.delayTask(function() -- clears properly the scenario with a delay
+                            BJI.Tx.scenario.TagDuoJoin(l.id, ctxt.veh:getID())
                         end, 500, "BJITagDuoChangeLobbyDelay")
                     end,
                 })

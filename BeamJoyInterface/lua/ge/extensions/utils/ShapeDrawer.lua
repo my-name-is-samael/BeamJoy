@@ -1,9 +1,25 @@
 local drawer = {}
 
+---@class BJIColor
+---@field r number 0-1
+---@field g number 0-1
+---@field b number 0-1
+---@field a number 0-1
+
+---@param r number 0-1
+---@param g number 0-1
+---@param b number 0-1
+---@param a? number 0-1
+---@return BJIColor
 local function Color(r, g, b, a)
-    return { r = r, g = g, b = b, a = a }
+    return { r = r, g = g, b = b, a = a or 1 }
 end
 
+---@param r number 0-1
+---@param g number 0-1
+---@param b number 0-1
+---@param a? number 0-1
+---@return BJIColor
 local function ColorContrasted(r, g, b, a)
     local contrast = 0.2126 * r * r + 0.7152 * g * g + 0.0722 * b * b
     if contrast > .3 then
@@ -13,6 +29,9 @@ local function ColorContrasted(r, g, b, a)
     end
 end
 
+---@param pos vec3
+---@param radius number
+---@param shapeColor BJIColor
 local function Sphere(pos, radius, shapeColor)
     local err, _
     _, pos, err = pcall(vec3, pos)
@@ -25,6 +44,11 @@ local function Sphere(pos, radius, shapeColor)
     debugDrawer:drawSphere(vec3(pos), radius, ColorF(shapeColor.r, shapeColor.g, shapeColor.b, shapeColor.a), true)
 end
 
+---@param text string
+---@param pos vec3
+---@param textColor BJIColor
+---@param bgColor BJIColor
+---@param shadow? boolean
 local function Text(text, pos, textColor, bgColor, shadow)
     local err, _
     _, pos, err = pcall(vec3, pos)
@@ -39,9 +63,14 @@ local function Text(text, pos, textColor, bgColor, shadow)
         ColorF(textColor.r, textColor.g, textColor.b, textColor.a),
         true, false,
         ColorI(bgColor.r * 255, bgColor.g * 255, bgColor.b * 255, bgColor.a * 255),
-        shadow, true)
+        shadow == true, true)
 end
 
+---@param fromPos vec3
+---@param fromWidth number
+---@param toPos vec3
+---@param toWidth number
+---@param shapeColor BJIColor
 local function SquarePrism(fromPos, fromWidth, toPos, toWidth, shapeColor)
     local err, _
     _, fromPos, err = pcall(vec3, fromPos)
@@ -62,6 +91,10 @@ local function SquarePrism(fromPos, fromWidth, toPos, toWidth, shapeColor)
         true)
 end
 
+---@param bottomPos vec3
+---@param topPos vec3
+---@param radius number
+---@param shapeColor BJIColor
 local function Cylinder(bottomPos, topPos, radius, shapeColor)
     local errBottom, errTop, _
     _, bottomPos, errBottom = pcall(vec3, bottomPos)
@@ -77,6 +110,10 @@ local function Cylinder(bottomPos, topPos, radius, shapeColor)
         ColorF(shapeColor.r, shapeColor.g, shapeColor.b, shapeColor.a))
 end
 
+---@param posA vec3
+---@param posB vec3
+---@param posC vec3
+---@param shapeColor BJIColor
 local function Triangle(posA, posB, posC, shapeColor)
     local errA, errB, errC, _
     _, posA, errA = pcall(vec3, posA)
@@ -93,6 +130,10 @@ local function Triangle(posA, posB, posC, shapeColor)
     debugDrawer:drawTriSolid(posC, posB, posA, col)
 end
 
+---@param pos vec3
+---@param rot quat
+---@param radius number
+---@param shapeColor BJIColor
 local function Arrow(pos, rot, radius, shapeColor)
     local errPos, errRot, _
     _, pos, errPos = pcall(vec3, pos)
@@ -103,10 +144,10 @@ local function Arrow(pos, rot, radius, shapeColor)
     end
     shapeColor = shapeColor or Color(1, 1, 1, .5)
 
-    local angle = AngleFromQuatRotation(rot)
-    local len = Rotate2DVec(vec3(0, radius, 0), angle)
+    local angle = math.angleFromQuatRotation(rot)
+    local len = math.rotate2DVec(vec3(0, radius, 0), angle)
     local tip = vec3(pos) + len
-    local base = vec3(pos) + Rotate2DVec(len, math.pi)
+    local base = vec3(pos) + math.rotate2DVec(len, math.pi)
     debugDrawer:drawArrow(base, tip, ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
 end
 

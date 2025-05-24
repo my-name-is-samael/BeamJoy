@@ -1,9 +1,14 @@
 local M = {
-    MINIMUM_PARTICIPANTS = 2,
+    MINIMUM_PARTICIPANTS = function()
+        if BJCCore.Data.General.Debug then
+            return 1
+        end
+        return 2
+    end,
     isEvent = false,
     startTime = nil,
-    participants = {},
-    leaderboard = {},
+    participants = Table(),
+    leaderboard = Table(),
     speed = 0,
     endTimeout = 0,
 
@@ -13,7 +18,7 @@ local M = {
 
 local function getCache()
     return {
-        minimumParticipants = M.MINIMUM_PARTICIPANTS,
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
         isEvent = M.isEvent,
         startTime = M.startTime,
         participants = M.participants,
@@ -25,6 +30,7 @@ end
 
 local function getCacheHash()
     return Hash({
+        M.MINIMUM_PARTICIPANTS(),
         M.startTime,
         M.participants,
         M.leaderboard,
@@ -33,7 +39,7 @@ local function getCacheHash()
 end
 
 local function start(participants, isEvent)
-    if tlength(participants) < M.MINIMUM_PARTICIPANTS then
+    if table.length(participants) < M.MINIMUM_PARTICIPANTS() then
         return
     end
     if isEvent then
@@ -43,8 +49,8 @@ local function start(participants, isEvent)
         BJCPlayers.Players[playerID].scenario = nil
     end
     M.isEvent = isEvent == true
-    M.participants = participants
-    M.leaderboard = {}
+    M.participants = Table(participants)
+    M.leaderboard = Table()
     M.speed = BJCConfig.Data.Speed.BaseSpeed
     M.endTimeout = BJCConfig.Data.Speed.EndTimeout
 
@@ -54,7 +60,7 @@ local function start(participants, isEvent)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 1 or M.leaderboard[2] then
+    if M.participants:length() == 1 or M.leaderboard[2] then
         for pid in pairs(M.participants) do
             local found = false
             for _, lb in pairs(M.leaderboard) do
@@ -68,29 +74,36 @@ local function checkEnd()
                     playerID = pid,
                     speed = M.speed,
                 }
+                BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                    playerName = BJCPlayers.Players[pid].playerName,
+                    gamemode = "chat.events.gamemodes.speed",
+                    gamemodePosition = 1,
+                })
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
             end
         end
     end
 
-    if tlength(M.participants) == tlength(M.leaderboard) then
+    if M.participants:length() == M.leaderboard:length() then
         BJCAsync.delayTask(function()
             for i, lb in ipairs(M.leaderboard) do
                 local playerID = lb.playerID
                 BJCPlayers.reward(playerID, math.ceil(BJCConfig.Data.Reputation.SpeedReward / i))
             end
-            M.stop()
+            M.stop(true)
         end, BJCConfig.Data.Speed.EndTimeout, "BJCSpeedEnd")
     end
 end
 
-local function fail(playerID, time)
+local function onPlayerFail(playerID, time)
     if M.startTime then
-        for i = tlength(M.participants), 1, -1 do
+        local position = -1
+        for i = M.participants:length(), 1, -1 do
             if M.leaderboard[i] and
                 M.leaderboard[i].playerID == playerID then
                 return
             elseif not M.leaderboard[i] then
+                position = i
                 M.leaderboard[i] = {
                     playerID = playerID,
                     speed = M.speed,
@@ -103,24 +116,36 @@ local function fail(playerID, time)
         if tonumber(gameVehID) then
             BJCTx.player.explodeVehicle(gameVehID)
         end
+        BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+            playerName = BJCPlayers.Players[playerID].playerName,
+            gamemode = "chat.events.gamemodes.speed",
+            gamemodePosition = position,
+        })
         checkEnd()
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
     end
 end
 
-local function stop()
+local function stop(ended)
+    if M.participants:length() > 0 then
+        BJCChat.sendChatEvent(ended and "chat.events.gamemodeEnded" or "chat.events.gamemodeStopped", {
+            gamemode = "chat.events.gamemodes.speed",
+            reason = not ended and "chat.events.gamemodeStopReasons.manual" or nil,
+        })
+    end
     BJCAsync.removeTask("BJCSpeedStart")
     BJCAsync.removeTask("BJCSpeedEnd")
     M.startTime = nil
-    M.participants = {}
-    M.leaderboard = {}
+    M.participants = Table()
+    M.leaderboard = Table()
     M.speed = 0
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
 end
 
-local function slowTick(ctxt)
-    if M.startTime and M.startTime <= GetCurrentTime() and
-        tlength(M.participants) > tlength(M.leaderboard) then
+---@param time integer
+local function slowTick(time)
+    if M.startTime and M.startTime <= time and
+        M.participants:length() > table.length(M.leaderboard) then
         M.stepCounter = M.stepCounter + 1
         if M.stepCounter >= BJCConfig.Data.Speed.StepDelay then
             M.stepCounter = 0
@@ -139,9 +164,9 @@ local function onPlayerDisconnect(targetID)
         return
     end
 
-    for i = 1, tlength(M.participants) do
+    for i = 1, table.length(M.participants) do
         if M.leaderboard[i] and M.leaderboard[i].playerID == targetID then
-            for j = i, tlength(M.participants) do
+            for j = i, table.length(M.participants) do
                 if M.leaderboard[j + 1] then
                     M.leaderboard[j] = M.leaderboard[j + 1]
                 else
@@ -165,7 +190,7 @@ local function onVehicleDeleted(playerID, vehID)
     end
 
     local eliminated = false
-    for i = 1, tlength(M.participants) do
+    for i = 1, M.participants:length() do
         if M.leaderboard[i] and M.leaderboard[i].playerID == playerID then
             eliminated = true
         end
@@ -182,17 +207,15 @@ M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 M.start = start
-M.fail = fail
+M.onPlayerFail = onPlayerFail
 M.stop = stop
 
-M.slowTick = slowTick
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
 
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
 
-M.postVehicleDeleted = onVehicleDeleted
-
-RegisterBJCManager(M)
 return M

@@ -65,7 +65,7 @@
       "raceTime": "{playerName} завершил {raceName} за {time}"
     },
     "hunter": {
-      "invalidHunted": "Беглеца нет или у беглеца нет транспортного средства",
+      "invalidHunted": "Нет беглеца",
       "huntedWinner": "Беглец победил!",
       "huntersWinners": "Охотники победили!",
       "draw": "Рисовать"
@@ -123,7 +123,8 @@
         "confirm": "Подтверждать",
         "start": "Начинать",
         "explode": "Взорваться",
-        "leave": "Оставлять"
+        "leave": "Оставлять",
+        "toggle": "Переключать"
       },
       "durationModifiers": {
         "minute": "м",
@@ -142,7 +143,6 @@
       "no": "Нет",
       "state": "Состояние",
       "unknown": "Неизвестный",
-      "tooBigData": "Данные слишком велики, чтобы их можно было сохранить!",
       "and": "&"
     },
     "errors": {
@@ -172,26 +172,28 @@
       "selfTrailer": "Ваш трейлер"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Мои настройки",
-      "BJIEvents": "События",
-      "BJIRaceSettings": "Настройки гонки",
-      "BJIRace": "Раса",
-      "BJIDeliveryMulti": "Доставка вместе",
-      "BJIVehicleSelector": "Выбор автомобиля",
-      "BJIStation": "Станция",
-      "BJIBusMissionPreparation": "Подготовка автобусной миссии",
-      "BJIScenarioEditor": "Редактор сценариев",
-      "BJIFreeroamSettings": "Настройки свободного роуминга",
-      "BJIEnvironment": "Редактор среды",
-      "BJIServer": "Настройки сервера",
-      "BJISpeed": "Скорость игры",
-      "BJIDatabase": "База данных",
-      "BJIHunterSettings": "Настройки игры Охотник",
-      "BJIHunter": "Охотничья игра",
-      "BJITheme": "Редактор тем",
-      "BJIDerby": "Дерби Разрушения",
-      "BJIVehicleSelectorPreview": "Предпросмотр транспорта"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Мои настройки",
+      "Events": "События",
+      "RacesLeaderboard": "Таблица лидеров гонок",
+      "RaceSettings": "Настройки гонки",
+      "Race": "Раса",
+      "DeliveryMulti": "Доставка вместе",
+      "VehicleSelector": "Выбор автомобиля",
+      "Station": "Станция",
+      "BusMissionPreparation": "Подготовка автобусной миссии",
+      "ScenarioEditor": "Редактор сценариев",
+      "FreeroamSettings": "Настройки свободного роуминга",
+      "Environment": "Редактор среды",
+      "Server": "Настройки сервера",
+      "Speed": "Скорость игры",
+      "Database": "База данных",
+      "HunterSettings": "Настройки игры Охотник",
+      "Hunter": "Охотничья игра",
+      "Theme": "Редактор тем",
+      "Derby": "Дерби Разрушения",
+      "VehicleSelectorPreview": "Предпросмотр транспорта",
+      "Selection": "Выбор"
     },
     "menu": {
       "me": {
@@ -202,8 +204,10 @@
       },
       "vote": {
         "title": "Голосование",
-        "map": "Карта",
-        "mapCustom": "обычай",
+        "map": {
+          "title": "Карта",
+          "custom": "обычай"
+        },
         "race": {
           "title": "Раса",
           "noRace": "Нет доступных гонок",
@@ -268,13 +272,15 @@
         "freeroamSettings": "Настройки свободного роуминга",
         "time": "Время суток",
         "weather": "Погода",
+        "gravity": "Гравитация",
+        "speed": "Скорость сим.",
         "map": "Переключить карту",
         "mapCustom": "обычай",
         "energyStations": "Энергостанции ({amount})",
         "garages": "Гаражи ({amount})",
         "deliveries": "Поставки ({amount})",
         "buslines": "Автобусные маршруты ({amount})",
-        "races": "Гонки ({amount})",
+        "races": "Гонки",
         "raceCreate": "Создать гонку",
         "raceDeleteModal": "Вы уверены, что хотите удалить гонку \"{raceName}\"?",
         "hunter": "Охотник ({visibility}, {amount} путевых точек)",
@@ -356,12 +362,14 @@
       "ToD": "Время суток",
       "realtime": "В реальном времени",
       "dayLength": "Продолжительность дня",
+      "day": "День",
+      "night": "Ночь",
       "dayScale": "Дневная шкала",
       "nightScale": "Ночная шкала",
       "sunAzimuthOverride": "Азимут Солнца",
       "sunSize": "Размер Солнца",
       "skyBrightness": "Яркость неба",
-      "sunLightBrightness": "Яркость солнечного света",
+      "brightness": "Яркость",
       "rayleighScattering": "Рэлеевское рассеяние",
       "flareScale": "Масштаб вспышки",
       "occlusionScale": "Шкала окклюзии",
@@ -378,6 +386,7 @@
       "weather": "Погода",
       "controlWeather": "Синхронизировать погоду",
       "fogDensity": "Плотность тумана",
+      "fogColor": "Цвет тумана",
       "fogDensityOffset": "Расстояние тумана",
       "fogAtmosphereHeight": "Высота тумана",
       "cloudHeight": "Высота облака 1",
@@ -390,7 +399,6 @@
       "cloudExposureOne": "Облако 2 Экспозиция",
       "rainDrops": "Капли дождя",
       "dropSize": "Размер капли",
-      "dropSizeRatio": "Коэффициент DropSize карты",
       "dropMinSpeed": "Падение минимальной скорости",
       "dropMaxSpeed": "Снижение максимальной скорости",
       "precipType": "Тип осадков",
@@ -481,14 +489,15 @@
     },
     "header": {
       "gamemode": "Режим игры",
-      "reputation": "Уровень репутации",
       "gravity": "Гравитация",
       "speed": "Скорость",
       "resetDisabled": "Сброс отключен",
       "nextReset": "Следующий сброс",
       "resetAvailable": "Сброс доступен",
       "nextTeleport": "Следующая телепортация",
-      "teleportAvailable": "Доступна телепортация"
+      "teleportAvailable": "Доступна телепортация",
+      "collisions": "Коллизии",
+      "reputation": "Уровень репутации"
     },
     "userSettings": {
       "uiScale": "Масштаб пользовательского интерфейса",
@@ -546,6 +555,7 @@
       "muteReason": "Немая причина",
       "kickReason": "Причина удара",
       "banReason": "Причина бана",
+      "savedReason": "Сохранённая причина",
       "kickModal": "Вы уверены, что хотите выгнать \"{playerName}\"?",
       "tempBanModal": "Вы уверены, что хотите временно забанить \"{playerName}\"?",
       "banModal": "Вы уверены, что хотите забанить игрока \"{playerName}\"?"
@@ -599,6 +609,7 @@
         "server": {
           "title": "Настройки сервера",
           "lang": "Язык консоли сервера",
+          "allowMods": "Разрешить модификации игроков",
           "driftBigBroadcast": "Бродкаст «Большие заносы»",
           "broadcasts": {
             "title": "Трансляции",
@@ -638,6 +649,15 @@
           "HuntersRespawnDelay": "Задержка респауна охотников",
           "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне"
         },
+        "derby": {
+          "title": "Настройки Destruction Derby",
+          "PreparationTimeout": "Время подготовки",
+          "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться к дерби",
+          "StartCountdown": "Обратный отсчет старта",
+          "StartCountdownTooltip": "Время в секундах до начала дерби",
+          "DestroyedTimeout": "Обратный отсчет до выбытия",
+          "DestroyedTimeoutTooltip": "Время в секундах до устранения застрявшего/разрушенного игрока"
+        },
         "vehicleDelivery": {
           "title": "Настройки доставки автомобиля",
           "modelBlacklist": "Черный список транспортных средств"
@@ -645,6 +665,15 @@
       },
       "reputation": {
         "title": "Репутация",
+        "categories": {
+          "freeroam": "Свободная езда",
+          "delivery": "Доставка",
+          "bus": "Миссия автобуса",
+          "race": "Гонка",
+          "speed": "Скорость",
+          "hunter": "Охотник",
+          "derby": "Дерби"
+        },
         "KmDriveReward": "Награда за проезд/км",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
         "DeliveryVehiclePristineReward": "Вознаграждение за доставку автомобиля в целости и сохранности",
@@ -666,7 +695,8 @@
         "HunterWinnerReward": "Награда победителю-охотнику",
         "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам).",
         "DerbyParticipationReward": "Награда за участие в дерби",
-        "DerbyWinnerReward": "Награда победителю дерби"
+        "DerbyWinnerReward": "Награда победителю дерби",
+        "DerbyWinnerRewardTooltip": "Будет разделено в зависимости от позиции игрока в таблице лидеров"
       },
       "permissions": {
         "title": "Группы и разрешения",
@@ -760,7 +790,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Сбросить время восстановления",
+      "resetDelayTooltip": "Время в секундах до возможности сброса игроком",
       "teleportDelay": "Время восстановления телепортации",
+      "teleportDelayTooltip": "Время в секундах до возможности телепортации к другому игроку",
       "vehicleSpawning": "Глобальное появление транспортных средств",
       "quickTravel": "Быстрое путешествие",
       "nametags": "Бейджи с именами игроков",
@@ -771,14 +803,16 @@
       "emergencyRefuelPercentTooltip": "Процент бака, заправленного после процесса",
       "driftGood": "Минимальный балл за хорошие заносы",
       "driftBig": "Минимальный балл за большие заносы",
-      "allowUnicycle": "Разрешить ходьбу"
+      "allowUnicycle": "Разрешить ходьбу",
+      "cancelModal": "Вы потеряете несохраненные изменения. Вы уверены, что хотите закрыть окно?"
     },
     "races": {
       "races": "Гонки",
       "names": {},
       "tools": {
         "title": "Инструменты",
-        "rotation": "Вращение"
+        "rotation": "Вращение",
+        "reverse": "Обратить шаги"
       },
       "edit": {
         "title": "Редактор гонок",
@@ -810,7 +844,6 @@
         "addBranch": "Добавить филиал сюда",
         "addStep": "Добавьте сюда шаг",
         "errors": {
-          "invalidName": "Неверное имя",
           "noChild": "Нет ребенка"
         },
         "hasRecordConfirm": "В этом забеге установлен рекорд, и при сохранении он будет удален. ",
@@ -839,9 +872,7 @@
           "currentModel": "Текущая модель",
           "currentConfig": "Текущая конфигурация",
           "specific": "Конкретная {model}"
-        },
-        "time": "Время суток",
-        "weather": "Погода"
+        }
       },
       "preparation": {
         "singleplayer": "Одиночная гонка",
@@ -874,6 +905,7 @@
         "waitingForOtherPlayers": "Ждем других игроков...",
         "flashCountdownZero": "ИДТИ !!!",
         "eliminatedIn": "Вы будете исключены через {delay}",
+        "showAllData": "Показать все",
         "WP": "КП {wp}",
         "Lap": "Круг {laps}",
         "wpDifference": "+{wpDifference}CP",
@@ -885,7 +917,12 @@
         "flashDnfOut": "УДАЛЕНО"
       },
       "leaderboard": {
-        "title": "Таблица лидеров гонок"
+        "title": "Таблица лидеров гонок",
+        "amountPBs": "Всего лучших результатов",
+        "removeAllPBsButton": "Удалить все лучшие результаты",
+        "removeAllPBsModal": "Вы уверены, что хотите удалить все свои лучшие результаты на сервере?",
+        "pb": "ЛР",
+        "removePBModal": "Вы уверены, что хотите удалить свой лучший результат на {raceName}?"
       }
     },
     "energy": {
@@ -1047,14 +1084,25 @@
       "flashWinner": "{playerName} выиграл игру на скорость!"
     },
     "vehicleSelector": {
-      "deleteCurrent": "Удалить автомобиль",
-      "deleteOtherPlayerVehicle": "Удалить этого игрока",
-      "deleteOthers": "Удалить другие транспортные средства",
-      "previousVeh": "Мой предыдущий автомобиль",
-      "defaultVeh": "Мой автомобиль по умолчанию",
-      "noVeh": "Транспортное средство не найдено",
+      "deleteCurrent": "Удалить текущее",
+      "deleteOtherPlayerVehicleModal": "Это не ваш транспорт, и он не станет активным, пока игрок его не удалит и не заспавнит снова. Вы уверены, что хотите его удалить?",
+      "deleteOthers": "Удалить другие",
+      "previousVeh": "Загрузить предыдущее",
+      "setAsDefault": "Сделать по умолчанию",
+      "defaultVeh": "Загрузить по умолчанию",
+      "cloneCurrent": "Клонировать текущее",
+      "resetAll": "Сбросить все",
+      "noVeh": "Транспорт не найден",
+      "notAllowed": "Сейчас недоступно",
+      "protectedVehicle": "Транспорт защищен",
+      "selfProtected": "Защита от клонирования конфигурации включена. Отключите её, если хотите использовать свой конкретный транспорт.",
+      "invalidVeh": "Неверный транспорт",
       "paints": "Краски",
-      "applyPaint": "Краска {position}"
+      "applyPaint": "Краска {position}",
+      "cars": "Машины",
+      "trucks": "Грузовики",
+      "trailers": "Прицепы",
+      "props": "Объекты"
     },
     "database": {
       "players": {
@@ -1096,6 +1144,8 @@
         "hunterConfigsTooltip": "Конфигурации транспортных средств, которые могут выбирать охотники (если их нет, можно выбрать любую игровую конфигурацию)",
         "toastConfigAlreadySaved": "Конфигурация уже сохранена",
         "specificConfig": "Конкретная {model}",
+        "lastWaypointGPS": "Показать последний путь",
+        "lastWaypointGPSTooltip": "Когда остается только одна точка маршрута, охотники могут видеть, где находится беглец (Имя и GPS)",
         "notEnoughPlayers": "Недостаточно игроков для запуска режима охотника"
       },
       "play": {
@@ -1105,9 +1155,9 @@
         "preparationTimeoutIn": "Тайм-аут подготовки через {delay}",
         "preparationTimeoutAboutToEnd": "Тайм-аут подготовки подходит к концу",
         "startIn": "Вы начнете через {delay}",
-        "aboutToStart": "Вы собираетесь начать",
         "huntedLooseIn": "Вы проиграете через {delay}",
         "huntedAboutToLoose": "Вы собираетесь потерять",
+        "hunterResumeIn": "Вы продолжите через {delay}",
         "configChoose": "Выберите свой автомобиль",
         "readyMark": "ГОТОВЫЙ",
         "notReadyMark": "НЕ ГОТОВО",
@@ -1133,6 +1183,7 @@
       "settings": {
         "title": "Настройки Дерби Разрушения",
         "places": "{places} мест",
+        "presets": "Пресеты",
         "lives": "Жизни",
         "configs": "Конфигурации автомобиля",
         "configsTooltip": "Конфигурации транспортных средств, которые могут выбирать игроки (если их нет, можно выбрать любую игровую конфигурацию)",

@@ -3,7 +3,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/environment.json", { dbPath })
+    M._dbPath = string.var("{1}/environment.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.environment())
@@ -20,9 +20,7 @@ local function findAll()
     return {}
 end
 
-local function save(key, value)
-    local data = findAll()
-    data[key] = value
+local function save(data)
     BJCDao._saveFile(M._dbPath, data)
 end
 

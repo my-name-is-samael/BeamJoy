@@ -17,7 +17,8 @@
       "enabled": "Ermoglicht",
       "disabled": "Deaktiviert",
       "allPlayers": "SERVER",
-      "empty": "Leer"
+      "empty": "Leer",
+      "startMessage": "Gib \"help\" ein, um die Befehlsliste zu sehen"
     },
     "messages": {
       "missing": "Fehler beim Finden der Nachricht {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} beendete {raceName} in {time}"
     },
     "hunter": {
-      "invalidHunted": "Kein Flüchtling oder der Flüchtling hat kein Fahrzeug",
+      "invalidHunted": "Kein Flüchtiger",
       "huntedWinner": "Der Flüchtling hat gewonnen!",
       "huntersWinners": "Jäger haben gewonnen!",
       "draw": "Ziehen"
@@ -249,7 +250,8 @@
         "confirm": "Bestätigen",
         "start": "Start",
         "explode": "Explodieren",
-        "leave": "Verlassen"
+        "leave": "Verlassen",
+        "toggle": "Umschalten auf"
       },
       "durationModifiers": {
         "minute": "M",
@@ -268,7 +270,6 @@
       "no": "NEIN",
       "state": "Zustand",
       "unknown": "Unbekannt",
-      "tooBigData": "Die Daten sind zu groß, um gespeichert zu werden!",
       "and": "&"
     },
     "errors": {
@@ -298,26 +299,28 @@
       "selfTrailer": "Ihr Anhänger"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Meine Einstellungen",
-      "BJIEvents": "Veranstaltungen",
-      "BJIRaceSettings": "Renneinstellungen",
-      "BJIRace": "Wettrennen",
-      "BJIDeliveryMulti": "Lieferung zusammen",
-      "BJIVehicleSelector": "Fahrzeugauswahl",
-      "BJIStation": "Station",
-      "BJIBusMissionPreparation": "Vorbereitung der Busmission",
-      "BJIScenarioEditor": "Szenario-Editor",
-      "BJIFreeroamSettings": "Freeroam-Einstellungen",
-      "BJIEnvironment": "Umgebungseditor",
-      "BJIServer": "Servereinstellungen",
-      "BJISpeed": "Geschwindigkeitsspiel",
-      "BJIDatabase": "Datenbank",
-      "BJIHunterSettings": "Hunter-Spieleinstellungen",
-      "BJIHunter": "Jägerspiel",
-      "BJITheme": "Theme-Editor",
-      "BJIDerby": "Zerstörungsderby",
-      "BJIVehicleSelectorPreview": "Fahrzeugvorschau"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Meine Einstellungen",
+      "Events": "Veranstaltungen",
+      "RacesLeaderboard": "Rennen-Rangliste",
+      "RaceSettings": "Renneinstellungen",
+      "Race": "Wettrennen",
+      "DeliveryMulti": "Lieferung zusammen",
+      "VehicleSelector": "Fahrzeugauswahl",
+      "Station": "Station",
+      "BusMissionPreparation": "Vorbereitung der Busmission",
+      "ScenarioEditor": "Szenario-Editor",
+      "FreeroamSettings": "Freeroam-Einstellungen",
+      "Environment": "Umgebungseditor",
+      "Server": "Servereinstellungen",
+      "Speed": "Geschwindigkeitsspiel",
+      "Database": "Datenbank",
+      "HunterSettings": "Hunter-Spieleinstellungen",
+      "Hunter": "Jägerspiel",
+      "Theme": "Theme-Editor",
+      "Derby": "Zerstörungsderby",
+      "VehicleSelectorPreview": "Fahrzeugvorschau",
+      "Selection": "Auswahl"
     },
     "menu": {
       "me": {
@@ -328,8 +331,10 @@
       },
       "vote": {
         "title": "Abstimmung",
-        "map": "Karte",
-        "mapCustom": "Brauch",
+        "map": {
+          "title": "Karte",
+          "custom": "Brauch"
+        },
         "race": {
           "title": "Wettrennen",
           "noRace": "Kein Rennen verfügbar",
@@ -394,13 +399,15 @@
         "freeroamSettings": "Freeroam-Einstellungen",
         "time": "Uhrzeit",
         "weather": "Wetter",
+        "gravity": "Schwerkraft",
+        "speed": "Sim.-Geschwindigkeit",
         "map": "Karte wechseln",
         "mapCustom": "Brauch",
         "energyStations": "Energiestationen ({amount})",
         "garages": "Garagen ({amount})",
         "deliveries": "Lieferungen ({amount})",
         "buslines": "Buslinien ({amount})",
-        "races": "Rennen ({amount})",
+        "races": "Rennen",
         "raceCreate": "Rennen erstellen",
         "raceDeleteModal": "Sind Sie sicher, dass Sie das Rennen „{raceName}“ löschen möchten?",
         "hunter": "Jäger ({visibility}, {amount} Wegpunkte)",
@@ -482,12 +489,14 @@
       "ToD": "Uhrzeit",
       "realtime": "Echtzeit",
       "dayLength": "Tageslänge",
+      "day": "Tag",
+      "night": "Nacht",
       "dayScale": "Tagesskala",
       "nightScale": "Nachtskala",
       "sunAzimuthOverride": "Sonnenazimut",
       "sunSize": "Sonnengröße",
       "skyBrightness": "Himmelshelligkeit",
-      "sunLightBrightness": "Sonnenlichthelligkeit",
+      "brightness": "Helligkeit",
       "rayleighScattering": "Rayleigh-Streuung",
       "flareScale": "Flare-Skala",
       "occlusionScale": "Okklusionsskala",
@@ -504,6 +513,7 @@
       "weather": "Wetter",
       "controlWeather": "Wetter synchronisieren",
       "fogDensity": "Nebeldichte",
+      "fogColor": "Nebel-Farbe",
       "fogDensityOffset": "Nebelentfernung",
       "fogAtmosphereHeight": "Nebelhöhe",
       "cloudHeight": "Höhe von Wolke 1",
@@ -516,7 +526,6 @@
       "cloudExposureOne": "Wolke 2-Belichtung",
       "rainDrops": "Regentropfen",
       "dropSize": "Tropfengröße",
-      "dropSizeRatio": "DropSize-Verhältnis der Karte",
       "dropMinSpeed": "Senken Sie die Mindestgeschwindigkeit",
       "dropMaxSpeed": "Verringern Sie die maximale Geschwindigkeit",
       "precipType": "Niederschlagsart",
@@ -607,14 +616,15 @@
     },
     "header": {
       "gamemode": "Spielmodus",
-      "reputation": "Reputationsniveau",
       "gravity": "Schwerkraft",
       "speed": "Geschwindigkeit",
       "resetDisabled": "Zurücksetzen ist deaktiviert",
       "nextReset": "Nächster Reset",
       "resetAvailable": "Zurücksetzen verfügbar",
       "nextTeleport": "Nächste Teleportation",
-      "teleportAvailable": "Teleportation verfügbar"
+      "teleportAvailable": "Teleportation verfügbar",
+      "collisions": "Kollisionen",
+      "reputation": "Reputationsniveau"
     },
     "userSettings": {
       "uiScale": "UI-Skala",
@@ -672,6 +682,7 @@
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",
       "banReason": "Verbotsgrund",
+      "savedReason": "Vorheriger Grund",
       "kickModal": "Sind Sie sicher, dass Sie „{playerName}“ rausschmeißen möchten?",
       "tempBanModal": "Sind Sie sicher, dass Sie „{playerName}“ vorübergehend sperren möchten?",
       "banModal": "Sind Sie sicher, dass Sie „{playerName}“ sperren möchten?"
@@ -725,6 +736,7 @@
         "server": {
           "title": "Servereinstellungen",
           "lang": "Sprache der Serverkonsole",
+          "allowMods": "Spieler-Mods erlauben",
           "driftBigBroadcast": "Übertragen Sie große Drifts",
           "broadcasts": {
             "title": "Sendungen",
@@ -764,6 +776,15 @@
           "HuntersRespawnDelay": "Jäger Respawn Verzögerung",
           "HuntersRespawnDelayTooltip": "Zeit in Sekunden, in der Jäger nach ihrem Respawn feststecken"
         },
+        "derby": {
+          "title": "Destruction Derby Einstellungen",
+          "PreparationTimeout": "Vorbereitungsdauer",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden, in der Spieler dem Derby beitreten können",
+          "StartCountdown": "Start-Countdown",
+          "StartCountdownTooltip": "Zeit in Sekunden bis zum Start des Derbys",
+          "DestroyedTimeout": "Eliminierungs-Countdown",
+          "DestroyedTimeoutTooltip": "Dauer in Sekunden, bevor ein feststeckender/beschädigter Spieler eliminiert wird"
+        },
         "vehicleDelivery": {
           "title": "Einstellungen für die Fahrzeuglieferung",
           "modelBlacklist": "Schwarze Liste für Fahrzeuge"
@@ -771,6 +792,15 @@
       },
       "reputation": {
         "title": "Ruf",
+        "categories": {
+          "freeroam": "Freies Fahren",
+          "delivery": "Lieferung",
+          "bus": "Busmission",
+          "race": "Rennen",
+          "speed": "Geschwindigkeit",
+          "hunter": "Jagd",
+          "derby": "Derby"
+        },
         "KmDriveReward": "Fahrtprämie/km",
         "DeliveryVehicleReward": "Belohnung für Fahrzeuglieferung",
         "DeliveryVehiclePristineReward": "Fahrzeuglieferungsprämie für intaktes Fahrzeug",
@@ -792,7 +822,8 @@
         "HunterWinnerReward": "Jäger-Gewinner-Belohnung",
         "HunterWinnerRewardTooltip": "Gilt für alle Spieler im Gewinnerteam (Jäger oder Flüchtling)",
         "DerbyParticipationReward": "Belohnung für die Teilnahme an der Derby",
-        "DerbyWinnerReward": "Derby Gewinner-Belohnung"
+        "DerbyWinnerReward": "Derby Gewinner-Belohnung",
+        "DerbyWinnerRewardTooltip": "Wird entsprechend der Platzierung in der Rangliste aufgeteilt"
       },
       "permissions": {
         "title": "Gruppen und Berechtigungen",
@@ -886,7 +917,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Abklingzeit zurücksetzen",
+      "resetDelayTooltip": "Dauer in Sekunden, bevor ein Spieler zurücksetzen kann",
       "teleportDelay": "Abklingzeit der Teleportation",
+      "teleportDelayTooltip": "Dauer in Sekunden, bevor ein Spieler zu einem anderen teleportieren kann",
       "vehicleSpawning": "Globales Fahrzeug-Laichen",
       "quickTravel": "Schnelle Reise",
       "nametags": "Namensschilder der Spieler",
@@ -897,14 +930,16 @@
       "emergencyRefuelPercentTooltip": "Prozent des Tanks, der nach dem Prozess betankt wird",
       "driftGood": "Mindestpunktzahl für gute Drifts",
       "driftBig": "Mindestpunktzahl für große Drifts",
-      "allowUnicycle": "Erlauben Sie das Gehen"
+      "allowUnicycle": "Erlauben Sie das Gehen",
+      "cancelModal": "Du wirst deine ungespeicherten Änderungen verlieren. Bist du sicher, dass du das Fenster schließen möchtest?"
     },
     "races": {
       "races": "Rennen",
       "names": {},
       "tools": {
         "title": "Werkzeuge",
-        "rotation": "Drehung"
+        "rotation": "Drehung",
+        "reverse": "Schritte umkehren"
       },
       "edit": {
         "title": "Rennredakteur",
@@ -936,7 +971,6 @@
         "addBranch": "Zweig hier hinzufügen",
         "addStep": "Schritt hier hinzufügen",
         "errors": {
-          "invalidName": "Ungültiger Name",
           "noChild": "Kein Kind"
         },
         "hasRecordConfirm": "Für dieses Rennen wurde ein Rekord aufgestellt und durch Speichern wird dieser gelöscht. ",
@@ -965,9 +999,7 @@
           "currentModel": "Aktuelles Modell",
           "currentConfig": "Aktuelle Konfiguration",
           "specific": "Spezifisches {model}"
-        },
-        "time": "Uhrzeit",
-        "weather": "Wetter"
+        }
       },
       "preparation": {
         "singleplayer": "Einzelspieler-Rennen",
@@ -1000,6 +1032,7 @@
         "waitingForOtherPlayers": "Warten auf andere Spieler...",
         "flashCountdownZero": "GEHEN !!!",
         "eliminatedIn": "Sie werden in {delay} eliminiert",
+        "showAllData": "Alle anzeigen",
         "WP": "CP {wp}",
         "Lap": "Runde {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1011,7 +1044,12 @@
         "flashDnfOut": "BESEITIGT"
       },
       "leaderboard": {
-        "title": "Rennen-Rangliste"
+        "title": "Rennen-Rangliste",
+        "amountPBs": "Gesamtanzahl Bestergebnisse",
+        "removeAllPBsButton": "Alle Bestergebnisse entfernen",
+        "removeAllPBsModal": "Möchtest du wirklich alle Bestergebnisse auf dem Server entfernen?",
+        "pb": "BE",
+        "removePBModal": "Möchtest du wirklich dein Bestergebnis auf {raceName} entfernen?"
       }
     },
     "energy": {
@@ -1173,14 +1211,25 @@
       "flashWinner": "{playerName} hat das Geschwindigkeitsspiel gewonnen!"
     },
     "vehicleSelector": {
-      "deleteCurrent": "Fahrzeug löschen",
-      "deleteOtherPlayerVehicle": "Dieses Spielerfahrzeug löschen",
-      "deleteOthers": "Andere Fahrzeuge löschen",
-      "previousVeh": "Mein vorheriges Fahrzeug",
-      "defaultVeh": "Mein Standardfahrzeug",
-      "noVeh": "Kein Fahrzeug gefunden",
+      "deleteCurrent": "Aktuelles entfernen",
+      "deleteOtherPlayerVehicleModal": "Dies ist nicht dein Fahrzeug und es wird nicht wieder aktiv sein, bis der Spieler es entfernt und erneut spawnt. Bist du sicher, dass du es entfernen willst?",
+      "deleteOthers": "Andere entfernen",
+      "previousVeh": "Vorheriges laden",
+      "setAsDefault": "Als Standard festlegen",
+      "defaultVeh": "Standard laden",
+      "cloneCurrent": "Aktuelles duplizieren",
+      "resetAll": "Alle zurücksetzen",
+      "noVeh": "Fahrzeug nicht gefunden",
+      "notAllowed": "Derzeit nicht erlaubt",
+      "protectedVehicle": "Das Fahrzeug ist geschützt",
+      "selfProtected": "Konfigurationsklonschutz ist aktiviert. Deaktiviere ihn, wenn du dein spezifisches Fahrzeug verwenden möchtest.",
+      "invalidVeh": "Ungültiges Fahrzeug",
       "paints": "Farben",
-      "applyPaint": "Farbe {position}"
+      "applyPaint": "Farbe {position}",
+      "cars": "Autos",
+      "trucks": "Lastwagen",
+      "trailers": "Anhänger",
+      "props": "Requisiten"
     },
     "database": {
       "players": {
@@ -1222,6 +1271,8 @@
         "hunterConfigsTooltip": "Fahrzeugkonfigurationen, aus denen Jäger wählen können (falls keine vorhanden sind, kann jede beliebige Spielkonfiguration ausgewählt werden)",
         "toastConfigAlreadySaved": "Konfiguration bereits gespeichert",
         "specificConfig": "Spezifisches {model}",
+        "lastWaypointGPS": "Letzter Wegpunkt enthüllen",
+        "lastWaypointGPSTooltip": "Wenn nur noch ein Wegpunkt übrig ist, können die Jäger sehen, wo sich der Flüchtige befindet (Namensschild & GPS)",
         "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um den Jägermodus zu starten"
       },
       "play": {
@@ -1231,9 +1282,9 @@
         "preparationTimeoutIn": "Zeitüberschreitung bei der Vorbereitung in {delay}",
         "preparationTimeoutAboutToEnd": "Das Vorbereitungs-Timeout ist bald zu Ende",
         "startIn": "Sie beginnen in {delay}",
-        "aboutToStart": "Sie fangen gleich an",
         "huntedLooseIn": "Sie werden in {delay} verlieren",
         "huntedAboutToLoose": "Du bist kurz davor zu verlieren",
+        "hunterResumeIn": "Du wirst in {delay} fortsetzen",
         "configChoose": "Wählen Sie Ihr Fahrzeug",
         "readyMark": "BEREIT",
         "notReadyMark": "NICHT BEREIT",
@@ -1259,6 +1310,7 @@
       "settings": {
         "title": "Destruction Derby-Einstellungen",
         "places": "{places} Orte",
+        "presets": "Voreinstellungen",
         "lives": "Leben",
         "configs": "Fahrzeugkonfigurationen",
         "configsTooltip": "Fahrzeugkonfigurationen, aus denen Spieler wählen können (falls keine vorhanden sind, kann eine beliebige Spielkonfiguration ausgewählt werden)",

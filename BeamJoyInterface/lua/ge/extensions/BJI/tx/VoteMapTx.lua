@@ -1,15 +1,21 @@
-local event = BJI_EVENTS.VOTEMAP
+---@param TX BJITX
+return function(TX)
+    local event = BJI.CONSTANTS.EVENTS.VOTEMAP
+    local votemap = {
+        _name = "votemap"
+    }
 
-BJITx.votemap = {}
+    function votemap.start(mapName)
+        TX._send(event.EVENT, event.TX.START, mapName)
+    end
 
-function BJITx.votemap.start(mapName)
-    BJITx._send(event.EVENT, event.TX.START, mapName)
-end
+    function votemap.vote()
+        TX._send(event.EVENT, event.TX.VOTE)
+    end
 
-function BJITx.votemap.vote()
-    BJITx._send(event.EVENT, event.TX.VOTE)
-end
+    function votemap.stop()
+        TX._send(event.EVENT, event.TX.STOP)
+    end
 
-function BJITx.votemap.stop()
-    BJITx._send(event.EVENT, event.TX.STOP)
+    return votemap
 end

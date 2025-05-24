@@ -26,13 +26,13 @@ BJC_EVENTS = {
         },
         RX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",
             KM_REWARD = "KmReward",
             EXPLODE_VEHICLE = "explodeVehicle",
             UPDATE_AI = "UpdateAI",
+            MARK_INVALID_VEHS = "markInvalidVehs",
         }
     },
     MODERATION = {
@@ -58,6 +58,7 @@ BJC_EVENTS = {
         RX = {
             BJC = "bjc",
             ENV = "env",
+            ENV_PRESET = "envPreset",
             CORE = "core",
             MAP_SWITCH = "switchMap",
             PERMISSIONS = "permissions",
@@ -69,9 +70,13 @@ BJC_EVENTS = {
     },
     DATABASE = {
         EVENT = "BJCDatabase",
-        TX = {},
+        TX = {
+            PLAYERS_GET = "playersGet",
+            PLAYERS_UPDATED = "playersUpdated",
+        },
         RX = {
-            VEHICLE = "Vehicle",
+            PLAYERS_GET = "playersGet",
+            VEHICLE = "vehicle",
         },
     },
     VOTEKICK = {
@@ -163,4 +168,13 @@ BJC_EVENTS = {
             TAG_SERVER_STOP = "TagServerStop",
         }
     }
+}
+
+BJC_ENV_PRESETS = {
+    CLEAR = "clear",
+    CLOUD = "cloud",
+    LIGHT_RAIN = "lightrain",
+    RAIN = "rain",
+    LIGHT_SNOW = "lightsnow",
+    SNOW = "snow",
 }

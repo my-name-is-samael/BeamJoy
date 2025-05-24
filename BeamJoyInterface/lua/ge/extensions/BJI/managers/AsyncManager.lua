@@ -1,5 +1,7 @@
+---@class BJIManagerAsync: BJIManager
 local M = {
-    _name = "BJIAsync",
+    _name = "Async",
+
     KEYS = {
         BASE_CACHES_POST_INPUTS = "baseCachesPostInputs",
         RESTRICTIONS_RESET_TIMER = "restrictionsResetTimer",
@@ -9,10 +11,14 @@ local M = {
     delayedTasks = {},
 }
 
+---@param key string|integer
+---@return boolean
 local function exists(key)
     return M.tasks[key] ~= nil or M.delayedTasks[key] ~= nil
 end
 
+---@param key string|integer
+---@return integer|nil
 local function getRemainingDelay(key)
     local task = M.delayedTasks[key]
     if task then
@@ -21,13 +27,16 @@ local function getRemainingDelay(key)
     return nil
 end
 
+---@param conditionFn fun(ctxt: TickContext): boolean
+---@param taskFn fun(ctxt: TickContext)
+---@param key? string|integer
 local function task(conditionFn, taskFn, key)
     if conditionFn == nil or taskFn == nil or
         type(conditionFn) ~= "function" or type(conditionFn) ~= type(taskFn) then
         error("Tasks need conditionFn and taskFn")
     end
     if key == nil then
-        key = tostring(GetCurrentTimeMillis()) + tostring(math.random(100))
+        key = UUID()
     end
     local existingTask = M.tasks[key]
     if not existingTask then
@@ -35,18 +44,23 @@ local function task(conditionFn, taskFn, key)
             conditionFn = conditionFn,
             taskFn = taskFn,
         }
+    else
+        LogWarn("Task " .. key .. " already exists")
     end
 end
 
+---@param taskFn fun(ctxt: TickContext)
+---@param delayMs integer|number
+---@param key? string|integer
 local function delayTask(taskFn, delayMs, key)
-    delayMs = tonumber(delayMs)
-    if taskFn == nil or delayMs == nil or type(taskFn) ~= "function" then
+    if taskFn == nil or type(delayMs) ~= "number" or type(taskFn) ~= "function" then
         error("Delayed tasks need taskFn and delay")
     end
     key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
     local existingTask = M.delayedTasks[key]
     if existingTask then
         existingTask.time = GetCurrentTimeMillis() + delayMs
+        existingTask.taskFn = taskFn
     else
         M.delayedTasks[key] = {
             taskFn = taskFn,
@@ -55,15 +69,18 @@ local function delayTask(taskFn, delayMs, key)
     end
 end
 
+---@param taskFn fun(ctxt: TickContext)
+---@param targetMs integer|number
+---@param key? string|integer
 local function programTask(taskFn, targetMs, key)
-    targetMs = tonumber(targetMs)
-    if taskFn == nil or targetMs == nil or type(taskFn) ~= "function" then
+    if taskFn == nil or type(targetMs) ~= "number" or type(taskFn) ~= "function" then
         error("Programmed tasks need taskFn and target time")
     end
     key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
     local existingTask = M.delayedTasks[key]
     if existingTask then
         existingTask.time = targetMs
+        existingTask.taskFn = taskFn
     else
         M.delayedTasks[key] = {
             taskFn = taskFn,
@@ -72,6 +89,7 @@ local function programTask(taskFn, targetMs, key)
     end
 end
 
+---@param key string
 local function removeTask(key)
     M.tasks[key] = nil
     M.delayedTasks[key] = nil
@@ -91,8 +109,8 @@ local function renderTick(ctxt)
         local key, ctask = data[1], data[2]
         local status, err = pcall(ctask.taskFn, ctxt)
         if not status then
-            LogError(svar("Error executing delayed task {1} :", { key }))
-            PrintObj(err, "Stack trace")
+            LogError(string.var("Error executing delayed task {1} :", { key }))
+            PrintObj(err)
         end
         M.delayedTasks[key] = nil
     end
@@ -101,8 +119,8 @@ local function renderTick(ctxt)
         if ctask.conditionFn(ctxt) then
             local status, err = pcall(ctask.taskFn, ctxt)
             if not status then
-                LogError(svar("Error executing programmed task {1} :", { key }))
-                PrintObj(err, "Stack trace")
+                LogError(string.var("Error executing programmed task {1} :", { key }))
+                PrintObj(err)
             end
             M.tasks[key] = nil
         end
@@ -119,5 +137,4 @@ M.removeTask = removeTask
 
 M.renderTick = renderTick
 
-RegisterBJIManager(M)
 return M

@@ -1,247 +1,145 @@
+---@class ScenarioRestriction
+---@field restrictions string[] list of restrictions
+---@field state boolean should be restricted
+
+---@class BJIManagerRestrictions : BJIManager
 local M = {
-    _name = "BJIRestrictions",
-    TYPES = {
-        Reset = "Reset",
-        ResetRace = "ResetRace",
-        ResetHunter = "ResetHunter",
-        ResetHunted = "ResetHunted",
-        ResetSpeed = "ResetSpeed",
-        ResetDerby = "ResetDerby",
-        ResetBusMission = "ResetBusMission",
-        ResetTag = "ResetTag",
-        Delivery = "Delivery",
-        NodeGrabber = "NodeGrabber",
-        Console = "Console",
-        Editor = "Editor",
+    _name = "Restrictions",
+
+    STATE = {
+        RESTRICTED = true,
+        ALLOWED = false,
     },
-    Tags = {
-        Reset = "BJIReset",
-        ResetRace = "BJIResetRace",
-        ResetHunter = "BJIResetHunter",
-        ResetHunted = "BJIResetHunted",
-        ResetSpeed = "BJIResetSpeed",
-        ResetDerby = "BJIResetDerby",
-        ResetBusMission = "BJIResetBusMission",
-        ResetTag = "BJIResetTag",
-        Delivery = "BJIDelivery",
-        NodeGrabber = "BJINodeGrabber",
-        Console = "BJIConsole",
-        Editor = "BJIEditor",
+
+    RESET = {
+        TELEPORT = {
+            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road"
+        },
+        HEAVY_RELOAD = {
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+        },
+        ALL = {
+            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road",
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt"
+        },
+        ALL_BUT_LOADHOME = { -- only load home allowed
+            "saveHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint", "recover_to_last_road",
+            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt"
+        },
     },
-    Restrictions = {
-        Reset = {
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-        },
-        ResetRace = {
-            --"recover_vehicle", -- only recover allowed in race
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetHunter = {
-            --"recover_vehicle", -- only recover allowed for hunters
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetHunted = {
-            "recover_vehicle",
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetSpeed = {
-            "recover_vehicle",
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetDerby = {
-            --"recover_vehicle", -- only recover allowed in derby, with lives >= 1
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetBusMission = {
-            --"recover_vehicle", -- only recover allowed in bus mission
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        ResetTag = {
-            --"recover_vehicle", -- only recover allowed in tag game
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        Delivery = {
-            --"recover_vehicle", -- only recover allowed in delivery
-            "reset_physics",
-            "reset_all_physics",
-            "recover_vehicle_alt",
-            "recover_to_last_road",
-            "reload_vehicle",
-            "reload_all_vehicles",
-            "loadHome",
-            "saveHome",
-            "dropPlayerAtCamera",
-            "dropPlayerAtCameraNoReset",
-            "goto_checkpoint",
-            "nodegrabberRender",
-        },
-        NodeGrabber = {
-            "nodegrabberRender",
-        },
-        Console = {
+    CEN = {
+        CONSOLE = {
             "toggleConsoleNG",
         },
-        Editor = {
-            "editorToggle",
-            "editorSafeModeToggle",
-            "objectEditorToggle",
+        EDITOR = {
+            "editorToggle", "editorSafeModeToggle", "objectEditorToggle",
+        },
+        NODEGRABBER = {
+            "nodegrabberRender",
         },
     },
-    states = {}
+    OTHER = {
+        VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
+        CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7", "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down", "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right", "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next", "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs", "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
+        FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
+        BIG_MAP = { "toggleBigMap" },
+    },
+    _SCENARIO_DRIVEN = {
+        VEHICLE_SELECTOR = { "vehicle_selector" },
+        VEHICLE_PARTS_SELECTOR = { "parts_selector", "vehicledebugMenu" },
+        AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
+        WALKING = { "toggleWalkingMode" },
+    },
+
+    _tag = "BeamjoyRestrictions",
+    _restrictions = Table({ "pause", "toggleTrackBuilder" }),
 }
-for k in pairs(M.TYPES) do
-    local tag = M.Tags[k]
-    M.states[tag] = false
 
-    local restrictions = M.Restrictions[k]
-    extensions.core_input_actionFilter.setGroup(tag, restrictions)
-    extensions.core_input_actionFilter.addAction(0, tag, M.states[tag])
+--- Applies reset restrictions and removes not specified
+---@param resets string[]
+local function updateResets(resets)
+    M._restrictions = M._restrictions
+        :filter(function(r) return not table.includes(M.RESET.ALL, r) end)
+        :addAll(resets, true)
 end
 
-local function apply(type, state)
-    if not M.TYPES[type] then
-        LogError(svar("Invalid restriction type {1}", { type }))
-        return
-    end
-
-    local tag = M.Tags[type]
-    M.states[tag] = state
-    extensions.core_input_actionFilter.addAction(0, tag, M.states[tag])
+---@param cen string[]
+local function updateCEN(cen)
+    M._restrictions = M._restrictions
+        :filter(function(r)
+            return not table.any(M.CEN,
+                function(cenRestrictions) return table.includes(cenRestrictions, r) end)
+        end)
+        :addAll(cen)
 end
 
-local function applySpecific(tag, restrictions, state)
-    if state then
-        -- try enabling restrictions
-        if M.states[tag] == nil then
-            -- if not exists, creating group
-            extensions.core_input_actionFilter.setGroup(tag, restrictions)
+---@param restr ScenarioRestriction[]
+local function update(restr)
+    ---@param rest ScenarioRestriction
+    Table(restr):forEach(function(rest)
+        if not rest.state then
+            M._restrictions = Table(rest.restrictions):reduce(function(acc, r)
+                if acc:includes(r) then
+                    acc:remove(M._restrictions:indexOf(r))
+                end
+                return acc
+            end, M._restrictions)
+            Table(rest.restrictions):forEach(function(r)
+                M._restrictions = M._restrictions:filter(function(r2) return r2 ~= r end)
+            end)
+        elseif rest.state then
+            M._restrictions:addAll(rest.restrictions, true)
         end
-        extensions.core_input_actionFilter.addAction(0, tag, state)
-    elseif M.states[tag] then
-        -- if trying to disable and existing
-        extensions.core_input_actionFilter.addAction(0, tag, state)
-    else
-        LogError(svar("Invalid restriction \"{1}\"", { tag }), M._name)
+    end)
+end
+
+---@return tablelib<string>
+local function getCurrentResets()
+    return M._restrictions:filter(function(el) return table.includes(M.RESET.ALL, el) end)
+end
+
+---@param restrictions tablelib<string>|string[]
+---@return boolean
+local function getState(restrictions)
+    return Table(restrictions):all(function(r)
+        return table.includes(M._restrictions, r)
+    end)
+end
+
+local function slowTick()
+    update(BJI.Managers.Scenario.getRestrictions())
+end
+
+local previous = Table()
+---@param ctxt TickContext
+local function renderTick(ctxt)
+    if not previous:compare(M._restrictions) then
+        M._restrictions:sort()
+        extensions.core_input_actionFilter.addAction(0, M._tag, false)
+        extensions.core_input_actionFilter.setGroup(M._tag, M._restrictions)
+        extensions.core_input_actionFilter.addAction(0, M._tag, true)
+        previous = M._restrictions:clone()
     end
 end
 
-local function getState(type)
-    if not M.TYPES[type] then
-        LogError(svar("Invalid restriction type {1}", { type }))
-        return
-    end
+local function onLoad()
+    extensions.core_input_actionFilter.setGroup(M._tag, {})
+    extensions.core_input_actionFilter.addAction(0, M._tag, false)
 
-    local tag = M.Tags[type]
-    return M.states[tag]
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick)
 end
 
-local function updateCEN()
-    -- restricted and not admin+
-    local consoleRestriction = not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
-        not BJIContext.BJC.CEN.Console
-    M.apply(M.TYPES.Console, consoleRestriction)
-
-    local editorRestriction = not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
-        not BJIContext.BJC.CEN.Editor
-    M.apply(M.TYPES.Editor, editorRestriction)
-
-    local nodeGrabberRestriction = not BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.ADMIN) and
-        not BJIContext.BJC.CEN.NodeGrabber
-    M.apply(M.TYPES.NodeGrabber, nodeGrabberRestriction)
-end
-
-M.apply = apply
-M.applySpecific = applySpecific
-M.getState = getState
+M.updateResets = updateResets
 M.updateCEN = updateCEN
+M.update = update
+M.getCurrentResets = getCurrentResets
+M.getState = getState
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+M.renderTick = renderTick
+
 return M

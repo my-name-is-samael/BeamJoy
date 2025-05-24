@@ -5,7 +5,7 @@ function ctrl.mute(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.MUTE) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.toggleMute(ctxt.senderID, targetName, reason)
+    BJCPlayers.toggleMute(ctxt, targetName, reason)
 end
 
 --[[
@@ -97,7 +97,7 @@ function ctrl.deleteVehicle(ctxt)
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.DELETE_VEHICLE) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.deleteVehicle(ctxt.senderID, targetID, gameVehID)
+    BJCPlayers.deleteVehicle(ctxt, targetID, gameVehID)
 end
 
 function ctrl.whitelist(ctxt)

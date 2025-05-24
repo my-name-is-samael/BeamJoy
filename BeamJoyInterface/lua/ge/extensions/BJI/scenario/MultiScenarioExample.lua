@@ -1,4 +1,10 @@
-local M = {}
+---@class BJIScenarioMultiExample : BJIScenario
+local S = {
+    _name = "MultiExample",
+    _key = "MULTI_EXAMPLE",
+    _isSolo = false,
+    _skip = true,
+}
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
@@ -7,6 +13,20 @@ end
 
 -- load hook
 local function onLoad(ctxt)
+    -- declare restrictions
+    BJI.Managers.Restrictions.update({
+        {
+            restrictions = Table({
+                BJI.Managers.Restrictions.RESET.TELEPORT,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            }):flat(),
+            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+        },
+        {
+            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            state = BJI.Managers.Restrictions.STATE.ALLOWED,
+        }
+    })
 end
 
 -- player vehicle spawn hook
@@ -65,10 +85,6 @@ end
 local function canSpawnAI()
 end
 
--- can player select vehicle
-local function canSelectVehicle()
-end
-
 -- can player spawn new vehicle
 local function canSpawnNewVehicle()
 end
@@ -85,10 +101,6 @@ end
 local function canDeleteOtherVehicles()
 end
 
--- can player edit vehicle
-local function canEditVehicle()
-end
-
 -- vehicle model list getter
 local function getModelList()
 end
@@ -98,7 +110,7 @@ local function doShowNametag(vehData)
 end
 
 local function getCollisionsType(ctxt)
-    return BJICollisions.TYPES.GHOSTS
+    return BJI.Managers.Collisions.TYPES.GHOSTS
 end
 
 -- player list contextual actions getter
@@ -109,46 +121,63 @@ end
 local function renderTick(ctxt)
 end
 
+-- max 4x/sec tick
+local function fastTick(ctxt)
+end
+
 -- each second tick hook
 local function slowTick(ctxt)
 end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
+    -- rollback restrictions
+    BJI.Managers.Restrictions.update({
+        {
+            restrictions = Table({
+                BJI.Managers.Restrictions.RESET.TELEPORT,
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            }):flat(),
+            state = false, -- forbidden bindings
+        },
+        {
+            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            state = true, -- allowed bindings
+        }
+    })
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onDropPlayerAtCamera = onDropPlayerAtCamera
-M.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
-M.onVehicleDestroyed = onVehicleDestroyed
-M.updateVehicles = updateVehicles
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.onGarageRepair = onGarageRepair
-M.tryTeleportToPlayer = tryTeleportToPlayer
-M.tryTeleportToPos = tryTeleportToPos
-M.tryFocus = tryFocus
-M.canSpawnAI = canSpawnAI
-M.canSelectVehicle = canSelectVehicle
-M.canSpawnNewVehicle = canSpawnNewVehicle
-M.canReplaceVehicle = canReplaceVehicle
-M.canDeleteVehicle = canDeleteVehicle
-M.canDeleteOtherVehicles = canDeleteOtherVehicles
-M.canEditVehicle = canEditVehicle
-M.getModelList = getModelList
-M.doShowNametag = doShowNametag
-M.getCollisionsType = getCollisionsType
+S.onVehicleSpawned = onVehicleSpawned
+S.onDropPlayerAtCamera = onDropPlayerAtCamera
+S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleSwitched = onVehicleSwitched
+S.onVehicleDestroyed = onVehicleDestroyed
+S.updateVehicles = updateVehicles
+S.canRefuelAtStation = canRefuelAtStation
+S.canRepairAtGarage = canRepairAtGarage
+S.onGarageRepair = onGarageRepair
+S.tryTeleportToPlayer = tryTeleportToPlayer
+S.tryTeleportToPos = tryTeleportToPos
+S.tryFocus = tryFocus
+S.canSpawnAI = canSpawnAI
+S.canSpawnNewVehicle = canSpawnNewVehicle
+S.canReplaceVehicle = canReplaceVehicle
+S.canDeleteVehicle = canDeleteVehicle
+S.canDeleteOtherVehicles = canDeleteOtherVehicles
+S.getModelList = getModelList
+S.doShowNametag = doShowNametag
+S.getCollisionsType = getCollisionsType
 
-M.getPlayerListActions = getPlayerListActions
+S.getPlayerListActions = getPlayerListActions
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.renderTick = renderTick
+S.fastTick = fastTick
+S.slowTick = slowTick
 
-M.onUnload = onUnload
+S.onUnload = onUnload
 
-return M
+return S

@@ -1,5 +1,6 @@
 local M = {
-    participants = {},
+    participants = Table(),
+    ---@type BJIPositionRotation?
     target = nil,
 }
 
@@ -7,8 +8,8 @@ local function initTarget(pos)
     local targets = {}
     for _, delivery in pairs(BJCScenario.Deliveries) do
         table.insert(targets, {
-            target = tdeepcopy(delivery),
-            distance = GetHorizontalDistance(pos, delivery.pos),
+            target = table.deepcopy(delivery),
+            distance = math.horizontalDistance(pos, delivery.pos),
         })
     end
 
@@ -21,7 +22,7 @@ local function initTarget(pos)
             table.remove(targets, threhsholdPos)
         end
     end
-    M.target = trandom(targets).target
+    M.target = table.random(targets).target
 end
 
 local function join(playerID, gameVehID, pos)
@@ -34,7 +35,7 @@ local function join(playerID, gameVehID, pos)
     end
 
     local isStarting = false
-    if tlength(M.participants) == 0 then
+    if M.participants:length() == 0 then
         initTarget(pos)
         isStarting = true
     end
@@ -45,6 +46,10 @@ local function join(playerID, gameVehID, pos)
         nextTargetReward = isStarting,
         reached = false,
     }
+    BJCChat.sendChatEvent("chat.events.gamemodeJoin", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
@@ -60,18 +65,16 @@ local function resetted(playerID)
 end
 
 local function checkNextTarget()
-    if tlength(M.participants) == 0 then
+    if M.participants:length() == 0 then
         return
     end
-    for _, playerData in pairs(M.participants) do
-        if not playerData.reached then
-            return
-        end
+    if not M.participants:every(function(p) return p.reached end) then
+        return
     end
 
     -- all participants reached target
     initTarget(M.target.pos)
-    for playerID, playerData in pairs(M.participants) do
+    M.participants:forEach(function(playerData, playerID)
         playerData.reached = false
         if playerData.nextTargetReward then
             local reward = BJCConfig.Data.Reputation.DeliveryPackageReward +
@@ -82,7 +85,7 @@ local function checkNextTarget()
             playerData.streak = playerData.streak + 1
         end
         playerData.nextTargetReward = true
-    end
+    end)
 end
 
 local function reached(playerID)
@@ -96,7 +99,7 @@ local function reached(playerID)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 0 then
+    if M.participants:length() == 0 then
         M.target = nil
     end
 end
@@ -108,6 +111,10 @@ local function leave(playerID)
 
     M.participants[playerID] = nil
     checkEnd()
+    BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
@@ -115,7 +122,7 @@ local function onPlayerDisconnect(playerID)
     if M.participants[playerID] then
         M.participants[playerID] = nil
         checkEnd()
-        if tlength(M.participants) > 0 then
+        if M.participants:length() > 0 then
             checkNextTarget()
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
@@ -123,8 +130,8 @@ local function onPlayerDisconnect(playerID)
 end
 
 local function stop()
-    if tlength(M.participants) > 0 then
-        M.participants = {}
+    if M.participants:length() > 0 then
+        M.participants = Table()
         M.target = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
     end
@@ -149,12 +156,11 @@ M.resetted = resetted
 M.reached = reached
 M.leave = leave
 
-M.onPlayerDisconnect = onPlayerDisconnect
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
 
 M.stop = stop
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-RegisterBJCManager(M)
 return M
