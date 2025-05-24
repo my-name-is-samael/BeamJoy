@@ -39,11 +39,14 @@ BJI = {
     Physics = {
         physmult = 1,
     },
+
+    ---@type fun(ctxt: TickContext)|table|string|number|boolean|nil
+    DEBUG = nil,
 }
 BJI.Utils.ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
 BJI.Utils.Common = require("ge/extensions/utils/Common")
 BJI.Utils.Style = require("ge/extensions/BJI/ui/CommonStyle")
-require("ge/extensions/utils/Bench")
+BJI.Bench = require("ge/extensions/utils/Bench")
 
 local function initManagers()
     Table(FS:directoryList("/lua/ge/extensions/BJI/managers"))
@@ -157,3 +160,8 @@ return M
 -- be:getSurfaceHeightBelow(vec3)
 
 -- if stuck in loading screen during disconnect => core_gamestate.requestExitLoadingScreen("serverConnection")
+
+--- Game functions we cannot hook onto (guess we are unlucky) :
+--- core_repository.requestMyMods (on open mods menu > tab my mods)
+--- core_vehicle_partmgmt.savedefault (on save default config)
+--- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
