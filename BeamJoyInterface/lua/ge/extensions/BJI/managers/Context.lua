@@ -44,7 +44,6 @@ local M = {
     },
 
     WorldReadyState = 0,
-    WorldCache = {},
     VehiclePristineThreshold = 100,
 
     UI = {

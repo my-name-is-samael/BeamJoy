@@ -64,6 +64,16 @@ local M = {
         tempCurveMidnight = -15,
         tempCurveDawn = 12,
     },
+    cachedWorldObjects = {
+        ---@type table?
+        LevelInfo = nil,
+        ---@type table?
+        ScatterSky = nil,
+        ---@type table?
+        CloudLayer = nil,
+        ---@type table?
+        Precipitation = nil,
+    },
     init = false,    -- true if env is applied at least once after joining
 
     ToDEdit = false, -- flag when editing ToD in env configurator window
@@ -73,37 +83,34 @@ local M = {
     dawnLimits = { .75, .755 },
 }
 
-local function _getObjectWithCache(category)
-    if BJI.Managers.Context.WorldCache[category] then
-        return scenetree.findObjectById(BJI.Managers.Context.WorldCache[category])
-    end
-    local names = scenetree.findClassObjects(category)
-    if names and table.length(names) > 0 then
-        for _, name in pairs(names) do
-            local obj = scenetree.findObject(name)
-            if obj then
-                BJI.Managers.Context.WorldCache[category] = obj:getID()
-                return obj
+local function cacheWorldObjects()
+    Table({ "LevelInfo", "ScatterSky", "CloudLayer", "Precipitation" })
+        :forEach(function(k)
+            local names = scenetree.findClassObjects(k)
+            if names and table.length(names) > 0 then
+                for _, name in pairs(names) do
+                    local obj = scenetree.findObject(name)
+                    if obj then
+                        M.cachedWorldObjects[k] = obj
+                    end
+                end
             end
-        end
-    end
+        end)
 end
 
 --- Fog color needs to be applied after core_env update
 local function applyFogColor()
     local newFogColor = Point4F(M.Data.fogColor[1],
         M.Data.fogColor[2], M.Data.fogColor[3], 1)
-    local levelInfo = _getObjectWithCache("LevelInfo")
-    if levelInfo then
-        levelInfo.visibleDistance = M.Data.visibleDistance
-        levelInfo.fogColor = newFogColor
-        levelInfo:postApply()
+    if M.cachedWorldObjects.LevelInfo then
+        M.cachedWorldObjects.LevelInfo.visibleDistance = M.Data.visibleDistance
+        M.cachedWorldObjects.LevelInfo.fogColor = newFogColor
+        M.cachedWorldObjects.LevelInfo:postApply()
     end
 
-    local scatterSky = _getObjectWithCache("ScatterSky")
-    if scatterSky then
-        scatterSky.fogScale = newFogColor
-        scatterSky:postApply()
+    if M.cachedWorldObjects.ScatterSky then
+        M.cachedWorldObjects.ScatterSky.fogScale = newFogColor
+        M.cachedWorldObjects.ScatterSky:postApply()
     end
 end
 
@@ -130,27 +137,28 @@ local function tryApplyTimeFromServer(ToD)
 end
 
 local function _tryApplyDayNightSunValues()
-    local scatterSky = _getObjectWithCache("ScatterSky")
     local ToD = core_environment.getTimeOfDay()
-    if not scatterSky or not ToD then
+    if not M.cachedWorldObjects.ScatterSky or not ToD then
         return
     end
     if ToD.time > M.duskLimits[1] and ToD.time <= M.duskLimits[2] then
         -- dusk
-        scatterSky.brightness = math.scale(ToD.time, M.duskLimits[1], M.duskLimits[2], M.Data.skyDay.brightness,
+        M.cachedWorldObjects.ScatterSky.brightness = math.scale(ToD.time, M.duskLimits[1], M.duskLimits[2],
+            M.Data.skyDay.brightness,
             M.Data.skyNight.brightness)
     elseif ToD.time > M.duskLimits[2] and ToD.time <= M.dawnLimits[1] then
         -- night
-        scatterSky.brightness = M.Data.skyNight.brightness
-        scatterSky.moonAzimuth = (M.Data.skyNight.moonAzimuth +
+        M.cachedWorldObjects.ScatterSky.brightness = M.Data.skyNight.brightness
+        M.cachedWorldObjects.ScatterSky.moonAzimuth = (M.Data.skyNight.moonAzimuth +
             math.scale(ToD.time, M.duskLimits[2], M.dawnLimits[1], -45, 45) + 360) % 360
     elseif ToD.time > M.dawnLimits[1] and ToD.time <= M.dawnLimits[2] then
         -- dawn
-        scatterSky.brightness = math.scale(ToD.time, M.dawnLimits[1], M.dawnLimits[2], M.Data.skyNight.brightness,
+        M.cachedWorldObjects.ScatterSky.brightness = math.scale(ToD.time, M.dawnLimits[1], M.dawnLimits[2],
+            M.Data.skyNight.brightness,
             M.Data.skyDay.brightness)
     else
         -- day
-        scatterSky.brightness = M.Data.skyDay.brightness
+        M.cachedWorldObjects.ScatterSky.brightness = M.Data.skyDay.brightness
     end
 end
 
@@ -170,60 +178,89 @@ local function _tryApplySun()
             end
         end
 
-        local scatterSky = _getObjectWithCache("ScatterSky")
-        if scatterSky then
-            scatterSky.shadowDistance = M.Data.shadowDistance
-            scatterSky.shadowSoftness = M.Data.shadowSoftness
-            scatterSky.numSplits = M.Data.shadowSplits
-            scatterSky.texSize = M.Data.shadowTexSize
-            scatterSky.logWeight = M.Data.shadowLogWeight
-            scatterSky.sunSize = M.Data.skyDay.sunSize
-            scatterSky.skyBrightness = M.Data.skyDay.skyBrightness
-            scatterSky.rayleighScattering = M.Data.skyDay.rayleighScattering
-            scatterSky.exposure = M.Data.skyDay.exposure
-            scatterSky.flareScale = M.Data.skyDay.flareScale
-            scatterSky.occlusionScale = M.Data.skyDay.occlusionScale
-            scatterSky.moonElevation = M.Data.skyNight.moonElevation
-            scatterSky.moonScale = M.Data.skyNight.moonScale
-            scatterSky:postApply()
+        if M.cachedWorldObjects.ScatterSky then
+            local core = { M.cachedWorldObjects.ScatterSky.shadowDistance, M.cachedWorldObjects.ScatterSky
+                .shadowSoftness, M.cachedWorldObjects.ScatterSky.numSplits,
+                M.cachedWorldObjects.ScatterSky.texSize, M.cachedWorldObjects.ScatterSky.logWeight, M.cachedWorldObjects
+                .ScatterSky.sunSize, M.cachedWorldObjects.ScatterSky.skyBrightness,
+                M.cachedWorldObjects.ScatterSky.rayleighScattering, M.cachedWorldObjects.ScatterSky.exposure, M
+                .cachedWorldObjects.ScatterSky.flareScale,
+                M.cachedWorldObjects.ScatterSky.occlusionScale, M.cachedWorldObjects.ScatterSky.moonElevation, M
+                .cachedWorldObjects.ScatterSky.moonScale }
+            local cached = { M.Data.shadowDistance, M.Data.shadowSoftness, M.Data.shadowSplits, M.Data.shadowTexSize,
+                M.Data.shadowLogWeight, M.Data.skyDay.sunSize, M.Data.skyDay.skyBrightness,
+                M.Data.skyDay.rayleighScattering, M.Data.skyDay.exposure, M.Data.skyDay.flareScale,
+                M.Data.skyDay.occlusionScale, M.Data.skyNight.moonElevation, M.Data.skyNight.moonScale }
+            if not table.compare(core, cached) then
+                M.cachedWorldObjects.ScatterSky.shadowDistance = M.Data.shadowDistance
+                M.cachedWorldObjects.ScatterSky.shadowSoftness = M.Data.shadowSoftness
+                M.cachedWorldObjects.ScatterSky.numSplits = M.Data.shadowSplits
+                M.cachedWorldObjects.ScatterSky.texSize = M.Data.shadowTexSize
+                M.cachedWorldObjects.ScatterSky.logWeight = M.Data.shadowLogWeight
+                M.cachedWorldObjects.ScatterSky.sunSize = M.Data.skyDay.sunSize
+                M.cachedWorldObjects.ScatterSky.skyBrightness = M.Data.skyDay.skyBrightness
+                M.cachedWorldObjects.ScatterSky.rayleighScattering = M.Data.skyDay.rayleighScattering
+                M.cachedWorldObjects.ScatterSky.exposure = M.Data.skyDay.exposure
+                M.cachedWorldObjects.ScatterSky.flareScale = M.Data.skyDay.flareScale
+                M.cachedWorldObjects.ScatterSky.occlusionScale = M.Data.skyDay.occlusionScale
+                M.cachedWorldObjects.ScatterSky.moonElevation = M.Data.skyNight.moonElevation
+                M.cachedWorldObjects.ScatterSky.moonScale = M.Data.skyNight.moonScale
+                M.cachedWorldObjects.ScatterSky:postApply()
+            end
         end
 
-        local levelInfo = _getObjectWithCache("LevelInfo")
-        if levelInfo then
-            levelInfo.visibleDistance = M.Data.visibleDistance
-            levelInfo:postApply()
+        if M.cachedWorldObjects.LevelInfo and M.cachedWorldObjects.LevelInfo.visibleDistance ~= M.Data.visibleDistance then
+            M.cachedWorldObjects.LevelInfo.visibleDistance = M.Data.visibleDistance
+            M.cachedWorldObjects.LevelInfo:postApply()
         end
     end
 end
 
 local function _tryApplyWeather()
     if M.Data.controlWeather then
-        core_environment.setFogDensity(M.Data.fogDensity)
-        core_environment.setFogDensityOffset(M.Data.fogDensityOffset)
-        core_environment.setFogAtmosphereHeight(M.Data.fogAtmosphereHeight)
-        applyFogColor()
-
-        local cloudLayer = _getObjectWithCache("CloudLayer")
-        if cloudLayer then
-            local id = cloudLayer:getId()
-            core_environment.setCloudHeightByID(id, M.Data.cloudHeight)
-            core_environment.setCloudHeightByID(id + 1, M.Data.cloudHeightOne)
-            core_environment.setCloudCoverByID(id, M.Data.cloudCover)
-            core_environment.setCloudCoverByID(id + 1, M.Data.cloudCoverOne)
-            core_environment.setCloudWindByID(id, M.Data.cloudSpeed)
-            core_environment.setCloudWindByID(id + 1, M.Data.cloudSpeedOne)
-            core_environment.setCloudExposureByID(id, M.Data.cloudExposure)
-            core_environment.setCloudExposureByID(id + 1, M.Data.cloudExposureOne)
+        local core = { core_environment.getFogDensity(), core_environment.getFogDensityOffset(), core_environment
+            .getFogAtmosphereHeight() }
+        local cached = { M.Data.fogDensity, M.Data.fogDensityOffset, M.Data.fogAtmosphereHeight }
+        if not table.compare(core, cached) then
+            core_environment.setFogDensity(M.Data.fogDensity)
+            core_environment.setFogDensityOffset(M.Data.fogDensityOffset)
+            core_environment.setFogAtmosphereHeight(M.Data.fogAtmosphereHeight)
+            applyFogColor()
         end
 
-        local precipitation = _getObjectWithCache("Precipitation")
-        if precipitation then
-            precipitation.numDrops = M.Data.rainDrops
-            precipitation.dropSize = M.Data.dropSize
-            precipitation.minSpeed = M.Data.dropMinSpeed
-            precipitation.maxSpeed = M.Data.dropMaxSpeed
-            if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
-                precipitation.dataBlock = scenetree.findObject(M.Data.precipType)
+        if M.cachedWorldObjects.CloudLayer then
+            local id = M.cachedWorldObjects.CloudLayer:getId()
+            core = { core_environment.getCloudHeightByID(id), core_environment.getCloudHeightByID(id + 1),
+                core_environment.getCloudCoverByID(id), core_environment.getCloudCoverByID(id + 1),
+                core_environment.getCloudWindByID(id), core_environment.getCloudWindByID(id + 1),
+                core_environment.getCloudExposureByID(id), core_environment.getCloudExposureByID(id + 1) }
+            cached = { M.Data.cloudHeight, M.Data.cloudHeightOne, M.Data.cloudCover, M.Data.cloudCoverOne,
+                M.Data.cloudSpeed, M.Data.cloudSpeedOne, M.Data.cloudExposure, M.Data.cloudExposureOne }
+            if not table.compare(core, cached) then
+                core_environment.setCloudHeightByID(id, M.Data.cloudHeight)
+                core_environment.setCloudHeightByID(id + 1, M.Data.cloudHeightOne)
+                core_environment.setCloudCoverByID(id, M.Data.cloudCover)
+                core_environment.setCloudCoverByID(id + 1, M.Data.cloudCoverOne)
+                core_environment.setCloudWindByID(id, M.Data.cloudSpeed)
+                core_environment.setCloudWindByID(id + 1, M.Data.cloudSpeedOne)
+                core_environment.setCloudExposureByID(id, M.Data.cloudExposure)
+                core_environment.setCloudExposureByID(id + 1, M.Data.cloudExposureOne)
+            end
+        end
+
+        if M.cachedWorldObjects.Precipitation then
+            core = { M.cachedWorldObjects.Precipitation.numDrops, M.cachedWorldObjects.Precipitation.dropSize, M
+                .cachedWorldObjects.Precipitation.minSpeed, M.cachedWorldObjects.Precipitation.maxSpeed }
+            cached = { M.Data.rainDrops, M.Data.dropSize, M.Data.dropMinSpeed, M.Data.dropMaxSpeed }
+            local compared = table.compare(core, cached)
+            if not compared then
+                M.cachedWorldObjects.Precipitation.numDrops = M.Data.rainDrops
+                M.cachedWorldObjects.Precipitation.dropSize = M.Data.dropSize
+                M.cachedWorldObjects.Precipitation.minSpeed = M.Data.dropMinSpeed
+                M.cachedWorldObjects.Precipitation.maxSpeed = M.Data.dropMaxSpeed
+                if table.includes(M.PRECIP_TYPES, M.Data.precipType) then
+                    M.cachedWorldObjects.Precipitation.dataBlock = scenetree.findObject(M.Data.precipType)
+                end
             end
         end
     end
@@ -231,9 +268,8 @@ end
 
 local function _tryApplyTemperature()
     if M.Data.useTempCurve then
-        local levelInfo = _getObjectWithCache("LevelInfo")
-        if levelInfo then
-            levelInfo:setTemperatureCurveC({
+        if M.cachedWorldObjects.LevelInfo then
+            M.cachedWorldObjects.LevelInfo:setTemperatureCurveC({
                 { 0,    M.Data.tempCurveNoon },
                 { 0.25, M.Data.tempCurveDusk },
                 { 0.5,  M.Data.tempCurveMidnight },
@@ -267,7 +303,7 @@ local function forceUpdate()
     _tryApplyDayNightSunValues()
 end
 
-local function slowTick()
+local function slowTick(ctxt)
     if BJI.Managers.Context.WorldReadyState == 2 and
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
         _tryApplyTime()
@@ -378,6 +414,10 @@ local function onLoad()
             })
         end
     end)
+
+    BJI.Managers.Async.task(function()
+        return BJI.Managers.Context.WorldReadyState == 2
+    end, cacheWorldObjects)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
