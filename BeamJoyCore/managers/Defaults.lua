@@ -261,7 +261,7 @@ local function environment()
         timePlay = true,
         dayLength = 1200,
         visibleDistance = 8000,
-        shadowDistance = 1501, -- minimum to prevent shadows from disappearing when you go fast (140kmh+)
+        shadowDistance = 1600, -- minimum to prevent shadows from disappearing when you go fast (350kmh+)
         shadowSoftness = .1,
         shadowSplits = 4,
         shadowTexSize = 1024,

@@ -39,6 +39,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
     - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
     - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
+    - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
   - [Roadmap](#roadmap)
@@ -289,7 +290,7 @@ Here the scenarii list players can toggle traffic in:
 
 ![Image](https://github.com/user-attachments/assets/fc667d0e-45e4-4ee4-ac9e-ec9c7d364c84)
 
-Unfortunately, I have no exact solution for now, since I never did experience this myself. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket.](https://github.com/my-name-is-samael/BeamJoy/issues/100).
+Unfortunately, I have done all I can to address and fix all potential causes of this issue. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/100).
 
 ### Can I enable GPS path in races ?
 
@@ -300,6 +301,16 @@ If your race layout isn't intuitive, the best approach is to improve your level 
 ### Can I completely disable the "ghost mode" when somebody respawns ?
 
 This is a respawn protection system, and it is a key component of the mod. You can implement it yourself by following the instructions in [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/58), but please note that I cannot be held responsible if other parts of the mod no longer function as intended.
+
+### Shadows are disappearing when I drive fast. What's going on ?
+
+Strangely, this behavior is linked to the shadow distance setting (`Config` > `Environment` > `Sun` tab > `Shadow Distance` slider).<br/>
+If you want to calibrate this setting correctly on your server, I recommend the following steps:
+- Choose a fast vehicle configuration (e.g., the vanilla `Civetta Bolide Top Speed`).
+- Find a location where you can reach maximum speed.
+- Switch to the driver’s first-person camera.
+- Increase your field of view to the maximum (holding `Num 3` by default).
+- Check whether the shadow distance value works well under these conditions.
 
 ## Video tutorials
 
