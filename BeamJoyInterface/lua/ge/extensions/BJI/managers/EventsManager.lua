@@ -108,10 +108,11 @@ local function processSlowTick()
         :map(function(e) return e end)
     local i = 1
     callbacks:forEach(function(fn, k)
-        BJI.Managers.Async.delayTask(function(ctxt)
-            fn(BJI.Managers.Tick.getContext(true))
+        BJI.Managers.Async.delayTask(function()
+            local ctxt = BJI.Managers.Tick.getContext(true)
+            fn(ctxt)
             if BJI.Bench.STATE then
-                BJI.Bench.add(tostring(k), M.EVENTS.SLOW_TICK, GetCurrentTimeMillis() - ctxt.now)
+                BJI.Bench.add(tostring(k), "slow_tick", GetCurrentTimeMillis() - ctxt.now)
             end
         end, i / callbacks:length() * 1000)
         i = i + 1
@@ -157,7 +158,7 @@ local function renderTick(ctxt)
                 }), M._name)
             end
             local isNg = el.event:startswith("ng")
-            M.listeners[el.event]:forEach(function(callback)
+            M.listeners[el.event]:forEach(function(callback, k)
                 local data = table.clone(el.data) or {}
                 local ok, err
                 if isNg then
@@ -167,6 +168,7 @@ local function renderTick(ctxt)
                     data[1]._event = el.event
                     ok, err = pcall(callback, ctxt, data[1])
                 end
+                BJI.Bench.add(tostring(k), el.event, GetCurrentTimeMillis() - ctxt.now)
                 if not ok then
                     LogError(string.var("Error firing event {1} :", { el.event }))
                     dump(err)
