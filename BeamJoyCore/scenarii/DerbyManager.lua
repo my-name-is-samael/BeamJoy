@@ -32,6 +32,8 @@ local M = {
     game = {
         startTime = nil,
     },
+
+    countInvalidVehicles = {}, -- count to detect invalid setting config
 }
 
 local function getParticipantPosition(playerID)
@@ -78,6 +80,7 @@ end
 local function startDerby()
     cancelPreparationTimeout()
     M.game.startTime = GetCurrentTime() + BJCConfig.Data.Derby.StartCountdown
+    M.countInvalidVehicles = {}
     M.state = M.STATES.GAME
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
@@ -321,6 +324,19 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
                     BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts) then
                     found = true
                     break
+                end
+            end
+            if not found then
+                M.countInvalidVehicles[playerID] = true
+                if table.length(M.countInvalidVehicles) > 1 then
+                    -- 2 players tried to spawn an invalid vehicle => surely the config setting is broken
+                    BJCAsync.delayTask(function()
+                        BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
+                            gamemode = "chat.events.gamemodes.derby",
+                            reason = "chat.events.gamemodeStopReasons.invalidVehConfig",
+                        })
+                        stopDerby()
+                    end, 0)
                 end
             end
             return found

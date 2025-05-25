@@ -51,7 +51,7 @@ local M = {
         eliminated = {}, -- list of eliminated players (leaved, disconnected, dnf, etc)
     },
 
-    countInvalidVehicles = 0, -- count to detect invalid setting config
+    countInvalidVehicles = {}, -- count to detect invalid setting config
 }
 
 local function cancelGridTimeout()
@@ -129,7 +129,7 @@ local function startRace()
         finished = {},
         eliminated = {},
     }
-    M.countInvalidVehicles = 0
+    M.countInvalidVehicles = {}
     M.state = M.STATES.RACE
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
@@ -559,8 +559,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
                     BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.settings.config.parts)
                 if not sameConfig then
                     onWrongVehicleAtGrid()
-                    M.countInvalidVehicles = M.countInvalidVehicles + 1
-                    if M.countInvalidVehicles > 1 then
+                    M.countInvalidVehicles[playerID] = true
+                    if table.length(M.countInvalidVehicles) > 1 then
                         -- 2 players tried to spawn an invalid vehicle => surely the config setting is broken
                         BJCAsync.delayTask(function()
                             BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
