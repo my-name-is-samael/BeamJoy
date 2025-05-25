@@ -360,10 +360,10 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name .. "Widths"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -375,7 +375,7 @@ local function onLoad()
                 BJI.Managers.Cache.CACHES.PLAYERS }, data.cache) then
             updateCache()
         end
-    end, W.name))
+    end, W.name .. "Cache"))
 
     W.cache.server.broadcasts.langs = Table(BJI.Managers.Lang.Langs)
         :map(function(l)

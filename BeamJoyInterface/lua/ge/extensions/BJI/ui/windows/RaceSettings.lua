@@ -240,13 +240,13 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateWidths()
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateWidths()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateWidths, W.name))
+    }, updateWidths, W.name .. "Widths"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -258,12 +258,12 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCache, W.name))
+    }, updateCache, W.name .. "Cache"))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if data.cache == BJI.Managers.Cache.CACHES.RACES or data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
             updateCache(ctxt)
         end
-    end, W.name))
+    end, W.name .. "Cache"))
 end
 
 local function onUnload()

@@ -87,7 +87,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -95,7 +95,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCache, W.name))
+    }, updateCache, W.name .. "Cache"))
 
     -- autoclose handler
     listeners:insert(BJI.Managers.Events.addListener({
@@ -126,7 +126,7 @@ local function onLoad()
             end
             onClose()
         end
-    end, W.name))
+    end, W.name .. "AutoClose"))
 end
 
 local function onUnload()

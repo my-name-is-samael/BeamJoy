@@ -104,7 +104,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    }, updateLabels, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -116,7 +116,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.BUS_LINES then
             updateCache(ctxt)
         end
-    end, W.name))
+    end, W.name .. "Cache"))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
@@ -126,7 +126,7 @@ local function onLoad()
             not BJI.Managers.Scenario.isFreeroam() then
             onClose()
         end
-    end, W.name))
+    end, W.name .. "AutoClose"))
 end
 
 local function onUnload()

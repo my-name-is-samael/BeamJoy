@@ -306,7 +306,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -322,7 +322,7 @@ local function onLoad()
         if data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCache(ctxt)
         end
-    end, W.name))
+    end, W.name .. "Cache"))
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         function()
@@ -332,7 +332,7 @@ local function onLoad()
                 -- permission loss
                 BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
             end
-        end, W.name))
+        end, W.name .. "AutoLeave"))
 end
 
 local function onUnload()
