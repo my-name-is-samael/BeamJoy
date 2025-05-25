@@ -11,6 +11,10 @@ local M = {
         selfTrailer = "",
         trailer = "",
     },
+
+    cache = {
+        vehTypes = {},
+    },
 }
 
 local function getAlphaByDistance(distance)
@@ -72,75 +76,76 @@ end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
-local function renderSpecs(ctxt, veh)
-    if not settings.getValue("showSpectators", true) or not BJI.Managers.Scenario.doShowNametagsSpecs(veh) then
-        return
-    end
+---@param ownPos vec3
+local function renderSpecs(ctxt, veh, ownPos)
+    if not settings.getValue("showSpectators", true) then return end
+    local scenarioShow, forcedColor, forcedBgColor = BJI.Managers.Scenario.doShowNametagsSpecs(veh)
+    if not scenarioShow then return end
 
-    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
-    if not v then return end
-
-    local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-
-    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
-    local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
+    local tagPos = vec3(veh.position)
     local alpha = getAlphaByDistance(ownPos:distance(tagPos))
 
-    local zOffset = v:getInitialHeight()
+    local zOffset = 0
     if ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID then
-        zOffset = zOffset / 2
+        zOffset = veh.vehicleHeight / 2
     end
-    tagPos.z = tagPos.z + zOffset + .1 -- .1 offset downward for specs
+    tagPos.z = tagPos.z - zOffset - .5 -- half a meter offset downward for specs
 
     Table(BJI.Managers.Context.Players)
         :filter(function(p)
             return p.playerID ~= ctxt.user.playerID and
                 p.playerID ~= veh.ownerID and
-                veh.remoteVehID == p.currentVehicle
+                veh.spectators[p.playerID]
         end)
     ---@param spec BJIPlayer
         :forEach(function(spec)
             local name = BJI.Managers.Context.Players[spec.playerID].tagName
             BJI.Utils.ShapeDrawer.Text(name, tagPos,
-                getNametagColor(alpha, true),
-                getNametagBgColor(alpha, true),
+                forcedColor or getNametagColor(alpha, true),
+                forcedBgColor or getNametagBgColor(alpha, true),
                 false)
         end)
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
-local function renderAI(ctxt, veh)
-    renderSpecs(ctxt, veh)
+---@param ownPos vec3
+local function renderAI(ctxt, veh, ownPos)
+    renderSpecs(ctxt, veh, ownPos)
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
----@param forcedTextColor BJIColor
----@param forcedBgColor BJIColor
-local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
-    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
-    if not v then return end
-
-    local ownVeh = veh.ownerID == ctxt.user.playerID
-    local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
-    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
-    local ownerSpectating = (ownVeh and veh.gameVehicleID or veh.remoteVehID) ==
-        BJI.Managers.Context.Players[veh.ownerID].currentVehicle
-    local ownerTracting = not ownerSpectating and Table(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID))
-        :any(function(vid)
-            local attachedVeh = BJI.Managers.Veh.getVehicleObject(vid)
-            return attachedVeh ~= nil and BJI.Managers.Veh.getType(attachedVeh.jbeam) ~= "Trailer" and
-                veh.ownerID and BJI.Managers.Veh.getVehOwnerID(attachedVeh:getID()) == veh.ownerID
+---@param ownPos vec3
+---@param forcedTextColor? BJIColor
+---@param forcedBgColor? BJIColor
+local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+    local isMyOwnVeh = veh.isLocal
+    local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
+    local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
+    local ownerIsSpectating = veh.spectators[veh.ownerID]
+    local ownerIsTracting = not ownerIsSpectating and
+        Table(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID))
+        :map(function(vid)
+            return BJI.Managers.Veh.getVehicleObject(vid)
+        end)
+        :filter(function(v)
+            if not M.cache.vehTypes[v.jbeam] then
+                M.cache.vehTypes[v.jbeam] = BJI.Managers.Veh.getType(v.jbeam)
+            end
+            return table.includes({ BJI.Managers.Veh.TYPES.CAR, BJI.Managers.Veh.TYPES.TRUCK },
+                M.cache.vehTypes[v.jbeam])
+        end)
+        :any(function(v)
+            return BJI.Managers.Veh.getVehOwnerID(v:getID()) == veh.ownerID
         end)
 
-    if ownVeh then
-        if not ownerTracting then
-            local showDist = not currentVeh or freecaming
+    if isMyOwnVeh then
+        if not ownerIsTracting then
+            local showDist = not isMyCurrentVeh or isFreecaming
             local label = M.labels.selfTrailer
 
-            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
+            local tagPos = vec3(veh.position)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -148,27 +153,24 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
-            local zOffset = v:getInitialHeight()
-            if currentVeh then
-                zOffset = zOffset / 2
+            local zOffset = 0
+            if isMyCurrentVeh then
+                zOffset = veh.vehicleHeight / 2
             end
-            tagPos.z = tagPos.z + zOffset
+            tagPos.z = tagPos.z - zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
-                forcedTextColor or getNametagColor(alpha, false, not currentVeh),
-                forcedBgColor or getNametagBgColor(alpha, false, not currentVeh),
+                forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
+                forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrentVeh),
                 false)
         end
-
-        renderSpecs(ctxt, veh)
-    else
-        if not ownerTracting or ownerSpectating then
-            local showDist = not currentVeh or freecaming
+    elseif BJI.Managers.Context.Players[veh.ownerID] then
+        if not ownerIsTracting or ownerIsSpectating then
+            local showDist = not isMyCurrentVeh or isFreecaming
             local name = BJI.Managers.Context.Players[veh.ownerID].tagName
             local label = M.labels.trailer:var({ playerName = name })
 
-            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
+            local tagPos = vec3(veh.position)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -176,39 +178,36 @@ local function renderTrailer(ctxt, veh, forcedTextColor, forcedBgColor)
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
-            local zOffset = v:getInitialHeight()
-            if currentVeh then
+            local zOffset = veh.vehicleHeight
+            if isMyCurrentVeh then
                 zOffset = zOffset / 2
             end
             tagPos.z = tagPos.z + zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
-                forcedTextColor or getNametagColor(alpha, ownerSpectating, not ownerSpectating),
-                forcedBgColor or getNametagBgColor(alpha, ownerSpectating, not ownerSpectating),
+                forcedTextColor or getNametagColor(alpha, ownerIsSpectating, not ownerIsSpectating),
+                forcedBgColor or getNametagBgColor(alpha, ownerIsSpectating, not ownerIsSpectating),
                 false)
         end
-        renderSpecs(ctxt, veh)
     end
+    renderSpecs(ctxt, veh, ownPos)
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
----@param forcedTextColor BJIColor
----@param forcedBgColor BJIColor
-local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
-    local v = BJI.Managers.Veh.getVehicleObject(veh.gameVehicleID)
-    if not v then return end
+---@param ownPos vec3
+---@param forcedTextColor? BJIColor
+---@param forcedBgColor? BJIColor
+local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+    local isMyOwnVeh = veh.isLocal
+    local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
+    local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
+    local ownerIsDriving = veh.spectators[veh.ownerID]
+    local showSpecs = false
 
-    local ownVeh = veh.ownerID == ctxt.user.playerID
-    local currentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
-    local freecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
-    local ownerDriving = (ownVeh and veh.gameVehicleID or veh.remoteVehID) ==
-        BJI.Managers.Context.Players[veh.ownerID].currentVehicle
-
-    if ownVeh then
-        if not currentVeh or freecaming then
-            local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-            local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
+    if isMyOwnVeh then
+        if not isMyCurrentVeh or isFreecaming then
+            local tagPos = vec3(veh.position)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
 
@@ -217,24 +216,26 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
-            tagPos.z = tagPos.z + v:getInitialHeight()
+            local zOffset = 0
+            if isMyCurrentVeh then
+                zOffset = veh.vehicleHeight / 2
+            end
+            tagPos.z = tagPos.z - zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
-                forcedTextColor or getNametagColor(alpha, false, not currentVeh),
-                forcedBgColor or getNametagBgColor(alpha, false, not currentVeh),
+                forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
+                forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrentVeh),
                 false)
-
-            renderSpecs(ctxt, veh)
+            showSpecs = true
         end
-    else
-        local tagPos = BJI.Managers.Veh.getPositionRotation(v).pos
-        local ownPos = freecaming and BJI.Managers.Cam.getPositionRotation().pos or ctxt.vehPosRot.pos
+    elseif BJI.Managers.Context.Players[veh.ownerID] then
+        local tagPos = vec3(veh.position)
         local distance = ownPos:distance(tagPos)
         local alpha = getAlphaByDistance(distance)
 
-        local showTag = not settings.getValue("shortenNametags", false) and ownerDriving
+        local showTag = not settings.getValue("shortenNametags", false) and ownerIsDriving
         local showDist = settings.getValue("nameTagShowDistance", true) and
-            (not currentVeh or freecaming) and distance > 10
+            (not isMyCurrentVeh or isFreecaming) and distance > 10
 
         local owner = BJI.Managers.Context.Players[veh.ownerID]
         local label = owner.tagName
@@ -253,18 +254,20 @@ local function renderVehicle(ctxt, veh, forcedTextColor, forcedBgColor)
             label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
         end
 
-        local zOffset = v:getInitialHeight()
-        if currentVeh then
-            zOffset = zOffset / 2
+        local zOffset = 0
+        if isMyCurrentVeh then
+            zOffset = veh.vehicleHeight / 2
         end
-        tagPos.z = tagPos.z + zOffset
+        tagPos.z = tagPos.z - zOffset
 
         BJI.Utils.ShapeDrawer.Text(label, tagPos,
-            forcedTextColor or getNametagColor(alpha, false, not ownerDriving),
-            forcedBgColor or getNametagBgColor(alpha, false, not ownerDriving),
+            forcedTextColor or getNametagColor(alpha, false, not ownerIsDriving),
+            forcedBgColor or getNametagBgColor(alpha, false, not ownerIsDriving),
             false)
-
-        renderSpecs(ctxt, veh)
+        showSpecs = true
+    end
+    if showSpecs then
+        renderSpecs(ctxt, veh, ownPos)
     end
 end
 
@@ -287,33 +290,43 @@ local function renderTick(ctxt)
 
     if settings.getValue("hideNameTags", false) then
         return
-    elseif (not BJI.Managers.Context.BJC.Freeroam or not BJI.Managers.Context.BJC.Freeroam.Nametags) and
+    elseif BJI.Managers.Scenario.isFreeroam() and
+        (not BJI.Managers.Context.BJC.Freeroam or not BJI.Managers.Context.BJC.Freeroam.Nametags) and
         not BJI.Managers.Perm.isStaff() then
         return
     end
 
     if M.state then
         -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
-        for _, veh in pairs(BJI.Managers.Veh.getMPVehicles()) do
-            if not veh.isDeleted and veh.isSpawned then
-                local vehType = BJI.Managers.Veh.getType(veh.jbeam)
-                if vehType ~= "Prop" then
-                    local scenarioShow, forcedTextColor, forcedBgColor = BJI.Managers.Scenario.doShowNametag({
-                        gameVehicleID = veh.gameVehicleID,
-                        ownerID = veh.ownerID
-                    })
-                    if scenarioShow then
-                        if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
-                            pcall(renderAI, ctxt, veh)
-                        elseif vehType == "Trailer" then
-                            pcall(renderTrailer, ctxt, veh, forcedTextColor, forcedBgColor)
-                        else
-                            pcall(renderVehicle, ctxt, veh, forcedTextColor, forcedBgColor)
-                        end
+        local ownPos = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE and
+            BJI.Managers.Cam.getPositionRotation().pos or (ctxt.vehPosRot and ctxt.vehPosRot.pos or vec3())
+        Table(BJI.Managers.Veh.getMPVehicles())
+        ---@param veh BJIMPVehicle
+            :filter(function(veh)
+                if veh.isDeleted or not veh.isSpawned then
+                    return false -- invalid veh (not ready/deleted)
+                end
+                if not M.cache.vehTypes[veh.jbeam] then
+                    M.cache.vehTypes[veh.jbeam] = BJI.Managers.Veh.getType(veh.jbeam)
+                end
+                if M.cache.vehTypes[veh.jbeam] == BJI.Managers.Veh.TYPES.PROP then
+                    return false -- prop veh (no nametag)
+                end
+                return true
+            end)
+        ---@param veh BJIMPVehicle
+            :forEach(function(veh)
+                local scenarioShow, forcedTextColor, forcedBgColor = BJI.Managers.Scenario.doShowNametag(veh)
+                if scenarioShow then
+                    if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
+                        renderAI(ctxt, veh, ownPos)
+                    elseif M.cache.vehTypes[veh.jbeam] == BJI.Managers.Veh.TYPES.TRAILER then
+                        renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+                    else
+                        renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                     end
                 end
-            end
-        end
+            end)
     end
 end
 

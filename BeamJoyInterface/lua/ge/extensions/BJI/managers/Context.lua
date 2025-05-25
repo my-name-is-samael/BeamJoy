@@ -330,12 +330,7 @@ local function loadConfig()
     -- bjc data
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.BJC, function(cacheData)
         if cacheData.Freeroam then
-            if not M.BJC.Freeroam then
-                M.BJC.Freeroam = {}
-            end
-            for k, v in pairs(cacheData.Freeroam) do
-                M.BJC.Freeroam[k] = v
-            end
+            M.BJC.Freeroam = cacheData.Freeroam
         end
 
         if cacheData.TempBan then

@@ -46,7 +46,7 @@ local function isGEInit()
     return MPVehicleGE ~= nil
 end
 
----@class BJIMPVehicle
+---@class BJIMPOwnVehicle
 ---@field gameVehicleID integer
 ---@field isDeleted boolean
 ---@field isLocal boolean
@@ -57,15 +57,34 @@ end
 ---@field remoteVehID integer
 ---@field serverVehicleID integer
 ---@field serverVehicleString string format "<ownerID>-<serverVehicleID>"
----@field spectators table<integer, boolean>
+---@field spectators table<integer, true>
+
+---@class BJIMPVehicle : BJIMPOwnVehicle
+---@field position vec3
+---@field rotation quat
+---@field vehicleHeight number
 ---@field protected boolean
 
 ---@return BJIMPVehicle[]
 local function getMPVehicles()
-    local vehs = {}
-    local mpVehs = MPVehicleGE.getVehicles()
-    for _, v in pairs(mpVehs) do
-        table.insert(vehs, {
+    return Table(MPVehicleGE.getVehicles()):map(function(v)
+        local pos = v.position
+        local rot = v.rotation
+        local vehicleHeight = v.vehicleHeight
+        if not pos and v.isSpawned and not v.isDeleted then
+            -- autofix missing posrot data
+            local veh = M.getVehicleObject(v.gameVehicleID)
+            local posRot = M.getPositionRotation(veh)
+            if veh and posRot then
+                pos, rot = posRot.pos, posRot.rot
+                vehicleHeight = veh:getInitialHeight()
+                pos.z = pos.z + vehicleHeight -- preApply vehHeight
+            else
+                pos, rot = vec3(), quat()
+                vehicleHeight = 0
+            end
+        end
+        return {
             gameVehicleID = v.gameVehicleID,
             isDeleted = v.isDeleted,
             isLocal = v.isLocal,
@@ -76,19 +95,25 @@ local function getMPVehicles()
             remoteVehID = v.remoteVehID,
             serverVehicleID = v.serverVehicleID,
             serverVehicleString = v.serverVehicleString,
-            spectators = v.spectators,
-            protected = v.protected == "1"
-        })
-    end
-    return vehs
+            spectators = Table(BJI.Managers.Context.Players)
+                :reduce(function(res, p, pid) -- specs system remake cause a lot of desyncs with default one
+                    if p.currentVehicle == v.gameVehicleID then
+                        res[pid] = true
+                    end
+                    return res
+                end, {}),
+            protected = v.protected == "1",
+            position = pos,
+            rotation = rot,
+            vehicleHeight = vehicleHeight
+        }
+    end):values()
 end
 
----@return BJIMPVehicle[]
+---@return BJIMPOwnVehicle[]
 local function getMPOwnVehicles()
-    local vehs = {}
-    local mpVehs = MPVehicleGE.getOwnMap()
-    for _, v in pairs(mpVehs) do
-        table.insert(vehs, {
+    return Table(MPVehicleGE.getOwnMap()):map(function(v)
+        return {
             gameVehicleID = v.gameVehicleID,
             isDeleted = v.isDeleted,
             isLocal = v.isLocal,
@@ -99,10 +124,15 @@ local function getMPOwnVehicles()
             remoteVehID = v.remoteVehID,
             serverVehicleID = v.serverVehicleID,
             serverVehicleString = v.serverVehicleString,
-            spectators = v.spectators,
-        })
-    end
-    return vehs
+            spectators = Table(BJI.Managers.Context.Players)
+                :reduce(function(res, p, pid) -- specs system remake cause a lot of desyncs with default one
+                    if p.currentVehicle == v.gameVehicleID then
+                        res[pid] = true
+                    end
+                    return res
+                end, {}),
+        }
+    end):values()
 end
 
 local function dropPlayerAtCamera(withReset)
