@@ -139,13 +139,13 @@ local function onLoad()
     }, function()
         updateLabels()
         updateWidths()
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateWidths()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateWidths, W.name))
+    }, updateWidths, W.name .. "Widths"))
 end
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)

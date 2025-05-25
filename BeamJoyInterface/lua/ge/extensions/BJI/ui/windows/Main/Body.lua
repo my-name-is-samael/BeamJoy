@@ -106,14 +106,13 @@ local function updateCache(ctxt)
         BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard and
         #BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard > 0
 
+    cache.data.scenarioUIFn = nil
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY) then
         cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).drawUI
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY) then
         cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).drawUI
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.BUS_MISSION) then
         cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION).drawUI
-    else
-        cache.data.scenarioUIFn = nil
     end
 
     if BJI.Managers.Perm.isStaff() then
@@ -313,14 +312,16 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateCache, cache.name))
+    }, function(ctxt2, data)
+        updateCache(ctxt2)
+    end, cache.name .. "Cache"))
 
     updateLabels()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, updateLabels, cache.name))
+    }, updateLabels, cache.name .. "Labels"))
 
     deliveryLeaderboard.updateCache(ctxt)
     listeners:insert(BJI.Managers.Events.addListener({
@@ -333,7 +334,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.DELIVERIES then
             deliveryLeaderboard.updateCache(ctxt2)
         end
-    end, cache.name))
+    end, cache.name .. "DeliveryLeaderboard"))
 
     updateCacheRaces()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -344,7 +345,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.RACES then
             updateCacheRaces()
         end
-    end, cache.name))
+    end, cache.name .. "Races"))
 
     updateCachePlayers(ctxt)
     listeners:insert(BJI.Managers.Events.addListener({
@@ -364,7 +365,7 @@ local function onLoad()
             }, data.cache) then
             updateCachePlayers(ctxt2)
         end
-    end, cache.name))
+    end, cache.name .. "Players"))
 end
 
 local function onUnload()

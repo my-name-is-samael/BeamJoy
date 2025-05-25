@@ -779,7 +779,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateBaseModels, W.name))
+    }, updateBaseModels, W.name .. "Models"))
 
     updateCacheLabels()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -788,7 +788,7 @@ local function onLoad()
     }, function(ctxt)
         updateCacheLabels()
         updateButtonsStates(ctxt)
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateCachePaints()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -796,14 +796,14 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCachePaints, W.name))
+    }, updateCachePaints, W.name .. "Paints"))
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         function()
             if not BJI.Managers.Perm.canSpawnVehicle() then
                 tryClose(true)
             end
-        end, W.name))
+        end, W.name .. "AutoClose"))
 
     updateButtonsStates()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -814,7 +814,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateButtonsStates, W.name))
+    }, updateButtonsStates, W.name .. "ButtonsStates"))
 end
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)

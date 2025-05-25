@@ -60,13 +60,13 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    }, updateLabels, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCache, W.name))
+    }, updateCache, W.name .. "Cache"))
 end
 
 local function onUnload()

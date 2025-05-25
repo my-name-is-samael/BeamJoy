@@ -82,13 +82,13 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateCache, W.name))
+    }, updateCache, W.name .. "Cache"))
 end
 
 local function onUnload()

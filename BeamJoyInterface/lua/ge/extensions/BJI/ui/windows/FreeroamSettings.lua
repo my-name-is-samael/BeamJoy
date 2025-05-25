@@ -242,7 +242,7 @@ local function onLoad()
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
-    end, W.name))
+    end, W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -254,7 +254,7 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.BJC then
             updateCache(ctxt)
         end
-    end, W.name))
+    end, W.name .. "Cache"))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -262,7 +262,7 @@ local function onLoad()
         if not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) then
             onClose()
         end
-    end, W.name))
+    end, W.name .. "AutoClose"))
 end
 
 local function onUnload()
