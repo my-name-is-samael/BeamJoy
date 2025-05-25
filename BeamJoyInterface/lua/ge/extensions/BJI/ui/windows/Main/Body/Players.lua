@@ -3,33 +3,24 @@ local function drawWaiting(cache)
         return
     end
 
-    LineBuilder()
-        :text(cache.labels.players.waiting)
-        :text(string.var("({1}):", { table.length(cache.data.players.waiting) }))
-        :build()
-    local playerList = ""
-    local length = 0
+    LineBuilder():text(cache.labels.players.waiting):text(string.var("({1}):", {
+        table.length(cache.data.players.waiting) })):build()
     local maxLineLength = 60
-    for i, player in ipairs(cache.data.players.waiting) do
-        local playerName = player.playerName
+    Indent(1)
+    LineLabel(Table(cache.data.players.waiting):reduce(function(acc, player, i)
+        if i > 1 and acc.curr + #player.playerName > maxLineLength then
+            acc.res = acc.res .. "\n"
+            acc.curr = 0
+        end
         if i > 1 then
-            if length + #playerName + 2 > maxLineLength then
-                -- linebreak if cannot add space, playerName and comma
-                playerList = string.var("{1}\n", { playerList })
-                length = 0
-            end
+            acc.res = acc.res .. ", "
+            acc.curr = acc.curr + 2
         end
-
-        playerList = string.var("{1} {2}", { playerList, playerName })
-        length = length + 1 + #playerName
-
-        if i < table.length(cache.data.players.waiting) then
-            playerList = string.var("{1},", { playerList })
-        end
-    end
-    LineBuilder()
-        :text(playerList)
-        :build()
+        acc.res = acc.res .. player.playerName
+        acc.curr = acc.curr + #player.playerName
+        return acc
+    end, { res = "", curr = 0 }).res)
+    Indent(-1)
 end
 
 local function drawPlayers(cache, ctxt)
