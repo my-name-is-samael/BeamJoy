@@ -159,10 +159,41 @@
     "chat": {
       "staffTag": "ПЕРСОНАЛ",
       "reputationTag": "РП",
-      "playerJoined": "{playerName} присоединился",
-      "playerLeft": "{playerName} остался",
       "directMessage": "от {playerName}",
-      "directMessageSent": "к {playerName}"
+      "directMessageSent": "к {playerName}",
+      "events": {
+        "playerJoined": "{playerName} присоединился",
+        "playerLeft": "{playerName} остался",
+        "voteEvents": {
+          "mapSwitch": "смена карты ",
+          "playerKick": "исключение игрока ",
+          "raceStart": "запуск гонки ",
+          "speedStart": "запуск скоростной игры"
+        },
+        "vote": "{playerName} начал голосование за {voteEvent}{suffix}",
+        "voteAccepted": "Голосование за {voteEvent}{suffix} принято",
+        "voteDenied": "Голосование за {voteEvent}{suffix} отклонено: недостаточно голосов",
+        "voteCancelled": "Голосование за {voteEvent}{suffix} отменено модерацией",
+        "gamemodes": {
+          "race": "Гонка",
+          "speed": "Скоростная игра",
+          "hunter": "Охота",
+          "derby": "Дестракшн дерби",
+          "delivery": "Совместная доставка"
+        },
+        "gamemodeStopReasons": {
+          "manual": "модерация",
+          "notEnoughParticipants": "недостаточно участников",
+          "timedout": "вышло время",
+          "invalidVehConfig": "Недопустимая конфигурация транспорта"
+        },
+        "gamemodeStarted": "{gamemode} начат",
+        "gamemodeEnded": "{gamemode} завершён",
+        "gamemodeStopped": "{gamemode} остановлен: {reason}",
+        "gamemodeJoin": "{playerName} присоединился к {gamemode}",
+        "gamemodeLeave": "{playerName} покинул {gamemode}",
+        "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}"
+      }
     },
     "nametags": {
       "staffTag": "ПЕРСОНАЛ",
