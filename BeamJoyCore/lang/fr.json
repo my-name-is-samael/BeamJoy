@@ -286,10 +286,41 @@
     "chat": {
       "staffTag": "STAFF",
       "reputationTag": "RP",
-      "playerJoined": "{playerName} a rejoint",
-      "playerLeft": "{playerName} a quitté",
       "directMessage": "de {playerName}",
-      "directMessageSent": "à {playerName}"
+      "directMessageSent": "à {playerName}",
+      "events": {
+        "playerJoined": "{playerName} a rejoint",
+        "playerLeft": "{playerName} a quitté",
+        "voteEvents": {
+          "mapSwitch": "passage à la carte ",
+          "playerKick": "exclusion de ",
+          "raceStart": "lancement de la course ",
+          "speedStart": "lancement d’un jeu de Speed"
+        },
+        "vote": "{playerName} a lancé un vote pour {voteEvent}{suffix}",
+        "voteAccepted": "Vote pour {voteEvent}{suffix} accepté",
+        "voteDenied": "Vote pour {voteEvent}{suffix} refusé : pas assez de votants",
+        "voteCancelled": "Vote pour {voteEvent}{suffix} annulé par la modération",
+        "gamemodes": {
+          "race": "Course",
+          "speed": "Jeu de Speed",
+          "hunter": "Mode chasseur",
+          "derby": "Destruction Derby",
+          "delivery": "Livraison en équipe"
+        },
+        "gamemodeStopReasons": {
+          "manual": "modération",
+          "notEnoughParticipants": "pas assez de participants",
+          "timedout": "temps écoulé",
+          "invalidVehConfig": "Une configuration de véhicule est invalide"
+        },
+        "gamemodeStarted": "{gamemode} démarré",
+        "gamemodeEnded": "{gamemode} terminé",
+        "gamemodeStopped": "{gamemode} arrêté : {reason}",
+        "gamemodeJoin": "{playerName} a rejoint {gamemode}",
+        "gamemodeLeave": "{playerName} a quitté {gamemode}",
+        "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}"
+      }
     },
     "nametags": {
       "staffTag": "STAFF",

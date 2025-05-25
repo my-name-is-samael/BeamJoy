@@ -312,7 +312,8 @@
         "gamemodeStopReasons": {
           "manual": "moderation",
           "notEnoughParticipants": "not enough participants",
-          "timedout": "timed out"
+          "timedout": "timed out",
+          "invalidVehConfig": "A vehicle config is invalid"
         },
         "gamemodeStarted": "{gamemode} started",
         "gamemodeEnded": "{gamemode} ended",
