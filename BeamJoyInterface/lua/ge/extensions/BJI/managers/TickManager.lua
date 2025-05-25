@@ -69,7 +69,11 @@ local function client()
         local ctxt = getContext()
         Table(BJI.Managers):forEach(function(m)
             if m.renderTick then
+                local start = GetCurrentTimeMillis()
                 m.renderTick(ctxt)
+                if BJI.Bench.STATE then
+                    BJI.Bench.add(m._name, "renderTick", GetCurrentTimeMillis() - start)
+                end
             end
         end)
         processFastTick(ctxt)

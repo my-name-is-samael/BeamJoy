@@ -1,7 +1,8 @@
 local M = {
     STATE = false,
 
-    data = Table(),
+    data = {},
+    _threshold = 100,
 }
 
 --[[
@@ -27,7 +28,7 @@ function M.add(wrapperName, eventName, time)
         M.data[wrapperName][eventName] = Table()
     end
     table.insert(M.data[wrapperName][eventName], time)
-    if #M.data[wrapperName][eventName] > 1000 then
+    if #M.data[wrapperName][eventName] > M._threshold then
         table.remove(M.data[wrapperName][eventName], 1)
     end
 end
@@ -68,7 +69,7 @@ function M.get()
 end
 
 function M.reset()
-    M.data = Table()
+    M.data = {}
 end
 
 function M.startWindow()
