@@ -42,7 +42,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
-  - [Roadmap](#roadmap)
+  - [Bucket list](#bucket-list)
+  - [Known issues](#known-issues)
   - [Credits](#credits)
 
 ## Features
@@ -344,15 +345,18 @@ You can also fix translations if they are wrong :
     </li>
 </ul>
 
-## Roadmap
+## Bucket list
 
-- [ ] Fork with only race features
-- [ ] Toggleable automatic random weather presets (maybe with smooth transitions, waiting for base game changes for temperature and weather)
-- [ ] Client-side cache system (cookie-like; useful for personal records in races, for example).
+- Race fork (only when the mod will be done and polished)
+- Toggleable automatic random weather presets (maybe with smooth transitions, waiting for BeamNG changes about temperature and weather)
+- Implementing BeamMP v3.5+ features when it will come out:
+  - Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
+  - Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
 
-Implementing BeamMP v3.5+ features when it will come out:
-- Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
-- Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
+## Known issues
+
+- Windows system costs performances, this is a fact. Unfortunately, this is the only way BeamJoy have to not be intrusive (we do not want to force players by adding UI-Apps, but still give them mandatory scenario and server informations).
+- Having vehicle config with modded parts (which belong to a mod that is not present on the server) is causing impossibility to spawn a vehicle in a scenario with imposed config. We do not have a way to detect this particular case for now.
 
 ## Credits
 
