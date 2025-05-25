@@ -264,13 +264,13 @@ local function canShowNametags()
     return true
 end
 
----@param vehData { gameVehicleID: integer, ownerID: integer }
+---@param vehData BJIMPVehicle
 ---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     if _curr().doShowNametag then
         return _curr().doShowNametag(vehData)
     else
-        return false, nil, nil
+        return true, nil, nil
     end
 end
 

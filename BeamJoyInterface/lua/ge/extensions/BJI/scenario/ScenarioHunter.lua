@@ -238,7 +238,7 @@ local function canSpawnNewVehicle()
     return canVehUpdate() and table.length(BJI.Managers.Context.User.vehicles) == 0
 end
 
----@param vehData { gameVehicleID: integer, ownerID: integer }
+---@param vehData BJIMPVehicle
 ---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     if S.state == S.STATES.GAME then
@@ -246,7 +246,7 @@ local function doShowNametag(vehData)
             -- spec
             return true
         elseif not S.participants[BJI.Managers.Context.User.playerID].hunted then
-            -- hunters can only see other hunters or lastWaypointGPS triggered
+            -- hunters only can see other hunters or reaveled hunted
             local target = S.participants[vehData.ownerID]
             if target.hunted and S.revealHunted then
                 return true, BJI.Utils.ShapeDrawer.Color(1, .6, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, 1)
@@ -303,6 +303,7 @@ local function initPreparation(data)
     S.settings.waypoints = data.waypoints
     S.settings.huntedConfig = data.huntedConfig
     S.settings.hunterConfigs = data.hunterConfigs
+    S.settings.lastWaypointGPS = data.lastWaypointGPS
     S.preparationTimeout = BJI.Managers.Tick.applyTimeOffset(data.preparationTimeout)
     S.state = data.state
     BJI.Managers.Cam.forceFreecamPos()

@@ -1,6 +1,7 @@
 local M = {
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.General.Debug then
+        if BJCCore.Data.General.Debug and
+            MP.GetPlayerCount() == 1 then
             return 1
         end
         return 2
@@ -144,6 +145,7 @@ local function start(settings)
     M.huntedConfig = settings.huntedConfig
     M.hunterConfigs = settings.hunterConfigs
     M.waypoints = settings.waypoints
+    M.lastWaypointGPS = settings.lastWaypointGPS
     M.state = M.STATES.PREPARATION
     M.preparationTimeout = GetCurrentTime() + BJCConfig.Data.Hunter.PreparationTimeout
     BJCAsync.programTask(onPreparationTimeout, M.preparationTimeout, "BJCHunterPreparation")
