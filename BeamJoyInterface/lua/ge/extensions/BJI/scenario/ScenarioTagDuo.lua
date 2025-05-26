@@ -25,6 +25,7 @@ local function onLoad(ctxt)
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
@@ -33,6 +34,26 @@ local function onLoad(ctxt)
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
+end
+
+local function onUnload(ctxt)
+    BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
+    BJI.Managers.Message.stopRealtimeDisplay()
+
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.RESET.TELEPORT,
+            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
+    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
+    BJI.Managers.GPS.reset()
 end
 
 local function isLobbyFilled()
@@ -198,27 +219,9 @@ local function rxData(ctxt, data)
     end
 end
 
-local function onUnload(ctxt)
-    BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
-    BJI.Managers.Message.stopRealtimeDisplay()
-
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.TELEPORT,
-            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
-    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
-    BJI.Managers.GPS.reset()
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.isLobbyFilled = isLobbyFilled
 S.isTagger = isTagger
@@ -240,7 +243,5 @@ S.renderTick = renderTick
 S.slowTick = slowTick
 
 S.rxData = rxData
-
-S.onUnload = onUnload
 
 return S

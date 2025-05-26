@@ -72,6 +72,8 @@ BJI.Managers.Votes = require("ge/extensions/BJI/managers/VotesManager")
 BJI.Managers.WaypointEdit = require("ge/extensions/BJI/managers/WaypointEditManager")
 ---@type BJIManagerWindows
 BJI.Managers.Windows = require("ge/extensions/BJI/managers/WindowsManager")
+---@type BJIManagerGameState
+BJI.Managers.GameState = require("ge/extensions/BJI/managers/GameStateManager")
 
 BJI.Tx.cache = require("ge/extensions/BJI/tx/CacheTx")()
 BJI.Tx.config = require("ge/extensions/BJI/tx/ConfigTx")()

@@ -36,6 +36,21 @@ local function onLoad(ctxt)
     S.processCheck = nil
 end
 
+-- unload hook (before switch to another scenario)
+local function onUnload(ctxt)
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Managers.Message.stopRealtimeDisplay()
+    BJI.Managers.Message.cancelFlash("BJISpeedCheck")
+end
+
 local function switchToRandomParticipant()
     local vehs = {}
     for playerID, gameVehID in pairs(S.participants) do
@@ -153,21 +168,6 @@ local function fastTick(ctxt)
     end
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Message.stopRealtimeDisplay()
-    BJI.Managers.Message.cancelFlash("BJISpeedCheck")
-end
-
 local function showMinSpeedDisplay(kmh)
     local speedLabel = string.var("{1}{2}", { kmh, BJI.Managers.Lang.get("speed.speedUnit") })
     BJI.Managers.Message.realtimeDisplay("minspeed", BJI.Managers.Lang.get("speed.realtimeMinSpeed")
@@ -201,6 +201,10 @@ local function initScenario(data)
         end
     else
         S.startLock = true
+        BJI.Managers.Restrictions.update({ {
+            restrictions = BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+        } })
         BJI.Managers.Async.delayTask(function()
             S.startLock = false
         end, 1000, "BJISpeedStartLock")
@@ -224,7 +228,18 @@ local function updateData(data, previousMinSpeed)
         showMinSpeedDisplay(data.minSpeed)
     else
         -- on player eliminated/forfeited
-        -- nothing to do for now
+        if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH) and
+            Table(S.participants):any(function(p) return p.playerID == BJI.Managers.Context.User.playerID end) then
+            BJI.Managers.Restrictions.update({ {
+                restrictions = Table({
+                    BJI.Managers.Restrictions.OTHER.BIG_MAP,
+                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
+                    BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+                }):flat(),
+                state = BJI.Managers.Restrictions.STATE.ALLOWED,
+            } })
+        end
     end
 end
 
@@ -284,6 +299,7 @@ end
 
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.onVehicleSwitched = onVehicleSwitched
 
@@ -296,8 +312,6 @@ S.getPlayerListActions = getPlayerListActions
 
 S.renderTick = renderTick
 S.fastTick = fastTick
-
-S.onUnload = onUnload
 
 S.rxData = rxData
 S.isParticipant = isParticipant

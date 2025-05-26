@@ -105,6 +105,7 @@ local function onLoad(ctxt)
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
@@ -139,6 +140,7 @@ local function onUnload()
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
@@ -547,11 +549,7 @@ local function initGame(data)
 
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-            not participant and BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH or nil,
-            not participant and BJI.Managers.Restrictions.OTHER.FREE_CAM or nil,
-        }):flat(),
+        restrictions = BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.Cam.resetForceCamera()
@@ -564,6 +562,14 @@ local function initGame(data)
             initGameHunter(participant)
         end
     else -- spec
+        BJI.Managers.Restrictions.update({ {
+            restrictions = Table({
+                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.OTHER.FREE_CAM,
+                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+            }):flat(),
+            state = BJI.Managers.Restrictions.STATE.ALLOWED,
+        } })
         switchToRandomParticipant()
     end
 

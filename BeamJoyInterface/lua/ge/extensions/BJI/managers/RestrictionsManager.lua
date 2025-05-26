@@ -47,6 +47,7 @@ local M = {
         CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7", "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down", "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right", "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next", "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs", "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
         FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
         BIG_MAP = { "toggleBigMap" },
+        PHOTO_MODE = { "photoMode" },
     },
     _SCENARIO_DRIVEN = {
         VEHICLE_SELECTOR = { "vehicle_selector" },
@@ -123,6 +124,13 @@ local function renderTick(ctxt)
         extensions.core_input_actionFilter.setGroup(M._tag, M._restrictions)
         extensions.core_input_actionFilter.addAction(0, M._tag, true)
         previous = M._restrictions:clone()
+
+        BJI.Managers.GameState.updateMenuItems(
+            not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
+            not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
+            not getState(M.OTHER.BIG_MAP),
+            not getState(M.OTHER.PHOTO_MODE)
+        )
     end
 end
 

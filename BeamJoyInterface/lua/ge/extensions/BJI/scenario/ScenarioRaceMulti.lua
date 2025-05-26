@@ -180,6 +180,7 @@ local function onUnload(ctxt)
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
@@ -276,6 +277,7 @@ local function onJoinGridParticipants()
                 BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                 BJI.Managers.Restrictions.OTHER.FREE_CAM,
                 BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
+                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
             }):flat(),
             state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         }
@@ -306,6 +308,7 @@ local function onLeaveGridParticipants()
                 BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                 BJI.Managers.Restrictions.OTHER.FREE_CAM,
                 BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
+                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
             }):flat(),
             state = BJI.Managers.Restrictions.STATE.ALLOWED,
         }
@@ -1122,6 +1125,7 @@ end
 
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
@@ -1133,8 +1137,6 @@ S.getPlayerListActions = getPlayerListActions
 S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick
-
-S.onUnload = onUnload
 
 S.rxData = rxData
 
