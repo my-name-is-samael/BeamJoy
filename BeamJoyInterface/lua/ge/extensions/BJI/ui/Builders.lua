@@ -2,6 +2,7 @@ local im = ui_imgui
 local ffi = require('ffi')
 BTN_NO_SOUND = "no_sound"
 
+---@param color {r: number, g: number, b: number, a: number?}|number[]
 ---@return vec4
 local function convertColorToVec4(color)
     if type(color) == "table" then
@@ -1245,7 +1246,7 @@ LineLabel = function(label, color, startSameLine, tooltip)
     LineBuilder(startSameLine):text(label, color, tooltip):build()
 end
 
----@param data {floatPercent: number, width: number|string?, text: string?, tooltip: string?}
+---@param data {floatPercent: number, width: number|string?, text: string?, tooltip: string?, style: number[]|table<string, number>?}
 ProgressBar = function(data)
     data.floatPercent = data.floatPercent or 0
     if tonumber(data.width) then
@@ -1262,7 +1263,11 @@ ProgressBar = function(data)
 
     local size = im.ImVec2(data.width, height)
 
+    data.style = convertColorToVec4(data.style or BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.PROGRESSBAR, data.style)
     im.ProgressBar(data.floatPercent, size, text)
+    BJI.Utils.Style.PopStyleColor(1)
     if data.tooltip then
         im.tooltip(data.tooltip)
     end
