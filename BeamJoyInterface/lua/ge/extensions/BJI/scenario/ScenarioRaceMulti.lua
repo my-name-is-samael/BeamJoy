@@ -775,12 +775,12 @@ local function initRace(data)
         BJI.Managers.RaceUI.setWaypoint(S.race.waypoint, S.race.raceData.wpPerLap)
     else
         -- spec
-        if BJI.managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+        if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
             local veh = BJI.Managers.Veh.getCurrentVehicle()
             if not veh then
+                -- will toggle free cam automatically
                 specRandomRacer()
             end
-            BJI.Managers.Cam.toggleFreeCam()
         end
     end
 
