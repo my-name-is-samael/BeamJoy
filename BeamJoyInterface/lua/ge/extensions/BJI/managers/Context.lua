@@ -185,6 +185,8 @@ local function updateAllVehiclesAndAI()
         :filter(function(vid)
             return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
         end))
+
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
 end
 
 local function loadPlayers()

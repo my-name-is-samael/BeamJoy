@@ -352,6 +352,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
         BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHICLES_UPDATED,
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,

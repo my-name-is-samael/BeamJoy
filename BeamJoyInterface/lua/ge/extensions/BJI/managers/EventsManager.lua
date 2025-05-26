@@ -11,6 +11,7 @@ local M = {
         VEHICLE_REMOVED = "vehicle_removed",
         VEHICLE_SPEC_CHANGED = "vehicle_spec_changed",
         VEHDATA_UPDATED = "vehdata_updated",
+        VEHICLES_UPDATED = "vehicles_updated",
         SCENARIO_CHANGED = "scenario_changed",
         SCENARIO_UPDATED = "scenario_updated",
         VOTE_UPDATED = "vote_updated",
