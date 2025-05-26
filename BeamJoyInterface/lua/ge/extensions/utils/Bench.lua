@@ -1,7 +1,7 @@
 local M = {
     STATE = false,
 
-    data = {},
+    data = Table(),
     _threshold = 100,
 }
 
@@ -33,49 +33,60 @@ function M.add(wrapperName, eventName, time)
     end
 end
 
-function M.get()
-    local lines = {}
-    for wrapperName, events in pairs(M.data) do
-        for event, times in pairs(events) do
-            if #times > 0 then
-                local sum, min, max = 0, times[1], times[1]
-                for _, t in ipairs(times) do
-                    sum = sum + t
-                    if t < min then
-                        min = t
+---@param amount? integer
+---@param recurrent? boolean
+---@return string
+function M.get(amount, recurrent)
+    return M.data:reduce(function(res, events, wrapperName)
+            events:forEach(function(times, event)
+                if #times > 0 then
+                    local sum, min, max = 0, times[1], times[1]
+                    for _, t in ipairs(times) do
+                        sum = sum + t
+                        if t < min then
+                            min = t
+                        end
+                        if t > max then
+                            max = t
+                        end
                     end
-                    if t > max then
-                        max = t
-                    end
+                    res:insert({
+                        manager = wrapperName,
+                        event = event,
+                        min = min,
+                        max = max,
+                        avg = math.round(sum / #times, 1),
+                        amount = #times,
+                    })
                 end
-                table.insert(lines, {
-                    manager = wrapperName,
-                    event = event,
-                    min = min,
-                    max = max,
-                    avg = math.round(sum / #times, 1),
-                    amount = #times,
-                })
-            end
-        end
-    end
-    table.sort(lines, function(a, b) return a.avg > b.avg end)
-    local out = "\n"
-    for _, l in ipairs(lines) do
-        out = string.var("{1}{2}.{3} - min {4}ms ; max {5}ms ; avg {6}ms [{7}]\n",
-            { out, l.manager, l.event, l.min, l.max, l.avg, l.amount })
-    end
-    return out
+            end)
+            return res
+        end, Table())
+        :filter(function(line)
+            return recurrent == nil or line.amount == M._threshold
+        end)
+        :sort(function(a, b)
+            return a.avg > b.avg
+        end)
+        :filter(function(_, i)
+            return not amount or i <= amount
+        end)
+        :reduce(function(out, line)
+            return string.var("{1}{2}.{3} - min {4}ms ; max {5}ms ; avg {6}ms [{7}]\n",
+                { out, line.manager, line.event, line.min, line.max, line.avg, line.amount })
+        end, "")
 end
 
 function M.reset()
-    M.data = {}
+    M.data = Table()
 end
 
-function M.startWindow()
+---@param amount? integer
+---@param recurrent? boolean
+function M.startWindow(amount, recurrent)
     M.STATE = true
     M.reset()
-    BJI.DEBUG = function() return M.get() end
+    BJI.DEBUG = function() return M.get(amount or 10, recurrent ~= false) end
 end
 
 function M.stop()
