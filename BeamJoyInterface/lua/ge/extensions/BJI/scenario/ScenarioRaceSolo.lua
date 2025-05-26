@@ -7,6 +7,7 @@
 
 ---@class BJIScenarioRaceSolo : BJIScenario
 local S = {
+    preRaceCam = nil,
     settings = {},
     race = {},
     dnf = {
@@ -27,6 +28,7 @@ local function initManagerData()
     S.raceHash = nil
     S.record = nil
 
+    S.preRaceCam = nil
     S.settings = {
         raceID = nil,
         laps = nil,
@@ -112,12 +114,15 @@ end
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
     BJI.Managers.Async.removeTask("BJIRaceStandReset")
+    BJI.Managers.Async.removeTask("BJIRaceStandEndRestrictionReset")
     BJI.Managers.Async.removeTask("BJIRaceStandEnd")
-    BJI.Managers.Async.removeTask("BJIRaceStart")
+    BJI.Managers.Async.removeTask("BJIRaceStartShortCountdown")
     BJI.Managers.Async.removeTask("BJIRaceStartWaypoints")
     BJI.Managers.Async.removeTask("BJIRaceStartTime")
     BJI.Managers.Async.removeTask("BJIRaceDNFStop")
-    BJI.Managers.Message.cancelFlash("BJIRaceStartShortCountdown")
+    BJI.Managers.Async.removeTask("BJIRacePostFinish")
+    BJI.Managers.Message.cancelFlash("BJIRaceStart")
+    BJI.Managers.Message.cancelFlash("BJIRaceStand")
     BJI.Managers.Message.cancelFlash("BJIRaceDNF")
     if ctxt.isOwner then
         BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
@@ -129,6 +134,11 @@ local function onUnload(ctxt)
     end
     stopRace()
     BJI.Managers.RaceWaypoint.resetAll()
+    if S.preRaceCam then
+        BJI.Managers.Cam.setCamera(S.preRaceCam)
+    elseif ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
+    end
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
@@ -330,7 +340,7 @@ local function onStandStop(delayMs, wp, lastWp, callback)
     BJI.Managers.Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
         BJI.Managers.Lang.get("races.play.flashCountdownZero"))
 
-    local previousCam = BJI.Managers.Cam.getCamera()
+    S.preRaceCam = BJI.Managers.Cam.getCamera()
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     BJI.Managers.Veh.stopCurrentVehicle()
     BJI.Managers.Veh.freeze(true)
@@ -342,7 +352,7 @@ local function onStandStop(delayMs, wp, lastWp, callback)
         BJI.Managers.Veh.loadHome(function(ctxt)
             BJI.Managers.Veh.freeze(true)
             if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-                BJI.Managers.Cam.setCamera(previousCam)
+                BJI.Managers.Cam.setCamera(S.preRaceCam)
                 ctxt.camera = BJI.Managers.Cam.getCamera()
             end
             if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
@@ -630,7 +640,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     end
     BJI.Managers.RaceUI.setWaypoint(S.race.waypoint, S.race.raceData.wpPerLap)
 
-    local previousCam = ctxt.camera
+    S.preRaceCam = ctxt.camera
     BJI.Managers.Veh.saveHome({ pos = S.startPosition.pos, rot = S.startPosition.rot })
     BJI.Managers.Veh.loadHome(function()
         BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
@@ -639,8 +649,8 @@ local function initRace(ctxt, settings, raceData, testingCallback)
                 BJI.Managers.Cam.CAMERAS.BIG_MAP,
                 BJI.Managers.Cam.CAMERAS.PASSENGER,
                 BJI.Managers.Cam.CAMERAS.EXTERNAL,
-            }, previousCam) then
-            previousCam = BJI.Managers.Cam.CAMERAS.ORBIT
+            }, S.preRaceCam) then
+            S.preRaceCam = BJI.Managers.Cam.CAMERAS.ORBIT
         end
         BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     end)
@@ -656,7 +666,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     -- 3secs before start
     BJI.Managers.Async.programTask(function(ctxt2)
         if ctxt2.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-            BJI.Managers.Cam.setCamera(previousCam)
+            BJI.Managers.Cam.setCamera(S.preRaceCam)
         end
         if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
             S.race.lastStand = { step = 0, pos = S.startPosition.pos, rot = S.startPosition.rot }

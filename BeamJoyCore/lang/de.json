@@ -1049,6 +1049,7 @@
         "by": "von {author}",
         "record": "Aufnahme von {playerName} mit {model}: {time}",
         "timeout": "Das Rennen wird in {delay} abgebrochen",
+        "aboutToTimeout": "Das Rennen steht kurz vor dem Timeout",
         "join": "Nehmen Sie am Rennen teil",
         "joinFlash": "Wählen Sie Ihr Fahrzeug",
         "placesRemaining": "{places} verbleibende Plätze",

@@ -1049,6 +1049,7 @@
         "by": "par {author}",
         "record": "Record établi par {playerName} avec {model} : {time}",
         "timeout": "La course expirera dans {delay}",
+        "aboutToTimeout": "La course est sur le point d’expirer",
         "join": "Rejoindre la course",
         "joinFlash": "Choisissez votre véhicule",
         "placesRemaining": "{places} places restantes",

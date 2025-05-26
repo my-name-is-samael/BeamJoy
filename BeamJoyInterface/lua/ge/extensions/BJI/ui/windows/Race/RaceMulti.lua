@@ -69,6 +69,7 @@ local W = {
             wpDifference = "",
 
             gridTimeout = "",
+            gridAboutToTimeout = "",
             placesRemaining = "",
             markReadyCooldown = "",
             chooseYourVehicle = "",
@@ -109,6 +110,7 @@ local function updateLabels()
     W.cache.labels.wpDifference = BJI.Managers.Lang.get("races.play.wpDifference")
 
     W.cache.labels.gridTimeout = BJI.Managers.Lang.get("races.play.timeout")
+    W.cache.labels.gridAboutToTimeout = BJI.Managers.Lang.get("races.play.aboutToTimeout")
     W.cache.labels.placesRemaining = BJI.Managers.Lang.get("races.play.placesRemaining")
     W.cache.labels.markReadyCooldown = BJI.Managers.Lang.get("races.play.canMarkReadyIn")
     W.cache.labels.chooseYourVehicle = BJI.Managers.Lang.get("races.play.joinFlash")
@@ -444,8 +446,8 @@ end
 local function drawGrid(ctxt)
     local gridTimeoutRemaining = getDiffTime(W.scenario.grid.timeout, ctxt.now)
     LineBuilder()
-        :text(W.cache.labels.gridTimeout
-            :var({ delay = BJI.Utils.Common.PrettyDelay(gridTimeoutRemaining) }),
+        :text(gridTimeoutRemaining < 1 and W.cache.labels.gridAboutToTimeout or
+            W.cache.labels.gridTimeout:var({ delay = BJI.Utils.Common.PrettyDelay(gridTimeoutRemaining) }),
             gridTimeoutRemaining < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
         :build()
 
