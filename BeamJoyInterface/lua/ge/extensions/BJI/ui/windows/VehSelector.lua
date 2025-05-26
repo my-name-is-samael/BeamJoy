@@ -205,6 +205,8 @@ local function updateButtonsStates(ctxt)
     W.headerBtns.resetAllDisabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD)
     if W.headerBtns.resetAllDisabled then
         W.headerBtns.resetAllTooltip = W.labels.notAllowed
+    else
+        W.headerBtns.resetAllTooltip = nil
     end
 
     if ctxt.isOwner then
