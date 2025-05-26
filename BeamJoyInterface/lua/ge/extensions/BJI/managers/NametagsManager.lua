@@ -15,6 +15,8 @@ local M = {
     cache = {
         vehTypes = {},
     },
+
+    _minDistanceShow = 10,
 }
 
 local function getAlphaByDistance(distance)
@@ -77,7 +79,8 @@ end
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
-local function renderSpecs(ctxt, veh, ownPos)
+---@param showMyself? boolean
+local function renderSpecs(ctxt, veh, ownPos, showMyself)
     if not settings.getValue("showSpectators", true) then return end
     local scenarioShow, forcedColor, forcedBgColor = BJI.Managers.Scenario.doShowNametagsSpecs(veh)
     if not scenarioShow then return end
@@ -91,16 +94,13 @@ local function renderSpecs(ctxt, veh, ownPos)
     end
     tagPos.z = tagPos.z - zOffset - .5 -- half a meter offset downward for specs
 
-    Table(BJI.Managers.Context.Players)
-        :filter(function(p)
-            return p.playerID ~= ctxt.user.playerID and
-                p.playerID ~= veh.ownerID and
-                veh.spectators[p.playerID]
-        end)
+    Table(veh.spectators):keys()
+        :filter(function(pid) return pid ~= veh.ownerID and (showMyself or pid ~= ctxt.user.playerID) end)
+        :map(function(pid) return BJI.Managers.Context.Players[pid] end)
     ---@param spec BJIPlayer
         :forEach(function(spec)
-            local name = BJI.Managers.Context.Players[spec.playerID].tagName
-            BJI.Utils.ShapeDrawer.Text(name, tagPos,
+            local label = spec.playerID == ctxt.user.playerID and M.labels.self or spec.tagName or spec.playerName
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 forcedColor or getNametagColor(alpha, true),
                 forcedBgColor or getNametagBgColor(alpha, true),
                 false)
@@ -111,7 +111,60 @@ end
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
 local function renderAI(ctxt, veh, ownPos)
-    renderSpecs(ctxt, veh, ownPos)
+    local isMyOwnVeh = veh.isLocal
+    local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
+    local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
+    local ownerIsSpec = veh.spectators[veh.ownerID]
+
+    if isMyOwnVeh then
+        if isMyCurrentVeh then
+            local tagPos = vec3(veh.position)
+            local distance = ownPos:distance(tagPos)
+            local alpha = getAlphaByDistance(distance)
+
+            local showDist = settings.getValue("nameTagShowDistance", true) and
+                isFreecaming and distance > M._minDistanceShow
+
+            local label = M.labels.self
+            if showDist then
+                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+            end
+
+            -- offset
+            tagPos.z = tagPos.z - veh.vehicleHeight / 2
+
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+                getNametagColor(alpha, true),
+                getNametagBgColor(alpha, true),
+                false)
+        end
+    else
+        if isMyCurrentVeh or ownerIsSpec then
+            local tagPos = vec3(veh.position)
+            local distance = ownPos:distance(tagPos)
+            local alpha = getAlphaByDistance(distance)
+
+            local showDist = settings.getValue("nameTagShowDistance", true) and
+                isFreecaming and distance > M._minDistanceShow
+
+            local owner = BJI.Managers.Context.Players[veh.ownerID]
+            local label = owner.tagName
+            if showDist then
+                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+            end
+
+            -- offset
+            tagPos.z = tagPos.z - veh.vehicleHeight / 2
+
+            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+                getNametagColor(alpha, ownerIsSpec, not ownerIsSpec),
+                getNametagBgColor(alpha, ownerIsSpec, not ownerIsSpec),
+                false)
+        end
+    end
+
+    local showMyselfSpec = not isMyOwnVeh and isMyCurrentVeh and isFreecaming
+    renderSpecs(ctxt, veh, ownPos, showMyselfSpec)
 end
 
 ---@param ctxt TickContext
@@ -142,12 +195,14 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
     if isMyOwnVeh then
         if not ownerIsTracting then
-            local showDist = not isMyCurrentVeh or isFreecaming
-            local label = M.labels.selfTrailer
-
             local tagPos = vec3(veh.position)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
+
+            local label = M.labels.selfTrailer
+            local showDist = settings.getValue("nameTagShowDistance", true) and
+                (not isMyCurrentVeh or isFreecaming) and
+                distance > M._minDistanceShow
 
             if showDist then
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
@@ -166,13 +221,15 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
         end
     elseif BJI.Managers.Context.Players[veh.ownerID] then
         if not ownerIsTracting or ownerIsSpectating then
-            local showDist = not isMyCurrentVeh or isFreecaming
-            local name = BJI.Managers.Context.Players[veh.ownerID].tagName
-            local label = M.labels.trailer:var({ playerName = name })
-
             local tagPos = vec3(veh.position)
             local distance = ownPos:distance(tagPos)
             local alpha = getAlphaByDistance(distance)
+
+            local name = BJI.Managers.Context.Players[veh.ownerID].tagName
+            local label = M.labels.trailer:var({ playerName = name })
+            local showDist = settings.getValue("nameTagShowDistance", true) and
+                (not isMyCurrentVeh or isFreecaming) and
+                distance > M._minDistanceShow
 
             if showDist then
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
@@ -190,7 +247,9 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 false)
         end
     end
-    renderSpecs(ctxt, veh, ownPos)
+
+    local showMyselfSpec = not isMyOwnVeh and isMyCurrentVeh and isFreecaming
+    renderSpecs(ctxt, veh, ownPos, showMyselfSpec)
 end
 
 ---@param ctxt TickContext
@@ -212,7 +271,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             local alpha = getAlphaByDistance(distance)
 
             local label = M.labels.self
-            if settings.getValue("nameTagShowDistance", true) then
+            if settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow then
                 label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
             end
 
@@ -235,7 +294,8 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
         local showTag = not settings.getValue("shortenNametags", false) and ownerIsDriving
         local showDist = settings.getValue("nameTagShowDistance", true) and
-            (not isMyCurrentVeh or isFreecaming) and distance > 10
+            (not isMyCurrentVeh or isFreecaming) and
+            distance > M._minDistanceShow
 
         local owner = BJI.Managers.Context.Players[veh.ownerID]
         local label = owner.tagName
@@ -267,7 +327,8 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
         showSpecs = true
     end
     if showSpecs then
-        renderSpecs(ctxt, veh, ownPos)
+        local showMyselfSpec = not isMyOwnVeh and isMyCurrentVeh and isFreecaming
+        renderSpecs(ctxt, veh, ownPos, showMyselfSpec)
     end
 end
 

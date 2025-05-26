@@ -194,6 +194,26 @@ local function setFOV(deg)
     core_camera.setFOV(0, deg)
 end
 
+local initKey
+--- Called when self player is connected and every vehicle is ready
+local function onConnection()
+    local vehs = Table(BJI.Managers.Context.Players)
+        :reduce(function(vehs, p)
+            return vehs:addAll(Table(p.vehicles)
+                :map(function(v)
+                    return v.finalGameVehID
+                end)
+                :filter(function(vid)
+                    return not BJI.Managers.AI.isAIVehicle(vid)
+                end))
+        end, Table())
+    if #vehs > 0 then
+        local vid = vehs:random()
+        BJI.Managers.Veh.focusVehicle(vid)
+    end
+    BJI.Managers.Events.removeListener(tostring(initKey))
+end
+
 local function renderTick(ctxt)
     if ctxt.camera ~= M.lastCamera then
         M.onCameraChange(ctxt.camera)
@@ -263,6 +283,8 @@ local function onLoad()
     if M.getCamera() == M.CAMERAS.FREE then
         M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
     end
+
+    initKey = BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED, onConnection)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
