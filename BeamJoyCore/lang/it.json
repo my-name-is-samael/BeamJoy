@@ -1049,6 +1049,7 @@
         "by": "di {author}",
         "record": "Registra da {playerName} con {model}: {time}",
         "timeout": "La gara terminerà tra {delay}",
+        "aboutToTimeout": "La gara sta per scadere per timeout",
         "join": "Partecipa alla gara",
         "joinFlash": "Scegli il tuo veicolo",
         "placesRemaining": "{places} posti rimanenti",

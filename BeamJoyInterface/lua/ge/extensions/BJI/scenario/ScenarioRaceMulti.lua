@@ -162,6 +162,18 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
+    BJI.Managers.Message.cancelFlash("BJIRaceStart")
+    BJI.Managers.Message.cancelFlash("BJIRaceStand")
+    BJI.Managers.Message.cancelFlash("BJIRaceDNF")
+    BJI.Managers.Async.removeTask("BJIRaceStart")
+    BJI.Managers.Async.removeTask("BJIRacePreStart")
+    BJI.Managers.Async.removeTask("BJIRacePostStart")
+    BJI.Managers.Async.removeTask("BJIRaceStartShortCountdown")
+    BJI.Managers.Async.removeTask("BJIRaceStartWaypoints")
+    BJI.Managers.Async.removeTask("BJIRaceStartTime")
+    BJI.Managers.Async.removeTask("BJIRaceMultiWaitForServerWp")
+    BJI.Managers.Async.removeTask("BJIRacePostFinish")
+
     BJI.Managers.RaceWaypoint.resetAll()
     for _, veh in pairs(BJI.Managers.Context.User.vehicles) do
         BJI.Managers.Veh.focusVehicle(veh.gameVehID)

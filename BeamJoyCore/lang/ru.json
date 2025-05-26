@@ -922,6 +922,7 @@
         "by": "автор: {author}",
         "record": "Запись пользователя {playerName} с {model}: {time}",
         "timeout": "Тайм-аут гонки истечет через {delay}",
+        "aboutToTimeout": "Гонка вот-вот завершится по таймеру",
         "join": "Присоединяйтесь к гонке",
         "joinFlash": "Выберите свой автомобиль",
         "placesRemaining": "Осталось мест: {places}",

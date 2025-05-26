@@ -1049,6 +1049,7 @@
         "by": "por {author}",
         "record": "Grabar por {playerName} con {model} : {time}",
         "timeout": "La carrera finalizará en {delay}",
+        "aboutToTimeout": "La carrera está a punto de agotarse por tiempo",
         "join": "Unirse a la carrera",
         "joinFlash": "Elige tu vehículo",
         "placesRemaining": "{places} lugares restantes",

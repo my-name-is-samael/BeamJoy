@@ -1050,6 +1050,7 @@
         "by": "by {author}",
         "record": "Record by {playerName} with {model} : {time}",
         "timeout": "Race will time out in {delay}",
+        "aboutToTimeout": "The race is about to time out",
         "join": "Join Race",
         "joinFlash": "Choose your vehicle",
         "placesRemaining": "{places} places remaining",
