@@ -82,11 +82,15 @@ local function draw(ctxt)
 
     local i = 1
     for energyType, energyAmount in pairs(tanksValues) do
+        local valuePercent = energyAmount / cache.tanksMaxes[energyType]
         local indicatorColor = BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        if energyAmount / cache.tanksMaxes[energyType] <= BJI.Managers.Veh.tankLowThreshold then
+        local progressColor = BJI.Utils.Style.BTN_PRESETS.SUCCESS[1]
+        if valuePercent <= BJI.Managers.Veh.tankLowThreshold then
             indicatorColor = BJI.Utils.Style.TEXT_COLORS.ERROR
-        elseif energyAmount / cache.tanksMaxes[energyType] <= BJI.Managers.Veh.tankMedThreshold then
+            progressColor = BJI.Utils.Style.BTN_PRESETS.ERROR[1]
+        elseif valuePercent <= BJI.Managers.Veh.tankMedThreshold then
             indicatorColor = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+            progressColor = BJI.Utils.Style.BTN_PRESETS.WARNING[1]
         end
         local line = LineBuilder()
             :text(string.var("{1}:", { cache.labels.tanks[energyType] }))
@@ -135,7 +139,7 @@ local function draw(ctxt)
         end
         if cache.canShowEmergencyRefuelButton and
             table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) and
-            energyAmount / cache.tanksMaxes[energyType] <= BJI.Managers.Veh.tankEmergencyRefuelThreshold then
+            valuePercent <= BJI.Managers.Veh.tankEmergencyRefuelThreshold then
             line:btn({
                 id = string.var("emergencyRefuel{1}", { energyType }),
                 label = BJI.Managers.Lang.get("energyStations.emergencyRefuel"),
@@ -148,7 +152,8 @@ local function draw(ctxt)
         line:build()
 
         ProgressBar({
-            floatPercent = energyAmount / cache.tanksMaxes[energyType],
+            floatPercent = valuePercent,
+            style = progressColor,
             width = "100%",
         })
         i = i + 1
