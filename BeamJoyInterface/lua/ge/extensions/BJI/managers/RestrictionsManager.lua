@@ -128,8 +128,7 @@ local function renderTick(ctxt)
         BJI.Managers.GameState.updateMenuItems(
             not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
             not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
-            not getState(M.OTHER.BIG_MAP),
-            not getState(M.OTHER.PHOTO_MODE)
+            not getState(M.OTHER.BIG_MAP)
         )
     end
 end
