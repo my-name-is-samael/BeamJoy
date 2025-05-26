@@ -614,7 +614,7 @@ local function drawTools(ctxt)
             id = "rotate180",
             icon = ICONS.tb_bank,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            tootltip = W.labels.buttons.rotate180,
+            tooltip = W.labels.buttons.rotate180,
             onClick = function()
                 vehpos.rot = vehpos.rot * quat(0, 0, 1, 0)
                 BJI.Managers.Veh.setPositionRotation(vehpos.pos, vehpos.rot)
