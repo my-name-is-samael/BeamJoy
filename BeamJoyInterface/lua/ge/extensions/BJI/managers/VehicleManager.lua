@@ -97,7 +97,8 @@ local function getMPVehicles()
             serverVehicleString = v.serverVehicleString,
             spectators = Table(BJI.Managers.Context.Players)
                 :reduce(function(res, p, pid) -- specs system remake cause a lot of desyncs with default one
-                    if p.currentVehicle == v.gameVehicleID then
+                    if p.currentVehicle == (BJI.Managers.Context.isSelf(v.ownerID) and
+                            v.gameVehicleID or v.remoteVehID) then
                         res[pid] = true
                     end
                     return res
