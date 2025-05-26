@@ -127,7 +127,7 @@ local function draw(ctxt)
                             return a.distance < b.distance
                         end)
                         BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.STATION, garages[1].garage.pos,
-                            garages[1].garage.radius
+                            garages[1].garage.radius)
                     end
                 end,
                 sound = BTN_NO_SOUND,
