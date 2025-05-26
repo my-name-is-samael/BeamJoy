@@ -116,6 +116,20 @@ end
 
 local function startRace()
     cancelGridTimeout()
+
+    M.grid.participants = Table(M.grid.participants)
+        :filter(function(pid)
+            return table.length(BJCPlayers.Players[pid].vehicles) > 0
+        end)
+    if #M.grid.participants < M.MINIMUM_PARTICIPANTS() then
+        BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
+            gamemode = "chat.events.gamemodes.race",
+            reason = "chat.events.gamemodeStopReasons.notEnoughParticipants",
+        })
+        stopRace()
+        return
+    end
+
     prepareLeaderboard()
     M.race = {
         raceTimer = nil,
