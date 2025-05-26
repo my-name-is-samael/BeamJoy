@@ -101,6 +101,28 @@ local function findFreeStartPosition(ownGameVehID)
     return table.random(positions)
 end
 
+-- unload hook (before switch to another scenario)
+local function onUnload(ctxt)
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.RESET.ALL,
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
+    if ctxt.isOwner then
+        BJI.Managers.Veh.freeze(false)
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
+            ctxt.camera = BJI.Managers.Cam.CAMERAS.ORBIT
+            BJI.Managers.Cam.setCamera(ctxt.camera)
+        end
+    end
+end
+
 local function tryReplaceOrSpawn(model, config)
     local participant = S.getParticipant()
     if S.state == S.STATES.PREPARATION and participant and not participant.ready then
@@ -330,27 +352,6 @@ local function slowTick(ctxt)
     end
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
-    if ctxt.isOwner then
-        BJI.Managers.Veh.freeze(false)
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-            ctxt.camera = BJI.Managers.Cam.CAMERAS.ORBIT
-            BJI.Managers.Cam.setCamera(ctxt.camera)
-        end
-    end
-end
-
 local function initPreparation(data)
     S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
@@ -367,7 +368,10 @@ end
 
 local function onJoinParticipants()
     BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        restrictions = Table({
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
     S.startPos = findFreeStartPosition()
@@ -384,7 +388,10 @@ end
 
 local function onLeaveParticipants()
     BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
+        restrictions = Table({
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.UI.hideGameMenu()
@@ -552,6 +559,7 @@ end
 
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
@@ -570,8 +578,6 @@ S.getPlayerListActions = getPlayerListActions
 S.onVehicleResetted = onVehicleResetted
 S.fastTick = fastTick
 S.slowTick = slowTick
-
-S.onUnload = onUnload
 
 S.rxData = rxData
 S.getParticipant = getParticipant

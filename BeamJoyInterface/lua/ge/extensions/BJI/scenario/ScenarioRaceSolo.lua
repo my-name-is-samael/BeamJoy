@@ -96,6 +96,7 @@ local function onLoad(ctxt)
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
@@ -106,27 +107,6 @@ local function onLoad(ctxt)
     if not S.testing then
         BJI.Tx.scenario.RaceSoloStart()
     end
-end
-
-local function getCollisionsType(ctxt)
-    return BJI.Managers.Collisions.TYPES.DISABLED
-end
-
--- player list contextual actions getter
-local function getPlayerListActions(player, ctxt)
-    local actions = {}
-
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
-    end
-
-    return actions
 end
 
 -- unload hook (before switch to another scenario)
@@ -155,10 +135,32 @@ local function onUnload(ctxt)
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     guihooks.trigger('ScenarioResetTimer')
+end
+
+local function getCollisionsType(ctxt)
+    return BJI.Managers.Collisions.TYPES.DISABLED
+end
+
+-- player list contextual actions getter
+local function getPlayerListActions(player, ctxt)
+    local actions = {}
+
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+        table.insert(actions, {
+            id = string.var("voteKick{1}", { player.playerID }),
+            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
+            onClick = function()
+                BJI.Managers.Votes.Kick.start(player.playerID)
+            end
+        })
+    end
+
+    return actions
 end
 
 -- prepare complete race steps list
@@ -767,9 +769,9 @@ end
 
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
-S.initRace = initRace
+S.onUnload = onUnload
 
-S.isSprint = isSprint
+S.initRace = initRace
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
@@ -782,9 +784,8 @@ S.getPlayerListActions = getPlayerListActions
 S.renderTick = renderTick
 S.slowTick = slowTick
 
-S.onUnload = onUnload
-
 S.isRaceStarted = isRaceStarted
 S.isRaceFinished = isRaceFinished
+S.isSprint = isSprint
 
 return S
