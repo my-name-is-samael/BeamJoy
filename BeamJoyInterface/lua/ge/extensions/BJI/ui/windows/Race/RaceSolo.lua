@@ -21,7 +21,6 @@ local W = {
             showFinalTime = false,
             finalTime = "",
             showLoopBtn = false,
-            showForfeitBtn = false,
             showRestartBtn = false,
             ---@type boolean
             showAll = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
@@ -101,7 +100,6 @@ local function updateCache(ctxt)
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.Common.RaceDelay(pbTime or 0) or ""
     W.cache.data.showLoopBtn = not W.scenario.testing
-    W.cache.data.showForfeitBtn = W.scenario.isRaceStarted()
     W.cache.data.showRestartBtn = W.scenario.isRaceStarted() and not W.scenario.testing and
         not W.scenario.isRaceFinished()
     W.cache.data.startTime = W.scenario.race.startTime
@@ -381,26 +379,22 @@ local function header(ctxt)
                             big = true,
                         })
                     end
-                    if W.cache.data.showForfeitBtn then
-                        line:btnIcon({
-                            id = "leaveRace",
-                            icon = ICONS.exit_to_app,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            onClick = function()
-                                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
-                            end,
-                            big = true,
-                        })
-                    end
+                    line:btnIcon({
+                        id = "leaveRace",
+                        icon = ICONS.exit_to_app,
+                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        onClick = function()
+                            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+                        end,
+                        big = true,
+                    })
                     if W.cache.data.showRestartBtn then
                         line:btnIcon({
                             id = "restartRace",
                             icon = ICONS.restart,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             onClick = function()
-                                local settings, raceData = W.scenario.baseSettings, W.scenario.baseRaceData
-                                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
-                                W.scenario.initRace(ctxt, settings, raceData)
+                                W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
                             end,
                             big = true,
                         })

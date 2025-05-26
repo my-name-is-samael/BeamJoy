@@ -124,6 +124,7 @@ local function onUnload(ctxt)
     BJI.Managers.Message.cancelFlash("BJIRaceStart")
     BJI.Managers.Message.cancelFlash("BJIRaceStand")
     BJI.Managers.Message.cancelFlash("BJIRaceDNF")
+    BJI.Managers.Message.cancelFlash("BJIRaceEndSelf")
     if ctxt.isOwner then
         BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
     end
@@ -550,17 +551,10 @@ local function stopWithLoop()
     local settings, raceData = S.baseSettings, S.baseRaceData
     local loop = not S.testing and
         BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP)
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     if loop then
-        BJI.Managers.Async.task(function(ctxt)
-            return Table(BJI.Managers.Context.Players):any(function(p)
-                return p.playerID == ctxt.user.playerID and not p.isGhost
-            end)
-        end, function()
-            if BJI.Managers.Scenario.isFreeroam() then
-                S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
-            end
-        end)
+        S.restartRace(settings, raceData)
+    else
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     end
 end
 
@@ -695,6 +689,19 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     end, S.race.startTime, "BJIRaceStartTime")
 end
 
+local function restartRace(settings, raceData)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI.Managers.Async.task(function(ctxt)
+        return Table(BJI.Managers.Context.Players):any(function(p)
+            return p.playerID == ctxt.user.playerID and not p.isGhost
+        end)
+    end, function()
+        if BJI.Managers.Scenario.isFreeroam() then
+            S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
+        end
+    end)
+end
+
 local function isSprint()
     return not S.settings.laps or S.settings.laps == 1
 end
@@ -782,6 +789,7 @@ S.onLoad = onLoad
 S.onUnload = onUnload
 
 S.initRace = initRace
+S.restartRace = restartRace
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn

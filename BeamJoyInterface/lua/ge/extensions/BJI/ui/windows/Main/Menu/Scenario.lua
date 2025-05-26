@@ -91,8 +91,7 @@ local function menuSoloRace(ctxt)
                 })
             end
         end
-    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) and
-        BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).isRaceStarted() then
+    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) then
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.scenario.soloRace.stop"),
             onClick = function()
