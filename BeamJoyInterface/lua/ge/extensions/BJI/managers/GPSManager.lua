@@ -97,18 +97,14 @@ local function renderTargets()
 end
 
 local function reset()
-    M.targets = {}
+    M.targets = Table()
     renderTargets()
     gameplay_playmodeMarkers.clear()
     extensions.hook("onNavigateToMission", nil)
 end
 
 local function clear()
-    for i, t in ipairs(M.targets) do
-        if t.clearable then
-            table.remove(M.targets, i)
-        end
-    end
+    M.targets = M.targets:filter(function(t) return not t.clearable end)
     renderTargets()
     if #M.targets == 0 then
         gameplay_playmodeMarkers.clear()
@@ -126,19 +122,15 @@ local function getByKey(key)
 end
 
 local function removeByKey(key)
-    for i, t in ipairs(M.targets) do
-        if t.key == key then
-            table.remove(M.targets, i)
-        end
-    end
+    M.targets = M.targets:filter(function(t) return t.key ~= key end)
     renderTargets()
 end
 
 local function _insertWaypoint(index, previousIndex, target)
     if previousIndex then
-        table.remove(M.targets, previousIndex)
+        M.targets:remove(previousIndex)
     end
-    table.insert(M.targets, index, target)
+    M.targets:insert(index, target)
 
     renderTargets()
     BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
@@ -298,7 +290,7 @@ local function fastTick(ctxt)
             return
         end
         if distance < wp.radius then
-            table.remove(M.targets, 1)
+            M.targets:remove(1)
             renderTargets()
             BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
             pcall(wp.callback, ctxt)
@@ -312,62 +304,40 @@ local function _onLastTargetReached()
 end
 
 local function slowTick()
-    local playerTargetIndex
-    for i, t in ipairs(M.targets) do
-        if t.key == M.KEYS.PLAYER then
-            if not t.playerName then
-                table.remove(M.targets, i)
-            end
-            local playerFound = false
-            for _, player in pairs(BJI.Managers.Context.Players) do
-                if player.playerName == t.playerName then
-                    playerFound = true
-                    break
-                end
-            end
-            if not playerFound then
-                table.remove(M.targets, i)
-                if #M.targets == 0 then
-                    _onLastTargetReached()
-                end
-            else
-                playerTargetIndex = i
-                break
-            end
+    local function deleteAndCheckLast(i)
+        M.targets:remove(i)
+        if #M.targets == 0 then
+            _onLastTargetReached()
         end
     end
+    M.targets:find(function(t) return t.key == M.KEYS.PLAYER end,
+        function(t, i)
+            if not t.playerName then
+                return deleteAndCheckLast(i)
+            end
 
-    if playerTargetIndex then
-        local target = M.targets[playerTargetIndex]
-        local playerName = target.playerName
-        local playerFound
-        for _, player in pairs(BJI.Managers.Context.Players) do
-            if player.playerName == playerName then
-                playerFound = player
-                break
+            local player = Table(BJI.Managers.Context.Players)
+                :find(function(p) return p.playerName == t.playerName end)
+            if not player then
+                -- player left
+                return deleteAndCheckLast(i)
             end
-        end
-        if not playerFound or not playerFound.currentVehicle then
-            -- player left or deleted last vehicle
-            table.remove(M.targets, playerTargetIndex)
-            if #M.targets == 0 then
-                _onLastTargetReached()
+
+            if not player.currentVehicle then
+                -- player doesn't have a vehicle
+                return deleteAndCheckLast(i)
             end
-        else
-            local veh = BJI.Managers.Veh.getVehicleObject(playerFound.currentVehicle)
-            local posrot = BJI.Managers.Veh.getPositionRotation(veh)
-            if posrot then
-                target.pos = posrot.pos
+
+            local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
+            local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+            if veh and posrot then
+                t.pos = posrot.pos
                 renderTargets()
             else
                 -- player have invalid vehicle
-                table.remove(M.targets, playerTargetIndex)
-                if #M.targets == 0 then
-                    _onLastTargetReached()
-                end
+                return deleteAndCheckLast(i)
             end
-        end
-    end
+        end)
 end
 
 local function onLoad()
