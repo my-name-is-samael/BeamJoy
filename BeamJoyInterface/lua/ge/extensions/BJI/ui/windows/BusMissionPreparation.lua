@@ -13,6 +13,8 @@ local W = {
         title = "",
         line = "",
         config = "",
+        cancel = "",
+        start = "",
     },
     data = {
         labelsWidth = 0,
@@ -33,6 +35,8 @@ local function updateLabels()
     W.labels.title = BJI.Managers.Lang.get("buslines.preparation.title")
     W.labels.line = BJI.Managers.Lang.get("buslines.preparation.line")
     W.labels.config = BJI.Managers.Lang.get("buslines.preparation.config")
+    W.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
+    W.labels.start = BJI.Managers.Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
@@ -210,6 +214,7 @@ local function footer(ctxt)
             id = "cancelBusMission",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.cancel,
             onClick = onClose,
         })
         :btnIcon({
@@ -217,6 +222,7 @@ local function footer(ctxt)
             icon = ICONS.videogame_asset,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = not W.data.lineSelected.id or not W.data.configSelected.config,
+            tooltip = W.labels.start,
             onClick = function()
                 startMission(ctxt)
             end,

@@ -1,3 +1,10 @@
+---@class BJIStation
+---@field name string
+---@field pos vec3
+---@field radius number
+---@field types string[]?
+---@field isEnergy boolean
+
 ---@class BJIManagerStations : BJIManager
 local M = {
     _name = "Stations",
@@ -10,7 +17,7 @@ local M = {
         BG = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .3),
     },
 
-    ---@type {pos: vec3, radius: number}
+    ---@type BJIStation?
     station = nil,
 
     -- detection thread data
@@ -51,17 +58,18 @@ local function detectChunk(ctxt)
 
     for i = M.detectionProcess, target do
         local s = M.detectionStations[i]
-        if s and
-            ctxt.vehPosRot.pos:distance(s.pos) <= s.radius then
-            if not s.types then
+        if s and ctxt.vehPosRot.pos:distance(s.pos) <= s.radius then
+            if not s.isEnergy then
                 M.station = s
                 M.detectionProcess = nil
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
                 return
             end
             for _, type in ipairs(s.types) do
                 if table.includes(energyTypes, type) then
                     M.station = s
                     M.detectionProcess = nil
+                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
                     return
                 end
             end
@@ -69,7 +77,8 @@ local function detectChunk(ctxt)
     end
 
     M.detectionProcess = target
-    if M.detectionProcess == #BJI.Managers.Context.Scenario.Data.Garages + #BJI.Managers.Context.Scenario.Data.EnergyStations then
+    if M.detectionProcess == #BJI.Managers.Context.Scenario.Data.Garages +
+        #BJI.Managers.Context.Scenario.Data.EnergyStations then
         M.detectionProcess = nil
     end
 end
@@ -134,8 +143,10 @@ local function fastTick(ctxt) -- TODO CHECK REACTIVITY (maybe roll back to singl
                 not BJI.Managers.Scenario.canRepairAtGarage()) or
             BJI.Managers.Veh.isUnicycle(veh:getID()) then
             M.station = nil
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
         elseif ctxt.vehPosRot.pos:distance(M.station.pos) > M.station.radius then
             M.station = nil
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
         end
         return
     end

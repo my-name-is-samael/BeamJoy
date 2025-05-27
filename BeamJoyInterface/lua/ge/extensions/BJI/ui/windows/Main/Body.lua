@@ -35,17 +35,21 @@ local cache = {
         delivery = {
             current = "",
             distanceLeft = "",
+            leave = "",
+            loop = "",
             vehicle = {
                 currentConfig = "",
             },
             package = {
                 streak = "",
                 streakTooltip = "",
-            }
+            },
         },
         busMission = {
             line = "",
             stopCount = "",
+            leave = "",
+            loop = "",
         },
         players = {
             moderation = {
@@ -53,11 +57,22 @@ local cache = {
                 list = "",
                 muteReason = "",
                 kickReason = "",
-                kickButton = "",
                 banReason = "",
                 savedReason = "",
                 tempBanDuration = "",
                 vehicles = "",
+                buttons = {
+                    kick = "",
+                    ban = "",
+                    tempban = "",
+                    show = "",
+                    freeze = "",
+                    engine = "",
+                    delete = "",
+                    explode = "",
+                    mute = "",
+                    deleteAllVehicles = "",
+                },
             },
             waiting = "",
             list = "",
@@ -133,6 +148,8 @@ local function updateLabels()
     -- GLOBAL DELIVERIES
     cache.labels.delivery.current = BJI.Managers.Lang.get("delivery.currentDelivery")
     cache.labels.delivery.distanceLeft = BJI.Managers.Lang.get("delivery.distanceLeft")
+    cache.labels.delivery.leave = BJI.Managers.Lang.get("common.buttons.leave")
+    cache.labels.delivery.loop = BJI.Managers.Lang.get("common.buttons.loop")
     -- VEHICLE DELIVERY
     cache.labels.delivery.vehicle.currentConfig = BJI.Managers.Lang.get("vehicleDelivery.vehicle")
     -- PACKAGE DELIVERY
@@ -141,6 +158,8 @@ local function updateLabels()
     -- BUS MISSION
     cache.labels.busMission.line = BJI.Managers.Lang.get("buslines.play.line")
     cache.labels.busMission.stopCount = BJI.Managers.Lang.get("buslines.play.stopCount")
+    cache.labels.busMission.leave = BJI.Managers.Lang.get("common.buttons.leave")
+    cache.labels.busMission.loop = BJI.Managers.Lang.get("common.buttons.loop")
 
     -- PLAYERS LIST
     cache.labels.players.moderation.waiting = string.var("{1}:",
@@ -148,11 +167,21 @@ local function updateLabels()
     cache.labels.players.moderation.list = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.players") })
     cache.labels.players.moderation.muteReason = BJI.Managers.Lang.get("moderationBlock.muteReason")
     cache.labels.players.moderation.kickReason = BJI.Managers.Lang.get("moderationBlock.kickReason")
-    cache.labels.players.moderation.kickButton = BJI.Managers.Lang.get("moderationBlock.buttons.kick")
     cache.labels.players.moderation.banReason = BJI.Managers.Lang.get("moderationBlock.banReason")
     cache.labels.players.moderation.savedReason = BJI.Managers.Lang.get("moderationBlock.savedReason")
     cache.labels.players.moderation.tempBanDuration = BJI.Managers.Lang.get("moderationBlock.tempBanDuration")
     cache.labels.players.moderation.vehicles = BJI.Managers.Lang.get("moderationBlock.vehicles")
+    cache.labels.players.moderation.buttons.kick = BJI.Managers.Lang.get("moderationBlock.buttons.kick")
+    cache.labels.players.moderation.buttons.ban = BJI.Managers.Lang.get("moderationBlock.buttons.ban")
+    cache.labels.players.moderation.buttons.tempban = BJI.Managers.Lang.get("moderationBlock.buttons.tempBan")
+    cache.labels.players.moderation.buttons.show = BJI.Managers.Lang.get("common.buttons.show")
+    cache.labels.players.moderation.buttons.freeze = BJI.Managers.Lang.get("moderationBlock.buttons.freeze")
+    cache.labels.players.moderation.buttons.engine = BJI.Managers.Lang.get("moderationBlock.buttons.engine")
+    cache.labels.players.moderation.buttons.delete = BJI.Managers.Lang.get("common.buttons.delete")
+    cache.labels.players.moderation.buttons.explode = BJI.Managers.Lang.get("common.buttons.explode")
+    cache.labels.players.moderation.buttons.mute = BJI.Managers.Lang.get("moderationBlock.buttons.mute")
+    cache.labels.players.moderation.buttons.deleteAllVehicles = BJI.Managers.Lang.get(
+        "moderationBlock.buttons.deleteAllVehicles")
     cache.labels.players.waiting = BJI.Managers.Lang.get("playersBlock.waitingPlayers")
     cache.labels.players.list = string.var("{1}:", { BJI.Managers.Lang.get("playersBlock.players") })
 end
@@ -295,7 +324,7 @@ local function updateCachePlayers(ctxt)
         end
     end
     cache.widths.players.moderation.buttons = math.max(GetBtnIconSize(),
-        BJI.Utils.Common.GetColumnTextWidth(cache.labels.players.moderation.kickButton))
+        BJI.Utils.Common.GetColumnTextWidth(cache.labels.players.moderation.buttons.kick))
 end
 
 local listeners = Table()
@@ -309,11 +338,19 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED,
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
     }, function(ctxt2, data)
-        updateCache(ctxt2)
+        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            table.includes({
+                BJI.Managers.Cache.CACHES.GARAGES,
+                BJI.Managers.Cache.CACHES.STATIONS
+            }, data.cache) then
+            updateCache(ctxt2)
+        end
     end, cache.name .. "Cache"))
 
     updateLabels()

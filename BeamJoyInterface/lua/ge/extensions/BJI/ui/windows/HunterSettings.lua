@@ -22,6 +22,16 @@ local W = {
 
         protectedVehicle = "",
         selfProtected = "",
+
+        buttons = {
+            spawn = "",
+            replace = "",
+            set = "",
+            remove = "",
+            add = "",
+            close = "",
+            start = "",
+        },
     },
     data = {
         waypoints = 3,
@@ -57,6 +67,14 @@ local function updateLabels()
 
     W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
     W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+
+    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
+    W.labels.buttons.set = BJI.Managers.Lang.get("common.buttons.set")
+    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
@@ -191,6 +209,7 @@ local function drawBody(ctxt)
                         icon = ctxt.isOwner and ICONS.carSensors or ICONS.visibility,
                         style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                             BJI.Utils.Style.BTN_PRESETS.INFO,
+                        tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
                         onClick = function()
                             local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                 BJI.Managers.Veh.spawnNewVehicle
@@ -201,6 +220,7 @@ local function drawBody(ctxt)
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not ctxt.veh,
+                        tooltip = W.labels.buttons.set,
                         onClick = function()
                             if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
                                 BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
@@ -212,6 +232,7 @@ local function drawBody(ctxt)
                         id = "removeHuntedConfig",
                         icon = ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        tooltip = W.labels.buttons.remove,
                         onClick = function()
                             W.data.huntedConfig = nil
                         end,
@@ -222,10 +243,12 @@ local function drawBody(ctxt)
                         tooltip = W.labels.protectedVehicle
                     elseif W.data.selfProtected then
                         tooltip = W.labels.selfProtected
+                    else
+                        tooltip = W.labels.buttons.add
                     end
                     line:btnIcon({
                         id = "addHuntedConfig",
-                        icon = ICONS.addListItem,
+                        icon = ICONS.add,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
                         tooltip = tooltip,
@@ -260,6 +283,7 @@ local function drawBody(ctxt)
                             style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                                 BJI.Utils.Style.BTN_PRESETS.INFO,
                             disabled = not ctxt.isOwner,
+                            tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
                             onClick = function()
                                 local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle
@@ -269,6 +293,7 @@ local function drawBody(ctxt)
                             id = string.var("removeHunterConfig{1}", { i }),
                             icon = ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                            tooltip = W.labels.buttons.remove,
                             onClick = function()
                                 table.remove(W.data.hunterConfigs, i)
                             end,
@@ -279,10 +304,12 @@ local function drawBody(ctxt)
                             tooltip = W.labels.protectedVehicle
                         elseif W.data.selfProtected then
                             tooltip = W.labels.selfProtected
+                        else
+                            tooltip = W.labels.buttons.add
                         end
                         LineBuilder():btnIcon({
                             id = "addHunterConfig",
-                            icon = ICONS.addListItem,
+                            icon = ICONS.add,
                             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
                             tooltip = tooltip,
@@ -333,11 +360,13 @@ local function drawFooter(ctxt)
         id = "closeHunterSettings",
         icon = ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.labels.buttons.close,
         onClick = onClose,
     }):btnIcon({
         id = "startHunter",
         icon = ICONS.videogame_asset,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+        tooltip = W.labels.buttons.start,
         onClick = function()
             BJI.Tx.scenario.HunterStart({
                 waypoints = W.data.waypoints,

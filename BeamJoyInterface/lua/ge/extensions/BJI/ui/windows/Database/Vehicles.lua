@@ -1,6 +1,8 @@
 local W = {
     labels = {
         title = "",
+        add = "",
+        remove = "",
     },
     cache = {
         ---@type string[]
@@ -17,7 +19,9 @@ local W = {
 }
 
 local function updateLabels()
-    W.labels.title = string.var("{1} :", { BJI.Managers.Lang.get("database.vehicles.blacklistedModels") })
+    W.labels.title = BJI.Managers.Lang.get("database.vehicles.blacklistedModels") .. " :"
+    W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
 end
 
 local function updateCache()
@@ -73,48 +77,42 @@ end
 ---@param ctxt TickContext
 local function header(ctxt)
     LineLabel(W.labels.title)
-
-    LineBuilder()
-        :btnIcon({
-            id = "addBlacklistedModel",
-            icon = ICONS.add,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = W.cache.disableInputs or not W.cache.selectedModel,
-            onClick = function()
-                W.cache.disableInputs = true
-                BJI.Tx.database.vehicle(W.cache.selectedModel.value, true)
-            end
-        })
-        :inputCombo({
-            id = "addBlacklistedModelList",
-            items = W.cache.modelsCombo,
-            getLabelFn = function(item)
-                return item.label
-            end,
-            value = W.cache.selectedModel,
-            onChange = function(item)
-                W.cache.selectedModel = item
-            end
-        })
-        :build()
+    LineBuilder():btnIcon({
+        id = "addBlacklistedModel",
+        icon = ICONS.add,
+        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+        disabled = W.cache.disableInputs or not W.cache.selectedModel,
+        tooltip = W.labels.add,
+        onClick = function()
+            W.cache.disableInputs = true
+            BJI.Tx.database.vehicle(W.cache.selectedModel.value, true)
+        end
+    }):inputCombo({
+        id = "addBlacklistedModelList",
+        items = W.cache.modelsCombo,
+        getLabelFn = function(item)
+            return item.label
+        end,
+        value = W.cache.selectedModel,
+        onChange = function(item)
+            W.cache.selectedModel = item
+        end
+    }):build()
 end
 
 local function body(data)
-
     W.cache.blackListDisplay:forEach(function(el)
-        LineBuilder()
-            :btnIcon({
-                id = string.var("removeBlacklisted-{1}", { el.model }),
-                icon = ICONS.delete_forever,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                disabled = W.cache.disableInputs,
-                onClick = function()
-                    W.cache.disableInputs = true
-                    BJI.Tx.database.vehicle(el.model, false)
-                end
-            })
-            :text(el.label)
-            :build()
+        LineBuilder():btnIcon({
+            id = string.var("removeBlacklisted-{1}", { el.model }),
+            icon = ICONS.delete_forever,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = W.cache.disableInputs,
+            tooltip = W.labels.remove,
+            onClick = function()
+                W.cache.disableInputs = true
+                BJI.Tx.database.vehicle(el.model, false)
+            end
+        }):text(el.label):build()
     end)
 end
 

@@ -8,6 +8,11 @@ local W = {
         mapLabel = "",
         mapArchive = "",
         mapCustom = "",
+
+        add = "",
+        remove = "",
+        save = "",
+        reset = "",
     },
     newMap = {
         name = "",
@@ -28,6 +33,11 @@ local function updateLabels()
     W.labels.mapLabel = "    " .. BJI.Managers.Lang.get("serverConfig.maps.label") .. " :"
     W.labels.mapArchive = "    " .. BJI.Managers.Lang.get("serverConfig.maps.archive") .. " :"
     W.labels.mapCustom = BJI.Managers.Lang.get("votemap.targetMapCustom")
+
+    W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
 end
 
 local function updateWidths()
@@ -103,6 +113,7 @@ local function drawMapsList(ctxt)
                             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = W.disableInputs or #map.label == 0 or
                                 (map.custom and #map.archive == 0),
+                            tooltip = W.labels.save,
                             onClick = function()
                                 W.disableInputs = true
                                 BJI.Tx.config.maps(mapName, map.label, map.custom and map.archive or nil)
@@ -115,6 +126,7 @@ local function drawMapsList(ctxt)
                             icon = ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             disabled = W.disableInputs or mapName == BJI.Managers.Context.UI.mapName,
+                            tooltip = W.labels.remove,
                             onClick = function()
                                 W.disableInputs = true
                                 BJI.Tx.config.maps(mapName)
@@ -134,6 +146,7 @@ local function drawMapsList(ctxt)
                             icon = ICONS.refresh,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.disableInputs or map.label == BJI.Managers.Context.Maps[mapName].label,
+                            tooltip = W.labels.reset,
                             onClick = function()
                                 map.label = BJI.Managers.Context.Maps[mapName].label
                             end
@@ -163,6 +176,7 @@ local function drawMapsList(ctxt)
                                 icon = ICONS.refresh,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = W.disableInputs or map.archive == BJI.Managers.Context.Maps[mapName].archive,
+                                tooltip = W.labels.reset,
                                 onClick = function()
                                     map.archive = BJI.Managers.Context.Maps[mapName].archive
                                 end
@@ -198,6 +212,7 @@ local function drawNewMap(ctxt)
                 #W.newMap.label == 0 or
                 #W.newMap.archive == 0 or
                 BJI.Managers.Context.Maps[W.newMap.name] ~= nil,
+            tooltip = W.labels.add,
             onClick = function()
                 W.disableInputs = true
                 BJI.Tx.config.maps(W.newMap.name, W.newMap.label, W.newMap.archive)

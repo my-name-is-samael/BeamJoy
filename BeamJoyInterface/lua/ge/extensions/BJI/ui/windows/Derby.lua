@@ -22,6 +22,15 @@ local W = {
         eliminatedIn = "",
         amountLives = "",
         amountLife = "",
+
+        buttons = {
+            join = "",
+            spectate = "",
+            markReady = "",
+            forfeit = "",
+            spawn = "",
+            replace = "",
+        },
     },
 
     cache = {
@@ -70,6 +79,13 @@ local function updateLabels()
     W.labels.eliminatedIn = BJI.Managers.Lang.get("derby.play.eliminatedIn")
     W.labels.amountLives = BJI.Managers.Lang.get("derby.play.amountLives")
     W.labels.amountLife = BJI.Managers.Lang.get("derby.play.amountLife")
+
+    W.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
+    W.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
+    W.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
+    W.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
+    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
 end
 
 ---@param ctxt? TickContext
@@ -196,25 +212,26 @@ local function drawHeaderPreparation(ctxt)
         remainingTime < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
 
     if W.cache.showPreparationActions then
-        local line = LineBuilder()
-            :btnIconToggle({
-                id = "joinDerby",
-                icon = W.cache.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
-                state = not W.cache.isParticipant,
-                big = true,
-                disabled = W.cache.disableButtons,
-                onClick = function()
-                    W.cache.disableButtons = true -- api request protection
-                    BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
-                end
-            })
+        local line = LineBuilder():btnIconToggle({
+            id = "joinDerby",
+            icon = W.cache.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
+            big = true,
+            state = not W.cache.isParticipant,
+            disabled = W.cache.disableButtons,
+            tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
+            onClick = function()
+                W.cache.disableButtons = true -- api request protection
+                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            end
+        })
         if W.cache.showReadyBtn then
             line:btnIcon({
                 id = "readyDerby",
                 icon = ICONS.check,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 big = true,
+                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = not ctxt.isOwner or W.cache.disableButtons,
+                tooltip = W.labels.buttons.markReady,
                 onClick = function()
                     W.cache.disableButtons = true -- api request protection
                     BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh:getID())
@@ -231,9 +248,10 @@ local function drawHeaderGame(ctxt)
         line:btnIcon({
             id = "leaveDerby",
             icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             big = true,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
+            tooltip = W.labels.buttons.forfeit,
             onClick = function()
                 W.cache.disableButtons = true
                 BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
@@ -273,25 +291,18 @@ end
 local function body(ctxt)
     if W.cache.showPreparation then
         W.cache.preparationParticipants:forEach(function(p)
-            LineBuilder()
-                :text(p.name)
-                :text(p.nameSuffix, p.suffixColor)
-                :build()
+            LineBuilder():text(p.name):text(p.nameSuffix, p.suffixColor):build()
         end)
 
         W.cache.preparationConfigs:forEach(function(c, i)
-            LineBuilder()
-                :btnIcon({
-                    id = string.var("spawnConfig{1}", { i }),
-                    icon = ICONS.carSensors,
-                    style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                    disabled = W.cache.disableButtons,
-                    onClick = function()
-                        W.scenario.tryReplaceOrSpawn(c.model, c.config)
-                    end
-                })
-                :text(c.label)
-                :build()
+            LineBuilder():btnIcon({
+                id = string.var("spawnConfig{1}", { i }),
+                icon = ICONS.carSensors,
+                style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                disabled = W.cache.disableButtons,
+                tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
+                onClick = function() W.scenario.tryReplaceOrSpawn(c.model, c.config) end,
+            }):text(c.label):build()
         end)
     elseif W.cache.showGame then
         local cols = ColumnsBuilder("BJIDerbyLeaderboard", { W.cache.gameLeaderboardNamesWidth, -1 })

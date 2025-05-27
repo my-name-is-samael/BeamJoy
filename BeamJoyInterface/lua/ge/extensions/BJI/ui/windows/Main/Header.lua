@@ -31,6 +31,16 @@ local cache = {
             enabled = "",
             disabled = "",
         },
+        buttons = {
+            userSettings = "",
+            vehicleSelector = "",
+            toggleNametags = "",
+            clearGPS = "",
+            zoomOut = "",
+            zoomIn = "",
+            debug = "",
+            serverVisibility = "",
+        },
     }
 }
 
@@ -114,6 +124,15 @@ local function updateLabels()
     cache.labels.collisions.title = string.var("{1}:", { BJI.Managers.Lang.get("header.collisions") })
     cache.labels.collisions.enabled = BJI.Managers.Lang.get("common.enabled")
     cache.labels.collisions.disabled = BJI.Managers.Lang.get("common.disabled")
+
+    cache.labels.buttons.userSettings = BJI.Managers.Lang.get("menu.me.settings")
+    cache.labels.buttons.vehicleSelector = BJI.Managers.Lang.get("menu.me.vehicleSelector")
+    cache.labels.buttons.toggleNametags = BJI.Managers.Lang.get("header.buttons.toggleNametagsVisibility")
+    cache.labels.buttons.clearGPS = BJI.Managers.Lang.get("menu.me.clearGPS")
+    cache.labels.buttons.zoomOut = BJI.Managers.Lang.get("header.buttons.zoomOut")
+    cache.labels.buttons.zoomIn = BJI.Managers.Lang.get("header.buttons.zoomIn")
+    cache.labels.buttons.debug = BJI.Managers.Lang.get("header.buttons.debug")
+    cache.labels.buttons.serverVisibility = BJI.Managers.Lang.get("header.buttons.serverVisibility")
 end
 
 ---@param ctxt? TickContext
@@ -153,188 +172,185 @@ end
 local function draw(ctxt)
     -- LANG / Settings / UIScale
     if BJI.Managers.Cache.areBaseCachesFirstLoaded() and #BJI.Managers.Lang.Langs > 1 then
-        ColumnsBuilder("headerLangUIScale", { -1, cache.data.firstRowRightButtonsWidth })
-            :addRow({
-                cells = {
-                    function()
-                        local line = LineBuilder()
-                            :btnIcon({
-                                id = "toggleUserSettings",
-                                icon = ICONS.settings,
-                                style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                                active = BJI.Windows.UserSettings.show,
-                                onClick = function()
-                                    BJI.Windows.UserSettings.show = not BJI.Windows.UserSettings.show
-                                end
-                            })
-                        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
-                            line:btnIcon({
-                                id = "toggleVehicleSelector",
-                                icon = ICONS.directions_car,
-                                style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                                active = BJI.Windows.VehSelector.show,
-                                onClick = function()
-                                    if BJI.Windows.VehSelector.show then
-                                        BJI.Windows.VehSelector.tryClose()
-                                    else
-                                        BJI.Windows.VehSelector.open(true)
-                                    end
-                                end
-                            })
+        ColumnsBuilder("headerLangUIScale", { -1, cache.data.firstRowRightButtonsWidth }):addRow({
+            cells = {
+                function()
+                    local line = LineBuilder():btnIcon({
+                        id = "toggleUserSettings",
+                        icon = ICONS.settings,
+                        style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                        active = BJI.Windows.UserSettings.show,
+                        tooltip = cache.labels.buttons.userSettings,
+                        onClick = function()
+                            BJI.Windows.UserSettings.show = not BJI.Windows.UserSettings.show
                         end
-                        line:btnIconToggle({
-                            id = "togleNametags",
-                            icon = cache.data.nametagsVisible and ICONS.speaker_notes or ICONS.speaker_notes_off,
-                            state = cache.data.nametagsVisible,
-                            coloredIcon = true,
+                    })
+                    if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
+                        line:btnIcon({
+                            id = "toggleVehicleSelector",
+                            icon = ICONS.directions_car,
+                            style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                            active = BJI.Windows.VehSelector.show,
+                            tooltip = cache.labels.buttons.vehicleSelector,
                             onClick = function()
-                                settings.setValue("hideNameTags", cache.data.nametagsVisible)
-                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
-                            end,
-                        })
-                        if BJI.Managers.GPS.isClearable() then
-                            line:btnIcon({
-                                id = "clearGPS",
-                                icon = ICONS.location_off,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                coloredIcon = true,
-                                onClick = BJI.Managers.GPS.clear,
-                                sound = BTN_NO_SOUND,
-                            })
-                        end
-                        line:build()
-                        BJI.Managers.Lang.drawSelector({
-                            selected = ctxt.user.lang,
-                            onChange = function(newLang)
-                                BJI.Tx.player.lang(newLang)
+                                if BJI.Windows.VehSelector.show then
+                                    BJI.Windows.VehSelector.tryClose()
+                                else
+                                    BJI.Windows.VehSelector.open(true)
+                                end
                             end
                         })
-                    end,
-                    function()
-                        local minScale = 0.85
-                        local maxScale = 2
-                        local value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-                        LineBuilder()
-                            :btnIcon({
-                                id = "uiScaleZoomOut",
-                                icon = ICONS.zoom_out,
-                                onClick = function()
-                                    local scale = math.clamp(value - 0.05, minScale, maxScale)
-                                    if scale ~= value then
-                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
-                                            scale)
-                                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
-                                            scale = scale
-                                        })
-                                    end
-                                end
-                            })
-                            :btnIcon({
-                                id = "uiScaleZoomIn",
-                                icon = ICONS.zoom_in,
-                                onClick = function()
-                                    local scale = math.clamp(value + 0.05, minScale, maxScale)
-                                    if scale ~= value then
-                                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
-                                            scale)
-                                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
-                                            scale = scale
-                                        })
-                                    end
-                                end
-                            })
-                            :build()
                     end
-                }
-            })
-            :build()
+                    line:btnIconToggle({
+                        id = "togleNametags",
+                        icon = cache.data.nametagsVisible and ICONS.speaker_notes or ICONS.speaker_notes_off,
+                        state = cache.data.nametagsVisible,
+                        coloredIcon = true,
+                        tooltip = cache.labels.buttons.toggleNametags,
+                        onClick = function()
+                            settings.setValue("hideNameTags", cache.data.nametagsVisible)
+                            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+                        end,
+                    })
+                    if BJI.Managers.GPS.isClearable() then
+                        line:btnIcon({
+                            id = "clearGPS",
+                            icon = ICONS.location_off,
+                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                            coloredIcon = true,
+                            tooltip = cache.labels.buttons.clearGPS,
+                            onClick = BJI.Managers.GPS.clear,
+                            sound = BTN_NO_SOUND,
+                        })
+                    end
+                    line:build()
+                    BJI.Managers.Lang.drawSelector({
+                        selected = ctxt.user.lang,
+                        onChange = function(newLang)
+                            BJI.Tx.player.lang(newLang)
+                        end
+                    })
+                end,
+                function()
+                    local minScale = 0.85
+                    local maxScale = 2
+                    local value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+                    LineBuilder():btnIcon({
+                        id = "uiScaleZoomOut",
+                        icon = ICONS.zoom_out,
+                        tooltip = cache.labels.buttons.zoomOut,
+                        onClick = function()
+                            local scale = math.clamp(value - 0.05, minScale, maxScale)
+                            if scale ~= value then
+                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
+                                    scale)
+                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
+                                    scale = scale
+                                })
+                            end
+                        end
+                    }):btnIcon({
+                        id = "uiScaleZoomIn",
+                        icon = ICONS.zoom_in,
+                        tooltip = cache.labels.buttons.zoomIn,
+                        onClick = function()
+                            local scale = math.clamp(value + 0.05, minScale, maxScale)
+                            if scale ~= value then
+                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
+                                    scale)
+                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
+                                    scale = scale
+                                })
+                            end
+                        end
+                    }):build()
+                end
+            }
+        }):build()
     end
 
     -- MAP / TIME / TEMPERATURE
     if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.MAP) then
-        ColumnsBuilder("headerMapTimeTempPrivate", { -1, cache.data.secondRowRightButtonsWidth })
-            :addRow({
-                cells = {
-                    function()
-                        -- MAP
-                        local line = LineBuilder()
-                            :text(BJI.Managers.Context.UI.mapLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        ColumnsBuilder("headerMapTimeTempPrivate", { -1, cache.data.secondRowRightButtonsWidth }):addRow({
+            cells = {
+                function()
+                    -- MAP
+                    local line = LineBuilder()
+                        :text(BJI.Managers.Context.UI.mapLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
 
-                        -- TIME & TEMPERATURE
-                        local labels = {}
-                        if cache.data.showTime then
-                            table.insert(labels,
-                                cache.data.time or BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time))
-                        end
+                    -- TIME & TEMPERATURE
+                    local labels = {}
+                    if cache.data.showTime then
+                        table.insert(labels,
+                            cache.data.time or BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time))
+                    end
 
-                        if cache.data.showTemp then
-                            if cache.data.temp then
-                                table.insert(labels, cache.data.temp)
-                            else
-                                local temp = BJI.Managers.Env.getTemperature()
-                                local tempUnit = settings.getValue("uiUnitTemperature")
-                                if tempUnit == "k" then
-                                    table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
-                                elseif tempUnit == "c" then
-                                    table.insert(labels,
-                                        string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
-                                elseif tempUnit == "f" then
-                                    table.insert(labels,
-                                        string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
-                                end
+                    if cache.data.showTemp then
+                        if cache.data.temp then
+                            table.insert(labels, cache.data.temp)
+                        else
+                            local temp = BJI.Managers.Env.getTemperature()
+                            local tempUnit = settings.getValue("uiUnitTemperature")
+                            if tempUnit == "k" then
+                                table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
+                            elseif tempUnit == "c" then
+                                table.insert(labels,
+                                    string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
+                            elseif tempUnit == "f" then
+                                table.insert(labels,
+                                    string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
                             end
                         end
-                        if #labels > 0 then
-                            line:text(string.var("{1}",
-                                { table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })) }))
-                        end
-                        line:build()
-                    end,
-                    function()
-                        local line = LineBuilder()
-                            :btnIcon({
-                                id = "debugAppWaiting",
-                                icon = ICONS.bug_report,
-                                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                coloredIcon = true,
-                                onClick = function()
-                                    guihooks.trigger("app:waiting", false)
-                                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
-                                end,
-                            })
-                        if cache.data.showCorePublic then
-                            local state = BJI.Managers.Context.Core.Private
-                            line:btnIconToggle({
-                                id = "toggleCorePrivate",
-                                icon = state and ICONS.visibility_off or ICONS.visibility,
-                                state = not state,
-                                onClick = function()
-                                    BJI.Tx.config.core("Private", not BJI.Managers.Context.Core.Private)
-                                end,
-                            })
-                        end
-                        line:build()
                     end
-                }
-            })
-            :build()
+                    if #labels > 0 then
+                        line:text(string.var("{1}",
+                            { table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })) }))
+                    end
+                    line:build()
+                end,
+                function()
+                    local line = LineBuilder():btnIcon({
+                        id = "debugAppWaiting",
+                        icon = ICONS.bug_report,
+                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                        coloredIcon = true,
+                        tooltip = cache.labels.buttons.debug,
+                        onClick = function()
+                            guihooks.trigger("app:waiting", false)
+                            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
+                        end,
+                    })
+                    if cache.data.showCorePublic then
+                        local state = BJI.Managers.Context.Core.Private
+                        line:btnIconToggle({
+                            id = "toggleCorePrivate",
+                            icon = state and ICONS.visibility_off or ICONS.visibility,
+                            state = not state,
+                            tooltip = cache.labels.buttons.serverVisibility,
+                            onClick = function()
+                                BJI.Tx.config.core("Private", not BJI.Managers.Context.Core.Private)
+                            end,
+                        })
+                    end
+                    line:build()
+                end
+            }
+        }):build()
     end
 
     -- GRAVITY / SPEED
     if cache.data.gravity or cache.data.speed then
-        local labels = {}
+        local labels = Table()
         -- GRAVITY
         if cache.data.gravity then
-            table.insert(labels, cache.data.gravity)
+            labels:insert(cache.data.gravity)
         end
 
         -- SPEED
         if cache.data.speed then
-            table.insert(labels, cache.data.speed)
+            labels:insert(cache.data.speed)
         end
-        LineBuilder()
-            :text(table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })))
-            :build()
+        LineLabel(labels:join(string.var(" {1} ", { cache.labels.vSeparator })))
     end
 
     -- TELEPORT DELAY / RESET DELAY
@@ -378,11 +394,9 @@ local function draw(ctxt)
     end
 
     -- COLLISIONS INDICATOR
-    LineBuilder()
-        :text(cache.labels.collisions.title)
-        :text(BJI.Managers.Collisions.state and cache.labels.collisions.enabled or cache.labels.collisions.disabled,
-            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-        :build()
+    LineBuilder():text(cache.labels.collisions.title):text(BJI.Managers.Collisions.state and
+        cache.labels.collisions.enabled or cache.labels.collisions.disabled,
+        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
 
     -- REPUTATION
     if cache.data.showLevel then

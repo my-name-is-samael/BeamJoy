@@ -66,6 +66,7 @@ local W = {
         maps = "",
         core = "",
         icons = "",
+        close = "",
     },
 }
 
@@ -80,6 +81,7 @@ local function updateLabels()
     W.labels.maps = BJI.Managers.Lang.get("serverConfig.maps.title")
     W.labels.core = BJI.Managers.Lang.get("serverConfig.core.title")
     W.labels.icons = BJI.Managers.Lang.get("serverConfig.icons.title")
+    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
 end
 
 local listeners = Table()
@@ -160,14 +162,13 @@ end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "closeServer",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = onClose,
-        })
-        :build()
+    LineBuilder():btnIcon({
+        id = "closeServer",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.labels.close,
+        onClick = onClose,
+    }):build()
 end
 
 W.onLoad = onLoad

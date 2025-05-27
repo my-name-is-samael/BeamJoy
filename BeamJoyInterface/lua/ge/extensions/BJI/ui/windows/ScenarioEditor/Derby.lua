@@ -12,12 +12,32 @@ local W = {
         startPositions = "",
         amountStartPositionsNeeded = "",
         startPositionName = "",
+
+        buttons = {
+            addArena = "",
+            showArena = "",
+            deleteArena = "",
+            toggleArenaVisibility = "",
+            setPreviewPositionHere = "",
+            showPreviewPosition = "",
+            addStartPositionHere = "",
+            showStartPosition = "",
+            setStartPositionHere = "",
+            deleteStartPosition = "",
+            moveUp = "",
+            moveDown = "",
+            close = "",
+            save = "",
+            errorMustHaveVehicle = "",
+            errorInvalidData = "",
+        },
     },
     cache = {
         labelsWidth = 0,
         arenas = Table(),
         disableButtons = false,
     },
+    minStartPositions = 6,
     ---@type integer?
     markersArena = nil,
     changed = false,
@@ -27,6 +47,8 @@ local W = {
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
     W.markersArena = nil
+    W.changed = false
+    W.valid = true
 end
 
 local function reloadMarkers(indexArena)
@@ -63,6 +85,23 @@ local function updateLabels()
     W.labels.startPositions = BJI.Managers.Lang.get("derby.edit.startPositions")
     W.labels.amountStartPositionsNeeded = BJI.Managers.Lang.get("derby.edit.amountStartPositionsNeeded")
     W.labels.startPositionName = BJI.Managers.Lang.get("derby.edit.startPositionName")
+
+    W.labels.buttons.addArena = BJI.Managers.Lang.get("derby.edit.buttons.addArena")
+    W.labels.buttons.showArena = BJI.Managers.Lang.get("derby.edit.buttons.showArena")
+    W.labels.buttons.deleteArena = BJI.Managers.Lang.get("derby.edit.buttons.deleteArena")
+    W.labels.buttons.toggleArenaVisibility = BJI.Managers.Lang.get("derby.edit.buttons.toggleArenaVisibility")
+    W.labels.buttons.setPreviewPositionHere = BJI.Managers.Lang.get("derby.edit.buttons.setPreviewPositionHere")
+    W.labels.buttons.showPreviewPosition = BJI.Managers.Lang.get("derby.edit.buttons.showPreviewPosition")
+    W.labels.buttons.addStartPositionHere = BJI.Managers.Lang.get("derby.edit.buttons.addStartPositionHere")
+    W.labels.buttons.showStartPosition = BJI.Managers.Lang.get("derby.edit.buttons.showStartPosition")
+    W.labels.buttons.setStartPositionHere = BJI.Managers.Lang.get("derby.edit.buttons.setStartPositionHere")
+    W.labels.buttons.deleteStartPosition = BJI.Managers.Lang.get("derby.edit.buttons.deleteStartPosition")
+    W.labels.buttons.moveUp = BJI.Managers.Lang.get("common.buttons.moveUp")
+    W.labels.buttons.moveDown = BJI.Managers.Lang.get("common.buttons.moveDown")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("derby.edit.buttons.errorMustHaveVehicle")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("derby.edit.buttons.errorInvalidData")
 end
 
 local function udpateWidths()
@@ -109,11 +148,9 @@ end
 
 local function validateArenas()
     W.valid = #W.cache.arenas == 0 or not W.cache.arenas:any(function(a)
-        return a.enabled and (
-            #a.name:trim() == 0 or
+        return #a.name:trim() == 0 or
             not a.previewPosition or
-            #a.startPositions == 0
-        )
+            #a.startPositions < W.minStartPositions
     end)
 end
 
@@ -145,6 +182,7 @@ local function header(ctxt)
             id = "addArena",
             icon = ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            tooltip = W.labels.buttons.addArena,
             onClick = function()
                 W.cache.arenas:insert({
                     name = "",
@@ -168,6 +206,7 @@ local function drawArena(ctxt, iArena, arena)
             icon = ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = W.markersArena == iArena or #arena.startPositions == 0,
+            tooltip = W.labels.buttons.showArena,
             onClick = function()
                 reloadMarkers(iArena)
             end,
@@ -176,6 +215,8 @@ local function drawArena(ctxt, iArena, arena)
             id = string.var("deleteArena{1}", { iArena }),
             icon = ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = W.cache.disableButtons,
+            tooltip = W.labels.buttons.deleteArena,
             onClick = function()
                 W.cache.arenas:remove(iArena)
                 W.changed = true
@@ -216,6 +257,7 @@ local function drawArena(ctxt, iArena, arena)
                             icon = arena.enabled and ICONS.visibility or ICONS.visibility_off,
                             state = arena.enabled,
                             disabled = W.cache.disableButtons,
+                            tooltip = W.labels.buttons.toggleArenaVisibility,
                             onClick = function()
                                 arena.enabled = not arena.enabled
                                 W.changed = true
@@ -240,6 +282,7 @@ local function drawArena(ctxt, iArena, arena)
                         style = arena.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                             BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = W.cache.disableButtons,
+                        tooltip = W.labels.buttons.setPreviewPositionHere,
                         onClick = function()
                             arena.previewPosition = BJI.Managers.Cam.getPositionRotation(true)
                             W.changed = true
@@ -251,6 +294,7 @@ local function drawArena(ctxt, iArena, arena)
                             id = string.var("showArenaPreviePosition{1}", { iArena }),
                             icon = ICONS.visibility,
                             style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                            tooltip = W.labels.buttons.showPreviewPosition,
                             onClick = function()
                                 if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
                                     BJI.Managers.Cam.toggleFreeCam()
@@ -273,6 +317,11 @@ local function drawArena(ctxt, iArena, arena)
                         icon = ICONS.add_location,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
+                        tooltip = string.var("{1}{2}", {
+                            W.labels.buttons.addStartPositionHere,
+                            (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                            (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""
+                        }),
                         onClick = function()
                             arena.startPositions:insert(math.roundPositionRotation(ctxt.vehPosRot))
                             W.changed = true
@@ -281,7 +330,11 @@ local function drawArena(ctxt, iArena, arena)
                         end,
                     })
                     if #arena.startPositions < 6 then
-                        line:text(W.labels.amountStartPositionsNeeded:var({ amount = 6 - #arena.startPositions }),
+                        line:text(
+                            W.labels.amountStartPositionsNeeded:var({
+                                amount = W.minStartPositions -
+                                #arena.startPositions
+                            }),
                             BJI.Utils.Style.TEXT_COLORS.ERROR)
                     end
                     line:build()
@@ -300,6 +353,7 @@ local function drawArena(ctxt, iArena, arena)
                             icon = ICONS.arrow_drop_up,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.cache.disableButtons or i == 1,
+                            tooltip = W.labels.buttons.moveUp,
                             onClick = function()
                                 arena.startPositions:insert(i - 1, sp)
                                 arena.startPositions:remove(i + 1)
@@ -312,6 +366,7 @@ local function drawArena(ctxt, iArena, arena)
                             icon = ICONS.arrow_drop_down,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.cache.disableButtons or i == #arena.startPositions,
+                            tooltip = W.labels.buttons.moveDown,
                             onClick = function()
                                 arena.startPositions:insert(i + 2, sp)
                                 arena.startPositions:remove(i)
@@ -323,6 +378,7 @@ local function drawArena(ctxt, iArena, arena)
                             id = string.var("gotoArenaStartPos{1}{2}", { iArena, i }),
                             icon = ICONS.pin_drop,
                             style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                            tooltip = W.labels.buttons.showStartPosition,
                             onClick = function()
                                 if ctxt.isOwner then
                                     local posRot = arena.startPositions[i]
@@ -347,7 +403,13 @@ local function drawArena(ctxt, iArena, arena)
                             id = string.var("moveHereArenaStartPos{1}{2}", { iArena, i }),
                             icon = ICONS.edit_location,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = W.cache.disableInputs or not ctxt.veh,
+                            disabled = W.cache.disableInputs or not ctxt.veh or
+                                ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
+                            tooltip = string.var("{1}{2}", {
+                                W.labels.buttons.setStartPositionHere,
+                                (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
+                            }),
                             onClick = function()
                                 arena.startPositions[i] = math.roundPositionRotation(ctxt.vehPosRot)
                                 W.changed = true
@@ -360,6 +422,7 @@ local function drawArena(ctxt, iArena, arena)
                             icon = ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             disabled = W.cache.disableInputs,
+                            tooltip = W.labels.buttons.deleteStartPosition,
                             onClick = function()
                                 arena.startPositions:remove(i)
                                 W.changed = true
@@ -391,6 +454,7 @@ local function footer(ctxt)
             id = "cancelDerbyEdit",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.buttons.close,
             onClick = BJI.Windows.ScenarioEditor.onClose,
         })
     if W.changed then
@@ -399,6 +463,10 @@ local function footer(ctxt)
             icon = ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs or not W.valid,
+            tooltip = string.var("{1}{2}", {
+                W.labels.buttons.save,
+                not W.valid and " (" .. W.labels.buttons.errorInvalidData .. ")" or ""
+            }),
             onClick = save,
         })
     end

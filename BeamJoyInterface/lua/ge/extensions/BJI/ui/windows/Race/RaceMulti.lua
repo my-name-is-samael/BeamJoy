@@ -77,6 +77,14 @@ local W = {
             players = "",
             playerReady = "",
             playerNotReady = "",
+
+            buttons = {
+                join = "",
+                spectate = "",
+                markReady = "",
+                forfeit = "",
+                show = "",
+            },
         },
     },
 
@@ -118,6 +126,12 @@ local function updateLabels()
     W.cache.labels.players = string.var("{1}:", { BJI.Managers.Lang.get("races.play.players") })
     W.cache.labels.playerReady = BJI.Managers.Lang.get("races.play.playerReady")
     W.cache.labels.playerNotReady = BJI.Managers.Lang.get("races.play.playerNotReady")
+
+    W.cache.labels.buttons.join = BJI.Managers.Lang.get("races.play.join")
+    W.cache.labels.buttons.spectate = BJI.Managers.Lang.get("races.play.spectate")
+    W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("races.play.markReady")
+    W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("races.play.forfeit")
+    W.cache.labels.buttons.show = BJI.Managers.Lang.get("races.play.show")
 end
 
 ---@param ctxt? TickContext
@@ -255,17 +269,16 @@ local function updateCache(ctxt)
                         finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
                         disabled = finalGameVehID and ctxt2.veh and ctxt2.veh:getID() == finalGameVehID or false
                     end
-                    LineBuilder()
-                        :btnIcon({
-                            id = string.var("watchPlayer{1}", { i }),
-                            icon = ICONS.visibility,
-                            disabled = disabled,
-                            onClick = function()
-                                BJI.Managers.Veh.focus(lb.playerID)
-                                BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
-                            end
-                        })
-                        :build()
+                    LineBuilder():btnIcon({
+                        id = string.var("watchPlayer{1}", { i }),
+                        icon = ICONS.visibility,
+                        disabled = disabled,
+                        tooltip = W.cache.labels.buttons.show,
+                        onClick = function()
+                            BJI.Managers.Veh.focus(lb.playerID)
+                            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
+                        end
+                    }):build()
                 end)
             end
             table.insert(cells, function() LineLabel(playerNames[i], color) end)
@@ -353,45 +366,37 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    local line = LineBuilder()
-        :text(W.scenario.raceName)
-        :text(W.cache.labels.byAuthor)
+    local line = LineBuilder():text(W.scenario.raceName):text(W.cache.labels.byAuthor)
     if W.scenario.settings.laps then
         line:text(W.cache.labels.lap)
     end
     line:build()
 
     if W.cache.data.showRecord then
-        LineBuilder()
-            :text(W.cache.data.recordStr)
-            :build()
+        LineBuilder():text(W.cache.data.recordStr):build()
     else
         EmptyLine()
     end
 
     if W.cache.data.showPb then
-        LineBuilder()
-            :text(W.cache.labels.pb)
-            :text(W.cache.data.pbTime)
-            :build()
+        LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
     else
         EmptyLine()
     end
 
     if W.cache.data.showForfeitBtn then
-        LineBuilder()
-            :btnIcon({
-                id = "forfeitRace",
-                icon = ICONS.exit_to_app,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                disabled = W.cache.data.disableButtons,
-                onClick = function()
-                    W.cache.data.disableButtons = true -- api request protection
-                    BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
-                end,
-                big = true,
-            })
-            :build()
+        LineBuilder():btnIcon({
+            id = "forfeitRace",
+            icon = ICONS.exit_to_app,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = W.cache.data.disableButtons,
+            tooltip = W.cache.labels.buttons.forfeit,
+            onClick = function()
+                W.cache.data.disableButtons = true -- api request protection
+                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
+            end,
+            big = true,
+        }):build()
     end
 
     if W.cache.data.showTimer then
@@ -400,8 +405,7 @@ local function header(ctxt)
             :build()
 
         if W.cache.data.showWpCounter then
-            LineBuilder():icon({ icon = ICONS.timer })
-                :text(W.cache.data.wpCounter)
+            LineBuilder():icon({ icon = ICONS.timer }):text(W.cache.data.wpCounter)
                 :text(BJI.Utils.Common.RaceDelay(W.cache.data.lapTimer:get() + W.cache.data.raceTimeOffset))
                 :build()
         end
@@ -409,11 +413,10 @@ local function header(ctxt)
         EmptyLine()
     end
 
-    line = LineBuilder()
-        :icon({
-            icon = ICONS.timer,
-            big = true,
-        })
+    line = LineBuilder():icon({
+        icon = ICONS.timer,
+        big = true,
+    })
 
     if W.cache.data.showChooseYourVehicleLabel and not ctxt.isOwner then
         line:text(W.cache.labels.chooseYourVehicle, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
@@ -445,25 +448,24 @@ end
 ---@param ctxt TickContext
 local function drawGrid(ctxt)
     local gridTimeoutRemaining = getDiffTime(W.scenario.grid.timeout, ctxt.now)
-    LineBuilder()
-        :text(gridTimeoutRemaining < 1 and W.cache.labels.gridAboutToTimeout or
-            W.cache.labels.gridTimeout:var({ delay = BJI.Utils.Common.PrettyDelay(gridTimeoutRemaining) }),
-            gridTimeoutRemaining < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+    LineBuilder():text(gridTimeoutRemaining < 1 and W.cache.labels.gridAboutToTimeout or
+        W.cache.labels.gridTimeout:var({ delay = BJI.Utils.Common.PrettyDelay(gridTimeoutRemaining) }),
+        gridTimeoutRemaining < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
         :build()
 
     if W.cache.data.grid.showJoinLeaveBtn then
-        local line = LineBuilder()
-            :btnIconToggle({
-                id = "joinRace",
-                icon = W.cache.data.grid.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
-                state = not W.cache.data.grid.isParticipant,
-                disabled = W.cache.data.disableButtons,
-                onClick = function()
-                    W.cache.data.disableButtons = true -- api request protection
-                    BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.JOIN)
-                end,
-                big = true,
-            })
+        local line = LineBuilder():btnIconToggle({
+            id = "joinRace",
+            icon = W.cache.data.grid.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
+            state = not W.cache.data.grid.isParticipant,
+            disabled = W.cache.data.disableButtons,
+            tooltip = W.cache.data.grid.isParticipant and W.cache.labels.buttons.spectate or W.cache.labels.buttons.join,
+            onClick = function()
+                W.cache.data.disableButtons = true -- api request protection
+                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            end,
+            big = true,
+        })
         if W.cache.data.grid.showRemainingPlaces then
             line:text(W.cache.data.grid.remainingPlacesStr)
         elseif W.cache.data.grid.showReadyBtn then
@@ -473,6 +475,7 @@ local function drawGrid(ctxt)
                 icon = ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.data.disableButtons or showReadyCooldown,
+                tooltip = W.cache.labels.buttons.markReady,
                 onClick = function()
                     W.cache.data.disableButtons = true -- api request protection
                     BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.READY)
@@ -496,8 +499,7 @@ local function drawGrid(ctxt)
         W.cache.data.grid.participantsList:forEach(function(player, i)
             local color = player.readyState and BJI.Utils.Style.TEXT_COLORS.SUCCESS or
                 BJI.Utils.Style.TEXT_COLORS.DEFAULT
-            LineBuilder():text(i):text(player.playerName, color)
-                :text(player.readyLabel, color):build()
+            LineBuilder():text(i):text(player.playerName, color):text(player.readyLabel, color):build()
         end)
         Indent(-2)
     end

@@ -23,6 +23,7 @@ local W = {
     labels = {
         players = "",
         vehicles = "",
+        close = "",
     },
     cache = {},
 }
@@ -34,6 +35,7 @@ end
 local function updateLabels()
     W.labels.players = BJI.Managers.Lang.get("database.players.title")
     W.labels.vehicles = BJI.Managers.Lang.get("database.vehicles.title")
+    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
 end
 
 local listeners = Table()
@@ -111,6 +113,7 @@ local function footer(ctxt)
             id = "databaseEditorClose",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.close,
             onClick = onClose,
         })
         :build()

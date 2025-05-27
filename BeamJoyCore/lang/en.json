@@ -252,7 +252,20 @@
         "start": "Start",
         "explode": "Explode",
         "leave": "Leave",
-        "toggle": "Toggle"
+        "toggle": "Toggle",
+        "show": "Show",
+        "spawn": "Spawn",
+        "replace": "Replace",
+        "loop": "Loop",
+        "join": "Join",
+        "spectate": "Spectate",
+        "markReady": "Mark as Ready",
+        "forfeit": "Forfeit",
+        "refresh": "Refresh",
+        "restart": "Restart",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "setGPS": "Set GPS"
       },
       "durationModifiers": {
         "minute": "m",
@@ -271,7 +284,8 @@
       "no": "No",
       "state": "State",
       "unknown": "Unknown",
-      "and": "&"
+      "and": "&",
+      "random": "Random"
     },
     "errors": {
       "invalid": "Invalid",
@@ -656,7 +670,14 @@
       "nextTeleport": "Next teleportation",
       "teleportAvailable": "Teleportation available",
       "collisions": "Collisions",
-      "reputation": "Reputation Level"
+      "reputation": "Reputation Level",
+      "buttons": {
+        "toggleNametagsVisibility": "Toggle nametags visibility",
+        "zoomOut": "Zoom out",
+        "zoomIn": "Zoom in",
+        "debug": "Refresh windows / Remove infinite loading",
+        "serverVisibility": "Toggle server visibility"
+      }
     },
     "userSettings": {
       "uiScale": "UI scale",
@@ -695,7 +716,10 @@
       "waitingPlayers": "Waiting players",
       "players": "Players",
       "buttons": {
-        "voteKick": "Vote Kick"
+        "voteKick": "Vote Kick",
+        "stopWalking": "Stop walking",
+        "teleportTo": "Teleport to",
+        "teleportFrom": "Teleport from"
       }
     },
     "moderationBlock": {
@@ -706,7 +730,11 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Temp Ban",
-        "ban": "Ban"
+        "ban": "Ban",
+        "freeze": "Toggle freeze",
+        "engine": "Toggle engine",
+        "mute": "Toggle mute",
+        "deleteAllVehicles": "Delete all vehicles"
       },
       "muteReason": "Mute reason",
       "kickReason": "Kick reason",
@@ -724,7 +752,7 @@
           "players": "Players",
           "offlinePlayers": "Offline players",
           "addOfflinePlayer": "Add offline player",
-          "addOfflinePlayerPlaceholder": "Player Name"
+          "addOfflinePlayerPlaceholder": "Exact player name"
         },
         "voteKick": {
           "title": "Vote Kick Settings",
@@ -1005,7 +1033,7 @@
         "hasRecordConfirm": "A record has been set on this race and saving will delete it. Are you sure ?",
         "saveErrorToast": "Race save failed, please try again or contact the administrator",
         "reverseConfirm": "Reversing will remove your race intelligence and you will need to check every waypoint again. Are you sure you want to proceed ?",
-        "buttons" : {
+        "buttons": {
           "refreshMarkers": "Refresh markers",
           "rotateLeft": "Rotate left",
           "rotateRight": "Rotate right",
@@ -1016,8 +1044,6 @@
           "setPreviewPositionHere": "Set preview position here",
           "toggleLoopable": "Toggle between circuit and point-to-point race",
           "addStartPositionHere": "Add a start position here",
-          "moveUp": "Move up",
-          "moveDown": "Move down",
           "showStartPosition": "Show start position",
           "setStartPositionHere": "Set start position here",
           "deleteStartPosition": "Delete start position",
@@ -1057,7 +1083,9 @@
           "currentModel": "Current model",
           "currentConfig": "Current config",
           "specific": "Specific {model}"
-        }
+        },
+        "startVote": "Start a vote",
+        "startRace": "Start the race"
       },
       "preparation": {
         "singleplayer": "Singleplayer Race",
@@ -1155,7 +1183,16 @@
         "name": "Station name",
         "types": "Type(s)",
         "radius": "Radius",
-        "saveErrorToast": "Energy stations save failed, please try again or contact the administrator"
+        "saveErrorToast": "Energy stations save failed, please try again or contact the administrator",
+        "buttons": {
+          "refreshMarkers": "Refresh markers",
+          "addStationHere": "Add a station here",
+          "showStation": "Show the station",
+          "setStationHere": "Set the station here",
+          "deleteStation": "Delete the station",
+          "errorMustBeFreecaming": "You need to be freecaming",
+          "errorInvalidData": "Some data are invalid"
+        }
       }
     },
     "garages": {
@@ -1169,7 +1206,16 @@
         "title": "Garages Editor",
         "name": "Garage name",
         "radius": "Radius",
-        "saveErrorToast": "Garages save failed, please try again or contact the administrator"
+        "saveErrorToast": "Garages save failed, please try again or contact the administrator",
+        "buttons": {
+          "refreshMarkers": "Refresh markers",
+          "addGarageHere": "Add a garage here",
+          "showGarage": "Show the garage",
+          "setGarageHere": "Set the garage here",
+          "deleteGarage": "Delete the garage",
+          "errorMustBeFreecaming": "You need to be freecaming",
+          "errorInvalidData": "Some data are invalid"
+        }
       }
     },
     "delivery": {
@@ -1184,7 +1230,15 @@
         "title": "Delivery Editor",
         "position": "Position {index}",
         "radius": "Radius",
-        "saveErrorToast": "Deliveries save failed, please try again or contact the administrator"
+        "saveErrorToast": "Deliveries save failed, please try again or contact the administrator",
+        "buttons": {
+          "refreshMarkers": "Refresh markers",
+          "addPosition": "Add position here",
+          "showPosition": "Show position",
+          "setPosition": "Set position here",
+          "deletePosition": "Delete position",
+          "errorMustHaveVehicle": "You need a vehicle"
+        }
       }
     },
     "vehicleDelivery": {
@@ -1226,7 +1280,19 @@
         "moveHere": "Move Here",
         "addStopHere": "Add Stop Here",
         "createLineHere": "Create Line Here",
-        "saveErrorToast": "Bus lines save failed, please try again or contact the administrator"
+        "saveErrorToast": "Bus lines save failed, please try again or contact the administrator",
+        "buttons": {
+          "showLine": "Show the bus line markers",
+          "deleteLine": "Delete the bus line",
+          "spawnBus": "Spawn a bus here",
+          "addBusLine": "Add a bus line here",
+          "showStop": "Show the bus stop",
+          "setStopHere": "Set the bus stop here",
+          "deleteStop": "Delete the bus stop",
+          "toggleLoopable": "Toggle between circuit and point-to-point bus line",
+          "addStopHere": "Add a bus stop here",
+          "errorNeedABus": "You need a bus vehicle"
+        }
       },
       "preparation": {
         "title": "Bus Mission Preparation",
@@ -1285,6 +1351,7 @@
       "protectedVehicle": "The vehicle is protected",
       "selfProtected": "Config cloning protection is enabled. Make sure to toggle it off if you want to use your specific vehicle.",
       "invalidVeh": "Invalid vehicle",
+      "openVehSelector": "Open vehicle selector",
       "paints": "Paints",
       "applyPaint": "Paint {position}",
       "cars": "Cars",
@@ -1320,7 +1387,25 @@
         "enabled": "Voteable mode",
         "radius": "Radius",
         "missingPoints": "Missing {amount} point(s)",
-        "saveErrorToast": "Hunter data save failed, please try again or contact the administrator"
+        "saveErrorToast": "Hunter data save failed, please try again or contact the administrator",
+        "buttons": {
+          "refreshMarkers": "Refresh Markers",
+          "toggleModeVisibility": "Toggle the mode visibility",
+          "showHunterStartPosition": "Show the hunter start position",
+          "setHunterStartPositionHere": "Set the hunter start position here",
+          "deleteHunterStartPosition": "Delete the hunter start position",
+          "addHunterStartPositionHere": "Add a hunter start position here",
+          "showHuntedStartPosition": "Show the fugitive start position",
+          "setHuntedStartPositionHere": "Set the fugitive start position here",
+          "deleteHuntedStartPosition": "Delete the fugitive start position",
+          "addHuntedStartPositionHere": "Add a fugitive start position here",
+          "addWaypointHere": "Add a waypoint here",
+          "showWaypoint": "Show waypoint",
+          "setWaypointHere": "Set waypoint here",
+          "deleteWaypoint": "Delete waypoint",
+          "errorMustHaveVehicle": "You must have a vehicle",
+          "errorInvalidData": "Some data is invalid"
+        }
       },
       "settings": {
         "title": "Hunter Settings",
@@ -1366,7 +1451,21 @@
         "startPositions": "Start Positions",
         "startPositionName": "Start {index}",
         "amountStartPositionsNeeded": "{amount} more points missing",
-        "saveErrorToast": "Derby data save failed, please try again or contact the administrator"
+        "saveErrorToast": "Derby data save failed, please try again or contact the administrator",
+        "buttons": {
+          "addArena": "Add arena",
+          "showArena": "Show arena markers",
+          "deleteArena": "Delete arena",
+          "toggleArenaVisibility": "Toggle arena visibility",
+          "setPreviewPositionHere": "Set the arena preview position here",
+          "showPreviewPosition": "Show arena preview position",
+          "addStartPositionHere": "Add a start position here",
+          "showStartPosition": "Show the start position",
+          "setStartPositionHere": "Set the start position here",
+          "deleteStartPosition": "Delete the start position",
+          "errorMustHaveVehicle": "You need a vehicle",
+          "errorInvalidData": "Some data is invalid"
+        }
       },
       "settings": {
         "title": "Destruction Derby Settings",

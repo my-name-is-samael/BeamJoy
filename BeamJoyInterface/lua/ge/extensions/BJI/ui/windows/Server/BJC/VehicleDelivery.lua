@@ -7,6 +7,7 @@ return function(ctxt, labels, cache)
             icon = ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs or #cache.vehicleDelivery.modelsCombo <= 1,
+            tooltip = labels.vehicleDelivery.add,
             onClick = function()
                 cache.disableInputs = true
                 table.insert(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist,
@@ -35,6 +36,7 @@ return function(ctxt, labels, cache)
                 icon = ICONS.delete_forever,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 disabled = cache.disableInputs,
+                tooltip = labels.vehicleDelivery.remove,
                 onClick = function()
                     cache.disableInputs = true
                     table.remove(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist,

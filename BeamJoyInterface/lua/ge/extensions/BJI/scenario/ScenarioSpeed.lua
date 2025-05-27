@@ -78,6 +78,7 @@ local function getPlayerListActions(player, ctxt)
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID) or
                 not S.isSpec(player.playerID),
+            tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
                 BJI.Managers.Veh.focusVehicle(finalGameVehID)
             end

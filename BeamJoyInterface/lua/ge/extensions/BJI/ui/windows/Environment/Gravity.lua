@@ -22,6 +22,8 @@ local function updateLabels()
         W.labels[p.key] = string.var("{1} ({2})",
             { BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { p.key })), p.value })
     end)
+
+    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
 end
 
 local function updateCols()
@@ -50,6 +52,7 @@ local function updateCols()
                     icon = ICONS.refresh,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlGravity,
+                    tooltip = W.labels.reset,
                     onClick = function()
                         BJI.Tx.config.env("gravityRate")
                     end

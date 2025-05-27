@@ -231,6 +231,7 @@ local function getPlayerListActions(player, ctxt)
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
+            tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
                 BJI.Managers.Veh.focusVehicle(finalGameVehID)
             end

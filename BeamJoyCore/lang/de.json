@@ -251,7 +251,20 @@
         "start": "Start",
         "explode": "Explodieren",
         "leave": "Verlassen",
-        "toggle": "Umschalten auf"
+        "toggle": "Umschalten auf",
+        "show": "Anzeigen",
+        "spawn": "Erzeugen",
+        "replace": "Ersetzen",
+        "loop": "Schleife",
+        "join": "Beitreten",
+        "spectate": "Zuschauen",
+        "markReady": "Als bereit markieren",
+        "forfeit": "Aufgeben",
+        "refresh": "Aktualisieren",
+        "restart": "Neustarten",
+        "moveUp": "Nach oben bewegen",
+        "moveDown": "Nach unten bewegen",
+        "setGPS": "GPS setzen"
       },
       "durationModifiers": {
         "minute": "M",
@@ -270,7 +283,8 @@
       "no": "NEIN",
       "state": "Zustand",
       "unknown": "Unbekannt",
-      "and": "&"
+      "and": "&",
+      "random": "Zufällig"
     },
     "errors": {
       "invalid": "Ungültig",
@@ -655,7 +669,14 @@
       "nextTeleport": "Nächste Teleportation",
       "teleportAvailable": "Teleportation verfügbar",
       "collisions": "Kollisionen",
-      "reputation": "Reputationsniveau"
+      "reputation": "Reputationsniveau",
+      "buttons": {
+        "toggleNametagsVisibility": "Namensschilder ein-/ausblenden",
+        "zoomOut": "Herauszoomen",
+        "zoomIn": "Hineinzoomen",
+        "debug": "Fenster aktualisieren / Unendliches Laden entfernen",
+        "serverVisibility": "Server-Sichtbarkeit umschalten"
+      }
     },
     "userSettings": {
       "uiScale": "UI-Skala",
@@ -694,7 +715,10 @@
       "waitingPlayers": "Wartende Spieler",
       "players": "Spieler",
       "buttons": {
-        "voteKick": "Abstimmung Kick"
+        "voteKick": "Abstimmung Kick",
+        "stopWalking": "Gehen beenden",
+        "teleportTo": "Teleportieren zu",
+        "teleportFrom": "Teleportieren von"
       }
     },
     "moderationBlock": {
@@ -705,7 +729,11 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Temporäres Verbot",
-        "ban": "Verbot"
+        "ban": "Verbot",
+        "freeze": "Einfrieren umschalten",
+        "engine": "Motor umschalten",
+        "mute": "Stummschalten umschalten",
+        "deleteAllVehicles": "Alle Fahrzeuge löschen"
       },
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",
@@ -723,7 +751,7 @@
           "players": "Spieler",
           "offlinePlayers": "Offline-Spieler",
           "addOfflinePlayer": "Offline-Player hinzufügen",
-          "addOfflinePlayerPlaceholder": "Spielername"
+          "addOfflinePlayerPlaceholder": "Exakter Spielername"
         },
         "voteKick": {
           "title": "Vote-Kick-Einstellungen",
@@ -1056,7 +1084,9 @@
           "currentModel": "Aktuelles Modell",
           "currentConfig": "Aktuelle Konfiguration",
           "specific": "Spezifisches {model}"
-        }
+        },
+        "startVote": "Abstimmung starten",
+        "startRace": "Rennen starten"
       },
       "preparation": {
         "singleplayer": "Einzelspieler-Rennen",
@@ -1152,7 +1182,16 @@
         "name": "Stationsname",
         "types": "Typ(en)",
         "radius": "Radius",
-        "saveErrorToast": "Das Speichern der Energiestationen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Energiestationen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "refreshMarkers": "Markierungen aktualisieren",
+          "addStationHere": "Station hier hinzufügen",
+          "showStation": "Station anzeigen",
+          "setStationHere": "Station hier setzen",
+          "deleteStation": "Station löschen",
+          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
+          "errorInvalidData": "Einige Daten sind ungültig"
+        }
       }
     },
     "garages": {
@@ -1166,7 +1205,16 @@
         "title": "Garagen-Editor",
         "name": "Garagenname",
         "radius": "Radius",
-        "saveErrorToast": "Das Speichern der Garagen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Garagen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "refreshMarkers": "Markierungen aktualisieren",
+          "addGarageHere": "Garage hier hinzufügen",
+          "showGarage": "Garage anzeigen",
+          "setGarageHere": "Garage hier setzen",
+          "deleteGarage": "Garage löschen",
+          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
+          "errorInvalidData": "Einige Daten sind ungültig"
+        }
       }
     },
     "delivery": {
@@ -1181,7 +1229,15 @@
         "title": "Versandredakteur",
         "position": "Position {index}",
         "radius": "Radius",
-        "saveErrorToast": "Das Speichern der Lieferungen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Lieferungen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "refreshMarkers": "Markierungen aktualisieren",
+          "addPosition": "Position hier hinzufügen",
+          "showPosition": "Position anzeigen",
+          "setPosition": "Position hier setzen",
+          "deletePosition": "Position löschen",
+          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug"
+        }
       }
     },
     "vehicleDelivery": {
@@ -1223,7 +1279,19 @@
         "moveHere": "Bewegen Sie sich hierher",
         "addStopHere": "Fügen Sie „Hier anhalten“ hinzu",
         "createLineHere": "Hier Linie erstellen",
-        "saveErrorToast": "Das Speichern der Buslinien ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Buslinien ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "showLine": "Buslinien-Markierungen anzeigen",
+          "deleteLine": "Buslinie löschen",
+          "spawnBus": "Bus hier erzeugen",
+          "addBusLine": "Buslinie hier hinzufügen",
+          "showStop": "Bushaltestelle anzeigen",
+          "setStopHere": "Haltestelle hier setzen",
+          "deleteStop": "Haltestelle löschen",
+          "toggleLoopable": "Zwischen Rundkurs und Punkt-zu-Punkt umschalten",
+          "addStopHere": "Haltestelle hier hinzufügen",
+          "errorNeedABus": "Du brauchst ein Busfahrzeug"
+        }
       },
       "preparation": {
         "title": "Vorbereitung der Busmission",
@@ -1282,6 +1350,7 @@
       "protectedVehicle": "Das Fahrzeug ist geschützt",
       "selfProtected": "Konfigurationsklonschutz ist aktiviert. Deaktiviere ihn, wenn du dein spezifisches Fahrzeug verwenden möchtest.",
       "invalidVeh": "Ungültiges Fahrzeug",
+      "openVehSelector": "Fahrzeugauswahl öffnen",
       "paints": "Farben",
       "applyPaint": "Farbe {position}",
       "cars": "Autos",
@@ -1317,7 +1386,25 @@
         "enabled": "Abstimmungsmodus",
         "radius": "Radius",
         "missingPoints": "{amount} Punkt(e) fehlen",
-        "saveErrorToast": "Das Speichern der Hunter-Daten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Hunter-Daten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "refreshMarkers": "Markierungen aktualisieren",
+          "toggleModeVisibility": "Sichtbarkeit des Modus umschalten",
+          "showHunterStartPosition": "Jäger-Startposition anzeigen",
+          "setHunterStartPositionHere": "Jäger-Startposition hier setzen",
+          "deleteHunterStartPosition": "Jäger-Startposition löschen",
+          "addHunterStartPositionHere": "Jäger-Startposition hier hinzufügen",
+          "showHuntedStartPosition": "Flüchtlings-Startposition anzeigen",
+          "setHuntedStartPositionHere": "Flüchtlings-Startposition hier setzen",
+          "deleteHuntedStartPosition": "Flüchtlings-Startposition löschen",
+          "addHuntedStartPositionHere": "Flüchtlings-Startposition hier hinzufügen",
+          "addWaypointHere": "Wegpunkt hier hinzufügen",
+          "showWaypoint": "Wegpunkt anzeigen",
+          "setWaypointHere": "Wegpunkt hier setzen",
+          "deleteWaypoint": "Wegpunkt löschen",
+          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
+          "errorInvalidData": "Einige Daten sind ungültig"
+        }
       },
       "settings": {
         "title": "Hunter-Einstellungen",
@@ -1363,7 +1450,21 @@
         "startPositions": "Startpositionen",
         "startPositionName": "{index} starten",
         "amountStartPositionsNeeded": "{amount} weitere Punkte fehlen",
-        "saveErrorToast": "Das Speichern der Derby-Daten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator"
+        "saveErrorToast": "Das Speichern der Derby-Daten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
+        "buttons": {
+          "addArena": "Arena hinzufügen",
+          "showArena": "Arenamarkierungen anzeigen",
+          "deleteArena": "Arena löschen",
+          "toggleArenaVisibility": "Arenasichtbarkeit umschalten",
+          "setPreviewPositionHere": "Vorschaustellung hier setzen",
+          "showPreviewPosition": "Vorschaustellung anzeigen",
+          "addStartPositionHere": "Startposition hier hinzufügen",
+          "showStartPosition": "Startposition anzeigen",
+          "setStartPositionHere": "Startposition hier setzen",
+          "deleteStartPosition": "Startposition löschen",
+          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
+          "errorInvalidData": "Einige Daten sind ungültig"
+        }
       },
       "settings": {
         "title": "Destruction Derby-Einstellungen",

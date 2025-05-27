@@ -636,7 +636,8 @@ local function saveDerbyArenas(arenas)
                 type(arena.enabled) ~= "boolean" or
                 type(arena.previewPosition) ~= "table" or
                 not checkCameraPos(arena.previewPosition) or
-                type(arena.startPositions) ~= "table" then
+                type(arena.startPositions) ~= "table" or
+                #arena.startPositions < 6 then
                 error({ key = "rx.errors.invalidData" })
             else
                 for _, pos in ipairs(arena.startPositions) do
@@ -646,6 +647,9 @@ local function saveDerbyArenas(arenas)
                 end
             end
         end
+    end
+    if #Table(arenas):map(function(a) return a.name:trim() end):duplicates() > 0 then
+        error({ key = "rx.errors.invalidData" })
     end
 
     BJCDao.scenario.Derby.save(arenas)

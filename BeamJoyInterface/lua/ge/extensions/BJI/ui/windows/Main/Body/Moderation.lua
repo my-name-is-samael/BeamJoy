@@ -3,7 +3,7 @@ local _actionLinebreak = "linebreak"
 ---@param player table
 ---@param isAccordionOpen boolean
 ---@param ctxt TickContext
-local function getHeaderActions(player, isAccordionOpen, ctxt)
+local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
     -- base actions
     local actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
 
@@ -16,6 +16,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
             id = string.var("deleteVehicles{1}", { player.playerID }),
             icon = ICONS.directions_car,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = cache.labels.players.moderation.buttons.deleteAllVehicles,
             onClick = function()
                 if player.self then
                     BJI.Managers.Context.User.currentVehicle = nil
@@ -37,6 +38,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
                     id = string.var("toggleMute{1}", { player.playerID }),
                     icon = ICONS.speaker_notes_off,
                     style = player.muted and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    tooltip = cache.labels.players.moderation.buttons.mute,
                     onClick = function()
                         BJI.Tx.moderation.mute(player.playerName)
                     end
@@ -46,7 +48,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
             if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.KICK) then
                 table.insert(actions, {
                     id = string.var("kick{1}", { player.playerID }),
-                    label = BJI.Managers.Lang.get("moderationBlock.buttons.kick"),
+                    label = cache.labels.players.moderation.buttons.kick,
                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                     onClick = function()
                         BJI.Managers.Popup.createModal(
@@ -70,6 +72,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
                 id = string.var("toggleFreeze{1}", { player.playerID }),
                 icon = ICONS.ac_unit,
                 style = player.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = cache.labels.players.moderation.buttons.freeze,
                 onClick = function()
                     BJI.Tx.moderation.freeze(player.playerID)
                 end
@@ -81,6 +84,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt)
                 id = string.var("toggleEngine{1}", { player.playerID }),
                 icon = ICONS.cogs,
                 style = player.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = cache.labels.players.moderation.buttons.engine,
                 onClick = function()
                     BJI.Tx.moderation.engine(player.playerID)
                 end
@@ -126,8 +130,7 @@ local function drawVehicles(player, ctxt, cache)
                                     coloredIcon = true,
                                 })
                             end
-                            line:text(vehicle.model)
-                                :build()
+                            line:text(vehicle.model):build()
                         end,
                         (player.self or player.isGroupLower) and function()
                             local line = LineBuilder()
@@ -137,6 +140,7 @@ local function drawVehicles(player, ctxt, cache)
                                     icon = ICONS.cameraFocusOnVehicle2,
                                     style = BJI.Utils.Style.BTN_PRESETS.INFO,
                                     disabled = isCurrentVehicle,
+                                    tooltip = cache.labels.players.moderation.buttons.show,
                                     onClick = function()
                                         BJI.Managers.Veh.focusVehicle(vehicle.finalGameVehID)
                                     end
@@ -147,37 +151,37 @@ local function drawVehicles(player, ctxt, cache)
                                 icon = ICONS.ac_unit,
                                 state = not not vehicle.freeze,
                                 disabled = not vehicle.finalGameVehID,
+                                tooltip = cache.labels.players.moderation.buttons.freeze,
                                 onClick = function()
                                     BJI.Tx.moderation.freeze(player.playerID, vehID)
                                 end
-                            })
-                                :btnIconToggle({
-                                    id = string.var("toggleEngine{1}-{2}", { player.playerID, vehID }),
-                                    icon = ICONS.cogs,
-                                    state = not not vehicle.engine,
-                                    disabled = not vehicle.finalGameVehID,
-                                    onClick = function()
-                                        BJI.Tx.moderation.engine(player.playerID, vehID)
-                                    end
-                                })
-                                :btnIcon({
-                                    id = string.var("delete{1}-{2}", { player.playerID, vehID }),
-                                    icon = ICONS.delete_forever,
-                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                    onClick = function()
-                                        BJI.Tx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
-                                    end
-                                })
-                                :btnIcon({
-                                    id = string.var("explode{1}-{2}", { player.playerID, vehID }),
-                                    icon = ICONS.whatshot,
-                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                    disabled = not vehicle.finalGameVehID,
-                                    onClick = function()
-                                        BJI.Tx.player.explodeVehicle(vehicle.gameVehID)
-                                    end
-                                })
-                                :build()
+                            }):btnIconToggle({
+                                id = string.var("toggleEngine{1}-{2}", { player.playerID, vehID }),
+                                icon = ICONS.cogs,
+                                state = not not vehicle.engine,
+                                disabled = not vehicle.finalGameVehID,
+                                tooltip = cache.labels.players.moderation.buttons.engine,
+                                onClick = function()
+                                    BJI.Tx.moderation.engine(player.playerID, vehID)
+                                end
+                            }):btnIcon({
+                                id = string.var("delete{1}-{2}", { player.playerID, vehID }),
+                                icon = ICONS.delete_forever,
+                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                tooltip = cache.labels.players.moderation.buttons.delete,
+                                onClick = function()
+                                    BJI.Tx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
+                                end
+                            }):btnIcon({
+                                id = string.var("explode{1}-{2}", { player.playerID, vehID }),
+                                icon = ICONS.whatshot,
+                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                disabled = not vehicle.finalGameVehID,
+                                tooltip = cache.labels.players.moderation.buttons.explode,
+                                onClick = function()
+                                    BJI.Tx.player.explodeVehicle(vehicle.gameVehID)
+                                end
+                            }):build()
                         end,
                     }
                 })
@@ -211,28 +215,25 @@ local function drawModeration(player, ctxt, cache)
                     LineLabel(cache.labels.players.moderation.muteReason)
                 end,
                 function()
-                    LineBuilder()
-                        :inputString({
-                            id = string.var("muteReason{1}", { player.playerID }),
-                            value = inputs.muteReason,
-                            onUpdate = function(val)
-                                inputs.muteReason = val
-                            end
-                        })
-                        :build()
+                    LineBuilder():inputString({
+                        id = string.var("muteReason{1}", { player.playerID }),
+                        value = inputs.muteReason,
+                        onUpdate = function(val)
+                            inputs.muteReason = val
+                        end
+                    }):build()
                 end,
                 function()
-                    LineBuilder()
-                        :btnIconToggle({
-                            id = string.var("toggleMute{1}", { player.playerID }),
-                            icon = ICONS.speaker_notes_off,
-                            state = player.muted == true,
-                            onClick = function()
-                                BJI.Tx.moderation.mute(player.playerName, inputs.muteReason)
-                                inputs.muteReason = ""
-                            end
-                        })
-                        :build()
+                    LineBuilder():btnIconToggle({
+                        id = string.var("toggleMute{1}", { player.playerID }),
+                        icon = ICONS.speaker_notes_off,
+                        state = player.muted == true,
+                        tooltip = cache.labels.players.moderation.buttons.mute,
+                        onClick = function()
+                            BJI.Tx.moderation.mute(player.playerName, inputs.muteReason)
+                            inputs.muteReason = ""
+                        end
+                    }):build()
                 end
             }
         })
@@ -254,36 +255,32 @@ local function drawModeration(player, ctxt, cache)
                 LineLabel(cache.labels.players.moderation.kickReason)
             end,
             function()
-                LineBuilder()
-                    :inputString({
-                        id = string.var("kickReason{1}", { player.playerID }),
-                        value = inputs.kickReason,
-                        onUpdate = function(val)
-                            inputs.kickReason = val
-                        end
-                    })
-                    :build()
+                LineBuilder():inputString({
+                    id = string.var("kickReason{1}", { player.playerID }),
+                    value = inputs.kickReason,
+                    onUpdate = function(val)
+                        inputs.kickReason = val
+                    end
+                }):build()
             end,
             function()
-                LineBuilder()
-                    :btn({
-                        id = string.var("kick{1}", { player.playerID }),
-                        label = cache.labels.players.moderation.kickButton,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        onClick = function()
-                            BJI.Managers.Popup.createModal(
-                                BJI.Managers.Lang.get("moderationBlock.kickModal")
-                                :var({ playerName = player.playerName }), {
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        function()
-                                            BJI.Tx.moderation.kick(player.playerID, inputs.kickReason)
-                                            inputs.kickReason = ""
-                                        end),
-                                })
-                        end
-                    })
-                    :build()
+                LineBuilder():btn({
+                    id = string.var("kick{1}", { player.playerID }),
+                    label = cache.labels.players.moderation.buttons.kick,
+                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    onClick = function()
+                        BJI.Managers.Popup.createModal(
+                            BJI.Managers.Lang.get("moderationBlock.kickModal")
+                            :var({ playerName = player.playerName }), {
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                    function()
+                                        BJI.Tx.moderation.kick(player.playerID, inputs.kickReason)
+                                        inputs.kickReason = ""
+                                    end),
+                            })
+                    end
+                }):build()
             end
         }
     })
@@ -305,36 +302,33 @@ local function drawModeration(player, ctxt, cache)
                 LineLabel(cache.labels.players.moderation.banReason)
             end,
             function()
-                LineBuilder()
-                    :inputString({
-                        id = string.var("banReason{1}", { player.playerID }),
-                        value = inputs.banReason,
-                        onUpdate = function(val)
-                            inputs.banReason = val
-                        end
-                    })
-                    :build()
+                LineBuilder():inputString({
+                    id = string.var("banReason{1}", { player.playerID }),
+                    value = inputs.banReason,
+                    onUpdate = function(val)
+                        inputs.banReason = val
+                    end
+                }):build()
             end,
             cache.data.players.canBan and function()
-                LineBuilder()
-                    :btnIcon({
-                        id = string.var("ban{1}", { player.playerID }),
-                        icon = ICONS.gavel,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        onClick = function()
-                            BJI.Managers.Popup.createModal(
-                                BJI.Managers.Lang.get("moderationBlock.banModal")
-                                :var({ playerName = player.playerName }), {
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        function()
-                                            BJI.Tx.moderation.ban(player.playerName, inputs.banReason)
-                                            inputs.banReason = ""
-                                        end),
-                                })
-                        end
-                    })
-                    :build()
+                LineBuilder():btnIcon({
+                    id = string.var("ban{1}", { player.playerID }),
+                    icon = ICONS.gavel,
+                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    tooltip = cache.labels.players.moderation.buttons.ban,
+                    onClick = function()
+                        BJI.Managers.Popup.createModal(
+                            BJI.Managers.Lang.get("moderationBlock.banModal")
+                            :var({ playerName = player.playerName }), {
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                    function()
+                                        BJI.Tx.moderation.ban(player.playerName, inputs.banReason)
+                                        inputs.banReason = ""
+                                    end),
+                            })
+                    end
+                }):build()
             end or nil
         }
     })
@@ -359,30 +353,28 @@ local function drawModeration(player, ctxt, cache)
                 LineLabel(BJI.Utils.Common.PrettyDelay(tonumber(inputs.tempBanDuration) or 0))
             end,
             function()
-                LineBuilder()
-                    :btnIcon({
-                        id = string.var("tempBan{1}", { player.playerID }),
-                        icon = ICONS.av_timer,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        onClick = function()
-                            BJI.Managers.Popup.createModal(
-                                BJI.Managers.Lang.get("moderationBlock.tempBanModal")
-                                :var({ playerName = player.playerName }), {
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
-                                        function()
-                                            BJI.Tx.moderation.tempban(player.playerName,
-                                                inputs.tempBanDuration,
-                                                player.banReason)
-                                        end),
-                                })
-                        end
-                    })
-                    :build()
+                LineBuilder():btnIcon({
+                    id = string.var("tempBan{1}", { player.playerID }),
+                    icon = ICONS.av_timer,
+                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    tooltip = cache.labels.players.moderation.buttons.tempban,
+                    onClick = function()
+                        BJI.Managers.Popup.createModal(
+                            BJI.Managers.Lang.get("moderationBlock.tempBanModal")
+                            :var({ playerName = player.playerName }), {
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                    function()
+                                        BJI.Tx.moderation.tempban(player.playerName,
+                                            inputs.tempBanDuration,
+                                            player.banReason)
+                                    end),
+                            })
+                    end
+                }):build()
             end
         }
-    })
-        :build()
+    }):build()
 
     if BJI.Managers.Context.BJC.TempBan then
         local min, max = BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
@@ -464,7 +456,7 @@ end
 ---@param cache table
 local function drawListPlayers(ctxt, cache)
     local drawHeaderActions = function(player, isAccordionOpen)
-        local actions = getHeaderActions(player, isAccordionOpen, ctxt)
+        local actions = getHeaderActions(player, isAccordionOpen, ctxt, cache)
         if not isAccordionOpen then
             Indent(2)
         end

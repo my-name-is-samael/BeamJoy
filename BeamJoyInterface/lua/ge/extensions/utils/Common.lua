@@ -309,6 +309,7 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, 
         icon = ICONS.refresh,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = disabled,
+        tooltip = BJI.Managers.Lang.get("common.buttons.reset"),
         onClick = function()
             callback(resetValue)
         end
@@ -327,6 +328,7 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
             style = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.INFO,
             coloredIcon = not BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
+            tooltip = BJI.Managers.Lang.get("common.buttons.stop"),
             onClick = function()
                 local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
                 if hasRight and withUpdate and BJI.Managers.Env.Data.timePlay then
@@ -341,6 +343,7 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
             style = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO,
             coloredIcon = BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
+            tooltip = BJI.Managers.Lang.get("common.buttons.play"),
             onClick = function()
                 local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
                 if hasRight and withUpdate and not BJI.Managers.Env.Data.timePlay then

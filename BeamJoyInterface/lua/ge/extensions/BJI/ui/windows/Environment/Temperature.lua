@@ -19,6 +19,7 @@ local function updateLabels()
     end)
 
     W.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
+    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
 end
 
 local function updateCols()
@@ -56,6 +57,7 @@ local function updateCols()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.useTempCurve,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env(k)
                         end

@@ -85,8 +85,10 @@ local function onRepair(ctxt)
     end, 5000, "BJIStationRepair")
 end
 
+---@param ctxt TickContext
+---@param energyStation BJIStation
 local function commonDrawEnergyLines(ctxt, energyStation)
-    if not energyStation or not ctxt.vehData.tanks then
+    if not ctxt.vehData.tanks then
         return
     end
 
@@ -119,13 +121,13 @@ local function commonDrawEnergyLines(ctxt, energyStation)
 
         ProgressBar({
             floatPercent = energyData.currentEnergy / energyData.maxEnergy,
-            width = 250,
+            width = "100%",
         })
     end
 
     local tankGroups = {}
     for _, tank in pairs(ctxt.vehData.tanks) do
-        if energyStation then
+        if energyStation.isEnergy then
             -- Energy station
             if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, tank.energyType) and
                 table.includes(energyStation.types, tank.energyType) then
@@ -169,7 +171,17 @@ local function drawGarage(ctxt, garage)
         return
     end
 
-    commonDrawEnergyLines(ctxt)
+    if not BJI.Managers.Scenario.canRefuelAtStation() then
+        LineBuilder()
+            :icon({
+                icon = ICONS.block,
+                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            })
+            :text(W.labels.noRefuelScenario)
+            :build()
+    else
+        commonDrawEnergyLines(ctxt, garage)
+    end
 
     if not BJI.Managers.Scenario.canRepairAtGarage() then
         LineBuilder()
@@ -249,7 +261,7 @@ local function body(ctxt)
         return
     end
 
-    ---@type table<string, any>
+    ---@type BJIStation?
     local station = BJI.Managers.Stations.station
     if station then
         if station.isEnergy then

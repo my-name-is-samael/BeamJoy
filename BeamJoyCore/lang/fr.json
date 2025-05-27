@@ -251,7 +251,20 @@
         "start": "Commencer",
         "explode": "Exploser",
         "leave": "Quitter",
-        "toggle": "Basculer"
+        "toggle": "Basculer",
+        "show": "Afficher",
+        "spawn": "Apparaître",
+        "replace": "Remplacer",
+        "loop": "Boucle",
+        "join": "Rejoindre",
+        "spectate": "Observer",
+        "markReady": "Marquer comme prêt",
+        "forfeit": "Abandonner",
+        "refresh": "Rafraîchir",
+        "restart": "Redémarrer",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "setGPS": "Définir le GPS"
       },
       "durationModifiers": {
         "minute": "m",
@@ -270,7 +283,8 @@
       "no": "Non",
       "state": "État",
       "unknown": "Inconnu",
-      "and": "&"
+      "and": "&",
+      "random": "Aléatoire"
     },
     "errors": {
       "invalid": "Invalide",
@@ -295,7 +309,7 @@
           "mapSwitch": "passage à la carte ",
           "playerKick": "exclusion de ",
           "raceStart": "lancement de la course ",
-          "speedStart": "lancement d’un jeu de Speed"
+          "speedStart": "lancement d'un jeu de Speed"
         },
         "vote": "{playerName} a lancé un vote pour {voteEvent}{suffix}",
         "voteAccepted": "Vote pour {voteEvent}{suffix} accepté",
@@ -655,7 +669,14 @@
       "nextTeleport": "Prochaine téléportation",
       "teleportAvailable": "Téléportation disponible",
       "collisions": "Collisions",
-      "reputation": "Niveau de Réputation"
+      "reputation": "Niveau de Réputation",
+      "buttons": {
+        "toggleNametagsVisibility": "Afficher/Masquer les pseudos",
+        "zoomOut": "Dézoomer",
+        "zoomIn": "Zoomer",
+        "debug": "Rafraîchir les fenêtres / Supprimer le chargement infini",
+        "serverVisibility": "Afficher/Masquer le serveur"
+      }
     },
     "userSettings": {
       "uiScale": "Échelle de l'Interface",
@@ -694,7 +715,10 @@
       "waitingPlayers": "Joueurs en attente",
       "players": "Joueurs",
       "buttons": {
-        "voteKick": "Voter Kick"
+        "voteKick": "Voter Kick",
+        "stopWalking": "Arrêter de marcher",
+        "teleportTo": "Téléporter vers",
+        "teleportFrom": "Téléporter depuis"
       }
     },
     "moderationBlock": {
@@ -705,7 +729,11 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Ban Temporaire",
-        "ban": "Ban"
+        "ban": "Ban",
+        "freeze": "Activer/désactiver le gel",
+        "engine": "Activer/désactiver le moteur",
+        "mute": "Activer/désactiver le son",
+        "deleteAllVehicles": "Supprimer tous les véhicules"
       },
       "muteReason": "Raison du Mute",
       "kickReason": "Raison du Kick",
@@ -723,7 +751,7 @@
           "players": "Joueurs",
           "offlinePlayers": "Joueurs Hors Ligne",
           "addOfflinePlayer": "Ajouter un Joueur Hors Ligne",
-          "addOfflinePlayerPlaceholder": "Nom du Joueur"
+          "addOfflinePlayerPlaceholder": "Pseudo exact du joueur"
         },
         "voteKick": {
           "title": "Paramètres de Vote de Kick",
@@ -810,8 +838,8 @@
           "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre le derby",
           "StartCountdown": "Décompte de départ",
           "StartCountdownTooltip": "Temps en secondes avant le début du derby",
-          "DestroyedTimeout": "Décompte d’élimination",
-          "DestroyedTimeoutTooltip": "Durée en secondes avant qu’un joueur bloqué/détruit ne soit éliminé"
+          "DestroyedTimeout": "Décompte d'élimination",
+          "DestroyedTimeoutTooltip": "Durée en secondes avant qu'un joueur bloqué/détruit ne soit éliminé"
         },
         "vehicleDelivery": {
           "title": "Paramètres de Livraison de Véhicule",
@@ -1011,8 +1039,8 @@
           "rotate180": "Pivoter de 180°",
           "reverseAllSteps": "Inverser tous les points",
           "toggleRaceVisibility": "Afficher/masquer la course",
-          "showPreviewPosition": "Afficher la position d’aperçu",
-          "setPreviewPositionHere": "Définir la position d’aperçu ici",
+          "showPreviewPosition": "Afficher la position d'aperçu",
+          "setPreviewPositionHere": "Définir la position d'aperçu ici",
           "toggleLoopable": "Basculer entre circuit et course point à point",
           "addStartPositionHere": "Ajouter un départ ici",
           "moveUp": "Monter",
@@ -1021,7 +1049,7 @@
           "setStartPositionHere": "Définir le départ ici",
           "deleteStartPosition": "Supprimer le point de départ",
           "addRaceStepHere": "Ajouter une étape ici",
-          "deleteStep": "Supprimer l’étape",
+          "deleteStep": "Supprimer l'étape",
           "addBranchHere": "Ajouter une branche ici",
           "showWaypoint": "Afficher le point",
           "setWaypointHere": "Définir un point ici",
@@ -1056,7 +1084,9 @@
           "currentModel": "Modèle actuel",
           "currentConfig": "Configuration actuelle",
           "specific": "{model} spécifique"
-        }
+        },
+        "startVote": "Lancer un vote",
+        "startRace": "Démarrer la course"
       },
       "preparation": {
         "singleplayer": "Course Solo",
@@ -1078,7 +1108,7 @@
         "by": "par {author}",
         "record": "Record établi par {playerName} avec {model} : {time}",
         "timeout": "La course expirera dans {delay}",
-        "aboutToTimeout": "La course est sur le point d’expirer",
+        "aboutToTimeout": "La course est sur le point d'expirer",
         "join": "Rejoindre la course",
         "joinFlash": "Choisissez votre véhicule",
         "placesRemaining": "{places} places restantes",
@@ -1152,7 +1182,16 @@
         "name": "Nom de la station",
         "types": "Type(s)",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des stations-services, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des stations-services, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addStationHere": "Ajouter une station ici",
+          "showStation": "Afficher la station",
+          "setStationHere": "Définir la station ici",
+          "deleteStation": "Supprimer la station",
+          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
+          "errorInvalidData": "Certaines données sont invalides"
+        }
       }
     },
     "garages": {
@@ -1166,7 +1205,16 @@
         "title": "Éditeur de garages",
         "name": "Nom du garage",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des garages, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des garages, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addGarageHere": "Ajouter un garage ici",
+          "showGarage": "Afficher le garage",
+          "setGarageHere": "Définir le garage ici",
+          "deleteGarage": "Supprimer le garage",
+          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
+          "errorInvalidData": "Certaines données sont invalides"
+        }
       }
     },
     "delivery": {
@@ -1181,7 +1229,15 @@
         "title": "Éditeur des livraisons",
         "position": "Position {index}",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addPosition": "Ajouter une position ici",
+          "showPosition": "Afficher la position",
+          "setPosition": "Définir la position ici",
+          "deletePosition": "Supprimer la position",
+          "errorMustHaveVehicle": "Vous devez avoir un véhicule"
+        }
       }
     },
     "vehicleDelivery": {
@@ -1223,7 +1279,19 @@
         "moveHere": "Déplacer ici",
         "addStopHere": "Ajouter un arrêt ici",
         "createLineHere": "Créer une ligne ici",
-        "saveErrorToast": "Échec de l'enregistrement des lignes de bus, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des lignes de bus, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "showLine": "Afficher les marqueurs de la ligne de bus",
+          "deleteLine": "Supprimer la ligne de bus",
+          "spawnBus": "Faire apparaître un bus ici",
+          "addBusLine": "Ajouter une ligne de bus ici",
+          "showStop": "Afficher l'arrêt de bus",
+          "setStopHere": "Définir l'arrêt ici",
+          "deleteStop": "Supprimer l'arrêt de bus",
+          "toggleLoopable": "Basculer entre circuit et ligne point à point",
+          "addStopHere": "Ajouter un arrêt ici",
+          "errorNeedABus": "Vous avez besoin d'un bus"
+        }
       },
       "preparation": {
         "title": "Préparation de mission de bus",
@@ -1282,6 +1350,7 @@
       "protectedVehicle": "Le véhicule est protégé",
       "selfProtected": "La protection contre la copie de configuration est activée. Désactive-la si tu veux utiliser ton véhicule spécifique.",
       "invalidVeh": "Véhicule invalide",
+      "openVehSelector": "Ouvrir le sélecteur de véhicule",
       "paints": "Peintures",
       "applyPaint": "Peindre {position}",
       "cars": "Voitures",
@@ -1310,14 +1379,32 @@
         "title": "Éditeur du Hunter",
         "targetName": "Cible {index}",
         "hunterPositionName": "Chasseur {index}",
-        "huntedPositionName": "Chassé {index}",
+        "huntedPositionName": "Fugitif {index}",
         "waypoints": "Points de passage",
         "hunters": "Chasseurs",
-        "hunted": "Chassé",
+        "hunted": "Fugitif",
         "enabled": "Activé",
         "radius": "Rayon",
         "missingPoints": "{amount} points manquant",
-        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "toggleModeVisibility": "Basculer la visibilité du mode",
+          "showHunterStartPosition": "Afficher la position de départ du chasseur",
+          "setHunterStartPositionHere": "Définir la position de départ du chasseur ici",
+          "deleteHunterStartPosition": "Supprimer la position de départ du chasseur",
+          "addHunterStartPositionHere": "Ajouter une position de départ du chasseur ici",
+          "showHuntedStartPosition": "Afficher la position de départ du fugitif",
+          "setHuntedStartPositionHere": "Définir la position de départ du fugitif ici",
+          "deleteHuntedStartPosition": "Supprimer la position de départ du fugitif",
+          "addHuntedStartPositionHere": "Ajouter une position de départ du fugitif ici",
+          "addWaypointHere": "Ajouter un point de passage ici",
+          "showWaypoint": "Afficher le point de passage",
+          "setWaypointHere": "Définir le point de passage ici",
+          "deleteWaypoint": "Supprimer le point de passage",
+          "errorMustHaveVehicle": "Vous devez avoir un véhicule",
+          "errorInvalidData": "Certaines données sont invalides"
+        }
       },
       "settings": {
         "title": "Paramètres du Hunter",
@@ -1363,7 +1450,21 @@
         "startPositions": "Positions de départ",
         "startPositionName": "Départ {index}",
         "amountStartPositionsNeeded": "{amount} points de départ manquant",
-        "saveErrorToast": "Échec de l'enregistrement des données de derby, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des données de derby, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "addArena": "Ajouter une arène",
+          "showArena": "Afficher les marqueurs de l'arène",
+          "deleteArena": "Supprimer l'arène",
+          "toggleArenaVisibility": "Basculer la visibilité de l'arène",
+          "setPreviewPositionHere": "Définir la position de prévisualisation ici",
+          "showPreviewPosition": "Afficher la position de prévisualisation",
+          "addStartPositionHere": "Ajouter une position de départ ici",
+          "showStartPosition": "Afficher la position de départ",
+          "setStartPositionHere": "Définir la position de départ ici",
+          "deleteStartPosition": "Supprimer la position de départ",
+          "errorMustHaveVehicle": "Vous devez avoir un véhicule",
+          "errorInvalidData": "Certaines données sont invalides"
+        }
       },
       "settings": {
         "title": "Paramètres de Destruction Derby",

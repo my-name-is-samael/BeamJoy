@@ -10,6 +10,7 @@ local function drawGroupNewPermission(labels, cache, gkey, group, cols)
                         icon = ICONS.check,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = readOnly or cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
+                        tooltip = labels.add,
                         onClick = function()
                             cache.disableInputs = true
                             BJI.Tx.config.permissionsGroupSpecific(gkey, cache.groupsPermissionsInputs[gkey], true)
@@ -246,6 +247,7 @@ local function drawNewGroup(labels, cache)
                     return k == cache.newGroup.label or
                         g.level == cache.newGroup.level
                 end),
+            tooltip = labels.add,
             onClick = function()
                 if not isLevelAssignedToAnotherGroup(cache.newGroup.label,
                         cache.newGroup.level) then
@@ -276,6 +278,7 @@ return function(labels, cache)
                         icon = ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = cache.disableInputs,
+                        tooltip = labels.remove,
                         onClick = function()
                             BJI.Managers.Popup.createModal(
                                 BJI.Managers.Lang.get("serverConfig.permissions.deleteModal")

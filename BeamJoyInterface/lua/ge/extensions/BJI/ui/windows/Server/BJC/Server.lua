@@ -71,6 +71,7 @@ local function drawServerBroadcasts(labels, cache)
             icon = ICONS.addListItem,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = lastMessage and #lastMessage == 0,
+            tooltip = labels.server.add,
             onClick = function()
                 table.insert(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value],
                     "")
@@ -81,6 +82,7 @@ local function drawServerBroadcasts(labels, cache)
             id = "deleteServerBroadcastsMessage",
             icon = ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = labels.server.remove,
             onClick = function()
                 table.remove(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value],
                     iLastMessage)
@@ -96,6 +98,7 @@ local function drawServerBroadcasts(labels, cache)
             icon = ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs,
+            tooltip = labels.server.save,
             onClick = function()
                 cache.disableInputs = true
                 local data = table.clone(BJI.Managers.Context.BJC.Server.Broadcasts)
@@ -151,6 +154,7 @@ local function drawServerWelcomeMessages(labels, cache)
             icon = ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs,
+            tooltip = labels.server.save,
             onClick = function()
                 cache.disableInputs = true
                 local data = table.clone(BJI.Managers.Context.BJC.Server.WelcomeMessage)

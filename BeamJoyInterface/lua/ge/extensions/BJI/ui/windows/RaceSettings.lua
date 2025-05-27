@@ -75,6 +75,9 @@ local W = {
                 vehicleProtected = "",
                 selfProtected = "",
             },
+            cancel = "",
+            startVote = "",
+            startRace = "",
         },
         widths = {
             labels = 0,
@@ -106,6 +109,10 @@ local function updateLabels()
     W.cache.labels.vehicle.currentConfig = BJI.Managers.Lang.get("races.settings.vehicles.currentConfig")
     W.cache.labels.vehicle.vehicleProtected = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
     W.cache.labels.vehicle.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+
+    W.cache.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
+    W.cache.labels.startVote = BJI.Managers.Lang.get("races.settings.startVote")
+    W.cache.labels.startRace = BJI.Managers.Lang.get("races.settings.startRace")
 end
 
 local function updateWidths()
@@ -403,6 +410,7 @@ local function drawFooter(ctxt)
         id = "cancelRaceStart",
         icon = ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.cache.labels.cancel,
         onClick = function()
             W.onClose()
         end
@@ -412,6 +420,7 @@ local function drawFooter(ctxt)
             id = "voteRaceStart",
             icon = ICONS.event_available,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            tooltip = W.cache.labels.startVote,
             onClick = function()
                 BJI.Tx.voterace.start(W.settings.raceID, true, getPayloadSettings())
                 W.onClose()
@@ -423,6 +432,7 @@ local function drawFooter(ctxt)
             id = "raceStart",
             icon = ICONS.videogame_asset,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            tooltip = W.cache.labels.startRace,
             onClick = function()
                 if W.settings.multi then
                     BJI.Tx.voterace.start(W.settings.raceID, false, getPayloadSettings())

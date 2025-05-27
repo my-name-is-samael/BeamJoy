@@ -41,6 +41,7 @@ local W = {
         gravity = "",
         temperature = "",
         speed = "",
+        close = "",
     },
 }
 
@@ -54,6 +55,7 @@ local function updateLabels()
     W.labels.gravity = BJI.Managers.Lang.get("environment.gravity")
     W.labels.temperature = BJI.Managers.Lang.get("environment.temperature")
     W.labels.speed = BJI.Managers.Lang.get("environment.speed")
+    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
 end
 
 local function updateSharedCache()
@@ -155,14 +157,13 @@ end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "closeEnvironment",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = onClose
-        })
-        :build()
+    LineBuilder():btnIcon({
+        id = "closeEnvironment",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.labels.close,
+        onClick = onClose
+    }):build()
 end
 
 W.onLoad = onLoad

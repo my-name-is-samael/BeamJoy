@@ -5,6 +5,17 @@ local W = {
         title = "",
         position = "",
         radius = "",
+
+        buttons = {
+            refreshMarkers = "",
+            addPosition = "",
+            showPosition = "",
+            setPosition = "",
+            deletePosition = "",
+            close = "",
+            save = "",
+            errorMustHaveVehicle = "",
+        },
     },
     cache = {
         labelsWidth = 0,
@@ -18,6 +29,8 @@ local W = {
 
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
+    W.changed = false
+    W.valid = true
 end
 
 local function reloadMarkers()
@@ -36,9 +49,17 @@ end
 
 local function updateLabels()
     W.labels.title = BJI.Managers.Lang.get("delivery.edit.title")
-
     W.labels.position = BJI.Managers.Lang.get("delivery.edit.position")
     W.labels.radius = BJI.Managers.Lang.get("delivery.edit.radius")
+
+    W.labels.buttons.refreshMarkers = BJI.Managers.Lang.get("delivery.edit.buttons.refreshMarkers")
+    W.labels.buttons.addPosition = BJI.Managers.Lang.get("delivery.edit.buttons.addPosition")
+    W.labels.buttons.showPosition = BJI.Managers.Lang.get("delivery.edit.buttons.showPosition")
+    W.labels.buttons.setPosition = BJI.Managers.Lang.get("delivery.edit.buttons.setPosition")
+    W.labels.buttons.deletePosition = BJI.Managers.Lang.get("delivery.edit.buttons.deletePosition")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("delivery.edit.buttons.errorMustHaveVehicle")
 end
 
 local function udpateWidths()
@@ -133,12 +154,17 @@ local function header(ctxt)
             id = "reloadMarkers",
             icon = ICONS.sync,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
+            tooltip = W.labels.buttons.refreshMarkers,
             onClick = reloadMarkers,
         }):btnIcon({
         id = "createPosition",
         icon = ICONS.add_location,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableInputs or not ctxt.veh,
+        tooltip = string.var("{1}{2}", {
+            W.labels.buttons.addPosition,
+            not ctxt.veh and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
+        }),
         onClick = function()
             W.cache.positions:insert({
                 pos = vec3(ctxt.vehPosRot.pos),
@@ -169,6 +195,7 @@ local function body(ctxt)
                                 id = string.var("goTo{1}", { i }),
                                 icon = ICONS.pin_drop,
                                 style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                                tooltip = W.labels.buttons.showPosition,
                                 onClick = function()
                                     if ctxt.isOwner then
                                         BJI.Managers.Veh.setPositionRotation(position.pos, position.rot)
@@ -187,7 +214,13 @@ local function body(ctxt)
                                 id = string.var("movePos{1}", { i }),
                                 icon = ICONS.edit_location,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                disabled = W.cache.disableInputs or not ctxt.vehPosRot,
+                                disabled = W.cache.disableInputs or not ctxt.vehPosRot or
+                                    ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
+                                tooltip = string.var("{1}{2}", {
+                                    W.labels.buttons.setPosition,
+                                    (not ctxt.vehPosRot or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
+                                }),
                                 onClick = function()
                                     W.cache.positions[i].pos = ctxt.vehPosRot.pos
                                     W.cache.positions[i].rot = ctxt.vehPosRot.rot
@@ -201,6 +234,7 @@ local function body(ctxt)
                                 icon = ICONS.delete_forever,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 disabled = W.cache.disableInputs,
+                                tooltip = W.labels.buttons.deletePosition,
                                 onClick = function()
                                     W.cache.positions:remove(i)
                                     W.changed = true
@@ -248,6 +282,7 @@ local function footer()
             id = "cancel",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.buttons.close,
             onClick = BJI.Windows.ScenarioEditor.onClose,
         })
     if W.changed then
@@ -256,6 +291,7 @@ local function footer()
             icon = ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs,
+            tooltip = W.labels.buttons.save,
             onClick = save,
         })
     end

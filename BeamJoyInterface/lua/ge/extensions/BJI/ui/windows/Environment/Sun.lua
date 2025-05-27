@@ -36,6 +36,9 @@ local W = {
         moonAzimuth = "",
         moonElevation = "",
         moonScale = "",
+
+        reset = "",
+        resetAll = "",
     },
     labelsPresets = {
         dawn = "",
@@ -58,6 +61,8 @@ local function updateLabels()
     Table(W.labelsPresets):forEach(function(_, k)
         W.labelsPresets[k] = BJI.Managers.Lang.get(string.var("presets.time.{1}", { k }))
     end)
+    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
 
     W.labelsCommonWidth = W.KEYS.common:reduce(function(acc, k)
         local l = W.labels[k]
@@ -114,7 +119,7 @@ local function body()
                         end,
                     }):btn({
                     id = "resetSun",
-                    label = BJI.Managers.Lang.get("common.buttons.resetAll"),
+                    label = W.labels.resetAll,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlSun,
                     onClick = function()
@@ -169,6 +174,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env(rowData[1])
                         end
@@ -193,6 +199,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env(rowData[2])
                         end
@@ -223,6 +230,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env("ToD")
                         end
@@ -265,6 +273,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env("dayLength")
                         end
@@ -322,6 +331,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env("shadowTexSize")
                         end
@@ -370,6 +380,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env("skyDay.dayScale")
                             BJI.Tx.config.env("skyNight.nightScale")
@@ -399,6 +410,7 @@ local function body()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env("skyNight.nightScale")
                             BJI.Tx.config.env("skyDay.dayScale")
