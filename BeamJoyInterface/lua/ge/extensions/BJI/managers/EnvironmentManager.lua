@@ -73,6 +73,8 @@ local M = {
         CloudLayer = nil,
         ---@type table?
         Precipitation = nil,
+        ---@type table?
+        WaterPlane = nil,
     },
     init = false,    -- true if env is applied at least once after joining
 
@@ -81,10 +83,12 @@ local M = {
     PRECIP_TYPES = { "rain_medium", "rain_drop", "Snow_menu" },
     duskLimits = { .245, .25 },
     dawnLimits = { .75, .755 },
+    freecamFogLimits = { min = 700, max = 1300 },
+    freecamFogEnabled = false,
 }
 
 local function cacheWorldObjects()
-    Table({ "LevelInfo", "ScatterSky", "CloudLayer", "Precipitation" })
+    Table({ "LevelInfo", "ScatterSky", "CloudLayer", "Precipitation", "WaterPlane" })
         :forEach(function(k)
             local names = scenetree.findClassObjects(k)
             if names and table.length(names) > 0 then
@@ -327,30 +331,56 @@ local function fastTick(ctxt)
             _tryApplySimSpeed()
             _tryApplyGravity()
         end
+    end
+end
 
-        -- adjust environment settings in bigmap view
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP and
-            not BJI.Managers.Async.exists("BJIBigmapEnv") then
-            local oldFog = M.Data.fogDensity
-            local oldVisibleDistance = M.Data.visibleDistance
-            M.Data.fogDensity = 0
-            M.Data.visibleDistance = 20000
-            BJI.Managers.Async.task(
-                function(ctxt2)
-                    return ctxt2.camera ~= BJI.Managers.Cam.CAMERAS.BIG_MAP
-                end,
-                function()
-                    M.Data.fogDensity = oldFog
-                    M.Data.visibleDistance = oldVisibleDistance
-                end,
-                "BJIBigmapEnv"
-            )
+---@param ctxt TickContext
+local function checkFreecamFog(ctxt)
+    local isFlightCam = table.includes({
+        BJI.Managers.Cam.CAMERAS.FREE,
+        BJI.Managers.Cam.CAMERAS.BIG_MAP,
+    }, ctxt.camera)
+    local camPos = BJI.Managers.Cam.getPositionRotation().pos
+    local waterLevel = M.cachedWorldObjects.WaterPlane and
+        tonumber(tostring(M.cachedWorldObjects.WaterPlane.position):split2(", ")[10]) or 0
+    local elevation = camPos.z - waterLevel
+    if camPos.z > waterLevel then
+        local surfaceDiff = be:getSurfaceHeightBelow(camPos)
+        if surfaceDiff > 0 then
+            elevation = camPos.z - surfaceDiff
+        end
+    end
+
+    if M.freecamFogEnabled then
+        if not isFlightCam or
+            elevation < M.freecamFogLimits.min then
+            M.freecamFogEnabled = false
+            _tryApplyWeather()
+        end
+    else
+        if isFlightCam and
+            elevation >= M.freecamFogLimits.min then
+            M.freecamFogEnabled = true
+        end
+    end
+
+    if M.freecamFogEnabled then
+        core_environment.setFogDensity(math.scale(elevation, M.freecamFogLimits.min, M.freecamFogLimits.max,
+            M.Data.fogDensity, 0, true))
+        applyFogColor()
+
+        if M.cachedWorldObjects.LevelInfo.visibleDistance < 20000 then
+            M.cachedWorldObjects.LevelInfo.visibleDistance = math.scale(elevation, M.freecamFogLimits.min,
+                M.freecamFogLimits.max,
+                M.Data.visibleDistance, 20000, true)
+            M.cachedWorldObjects.LevelInfo:postApply()
         end
     end
 end
 
 local lastRenderTick = nil
 local lastToD = nil
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if BJI.Managers.Context.WorldReadyState == 2 and
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
@@ -378,6 +408,8 @@ local function renderTick(ctxt)
             _tryApplyDayNightSunValues()
         end
         lastToD = M.Data.ToD
+
+        checkFreecamFog(ctxt)
     end
 end
 
