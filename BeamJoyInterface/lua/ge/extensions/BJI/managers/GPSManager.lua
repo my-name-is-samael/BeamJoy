@@ -3,7 +3,7 @@ local M = {
     _name = "GPS",
 
     baseFunctions = {},
-    targets = {},
+    targets = Table(),
     defaultRadius = 5,
 
     KEYS = {
@@ -90,15 +90,8 @@ end
 local function renderTargets()
     core_groundMarkers.resetAll()
     if #M.targets > 0 then
-        local color
-        local waypoints = {}
-        for i, t in ipairs(M.targets) do
-            if i == 1 then
-                color = getColor(t)
-            end
-            table.insert(waypoints, t.pos)
-        end
-        core_groundMarkers.setFocus(waypoints, nil, nil, nil, nil, nil, color)
+        core_groundMarkers.setPath(M.targets:map(function(t, i) return t.pos end),
+            { color = M.targets[1] and getColor(M.targets[1]) or nil })
     end
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.GPS_CHANGED)
 end
