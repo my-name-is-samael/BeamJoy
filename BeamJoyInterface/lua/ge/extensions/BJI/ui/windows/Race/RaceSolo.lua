@@ -55,6 +55,10 @@ local W = {
 
             wpCounter = "",
             lapCounter = "",
+
+            loop = "",
+            forfeit = "",
+            restart = "",
         },
     },
     ---@type BJIScenarioRaceSolo
@@ -80,6 +84,10 @@ local function updateLabels()
 
     W.cache.labels.wpCounter = BJI.Managers.Lang.get("races.play.WP")
     W.cache.labels.lapCounter = BJI.Managers.Lang.get("races.play.Lap")
+
+    W.cache.labels.loop = BJI.Managers.Lang.get("common.buttons.loop")
+    W.cache.labels.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
+    W.cache.labels.restart = BJI.Managers.Lang.get("common.buttons.restart")
 end
 
 ---@param ctxt? TickContext
@@ -372,6 +380,7 @@ local function header(ctxt)
                             id = "toggleRaceLoop",
                             icon = ICONS.all_inclusive,
                             state = loop,
+                            tooltip = W.cache.labels.loop,
                             onClick = function()
                                 BJI.Managers.LocalStorage.set(
                                     BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
@@ -383,6 +392,7 @@ local function header(ctxt)
                         id = "leaveRace",
                         icon = ICONS.exit_to_app,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        tooltip = W.cache.labels.forfeit,
                         onClick = function()
                             BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
                         end,
@@ -393,6 +403,7 @@ local function header(ctxt)
                             id = "restartRace",
                             icon = ICONS.restart,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            tooltip = W.cache.labels.restart,
                             onClick = function()
                                 W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
                             end,

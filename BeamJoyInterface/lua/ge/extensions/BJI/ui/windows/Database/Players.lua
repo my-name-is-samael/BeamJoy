@@ -14,6 +14,10 @@ local W = {
         muteReason = "",
 
         groups = {},
+        buttons = {
+            refresh = "",
+            mute = "",
+        },
     },
     cache = {
         ---@type tablelib<integer, table>
@@ -52,6 +56,9 @@ local function updateLabels()
     W.labels.groups = Table(BJI.Managers.Perm.Groups):map(function(_, gkey)
         return BJI.Managers.Lang.get(string.var("groups.{1}", { gkey }), tostring(gkey))
     end)
+
+    W.labels.buttons.refresh = BJI.Managers.Lang.get("common.buttons.refresh")
+    W.labels.buttons.mute = BJI.Managers.Lang.get("moderationBlock.buttons.mute")
 end
 
 local function updateWidths()
@@ -104,6 +111,8 @@ local function updateCache(players, force)
             value = p.beammp,
             label = string.var("{1} ({2})", { p.playerName, p.lang }),
         }
+    end):sort(function(a, b)
+        return a.label:lower() < b.label:lower()
     end)
     if force and W.cache.selectedPlayer then
         W.cache.selectedPlayer = W.cache.playersCombo:find(function(pc) return pc.value == W.cache.currentPlayer.beammp end) or
@@ -168,6 +177,7 @@ local function header(ctxt)
             icon = ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = W.cache.disableInputs,
+            tooltip = W.labels.buttons.refresh,
             onClick = requestPlayersDatabase,
         })
         :inputCombo({
@@ -296,6 +306,7 @@ local function body(ctxt)
                             icon = ICONS.mic_off,
                             state = W.cache.currentPlayer.muted == true,
                             disabled = W.cache.disableInputs,
+                            tooltip = W.labels.buttons.mute,
                             onClick = function()
                                 W.cache.disableInputs = true
                                 BJI.Tx.moderation.mute(W.cache.currentPlayer.playerName, W.cache.currentPlayer.muteReason)

@@ -10,6 +10,7 @@ local W = {
         distance = "",
         arrived = "",
         onTheWay = "",
+        leave = "",
     },
     cache = {
         streakLabel = "",
@@ -29,6 +30,7 @@ local function updateLabels()
     W.labels.distance = string.var("{1} :", { BJI.Managers.Lang.get("deliveryTogether.distance") })
     W.labels.arrived = BJI.Managers.Lang.get("deliveryTogether.arrived")
     W.labels.onTheWay = BJI.Managers.Lang.get("deliveryTogether.onTheWay")
+    W.labels.leave = BJI.Managers.Lang.get("common.buttons.leave")
 end
 
 ---@param ctxt? TickContext
@@ -107,6 +109,7 @@ local function header(ctxt)
             ProgressBar({
                 floatPercent = 1 - math.max(W.scenario.distance / W.scenario.baseDistance, 0),
                 width = 250,
+                style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
             })
         end
     end
@@ -141,6 +144,7 @@ local function footer(ctxt)
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
+            tooltip = W.labels.leave,
             onClick = function()
                 W.cache.disableButtons = true
                 BJI.Tx.scenario.DeliveryMultiLeave()

@@ -30,9 +30,10 @@ local function updateCache(ctxt)
         end
     end
 
+    cache.garagesCount = #BJI.Managers.Context.Scenario.Data.Garages
+
     if ctxt.vehData and ctxt.vehData.tanks then
-        local stationBtnProcess = BJI.Managers.Scenario.canRefuelAtStation() and
-            not BJI.Managers.Stations.station and
+        local stationBtnEnabled = BJI.Managers.Scenario.canRefuelAtStation() and
             not BJI.Managers.Context.User.stationProcess
         for _, tank in pairs(ctxt.vehData.tanks) do
             if not cache.tanksMaxes[tank.energyType] then
@@ -43,12 +44,24 @@ local function updateCache(ctxt)
                     { tank.energyType }))
 
                 -- gps button by energy type
-                if stationBtnProcess then
-                    local stationCount = table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, tank.energyType) and
-                        (cache.stationsCounts[tank.energyType] and cache.stationsCounts[tank.energyType]) or
-                        cache.garagesCount
-                    if stationCount > 0 then
-                        cache.showGPSButton[tank.energyType] = true
+                if stationBtnEnabled then
+                    if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, tank.energyType) then
+                        -- fuel / electricity
+                        local stationCount = cache.stationsCounts[tank.energyType] or 0
+                        if stationCount > 0 and (
+                                not BJI.Managers.Stations.station or
+                                not BJI.Managers.Stations.station.isEnergy or
+                                not table.includes(BJI.Managers.Stations.station.types, tank.energyType)
+                            ) then
+                            cache.showGPSButton[tank.energyType] = true
+                        end
+                    elseif tank.energyType == BJI.Managers.Veh.FUEL_TYPES.N2O then
+                        if cache.garagesCount > 0 and (
+                                not BJI.Managers.Stations.station or
+                                BJI.Managers.Stations.station.isEnergy
+                            ) then
+                            cache.showGPSButton[tank.energyType] = true
+                        end
                     end
                 end
 
@@ -104,6 +117,7 @@ local function draw(ctxt)
                 icon = ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation"),
+                tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                 onClick = function()
                     if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
                         -- Gas station energy types

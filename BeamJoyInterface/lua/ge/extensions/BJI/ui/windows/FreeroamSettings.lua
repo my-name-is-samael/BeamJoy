@@ -28,6 +28,12 @@ local W = {
         emergencyRefuelDurationTooltip = "",
         emergencyRefuelPercent = "",
         emergencyRefuelPercentTooltip = "",
+        buttons = {
+            reset = "",
+            resetAll = "",
+            close = "",
+            save = "",
+        },
     },
     cache = {
         labelsWidth = 0,
@@ -70,6 +76,11 @@ local function updateLabels()
     W.labels.emergencyRefuelPercent = string.var("{1}:",
         { BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelPercent") })
     W.labels.emergencyRefuelPercentTooltip = BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelPercentTooltip")
+
+    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
 end
 
 local function updateChanged()
@@ -221,6 +232,7 @@ local function updateCache(ctxt)
                                     id = conf.keyData,
                                     icon = ICONS.refresh,
                                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                                    tooltip = W.labels.buttons.reset,
                                     onClick = function()
                                         W.data[conf.keyData] = BJI.Managers.Context.BJC.Freeroam[conf.keyData]
                                         updateChanged()
@@ -287,6 +299,7 @@ local function footer(ctxt)
             id = "closeFreeroamSettings",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.buttons.close,
             onClick = function()
                 onClose()
             end
@@ -296,6 +309,7 @@ local function footer(ctxt)
             id = "reset",
             icon = ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+            tooltip = W.labels.buttons.resetAll,
             onClick = function()
                 W.data = table.clone(BJI.Managers.Context.BJC.Freeroam)
                 W.changed = false
@@ -305,6 +319,7 @@ local function footer(ctxt)
                 id = "save",
                 icon = ICONS.save,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                tooltip = W.labels.buttons.save,
                 onClick = function()
                     W.cache.colsConfig:reduce(function(acc, conf)
                         acc[conf.keyData] = W.data[conf.keyData]

@@ -32,6 +32,15 @@ local W = {
         protectedVehicle = "",
         invalidVeh = "",
 
+        openVehSelector = "",
+        remove = "",
+        show = "",
+        spawn = "",
+        replace = "",
+        random = "",
+        applyPaint = "",
+        close = "",
+
         cars = "",
         trucks = "",
         trailers = "",
@@ -97,6 +106,15 @@ local function updateCacheLabels()
     W.labels.notAllowed = BJI.Managers.Lang.get("vehicleSelector.notAllowed")
     W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
     W.labels.invalidVeh = BJI.Managers.Lang.get("vehicleSelector.invalidVeh")
+
+    W.labels.openVehSelector = BJI.Managers.Lang.get("vehicleSelector.openVehSelector")
+    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.show = BJI.Managers.Lang.get("common.buttons.show")
+    W.labels.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
+    W.labels.replace = BJI.Managers.Lang.get("common.buttons.replace")
+    W.labels.random = BJI.Managers.Lang.get("common.random")
+    W.labels.applyPaint = BJI.Managers.Lang.get("vehicleSelector.applyPaint")
+    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
 
     W.labels.cars = BJI.Managers.Lang.get("vehicleSelector.cars")
     W.labels.trucks = BJI.Managers.Lang.get("vehicleSelector.trucks")
@@ -337,6 +355,7 @@ local function drawHeader(ctxt)
                 id = "openVehSelectorUI",
                 icon = ICONS.open_in_new,
                 style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                tooltip = W.labels.openVehSelector,
                 onClick = function()
                     if W.onClose then
                         BJI.Windows.VehSelector.tryClose()
@@ -355,6 +374,7 @@ local function drawHeader(ctxt)
                 icon = ICONS.ab_filter_default,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 coloredIcon = true,
+                tooltip = W.labels.remove,
                 onClick = function()
                     W.vehFilter = ""
                     updateCacheVehicles()
@@ -381,6 +401,7 @@ local function drawConfig(modelKey, config)
             id = string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            tooltip = W.labels.spawn,
             onClick = function()
                 BJI.Managers.Scenario.trySpawnNew(modelKey, config.key)
             end
@@ -394,6 +415,7 @@ local function drawConfig(modelKey, config)
             id = string.var("replace-{1}-{2}", { modelKey, config.key }),
             icon = ICONS.carSensors,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+            tooltip = W.labels.replace,
             onClick = function()
                 BJI.Managers.Scenario.tryReplaceOrSpawn(modelKey, config.key)
             end
@@ -411,6 +433,7 @@ local function drawModel(model)
             id = string.var("preview-{1}", { model.key }),
             icon = ICONS.ab_asset_image,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
+            tooltip = W.labels.show,
             onClick = function()
                 BJI.Windows.VehSelectorPreview.open(model.preview)
             end,
@@ -421,6 +444,7 @@ local function drawModel(model)
                     id = string.var("spawnNew-{1}", { model.key }),
                     icon = ICONS.add,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    tooltip = W.labels.spawn,
                     onClick = function()
                         BJI.Managers.Scenario.trySpawnNew(model.key, #model.configs == 1 and model.configs[1].key or nil)
                     end
@@ -431,6 +455,7 @@ local function drawModel(model)
                     id = string.var("replace-{1}", { model.key }),
                     icon = ICONS.carSensors,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    tooltip = W.labels.replace,
                     onClick = function()
                         BJI.Managers.Scenario.tryReplaceOrSpawn(model.key,
                             #model.configs == 1 and model.configs[1].key or nil)
@@ -443,6 +468,7 @@ local function drawModel(model)
                 id = string.var("spawnRandom-{1}", { model.key }),
                 icon = ICONS.casino,
                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                tooltip = W.labels.random,
                 onClick = function()
                     local config = table.random(model.configs) or {}
                     BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
@@ -520,6 +546,7 @@ local function drawType(vehs, label, name, icon)
                     id = string.var("random-{1}", { name }),
                     icon = ICONS.casino,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    tooltip = W.labels.random,
                     onClick = function()
                         local model = table.random(vehs) or {}
                         local config = table.random(model.configs) or {}
@@ -588,6 +615,7 @@ local function drawPaints(paints)
                 id = string.var("applyPaint-{1}-{2}", { i, j }),
                 icon = ICONS.format_color_fill,
                 style = style,
+                tooltip = W.labels.applyPaint:var({ position = j }),
                 onClick = function()
                     BJI.Managers.Scenario.tryPaint(paintData.paint, j)
                 end
@@ -657,6 +685,7 @@ local function drawFooter(ctxt)
                 id = "closeVehicleSelector",
                 icon = ICONS.exit_to_app,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = W.labels.close,
                 onClick = W.onClose,
             })
             :build()

@@ -14,10 +14,13 @@ local W = {
     labels = {
         vSeparator = "",
         amountPBs = "",
-        removeAllPBsButton = "",
         columnRace = "",
         columnPB = "",
         columnRecord = "",
+        buttons = {
+            removeAllPBs = "",
+            remove = "",
+        },
     }
 }
 
@@ -28,10 +31,11 @@ end
 local function updateLabels()
     W.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
     W.labels.amountPBs = BJI.Managers.Lang.get("races.leaderboard.amountPBs") .. " :"
-    W.labels.removeAllPBsButton = BJI.Managers.Lang.get("races.leaderboard.removeAllPBsButton")
     W.labels.columnRace = BJI.Managers.Lang.get("races.leaderboard.race")
     W.labels.columnPB = BJI.Managers.Lang.get("races.leaderboard.pb")
     W.labels.columnRecord = BJI.Managers.Lang.get("races.leaderboard.record")
+    W.labels.buttons.removeAllPBs = BJI.Managers.Lang.get("races.leaderboard.removeAllPBsButton")
+    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
 end
 
 ---@param ctxt? TickContext
@@ -86,32 +90,32 @@ local function updateCache(ctxt)
                                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
                         end,
                         race.pb and function()
-                            LineBuilder():text(pbLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                                :btnIcon({
-                                    id = string.var("removePb-{1}", { race.id }),
-                                    icon = ICONS.delete_forever,
-                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                    onClick = function()
-                                        BJI.Managers.Popup.createModal(
-                                            string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
-                                                { raceName = race.name }), {
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                    "common.buttons.cancel"
-                                                )),
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                    "common.buttons.confirm"
-                                                ), function()
-                                                    BJI.Managers.RaceWaypoint.setPB(race.hash)
-                                                    BJI.Managers.Events.trigger(
-                                                        BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
-                                                            raceName = race.name,
-                                                            raceID = race.id,
-                                                            raceHash = race.hash,
-                                                        })
-                                                end),
-                                            })
-                                    end,
-                                }):build()
+                            LineBuilder():btnIcon({
+                                id = string.var("removePb-{1}", { race.id }),
+                                icon = ICONS.delete_forever,
+                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                                tooltip = W.labels.buttons.remove,
+                                onClick = function()
+                                    BJI.Managers.Popup.createModal(
+                                        string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
+                                            { raceName = race.name }), {
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                "common.buttons.cancel"
+                                            )),
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                "common.buttons.confirm"
+                                            ), function()
+                                                BJI.Managers.RaceWaypoint.setPB(race.hash)
+                                                BJI.Managers.Events.trigger(
+                                                    BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                                                        raceName = race.name,
+                                                        raceID = race.id,
+                                                        raceHash = race.hash,
+                                                    })
+                                            end),
+                                        })
+                                end,
+                            }):text(pbLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
                         end,
                         race.record and function()
                             LineLabel(recordLabel, hasRecord and
@@ -125,22 +129,22 @@ local function updateCache(ctxt)
                 }
             end):values()
             :sort(function(a, b)
-                if a.name:find(b.name) then
+                if a.name:startswith(b.name) then
                     return false
-                elseif b.name:find(a.name) then
+                elseif b.name:startswith(a.name) then
                     return true
                 end
                 return a.name < b.name
             end)
 
-        W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", { namesWidth, PBsWidth, -1 })
+        W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", { -1, -1, -1 }, true)
             :addRow({
                 cells = {
                     function() LineLabel(W.labels.columnRace) end,
                     function() LineLabel(W.labels.columnPB) end,
                     function() LineLabel(W.labels.columnRecord) end,
                 }
-            })
+            }):addSeparator()
         Table(cols):forEach(function(col)
             W.data.leaderboardCols:addRow(col)
         end)
@@ -181,9 +185,10 @@ local function header()
         LineBuilder():text(W.labels.amountPBs)
             :text(W.data.amountPBs, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
             :text(W.labels.vSeparator)
-            :btn({
+            :btnIcon({
                 id = "btnRemoveAllPbs",
-                label = W.labels.removeAllPBsButton,
+                icon = ICONS.delete_forever,
+                tooltip = W.labels.buttons.removeAllPBs,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 onClick = function()
                     BJI.Managers.Popup.createModal(

@@ -162,6 +162,7 @@ local function drawUI(ctxt, cache)
         ProgressBar({
             floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
             width = 250,
+            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
         })
     end
 
@@ -172,9 +173,10 @@ local function drawUI(ctxt, cache)
         :btnIcon({
             id = "stopPackageDelivery",
             icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = S.onStopDelivery,
             big = true,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = cache.labels.delivery.leave,
+            onClick = S.onStopDelivery,
         })
         :build()
 end

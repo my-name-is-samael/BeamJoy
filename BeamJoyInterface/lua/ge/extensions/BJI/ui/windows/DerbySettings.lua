@@ -20,6 +20,15 @@ local W = {
 
         protectedVehicle = "",
         selfProtected = "",
+
+        buttons = {
+            spawn = "",
+            replace = "",
+            remove = "",
+            add = "",
+            close = "",
+            start = "",
+        },
     },
     data = {
         arenaIndex = 0,
@@ -53,6 +62,13 @@ local function updateLabels()
 
     W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
     W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+
+    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
+    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
@@ -237,6 +253,7 @@ local function body(ctxt)
                             icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
                             style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                                 BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                            tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
                             onClick = function()
                                 local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle
@@ -246,6 +263,7 @@ local function body(ctxt)
                             id = string.var("removeDerbyConfig{1}", { i }),
                             icon = ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                            tooltip = W.labels.buttons.remove,
                             onClick = function()
                                 W.data.configs:remove(i)
                             end,
@@ -256,10 +274,12 @@ local function body(ctxt)
                             tooltip = W.labels.protectedVehicle
                         elseif W.data.selfProtected then
                             tooltip = W.labels.selfProtected
+                        else
+                            tooltip = W.labels.buttons.add
                         end
                         LineBuilder():btnIcon({
                             id = "addDerbyConfig",
-                            icon = ICONS.addListItem,
+                            icon = ICONS.add,
                             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
                             tooltip = tooltip,
@@ -281,11 +301,13 @@ local function footer(ctxt)
         id = "closeDerbySettings",
         icon = ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.labels.buttons.close,
         onClick = onClose,
     }):btnIcon({
         id = "startDerby",
         icon = ICONS.check,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+        tooltip = W.labels.buttons.start,
         onClick = function()
             BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
             onClose()

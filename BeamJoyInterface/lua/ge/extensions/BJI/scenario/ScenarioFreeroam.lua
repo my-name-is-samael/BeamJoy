@@ -291,6 +291,7 @@ local function getPlayerListActions(player, ctxt)
             icon = ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = disabled,
+            tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
                 if player.self then
                     local selfVehs = {}
@@ -324,6 +325,7 @@ local function getPlayerListActions(player, ctxt)
                 id = "stopWalking",
                 icon = ICONS.directions_run,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = BJI.Managers.Lang.get("playersBlock.buttons.stopWalking"),
                 onClick = BJI.Managers.Veh.deleteCurrentOwnVehicle,
             })
         end
@@ -333,6 +335,7 @@ local function getPlayerListActions(player, ctxt)
                 id = string.var("gpsPlayer{1}", { player.playerID }),
                 icon = ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                 onClick = function()
                     BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, 20, nil, player.playerName)
                 end
@@ -344,6 +347,7 @@ local function getPlayerListActions(player, ctxt)
                     icon = ICONS.tb_height_higher,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = S.teleport.restricted,
+                    tooltip = BJI.Managers.Lang.get("playersBlock.buttons.teleportTo"),
                     onClick = function()
                         S.tryTeleportToPlayer(player.playerID)
                     end
@@ -361,6 +365,7 @@ local function getPlayerListActions(player, ctxt)
                         disabled = not finalGameVehID or
                             not ctxt.isOwner or
                             finalGameVehID == ctxt.veh:getID(),
+                        tooltip = BJI.Managers.Lang.get("playersBlock.buttons.teleportFrom"),
                         onClick = function()
                             BJI.Tx.moderation.teleportFrom(player.playerID)
                         end

@@ -31,6 +31,9 @@ local function updateLabels()
     Table(BJI.Managers.Env.PRECIP_TYPES):forEach(function(k)
         W.labels[k] = BJI.Managers.Lang.get(string.var("presets.precipType.{1}", { k }))
     end)
+
+    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
 end
 
 local function updateCols()
@@ -49,7 +52,7 @@ local function updateCols()
                         end,
                     }):btn({
                     id = "resetWeather",
-                    label = BJI.Managers.Lang.get("common.buttons.resetAll"),
+                    label = W.labels.resetAll,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlWeather,
                     onClick = function()
@@ -67,6 +70,7 @@ local function updateCols()
                     icon = ICONS.refresh,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlWeather,
+                    tooltip = W.labels.reset,
                     onClick = function()
                         BJI.Tx.config.env("fogDensity")
                     end
@@ -93,6 +97,7 @@ local function updateCols()
                     icon = ICONS.refresh,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlWeather,
+                    tooltip = W.labels.reset,
                     onClick = function()
                         BJI.Tx.config.env("fogColor")
                     end
@@ -119,6 +124,7 @@ local function updateCols()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlWeather,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env(k)
                         end
@@ -144,6 +150,7 @@ local function updateCols()
                         icon = ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlWeather,
+                        tooltip = W.labels.reset,
                         onClick = function()
                             BJI.Tx.config.env(k2)
                         end

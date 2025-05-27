@@ -9,11 +9,15 @@ local W = {
     ---@type table<string, table>?
     data = nil,
     labels = {
-        categoriesTitles = {
+        categoriesTitles = {},
+        categoriesPresets = {},
+        categoriesElements = {},
+        buttons = {
+            reset = "",
+            resetAll = "",
+            close = "",
+            save = "",
         },
-        categoriesPresets = {
-        },
-        categoriesElements = {}
     },
     widths = {
         Button = 0,
@@ -61,6 +65,11 @@ local function updateLabels()
             W.labels.categoriesElements.Input[key] = BJI.Managers.Lang.get(
                 string.var("themeEditor.Input.{1}", { key }))
         end)
+
+    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
 end
 
 local function updateWidths()
@@ -141,9 +150,7 @@ local function drawColorLine(data)
     end
 
     local drawLabel = function(sameLine)
-        LineBuilder(sameLine == true)
-            :text(data.label)
-            :build()
+        LineLabel(data.label, nil, sameLine == true)
     end
 
     local drawInputs = function()
@@ -169,6 +176,7 @@ local function drawColorLine(data)
                 id = string.var("{1}-reset", { data.id }),
                 icon = ICONS.refresh,
                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                tooltip = W.labels.buttons.reset,
                 onClick = data.reset,
             })
         end
@@ -179,9 +187,9 @@ local function drawColorLine(data)
         drawInputs()
         drawLabel(true)
     else
-        ColumnsBuilder(data.id, { data.labelWidth, -1 })
-            :addRow({ cells = { drawLabel, drawInputs } })
-            :build()
+        ColumnsBuilder(data.id, { data.labelWidth, -1 }):addRow({
+            cells = { drawLabel, drawInputs }
+        }):build()
     end
     Separator()
 end
@@ -201,45 +209,41 @@ end
 
 ---@param cat string
 local function drawThemeCategory(cat)
-    AccordionBuilder()
-        :label(W.labels.categoriesTitles[cat])
-        :commonStart(Separator)
-        :openedBehavior(function()
-            local listInputs = {}
-            for key, value in pairs(W.data[cat]) do
-                local label = W.labels.categoriesPresets[cat][key]
-                table.insert(listInputs, {
-                    key = key,
-                    value = value,
-                    label = label,
-                })
+    AccordionBuilder():label(W.labels.categoriesTitles[cat]):commonStart(Separator):openedBehavior(function()
+        local listInputs = {}
+        for key, value in pairs(W.data[cat]) do
+            local label = W.labels.categoriesPresets[cat][key]
+            table.insert(listInputs, {
+                key = key,
+                value = value,
+                label = label,
+            })
+        end
+        table.sort(listInputs, function(a, b) return a.label < b.label end)
+        for _, data in ipairs(listInputs) do
+            local changed = not compareColorToDefault(data.value,
+                BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
+            if changed then
+                W.changed = true
             end
-            table.sort(listInputs, function(a, b) return a.label < b.label end)
-            for _, data in ipairs(listInputs) do
-                local changed = not compareColorToDefault(data.value,
-                    BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
-                if changed then
-                    W.changed = true
-                end
-                drawColorLine({
-                    id = string.var("{1}-{2}", { cat, data.key }),
-                    label = data.label,
-                    reverse = true,
-                    color = {
-                        value = data.value,
-                        onChange = function(color)
-                            W.data[cat][data.key] = color
-                            updateTheme()
-                        end
-                    },
-                    reset = changed and function()
-                        W.data[cat][data.key] = table.clone(BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
+            drawColorLine({
+                id = string.var("{1}-{2}", { cat, data.key }),
+                label = data.label,
+                reverse = true,
+                color = {
+                    value = data.value,
+                    onChange = function(color)
+                        W.data[cat][data.key] = color
                         updateTheme()
                     end
-                })
-            end
-        end)
-        :build()
+                },
+                reset = changed and function()
+                    W.data[cat][data.key] = table.clone(BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
+                    updateTheme()
+                end
+            })
+        end
+    end):build()
 end
 
 ---@param id string
@@ -285,82 +289,74 @@ local function drawButtonsPresets()
                 end)
 
             btnPresets:forEach(function(btnPreset)
-                AccordionBuilder()
-                    :label(btnPreset.label)
-                    :commonStart(Separator)
-                    :openedBehavior(function()
-                        -- Preview
-                        drawPreview(
-                            string.var("Button-{1}-cols-preview", { btnPreset.key }),
-                            W.widths.Button,
-                            btnTypes[5].label,
-                            function()
-                                LineBuilder()
-                                    :btn({
-                                        id = string.var("Button-{1}-preview-text", { btnPreset.key }),
-                                        label = "ABC123",
-                                        style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
-                                        onClick = function() end,
-                                    })
-                                    :btnIcon({
-                                        id = string.var("Button-{1}-preview-icon", { btnPreset.key }),
-                                        icon = ICONS.bug_report,
-                                        style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
-                                        onClick = function() end,
-                                    })
-                                    :build()
-                            end
-                        )
+                AccordionBuilder():label(btnPreset.label):commonStart(Separator):openedBehavior(function()
+                    -- Preview
+                    drawPreview(
+                        string.var("Button-{1}-cols-preview", { btnPreset.key }),
+                        W.widths.Button,
+                        btnTypes[5].label,
+                        function()
+                            LineBuilder():btn({
+                                id = string.var("Button-{1}-preview-text", { btnPreset.key }),
+                                label = "ABC123",
+                                style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
+                                onClick = function() end,
+                            }):btnIcon({
+                                id = string.var("Button-{1}-preview-icon", { btnPreset.key }),
+                                icon = ICONS.bug_report,
+                                style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
+                                onClick = function() end,
+                            }):build()
+                        end
+                    )
 
-                        local value, default, changed
-                        Range(1, 4):forEach(function(i)
-                            value = btnPreset.value[i]
-                            default = BJI.Managers.Context.BJC.Server.Theme.Button[btnPreset.key][i]
-                            if i < 4 then
+                    local value, default, changed
+                    Range(1, 4):forEach(function(i)
+                        value = btnPreset.value[i]
+                        default = BJI.Managers.Context.BJC.Server.Theme.Button[btnPreset.key][i]
+                        if i < 4 then
+                            changed = not compareColorToDefault(value, default)
+                        else
+                            if value and default then
                                 changed = not compareColorToDefault(value, default)
                             else
-                                if value and default then
-                                    changed = not compareColorToDefault(value, default)
-                                else
-                                    changed = value ~= default
-                                end
+                                changed = value ~= default
                             end
-                            if changed then
-                                W.changed = true
-                            end
-                            drawColorLine({
-                                id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[i].key }),
-                                label = btnTypes[i].label,
-                                labelWidth = W.widths.Button,
-                                color = {
-                                    value = value,
-                                    onChange = function(color)
-                                        W.data.Button[btnPreset.key][i] = color
-                                        updateTheme()
-                                    end,
-                                },
-                                reset = changed and function()
-                                    W.data.Button[btnPreset.key][i] = table.clone(default)
+                        end
+                        if changed then
+                            W.changed = true
+                        end
+                        drawColorLine({
+                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[i].key }),
+                            label = btnTypes[i].label,
+                            labelWidth = W.widths.Button,
+                            color = {
+                                value = value,
+                                onChange = function(color)
+                                    W.data.Button[btnPreset.key][i] = color
                                     updateTheme()
                                 end,
-                                toggle = i == 4 and {
-                                    state = not not value,
-                                    onClick = function()
-                                        if value then
-                                            W.data.Button[btnPreset.key][4] = nil
-                                        else
-                                            W.data.Button[btnPreset.key][4] = table.clone(W.data.Text.DEFAULT)
-                                        end
-                                        updateTheme()
+                            },
+                            reset = changed and function()
+                                W.data.Button[btnPreset.key][i] = table.clone(default)
+                                updateTheme()
+                            end,
+                            toggle = i == 4 and {
+                                state = not not value,
+                                onClick = function()
+                                    if value then
+                                        W.data.Button[btnPreset.key][4] = nil
+                                    else
+                                        W.data.Button[btnPreset.key][4] = table.clone(W.data.Text.DEFAULT)
                                     end
-                                } or nil,
-                            })
-                        end)
+                                    updateTheme()
+                                end
+                            } or nil,
+                        })
                     end)
-                    :build()
+                end):build()
             end)
-        end)
-        :build()
+        end):build()
 end
 
 local function drawInputsPresets()
@@ -506,30 +502,31 @@ end
 
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
-    local line = LineBuilder()
-        :btnIcon({
-            id = "cancel",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            onClick = onClose,
-        })
+    local line = LineBuilder():btnIcon({
+        id = "cancel",
+        icon = ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = W.labels.buttons.close,
+        onClick = onClose,
+    })
     if W.changed then
         line:btnIcon({
             id = "reset",
             icon = ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+            tooltip = W.labels.buttons.resetAll,
             onClick = function()
                 W.data = table.clone(BJI.Managers.Context.BJC.Server.Theme)
                 W.changed = false
                 updateTheme()
             end,
+        }):btnIcon({
+            id = "save",
+            icon = ICONS.save,
+            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+            tooltip = W.labels.buttons.save,
+            onClick = save,
         })
-            :btnIcon({
-                id = "save",
-                icon = ICONS.save,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                onClick = save,
-            })
     end
     line:build()
 end

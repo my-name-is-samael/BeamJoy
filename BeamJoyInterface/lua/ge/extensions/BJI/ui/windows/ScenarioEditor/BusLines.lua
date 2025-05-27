@@ -11,6 +11,23 @@ local W = {
         stopRadius = "",
 
         stopsMinimumError = "",
+
+        buttons = {
+            showLine = "",
+            deleteLine = "",
+            spawnBus = "",
+            addBusLine = "",
+            showStop = "",
+            setStopHere = "",
+            deleteStop = "",
+            toggleLoopable = "",
+            addStopHere = "",
+            moveUp = "",
+            moveDown = "",
+            close = "",
+            save = "",
+            errorNeedABus = "",
+        },
     },
     cache = {
         labelsWidth = 0,
@@ -26,6 +43,8 @@ local W = {
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
     W.markersLine = nil
+    W.changed = false
+    W.valid = true
 end
 
 local function reloadMarkers(iLine)
@@ -61,6 +80,21 @@ local function updateLabels()
     W.labels.stopName = BJI.Managers.Lang.get("buslines.edit.stopName")
     W.labels.stopRadius = BJI.Managers.Lang.get("buslines.edit.stopRadius")
     W.labels.stopsMinimumError = BJI.Managers.Lang.get("buslines.edit.stopsMinimumError")
+
+    W.labels.buttons.showLine = BJI.Managers.Lang.get("buslines.edit.buttons.showLine")
+    W.labels.buttons.deleteLine = BJI.Managers.Lang.get("buslines.edit.buttons.deleteLine")
+    W.labels.buttons.spawnBus = BJI.Managers.Lang.get("buslines.edit.buttons.spawnBus")
+    W.labels.buttons.addBusLine = BJI.Managers.Lang.get("buslines.edit.buttons.addBusLine")
+    W.labels.buttons.showStop = BJI.Managers.Lang.get("buslines.edit.buttons.showStop")
+    W.labels.buttons.setStopHere = BJI.Managers.Lang.get("buslines.edit.buttons.setStopHere")
+    W.labels.buttons.deleteStop = BJI.Managers.Lang.get("buslines.edit.buttons.deleteStop")
+    W.labels.buttons.toggleLoopable = BJI.Managers.Lang.get("buslines.edit.buttons.toggleLoopable")
+    W.labels.buttons.addStopHere = BJI.Managers.Lang.get("buslines.edit.buttons.addStopHere")
+    W.labels.buttons.moveUp = BJI.Managers.Lang.get("common.buttons.moveUp")
+    W.labels.buttons.moveDown = BJI.Managers.Lang.get("common.buttons.moveDown")
+    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.errorNeedABus = BJI.Managers.Lang.get("buslines.edit.buttons.errorNeedABus")
 end
 
 local function udpateWidths()
@@ -151,6 +185,7 @@ local function header(ctxt)
             id = "spawnBus",
             icon = ICONS.directions_bus,
             style = not ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING,
+            tooltip = W.labels.buttons.spawnBus,
             onClick = function()
                 if ctxt.veh then
                     BJI.Managers.Veh.replaceOrSpawnVehicle("citybus")
@@ -167,6 +202,11 @@ local function header(ctxt)
         icon = ICONS.add,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
+        tooltip = string.var("{1}{2}", {
+            W.labels.buttons.addBusLine,
+            (not ctxt.veh or ctxt.veh.jbeam ~= "citybus") and
+            " (" .. W.labels.buttons.errorNeedABus .. ")" or ""
+        }),
         onClick = function()
             W.cache.lines:insert({
                 name = "",
@@ -210,6 +250,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
             icon = ICONS.arrow_drop_up,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or iStop == 1,
+            tooltip = W.labels.buttons.moveUp,
             onClick = function()
                 table.insert(bline.stops, iStop - 1, bline.stops[iStop])
                 table.remove(bline.stops, iStop + 1)
@@ -223,6 +264,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
             icon = ICONS.arrow_drop_down,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or iStop == #bline.stops,
+            tooltip = W.labels.buttons.moveDown,
             onClick = function()
                 table.insert(bline.stops, iStop + 2, bline.stops[iStop])
                 table.remove(bline.stops, iStop)
@@ -236,6 +278,11 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
             icon = ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
+            tooltip = string.var("{1}{2}", {
+                W.labels.buttons.showStop,
+                (not ctxt.veh or ctxt.veh.jbeam ~= "citybus") and
+                " (" .. W.labels.buttons.errorNeedABus .. ")" or ""
+            }),
             onClick = function()
                 BJI.Managers.Veh.setPositionRotation(stop.pos, stop.rot)
             end
@@ -245,6 +292,11 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
             icon = ICONS.edit_location,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
+            tooltip = string.var("{1}{2}", {
+                W.labels.buttons.setStopHere,
+                (not ctxt.veh or ctxt.veh.jbeam ~= "citybus") and
+                " (" .. W.labels.buttons.errorNeedABus .. ")" or ""
+            }),
             onClick = function()
                 stop.pos = ctxt.vehPosRot.pos
                 stop.rot = ctxt.vehPosRot.rot
@@ -259,6 +311,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
             icon = ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
+            tooltip = W.labels.buttons.deleteStop,
             onClick = function()
                 table.remove(bline.stops, iStop)
                 W.changed = true
@@ -325,27 +378,24 @@ end
 ---@param bline table
 local function drawLine(ctxt, iLine, bline)
     local validName = validLineName(iLine)
-    LineBuilder()
-        :text(W.labels.lineName, not validName and BJI.Utils.Style.TEXT_COLORS.ERROR or nil)
-        :inputString({
-            id = string.var("lineName{1}", { iLine }),
-            value = bline.name,
-            disabled = W.cache.disableButtons,
-            style = not validName and BJI.Utils.Style.INPUT_PRESETS.ERROR or nil,
-            onUpdate = function(value)
-                bline.name = value
-                W.changed = true
-                validateBuslines()
-            end
-        })
-        :build()
-    LineBuilder()
-        :text(BJI.Managers.Lang.get("buslines.edit.loopable"))
+    LineBuilder():text(W.labels.lineName, not validName and BJI.Utils.Style.TEXT_COLORS.ERROR or nil):inputString({
+        id = string.var("lineName{1}", { iLine }),
+        value = bline.name,
+        disabled = W.cache.disableButtons,
+        style = not validName and BJI.Utils.Style.INPUT_PRESETS.ERROR or nil,
+        onUpdate = function(value)
+            bline.name = value
+            W.changed = true
+            validateBuslines()
+        end
+    }):build()
+    LineBuilder():text(BJI.Managers.Lang.get("buslines.edit.loopable"))
         :btnIconToggle({
             id = string.var("lineLoopable{1}", { iLine }),
             icon = ICONS.rotate_90_degrees_ccw,
             state = bline.loopable,
             disabled = W.cache.disableButtons,
+            tooltip = W.labels.buttons.toggleLoopable,
             onClick = function()
                 bline.loopable = not bline.loopable
                 W.changed = true
@@ -358,6 +408,11 @@ local function drawLine(ctxt, iLine, bline)
             icon = ICONS.add_location,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
+            tooltip = string.var("{1}{2}", {
+                W.labels.buttons.addStopHere,
+                (not ctxt.veh or ctxt.veh.jbeam ~= "citybus") and
+                " (" .. W.labels.buttons.errorNeedABus .. ")" or ""
+            }),
             onClick = function()
                 table.insert(bline.stops, {
                     name = "",
@@ -383,27 +438,26 @@ local function body(ctxt)
         AccordionBuilder()
             :label(string.var("##{1}", { iLine }))
             :commonStart(function()
-                local line = LineBuilder(true)
-                    :text(W.labels.line:var({ index = iLine }), displayed and
+                local line = LineBuilder(true):text(W.labels.line:var({ index = iLine }), displayed and
                         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-                    :text(string.var("({1})", { bline.name }))
-                    :btnIcon({
+                    :text(string.var("({1})", { bline.name })):btnIcon({
                         id = string.var("reloadMarkers{1}", { iLine }),
                         icon = ICONS.visibility,
                         style = displayed and BJI.Utils.Style.BTN_PRESETS.DISABLED or
                             BJI.Utils.Style.BTN_PRESETS.INFO,
                         active = displayed,
+                        tooltip = W.labels.buttons.showLine,
                         onClick = function()
                             if not displayed then
                                 reloadMarkers(iLine)
                             end
                         end,
-                    })
-                    :btnIcon({
+                    }):btnIcon({
                         id = string.var("deleteLine{1}", { iLine }),
                         icon = ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = W.cache.disableButtons,
+                        tooltip = W.labels.buttons.deleteLine,
                         onClick = function()
                             table.remove(W.cache.lines, iLine)
                             W.changed = true
@@ -433,6 +487,7 @@ local function footer(ctxt)
             id = "cancel",
             icon = ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = W.labels.buttons.close,
             onClick = BJI.Windows.ScenarioEditor.onClose,
         })
     if W.changed then
@@ -441,6 +496,7 @@ local function footer(ctxt)
             icon = ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not W.valid,
+            tooltip = W.labels.buttons.save,
             onClick = save,
         })
     end

@@ -199,6 +199,7 @@ local function drawUI(ctxt, cache)
     ProgressBar({
         floatPercent = S.progression,
         width = 250,
+        style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
     })
     local line = LineBuilder()
     if S.line.loopable then
@@ -207,6 +208,7 @@ local function drawUI(ctxt, cache)
             id = "toggleBusLoop",
             icon = ICONS.all_inclusive,
             state = loop,
+            tooltip = cache.labels.busMission.loop,
             onClick = function()
                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
             end,
@@ -216,9 +218,10 @@ local function drawUI(ctxt, cache)
     line:btnIcon({
         id = "stopBusMission",
         icon = ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        onClick = onStopBusMission,
         big = true,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = cache.labels.busMission.leave,
+        onClick = onStopBusMission,
     }):build()
 end
 

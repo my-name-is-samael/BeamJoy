@@ -59,6 +59,8 @@ local W = {
             offlinePlayers = "",
             addOfflinePlayer = "",
             addOfflinePlayerPlaceholder = "",
+            add = "",
+            remove = "",
         },
         voteKick = {
             title = "",
@@ -95,6 +97,8 @@ local W = {
         vehicleDelivery = {
             title = "",
             modelBlacklist = "",
+            add = "",
+            remove = "",
         },
         server = {
             title = "",
@@ -112,7 +116,10 @@ local W = {
                 title = "",
                 tooltip = "",
                 message = "",
-            }
+            },
+            add = "",
+            remove = "",
+            save = "",
         },
     },
     cache = {
@@ -185,6 +192,8 @@ local function updateLabels()
     W.labels.whitelist.addOfflinePlayer = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.addOfflinePlayer") .. ":"
     W.labels.whitelist.addOfflinePlayerPlaceholder = BJI.Managers.Lang.get(
         "serverConfig.bjc.whitelist.addOfflinePlayerPlaceholder")
+    W.labels.whitelist.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.whitelist.remove = BJI.Managers.Lang.get("common.buttons.remove")
 
     W.labels.voteKick.timeout = BJI.Managers.Lang.get("serverConfig.bjc.voteKick.timeout") .. " :"
     W.labels.voteKick.thresholdRatio = BJI.Managers.Lang.get("serverConfig.bjc.voteKick.thresholdRatio") .. " :"
@@ -230,6 +239,8 @@ local function updateLabels()
     end)
 
     W.labels.vehicleDelivery.modelBlacklist = BJI.Managers.Lang.get("serverConfig.bjc.vehicleDelivery.modelBlacklist")
+    W.labels.vehicleDelivery.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.vehicleDelivery.remove = BJI.Managers.Lang.get("common.buttons.remove")
 
     W.labels.server.lang = BJI.Managers.Lang.get("serverConfig.bjc.server.lang") .. " :"
     W.labels.server.allowMods = BJI.Managers.Lang.get("serverConfig.bjc.server.allowMods") .. " :"
@@ -242,6 +253,9 @@ local function updateLabels()
     W.labels.server.welcomeMessage.title = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.title") .. " :"
     W.labels.server.welcomeMessage.tooltip = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.tooltip")
     W.labels.server.welcomeMessage.message = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.message")
+    W.labels.server.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.server.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.server.save = BJI.Managers.Lang.get("common.buttons.save")
 end
 
 local function updateWidths()
@@ -363,7 +377,8 @@ local function onLoad()
     end, W.name .. "Labels"))
 
     updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name .. "Widths"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths,
+        W.name .. "Widths"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({

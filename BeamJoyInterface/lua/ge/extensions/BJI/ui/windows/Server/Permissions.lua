@@ -38,6 +38,9 @@ local W = {
             label = "",
             level = "",
         },
+
+        add = "",
+        remove = "",
     },
     cache = {
         ---@type string[]
@@ -84,6 +87,9 @@ local function updateLabels()
     W.labels.newGroup.title = BJI.Managers.Lang.get("serverConfig.permissions.newGroup.title") .. " :"
     W.labels.newGroup.label = BJI.Managers.Lang.get("serverConfig.permissions.newGroup.label") .. " :"
     W.labels.newGroup.level = BJI.Managers.Lang.get("serverConfig.permissions.newGroup.level") .. " :"
+
+    W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
 end
 
 ---@param ctxt? TickContext

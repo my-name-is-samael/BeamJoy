@@ -1111,6 +1111,7 @@ LineBuilder = function(startSameLine)
         data.icon = data.icon or (data.state and ICONS.check_circle or ICONS.cancel)
         data.style = data.style or
             (data.state and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR)
+        data.tooltip = data.tooltip or BJI.Managers.Lang.get("common.buttons.toggle")
 
         return self:btnIcon(data)
     end
@@ -1307,7 +1308,10 @@ ColumnsBuilder = function(name, colsWidths, borders)
         return self
     end
 
-    local function calculateTableWidths(widths)
+    ---@param widths integer[]
+    ---@param withBorders? boolean
+    ---@return tablelib<integer, integer>
+    local function calculateTableWidths(widths, withBorders)
         local countWidths, countEmpties = 0, 0
         for _, w in ipairs(widths) do
             if w > -1 then
@@ -1321,27 +1325,27 @@ ColumnsBuilder = function(name, colsWidths, borders)
             return widths
         end
 
-        local res = {}
+        local res = Table()
         local regionW = im.GetContentRegionAvail().x
         local avail = regionW - countWidths
-        for _, w in ipairs(widths) do
+        for i, w in ipairs(widths) do
             if w > -1 then
-                table.insert(res, w)
-            else
-                table.insert(res, math.floor(avail / countEmpties))
+                res[i] = w
+            elseif not withBorders then
+                res[i] = math.floor(avail / countEmpties)
             end
         end
         return res
     end
 
     builder.build = function(self)
-        local widths = calculateTableWidths(self._widths)
+        local widths = calculateTableWidths(self._widths, self._borders)
 
         local function initCols()
             im.Columns(self._cols, self._name, self._borders)
-            for i, w in ipairs(widths) do
+            widths:forEach(function(w, i)
                 im.SetColumnWidth(i - 1, w)
-            end
+            end)
         end
         local function resetCols()
             im.Columns(1)

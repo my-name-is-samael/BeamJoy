@@ -251,7 +251,20 @@
         "start": "Comenzar",
         "explode": "Explotar",
         "leave": "Dejar",
-        "toggle": "Alternar"
+        "toggle": "Alternar",
+        "show": "Mostrar",
+        "spawn": "Aparecer",
+        "replace": "Reemplazar",
+        "loop": "Bucle",
+        "join": "Unirse",
+        "spectate": "Espectar",
+        "markReady": "Marcar como listo",
+        "forfeit": "Rendirse",
+        "refresh": "Actualizar",
+        "restart": "Reiniciar",
+        "moveUp": "Mover hacia arriba",
+        "moveDown": "Mover hacia abajo",
+        "setGPS": "Establecer GPS"
       },
       "durationModifiers": {
         "minute": "metro",
@@ -270,7 +283,8 @@
       "no": "No",
       "state": "Estado",
       "unknown": "Desconocido",
-      "and": "&"
+      "and": "&",
+      "random": "Aleatorio"
     },
     "errors": {
       "invalid": "Inválido",
@@ -655,7 +669,14 @@
       "nextTeleport": "Próxima teletransportación",
       "teleportAvailable": "Teletransportación disponible",
       "collisions": "Colisiones",
-      "reputation": "Nivel de reputación"
+      "reputation": "Nivel de reputación",
+      "buttons": {
+        "toggleNametagsVisibility": "Alternar visibilidad de nombres",
+        "zoomOut": "Alejar",
+        "zoomIn": "Acercar",
+        "debug": "Actualizar ventanas / Eliminar carga infinita",
+        "serverVisibility": "Alternar visibilidad del servidor"
+      }
     },
     "userSettings": {
       "uiScale": "escala de interfaz de usuario",
@@ -694,7 +715,10 @@
       "waitingPlayers": "jugadores en espera",
       "players": "Jugadores",
       "buttons": {
-        "voteKick": "Voto Kick"
+        "voteKick": "Voto Kick",
+        "stopWalking": "Detener caminata",
+        "teleportTo": "Teletransportar a",
+        "teleportFrom": "Teletransportar desde"
       }
     },
     "moderationBlock": {
@@ -705,7 +729,11 @@
       "buttons": {
         "kick": "Kick",
         "tempBan": "Prohibición temporal",
-        "ban": "Prohibición"
+        "ban": "Prohibición",
+        "freeze": "Alternar congelación",
+        "engine": "Alternar motor",
+        "mute": "Alternar silencio",
+        "deleteAllVehicles": "Eliminar todos los vehículos"
       },
       "muteReason": "razón muda",
       "kickReason": "Razón de patada",
@@ -723,7 +751,7 @@
           "players": "Jugadores",
           "offlinePlayers": "Jugadores sin conexión",
           "addOfflinePlayer": "Agregar reproductor sin conexión",
-          "addOfflinePlayerPlaceholder": "Nombre del jugador"
+          "addOfflinePlayerPlaceholder": "Nombre exact del jugador"
         },
         "voteKick": {
           "title": "Configuración de expulsión de voto",
@@ -1056,7 +1084,9 @@
           "currentModel": "Modelo actual",
           "currentConfig": "Configuración actual",
           "specific": "{model} específico"
-        }
+        },
+        "startVote": "Iniciar votación",
+        "startRace": "Iniciar carrera"
       },
       "preparation": {
         "singleplayer": "Carrera para un jugador",
@@ -1152,7 +1182,16 @@
         "name": "Nombre de la estación",
         "types": "Tipo(s)",
         "radius": "Radio",
-        "saveErrorToast": "Error al guardar las estaciones de energía, inténtelo de nuevo o comuníquese con el administrador"
+        "saveErrorToast": "Error al guardar las estaciones de energía, inténtelo de nuevo o comuníquese con el administrador",
+        "buttons": {
+          "refreshMarkers": "Actualizar marcadores",
+          "addStationHere": "Agregar estación aquí",
+          "showStation": "Mostrar estación",
+          "setStationHere": "Establecer estación aquí",
+          "deleteStation": "Eliminar estación",
+          "errorMustBeFreecaming": "Debes estar en modo cámara libre",
+          "errorInvalidData": "Algunos datos no son válidos"
+        }
       }
     },
     "garages": {
@@ -1166,7 +1205,16 @@
         "title": "Editor de garajes",
         "name": "Nombre del garaje",
         "radius": "Radio",
-        "saveErrorToast": "Error al guardar los garajes. Inténtalo de nuevo o ponte en contacto con el administrador."
+        "saveErrorToast": "Error al guardar los garajes. Inténtalo de nuevo o ponte en contacto con el administrador.",
+        "buttons": {
+          "refreshMarkers": "Actualizar marcadores",
+          "addGarageHere": "Agregar garaje aquí",
+          "showGarage": "Mostrar garaje",
+          "setGarageHere": "Establecer garaje aquí",
+          "deleteGarage": "Eliminar garaje",
+          "errorMustBeFreecaming": "Debes estar en modo cámara libre",
+          "errorInvalidData": "Algunos datos no son válidos"
+        }
       }
     },
     "delivery": {
@@ -1181,7 +1229,15 @@
         "title": "Editor de entrega",
         "position": "Posición {index}",
         "radius": "Radio",
-        "saveErrorToast": "Error al guardar las entregas, inténtelo de nuevo o comuníquese con el administrador"
+        "saveErrorToast": "Error al guardar las entregas, inténtelo de nuevo o comuníquese con el administrador",
+        "buttons": {
+          "refreshMarkers": "Actualizar marcadores",
+          "addPosition": "Agregar posición aquí",
+          "showPosition": "Mostrar posición",
+          "setPosition": "Establecer posición aquí",
+          "deletePosition": "Eliminar posición",
+          "errorMustHaveVehicle": "Necesitas un vehículo"
+        }
       }
     },
     "vehicleDelivery": {
@@ -1223,7 +1279,19 @@
         "moveHere": "Muévete aquí",
         "addStopHere": "Añadir parada aquí",
         "createLineHere": "Crear línea aquí",
-        "saveErrorToast": "Error al guardar las líneas de autobús, inténtelo de nuevo o comuníquese con el administrador"
+        "saveErrorToast": "Error al guardar las líneas de autobús, inténtelo de nuevo o comuníquese con el administrador",
+        "buttons": {
+          "showLine": "Mostrar marcadores de línea de autobús",
+          "deleteLine": "Eliminar línea de autobús",
+          "spawnBus": "Aparecer autobús aquí",
+          "addBusLine": "Agregar línea de autobús aquí",
+          "showStop": "Mostrar parada de autobús",
+          "setStopHere": "Establecer parada aquí",
+          "deleteStop": "Eliminar parada de autobús",
+          "toggleLoopable": "Alternar entre circuito y línea punto a punto",
+          "addStopHere": "Agregar parada aquí",
+          "errorNeedABus": "Necesitas un autobús"
+        }
       },
       "preparation": {
         "title": "Preparación de la misión del autobús",
@@ -1282,6 +1350,7 @@
       "protectedVehicle": "El vehículo está protegido",
       "selfProtected": "La protección contra clonación de configuración está activada. Asegúrate de desactivarla si quieres usar tu vehículo específico.",
       "invalidVeh": "Vehículo no válido",
+      "openVehSelector": "Abrir selector de vehículos",
       "paints": "pinturas",
       "applyPaint": "Pintar {position}",
       "cars": "Coches",
@@ -1317,7 +1386,25 @@
         "enabled": "Modo votable",
         "radius": "Radio",
         "missingPoints": "Faltan {amount} puntos",
-        "saveErrorToast": "Error al guardar los datos de Hunter. Inténtelo de nuevo o comuníquese con el administrador."
+        "saveErrorToast": "Error al guardar los datos de Hunter. Inténtelo de nuevo o comuníquese con el administrador.",
+        "buttons": {
+          "refreshMarkers": "Actualizar marcadores",
+          "toggleModeVisibility": "Alternar visibilidad del modo",
+          "showHunterStartPosition": "Mostrar posición inicial del cazador",
+          "setHunterStartPositionHere": "Establecer posición inicial del cazador aquí",
+          "deleteHunterStartPosition": "Eliminar posición inicial del cazador",
+          "addHunterStartPositionHere": "Agregar posición inicial del cazador aquí",
+          "showHuntedStartPosition": "Mostrar posición inicial del fugitivo",
+          "setHuntedStartPositionHere": "Establecer posición inicial del fugitivo aquí",
+          "deleteHuntedStartPosition": "Eliminar posición inicial del fugitivo",
+          "addHuntedStartPositionHere": "Agregar posición inicial del fugitivo aquí",
+          "addWaypointHere": "Agregar punto de paso aquí",
+          "showWaypoint": "Mostrar punto de paso",
+          "setWaypointHere": "Establecer punto de paso aquí",
+          "deleteWaypoint": "Eliminar punto de paso",
+          "errorMustHaveVehicle": "Necesitas un vehículo",
+          "errorInvalidData": "Algunos datos no son válidos"
+        }
       },
       "settings": {
         "title": "Configuración del cazador",
@@ -1363,7 +1450,21 @@
         "startPositions": "Posiciones iniciales",
         "startPositionName": "Inicio {index}",
         "amountStartPositionsNeeded": "Faltan {amount} puntos más",
-        "saveErrorToast": "Error al guardar los datos del Derby. Inténtelo de nuevo o comuníquese con el administrador."
+        "saveErrorToast": "Error al guardar los datos del Derby. Inténtelo de nuevo o comuníquese con el administrador.",
+        "buttons": {
+          "addArena": "Agregar arena",
+          "showArena": "Mostrar marcadores de arena",
+          "deleteArena": "Eliminar arena",
+          "toggleArenaVisibility": "Alternar visibilidad de arena",
+          "setPreviewPositionHere": "Establecer posición de vista previa aquí",
+          "showPreviewPosition": "Mostrar posición de vista previa",
+          "addStartPositionHere": "Agregar posición inicial aquí",
+          "showStartPosition": "Mostrar posición inicial",
+          "setStartPositionHere": "Establecer posición inicial aquí",
+          "deleteStartPosition": "Eliminar posición inicial",
+          "errorMustHaveVehicle": "Necesitas un vehículo",
+          "errorInvalidData": "Algunos datos no son válidos"
+        }
       },
       "settings": {
         "title": "Configuración del derbi de destrucción",

@@ -17,10 +17,12 @@ local function updateCache(ctxt)
     cache = newCache()
 
     cache.damageThreshold = BJI.Managers.Context.VehiclePristineThreshold
-    cache.canShowDeliveryDamagedWarning = ctxt.vehData and BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY)
+    cache.canShowDeliveryDamagedWarning = ctxt.vehData and
+        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY)
     cache.canShowGlobalDamageWarning = ctxt.vehData and not cache.canShowDeliveryDamagedWarning
     cache.showGPSButton = cache.canShowGlobalDamageWarning and BJI.Managers.Scenario.canRepairAtGarage() and
-        BJI.Managers.Context.Scenario.Data.Garages and #BJI.Managers.Context.Scenario.Data.Garages > 0
+        BJI.Managers.Context.Scenario.Data.Garages and #BJI.Managers.Context.Scenario.Data.Garages > 0 and
+        (not BJI.Managers.Stations.station or BJI.Managers.Stations.station.isEnergy)
 
     cache.labels.deliveryDamageWarning = BJI.Managers.Lang.get("vehicleDelivery.damagedWarning")
     cache.labels.damageWarning = BJI.Managers.Lang.get("garages.damagedWarning")
@@ -44,6 +46,7 @@ local function draw(ctxt)
                     id = "setRouteGarage",
                     icon = ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                     onClick = function()
                         local garages = {}
                         for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do

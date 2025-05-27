@@ -24,6 +24,15 @@ local W = {
         huntedLooseIn = "",
         hunterResumeIn = "",
         waypoints = "",
+
+        buttons = {
+            join = "",
+            spectate = "",
+            markReady = "",
+            forfeit = "",
+            spawn = "",
+            replace = "",
+        },
     },
     cache = {
         showPreparation = false,
@@ -70,6 +79,13 @@ local function updateLabels()
     W.labels.huntedLooseIn = BJI.Managers.Lang.get("hunter.play.huntedLooseIn")
     W.labels.hunterResumeIn = BJI.Managers.Lang.get("hunter.play.hunterResumeIn")
     W.labels.waypoints = BJI.Managers.Lang.get("hunter.play.waypoints")
+
+    W.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
+    W.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
+    W.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
+    W.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
+    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
 end
 
 ---@param ctxt? TickContext
@@ -171,24 +187,25 @@ local function drawHeaderPreparation(ctxt)
     end
 
     if W.cache.showPreparationActions then
-        local line = LineBuilder()
-            :btnIconToggle({
-                id = "joinParticipants",
-                icon = W.cache.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
-                state = not W.cache.isParticipant,
-                disabled = W.cache.disabledButtons,
-                onClick = function()
-                    W.cache.disabledButtons = true -- api request protection
-                    BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
-                end,
-                big = true,
-            })
+        local line = LineBuilder():btnIconToggle({
+            id = "joinParticipants",
+            icon = W.cache.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
+            state = not W.cache.isParticipant,
+            disabled = W.cache.disabledButtons,
+            tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
+            onClick = function()
+                W.cache.disabledButtons = true     -- api request protection
+                BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            end,
+            big = true,
+        })
         if ctxt.isOwner and not W.cache.isReady then
             line:btnIcon({
                 id = "readyHunter",
                 icon = ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = not ctxt.isOwner or W.cache.disabledButtons,
+                tooltip = W.labels.buttons.markReady,
                 onClick = function()
                     W.cache.disabledButtons = true -- api request protection
                     BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh:getID())
@@ -203,22 +220,22 @@ end
 ---@param ctxt TickContext
 local function drawHeaderGame(ctxt)
     if W.cache.showGameActions then
-        local line = LineBuilder()
-            :btnIcon({
-                id = "leaveHunter",
-                icon = ICONS.exit_to_app,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                disabled = W.cache.disabledButtons,
-                onClick = function()
-                    W.cache.disabledButtons = true
-                    BJI.Tx.scenario.HunterUpdate(
-                        W.cache.huntedID == BJI.Managers.Context.User.playerID and
-                        W.scenario.CLIENT_EVENTS.ELIMINATED or
-                        W.scenario.CLIENT_EVENTS.LEAVE
-                    )
-                end,
-                big = true,
-            })
+        local line = LineBuilder():btnIcon({
+            id = "leaveHunter",
+            icon = ICONS.exit_to_app,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            disabled = W.cache.disabledButtons,
+            tooltip = W.labels.buttons.forfeit,
+            onClick = function()
+                W.cache.disabledButtons = true
+                BJI.Tx.scenario.HunterUpdate(
+                    W.cache.huntedID == BJI.Managers.Context.User.playerID and
+                    W.scenario.CLIENT_EVENTS.ELIMINATED or
+                    W.scenario.CLIENT_EVENTS.LEAVE
+                )
+            end,
+            big = true,
+        })
 
         local label, color
         if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
@@ -281,18 +298,17 @@ local function drawBodyPreparation(ctxt)
         Indent(1)
         Table(W.scenario.settings.hunterConfigs)
             :forEach(function(confData, i)
-                LineBuilder()
-                    :btnIcon({
-                        id = string.var("spawnConfig{1}", { i }),
-                        icon = ICONS.carSensors,
-                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        disabled = W.cache.disabledButtons,
-                        onClick = function()
-                            W.scenario.tryReplaceOrSpawn(confData.model, confData.config)
-                        end,
-                    })
-                    :text(confData.label)
-                    :build()
+                LineBuilder():btnIcon({
+                    id = string.var("spawnConfig{1}", { i }),
+                    icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
+                    style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = W.cache.disabledButtons,
+                    tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
+                    onClick = function()
+                        W.scenario.tryReplaceOrSpawn(confData.model, confData.config)
+                    end,
+                }):text(confData.label):build()
             end)
         Indent(-1)
     end
@@ -302,12 +318,10 @@ local function drawBodyPreparation(ctxt)
             LineLabel(i == 1 and W.labels.hunted or W.labels.hunters)
             Indent(1)
         end
-        LineBuilder()
-            :text(p.playerName, p.self and
-                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-            :text(p.readyLabel, p.color)
-            :build()
+        LineBuilder():text(p.playerName, p.self and
+            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+            BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+            :text(p.readyLabel, p.color):build()
         if i < 3 then
             Indent(-1)
         end
