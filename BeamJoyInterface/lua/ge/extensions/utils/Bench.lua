@@ -63,7 +63,7 @@ function M.get(amount, recurrent)
             return res
         end, Table())
         :filter(function(line)
-            return recurrent == nil or line.amount == M._threshold
+            return not recurrent or line.amount == M._threshold
         end)
         :sort(function(a, b)
             return a.avg > b.avg
