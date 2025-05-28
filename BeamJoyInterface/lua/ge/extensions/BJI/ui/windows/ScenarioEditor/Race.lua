@@ -502,6 +502,7 @@ local function tryRace(ctxt)
 
     if W.raceData.changed and W.cache.validSave then
         saveRace(function()
+            saved.id = W.raceData.id
             saved.changed = false
             launch()
         end)
