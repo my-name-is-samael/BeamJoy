@@ -32,6 +32,7 @@ local W = {
             forfeit = "",
             spawn = "",
             replace = "",
+            manualReset = "",
         },
     },
     cache = {
@@ -56,6 +57,8 @@ local W = {
         ---@type BJIPlayer?
         huntedPlayer = nil,
         showGameActions = false,
+        showManualResetBtn = false,
+        manualResetWidth = 0,
         startTime = 0,
     },
     ---@type BJIScenarioHunter
@@ -86,6 +89,7 @@ local function updateLabels()
     W.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
     W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
     W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
+    W.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
@@ -111,6 +115,7 @@ local function updateCache(ctxt)
 
     W.cache.huntedID = nil
     W.cache.huntedPlayer = nil
+    W.cache.manualResetWidth = 0
     if W.cache.showGame then
         Table(W.scenario.participants):find(function(part) return part.hunted end,
             function(_, playerID)
@@ -119,6 +124,11 @@ local function updateCache(ctxt)
             end)
         W.cache.showGameActions = W.cache.isParticipant
         W.cache.startTime = W.cache.isHunted and W.scenario.huntedStartTime or W.scenario.hunterStartTime
+
+        W.cache.showManualResetBtn = W.cache.isParticipant
+        if W.cache.showManualResetBtn then
+            W.cache.manualResetWidth = GetBtnIconSize(true) + BJI.Utils.Common.GetTextWidth("  ")
+        end
     end
 
     W.cache.playersList = Table(W.scenario.participants)
@@ -194,7 +204,7 @@ local function drawHeaderPreparation(ctxt)
             disabled = W.cache.disabledButtons,
             tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
             onClick = function()
-                W.cache.disabledButtons = true     -- api request protection
+                W.cache.disabledButtons = true -- api request protection
                 BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
             end,
             big = true,
@@ -219,66 +229,88 @@ end
 
 ---@param ctxt TickContext
 local function drawHeaderGame(ctxt)
-    if W.cache.showGameActions then
-        local line = LineBuilder():btnIcon({
-            id = "leaveHunter",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.disabledButtons,
-            tooltip = W.labels.buttons.forfeit,
-            onClick = function()
-                W.cache.disabledButtons = true
-                BJI.Tx.scenario.HunterUpdate(
-                    W.cache.huntedID == BJI.Managers.Context.User.playerID and
-                    W.scenario.CLIENT_EVENTS.ELIMINATED or
-                    W.scenario.CLIENT_EVENTS.LEAVE
-                )
-            end,
-            big = true,
-        })
+    if W.cache.showGameActions or W.cache.showManualResetBtn then
+        ColumnsBuilder("HunterGameHeader", { -1, W.cache.manualResetWidth }):addRow({
+            cells = {
+                W.cache.showGameActions and function()
+                    local line = LineBuilder():btnIcon({
+                        id = "leaveHunter",
+                        icon = ICONS.exit_to_app,
+                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        disabled = W.cache.disabledButtons,
+                        tooltip = W.labels.buttons.forfeit,
+                        onClick = function()
+                            W.cache.disabledButtons = true
+                            BJI.Tx.scenario.HunterUpdate(
+                                W.cache.huntedID == BJI.Managers.Context.User.playerID and
+                                W.scenario.CLIENT_EVENTS.ELIMINATED or
+                                W.scenario.CLIENT_EVENTS.LEAVE
+                            )
+                        end,
+                        big = true,
+                    })
 
-        local label, color
-        if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
-            local remaining = getDiffTime(W.cache.startTime, ctxt.now)
-            if remaining > 0 then
-                label = W.labels.playStartIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
-            else
-                label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
-            end
-            color = remaining <= 3 and
-                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        else
-            if W.cache.isHunted then
-                --DNF DISPLAY
-                if W.scenario.dnf.process and W.scenario.dnf.targetTime and
-                    ctxt.now < W.scenario.dnf.targetTime then
-                    local remaining = getDiffTime(W.scenario.dnf.targetTime, ctxt.now)
-                    label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
-                    color = remaining <= 3 and
-                        BJI.Utils.Style.TEXT_COLORS.ERROR or
-                        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
-                end
-            else
-                --- respawn cooldown
-                if W.scenario.hunterRespawnTargetTime and ctxt.now < W.scenario.hunterRespawnTargetTime + 3000 then
-                    local remaining = getDiffTime(W.scenario.hunterRespawnTargetTime, ctxt.now)
-                    label = remaining >= 0 and
-                        W.labels.hunterResumeIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) }) or
-                        W.labels.flashStartHunter
-                    color = remaining <= 3 and
-                        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                        BJI.Utils.Style.TEXT_COLORS.DEFAULT
-                end
-            end
-        end
-        if label then
-            line:icon({
-                icon = ICONS.timer,
-                big = true,
-            }):text(label, color)
-        end
-        line:build()
+                    local label, color
+                    if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
+                        local remaining = getDiffTime(W.cache.startTime, ctxt.now)
+                        if remaining > 0 then
+                            label = W.labels.playStartIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
+                        else
+                            label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
+                        end
+                        color = remaining <= 3 and
+                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                            BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                    else
+                        if W.cache.isHunted then
+                            --DNF DISPLAY
+                            if W.scenario.dnf.process and W.scenario.dnf.targetTime and
+                                ctxt.now < W.scenario.dnf.targetTime then
+                                local remaining = getDiffTime(W.scenario.dnf.targetTime, ctxt.now)
+                                label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
+                                color = remaining <= 3 and
+                                    BJI.Utils.Style.TEXT_COLORS.ERROR or
+                                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+                            end
+                        else
+                            --- respawn cooldown
+                            if W.scenario.hunterRespawnTargetTime and ctxt.now < W.scenario.hunterRespawnTargetTime + 3000 then
+                                local remaining = getDiffTime(W.scenario.hunterRespawnTargetTime, ctxt.now)
+                                label = remaining >= 0 and
+                                    W.labels.hunterResumeIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) }) or
+                                    W.labels.flashStartHunter
+                                color = remaining <= 3 and
+                                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                                    BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                            end
+                        end
+                    end
+                    if label then
+                        line:icon({
+                            icon = ICONS.timer,
+                            big = true,
+                        }):text(label, color)
+                    end
+                    line:build()
+                end or nil,
+                W.cache.showManualResetBtn and function()
+                    LineBuilder():btnIcon({
+                        id = "manualReset",
+                        icon = ICONS.build,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        big = true,
+                        disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                        tooltip = string.var("{1} ({2})", {
+                            W.labels.buttons.manualReset,
+                            extensions.core_input_bindings.getControlForAction("recover_vehicle"):capitalizeWords()
+                        }),
+                        onClick = function()
+                            BJI.Managers.Veh.recoverInPlace()
+                        end,
+                    }):build()
+                end or nil,
+            }
+        }):build()
     end
 end
 
