@@ -25,6 +25,7 @@ local S = {
     },
 
     state = nil,
+    ---@type tablelib<integer, BJIHunterParticipant>
     participants = {},
     preparationTimeout = nil,
     huntedStartTime = nil,
@@ -35,8 +36,6 @@ local S = {
     previousCamera = nil,
     revealHunted = false,
 
-    ---@type BJIPositionRotation?
-    startpos = nil,
     waypoint = 1,
 
     dnf = {
@@ -63,7 +62,6 @@ local function stop()
     S.hunterStartTime = nil
     S.waypoints = {}
     S.revealHunted = false
-    S.startpos = nil
     S.waypoint = 1
     S.dnf = {
         process = false,
@@ -147,6 +145,8 @@ local function onUnload()
     BJI.Windows.VehSelector.tryClose(true)
 end
 
+---@param model string
+---@param config table
 local function tryReplaceOrSpawn(model, config)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if S.state == S.STATES.PREPARATION and participant and not participant.ready then
@@ -154,7 +154,10 @@ local function tryReplaceOrSpawn(model, config)
             -- trying to spawn a second veh
             return
         end
-        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, S.startpos)
+        local pos = participant.hunted and
+            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, pos)
         BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
         BJI.Managers.Restrictions.update({
             {
@@ -312,26 +315,12 @@ local function initPreparation(data)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.HUNTER)
 end
 
-local function onJoinParticipants(isHunted)
+---@param participant BJIHunterParticipant
+local function onJoinParticipants(participant)
     local model, config
-    S.startpos = nil
-    if isHunted then
-        -- generate start position
-        local freepos
-        while not S.startpos or not freepos do
-            S.startpos = table.random(BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions)
-            freepos = true
-            for _, mpveh in pairs(BJI.Managers.Veh.getMPVehicles()) do
-                local v = BJI.Managers.Veh.getVehicleObject(mpveh.gameVehicleID)
-                local posrot = v and BJI.Managers.Veh.getPositionRotation(v) or nil
-                if posrot and posrot.pos:distance(vec3(S.startpos.pos)) < 2 then
-                    freepos = false
-                    break
-                end
-            end
-        end
-
+    if participant.hunted then
         -- generate waypoints to reach
+        ---@param pos vec3
         local function findNextWaypoint(pos)
             return Table(BJI.Managers.Context.Scenario.Data.Hunter.targets)
                 :map(function(wp)
@@ -340,7 +329,7 @@ local function onJoinParticipants(isHunted)
                             pos = vec3(wp.pos),
                             radius = wp.radius,
                         },
-                        distance = vec3(pos):distance(vec3(wp.pos)),
+                        distance = pos:distance(wp.pos),
                     }
                 end)
                 :sort(function(a, b)
@@ -354,12 +343,12 @@ local function onJoinParticipants(isHunted)
                 end)
                 :random()
         end
-        local previousPos = S.startpos.pos
+        local lastPos = BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition].pos
         while #S.waypoints < S.settings.waypoints do
             if #S.waypoints > 0 then
-                previousPos = S.waypoints[#S.waypoints].pos
+                lastPos = S.waypoints[#S.waypoints].pos
             end
-            table.insert(S.waypoints, findNextWaypoint(previousPos))
+            table.insert(S.waypoints, findNextWaypoint(vec3(lastPos)))
         end
 
         if S.settings.huntedConfig then
@@ -372,21 +361,6 @@ local function onJoinParticipants(isHunted)
         end
     else
         -- hunter
-        -- generate start position
-        local freepos
-        while not S.startpos or not freepos do
-            S.startpos = table.random(BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions)
-            freepos = true
-            for _, mpveh in pairs(BJI.Managers.Veh.getMPVehicles()) do
-                local v = BJI.Managers.Veh.getVehicleObject(mpveh.gameVehicleID)
-                local posrot = v and BJI.Managers.Veh.getPositionRotation(v) or nil
-                if posrot and posrot.pos:distance(vec3(S.startpos.pos)) < 2 then
-                    freepos = false
-                    break
-                end
-            end
-        end
-
         if #S.settings.hunterConfigs == 1 then
             -- forced config
             model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1].config
@@ -422,7 +396,7 @@ local function updatePreparation(data)
     S.participants = data.participants
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if not wasParticipant and participant then
-        onJoinParticipants(participant.hunted)
+        onJoinParticipants(participant)
     elseif wasParticipant and not participant then
         onLeaveParticipants()
         BJI.Windows.VehSelector.tryClose(true)
@@ -431,7 +405,7 @@ local function updatePreparation(data)
         wasHunted ~= participant.hunted then
         -- role changed > reset vehicles then reload
         onLeaveParticipants()
-        onJoinParticipants(participant.hunted)
+        onJoinParticipants(participant)
     end
 end
 

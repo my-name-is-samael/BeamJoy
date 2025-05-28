@@ -2,6 +2,7 @@ local fields = Table({
     { key = "PreparationTimeout", type = "int", step = 1, min = 5,  max = 180 },
     { key = "StartCountdown",     type = "int", step = 1, min = 10, max = 60 },
     { key = "DestroyedTimeout",   type = "int", step = 1, min = 3,  max = 20 },
+    { key = "EndTimeout",         type = "int", step = 1, min = 5,  max = 30 },
 })
 
 return function(ctxt, labels, cache)

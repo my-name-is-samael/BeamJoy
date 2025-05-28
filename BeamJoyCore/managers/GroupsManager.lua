@@ -293,13 +293,12 @@ end
 
 local function getCache(senderID)
     local cache = {}
-    local groups = table.deepcopy(M.Data)
+    local groups = table.deepcopy(M.Data) or {}
     for name, g in pairs(groups) do
-        cache[name] = {
+        cache[name] = table.assign({
             canSpawn = g.vehicleCap ~= 0,
             canSpawnAI = g.vehicleCap == -1,
-        }
-        table.assign(cache[name], g)
+        }, g)
     end
     return cache, M.getCacheHash()
 end

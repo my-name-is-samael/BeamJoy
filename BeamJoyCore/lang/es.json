@@ -328,12 +328,17 @@
           "timedout": "tiempo agotado",
           "invalidVehConfig": "Una configuración de vehículo no es válida"
         },
+        "gamemodeTeams": {
+          "hunters": "Cazadores",
+          "hunted": "Fugitivo"
+        },
         "gamemodeStarted": "{gamemode} iniciado",
         "gamemodeEnded": "{gamemode} finalizado",
         "gamemodeStopped": "{gamemode} detenido: {reason}",
         "gamemodeJoin": "{playerName} se unió a {gamemode}",
         "gamemodeLeave": "{playerName} salió de {gamemode}",
-        "gamemodeFinished": "{playerName} terminó {gamemode} en la posición #{gamemodePosition}"
+        "gamemodeFinished": "{playerName} terminó {gamemode} en la posición #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} ganó {gamemode}"
       }
     },
     "nametags": {
@@ -830,7 +835,9 @@
           "HuntedStuckTimeout": "Tiempo de espera por estar atrapado del fugitivo",
           "HuntedStuckTimeoutTooltip": "Tiempo en segundos que el fugitivo debe estar atrapado para que los cazadores ganen",
           "HuntersRespawnDelay": "Retraso en la reaparición de los cazadores",
-          "HuntersRespawnDelayTooltip": "Tiempo en segundos en el que los cazadores quedan atrapados cuando respawnean"
+          "HuntersRespawnDelayTooltip": "Tiempo en segundos en el que los cazadores quedan atrapados cuando respawnean",
+          "EndTimeout": "Duración final",
+          "EndTimeoutTooltip": "Tiempo en segundos entre que terminan los últimos jugadores y termina el modo"
         },
         "derby": {
           "title": "Configuración de Destruction Derby",
@@ -839,7 +846,9 @@
           "StartCountdown": "Cuenta regresiva de inicio",
           "StartCountdownTooltip": "Tiempo en segundos antes de que comience el derby",
           "DestroyedTimeout": "Cuenta regresiva de eliminación",
-          "DestroyedTimeoutTooltip": "Duración en segundos antes de eliminar a un jugador atascado o destruido"
+          "DestroyedTimeoutTooltip": "Duración en segundos antes de eliminar a un jugador atascado o destruido",
+          "EndTimeout": "Duración final",
+          "EndTimeoutTooltip": "Tiempo en segundos entre que terminan los últimos jugadores y termina el modo"
         },
         "vehicleDelivery": {
           "title": "Configuración de entrega de vehículos",

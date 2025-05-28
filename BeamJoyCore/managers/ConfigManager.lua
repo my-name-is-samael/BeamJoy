@@ -150,12 +150,14 @@ local function getCache(senderID)
             HuntersStartDelay = M.Data.Hunter.HuntersStartDelay,
             HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
             HuntersRespawnDelay = M.Data.Hunter.HuntersRespawnDelay,
+            EndTimeout = M.Data.Hunter.EndTimeout,
         }
 
         data.Derby = {
             PreparationTimeout = M.Data.Derby.PreparationTimeout,
             StartCountdown = M.Data.Derby.StartCountdown,
-            DestroyedTimeout = M.Data.Derby.DestroyedTimeout
+            DestroyedTimeout = M.Data.Derby.DestroyedTimeout,
+            EndTimeout = M.Data.Derby.EndTimeout,
         }
     end
 
