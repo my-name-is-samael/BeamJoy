@@ -328,12 +328,17 @@
           "timedout": "tempo esgotado",
           "invalidVehConfig": "Configuração de veículo inválida"
         },
+        "gamemodeTeams": {
+          "hunters": "Caçadores",
+          "hunted": "Fugitivo"
+        },
         "gamemodeStarted": "{gamemode} iniciado",
         "gamemodeEnded": "{gamemode} terminado",
         "gamemodeStopped": "{gamemode} parado: {reason}",
         "gamemodeJoin": "{playerName} entrou em {gamemode}",
         "gamemodeLeave": "{playerName} saiu de {gamemode}",
-        "gamemodeFinished": "{playerName} terminou {gamemode} em #{gamemodePosition}"
+        "gamemodeFinished": "{playerName} terminou {gamemode} em #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} venceu {gamemode}"
       }
     },
     "nametags": {
@@ -830,7 +835,9 @@
           "HuntedStuckTimeout": "Tempo de fuga preso",
           "HuntedStuckTimeoutTooltip": "Tempo em segundos que o fugitivo deve ficar preso para os caçadores ganharem",
           "HuntersRespawnDelay": "Atraso no respawn dos caçadores",
-          "HuntersRespawnDelayTooltip": "Tempo em segundos que os caçadores ficam presos ao respawn"
+          "HuntersRespawnDelayTooltip": "Tempo em segundos que os caçadores ficam presos ao respawn",
+          "EndTimeout": "Duração final",
+          "EndTimeoutTooltip": "Tempo em segundos entre o término dos últimos jogadores e o término do modo"
         },
         "derby": {
           "title": "Configurações do Destruction Derby",
@@ -839,7 +846,9 @@
           "StartCountdown": "Contagem regressiva de início",
           "StartCountdownTooltip": "Tempo em segundos antes do início do derby",
           "DestroyedTimeout": "Contagem regressiva de eliminação",
-          "DestroyedTimeoutTooltip": "Duração em segundos antes de eliminar um jogador preso/destruído"
+          "DestroyedTimeoutTooltip": "Duração em segundos antes de eliminar um jogador preso/destruído",
+          "EndTimeout": "Duração final",
+          "EndTimeoutTooltip": "Tempo em segundos entre o término dos últimos jogadores e o término do modo"
         },
         "vehicleDelivery": {
           "title": "Configurações de entrega de veículos",

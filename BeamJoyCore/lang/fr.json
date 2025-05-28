@@ -318,7 +318,7 @@
         "gamemodes": {
           "race": "Course",
           "speed": "Jeu de Speed",
-          "hunter": "Mode chasseur",
+          "hunter": "Mode Hunter",
           "derby": "Destruction Derby",
           "delivery": "Livraison en équipe"
         },
@@ -328,12 +328,17 @@
           "timedout": "temps écoulé",
           "invalidVehConfig": "Une configuration de véhicule est invalide"
         },
-        "gamemodeStarted": "{gamemode} démarré",
-        "gamemodeEnded": "{gamemode} terminé",
-        "gamemodeStopped": "{gamemode} arrêté : {reason}",
+        "gamemodeTeams": {
+          "hunters": "Les chasseurs",
+          "hunted": "Le fugitif"
+        },
+        "gamemodeStarted": "{gamemode} démarré(e)",
+        "gamemodeEnded": "{gamemode} terminé(e)",
+        "gamemodeStopped": "{gamemode} arrêté(e) : {reason}",
         "gamemodeJoin": "{playerName} a rejoint {gamemode}",
         "gamemodeLeave": "{playerName} a quitté {gamemode}",
-        "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}"
+        "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} gagne(nt) {gamemode}"
       }
     },
     "nametags": {
@@ -830,7 +835,9 @@
           "HuntedStuckTimeout": "Délai de blocage pour les fugitifs",
           "HuntedStuckTimeoutTooltip": "Temps en secondes pendant lequel le fugitif doit être coincé pour que les chasseurs gagnent",
           "HuntersRespawnDelay": "Délai de réapparition des chasseurs",
-          "HuntersRespawnDelayTooltip": "Temps en secondes pendant lequel les chasseurs sont bloqués lorsqu'ils resettent"
+          "HuntersRespawnDelayTooltip": "Temps en secondes pendant lequel les chasseurs sont bloqués lorsqu'ils resettent",
+          "EndTimeout": "Durée de Fin",
+          "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
         },
         "derby": {
           "title": "Paramètres du Destruction Derby",
@@ -839,7 +846,9 @@
           "StartCountdown": "Décompte de départ",
           "StartCountdownTooltip": "Temps en secondes avant le début du derby",
           "DestroyedTimeout": "Décompte d'élimination",
-          "DestroyedTimeoutTooltip": "Durée en secondes avant qu'un joueur bloqué/détruit ne soit éliminé"
+          "DestroyedTimeoutTooltip": "Durée en secondes avant qu'un joueur bloqué/détruit ne soit éliminé",
+          "EndTimeout": "Durée de Fin",
+          "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
         },
         "vehicleDelivery": {
           "title": "Paramètres de Livraison de Véhicule",

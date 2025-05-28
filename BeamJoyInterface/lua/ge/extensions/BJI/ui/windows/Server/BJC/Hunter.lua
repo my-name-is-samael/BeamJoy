@@ -4,6 +4,7 @@ local fields = Table({
     { key = "HuntersStartDelay",   type = "int", step = 1, min = 0, max = 60 },
     { key = "HuntedStuckTimeout",  type = "int", step = 1, min = 3, max = 20 },
     { key = "HuntersRespawnDelay", type = "int", step = 1, min = 0, max = 60 },
+    { key = "EndTimeout",          type = "int", step = 1, min = 5, max = 30 },
 })
 
 return function(ctxt, labels, cache)

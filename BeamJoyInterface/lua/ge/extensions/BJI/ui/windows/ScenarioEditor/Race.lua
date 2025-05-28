@@ -1285,10 +1285,9 @@ end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    if W.nextTickScrollDown then
-        ui_imgui.SetScrollY(ui_imgui.GetScrollMaxY())
-        W.nextTickScrollDown = false
-    end
+    local markedScrollDown = W.nextTickScrollDown
+    W.nextTickScrollDown = false
+
     drawPreviewPosition(ctxt)
     Separator()
     drawLoopable()
@@ -1296,6 +1295,10 @@ local function body(ctxt)
     drawStartPositions(ctxt)
     Separator()
     drawSteps(ctxt)
+
+    if markedScrollDown then
+        ui_imgui.SetScrollY(ui_imgui.GetScrollMaxY())
+    end
 end
 
 local function footer(ctxt)

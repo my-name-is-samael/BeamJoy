@@ -1,3 +1,11 @@
+---@class BJIHunterParticipant
+---@field hunted boolean
+---@field ready boolean
+---@field startPosition?integer
+---@field waypoint? integer
+---@field gameVehID? integer
+---@field eliminated? boolean
+
 local M = {
     MINIMUM_PARTICIPANTS = function()
         if BJCCore.Data.General.Debug and
@@ -21,6 +29,7 @@ local M = {
     state = nil,
     -- keep track of players joined participant to have valid hunted everytime
     joinOrder = Table(),
+    ---@type tablelib<integer, BJIHunterParticipant>
     participants = Table(),
     preparationTimeout = nil,
     huntedConfig = nil,
@@ -161,9 +170,24 @@ local function sanitizePreparationHunted()
     end)
     if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
         M.participants[M.joinOrder[1]].hunted = true
-        M.participants[M.joinOrder[1]].hunted.waypoint = 0
+        M.participants[M.joinOrder[1]].waypoint = 0
         M.participants[M.joinOrder[1]].ready = false
         M.participants[M.joinOrder[1]].eliminated = false
+    end
+end
+
+---@param hunted boolean
+---@return integer
+local function findFreeStartPosition(hunted)
+    if hunted then
+        return math.random(1, #BJCScenario.Hunter.huntedPositions)
+    else
+        return Range(1, #BJCScenario.Hunter.hunterPositions)
+            :filter(function(i)
+                return not M.participants:any(function(p)
+                    return not p.hunted and p.startPosition == i
+                end)
+            end):random()
     end
 end
 
@@ -181,6 +205,7 @@ local function onJoin(senderID)
         M.participants[senderID] = {
             hunted = hunted,
             ready = false,
+            startPosition = findFreeStartPosition(hunted),
             waypoint = 0,
         }
         M.joinOrder:insert(senderID)
@@ -189,6 +214,7 @@ local function onJoin(senderID)
         M.participants[senderID] = {
             hunted = false,
             ready = false,
+            startPosition = findFreeStartPosition(false),
         }
         M.joinOrder:insert(senderID)
     end
@@ -234,11 +260,13 @@ end
 local function onGameEnd(huntedWinner)
     local key = huntedWinner and "hunter.huntedWinner" or "hunter.huntersWinners"
     BJCTx.player.flash(BJCTx.ALL_PLAYERS, key)
-    BJCChat.sendChatEvent("chat.events.gamemodeEnded", {
+    BJCChat.sendChatEvent("chat.events.gamemodeTeamWon", {
+        teamName = "chat.events.gamemodeTeams." .. (huntedWinner and "hunted" or "hunters"),
         gamemode = "chat.events.gamemodes.hunter",
     })
-    stop()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+
+    BJCAsync.delayTask(stop, BJCConfig.Data.Hunter.EndTimeout)
 end
 
 local function onRx(senderID, event, data)

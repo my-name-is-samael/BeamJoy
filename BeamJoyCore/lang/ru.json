@@ -201,12 +201,17 @@
           "timedout": "вышло время",
           "invalidVehConfig": "Недопустимая конфигурация транспорта"
         },
+        "gamemodeTeams": {
+          "hunters": "Охотники",
+          "hunted": "Беглец"
+        },
         "gamemodeStarted": "{gamemode} начат",
         "gamemodeEnded": "{gamemode} завершён",
         "gamemodeStopped": "{gamemode} остановлен: {reason}",
         "gamemodeJoin": "{playerName} присоединился к {gamemode}",
         "gamemodeLeave": "{playerName} покинул {gamemode}",
-        "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}"
+        "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} победила в {gamemode}"
       }
     },
     "nametags": {
@@ -703,7 +708,9 @@
           "HuntedStuckTimeout": "Время, которое беглец должен застрять для победы охотников",
           "HuntedStuckTimeoutTooltip": "Время в секундах, которое беглец должен быть застрявшим, чтобы охотники выиграли",
           "HuntersRespawnDelay": "Задержка респауна охотников",
-          "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне"
+          "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне",
+          "EndTimeout": "Конечная продолжительность",
+          "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
         },
         "derby": {
           "title": "Настройки Destruction Derby",
@@ -712,7 +719,9 @@
           "StartCountdown": "Обратный отсчет старта",
           "StartCountdownTooltip": "Время в секундах до начала дерби",
           "DestroyedTimeout": "Обратный отсчет до выбытия",
-          "DestroyedTimeoutTooltip": "Время в секундах до устранения застрявшего/разрушенного игрока"
+          "DestroyedTimeoutTooltip": "Время в секундах до устранения застрявшего/разрушенного игрока",
+          "EndTimeout": "Конечная продолжительность",
+          "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
         },
         "vehicleDelivery": {
           "title": "Настройки доставки автомобиля",

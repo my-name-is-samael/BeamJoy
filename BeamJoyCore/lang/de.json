@@ -328,12 +328,17 @@
           "timedout": "Zeitüberschreitung",
           "invalidVehConfig": "Eine Fahrzeugkonfiguration ist ungültig"
         },
+        "gamemodeTeams": {
+          "hunters": "Jäger",
+          "hunted": "Flüchtiger"
+        },
         "gamemodeStarted": "{gamemode} gestartet",
         "gamemodeEnded": "{gamemode} beendet",
         "gamemodeStopped": "{gamemode} gestoppt: {reason}",
         "gamemodeJoin": "{playerName} ist {gamemode} beigetreten",
         "gamemodeLeave": "{playerName} hat {gamemode} verlassen",
-        "gamemodeFinished": "{playerName} hat {gamemode} als #{gamemodePosition} beendet"
+        "gamemodeFinished": "{playerName} hat {gamemode} als #{gamemodePosition} beendet",
+        "gamemodeTeamWon": "{teamName} hat {gamemode} gewonnen"
       }
     },
     "nametags": {
@@ -830,7 +835,9 @@
           "HuntedStuckTimeout": "Flüchtiger Steckenbleib-Timeout",
           "HuntedStuckTimeoutTooltip": "Zeit in Sekunden, die der Flüchtige stecken muss, damit die Jäger gewinnen",
           "HuntersRespawnDelay": "Jäger Respawn Verzögerung",
-          "HuntersRespawnDelayTooltip": "Zeit in Sekunden, in der Jäger nach ihrem Respawn feststecken"
+          "HuntersRespawnDelayTooltip": "Zeit in Sekunden, in der Jäger nach ihrem Respawn feststecken",
+          "EndTimeout": "Enddauer",
+          "EndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Spielers und dem Ende des Modus"
         },
         "derby": {
           "title": "Destruction Derby Einstellungen",
@@ -839,7 +846,9 @@
           "StartCountdown": "Start-Countdown",
           "StartCountdownTooltip": "Zeit in Sekunden bis zum Start des Derbys",
           "DestroyedTimeout": "Eliminierungs-Countdown",
-          "DestroyedTimeoutTooltip": "Dauer in Sekunden, bevor ein feststeckender/beschädigter Spieler eliminiert wird"
+          "DestroyedTimeoutTooltip": "Dauer in Sekunden, bevor ein feststeckender/beschädigter Spieler eliminiert wird",
+          "EndTimeout": "Enddauer",
+          "EndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Spielers und dem Ende des Modus"
         },
         "vehicleDelivery": {
           "title": "Einstellungen für die Fahrzeuglieferung",

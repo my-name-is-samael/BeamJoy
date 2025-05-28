@@ -329,12 +329,17 @@
           "timedout": "timed out",
           "invalidVehConfig": "A vehicle config is invalid"
         },
+        "gamemodeTeams": {
+          "hunters": "Hunters",
+          "hunted": "Fugitive"
+        },
         "gamemodeStarted": "{gamemode} started",
         "gamemodeEnded": "{gamemode} ended",
         "gamemodeStopped": "{gamemode} stopped: {reason}",
         "gamemodeJoin": "{playerName} joined {gamemode}",
         "gamemodeLeave": "{playerName} left {gamemode}",
-        "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}"
+        "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} won {gamemode}"
       }
     },
     "nametags": {
@@ -831,7 +836,9 @@
           "HuntedStuckTimeout": "Fugitive Stuck Timeout",
           "HuntedStuckTimeoutTooltip": "Time in seconds the fugitive must be stuck for hunters to win",
           "HuntersRespawnDelay": "Hunters Respawn Delay",
-          "HuntersRespawnDelayTooltip": "Time in seconds hunters are stuck when they respawn"
+          "HuntersRespawnDelayTooltip": "Time in seconds hunters are stuck when they respawn",
+          "EndTimeout": "End Duration",
+          "EndTimeoutTooltip": "Time in seconds between last players finish and the mode ends"
         },
         "derby": {
           "title": "Destruction Derby Settings",
@@ -840,7 +847,9 @@
           "StartCountdown": "Start Countdown",
           "StartCountdownTooltip": "Time in seconds before the derby starts",
           "DestroyedTimeout": "Elimination Countdown",
-          "DestroyedTimeoutTooltip": "Duration in seconds before a stuck/wrecked player gets eliminated"
+          "DestroyedTimeoutTooltip": "Duration in seconds before a stuck/wrecked player gets eliminated",
+          "EndTimeout": "End Duration",
+          "EndTimeoutTooltip": "Time in seconds between last players finish and the mode ends"
         },
         "vehicleDelivery": {
           "title": "Vehicle Delivery Settings",
@@ -1380,10 +1389,10 @@
         "title": "Hunter Editor",
         "targetName": "Target {index}",
         "hunterPositionName": "Hunter {index}",
-        "huntedPositionName": "Hunted {index}",
+        "huntedPositionName": "Fugitive {index}",
         "waypoints": "Waypoints",
         "hunters": "Hunters",
-        "hunted": "Hunted",
+        "hunted": "Fugitive",
         "enabled": "Voteable mode",
         "radius": "Radius",
         "missingPoints": "Missing {amount} point(s)",

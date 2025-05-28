@@ -14,7 +14,7 @@ end
 ---@param tab? table
 ---@return tablelib
 function Table(tab)
-    tab = tab or {}
+    tab = type(tab) == "table" and tab or {}
     return metatable(tab)
 end
 
