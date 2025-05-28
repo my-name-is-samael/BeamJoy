@@ -118,6 +118,7 @@ local function onUnload()
     BJI.Managers.Message.cancelFlash("BJIHuntedDNF")
     BJI.Managers.Message.cancelFlash("BJIHuntedStart")
     BJI.Managers.Message.cancelFlash("BJIHunterStart")
+    BJI.Managers.Message.cancelFlash("BJIHunterReset")
 
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
