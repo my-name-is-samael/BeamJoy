@@ -1,7 +1,15 @@
+---@class BJIDerbyParticipant
+---@field playerID integer
+---@field ready boolean
+---@field gameVehID? integer
+---@field lives integer
+---@field eliminationTime? integer
+---@field startPosition integer
+
 local M = {
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.General.Debug then
-            return 1
+        if BJCCore.Data.General.Debug and MP.GetPlayerCount() < 3 then
+            return 1 --MP.GetPlayerCount()
         end
         return 3
     end,
@@ -18,12 +26,14 @@ local M = {
     },
 
     state = nil,
+    ---@type {name: string, startPositions: BJIPositionRotation[]}?
     baseArena = nil,
     settings = {
         lives = 0,
         configs = nil,
     },
 
+    ---@type tablelib<integer, BJIDerbyParticipant>
     participants = Table(),
 
     preparation = {
@@ -31,23 +41,24 @@ local M = {
     },
     game = {
         startTime = nil,
+        ---@type Timer?
+        gameTimer = nil,
     },
 
     countInvalidVehicles = {}, -- count to detect invalid setting config
 }
 
 local function getParticipantPosition(playerID)
-    for i, participant in ipairs(M.participants) do
-        if participant.playerID == playerID then
-            return i
-        end
-    end
-
-    return nil
+    local pos
+    M.participants:find(function(p) return p.playerID == playerID end, function(_, position)
+        pos = position
+    end)
+    return pos
 end
 
 local function cancelPreparationTimeout()
     BJCAsync.removeTask("BJCDerbyPreparationTimeout")
+    M.preparation.timeout = nil
 end
 
 -- ends the derby
@@ -59,12 +70,8 @@ local function stopDerby()
         lives = 0,
     }
     M.participants = Table()
-    M.preparation = {
-        timeout = nil,
-    }
-    M.game = {
-        startTime = nil,
-    }
+    M.preparation = {}
+    M.game = {}
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
@@ -78,48 +85,41 @@ local function onClientStopDerby()
 end
 
 local function startDerby()
-    cancelPreparationTimeout()
+    if M.state ~= M.STATES.PREPARATION then
+        error({ key = "rx.errors.invalidData" })
+    end
+
     M.game.startTime = GetCurrentTime() + BJCConfig.Data.Derby.StartCountdown
     M.countInvalidVehicles = {}
     M.state = M.STATES.GAME
+    BJCAsync.programTask(function()
+        M.game.gameTimer = math.timer()
+    end, M.game.startTime, "BJCDerbyGameStartTimer")
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
 
-local function checkDerbyReady()
-    if M.state == M.STATES.PREPARATION and
-        #M.participants >= M.MINIMUM_PARTICIPANTS() then
-        local everyoneReady = true
-        for _, participant in ipairs(M.participants) do
-            if not participant.ready then
-                everyoneReady = false
-                break
-            end
-        end
-        if everyoneReady then
-            startDerby()
-        end
-    end
-end
-
 local function onPreparationTimeout()
     -- remove no vehicle players from participants
-    for iParticipant, participant in ipairs(M.participants) do
-        if not participant.ready then
-            local player = BJCPlayers.Players[participant.playerID]
-            if table.length(player.vehicles) == 0 then
-                table.remove(M.participants, iParticipant)
+    M.participants:filter(function(p) return not p.ready end)
+        :forEach(function(p)
+            local player = BJCPlayers.Players[p.playerID]
+            if not player or table.length(player.vehicles) == 0 then
+                M.participants = M.participants
+                    :filter(function(p2) return p2.playerID ~= p.playerID end)
             else
-                participant.ready = true
-                if not participant.gameVehID then
-                    for _, veh in pairs(player.vehicles) do
-                        participant.gameVehID = veh.gameVehID
-                        break
+                p.ready = true
+                if not p.gameVehID then
+                    Table(player.vehicles):find(function() return true end, function(v)
+                        p.gameVehID = v.gameVehID
+                    end)
+                    if not p.gameVehID then
+                        M.participants = M.participants
+                            :filter(function(p2) return p2.playerID ~= p.playerID end)
                     end
                 end
             end
-        end
-    end
+        end)
 
     if #M.participants < M.MINIMUM_PARTICIPANTS() then
         BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
@@ -130,14 +130,55 @@ local function onPreparationTimeout()
     else
         startDerby()
         local reward = BJCConfig.Data.Reputation.DerbyParticipationReward
-        for _, participant in pairs(M.participants) do
-            BJCPlayers.reward(participant.playerID, reward)
-        end
+        M.participants:forEach(function(p)
+            BJCPlayers.reward(p.playerID, reward)
+        end)
     end
 end
 
-local function startPreparationTimeout(time)
-    BJCAsync.programTask(onPreparationTimeout, time, "BJCDerbyPreparationTimeout")
+local function startPreparationTimeout()
+    M.preparation.timeout = GetCurrentTime() + BJCConfig.Data.Derby.PreparationTimeout
+    BJCAsync.programTask(onPreparationTimeout, M.preparation.timeout, "BJCDerbyPreparationTimeout")
+end
+
+local function finishDerby()
+    local winner = M.participants[1] and BJCPlayers.Players[M.participants[1].playerID] or nil
+    local second = M.participants[2]
+    if winner and (not second or second.eliminationTime) then
+        BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.winner", { playerName = winner.playerName }, 5)
+        M.participants:forEach(function(p, i)
+            local reward = math.round(BJCConfig.Data.Reputation.DerbyWinnerReward / i)
+            BJCPlayers.reward(p.playerID, reward)
+        end)
+    else
+        BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.draw", {}, 5)
+    end
+
+    BJCAsync.delayTask(stopDerby, BJCConfig.Data.Derby.EndTimeout)
+end
+
+local function updateDerbyState()
+    if M.state == M.STATES.PREPARATION then
+        if #M.participants >= M.MINIMUM_PARTICIPANTS() and
+            M.participants:every(function(p) return p.ready end) then
+            startDerby()
+        elseif not M.participants:any(function(p) return p.ready end) and
+            not BJCAsync.exists("BJCDerbyPreparationTimeout") then
+            startPreparationTimeout()
+        end
+    elseif M.state == M.STATES.GAME then
+        if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
+            M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
+            if M.participants[1] then
+                BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                    playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
+                    gamemode = "chat.events.gamemodes.derby",
+                    gamemodePosition = 1,
+                })
+            end
+            finishDerby()
+        end
+    end
 end
 
 local function start(derbyIndex, lives, configs)
@@ -154,14 +195,13 @@ local function start(derbyIndex, lives, configs)
     end
 
     M.participants = Table()
-    M.preparation.timeout = GetCurrentTime() + BJCConfig.Data.Derby.PreparationTimeout
 
     M.state = M.STATES.PREPARATION
-    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
     BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
         gamemode = "chat.events.gamemodes.derby",
     })
-    startPreparationTimeout(M.preparation.timeout)
+    startPreparationTimeout()
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
 
 local function stop()
@@ -178,48 +218,27 @@ local function sortParticipants()
     if #M.participants < 2 then
         return
     end
-    -- sort players by eliminationTime existing first, then by most lives remainings
-    table.sort(M.participants, function(a, b)
-        if a.eliminationTime and b.eliminationTime then
-            return a.eliminationTime < b.eliminationTime
-        end
-        if a.eliminationTime then
-            return false
-        end
-        if b.eliminationTime then
-            return true
+    -- sort players by lives remaining DESC, then eliminationTime DESC
+    M.participants:sort(function(a, b)
+        if a.eliminationTime or b.eliminationTime then
+            if a.eliminationTime and b.eliminationTime then
+                return a.eliminationTime > b.eliminationTime
+            else
+                return b.eliminationTime ~= nil
+            end
         end
         return a.lives > b.lives
     end)
 end
 
-local function finishDerby()
-    local winner = M.participants[1] and BJCPlayers.Players[M.participants[1].playerID] or nil
-    local second = M.participants[2]
-    if winner and (not second or second.eliminationTime) then
-        BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.winner", { playerName = winner.playerName }, 5)
-        for i, participant in ipairs(M.participants) do
-            local reward = math.round(BJCConfig.Data.Reputation.DerbyWinnerReward / i)
-            BJCPlayers.reward(participant.playerID, reward)
-        end
-    else
-        BJCTx.player.flash(BJCTx.ALL_PLAYERS, "derby.draw", {}, 5)
-    end
-
-    BJCAsync.delayTask(stopDerby, BJCConfig.Data.Derby.EndTimeout)
-end
-
-local function onClientDestroyed(playerID, time)
-    local pos
-    for i, lbData in ipairs(M.participants) do
-        if lbData.playerID == playerID then
-            pos = i
-            break
-        end
-    end
+---@param playerID integer
+local function onClientDestroyed(playerID)
+    local time = M.game.gameTimer:get()
+    local pos = getParticipantPosition(playerID)
     if not pos then
         -- not a participant
         error({ key = "rx.errors.insufficientPermissions" })
+        return
     end
 
     local participant = M.participants[pos]
@@ -231,48 +250,50 @@ local function onClientDestroyed(playerID, time)
 
     sortParticipants()
     if participant.eliminationTime then
-        local position = 1
-        M.participants:find(function(p) return p.playerID == playerID end, function(_, pos)
-            position = pos
+        M.participants:find(function(p) return p.playerID == playerID end, function(_, finalPos)
+            BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                playerName = BJCPlayers.Players[playerID].playerName,
+                gamemode = "chat.events.gamemodes.derby",
+                position = finalPos,
+            })
         end)
-        BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-            playerName = BJCPlayers.Players[playerID].playerName,
-            gamemode = "chat.events.gamemodes.derby",
-            position = position,
-        })
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
+    updateDerbyState()
+end
 
-    if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
-        M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
-        BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-            playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
-            gamemode = "chat.events.gamemodes.derby",
-            gamemodePosition = 1,
-        })
-        finishDerby()
+local function findFreeStartPosition()
+    if #M.participants == #M.baseArena.startPositions then
+        error({ key = "rx.errors.invalidData" })
     end
+
+    return Range(1, #M.baseArena.startPositions)
+        :filter(function(i) return not M.participants:any(function(p) return p.startPosition == i end) end)
+        :random()
 end
 
 local function onClientUpdate(senderID, event, data)
     if M.state == M.STATES.PREPARATION then
         if event == M.CLIENT_EVENTS.JOIN then
-            local pos
-            M.participants:find(function(p) return p.playerID == senderID end, function(_, position)
-                pos = position
-                table.remove(M.participants, pos)
-                checkDerbyReady()
-            end)
-            if not pos then
+            local pos = getParticipantPosition(senderID)
+            if pos then
+                M.participants:remove(pos)
+            else
+                if #M.participants == #M.baseArena.startPositions then
+                    error({ key = "rx.errors.invalidData" })
+                end
                 M.participants:insert({
                     playerID = senderID,
                     lives = M.settings.lives,
                     ready = false,
                     eliminationTime = nil,
+                    startPosition = findFreeStartPosition(),
                 })
             end
+            updateDerbyState()
 
-            BJCChat.sendChatEvent(pos and "chat.events.gamemodeLeave" or "chat.events.gamemodeJoin", {
+            local chatEvent = pos and "chat.events.gamemodeLeave" or "chat.events.gamemodeJoin"
+            BJCChat.sendChatEvent(chatEvent, {
                 playerName = BJCPlayers.Players[senderID].playerName,
                 gamemode = "chat.events.gamemodes.derby",
             })
@@ -281,25 +302,29 @@ local function onClientUpdate(senderID, event, data)
             M.participants:find(function(p) return p.playerID == senderID end, function(_, pos)
                 M.participants[pos].gameVehID = data
                 M.participants[pos].ready = true
+                cancelPreparationTimeout()
+                updateDerbyState()
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-                checkDerbyReady()
             end)
         end
     elseif M.state == M.STATES.GAME then
         if event == M.CLIENT_EVENTS.LEAVE then
-            M.participants:find(function(p) return p.playerID == senderID end, function(p, pos)
-                if not p.eliminationTime then
-                    p.eliminationTime = data
+            M.participants
+                :filter(function(p) return not p.eliminationTime end)
+                :find(function(p) return p.playerID == senderID end, function(p)
+                    p.eliminationTime = M.game.gameTimer:get()
                     sortParticipants()
+                    local finalPos = getParticipantPosition(senderID)
+                    BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                        playerName = BJCPlayers.Players[senderID].playerName,
+                        gamemode = "chat.events.gamemodes.derby",
+                        position = finalPos,
+                    })
+                    updateDerbyState()
                     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-                    if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
-                        M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
-                        finishDerby()
-                    end
-                end
-            end)
+                end)
         elseif event == M.CLIENT_EVENTS.DESTROYED then
-            onClientDestroyed(senderID, data)
+            onClientDestroyed(senderID)
         end
     end
 end
@@ -309,23 +334,17 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
         return true
     elseif M.state == M.STATES.PREPARATION then
         local pos = getParticipantPosition(playerID)
-        M.participants:find(function(p) return p.playerID == playerID end, function(_, position)
-            pos = position
-        end)
         if not pos or not vehData then
             return false
         end
 
         if type(M.settings.configs) == "table" then
             -- forced config
-            local found = false
-            for _, config in ipairs(M.settings.configs) do
-                if vehData.vcf.model == config.model and
-                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts) then
-                    found = true
-                    break
-                end
-            end
+            local found = Table(M.settings.configs)
+                :any(function(config)
+                    return vehData.vcf.model == config.model and
+                        BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
+                end)
             if not found then
                 M.countInvalidVehicles[playerID] = true
                 if table.length(M.countInvalidVehicles) > 1 then
@@ -341,7 +360,6 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             end
             return found
         end
-
         -- no model restriction
         return true
     end
@@ -352,16 +370,30 @@ end
 local function onPlayerDisconnect(targetID)
     if M.state then
         local pos = getParticipantPosition(targetID)
-        if M.state == M.STATES.PREPARATION then
-            if pos then
-                table.remove(M.participants, pos)
+        if pos then
+            M.participants:remove(pos)
+            updateDerbyState()
+            BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
+        end
+
+        if MP.GetPlayerCount() == 0 then
+            stopDerby()
+        end
+    end
+end
+
+local function onVehicleDeleted(playerID, vehID)
+    if M.state then
+        local pos = getParticipantPosition(playerID)
+        if pos then
+            if M.state == M.STATES.PREPARATION then
+                M.participants:remove(pos)
+                updateDerbyState()
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-            end
-        elseif M.state == M.STATES.GAME then
-            if pos then
-                table.remove(M.participants, pos)
-                BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-                if not M.participants[2] or M.participants[2].eliminationTime and
+            elseif M.state == M.STATES.GAME then
+                M.participants[pos].eliminationTime = (GetCurrentTime() - M.game.startTime) * 1000
+                sortParticipants()
+                if (not M.participants[2] or M.participants[2].eliminationTime) and
                     M.participants[1] then
                     BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
                         playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
@@ -372,30 +404,6 @@ local function onPlayerDisconnect(targetID)
                 end
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
             end
-        end
-    end
-end
-
-local function onVehicleDeleted(playerID, vehID)
-    if M.state then
-        local pos = getParticipantPosition(playerID)
-        if M.state == M.STATES.PREPARATION and pos then
-            table.remove(M.participants, pos)
-            BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
-            checkDerbyReady()
-        elseif M.state == M.STATES.GAME and pos then
-            M.participants[pos].eliminationTime = (GetCurrentTime() - M.game.startTime) * 1000
-            sortParticipants()
-
-            if not M.participants[2] or M.participants[2].eliminationTime then
-                BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-                    playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
-                    gamemode = "chat.events.gamemodes.derby",
-                    position = 1,
-                })
-                finishDerby()
-            end
-            BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
         end
     end
 end

@@ -45,7 +45,7 @@ local function getTargetMap()
         [M.CACHES.RACE] = { permission = nil, fn = BJCScenario.RaceManager.getCache },
         [M.CACHES.DELIVERIES] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.getCacheDeliveries },
         [M.CACHES.DELIVERY_MULTI] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.DeliveryMultiManager.getCache },
-        [M.CACHES.STATIONS] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.getCacheStations },
+        [M.CACHES.STATIONS] = { permission = nil, fn = BJCScenario.getCacheStations },
         [M.CACHES.BUS_LINES] = { permission = BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO, fn = BJCScenario.getCacheBusLines },
         [M.CACHES.SPEED] = { permission = nil, fn = BJCScenario.SpeedManager.getCache },
         [M.CACHES.DATABASE_VEHICLES] = { permission = nil, fn = BJCVehicles.getCache },
@@ -79,7 +79,7 @@ local function slowTick()
 
         local serverTickData = {}
         local env = BJCEnvironment.Data
-        if env.controlSun and env.timePlay then
+        if env and env.controlSun and env.timePlay then
             serverTickData.ToD = env.ToD
         end
         serverTickData.cachesHashes = {
