@@ -9,7 +9,7 @@
 local M = {
     MINIMUM_PARTICIPANTS = function()
         if BJCCore.Data.General.Debug and MP.GetPlayerCount() < 3 then
-            return 1 --MP.GetPlayerCount()
+            return MP.GetPlayerCount()
         end
         return 3
     end,
