@@ -17,6 +17,8 @@ local W = {
             showFinalTime = false,
             finalTime = "",
             showForfeitBtn = false,
+            showManualResetBtn = false,
+            manualResetWidth = 0,
             disableButtons = false,
             showTimer = false,
             showWpCounter = false,
@@ -84,6 +86,7 @@ local W = {
                 markReady = "",
                 forfeit = "",
                 show = "",
+                manualReset = "",
             },
         },
     },
@@ -132,6 +135,7 @@ local function updateLabels()
     W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("races.play.markReady")
     W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("races.play.forfeit")
     W.cache.labels.buttons.show = BJI.Managers.Lang.get("races.play.show")
+    W.cache.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
@@ -211,6 +215,7 @@ local function updateCache(ctxt)
         end)
     end
 
+    W.cache.data.manualResetWidth = 0
     if W.cache.data.race.show then
         W.cache.data.race.colWidths = Table()
         local isSpec = W.scenario.isSpec()
@@ -307,6 +312,14 @@ local function updateCache(ctxt)
             end)
             return { cells = cells }
         end)
+
+        W.cache.data.showManualResetBtn = not isSpec and not table.includes({
+            BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key,
+            BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
+        }, W.scenario.settings.respawnStrategy)
+        if W.cache.data.showManualResetBtn then
+            W.cache.data.manualResetWidth = GetBtnIconSize(true) + BJI.Utils.Common.GetTextWidth("  ")
+        end
     end
 end
 
@@ -384,18 +397,40 @@ local function header(ctxt)
         EmptyLine()
     end
 
-    if W.cache.data.showForfeitBtn then
-        LineBuilder():btnIcon({
-            id = "forfeitRace",
-            icon = ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.data.disableButtons,
-            tooltip = W.cache.labels.buttons.forfeit,
-            onClick = function()
-                W.cache.data.disableButtons = true -- api request protection
-                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
-            end,
-            big = true,
+    if W.cache.data.showForfeitBtn or W.cache.data.showManualResetBtn then
+        ColumnsBuilder("BJIRaceMultiBtns", { -1, W.cache.data.manualResetWidth }):addRow({
+            cells = {
+                W.cache.data.showForfeitBtn and function()
+                    LineBuilder():btnIcon({
+                        id = "forfeitRace",
+                        icon = ICONS.exit_to_app,
+                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                        disabled = W.cache.data.disableButtons,
+                        tooltip = W.cache.labels.buttons.forfeit,
+                        onClick = function()
+                            W.cache.data.disableButtons = true -- api request protection
+                            BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
+                        end,
+                        big = true,
+                    }):build()
+                end or nil,
+                W.cache.data.showManualResetBtn and function()
+                    LineBuilder():btnIcon({
+                        id = "manualReset",
+                        icon = ICONS.build,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        big = true,
+                        disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                        tooltip = string.var("{1} ({2})", {
+                            W.cache.labels.buttons.manualReset,
+                            extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
+                        }),
+                        onClick = function()
+                            BJI.Managers.Veh.loadHome()
+                        end,
+                    }):build()
+                end or nil,
+            }
         }):build()
     end
 

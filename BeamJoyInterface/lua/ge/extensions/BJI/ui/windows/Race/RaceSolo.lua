@@ -23,7 +23,6 @@ local W = {
             showLoopBtn = false,
             showRestartBtn = false,
             showManualResetBtn = false,
-            manualResetWidth = 0,
             ---@type boolean
             showAll = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
@@ -263,15 +262,16 @@ local function updateCache(ctxt)
         end)
     end
     W.cache.data.showAllWidth = W.cache.data.showBtnShowAll and
-        BJI.Utils.Common.GetColumnTextWidth(W.cache.labels.showAll) + GetBtnIconSize() or 0
+        BJI.Utils.Common.GetColumnTextWidth(W.cache.labels.showAll) + GetBtnIconSize() +
+        BJI.Utils.Common.GetTextWidth("  ") or 0
 
     W.cache.data.showManualResetBtn = not table.includes({
         BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key,
         BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
     }, W.scenario.settings.respawnStrategy)
-    W.cache.data.manualResetWidth = 0
     if W.cache.data.showManualResetBtn then
-        W.cache.data.manualResetWidth = GetBtnIconSize() + BJI.Utils.Common.GetTextWidth("  ")
+        W.cache.data.showAllWidth = W.cache.data.showAllWidth + GetBtnIconSize(true) +
+            BJI.Utils.Common.GetTextWidth("  ")
     end
 end
 
@@ -374,28 +374,11 @@ local function header(ctxt)
         EmptyLine()
     end
 
-    ColumnsBuilder("BJIRaceSoloPBAndReset", { -1, W.cache.data.manualResetWidth }):addRow({
-        cells = {
-            W.cache.data.showPb and function()
-                LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
-            end or nil,
-            W.cache.data.showManualResetBtn and function()
-                LineBuilder():btnIcon({
-                    id = "manualReset",
-                    icon = ICONS.build,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
-                    tooltip = string.var("{1} ({2})", {
-                        W.cache.labels.manualReset,
-                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
-                    }),
-                    onClick = function()
-                        BJI.Managers.Veh.loadHome()
-                    end,
-                }):build()
-            end or nil,
-        }
-    }):build()
+    if W.cache.data.showPb then
+        LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
+    else
+        EmptyLine()
+    end
 
     ColumnsBuilder("BJIRaceSoloActions", { -1, W.cache.data.showAllWidth }):addRow({
         cells = {
@@ -440,22 +423,40 @@ local function header(ctxt)
                 end
                 line:build()
             end,
-            W.cache.data.showBtnShowAll and function()
-                LineBuilder()
-                    :text(W.cache.labels.showAll)
-                    :btnIconToggle({
-                        id = "toggleShowAll",
-                        state = W.cache.data.showAll,
-                        coloredIcon = true,
+            (W.cache.data.showBtnShowAll or W.cache.data.showManualResetBtn) and function()
+                line = LineBuilder()
+                if W.cache.data.showBtnShowAll then
+                    line:text(W.cache.labels.showAll)
+                        :btnIconToggle({
+                            id = "toggleShowAll",
+                            state = W.cache.data.showAll,
+                            coloredIcon = true,
+                            onClick = function()
+                                W.cache.data.showAll = not W.cache.data.showAll
+                                BJI.Managers.LocalStorage.set(
+                                    BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
+                                    W.cache.data.showAll)
+                                updateCache(ctxt)
+                            end,
+                        })
+                end
+                if W.cache.data.showManualResetBtn then
+                    line:btnIcon({
+                        id = "manualReset",
+                        icon = ICONS.build,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        big = true,
+                        disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                        tooltip = string.var("{1} ({2})", {
+                            W.cache.labels.manualReset,
+                            extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
+                        }),
                         onClick = function()
-                            W.cache.data.showAll = not W.cache.data.showAll
-                            BJI.Managers.LocalStorage.set(
-                                BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
-                                W.cache.data.showAll)
-                            updateCache(ctxt)
+                            BJI.Managers.Veh.loadHome()
                         end,
                     })
-                    :build()
+                end
+                line:build()
             end or nil,
         },
     }):build()
