@@ -197,7 +197,6 @@ C.ENERGY_STATION_TYPES = {
     ELECTRIC = "electricEnergy",
 }
 
----@type table<string, {key: string, order: integer}>
 C.RACES_RESPAWN_STRATEGIES = {
     ALL_RESPAWNS = { key = "all", order = 1 },
     NO_RESPAWN = { key = "norespawn", order = 2 },

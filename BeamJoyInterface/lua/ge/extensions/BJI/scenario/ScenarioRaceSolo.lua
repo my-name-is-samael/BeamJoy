@@ -336,6 +336,7 @@ end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
     local previousRestrictions = BJI.Managers.Restrictions.getCurrentResets()
+    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
     S.dnf.standExempt = true
 
     BJI.Managers.Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
