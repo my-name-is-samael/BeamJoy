@@ -449,6 +449,17 @@ local function loadHome(callback)
     end
 end
 
+---@param callback? fun(ctxt: TickContext)
+local function recoverInPlace(callback)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        veh:queueLuaCommand("recovery.recoverInPlace()")
+        if type(callback) == "function" then
+            waitForVehicleSpawn(callback)
+        end
+    end
+end
+
 ---@param veh? userdata
 ---@return BJIPositionRotation|nil
 local function getPositionRotation(veh)
@@ -1491,6 +1502,7 @@ M.deleteOtherPlayerVehicle = deleteOtherPlayerVehicle
 M.explodeVehicle = explodeVehicle
 M.saveHome = saveHome
 M.loadHome = loadHome
+M.recoverInPlace = recoverInPlace
 
 M.getPositionRotation = getPositionRotation
 M.setPositionRotation = setPositionRotation
