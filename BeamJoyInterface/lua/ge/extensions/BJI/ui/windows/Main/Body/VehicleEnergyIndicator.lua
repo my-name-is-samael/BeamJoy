@@ -30,7 +30,7 @@ local function updateCache(ctxt)
         end
     end
 
-    cache.garagesCount = #BJI.Managers.Context.Scenario.Data.Garages
+    cache.garagesCount = BJI.Managers.Context.Scenario.Data.Garages and #BJI.Managers.Context.Scenario.Data.Garages or 0
 
     if ctxt.vehData and ctxt.vehData.tanks then
         local stationBtnEnabled = BJI.Managers.Scenario.canRefuelAtStation() and
