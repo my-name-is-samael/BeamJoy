@@ -22,6 +22,8 @@ local W = {
             finalTime = "",
             showLoopBtn = false,
             showRestartBtn = false,
+            showManualResetBtn = false,
+            manualResetWidth = 0,
             ---@type boolean
             showAll = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
@@ -59,6 +61,7 @@ local W = {
             loop = "",
             forfeit = "",
             restart = "",
+            manualReset = "",
         },
     },
     ---@type BJIScenarioRaceSolo
@@ -88,6 +91,7 @@ local function updateLabels()
     W.cache.labels.loop = BJI.Managers.Lang.get("common.buttons.loop")
     W.cache.labels.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
     W.cache.labels.restart = BJI.Managers.Lang.get("common.buttons.restart")
+    W.cache.labels.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
@@ -260,6 +264,15 @@ local function updateCache(ctxt)
     end
     W.cache.data.showAllWidth = W.cache.data.showBtnShowAll and
         BJI.Utils.Common.GetColumnTextWidth(W.cache.labels.showAll) + GetBtnIconSize() or 0
+
+    W.cache.data.showManualResetBtn = not table.includes({
+        BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key,
+        BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
+    }, W.scenario.settings.respawnStrategy)
+    W.cache.data.manualResetWidth = 0
+    if W.cache.data.showManualResetBtn then
+        W.cache.data.manualResetWidth = GetBtnIconSize() + BJI.Utils.Common.GetTextWidth("  ")
+    end
 end
 
 local listeners = Table()
@@ -357,80 +370,95 @@ local function header(ctxt)
 
     if W.cache.data.showRecord then
         LineBuilder():text(W.cache.data.recordStr):build()
-    end
-
-    if W.cache.data.showPb then
-        LineBuilder()
-            :text(W.cache.labels.pb)
-            :text(W.cache.data.pbTime)
-            :build()
     else
         EmptyLine()
     end
 
-    ColumnsBuilder("BJIRaceSoloActions", { -1, W.cache.data.showAllWidth })
-        :addRow({
-            cells = {
-                function()
-                    line = LineBuilder()
-                    if W.cache.data.showLoopBtn then
-                        local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES
-                            .SCENARIO_SOLO_RACE_LOOP)
-                        line:btnIconToggle({
-                            id = "toggleRaceLoop",
-                            icon = ICONS.all_inclusive,
-                            state = loop,
-                            tooltip = W.cache.labels.loop,
-                            onClick = function()
-                                BJI.Managers.LocalStorage.set(
-                                    BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
-                            end,
-                            big = true,
-                        })
-                    end
-                    line:btnIcon({
-                        id = "leaveRace",
-                        icon = ICONS.exit_to_app,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        tooltip = W.cache.labels.forfeit,
+    ColumnsBuilder("BJIRaceSoloPBAndReset", { -1, W.cache.data.manualResetWidth }):addRow({
+        cells = {
+            W.cache.data.showPb and function()
+                LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
+            end or nil,
+            W.cache.data.showManualResetBtn and function()
+                LineBuilder():btnIcon({
+                    id = "manualReset",
+                    icon = ICONS.build,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                    tooltip = string.var("{1} ({2})", {
+                        W.cache.labels.manualReset,
+                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalize()
+                    }),
+                    onClick = function()
+                        BJI.Managers.Veh.loadHome()
+                    end,
+                }):build()
+            end or nil,
+        }
+    }):build()
+
+    ColumnsBuilder("BJIRaceSoloActions", { -1, W.cache.data.showAllWidth }):addRow({
+        cells = {
+            function()
+                line = LineBuilder()
+                if W.cache.data.showLoopBtn then
+                    local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES
+                        .SCENARIO_SOLO_RACE_LOOP)
+                    line:btnIconToggle({
+                        id = "toggleRaceLoop",
+                        icon = ICONS.all_inclusive,
+                        state = loop,
+                        tooltip = W.cache.labels.loop,
                         onClick = function()
-                            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+                            BJI.Managers.LocalStorage.set(
+                                BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
                         end,
                         big = true,
                     })
-                    if W.cache.data.showRestartBtn then
-                        line:btnIcon({
-                            id = "restartRace",
-                            icon = ICONS.restart,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            tooltip = W.cache.labels.restart,
-                            onClick = function()
-                                W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
-                            end,
-                            big = true,
-                        })
-                    end
-                    line:build()
-                end,
-                W.cache.data.showBtnShowAll and function()
-                    LineBuilder()
-                        :text(W.cache.labels.showAll)
-                        :btnIconToggle({
-                            id = "toggleShowAll",
-                            state = W.cache.data.showAll,
-                            coloredIcon = true,
-                            onClick = function()
-                                W.cache.data.showAll = not W.cache.data.showAll
-                                BJI.Managers.LocalStorage.set(
-                                    BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
-                                    W.cache.data.showAll)
-                                updateCache(ctxt)
-                            end,
-                        })
-                        :build()
-                end or nil,
-            },
-        }):build()
+                end
+                line:btnIcon({
+                    id = "leaveRace",
+                    icon = ICONS.exit_to_app,
+                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    tooltip = W.cache.labels.forfeit,
+                    onClick = function()
+                        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+                    end,
+                    big = true,
+                })
+                if W.cache.data.showRestartBtn then
+                    line:btnIcon({
+                        id = "restartRace",
+                        icon = ICONS.restart,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        tooltip = W.cache.labels.restart,
+                        onClick = function()
+                            W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
+                        end,
+                        big = true,
+                    })
+                end
+                line:build()
+            end,
+            W.cache.data.showBtnShowAll and function()
+                LineBuilder()
+                    :text(W.cache.labels.showAll)
+                    :btnIconToggle({
+                        id = "toggleShowAll",
+                        state = W.cache.data.showAll,
+                        coloredIcon = true,
+                        onClick = function()
+                            W.cache.data.showAll = not W.cache.data.showAll
+                            BJI.Managers.LocalStorage.set(
+                                BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
+                                W.cache.data.showAll)
+                            updateCache(ctxt)
+                        end,
+                    })
+                    :build()
+            end or nil,
+        },
+    }):build()
 
 
     Separator()

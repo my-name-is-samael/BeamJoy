@@ -137,7 +137,8 @@
         "restart": "Перезапустить",
         "moveUp": "Переместить вверх",
         "moveDown": "Переместить вниз",
-        "setGPS": "Установить GPS"
+        "setGPS": "Установить GPS",
+        "manualReset": "Сброс"
       },
       "durationModifiers": {
         "minute": "м",

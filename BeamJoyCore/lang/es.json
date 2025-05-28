@@ -264,7 +264,8 @@
         "restart": "Reiniciar",
         "moveUp": "Mover hacia arriba",
         "moveDown": "Mover hacia abajo",
-        "setGPS": "Establecer GPS"
+        "setGPS": "Establecer GPS",
+        "manualReset": "Reiniciar"
       },
       "durationModifiers": {
         "minute": "metro",

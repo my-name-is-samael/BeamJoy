@@ -230,7 +230,7 @@
         "and": "E"
       },
       "buttons": {
-        "reset": "Reset",
+        "reset": "Reimposta",
         "resetAll": "Reimposta tutto",
         "delete": "Eliminare",
         "play": "Giocare",
@@ -264,7 +264,8 @@
         "restart": "Riavvia",
         "moveUp": "Sposta su",
         "moveDown": "Sposta giù",
-        "setGPS": "Imposta GPS"
+        "setGPS": "Imposta GPS",
+        "manualReset": "Reimposta"
       },
       "durationModifiers": {
         "minute": "M",
