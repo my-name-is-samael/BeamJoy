@@ -387,7 +387,7 @@ local function header(ctxt)
                     disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
                     tooltip = string.var("{1} ({2})", {
                         W.cache.labels.manualReset,
-                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalize()
+                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
                     }),
                     onClick = function()
                         BJI.Managers.Veh.loadHome()

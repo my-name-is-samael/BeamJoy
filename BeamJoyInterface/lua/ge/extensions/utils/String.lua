@@ -101,7 +101,7 @@ end
 ---@return string
 string.capitalizeWords = string.capitalizeWords or function(str)
     if type(str) ~= "string" then return "" end
-    local delims = { " ", "-", ".", ",", ":", ";", "'", '"', "(", ")" }
+    local delims = { " ", "-", ".", ",", ":", ";", "'", '"', "(", ")", "_", "+" }
     table.forEach(delims, function(d)
         ---@type string[]
         local words = str:split2(d)
