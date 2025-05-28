@@ -26,10 +26,10 @@ end
 local function _apply(state, appLayout, menuItems)
     if not M.state.state then firstInit() end
 
-    local needUpdate = state ~= M.state.state or appLayout ~= M.state.appLayout or menuItems ~= M.state.menuItems
     state = state or M.state.state
     appLayout = appLayout or M.state.appLayout
     menuItems = menuItems or M.state.menuItems
+    local needUpdate = state ~= M.state.state or appLayout ~= M.state.appLayout or menuItems ~= M.state.menuItems
     if needUpdate then
         extensions.core_gamestate.setGameState(state, appLayout, menuItems)
         M.state = extensions.core_gamestate.state
