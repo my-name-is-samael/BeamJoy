@@ -307,6 +307,30 @@ local function loadUI()
     end)
 end
 
+local function updateCENRestrictions()
+    local restrictions = Table()
+    if not BJI.Managers.Context.BJC.CEN then
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+    else
+        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI.Managers.Context.BJC.CEN.Console then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
+        end
+        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI.Managers.Context.BJC.CEN.Editor then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
+        end
+        if not BJI.Managers.Scenario.isFreeroam() or
+            (not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+                not BJI.Managers.Context.BJC.CEN.NodeGrabber) then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+        end
+    end
+    BJI.Managers.Restrictions.updateCEN(restrictions)
+end
+
 local function loadConfig()
     -- core data
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.CORE, function(cacheData)
@@ -385,20 +409,7 @@ local function loadConfig()
 
         if cacheData.CEN then
             M.BJC.CEN = cacheData.CEN
-            local restrictions = Table()
-            if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI.Managers.Context.BJC.CEN.Console then
-                restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
-            end
-            if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI.Managers.Context.BJC.CEN.Editor then
-                restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
-            end
-            if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI.Managers.Context.BJC.CEN.NodeGrabber then
-                restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
-            end
-            BJI.Managers.Restrictions.updateCEN(restrictions)
+            updateCENRestrictions()
         end
 
         if cacheData.Race then
@@ -530,6 +541,11 @@ local function onLoad()
     loadDatabase()
     loadMaps()
     loadScenarii()
+
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    }, updateCENRestrictions, M._name)
 end
 
 local function isSelf(playerID)
