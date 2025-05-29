@@ -1042,7 +1042,7 @@ local function fastTick(ctxt)
             local moved = math.horizontalDistance(
                 startPos.pos,
                 ctxt.vehPosRot.pos
-            ) > .5
+            ) > 1
             local damaged = false
             for _, v in pairs(BJI.Managers.Context.User.vehicles) do
                 if v.gameVehID == BJI.Managers.Context.User.currentVehicle and
