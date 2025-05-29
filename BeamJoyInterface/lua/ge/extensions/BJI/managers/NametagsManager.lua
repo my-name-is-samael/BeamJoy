@@ -92,7 +92,7 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
     if ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID then
         zOffset = veh.vehicleHeight / 2
     end
-    tagPos.z = tagPos.z - zOffset - .5 -- half a meter offset downward for specs
+    tagPos.z = tagPos.z + zOffset - .5 -- half a meter offset downward for specs
 
     Table(veh.spectators):keys()
         :filter(function(pid) return pid ~= veh.ownerID and (showMyself or pid ~= ctxt.user.playerID) end)
@@ -111,7 +111,7 @@ end
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
 local function renderAI(ctxt, veh, ownPos)
-    local isMyOwnVeh = veh.isLocal
+    local isMyOwnVeh = veh.ownerID == ctxt.user.playerID
     local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsSpec = veh.spectators[veh.ownerID]
@@ -131,7 +131,7 @@ local function renderAI(ctxt, veh, ownPos)
             end
 
             -- offset
-            tagPos.z = tagPos.z - veh.vehicleHeight / 2
+            tagPos.z = tagPos.z + veh.vehicleHeight / 2
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 getNametagColor(alpha, true),
@@ -154,7 +154,7 @@ local function renderAI(ctxt, veh, ownPos)
             end
 
             -- offset
-            tagPos.z = tagPos.z - veh.vehicleHeight / 2
+            tagPos.z = tagPos.z + veh.vehicleHeight / 2
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 getNametagColor(alpha, ownerIsSpec, not ownerIsSpec),
@@ -173,7 +173,7 @@ end
 ---@param forcedTextColor? BJIColor
 ---@param forcedBgColor? BJIColor
 local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
-    local isMyOwnVeh = veh.isLocal
+    local isMyOwnVeh = veh.ownerID == ctxt.user.playerID
     local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsSpectating = veh.spectators[veh.ownerID]
@@ -212,7 +212,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             if isMyCurrentVeh then
                 zOffset = veh.vehicleHeight / 2
             end
-            tagPos.z = tagPos.z - zOffset
+            tagPos.z = tagPos.z + zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
@@ -258,7 +258,7 @@ end
 ---@param forcedTextColor? BJIColor
 ---@param forcedBgColor? BJIColor
 local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
-    local isMyOwnVeh = veh.isLocal
+    local isMyOwnVeh = veh.ownerID == ctxt.user.playerID
     local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsDriving = veh.spectators[veh.ownerID]
@@ -279,7 +279,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             if isMyCurrentVeh then
                 zOffset = veh.vehicleHeight / 2
             end
-            tagPos.z = tagPos.z - zOffset
+            tagPos.z = tagPos.z + zOffset
 
             BJI.Utils.ShapeDrawer.Text(label, tagPos,
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
@@ -314,11 +314,11 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
         end
 
-        local zOffset = 0
+        local zOffset = veh.vehicleHeight
         if isMyCurrentVeh then
-            zOffset = veh.vehicleHeight / 2
+            zOffset = zOffset / 2
         end
-        tagPos.z = tagPos.z - zOffset
+        tagPos.z = tagPos.z + zOffset
 
         BJI.Utils.ShapeDrawer.Text(label, tagPos,
             forcedTextColor or getNametagColor(alpha, false, not ownerIsDriving),

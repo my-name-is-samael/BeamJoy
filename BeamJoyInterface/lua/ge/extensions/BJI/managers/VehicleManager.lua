@@ -78,11 +78,12 @@ local function getMPVehicles()
             if veh and posRot then
                 pos, rot = posRot.pos, posRot.rot
                 vehicleHeight = veh:getInitialHeight()
-                pos.z = pos.z + vehicleHeight -- preApply vehHeight
             else
                 pos, rot = vec3(), quat()
                 vehicleHeight = 0
             end
+        else
+            pos.z = pos.z - vehicleHeight
         end
         return {
             gameVehicleID = v.gameVehicleID,
