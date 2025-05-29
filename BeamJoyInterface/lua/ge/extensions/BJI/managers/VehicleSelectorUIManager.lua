@@ -353,23 +353,8 @@ local function onUpdateRestrictions()
     end
 end
 
-local function onUnload()
-    -- vehicle selector
-    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
-    core_vehicles.requestList = M.baseFunctions.requestList
-    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
-    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
-    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
-    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
-    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
-    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
-    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
-    -- vehicle configuration
-    local jbeamIO = require('jbeam/io')
-    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
-end
-
-local function onLoad()
+local listeners = Table()
+M.onLoad = function()
     -- vehicle selector
     M.baseFunctions.openSelectorUI = core_vehicles.openSelectorUI
     M.baseFunctions.requestList = core_vehicles.requestList
@@ -395,14 +380,28 @@ local function onLoad()
     M.baseFunctions.getAvailableParts = jbeamIO.getAvailableParts
     jbeamIO.getAvailableParts = getAvailableParts
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener({
+    listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-    }, onUpdateRestrictions, M._name)
+    }, onUpdateRestrictions, M._name))
 end
 
-M.onLoad = onLoad
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    -- vehicle selector
+    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
+    core_vehicles.requestList = M.baseFunctions.requestList
+    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
+    core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
+    core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
+    core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
+    core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
+    core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
+    core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
+    -- vehicle configuration
+    local jbeamIO = require('jbeam/io')
+    jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
+end
 
 return M

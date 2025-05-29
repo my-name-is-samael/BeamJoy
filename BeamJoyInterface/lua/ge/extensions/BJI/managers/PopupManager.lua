@@ -81,4 +81,8 @@ M.createModal = createModal
 M.createButton = createButton
 M.closeModal = closeModal
 
+M.onUnload = function()
+    M.callbacks = {}
+end
+
 return M

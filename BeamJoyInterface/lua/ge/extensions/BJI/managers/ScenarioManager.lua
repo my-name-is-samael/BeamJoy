@@ -435,41 +435,6 @@ local function get(type)
     return M.scenarii[type]
 end
 
-local function onLoad()
-    initScenarii()
-
-    -- init cache handlers
-    table.forEach({
-        [BJI.Managers.Cache.CACHES.RACE] = M.TYPES.RACE_MULTI,
-        [BJI.Managers.Cache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
-        [BJI.Managers.Cache.CACHES.SPEED] = M.TYPES.SPEED,
-        [BJI.Managers.Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
-        [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
-        --[BJICache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
-    }, function(scenarioType, cacheName)
-        BJI.Managers.Cache.addRxHandler(cacheName, function(cacheData)
-            local sc = M.get(scenarioType)
-            if type(sc.rxData) == "function" then
-                local ok, err = pcall(sc.rxData, cacheData)
-                if not ok then
-                    LogError(string.var("RxCache failed (cache {1}, scenario {2}): {3}",
-                        { cacheName, scenarioType, err }))
-                end
-            end
-        end)
-    end)
-
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, onDropPlayerAtCamera, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
-        onDropPlayerAtCameraNoReset, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
-end
-
 M.updateVehicles = updateVehicles
 M.onGarageRepair = onGarageRepair
 
@@ -509,7 +474,55 @@ M.isServerScenarioInProgress = isServerScenario
 M.is = is
 M.get = get
 
-M.onLoad = onLoad
 M.renderTick = renderTick
+
+local listeners = Table()
+M.onLoad = function()
+    initScenarii()
+
+    -- init cache handlers
+    table.forEach({
+        [BJI.Managers.Cache.CACHES.RACE] = M.TYPES.RACE_MULTI,
+        [BJI.Managers.Cache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
+        [BJI.Managers.Cache.CACHES.SPEED] = M.TYPES.SPEED,
+        [BJI.Managers.Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
+        [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
+        --[BJICache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
+    }, function(scenarioType, cacheName)
+        BJI.Managers.Cache.addRxHandler(cacheName, function(cacheData)
+            local sc = M.get(scenarioType)
+            if type(sc.rxData) == "function" then
+                local ok, err = pcall(sc.rxData, cacheData)
+                if not ok then
+                    LogError(string.var("RxCache failed (cache {1}, scenario {2}): {3}",
+                        { cacheName, scenarioType, err }))
+                end
+            end
+        end)
+    end)
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA,
+        onDropPlayerAtCamera, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
+        onDropPlayerAtCameraNoReset, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.TYPES = {}
+    M.solo = {}
+    M.multi = {}
+    M.CurrentScenario = nil
+    M.scenarii = {}
+end
 
 return M

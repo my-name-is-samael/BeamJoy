@@ -68,11 +68,7 @@ local function updateQuickTravelState()
     end
 end
 
-local function onUnload()
-    extensions.gameplay_rawPois.getRawPoiListByLevel = M.baseFunctions.getRawPoiListByLevel
-    extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = M.baseFunctions.formatPoiForBigmap
-end
-
+local listeners = Table()
 local function onLoad()
     if extensions.gameplay_rawPois then
         M.baseFunctions.getRawPoiListByLevel = extensions.gameplay_rawPois.getRawPoiListByLevel
@@ -81,8 +77,7 @@ local function onLoad()
         M.baseFunctions.formatPoiForBigmap = extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap
         extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = formatPoiForBigmap
     end
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener({
+    listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
@@ -91,9 +86,16 @@ local function onLoad()
             data.cache == BJI.Managers.Cache.CACHES.BJC then
             updateQuickTravelState()
         end
-    end, M._name)
+    end, M._name))
+end
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    extensions.gameplay_rawPois.getRawPoiListByLevel = M.baseFunctions.getRawPoiListByLevel
+    extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = M.baseFunctions.formatPoiForBigmap
 end
 
 M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

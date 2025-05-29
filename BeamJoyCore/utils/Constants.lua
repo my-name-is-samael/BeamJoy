@@ -23,6 +23,7 @@ BJC_EVENTS = {
             TELEPORT_TO_PLAYER = "teleportToPlayer",
             TELEPORT_TO_POS = "teleportToPos",
             EXPLODE_VEHICLE = "explodeVehicle",
+            RECONNECT = "reconnect",
         },
         RX = {
             CONNECTED = "connected",

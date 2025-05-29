@@ -97,4 +97,8 @@ M.nextStop = nextStop
 
 M.reset = reset
 
+M.onUnload = function()
+    M.tasklist = {}
+end
+
 return M

@@ -133,20 +133,24 @@ local function renderTick(ctxt)
     end
 end
 
-local function onLoad()
-    extensions.core_input_actionFilter.setGroup(M._tag, {})
-    extensions.core_input_actionFilter.addAction(0, M._tag, false)
-
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-end
-
 M.updateResets = updateResets
 M.updateCEN = updateCEN
 M.update = update
 M.getCurrentResets = getCurrentResets
 M.getState = getState
 
-M.onLoad = onLoad
 M.renderTick = renderTick
+
+local listeners = Table()
+M.onLoad = function()
+    extensions.core_input_actionFilter.setGroup(M._tag, {})
+    extensions.core_input_actionFilter.addAction(0, M._tag, false)
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M._restrictions = Table({ "pause", "toggleTrackBuilder" })
+end
 
 return M

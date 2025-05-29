@@ -75,9 +75,17 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     end
 end
 
+local listeners = Table()
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+end
+
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.morningSwitched = {}
+    M.nightSwitched = {}
 end
 
 return M

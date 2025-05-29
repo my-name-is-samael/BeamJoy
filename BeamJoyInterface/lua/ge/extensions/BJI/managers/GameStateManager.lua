@@ -51,4 +51,11 @@ end
 
 M.updateMenuItems = updateMenuItems
 
+M.onUnload = function()
+    M.state = {}
+    M._defaultAppLayout = ""
+    M._defaultMenuItems = ""
+    M._defaultState = ""
+end
+
 return M

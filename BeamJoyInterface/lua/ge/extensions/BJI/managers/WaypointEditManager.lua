@@ -226,18 +226,13 @@ local function renderTick(ctxt)
     end
 end
 
-local function onUnload()
-    M.reset()
-end
-
 M.reset = reset
 M.setWaypoints = setWaypoints
 M.setWaypointsWithSegments = setWaypointsWithSegments
 
-M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-end
 M.renderTick = renderTick
+
+M.onUnload = reset
 
 reset()
 return M

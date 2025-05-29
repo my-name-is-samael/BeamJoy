@@ -21,7 +21,9 @@ local function onLoad()
 end
 
 local function onUnload()
-    W.type.onUnload()
+    if W.type then
+        W.type.onUnload()
+    end
     W.type = nil
 end
 

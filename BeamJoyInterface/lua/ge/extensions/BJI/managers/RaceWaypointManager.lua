@@ -506,10 +506,8 @@ M.addWaypoint = addWaypoint
 M.getPB = getPB
 M.setPB = setPB
 
-M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-end
 M.renderTick = renderTick
 
+M.onUnload = onUnload
 
 return M

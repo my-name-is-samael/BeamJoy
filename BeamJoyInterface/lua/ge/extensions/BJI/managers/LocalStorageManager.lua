@@ -141,63 +141,6 @@ local function sanitizeMapRacesPBs()
     end
 end
 
-local listeners = Table()
-
-local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
-end
-
-local function onLoad()
-    ---@param parent table
-    ---@param storageKey string
-    ---@param cacheKey string
-    ---@param defaultValue any
-    local function initStorageKey(parent, storageKey, cacheKey, defaultValue)
-        local value = settings.getValue(storageKey)
-        if value == nil then
-            parent[cacheKey] = defaultValue
-            local payload = type(defaultValue) == "table" and
-                jsonEncode(defaultValue) or
-                tostring(defaultValue)
-            LogDebug(string.var("Assigning default setting value \"{1}\" to \"{2}\"", { cacheKey, payload }))
-            settings.setValue(storageKey, payload)
-        else
-            if type(defaultValue) == "table" then
-                parent[cacheKey] = jsonDecode(value)
-            elseif type(defaultValue) == "number" then
-                parent[cacheKey] = tonumber(value)
-            elseif type(defaultValue) == "boolean" then
-                parent[cacheKey] = value == "true" and true or false
-            else
-                parent[cacheKey] = value
-            end
-        end
-    end
-    ---@param el LocalStorageElement
-    table.forEach(M.GLOBAL_VALUES, function(el)
-        initStorageKey(M.data.global, el.key, el.key, el.default)
-    end)
-
-    local srvIP = getServerIP()
-    if srvIP then
-        ---@param el LocalStorageElement
-        table.forEach(M.VALUES, function(el)
-            local key = string.var("{1}-{2}-{3}", { VALUES_KEY, srvIP, el.key })
-            initStorageKey(M.data.values, key, el.key, el.default)
-        end)
-    end
-
-    BJI.Managers.Async.task(function()
-        return not not BJI.Managers.Context.Scenario.Data.Races
-    end, sanitizeMapRacesPBs)
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if table.includes({ BJI.Managers.Cache.CACHES.RACES }, data.cache) then
-            sanitizeMapRacesPBs()
-        end
-    end, M._name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name))
-end
-
 ---@param key LocalStorageElement
 ---@return any
 local function get(key)
@@ -253,6 +196,59 @@ end
 M.get = get
 M.set = set
 
-M.onLoad = onLoad
+local listeners = Table()
+M.onLoad = function()
+    ---@param parent table
+    ---@param storageKey string
+    ---@param cacheKey string
+    ---@param defaultValue any
+    local function initStorageKey(parent, storageKey, cacheKey, defaultValue)
+        local value = settings.getValue(storageKey)
+        if value == nil then
+            parent[cacheKey] = defaultValue
+            local payload = type(defaultValue) == "table" and
+                jsonEncode(defaultValue) or
+                tostring(defaultValue)
+            LogDebug(string.var("Assigning default setting value \"{1}\" to \"{2}\"", { cacheKey, payload }))
+            settings.setValue(storageKey, payload)
+        else
+            if type(defaultValue) == "table" then
+                parent[cacheKey] = jsonDecode(value)
+            elseif type(defaultValue) == "number" then
+                parent[cacheKey] = tonumber(value)
+            elseif type(defaultValue) == "boolean" then
+                parent[cacheKey] = value == "true" and true or false
+            else
+                parent[cacheKey] = value
+            end
+        end
+    end
+    ---@param el LocalStorageElement
+    table.forEach(M.GLOBAL_VALUES, function(el)
+        initStorageKey(M.data.global, el.key, el.key, el.default)
+    end)
+
+    local srvIP = getServerIP()
+    if srvIP then
+        ---@param el LocalStorageElement
+        table.forEach(M.VALUES, function(el)
+            local key = string.var("{1}-{2}-{3}", { VALUES_KEY, srvIP, el.key })
+            initStorageKey(M.data.values, key, el.key, el.default)
+        end)
+    end
+
+    BJI.Managers.Async.task(function()
+        return not not BJI.Managers.Context.Scenario.Data.Races
+    end, sanitizeMapRacesPBs)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if table.includes({ BJI.Managers.Cache.CACHES.RACES }, data.cache) then
+            sanitizeMapRacesPBs()
+        end
+    end, M._name))
+end
+
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
 
 return M

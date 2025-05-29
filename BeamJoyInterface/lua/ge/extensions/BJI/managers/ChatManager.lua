@@ -98,16 +98,16 @@ local function fastTick(ctxt)
     end
 end
 
-local function onUnload()
-    M.msgCounter = 1
-    M.queue = {}
-end
-
 M.onChat = onChat
 
+local listeners = Table()
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.msgCounter = 1
+    M.queue = {}
 end
 
 return M

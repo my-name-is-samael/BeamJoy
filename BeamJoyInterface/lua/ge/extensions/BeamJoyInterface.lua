@@ -27,9 +27,14 @@ require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
 require("ge/extensions/utils/Icons")
 
+local M = {
+    dependencies = { "ui_imgui" },
+}
+
 BJI = {
     VERSION = "1.2.0",
     tag = "BJI",
+    MOD_LOADED = false,
     CLIENT_READY = false,
     CONSTANTS = require("ge/extensions/utils/Constants"),
     Utils = {},
@@ -39,8 +44,9 @@ BJI = {
     Physics = {
         physmult = 1,
     },
+    WorldReadyState = 0,
 
-    ---@type fun(ctxt: TickContext)|table|string|number|boolean|nil
+    ---@type fun(ctxt: TickContext): any|table|string|number|boolean|nil
     DEBUG = nil,
 }
 BJI.Utils.ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
@@ -71,53 +77,6 @@ local function initManagers()
     BJI.Tx = require("ge/extensions/BJI/tx/Tx")
     BJI.Rx = require("ge/extensions/BJI/rx/Rx")
 end
-initManagers()
-
-
-local M = {
-    dependencies = { "ui_imgui" },
-}
-
-local function _initGUI()
-    require("ge/extensions/editor/api/gui")
-        .initialize(BJI.Managers.Context.GUI)
-end
-
-function M.onExtensionLoaded()
-    require("ge/extensions/BJI/ui/Builders")
-    _initGUI()
-
-    ---@param manager BJIManager
-    Table(BJI.Managers):forEach(function(manager)
-        if type(manager.onLoad) == "function" then
-            local ok, err = pcall(manager.onLoad)
-            if not ok then
-                LogError(string.var("Error executing onLoad in BJI.Managers.{1} : {2}", { manager._name, err }), BJI.tag)
-            end
-        end
-    end)
-
-    LogInfo(string.var("BJI v{1} Extension Loaded", { BJI.VERSION }), BJI.tag)
-end
-
-M.onInit = function()
-    setExtensionUnloadMode(M, "manual")
-end
-
-M.onWorldReadyState = function(state)
-    BJI.Managers.Context.WorldReadyState = state
-end
-
-M.onPreRender = function() end
-M.onUpdate = function(...)
-    if not BJI.CLIENT_READY and BJI.Managers.Context.WorldReadyState == 2 and
-        ui_imgui.GetIO().Framerate > 5 then
-        BJI.CLIENT_READY = true
-        BJI.Tx.player.connected()
-    end
-
-    BJI.Managers.Tick.client()
-end
 
 local function bindNGHooks()
     Table({
@@ -136,17 +95,74 @@ local function bindNGHooks()
         end
     end)
 end
-bindNGHooks()
+
+local function initGUI()
+    require("ge/extensions/editor/api/gui")
+        .initialize(BJI.Managers.Context.GUI)
+end
+
+function M.onExtensionLoaded()
+    require("ge/extensions/BJI/ui/Builders")
+
+    initManagers()
+    bindNGHooks()
+    initGUI()
+
+    ---@param manager BJIManager
+    Table(BJI.Managers):forEach(function(manager)
+        if type(manager.onLoad) == "function" then
+            local ok, err = pcall(manager.onLoad)
+            if not ok then
+                LogError(string.var("Error executing onLoad in BJI.Managers.{1} : {2}", { manager._name, err }), BJI.tag)
+            end
+        end
+    end)
+
+    LogInfo(string.var("BJI v{1} Extension Loaded", { BJI.VERSION }), BJI.tag)
+    BJI.MOD_LOADED = true
+end
+
+M.onInit = function()
+    setExtensionUnloadMode(M, "manual")
+end
+
+M.onWorldReadyState = function(state)
+    BJI.WorldReadyState = state
+end
+
+M.onPreRender = function() end
+M.onUpdate = function(...)
+    if BJI.MOD_LOADED then
+        if not BJI.CLIENT_READY and BJI.WorldReadyState == 2 and
+            ui_imgui.GetIO().Framerate > 5 then
+            BJI.CLIENT_READY = true
+            BJI.Tx.player.connected()
+        end
+
+        if BJI.Managers.Tick then
+            BJI.Managers.Tick.client()
+        end
+    end
+end
 
 M.setPhysicsSpeed = function(val)
     BJI.Physics.physmult = val
 end
 
 function M.onExtensionUnloaded()
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ON_UNLOAD)
-    LogInfo(string.var("BJI v{1} Extension Unloaded", { BJI.VERSION }), BJI.tag)
+    BJI.WorldReadyState = 0
+    ---@param manager BJIManager
+    Table(BJI.Managers):forEach(function(manager)
+        if type(manager.onLoad) == "function" then
+            local ok, err = pcall(manager.onLoad)
+            if not ok then
+                LogError(string.var("Error executing onLoad in BJI.Managers.{1} : {2}", { manager._name, err }), BJI.tag)
+            end
+        end
+    end)
 
-    BJI = nil
+    LogInfo(string.var("BJI v{1} Extension Unloaded", { BJI.VERSION }), BJI.tag)
+    BJI.MOD_LOADED = false
 end
 
 return M
@@ -156,12 +172,15 @@ return M
 -- hide/show ui apps
 -- guihooks.trigger('ShowApps', true/false)
 
--- get map height below pos
--- be:getSurfaceHeightBelow(vec3)
-
 -- if stuck in loading screen during disconnect => core_gamestate.requestExitLoadingScreen("serverConnection")
 
 --- Game functions we cannot hook onto (guess we are unlucky) :
 --- core_repository.requestMyMods (on open mods menu > tab my mods)
 --- core_vehicle_partmgmt.savedefault (on save default config)
 --- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
+
+
+-- Enable manual vehicle AI:
+-- BJI.Managers.Restrictions.update({{restrictions = {"toggleAITraffic"}, state = false}})
+
+-- extensions.ui_apps.isAppOnLayout(appName)

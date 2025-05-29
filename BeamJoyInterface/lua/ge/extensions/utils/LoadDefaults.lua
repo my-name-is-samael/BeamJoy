@@ -66,13 +66,14 @@ GetMapName = function()
     local map = mission:gsub("/levels/", ""):gsub("/.+%.json", "")
     return #map > 0 and map or nil
 end
+endActiveGameMode = endActiveGameMode or function(callback) end
 
 nop = nop or {}
 be = be or {}
 commands = commands or {}
 extensions = extensions or {}
-core_modmanager = core_modmanager or {}
-core_repository = core_repository or {}
+extensions.core_modmanager = extensions.core_modmanager or {}
+extensions.core_repository = extensions.core_repository or {}
 core_vehicle_partmgmt = core_vehicle_partmgmt or {}
 gameplay_traffic = gameplay_traffic or {}
 core_multiSpawn = core_multiSpawn or {}

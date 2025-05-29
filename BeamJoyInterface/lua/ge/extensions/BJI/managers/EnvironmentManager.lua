@@ -100,6 +100,8 @@ local function cacheWorldObjects()
                 end
             end
         end)
+    LogWarn("World objects env cached")
+    dump(M.cachedWorldObjects)
 end
 
 --- Fog color needs to be applied after core_env update
@@ -107,7 +109,9 @@ local function applyFogColor()
     local newFogColor = Point4F(M.Data.fogColor[1],
         M.Data.fogColor[2], M.Data.fogColor[3], 1)
     if M.cachedWorldObjects.LevelInfo then
-        M.cachedWorldObjects.LevelInfo.visibleDistance = M.Data.visibleDistance
+        if M.Data.visibleDistance then -- auto reconnect crash fix
+            M.cachedWorldObjects.LevelInfo.visibleDistance = M.Data.visibleDistance
+        end
         M.cachedWorldObjects.LevelInfo.fogColor = newFogColor
         M.cachedWorldObjects.LevelInfo:postApply()
     end
@@ -271,16 +275,14 @@ local function _tryApplyWeather()
 end
 
 local function _tryApplyTemperature()
-    if M.Data.useTempCurve then
-        if M.cachedWorldObjects.LevelInfo then
-            M.cachedWorldObjects.LevelInfo:setTemperatureCurveC({
-                { 0,    M.Data.tempCurveNoon },
-                { 0.25, M.Data.tempCurveDusk },
-                { 0.5,  M.Data.tempCurveMidnight },
-                { 0.75, M.Data.tempCurveDawn },
-                { 1,    M.Data.tempCurveNoon }
-            })
-        end
+    if M.Data.useTempCurve and M.cachedWorldObjects.LevelInfo then
+        M.cachedWorldObjects.LevelInfo:setTemperatureCurveC({
+            { 0,    M.Data.tempCurveNoon },
+            { 0.25, M.Data.tempCurveDusk },
+            { 0.5,  M.Data.tempCurveMidnight },
+            { 0.75, M.Data.tempCurveDawn },
+            { 1,    M.Data.tempCurveNoon }
+        })
     end
 end
 
@@ -300,15 +302,18 @@ local function _tryApplyGravity()
 end
 
 local function forceUpdate()
-    _tryApplyTime()
-    _tryApplySun()
-    _tryApplyWeather()
-    _tryApplyTemperature()
-    _tryApplyDayNightSunValues()
+    if BJI.WorldReadyState == 2 and
+        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+        _tryApplyTime()
+        _tryApplySun()
+        _tryApplyWeather()
+        _tryApplyTemperature()
+        _tryApplyDayNightSunValues()
+    end
 end
 
 local function slowTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 and
+    if BJI.WorldReadyState == 2 and
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
         _tryApplyTime()
         _tryApplySun()
@@ -319,7 +324,7 @@ local function slowTick(ctxt)
 end
 
 local function fastTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 then
+    if BJI.WorldReadyState == 2 then
         -- disable pause on multiplayer
         if bullettime:getPause() then
             --_be:toggleEnabled()
@@ -382,7 +387,7 @@ local lastRenderTick = nil
 local lastToD = nil
 ---@param ctxt TickContext
 local function renderTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 and
+    if BJI.WorldReadyState == 2 and
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
         if M.Data.controlSun and M.Data.timePlay then -- ToD auto-update
             if lastRenderTick then
@@ -413,6 +418,7 @@ local function renderTick(ctxt)
     end
 end
 
+local listeners = Table()
 local function onLoad()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.ENVIRONMENT, function(cacheData)
         local previous = table.clone(M.Data)
@@ -448,11 +454,19 @@ local function onLoad()
     end)
 
     BJI.Managers.Async.task(function()
-        return BJI.Managers.Context.WorldReadyState == 2
+        return BJI.WorldReadyState == 2
     end, cacheWorldObjects)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
+end
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.cachedWorldObjects = {}
+    M.init = false
+    M.ToDEdit = false
+    M.freecamFogEnabled = false
 end
 
 local function getTime()
@@ -471,5 +485,6 @@ M.forceUpdate = forceUpdate
 M.renderTick = renderTick
 
 M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

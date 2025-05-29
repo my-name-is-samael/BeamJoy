@@ -213,4 +213,10 @@ M.clear = clear
 -- init hotlapping app
 extensions.load({ 'core_hotlapping' })
 
+M.onUnload = function()
+    M.lap = {}
+    M.waypoint = {}
+    M.hotlap = {}
+end
+
 return M

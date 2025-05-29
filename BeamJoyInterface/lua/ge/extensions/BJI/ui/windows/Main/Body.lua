@@ -442,6 +442,19 @@ local function draw(ctxt)
     if type(cache.data.playersFn) == "function" then
         cache.data.playersFn(ctxt, cache)
     end
+
+    LineBuilder():btn({
+        id = "debugRestart",
+        label = "reconnect DEBUG",
+        onClick = function()
+            local srvData = MPCoreNetwork.getCurrentServer()
+            extensions.unload("BeamJoyInterface")
+            MPCoreNetwork.leaveServer()
+            endActiveGameMode(function()
+                MPCoreNetwork.connectToServer(srvData.ip, srvData.port, srvData.name)
+            end)
+        end,
+    })
 end
 
 return {

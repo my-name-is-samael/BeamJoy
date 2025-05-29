@@ -444,14 +444,15 @@ M.getNametagBgColor = getNametagBgColor
 M.renderTick = renderTick
 M.getPlayerTagName = getPlayerTagName
 
+local listeners = Table()
 M.onLoad = function()
     updateLabels()
-    BJI.Managers.Events.addListener({
+    listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener({
+    }, updateLabels, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
@@ -460,7 +461,11 @@ M.onLoad = function()
             data.cache == BJI.Managers.Cache.CACHES.BJC then
             updateState()
         end
-    end, M._name)
+    end, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.cache.vehTypes = {}
 end
 
 return M

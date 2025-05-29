@@ -36,4 +36,13 @@ function ctrl.explodeVehicle(data)
     BJI.Managers.Veh.explodeVehicle(gameVehID)
 end
 
+function ctrl.reconnect()
+    local srvData = MPCoreNetwork.getCurrentServer()
+    extensions.unload("BeamJoyInterface")
+    MPCoreNetwork.leaveServer()
+    endActiveGameMode(function()
+        MPCoreNetwork.connectToServer(srvData.ip, srvData.port, srvData.name)
+    end)
+end
+
 return ctrl

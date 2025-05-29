@@ -59,13 +59,6 @@ local function navigateToMission(poiID)
     end
 end
 
-local function onUnload()
-    M.reset()
-    if M.baseFunctions.navigateToMission then
-        freeroam_bigMapMode.navigateToMission = M.baseFunctions.navigateToMission
-    end
-end
-
 local function isClearable()
     for _, t in ipairs(M.targets) do
         if t.clearable == true then
@@ -340,6 +333,7 @@ local function slowTick()
         end)
 end
 
+local listeners = Table()
 local function onLoad()
     if freeroam_bigMapMode then
         M.baseFunctions.navigateToMission = freeroam_bigMapMode.navigateToMission
@@ -347,9 +341,16 @@ local function onLoad()
         freeroam_bigMapMode.navigateToMission = navigateToMission
     end
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
+end
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.reset()
+    if M.baseFunctions.navigateToMission then
+        freeroam_bigMapMode.navigateToMission = M.baseFunctions.navigateToMission
+    end
 end
 
 M.isClearable = isClearable
@@ -364,5 +365,6 @@ M.getCurrentRouteLength = getCurrentRouteLength
 M.getRouteLength = getRouteLength
 
 M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

@@ -1417,55 +1417,6 @@ local function forceVehsSync(ctxt)
     end
 end
 
-local function onUnload()
-    extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
-    extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
-end
-
-M.onLoad = function()
-    -- update configs cache when saving/overwriting/deleting a config
-    BJI.Managers.Async.task(function()
-        return not not extensions.core_vehicle_partmgmt and not not extensions.util_screenshotCreator
-    end, function()
-        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
-        M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
-
-        extensions.util_screenshotCreator.startWork = function(...)
-            M.baseFunctions.saveConfigBaseFunction(...)
-            BJI.Managers.Async.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
-            end, 3000, "BJIVehPostSaveConfig")
-        end
-        extensions.core_vehicle_partmgmt.removeLocal = function(...)
-            M.baseFunctions.removeConfigBaseFunction(...)
-            BJI.Managers.Async.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
-            end, 1000, "BJIVehPostRemoveConfig")
-        end
-    end, "BJIVehSaveRemoveConfigOverride")
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-    }, function(ctxt, data)
-        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.BJC then
-            onUpdateRestrictions(ctxt)
-        end
-    end, M._name)
-
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, forceVehsSync, M._name)
-end
-
 M.isGEInit = isGEInit
 M.getMPVehicles = getMPVehicles
 M.getMPOwnVehicles = getMPOwnVehicles
@@ -1546,5 +1497,57 @@ M.updateVehDamages = updateVehDamages
 
 M.postResetPreserveEnergy = postResetPreserveEnergy
 M.compareConfigs = compareConfigs
+
+local listeners = Table()
+M.onLoad = function()
+    -- update configs cache when saving/overwriting/deleting a config
+    BJI.Managers.Async.task(function()
+        return not not extensions.core_vehicle_partmgmt and not not extensions.util_screenshotCreator
+    end, function()
+        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
+        M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
+
+        extensions.util_screenshotCreator.startWork = function(...)
+            M.baseFunctions.saveConfigBaseFunction(...)
+            BJI.Managers.Async.delayTask(function()
+                M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
+            end, 3000, "BJIVehPostSaveConfig")
+        end
+        extensions.core_vehicle_partmgmt.removeLocal = function(...)
+            M.baseFunctions.removeConfigBaseFunction(...)
+            BJI.Managers.Async.delayTask(function()
+                M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
+            end, 1000, "BJIVehPostRemoveConfig")
+        end
+    end, "BJIVehSaveRemoveConfigOverride")
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+
+    listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, function(ctxt, data)
+        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI.Managers.Cache.CACHES.BJC then
+            onUpdateRestrictions(ctxt)
+        end
+    end, M._name))
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, forceVehsSync, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
+    extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
+end
 
 return M

@@ -42,10 +42,18 @@ local function fastTick(ctxt)
     M.lastCached = math.floor(gameplay_drift_scoring.getScore().cachedScore)
 end
 
+local listeners = Table()
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED,
+        onDriftCompletedScored, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.lastCached = 0
+    M.nextScoreCancel = false
 end
 
 return M

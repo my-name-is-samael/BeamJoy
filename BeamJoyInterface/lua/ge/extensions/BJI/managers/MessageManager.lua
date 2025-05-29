@@ -175,4 +175,8 @@ M.message = message
 
 M.renderTick = renderTick
 
+M.onUnload = function()
+    M.flashQueue:clear()
+end
+
 return M

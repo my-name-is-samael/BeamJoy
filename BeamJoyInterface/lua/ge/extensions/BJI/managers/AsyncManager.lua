@@ -127,6 +127,11 @@ local function renderTick(ctxt)
     end
 end
 
+local function onUnload()
+    M.tasks = {}
+    M.delayedTasks = {}
+end
+
 M.exists = exists
 M.getRemainingDelay = getRemainingDelay
 
@@ -136,5 +141,6 @@ M.programTask = programTask
 M.removeTask = removeTask
 
 M.renderTick = renderTick
+M.onUnload = onUnload
 
 return M

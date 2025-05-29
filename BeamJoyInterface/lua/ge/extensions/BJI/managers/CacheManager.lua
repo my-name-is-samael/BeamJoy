@@ -183,4 +183,12 @@ M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 
+M.onUnload = function()
+    M._hashes = {}
+    M._states = {}
+    M._firstLoaded = {}
+    M._firstInit = false
+    M.CACHE_HANDLERS = {}
+end
+
 return M

@@ -143,12 +143,7 @@ local function onUpdateState()
     end
 end
 
-local function onUnload()
-    gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
-    gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
-    core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
-end
-
+local listeners = Table()
 local function onLoad()
     -- ge/extensions/core/quickAccess.lua:registerDefaultMenus()
 
@@ -185,15 +180,23 @@ local function onLoad()
         end
     end, "BJIAsyncInitMultispawn")
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, onVehicleRemoved, M._name)
-    BJI.Managers.Events.addListener({
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, updateVehicle, M
+        ._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, onVehicleRemoved,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-    }, onUpdateState, M._name)
+    }, onUpdateState, M._name))
+end
+
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
+    gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
+    core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
 end
 
 M.isTrafficSpawned = isTrafficSpawned
@@ -204,5 +207,6 @@ M.updateAllAIVehicles = updateAllAIVehicles
 M.isAIVehicle = isAIVehicle
 
 M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

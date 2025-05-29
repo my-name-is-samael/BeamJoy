@@ -46,7 +46,6 @@ local M = {
 
         -- tech events
 
-        ON_UNLOAD = "on_unload",
         SLOW_TICK = "slow_tick",
         FAST_TICK = "fast_tick",
         CACHE_LOADED = "cache_loaded",
@@ -180,18 +179,17 @@ local function renderTick(ctxt)
     end
 end
 
-local function onUnload()
-    table.clear(M.listeners)
-    table.clear(M.queued)
-end
+
 
 M.addListener = addListener
 M.removeListener = removeListener
 M.trigger = trigger
 
-M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-end
 M.renderTick = renderTick
+
+M.onUnload = function()
+    table.clear(M.listeners)
+    table.clear(M.queued)
+end
 
 return M

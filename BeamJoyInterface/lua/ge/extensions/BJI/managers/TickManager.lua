@@ -65,7 +65,7 @@ end
 
 -- ClientTick (each render tick)
 local function client()
-    if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
+    if BJI.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
         local ctxt = getContext()
         Table(BJI.Managers):forEach(function(m)
             if m.renderTick then
@@ -124,5 +124,9 @@ M.server = server
 
 M.getAvgOffsetMs = getAvgOffsetMs
 M.applyTimeOffset = applyTimeOffset
+
+M.onUnload = function()
+    M.timeOffsets = {}
+end
 
 return M

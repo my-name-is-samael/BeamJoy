@@ -167,19 +167,6 @@ local function renderTick(ctxt)
     BJI.Utils.Style.ResetStyles()
 end
 
-local function onUnload()
-    M.windows:filter(function(w) return M.showStates[w.name] end)
-        :forEach(function(w)
-            if w.onUnload then
-                w.onUnload()
-            end
-            M.showStates[w.name] = nil
-            M.windows[w.name] = nil
-            BJI.Managers.Context.GUI.hideWindow(w.name)
-        end)
-    M.loaded = false
-end
-
 local function onLoad()
     Table(FS:directoryList("/lua/ge/extensions/BJI/ui/windows"))
         :filter(function(path)
@@ -196,12 +183,25 @@ local function onLoad()
         end
     end)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-
     M.loaded = true
 end
 
-M.onLoad = onLoad
+local function onUnload()
+    M.windows:filter(function(w) return M.showStates[w.name] end)
+        :forEach(function(w)
+            if w.onUnload then
+                w.onUnload()
+            end
+            M.showStates[w.name] = nil
+            M.windows[w.name] = nil
+            BJI.Managers.Context.GUI.hideWindow(w.name)
+        end)
+    M.loaded = false
+end
+
 M.renderTick = renderTick
+
+M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

@@ -43,7 +43,6 @@ local M = {
         setupEditorGuiTheme = nop,
     },
 
-    WorldReadyState = 0,
     VehiclePristineThreshold = 100,
 
     UI = {
@@ -539,5 +538,27 @@ end
 M.isSelf = isSelf
 
 M.onLoad = onLoad
+M.onUnload = function()
+    M.User = {
+        playerID = 0,
+        playerName = "",
+        freeze = false,
+        engine = true,
+        vehicles = {},
+    }
+    M.Players = {}
+    M.Scenario = {
+        Data = {},
+    }
+    M.Config = {}
+    M.Database = {}
+    M.Maps = {}
+    M.Scenarii = {}
+    M.BJC = {}
+    M.UI = {
+        mapName = "",
+        mapLabel = "",
+    }
+end
 
 return M

@@ -104,9 +104,16 @@ M.vehicleTeleported = onResetOrTeleport
 
 M.onGarageRepair = onGarageRepair
 
-M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-end
 M.renderTick = renderTick
+
+local listeners = Table()
+M.onLoad = function()
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+end
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.reputation = nil
+    M.kmReward = {}
+end
 
 return M

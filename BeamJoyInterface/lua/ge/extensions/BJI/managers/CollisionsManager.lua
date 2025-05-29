@@ -370,10 +370,7 @@ end
 
 local listeners = Table()
 
-local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
-end
-
+local listeners = Table()
 local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
@@ -392,15 +389,24 @@ local function onLoad()
         end
     end, M._name))
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDeleted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDeleted,
+        M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
 end
 
-M.onLoad = onLoad
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
 M.checkAIVehicles = checkAIVehicles
 M.renderTick = renderTick
+
+M.onLoad = onLoad
+M.onUnload = onUnload
 
 return M

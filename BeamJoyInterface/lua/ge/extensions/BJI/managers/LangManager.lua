@@ -91,5 +91,9 @@ M.get = get
 M.drawSelector = drawSelector
 
 M.onLoad = onLoad
+M.onUnload = function()
+    M.Langs = {}
+    M.Messages = {}
+end
 
 return M

@@ -279,6 +279,7 @@ local function onCameraChange(newCamera)
     end
 end
 
+local listeners = Table()
 local function onLoad()
     if M.getCamera() == M.CAMERAS.FREE then
         M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
@@ -286,8 +287,8 @@ local function onLoad()
 
     initKey = BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED, onConnection)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name))
 end
 
 M.getCamera = getCamera
@@ -314,7 +315,13 @@ M.setFOV = setFOV
 
 M.onCameraChange = onCameraChange
 
-M.onLoad = onLoad
 M.renderTick = renderTick
+
+M.onLoad = onLoad
+M.onUnload = function()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+    M.restricted = {}
+    M.lastCamera = nil
+end
 
 return M

@@ -54,3 +54,7 @@ end
 function BJCTx.player.explodeVehicle(gameVehID)
     BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.EXPLODE_VEHICLE, BJCTx.ALL_PLAYERS, gameVehID)
 end
+
+function BJCTx.player.reconnect()
+    BJCTx.sendToPlayer(eventName, BJC_EVENTS.PLAYER.TX.RECONNECT, BJCTx.ALL_PLAYERS)
+end

@@ -122,7 +122,7 @@ local function setMap(mapName)
     local newFullName = string.var("{1}{2}{3}", { M._mapFullNamePrefix, mapName, M._mapFullNameSuffix })
 
     local messagesCache = {}
-    CountdownKickAll(6, function(player, delaySec)
+    --[[CountdownKickAll(6, function(player, delaySec)
         if not messagesCache[player.lang] then
             messagesCache[player.lang] = BJCLang.getServerMessage(player.lang, "mapSwitch.kickIn")
         end
@@ -140,7 +140,12 @@ local function setMap(mapName)
         else
             BJCScenario.reload()
         end
-    end)
+    end)]]
+    M.Data.General.Map = newFullName
+    MP.Set(MP.Settings.Map, newFullName)
+    writeServerConfig()
+    BJCScenario.reload()
+    BJCTx.player.reconnect()
 end
 
 local function consoleSetMap(args)

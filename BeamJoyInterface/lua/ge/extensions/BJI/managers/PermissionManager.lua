@@ -57,40 +57,6 @@ local M = {
     Permissions = {},
 }
 
-local function onLoad()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PERMISSIONS, function(cacheData)
-        for k, v in pairs(cacheData) do
-            M.Permissions[k] = v
-        end
-
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
-    end)
-
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.GROUPS, function(cacheData)
-        for groupName, group in pairs(cacheData) do
-            M.Groups[groupName] = M.Groups[groupName] or {}
-            -- bind values
-            for k, v in pairs(group) do
-                M.Groups[groupName][k] = v
-            end
-            -- remove obsolete keys
-            for k in pairs(M.Groups[groupName]) do
-                if not group[k] then
-                    M.Groups[groupName][k] = nil
-                end
-            end
-        end
-        -- remove obsolete groups
-        for k in pairs(M.Groups) do
-            if cacheData[k] == nil then
-                M.Groups[k] = nil
-            end
-        end
-
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
-    end)
-end
-
 local function hasMinimumGroup(targetGroupName, playerID)
     if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
         return false
@@ -271,6 +237,42 @@ M.getNextGroup = getNextGroup
 M.getPreviousGroup = getPreviousGroup
 M.getCountPlayersCanSpawnVehicle = getCountPlayersCanSpawnVehicle
 
-M.onLoad = onLoad
+M.onLoad = function()
+    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PERMISSIONS, function(cacheData)
+        for k, v in pairs(cacheData) do
+            M.Permissions[k] = v
+        end
+
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
+    end)
+
+    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.GROUPS, function(cacheData)
+        for groupName, group in pairs(cacheData) do
+            M.Groups[groupName] = M.Groups[groupName] or {}
+            -- bind values
+            for k, v in pairs(group) do
+                M.Groups[groupName][k] = v
+            end
+            -- remove obsolete keys
+            for k in pairs(M.Groups[groupName]) do
+                if not group[k] then
+                    M.Groups[groupName][k] = nil
+                end
+            end
+        end
+        -- remove obsolete groups
+        for k in pairs(M.Groups) do
+            if cacheData[k] == nil then
+                M.Groups[k] = nil
+            end
+        end
+
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
+    end)
+end
+M.onUnload = function()
+    M.Groups = {}
+    M.Permissions = {}
+end
 
 return M
