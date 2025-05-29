@@ -382,6 +382,7 @@ local function getPlayerListActions(player, ctxt)
             id = string.var("voteKick{1}", { player.playerID }),
             icon = ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJI.Managers.Votes.Kick.start(player.playerID)
             end

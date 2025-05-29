@@ -323,7 +323,9 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            label = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
+            icon = ICONS.event_busy,
+            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
                 BJI.Managers.Votes.Kick.start(player.playerID)
             end
