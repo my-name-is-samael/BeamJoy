@@ -355,6 +355,7 @@ local function deleteOtherOwnVehicles()
             end
         end
     end
+    BJI.Managers.AI.removeVehicles()
 end
 
 local function deleteAllOwnVehicles()
@@ -368,6 +369,7 @@ local function deleteAllOwnVehicles()
             end
         end
     end
+    BJI.Managers.AI.removeVehicles()
 end
 
 local function deleteCurrentVehicle()

@@ -86,16 +86,19 @@ end
 ---@param ctxt TickContext
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose(true)
-    if ctxt.veh and not table.includes({
-            BJI.Managers.Cam.CAMERAS.FREE,
-            BJI.Managers.Cam.CAMERAS.BIG_MAP,
-            BJI.Managers.Cam.CAMERAS.EXTERNAL
-        }, ctxt.camera) then
-        S.previousCamera = ctxt.camera
+    if ctxt.isOwner then
+        BJI.Managers.Veh.saveCurrentVehicle()
+        if not table.includes({
+                BJI.Managers.Cam.CAMERAS.FREE,
+                BJI.Managers.Cam.CAMERAS.BIG_MAP,
+                BJI.Managers.Cam.CAMERAS.EXTERNAL
+            }, ctxt.camera) then
+            S.previousCamera = ctxt.camera
+        end
+    else
+        S.previousCamera = BJI.Managers.Cam.CAMERAS.ORBIT
     end
-    BJI.Managers.Veh.saveCurrentVehicle()
     BJI.Managers.Veh.deleteAllOwnVehicles()
-    BJI.Managers.AI.removeVehicles()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
@@ -119,6 +122,10 @@ local function onUnload()
     BJI.Managers.Message.cancelFlash("BJIHuntedStart")
     BJI.Managers.Message.cancelFlash("BJIHunterStart")
     BJI.Managers.Message.cancelFlash("BJIHunterReset")
+    BJI.Managers.Async.removeTask("BJIHunterResetCam")
+    BJI.Managers.Async.removeTask("BJIHunterForcedConfigSpawn")
+    BJI.Managers.Async.removeTask("BJIHuntedStartCam")
+    BJI.Managers.Async.removeTask("BJIHunterStartCam")
 
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
@@ -292,7 +299,7 @@ local function onVehicleResetted(gameVehID)
             S.hunterRespawnTargetTime = GetCurrentTimeMillis() + (S.huntersRespawnDelay * 1000) + 50
             BJI.Managers.Async.programTask(function(ctxt)
                 BJI.Managers.Cam.resetForceCamera(true)
-            end, S.hunterRespawnTargetTime - 3000)
+            end, S.hunterRespawnTargetTime - 3000, "BJIHunterResetCam")
             BJI.Managers.Message.flashCountdown("BJIHunterReset", S.hunterRespawnTargetTime,
                 false, BJI.Managers.Lang.get("hunter.play.flashHunterResume"), S.huntersRespawnDelay, function()
                     BJI.Managers.Veh.freeze(false, gameVehID)
@@ -464,7 +471,7 @@ local function initGameHunted(participant)
     end
 
     if S.huntedStartTime > GetCurrentTimeMillis() then
-        BJI.Managers.Async.programTask(resetCamAndInitWP, S.huntedStartTime - 3000)
+        BJI.Managers.Async.programTask(resetCamAndInitWP, S.huntedStartTime - 3000, "BJIHuntedStartCam")
         BJI.Managers.Message.flashCountdown("BJIHuntedStart", S.huntedStartTime, false, nil, 5, start, true)
     else
         resetCamAndInitWP()
@@ -504,7 +511,7 @@ local function initGameHunter(participant)
     end
 
     if S.hunterStartTime > GetCurrentTimeMillis() then
-        BJI.Managers.Async.programTask(resetCam, S.hunterStartTime - 3000)
+        BJI.Managers.Async.programTask(resetCam, S.hunterStartTime - 3000, "BJIHunterStartCam")
         BJI.Managers.Message.flashCountdown("BJIHunterStart", S.hunterStartTime, false, nil, 5, start, true)
     else
         resetCam()

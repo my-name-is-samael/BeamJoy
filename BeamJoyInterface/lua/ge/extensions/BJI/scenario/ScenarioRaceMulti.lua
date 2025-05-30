@@ -104,7 +104,6 @@ local function onLoad(ctxt)
     end
     if table.length(ctxt.user.vehicles) > 0 then
         BJI.Managers.Veh.deleteAllOwnVehicles()
-        BJI.Managers.AI.removeVehicles()
     end
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({

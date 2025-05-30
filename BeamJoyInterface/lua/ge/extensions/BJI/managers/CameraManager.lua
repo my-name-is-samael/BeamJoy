@@ -25,10 +25,13 @@ local M = {
     lastCamera = nil,
 }
 
+---@return string
 local function getCamera()
     return core_camera.getActiveCamName()
 end
 
+---@param cameraName string
+---@param withTransition? boolean
 local function setCamera(cameraName, withTransition)
     if withTransition == nil then
         withTransition = true
