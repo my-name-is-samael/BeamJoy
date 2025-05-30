@@ -376,7 +376,7 @@ local function drawBodyGame(ctxt)
                 Indent(1)
             end
             LineLabel(p.playerName, color)
-            if i == 2 then
+            if i == #W.cache.playersList then
                 Indent(-1)
             end
         end
