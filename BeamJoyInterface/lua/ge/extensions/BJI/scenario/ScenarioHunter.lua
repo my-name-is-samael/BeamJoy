@@ -24,6 +24,7 @@ local S = {
         lastWaypointGPS = false,
     },
 
+    -- server data
     state = nil,
     ---@type tablelib<integer, BJIHunterParticipant>
     participants = {},
@@ -32,10 +33,12 @@ local S = {
     hunterStartTime = nil,
     huntersRespawnDelay = 0,
     hunterRespawnTargetTime = nil,
+    finished = false,
+
+    -- client data
     waypoints = {},
     previousCamera = nil,
     revealHunted = false,
-
     waypoint = 1,
 
     dnf = {
@@ -564,6 +567,9 @@ local function updateGame(data)
     local wasParticipant = S.participants[BJI.Managers.Context.User.playerID]
     local amountParticipants = table.length(data.participants)
     S.participants = data.participants
+    local wasFinished = S.finished
+    S.finished = data.finished
+
     if wasParticipant and not S.participants[BJI.Managers.Context.User.playerID] then
         onLeaveParticipants()
         BJI.Managers.Restrictions.update({ {
@@ -585,6 +591,18 @@ local function updateGame(data)
     if amountParticipants ~= table.length(S.participants) then
         updateProximityVehs()
     end
+    if S.participants[BJI.Managers.Context.User.playerID] and not wasFinished and S.finished then
+        BJI.Managers.Restrictions.update({
+            {
+                restrictions = Table({
+                    BJI.Managers.Restrictions.RESET.ALL,
+                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
+                }):flat(),
+                state = BJI.Managers.Restrictions.STATE.ALLOWED,
+            }
+        })
+    end
 end
 
 -- receive hunter data from backend
@@ -603,67 +621,48 @@ local function rxData(data)
         else
             updateGame(data)
         end
-    else
-        if S.state then
-            S.stop()
-        end
+    elseif S.state then
+        S.stop()
     end
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 end
 
--- each second tick hook
-local function slowTick(ctxt)
+-- check for close hunters to prevent hunted from respawning<br/>
+-- check for movement when DNF process is active<br/>
+-- check for revealing hunted position to hunters
+local function fastTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if ctxt.isOwner and S.state == S.STATES.GAME and participant then
         if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
             -- respawn rest update
-            if Table(S.participants)
+            local closeHunter = Table(S.participants)
                 :filter(function(_, playerID) return playerID ~= ctxt.user.playerID end)
                 :map(function(p) return BJI.Managers.Veh.getVehicleObject(p.gameVehID) end)
                 :map(function(veh) return BJI.Managers.Veh.getPositionRotation(veh) end)
                 :map(function(posRot) return ctxt.vehPosRot.pos:distance(posRot.pos) end)
-                :any(function(d) return d < S.HUNTED_RESPAWN_DISTANCE end) then
-                -- if any hunter is close, block respawn
+                :any(function(d) return d < S.HUNTED_RESPAWN_DISTANCE end)
+            local resetAllState = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL)
+            if closeHunter and not resetAllState then
                 BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-            else
+            elseif not closeHunter and resetAllState then
                 BJI.Managers.Restrictions.updateResets(Table({
                     BJI.Managers.Restrictions.RESET.TELEPORT,
                     BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
                 }):flat())
             end
 
-            -- DNF check
-            if not S.dnf.lastpos then
-                S.dnf.lastpos = ctxt.vehPosRot.pos
-            else
-                local distance = math.horizontalDistance(S.dnf.lastpos, ctxt.vehPosRot.pos)
-                if distance < S.dnf.minDistance then
-                    -- start countdown process
-                    if not S.dnf.process then
-                        S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
-                        BJI.Managers.Message.flashCountdown("BJIHuntedDNF",
-                            S.dnf.targetTime,
-                            true, "", 10, function()
-                                BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                                BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.ELIMINATED)
-                                BJI.Tx.player.explodeVehicle(participant.gameVehID)
-                            end, false)
-                        S.dnf.process = true
-                    end
-                else
-                    -- good distance, remove countdown if there is one
-                    if S.dnf.process then
-                        BJI.Managers.Message.cancelFlash("BJIHuntedDNF")
-                        S.dnf.process = false
-                        S.dnf.targetTime = nil
-                    end
-                    S.dnf.lastpos = ctxt.vehPosRot.pos
+            -- DNF disabling update
+            if S.dnf.lastpos and S.dnf.process then
+                if S.finished or math.horizontalDistance(S.dnf.lastpos, ctxt.vehPosRot.pos) > S.dnf.minDistance then
+                    BJI.Managers.Message.cancelFlash("BJIHuntedDNF")
+                    S.dnf.process = false
+                    S.dnf.targetTime = nil
                 end
             end
         end
 
         if not participant.hunted and S.hunterStartTime and S.hunterStartTime <= ctxt.now then
-            -- proximity reveal
+            -- proximity reveal update
             if S.proximityProcess.huntedVeh and #S.proximityProcess.huntersVehs > 0 then
                 Table(S.participants):find(function(p) return p.hunted end,
                     function(hunted)
@@ -694,6 +693,34 @@ local function slowTick(ctxt)
     end
 end
 
+-- check for DNF process activation
+local function slowTick(ctxt)
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if ctxt.isOwner and S.state == S.STATES.GAME and participant then
+        if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
+            -- DNF check
+            if not S.finished and S.dnf.lastpos and not S.dnf.process then
+                local distance = math.horizontalDistance(S.dnf.lastpos, ctxt.vehPosRot.pos)
+                if distance < S.dnf.minDistance then
+                    -- start countdown process
+                    if not S.dnf.process then
+                        S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
+                        BJI.Managers.Message.flashCountdown("BJIHuntedDNF",
+                            S.dnf.targetTime,
+                            true, "", 10, function()
+                                BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
+                                BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.ELIMINATED)
+                                BJI.Tx.player.explodeVehicle(participant.gameVehID)
+                            end, false)
+                        S.dnf.process = true
+                    end
+                end
+            end
+            S.dnf.lastpos = ctxt.vehPosRot.pos
+        end
+    end
+end
+
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
@@ -713,6 +740,7 @@ S.onVehicleResetted = onVehicleResetted
 
 S.rxData = rxData
 
+S.fastTick = fastTick
 S.slowTick = slowTick
 
 S.stop = stop

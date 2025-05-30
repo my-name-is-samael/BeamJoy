@@ -38,6 +38,7 @@ local M = {
     lastWaypointGPS = false,
     huntedStartTime = nil,
     hunterStartTime = nil,
+    finished = false,
 }
 
 local function stop()
@@ -52,6 +53,7 @@ local function stop()
     M.lastWaypointGPS = false
     M.huntedStartTime = nil
     M.hunterStartTime = nil
+    M.finished = false
 end
 
 local function getCache()
@@ -67,6 +69,7 @@ local function getCache()
         huntedStartTime = M.huntedStartTime,
         hunterStartTime = M.hunterStartTime,
         huntersRespawnDelay = BJCConfig.Data.Hunter.HuntersRespawnDelay,
+        finished = M.finished,
     }, M.getCacheHash()
 end
 
@@ -82,6 +85,7 @@ local function getCacheHash()
         M.lastWaypointGPS,
         M.huntedStartTime,
         M.hunterStartTime,
+        M.finished,
         BJCConfig.Data.Hunter.HuntersRespawnDelay,
     })
 end
@@ -264,6 +268,7 @@ local function onGameEnd(huntedWinner)
         teamName = "chat.events.gamemodeTeams." .. (huntedWinner and "hunted" or "hunters"),
         gamemode = "chat.events.gamemodes.hunter",
     })
+    M.finished = true
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
 
     BJCAsync.delayTask(stop, BJCConfig.Data.Hunter.EndTimeout)
