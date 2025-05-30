@@ -224,10 +224,10 @@ local function updateCachePlayers(ctxt)
     table.filter(BJI.Managers.Context.Players, function(_, playerID)
         return BJI.Managers.Perm.canSpawnVehicle(playerID) or BJI.Managers.Perm.isStaff(playerID)
     end):forEach(function(p, playerID)
-        local isSelf = BJI.Managers.Context.isSelf(playerID) and not BJI.DEBUG
+        local isSelf = BJI.Managers.Context.isSelf(playerID) and not BJI.DEBUG ~= nil
         local groupLabel = BJI.Managers.Lang.get(string.var("groups.{1}", { p.group }), p.group)
         local playerGroup = BJI.Managers.Perm.Groups[p.group] or { level = 0 }
-        local isGroupLower = ctxt.group.level > playerGroup.level or BJI.DEBUG
+        local isGroupLower = ctxt.group.level > playerGroup.level or BJI.DEBUG ~= nil
         local vehiclesCount = table.length(p.vehicles or {})
         local nameSuffix
         if selfStaff then
@@ -275,6 +275,7 @@ local function updateCachePlayers(ctxt)
             playerName = p.playerName,
             nameSuffix = nameSuffix,
             group = p.group,
+            isGroupLower = isGroupLower,
             groupLabel = groupLabel,
             showModeration = selfStaff and isGroupLower,
             showVehicles = (isSelf or isGroupLower) and vehiclesCount > 0,
