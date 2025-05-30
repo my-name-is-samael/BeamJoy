@@ -104,7 +104,7 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if newGameVehID ~= -1 then
         local ownerID = BJI.Managers.Veh.getVehOwnerID(newGameVehID)
         if not S.isParticipant(ownerID) or S.isEliminated(ownerID) then
-            switchToRandomParticipant()
+            BJI.Managers.Veh.focusNextVehicle()
         end
     end
 end
@@ -250,6 +250,10 @@ local function stop()
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     S.startTime = nil
     S.minSpeed = 0
+    Table(BJI.Managers.Context.User.vehicles):find(TrueFn, function(v)
+        BJI.Managers.Veh.focusVehicle(v.gameVehID)
+        BJI.Managers.Veh.recoverInPlace()
+    end)
 end
 
 local function rxData(data)
