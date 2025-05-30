@@ -25,9 +25,9 @@ local function getVehAlpha(gameVehID)
         return
     end
 
-    local vData = core_vehicle_manager.getVehicleData(gameVehID).vdata.flexbodies
-    if vData and vData[0] then
-        return veh:getMeshAlpha(vData[0].mesh)
+    local vData = core_vehicle_manager.getVehicleData(gameVehID).vdata
+    if vData and vData.flexbodies and vData.flexbodies[0] then
+        return veh:getMeshAlpha(vData.flexbodies[0].mesh)
     else
         return
     end
