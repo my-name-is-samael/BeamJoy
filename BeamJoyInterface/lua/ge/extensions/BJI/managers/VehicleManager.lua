@@ -65,25 +65,16 @@ end
 ---@field vehicleHeight number
 ---@field protected boolean
 
----@return BJIMPVehicle[]
+---@return tablelib<integer, BJIMPVehicle> index 1-N
 local function getMPVehicles()
     return Table(MPVehicleGE.getVehicles()):map(function(v)
-        local pos = v.position
-        local rot = v.rotation
-        local vehicleHeight = v.vehicleHeight
-        if not pos and v.isSpawned and not v.isDeleted then
-            -- autofix missing posrot data
-            local veh = M.getVehicleObject(v.gameVehicleID)
-            local posRot = M.getPositionRotation(veh)
-            if veh and posRot then
-                pos, rot = posRot.pos, posRot.rot
-                vehicleHeight = veh:getInitialHeight()
-            else
-                pos, rot = vec3(), quat()
-                vehicleHeight = 0
-            end
-        else
-            pos.z = pos.z - vehicleHeight
+        -- BeamMP vehicle positions are inconsistent
+        local pos, rot, vehicleHeight = vec3(), quat(), 0
+        local veh = M.getVehicleObject(v.gameVehicleID)
+        local posRot = M.getPositionRotation(veh)
+        if veh and posRot then
+            pos, rot = posRot.pos, posRot.rot
+            vehicleHeight = veh:getInitialHeight()
         end
         return {
             gameVehicleID = v.gameVehicleID,
