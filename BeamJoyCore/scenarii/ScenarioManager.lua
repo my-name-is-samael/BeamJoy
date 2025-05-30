@@ -685,6 +685,9 @@ local function canSpawnVehicle(playerID, vehID, vehData)
     elseif M.SpeedManager.startTime then
         -- SPEED IN PROGRESS
         return M.SpeedManager.canSpawnVehicle(playerID, vehID, vehData)
+    elseif M.DerbyManager.state then
+        -- DERBY IN PROGRESS
+        return M.DerbyManager.canSpawnVehicle(playerID, vehID, vehData)
     else
         if table.includes({
                 BJCScenario.PLAYER_SCENARII.RACE_SOLO
@@ -714,6 +717,9 @@ local function canEditVehicle(playerID, vehID, vehData)
     elseif M.SpeedManager.startTime then
         -- SPEED IN PROGRESS
         return M.SpeedManager.canEditVehicle(playerID, vehID, vehData)
+    elseif M.DerbyManager.state then
+        -- DERBY IN PROGRESS
+        return M.DerbyManager.canEditVehicle(playerID, vehID, vehData)
     else
         if table.includes({
                 BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE,

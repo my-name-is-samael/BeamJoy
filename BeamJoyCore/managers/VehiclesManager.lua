@@ -2,10 +2,13 @@ local M = {
     Data = BJCDao.vehicles.findAll(),
 }
 
-local function onVehicleSpawn(playerID, vehID, vehData)
-    local s, e = vehData:find('%{')
-    vehData = vehData:sub(s)
-    vehData = JSON.parse(vehData)
+---@param playerID integer
+---@param vehID integer
+---@param vehDataStr string
+local function onVehicleSpawn(playerID, vehID, vehDataStr)
+    local s, e = vehDataStr:find('%{')
+    vehDataStr = s and vehDataStr:sub(s) or ""
+    local vehData = JSON.parse(vehDataStr) or nil
 
     local player = BJCPlayers.Players[playerID]
     if not player then
@@ -67,18 +70,21 @@ local function onVehicleSpawn(playerID, vehID, vehData)
         }
     end
 
-
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-local function onVehicleEdited(playerID, vehID, vehData)
-    local s, e = vehData:find('%{')
-    vehData = vehData:sub(s)
-    vehData = JSON.parse(vehData)
+---@param playerID integer
+---@param vehID integer
+---@param vehDataStr string
+local function onVehicleEdited(playerID, vehID, vehDataStr)
+    local s, e = vehDataStr:find('%{')
+    vehDataStr = s and vehDataStr:sub(s) or ""
+    local vehData = JSON.parse(vehDataStr)
 
     if not vehData then
         LogError(BJCLang.getConsoleMessage("players.invalidVehicleData"):var({ playerID = playerID }))
+        return 1
     end
 
     if not BJCScenario.canEditVehicle(playerID, vehID, vehData) then

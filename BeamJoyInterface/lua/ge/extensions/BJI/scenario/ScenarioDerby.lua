@@ -13,6 +13,8 @@ local S = {
     },
 
     -- server data
+    ---@type integer?
+    state = nil,
     destroyedTimeout = 5,
     preparationTimeout = nil,
     startTime = nil,
@@ -58,20 +60,24 @@ end
 
 -- load hook
 local function onLoad(ctxt)
-    if ctxt.isOwner then
-        S.preDerbyCam = ctxt.camera
-        if table.includes({
-                BJI.Managers.Cam.CAMERAS.FREE,
-                BJI.Managers.Cam.CAMERAS.BIG_MAP,
-                BJI.Managers.Cam.CAMERAS.EXTERNAL
-            }, S.preDerbyCam) then
+    if S.state == S.STATES.PREPARATION then
+        -- not on join during match
+        if ctxt.isOwner then
+            S.preDerbyCam = ctxt.camera
+            if table.includes({
+                    BJI.Managers.Cam.CAMERAS.FREE,
+                    BJI.Managers.Cam.CAMERAS.BIG_MAP,
+                    BJI.Managers.Cam.CAMERAS.EXTERNAL
+                }, S.preDerbyCam) then
+                S.preDerbyCam = BJI.Managers.Cam.CAMERAS.ORBIT
+            end
+        else
             S.preDerbyCam = BJI.Managers.Cam.CAMERAS.ORBIT
         end
-    else
-        S.preDerbyCam = BJI.Managers.Cam.CAMERAS.ORBIT
+        BJI.Managers.Veh.deleteAllOwnVehicles()
+        BJI.Windows.VehSelector.tryClose(true)
+        BJI.Managers.GPS.reset()
     end
-    BJI.Managers.Veh.deleteAllOwnVehicles()
-    BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
@@ -79,12 +85,12 @@ local function onLoad(ctxt)
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
-    BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
 end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
+    BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
             BJI.Managers.Restrictions.RESET.ALL,
@@ -156,30 +162,12 @@ local function getModelList()
 end
 
 local function switchToRandomParticipant()
-    local vehIDs = {}
-    for _, participant in pairs(S.participants) do
-        if not participant.eliminationTime then
-            if participant.gameVehID then
-                local veh = BJI.Managers.Veh.getVehicleObject(participant.gameVehID)
-                if veh then
-                    table.insert(vehIDs, veh:getID())
-                end
-            else
-                local gameVehID
-                for _, v in pairs(BJI.Managers.Context.Players[participant.playerID].vehicles) do
-                    local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
-                    if veh then
-                        gameVehID = veh:getID()
-                        break
-                    end
-                end
-                if gameVehID then
-                    table.insert(vehIDs, gameVehID)
-                end
-            end
-        end
-    end
-    local gameVehID = table.random(vehIDs)
+    local gameVehID = Table(S.participants)
+        :filter(function(p) return not S.isEliminated(p.playerID) end)
+        :map(function(p)
+            local veh = BJI.Managers.Veh.getVehicleObject(p.gameVehID)
+            return veh and veh:getID() or nil
+        end):random()
     if gameVehID then
         BJI.Managers.Veh.focusVehicle(gameVehID)
     end
@@ -273,12 +261,37 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
+local function onVehicleSwitched(oldGameVehID, newGameVehID)
+    if newGameVehID ~= -1 and S.state == S.STATES.GAME and S.isSpec() then
+        Table(S.participants)
+        ---@param p BJIDerbyParticipant
+            :find(function(p) return p.gameVehID == newGameVehID end, function(p)
+                if S.isEliminated(p.playerID) then
+                    BJI.Managers.Veh.focusNextVehicle()
+                end
+            end)
+    end
+end
+
 local function fastTick(ctxt)
     local participant = S.getParticipant()
     if participant and not S.isEliminated() and ctxt.isOwner then
         if S.state == S.STATES.GAME and S.startTime and ctxt.now > S.startTime and S.destroy.process then
-            local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
-            if dist and dist > S.destroy.distanceThreshold then
+            local cancelProcess = false
+            if not S.participants[2] or S.participants[2].eliminationTime then
+                -- game is over
+                cancelProcess = true
+            elseif S.isEliminated() then
+                -- when self eliminated
+                cancelProcess = true
+            else
+                local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
+                if dist and dist > S.destroy.distanceThreshold then
+                    -- self moved enough
+                    cancelProcess = true
+                end
+            end
+            if cancelProcess then
                 BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
                 S.destroy.process = false
                 S.destroy.targetTime = nil
@@ -329,14 +342,13 @@ end
 
 local function initPreparation(data)
     S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
-    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-
     S.state = data.state
     S.baseArena = data.baseArena
     S.configs = data.configs
     S.participants = data.participants
     S.preparationTimeout = BJI.Managers.Tick.applyTimeOffset(data.preparationTimeout)
+    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
+
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
     BJI.Managers.Cam.setPositionRotation(S.baseArena.previewPosition.pos, S.baseArena.previewPosition.rot)
 end
@@ -405,11 +417,13 @@ end
 
 local function initGame(data)
     BJI.Windows.VehSelector.tryClose(true)
-
     S.state = data.state
-    S.baseArena = S.baseArena
+    S.baseArena = data.baseArena
     S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
     S.participants = data.participants
+    if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
+    end
 
     local now = GetCurrentTimeMillis()
 
@@ -571,6 +585,7 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleResetted = onVehicleResetted
+S.onVehicleSwitched = onVehicleSwitched
 S.fastTick = fastTick
 S.slowTick = slowTick
 

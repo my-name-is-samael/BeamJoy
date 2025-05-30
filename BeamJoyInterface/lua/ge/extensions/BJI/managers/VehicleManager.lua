@@ -1394,19 +1394,23 @@ end
 
 ---@param ctxt TickContext
 local function forceVehsSync(ctxt)
-    local listIDs = Table(ctxt.user.vehicles)
-        :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
-        :map(function(v) return v.gameVehID end)
-        :values()
-        :addAll(
-            Table(BJI.Managers.Context.Players[ctxt.user.playerID].vehicles)
+    BJI.Managers.Async.task(function()
+        return BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.PLAYERS)
+    end, function()
+        local listIDs = Table(ctxt.user.vehicles)
             :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
             :map(function(v) return v.gameVehID end)
-            :values(),
-            true)
-    if #listIDs > 0 then
-        BJI.Tx.player.markInvalidVehs(listIDs)
-    end
+            :values()
+            :addAll(
+                Table(BJI.Managers.Context.Players[ctxt.user.playerID].vehicles)
+                :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
+                :map(function(v) return v.gameVehID end)
+                :values(),
+                true)
+        if #listIDs > 0 then
+            BJI.Tx.player.markInvalidVehs(listIDs)
+        end
+    end)
 end
 
 local function onUnload()

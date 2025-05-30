@@ -1138,6 +1138,15 @@ local function doShowNametag(vehData)
     return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, .33)
 end
 
+local function onVehicleSwitched(oldGameVehID, newGameVehID)
+    if newGameVehID ~= -1 and S.state == S.STATES.RACE and S.isSpec() then
+        local ownerID = BJI.Managers.Veh.getVehOwnerID(newGameVehID)
+        if S.isEliminated(ownerID) or S.isFinished(ownerID) then
+            BJI.Managers.Veh.focusNextVehicle()
+        end
+    end
+end
+
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
@@ -1173,5 +1182,6 @@ S.canDeleteOtherVehicles = FalseFn
 S.getCollisionsType = getCollisionsType
 
 S.doShowNametag = doShowNametag
+S.onVehicleSwitched = onVehicleSwitched
 
 return S

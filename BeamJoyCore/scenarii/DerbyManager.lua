@@ -30,10 +30,10 @@ local M = {
     baseArena = nil,
     settings = {
         lives = 0,
-        configs = nil,
+        configs = Table(),
     },
 
-    ---@type tablelib<integer, BJIDerbyParticipant>
+    ---@type tablelib<integer, BJIDerbyParticipant> index 1-N
     participants = Table(),
 
     preparation = {
@@ -72,6 +72,7 @@ local function stopDerby()
     M.participants = Table()
     M.preparation = {}
     M.game = {}
+    M.countInvalidVehicles = {}
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
@@ -189,9 +190,9 @@ local function start(derbyIndex, lives, configs)
 
     M.baseArena = table.deepcopy(BJCScenario.Derby[derbyIndex])
     M.settings.lives = lives
-    M.settings.configs = configs and table.deepcopy(configs) or {}
+    M.settings.configs = configs and Table(configs):clone() or Table()
     while #M.settings.configs >= 6 do -- limit to 5 configs max
-        table.remove(M.settings.configs, 6)
+        M.settings.configs:remove(6)
     end
 
     M.participants = Table()
@@ -251,11 +252,13 @@ local function onClientDestroyed(playerID)
     sortParticipants()
     if participant.eliminationTime then
         M.participants:find(function(p) return p.playerID == playerID end, function(_, finalPos)
-            BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-                playerName = BJCPlayers.Players[playerID].playerName,
-                gamemode = "chat.events.gamemodes.derby",
-                position = finalPos,
-            })
+            if finalPos > 1 then
+                BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                    playerName = BJCPlayers.Players[playerID].playerName,
+                    gamemode = "chat.events.gamemodes.derby",
+                    gamemodePosition = finalPos,
+                })
+            end
         end)
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
@@ -318,7 +321,7 @@ local function onClientUpdate(senderID, event, data)
                     BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
                         playerName = BJCPlayers.Players[senderID].playerName,
                         gamemode = "chat.events.gamemodes.derby",
-                        position = finalPos,
+                        gamemodePosition = finalPos,
                     })
                     updateDerbyState()
                     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
@@ -338,13 +341,12 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             return false
         end
 
-        if type(M.settings.configs) == "table" then
+        if #M.settings.configs > 0 then
             -- forced config
-            local found = Table(M.settings.configs)
-                :any(function(config)
-                    return vehData.vcf.model == config.model and
-                        BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
-                end)
+            local found = M.settings.configs:any(function(c)
+                return vehData.vcf.model == c.model and
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, c.config.parts)
+            end)
             if not found then
                 M.countInvalidVehicles[playerID] = true
                 if table.length(M.countInvalidVehicles) > 1 then

@@ -125,13 +125,15 @@ local function notifyUIEnd()
 end
 
 local function postSpawnActions(ctxt)
-    if BJI.Managers.AI.selfVehs:includes(ctxt.veh:getID()) then
-        -- was manually toggled, resume state
-        ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
-    end
-    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-        BJI.Managers.Cam.toggleFreeCam()
-        ctxt.camera = BJI.Managers.Cam.getCamera()
+    if ctxt.veh then
+        if BJI.Managers.AI.selfVehs:includes(ctxt.veh:getID()) then
+            -- was manually toggled, resume state
+            ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
+        end
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.toggleFreeCam()
+            ctxt.camera = BJI.Managers.Cam.getCamera()
+        end
     end
 end
 

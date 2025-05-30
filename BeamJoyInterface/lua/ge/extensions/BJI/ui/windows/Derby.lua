@@ -60,7 +60,7 @@ local W = {
         showForfeitBtn = false,
         showManualResetBtn = false,
         manualResetWidth = 0,
-        gameLeaderboardCols = Table(),
+        gameLeaderboardCols = ColumnsBuilder("BJIDerbyLeaderboard", {}),
         gameLeaderboardNamesWidth = 0,
     },
     ---@type BJIScenarioDerby
