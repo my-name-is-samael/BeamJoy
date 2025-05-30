@@ -739,7 +739,9 @@
         "freeze": "Alternar congelamento",
         "engine": "Alternar motor",
         "mute": "Alternar mudo",
-        "deleteAllVehicles": "Excluir todos os veículos"
+        "deleteAllVehicles": "Excluir todos os veículos",
+        "promoteTo": "Promover para {group}",
+        "demoteTo": "Rebaixar para {group}"
       },
       "muteReason": "Razão para silenciar",
       "kickReason": "Razão do chute",

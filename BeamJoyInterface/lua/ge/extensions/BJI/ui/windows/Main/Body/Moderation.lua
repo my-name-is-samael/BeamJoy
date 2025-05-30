@@ -391,7 +391,8 @@ local function drawModeration(player, ctxt, cache)
                 id = string.var("demote{1}", { player.playerID }),
                 icon = ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                tooltip = player.demoteLabel,
+                tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
+                    { group = player.demoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
                 end
@@ -402,7 +403,8 @@ local function drawModeration(player, ctxt, cache)
                 id = string.var("promote{1}", { player.playerID }),
                 icon = ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                tooltip = player.promoteLabel,
+                tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
+                    { group = player.promoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
                 end

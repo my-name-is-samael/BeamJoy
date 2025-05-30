@@ -72,6 +72,8 @@ local cache = {
                     explode = "",
                     mute = "",
                     deleteAllVehicles = "",
+                    promoteTo = "",
+                    demoteTo = "",
                 },
             },
             waiting = "",
@@ -182,6 +184,8 @@ local function updateLabels()
     cache.labels.players.moderation.buttons.mute = BJI.Managers.Lang.get("moderationBlock.buttons.mute")
     cache.labels.players.moderation.buttons.deleteAllVehicles = BJI.Managers.Lang.get(
         "moderationBlock.buttons.deleteAllVehicles")
+    cache.labels.players.moderation.buttons.promoteTo = BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
+    cache.labels.players.moderation.buttons.demoteTo = BJI.Managers.Lang.get("moderationBlock.buttons.demoteTo")
     cache.labels.players.waiting = BJI.Managers.Lang.get("playersBlock.waitingPlayers")
     cache.labels.players.list = string.var("{1}:", { BJI.Managers.Lang.get("playersBlock.players") })
 end

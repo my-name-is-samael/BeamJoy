@@ -740,7 +740,9 @@
         "freeze": "Toggle freeze",
         "engine": "Toggle engine",
         "mute": "Toggle mute",
-        "deleteAllVehicles": "Delete all vehicles"
+        "deleteAllVehicles": "Delete all vehicles",
+        "promoteTo": "Promote to {group}",
+        "demoteTo": "Demote to {group}"
       },
       "muteReason": "Mute reason",
       "kickReason": "Kick reason",

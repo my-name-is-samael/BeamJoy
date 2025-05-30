@@ -739,7 +739,9 @@
         "freeze": "Activer/désactiver le gel",
         "engine": "Activer/désactiver le moteur",
         "mute": "Activer/désactiver le son",
-        "deleteAllVehicles": "Supprimer tous les véhicules"
+        "deleteAllVehicles": "Supprimer tous les véhicules",
+        "promoteTo": "Promouvoir en {group}",
+        "demoteTo": "Rétrograder en {group}"
       },
       "muteReason": "Raison du Mute",
       "kickReason": "Raison du Kick",

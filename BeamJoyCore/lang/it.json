@@ -739,7 +739,9 @@
         "freeze": "Attiva/disattiva congelamento",
         "engine": "Attiva/disattiva motore",
         "mute": "Attiva/disattiva audio",
-        "deleteAllVehicles": "Elimina tutti i veicoli"
+        "deleteAllVehicles": "Elimina tutti i veicoli",
+        "promoteTo": "Promuovi a {group}",
+        "demoteTo": "Retrocedi a {group}"
       },
       "muteReason": "Motivo muto",
       "kickReason": "Calcia la ragione",

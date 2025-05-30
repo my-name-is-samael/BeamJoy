@@ -739,7 +739,9 @@
         "freeze": "Einfrieren umschalten",
         "engine": "Motor umschalten",
         "mute": "Stummschalten umschalten",
-        "deleteAllVehicles": "Alle Fahrzeuge löschen"
+        "deleteAllVehicles": "Alle Fahrzeuge löschen",
+        "promoteTo": "Befördern zu {group}",
+        "demoteTo": "Degradieren zu {group}"
       },
       "muteReason": "Stumme Vernunft",
       "kickReason": "Kick-Grund",
