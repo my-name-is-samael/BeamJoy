@@ -3,12 +3,18 @@ local json = {}
 function json.stringify(obj)
     --return Util.JsonPrettify(_Util.JsonEncode(obj))
     -- FALLBACK https://github.com/BeamMP/BeamMP/issues/578
+    if obj == nil then
+        return nil
+    end
     return require("utils/JSONold").stringify(obj)
 end
 
 function json.stringifyRaw(obj)
     --return Util.JsonEncode(obj)
     -- FALLBACK https://github.com/BeamMP/BeamMP/issues/578
+    if obj == nil then
+        return nil
+    end
     return require("utils/JSONold").stringifyRaw(obj)
 end
 
