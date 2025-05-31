@@ -946,10 +946,13 @@ end
 -- CONSOLE
 
 local function findConnectedPlayers(playerName)
-    local matches = {}
+    local matches = Table()
     for _, p in pairs(M.Players) do
+        if p.playerName == playerName then
+            return Table({ p }) -- exact match
+        end
         if p.playerName:lower():find(playerName:lower()) then
-            table.insert(matches, p)
+            matches:insert(p)
         end
     end
     return matches
@@ -982,7 +985,10 @@ local function consoleSetGroup(args)
             })
     elseif #matches > 1 then
         return BJCLang.getConsoleMessage("command.errors.playerAmbiguity")
-            :var({ playerName = playerName, playerList = table.join(matches, ", ") })
+            :var({
+                playerName = playerName,
+                playerList = matches:map(function(p) return p.playerName end):join(", ")
+            })
     end
     local target = matches[1]
 
