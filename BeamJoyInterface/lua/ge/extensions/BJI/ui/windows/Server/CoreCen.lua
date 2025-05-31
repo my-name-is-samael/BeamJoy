@@ -248,6 +248,7 @@ local function drawCoreConfig(ctxt)
                                 value = v,
                                 multiline = true,
                                 autoheight = true,
+                                size = 512,
                                 onUpdate = function(val)
                                     BJI.Managers.Context.Core[k] = val
                                     BJI.Tx.config.core(k, val)

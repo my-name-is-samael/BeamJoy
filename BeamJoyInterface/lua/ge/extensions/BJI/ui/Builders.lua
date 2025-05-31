@@ -525,7 +525,7 @@ end
 ---@field btnSwitchPlayStop fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
 ---@field btnSwitchYesNo fun(self, data: {id: string, state: boolean, onClick: fun(), disabled: boolean?, sound: string?, tooltip: string?}): LineBuilder
 ---@field inputNumeric fun(self, data: {id: string, type: "int"|"float", value: number, precision: integer?, step: number?, stepFast: number?, width: integer?, disabled: boolean?, style: number[][]?, onUpdate: fun(value: number)?}): LineBuilder
----@field inputString fun(self, data: {id: string, value: string, placeholder: string?, width: integer?, disabled: boolean?, style: number[][]?, multiline: boolean?, onUpdate: fun(value: string)?, autoheight: boolean?, lines: integer?}): LineBuilder
+---@field inputString fun(self, data: {id: string, value: string, size: integer?, placeholder: string?, width: integer?, disabled: boolean?, style: number[][]?, multiline: boolean?, onUpdate: fun(value: string)?, autoheight: boolean?, lines: integer?}): LineBuilder
 ---@field inputCombo fun(self, data: {id: string, items: string[]|table[], value: string|table?, label: string?, getLabelFn: (fun(item: string|table): string), width: integer?, onChange: fun(item: string|table)?}?): LineBuilder
 ---@field helpMarker fun(self, text: string): LineBuilder
 ---@field icon fun(self, data: {icon: string, big: boolean?, border: vec4?, style: vec4[]?, coloredIcon: boolean?, tooltip: string?}): LineBuilder
