@@ -95,6 +95,7 @@ local function removeTask(key)
     M.delayedTasks[key] = nil
 end
 
+local renderTimeout = 4
 local function renderTick(ctxt)
     local delayed = {}
     for key, ctask in pairs(M.delayedTasks) do
@@ -106,6 +107,10 @@ local function renderTick(ctxt)
         return a[2].time < b[2].time
     end)
     for _, data in pairs(delayed) do
+        if GetCurrentTimeMillis() - ctxt.now > renderTimeout / 2 then
+            LogDebug("Skipping async delayed (timeout)", M._name)
+            break
+        end
         local key, ctask = data[1], data[2]
         local status, err = pcall(ctask.taskFn, ctxt)
         if not status then
@@ -116,6 +121,10 @@ local function renderTick(ctxt)
     end
 
     for key, ctask in pairs(M.tasks) do
+        if GetCurrentTimeMillis() - ctxt.now > renderTimeout then
+            LogDebug("Skipping async tasks (timeout)", M._name)
+            break
+        end
         if ctask.conditionFn(ctxt) then
             local status, err = pcall(ctask.taskFn, ctxt)
             if not status then

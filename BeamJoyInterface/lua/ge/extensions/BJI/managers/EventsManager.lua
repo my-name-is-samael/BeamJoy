@@ -141,41 +141,45 @@ local function trigger(events, ...)
     for _, event in ipairs(events) do
         if event == M.EVENTS.SLOW_TICK then
             processSlowTick()
-        else
-            table.insert(M.queued, { event = event, data = { ... } })
+        elseif M.listeners[event] then
+            local data = { ... }
+            M.listeners[event]:forEach(function(callback, k)
+                table.insert(M.queued, { event = event, target = k, fn = callback, data = data })
+            end)
         end
     end
 end
 
+local renderTimeout = 2
 local function renderTick(ctxt)
     while #M.queued > 0 do
-        ---@type {event: string, data: table|nil}
+        ---@type {event: string, target: string, fn: fun(...), data: table|nil}
         local el = table.remove(M.queued, 1)
-        if M.listeners[el.event] then
-            if not M.LOG_BLACKLIST_EVENTS:includes(el.event) then
-                LogDebug(string.var("Event triggered : {1}{2}", {
-                    el.event,
-                    el.event == M.EVENTS.CACHE_LOADED and
-                    string.var(" ({1})", { el.data[1].cache }) or ""
-                }), M._name)
-            end
-            local isNg = el.event:startswith("ng")
-            M.listeners[el.event]:forEach(function(callback, k)
-                local data = table.clone(el.data) or {}
-                local ok, err
-                if isNg then
-                    ok, err = pcall(callback, table.unpack(data))
-                else
-                    data[1] = data[1] or {}
-                    data[1]._event = el.event
-                    ok, err = pcall(callback, ctxt, data[1])
-                end
-                BJI.Bench.add(tostring(k), el.event, GetCurrentTimeMillis() - ctxt.now)
-                if not ok then
-                    LogError(string.var("Error firing event {1} :", { el.event }))
-                    dump(err)
-                end
-            end)
+        if not M.LOG_BLACKLIST_EVENTS:includes(el.event) then
+            LogDebug(string.var("Event triggered : {1}{2}", {
+                el.event,
+                el.event == M.EVENTS.CACHE_LOADED and
+                string.var(" ({1})", { el.data[1].cache }) or ""
+            }), M._name)
+        end
+        local isNg = el.event:startswith("ng")
+        local data = table.clone(el.data) or {}
+        local ok, err
+        if isNg then
+            ok, err = pcall(el.fn, table.unpack(data))
+        else
+            data[1] = data[1] or {}
+            data[1]._event = el.event
+            ok, err = pcall(el.fn, ctxt, data[1])
+        end
+        BJI.Bench.add(tostring(el.target), el.event, GetCurrentTimeMillis() - ctxt.now)
+        if not ok then
+            LogError(string.var("Error firing event {1} :", { el.event }))
+            dump(err)
+        end
+        if GetCurrentTimeMillis() - ctxt.now > renderTimeout then
+            LogDebug(string.var("Skipping event {1} (timeout)", { el.target }), M._name)
+            return
         end
     end
 end
