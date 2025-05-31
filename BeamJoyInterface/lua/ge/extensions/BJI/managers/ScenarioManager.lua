@@ -292,15 +292,6 @@ local function getCollisionsType(ctxt)
     end
 end
 
----@return ScenarioRestriction[]
-local function getRestrictions()
-    if _curr().getRestrictions then
-        return _curr().getRestrictions()
-    else
-        return {}
-    end
-end
-
 local tickErrorProcess = { countRender = 0, countFast = 0, countSlow = 0 }
 
 ---@param ctxt TickContext
@@ -497,7 +488,6 @@ M.canShowNametags = canShowNametags
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType
-M.getRestrictions = getRestrictions
 
 M.getAvailableScenarii = getAvailableScenarii
 M.switchScenario = switchScenario

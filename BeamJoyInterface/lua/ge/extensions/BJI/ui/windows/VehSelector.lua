@@ -207,14 +207,17 @@ local function updateButtonsStates(ctxt)
         W.headerBtns.loadDefaultTooltip = BJI.Managers.Veh.getModelLabel(defaultVeh.model)
     end
 
-    W.headerBtns.cloneCurrentDisabled = not ctxt.veh or not canSpawnOrReplace or currentVehIsProtected
+    W.headerBtns.cloneCurrentDisabled = not ctxt.veh or not canSpawnOrReplace or currentVehIsProtected or (
+        BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
+    )
     if W.headerBtns.cloneCurrentDisabled then
         if not ctxt.veh then
             W.headerBtns.cloneCurrentTooltip = W.labels.noVeh
-        elseif not canSpawnOrReplace then
-            W.headerBtns.cloneCurrentTooltip = W.labels.notAllowed
-        else
+        elseif currentVehIsProtected then
             W.headerBtns.cloneCurrentTooltip = W.labels.protectedVehicle
+        else
+            W.headerBtns.cloneCurrentTooltip = W.labels.notAllowed
         end
     else
         W.headerBtns.cloneCurrentTooltip = nil
@@ -843,6 +846,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateButtonsStates, W.name .. "ButtonsStates"))

@@ -329,8 +329,11 @@ end
 
 local function onUpdateRestrictions()
     local function _update()
-        M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and
-            (BJI.Managers.Scenario.canSpawnNewVehicle() or BJI.Managers.Scenario.canReplaceVehicle())
+        M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and (
+            BJI.Managers.Scenario.canSpawnNewVehicle() or (
+                BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.getCurrentVehicleOwn()
+            )
+        )
         M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam()
         BJI.Managers.Restrictions.update({
             {
@@ -344,6 +347,9 @@ local function onUpdateRestrictions()
                 state = not M.stateEditor and BJI.Managers.Restrictions.STATE.RESTRICTED,
             },
         })
+        if BJI.Managers.Scenario.isFreeroam() and not M.stateSelector and not M.stateEditor then
+            BJI.Windows.VehSelector.tryClose(true)
+        end
     end
 
     if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
@@ -402,6 +408,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
     }, onUpdateRestrictions, M._name)
 end
 

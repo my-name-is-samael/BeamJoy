@@ -254,6 +254,11 @@ local function canQuickTravel()
         (BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.QuickTravel)
 end
 
+local function canSpawnNewVehicle()
+    return (BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Context.BJC.Freeroam.VehicleSpawning) or
+        BJI.Managers.Perm.isStaff()
+end
+
 local function getModelList()
     local models = BJI.Managers.Veh.getAllVehicleConfigs(
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS),
@@ -414,6 +419,7 @@ S.tryPaint = tryPaint
 S.canWalk = canWalk
 S.canShowNametags = canShowNametags
 S.canQuickTravel = canQuickTravel
+S.canSpawnNewVehicle = canSpawnNewVehicle
 
 S.canRefuelAtStation = TrueFn
 S.canRepairAtGarage = TrueFn

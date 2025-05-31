@@ -30,10 +30,10 @@ local M = {
 local function initMPHandlers()
     Table(M.EVENTS):filter(function(ev) return ev.base end)
         :forEach(function(ev)
-            _G[ev.key] = function(...)
+            _G["BJC" .. ev.key] = function(...)
                 return M.trigger(ev, ...)
             end
-            MP.RegisterEvent(ev.key, ev.key)
+            MP.RegisterEvent(ev.key, "BJC" .. ev.key)
         end)
 end
 initMPHandlers()

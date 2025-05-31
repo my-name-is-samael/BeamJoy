@@ -72,7 +72,23 @@ local M = {
     UserStats = {},
 
     -- CONFIG DATA
-    BJC = {},     -- BeamJoy config
+    BJC = {
+        CEN = {
+            Console = true,
+            Editor = true,
+            NodeGrabber = true,
+        },
+        Freeroam = {
+            Nametags = true,
+            VehicleSpawning = true,
+            AllowUnicycle = true,
+        },
+        Server = {
+            AllowClientMods = true,
+            ClientMods = {},
+            Theme = {},
+        },
+    },            -- BeamJoy config
     ---@type table<string, BJIPlayer>
     Players = {}, -- player list
     ---@type table<string, {}>
@@ -354,8 +370,32 @@ local function loadConfig()
 
     -- bjc data
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.BJC, function(cacheData)
-        if cacheData.Freeroam then
-            M.BJC.Freeroam = cacheData.Freeroam
+        local permissionChanged = false
+
+        M.BJC.CEN = cacheData.CEN
+        updateCENRestrictions()
+
+        if BJI.Managers.Scenario.isFreeroam() and (
+                not M.BJC.Freeroam or
+                M.BJC.Freeroam.VehicleSpawning ~= cacheData.Freeroam.VehicleSpawning or
+                M.BJC.Freeroam.AllowUnicycle ~= cacheData.Freeroam.AllowUnicycle
+            ) then
+            permissionChanged = true
+        end
+        M.BJC.Freeroam = cacheData.Freeroam
+
+        M.BJC.Server = cacheData.Server
+        BJI.Managers.Mods.update(M.BJC.Server.AllowClientMods)
+        BJI.Utils.Style.LoadTheme(M.BJC.Server.Theme)
+        if M.BJC.Server.Broadcasts then
+            for _, lang in ipairs(BJI.Managers.Lang.Langs) do
+                if not M.BJC.Server.Broadcasts[lang] then
+                    M.BJC.Server.Broadcasts[lang] = {}
+                end
+                if not M.BJC.Server.WelcomeMessage[lang] then
+                    M.BJC.Server.WelcomeMessage[lang] = ""
+                end
+            end
         end
 
         if cacheData.TempBan then
@@ -377,39 +417,6 @@ local function loadConfig()
 
         if cacheData.VoteMap then
             M.BJC.VoteMap = cacheData.VoteMap
-        end
-
-        if cacheData.Server then
-            if not M.BJC.Server then
-                M.BJC.Server = {}
-            end
-            for k, v in pairs(cacheData.Server) do
-                M.BJC.Server[k] = v
-            end
-
-            -- apply windows theme
-            if M.BJC.Server.Theme then
-                BJI.Utils.Style.LoadTheme(M.BJC.Server.Theme)
-            end
-
-            -- fill in available langs
-            if M.BJC.Server.Broadcasts then
-                for _, lang in ipairs(BJI.Managers.Lang.Langs) do
-                    if not M.BJC.Server.Broadcasts[lang] then
-                        M.BJC.Server.Broadcasts[lang] = {}
-                    end
-                    if not M.BJC.Server.WelcomeMessage[lang] then
-                        M.BJC.Server.WelcomeMessage[lang] = ""
-                    end
-                end
-            end
-
-            BJI.Managers.Mods.update(M.BJC.Server.AllowClientMods)
-        end
-
-        if cacheData.CEN then
-            M.BJC.CEN = cacheData.CEN
-            updateCENRestrictions()
         end
 
         if cacheData.Race then
@@ -434,6 +441,10 @@ local function loadConfig()
 
         if cacheData.Reputation then
             M.BJC.Reputation = cacheData.Reputation
+        end
+
+        if permissionChanged then
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
         end
     end)
 end

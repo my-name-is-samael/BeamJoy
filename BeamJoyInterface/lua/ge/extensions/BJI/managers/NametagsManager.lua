@@ -352,15 +352,15 @@ local function renderTick(ctxt)
     if settings.getValue("hideNameTags", false) then
         return
     elseif BJI.Managers.Scenario.isFreeroam() and
-        (not BJI.Managers.Context.BJC.Freeroam or not BJI.Managers.Context.BJC.Freeroam.Nametags) and
+        not BJI.Managers.Context.BJC.Freeroam.Nametags and
         not BJI.Managers.Perm.isStaff() then
         return
     end
 
     if M.state then
         -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
-        local ownPos = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE and
-            BJI.Managers.Cam.getPositionRotation().pos or (ctxt.vehPosRot and ctxt.vehPosRot.pos or vec3())
+        local ownPos = ctxt.vehPosRot and ctxt.vehPosRot.pos or
+            BJI.Managers.Cam.getPositionRotation().pos
         Table(BJI.Managers.Veh.getMPVehicles())
         ---@param veh BJIMPVehicle
             :filter(function(veh)
@@ -399,9 +399,10 @@ local function updateLabels()
     M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
 end
 
+local lastShorten, lastShortenLength = false, 0
 local function getPlayerTagName(playerName, shorten, shortenLength)
-    shorten = shorten or settings.getValue("shortenNametags", false)
-    shortenLength = shortenLength or tonumber(settings.getValue("nametagCharLimit", 50))
+    shorten = shorten or lastShorten
+    shortenLength = shortenLength or lastShortenLength
     if not shorten or shortenLength > #playerName then
         return tostring(playerName)
     else
@@ -409,7 +410,6 @@ local function getPlayerTagName(playerName, shorten, shortenLength)
     end
 end
 
-local lastShorten, lastShortenLength = false, 0
 local function slowTick(ctxt)
     if M.state then
         local shorten, shortenLength = settings.getValue("shortenNametags", false),

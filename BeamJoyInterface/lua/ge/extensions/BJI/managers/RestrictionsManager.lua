@@ -111,10 +111,6 @@ local function getState(restrictions)
     end)
 end
 
-local function slowTick()
-    update(BJI.Managers.Scenario.getRestrictions())
-end
-
 local previous = Table()
 ---@param ctxt TickContext
 local function renderTick(ctxt)
@@ -124,20 +120,26 @@ local function renderTick(ctxt)
         extensions.core_input_actionFilter.setGroup(M._tag, M._restrictions)
         extensions.core_input_actionFilter.addAction(0, M._tag, true)
         previous = M._restrictions:clone()
-
-        BJI.Managers.GameState.updateMenuItems(
-            not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
-            not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
-            not getState(M.OTHER.BIG_MAP)
-        )
     end
+end
+
+local function onUpdate()
+    BJI.Managers.GameState.updateMenuItems(
+        not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
+        not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
+        not getState(M.OTHER.BIG_MAP)
+    )
 end
 
 local function onLoad()
     extensions.core_input_actionFilter.setGroup(M._tag, {})
     extensions.core_input_actionFilter.addAction(0, M._tag, false)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    }, onUpdate, M._name)
 end
 
 M.updateResets = updateResets

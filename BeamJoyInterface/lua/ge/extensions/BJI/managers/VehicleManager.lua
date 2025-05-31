@@ -1371,8 +1371,7 @@ end
 local function onUpdateRestrictions(ctxt)
     ---@param ctxt2 TickContext
     local function _update(ctxt2)
-        local stateWalking = BJI.Managers.Perm.canSpawnVehicle() and
-            (BJI.Managers.Context.BJC.Freeroam and BJI.Managers.Context.BJC.Freeroam.AllowUnicycle)
+        local stateWalking = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Context.BJC.Freeroam.AllowUnicycle
         if not stateWalking and ctxt.isOwner and M.isUnicycle(ctxt.veh:getID()) then
             M.deleteCurrentOwnVehicle()
         end
@@ -1450,16 +1449,10 @@ M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
 
     BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-    }, function(ctxt, data)
-        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.BJC then
-            onUpdateRestrictions(ctxt)
-        end
-    end, M._name)
+    }, onUpdateRestrictions, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, forceVehsSync, M._name)
 end
