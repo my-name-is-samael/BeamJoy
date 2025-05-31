@@ -172,7 +172,9 @@ local function renderTick(ctxt)
             data[1]._event = el.event
             ok, err = pcall(el.fn, ctxt, data[1])
         end
-        BJI.Bench.add(tostring(el.target), el.event, GetCurrentTimeMillis() - ctxt.now)
+        if BJI.Bench.STATE then
+            BJI.Bench.add(tostring(el.target), el.event, GetCurrentTimeMillis() - ctxt.now)
+        end
         if not ok then
             LogError(string.var("Error firing event {1} :", { el.event }))
             dump(err)
