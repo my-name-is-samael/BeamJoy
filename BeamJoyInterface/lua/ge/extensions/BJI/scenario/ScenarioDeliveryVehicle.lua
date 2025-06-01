@@ -203,7 +203,8 @@ local function onDeliveryFailed()
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= S.gameVehID then
+    if gameVehID ~= S.gameVehID or
+        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
         return
     end
 

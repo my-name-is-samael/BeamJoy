@@ -225,7 +225,6 @@ end
 
 local resetLock = false -- prevent multiple triggers
 local function onVehicleResetted(gameVehID)
-    local ctxt = BJI.Managers.Tick.getContext()
     local participant = S.getParticipant()
     if S.state == S.STATES.GAME and participant and
         BJI.Managers.Veh.isVehicleOwn(gameVehID) then

@@ -58,7 +58,8 @@ end
 
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= S.participants[BJI.Managers.Context.User.playerID].gameVehID then
+    if gameVehID ~= S.participants[BJI.Managers.Context.User.playerID].gameVehID or
+        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
         return -- is not player delivery vehicle
     elseif S.nextResetGarage then
         if S.tanksSaved then

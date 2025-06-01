@@ -38,7 +38,9 @@ local S = {
     -- client data
     waypoints = {},
     previousCamera = nil,
-    revealHunted = false,
+    revealHuntedProximity = false,
+    revealHuntedLastWaypoint = false,
+    revealHuntedReset = false,
     waypoint = 1,
 
     dnf = {
@@ -64,7 +66,9 @@ local function stop()
     S.huntedStartTime = nil
     S.hunterStartTime = nil
     S.waypoints = {}
-    S.revealHunted = false
+    S.revealHuntedProximity = false
+    S.revealHuntedLastWaypoint = false
+    S.revealHuntedReset = false
     S.waypoint = 1
     S.dnf = {
         process = false,
@@ -129,6 +133,7 @@ local function onUnload()
     BJI.Managers.Async.removeTask("BJIHunterForcedConfigSpawn")
     BJI.Managers.Async.removeTask("BJIHuntedStartCam")
     BJI.Managers.Async.removeTask("BJIHunterStartCam")
+    BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
 
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
@@ -264,7 +269,7 @@ local function doShowNametag(vehData)
         elseif not S.participants[BJI.Managers.Context.User.playerID].hunted then
             -- hunters only can see other hunters or reaveled hunted
             local target = S.participants[vehData.ownerID]
-            if target.hunted and S.revealHunted then
+            if target.hunted and (S.revealHuntedProximity or S.revealHuntedLastWaypoint or S.revealHuntedReset) then
                 return true, BJI.Utils.ShapeDrawer.Color(1, .6, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, 1)
             elseif not target.hunted then
                 return true, BJI.Utils.ShapeDrawer.Color(1, 1, 1, 1), BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1)
@@ -290,12 +295,14 @@ local function onVehicleDeleted(gameVehID)
 end
 
 local function onVehicleResetted(gameVehID)
-    if BJI.Managers.Veh.isVehicleOwn(gameVehID) then
-        local participant = S.participants[BJI.Managers.Context.User.playerID]
-        if S.state == S.STATES.GAME and                    -- game started
-            participant and not participant.hunted and     -- is hunter
-            S.hunterStartTime < GetCurrentTimeMillis() and -- already started
-            S.huntersRespawnDelay > 0 then                 -- minimum stuck delay configured
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if S.state == S.STATES.GAME and -- sle fhunter during game
+        participant and not participant.hunted and
+        S.hunterStartTime < GetCurrentTimeMillis() and
+        not S.finished then
+        local ownVeh = BJI.Managers.Veh.isVehicleOwn(gameVehID)
+        -- respawn delay
+        if ownVeh and S.huntersRespawnDelay > 0 then -- minimum stuck delay configured
             BJI.Managers.Veh.freeze(true, gameVehID)
             BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
             BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
@@ -311,6 +318,15 @@ local function onVehicleResetted(gameVehID)
                         :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
                 end)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+        end
+
+        if not ownVeh and S.proximityProcess.huntedVeh and gameVehID == S.proximityProcess.huntedVeh:getID() then
+            -- if fugitive resapwns, reveal for 5secs
+            BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
+            S.revealHuntedReset = true
+            BJI.Managers.Async.delayTask(function()
+                S.revealHuntedReset = false
+            end, 5000, "BJIHuntedResetReveal")
         end
     end
 end
@@ -506,10 +522,12 @@ local function initGameHunter(participant)
             BJI.Managers.Restrictions.RESET.TELEPORT,
             BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
         }):flat())
-        local hunted = Table(S.participants):find(function(p) return p.hunted end)
-        if S.settings.lastWaypointGPS and hunted and
-            hunted.waypoint == S.settings.waypoints - 1 then
-            S.revealHunted = true
+        if S.settings.lastWaypointGPS then
+            Table(S.participants):find(function(p) return p.hunted end, function(hunted)
+                if hunted.waypoint == S.settings.waypoints - 1 then
+                    S.revealHuntedLastWaypoint = true
+                end
+            end)
         end
     end
 
@@ -581,10 +599,10 @@ local function updateGame(data)
         } })
         -- own vehicle deletion will trigger switch to another participant
     end
-    if S.settings.lastWaypointGPS and not S.revealHunted then
+    if S.settings.lastWaypointGPS and not S.revealHuntedLastWaypoint then
         Table(S.participants):find(function(p) return p.hunted end, function(p)
             if p.waypoint == S.settings.waypoints - 1 then
-                S.revealHunted = true
+                S.revealHuntedLastWaypoint = true
             end
         end)
     end
@@ -602,6 +620,8 @@ local function updateGame(data)
                 state = BJI.Managers.Restrictions.STATE.ALLOWED,
             }
         })
+        BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
+        BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
     end
 end
 
@@ -672,22 +692,24 @@ local function fastTick(ctxt)
                                     BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh).pos
                                 )
                             end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
-                            if S.revealHunted and minDistance > S.HUNTED_REVEAL_DISTANCE then
-                                S.revealHunted = false
-                                BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
-                            elseif not S.revealHunted and minDistance <= S.HUNTED_REVEAL_DISTANCE then
-                                S.revealHunted = true
+                            if S.revealHuntedProximity and minDistance > S.HUNTED_REVEAL_DISTANCE then
+                                S.revealHuntedProximity = false
+                            elseif not S.revealHuntedProximity and minDistance <= S.HUNTED_REVEAL_DISTANCE then
+                                S.revealHuntedProximity = true
                             end
                         end
                     end)
             end
 
             -- auto gps
-            if S.revealHunted and not BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
+            local reveal = S.revealHuntedProximity or S.revealHuntedLastWaypoint or S.revealHuntedReset
+            if reveal and not BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
                 Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
                     BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, .1, nil,
                         BJI.Managers.Context.Players[huntedID].playerName, false)
                 end)
+            elseif not reveal and BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
+                BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
             end
         end
     end

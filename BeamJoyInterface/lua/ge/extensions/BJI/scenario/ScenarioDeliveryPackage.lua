@@ -120,7 +120,8 @@ local function onDeliveryEnded()
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJI.Managers.Context.User.currentVehicle then
+    if gameVehID ~= BJI.Managers.Context.User.currentVehicle or
+        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
         return
     elseif S.nextResetGarage then
         if S.tanksSaved then

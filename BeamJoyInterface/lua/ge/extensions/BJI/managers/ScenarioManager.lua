@@ -59,8 +59,7 @@ local function onVehicleSpawned(gameVehID)
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID == -1 or not BJI.Managers.Veh.isVehicleOwn(gameVehID) or
-        BJI.Managers.AI.isAIVehicle(gameVehID) or
+    if gameVehID == -1 or BJI.Managers.AI.isAIVehicle(gameVehID) or
         table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
             BJI.Managers.Veh.getType(gameVehID)) then
         return
