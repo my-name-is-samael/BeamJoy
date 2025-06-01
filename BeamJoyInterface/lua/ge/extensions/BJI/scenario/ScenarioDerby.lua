@@ -336,7 +336,9 @@ local function slowTick(ctxt)
                     end
                 end)
         end
-        S.destroy.lastPos = ctxt.vehPosRot.pos
+        if not S.destroy.process then
+            S.destroy.lastPos = ctxt.vehPosRot.pos
+        end
     end
 end
 
