@@ -121,6 +121,9 @@ local W = {
             remove = "",
             save = "",
         },
+        buttons = {
+            reset = "",
+        },
     },
     cache = {
         disableInputs = false,
@@ -256,6 +259,8 @@ local function updateLabels()
     W.labels.server.add = BJI.Managers.Lang.get("common.buttons.add")
     W.labels.server.remove = BJI.Managers.Lang.get("common.buttons.remove")
     W.labels.server.save = BJI.Managers.Lang.get("common.buttons.save")
+
+    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
 end
 
 local function updateWidths()

@@ -1,10 +1,10 @@
 local fields = {
-    { key = "PreparationTimeout", type = "int", step = 1, stepFast = nil, min = 5,  max = 120, },
-    { key = "VoteTimeout",        type = "int", step = 1, stepFast = nil, min = 5,  max = 120, },
-    { key = "BaseSpeed",          type = "int", step = 1, stepFast = 5,   min = 20, max = 100, },
-    { key = "StepSpeed",          type = "int", step = 1, stepFast = nil, min = 1,  max = 50, },
-    { key = "StepDelay",          type = "int", step = 1, stepFast = nil, min = 2,  max = 30, },
-    { key = "EndTimeout",         type = "int", step = 1, stepFast = nil, min = 5,  max = 30, },
+    { key = "PreparationTimeout", type = "int", min = 5,  max = 120, renderFormat = "%ds",    default = 10 },
+    { key = "VoteTimeout",        type = "int", min = 5,  max = 120, renderFormat = "%ds",    default = 30 },
+    { key = "BaseSpeed",          type = "int", min = 20, max = 100, renderFormat = "%dkm/h", default = 30 },
+    { key = "StepSpeed",          type = "int", min = 1,  max = 50,  renderFormat = "%dkm/h", default = 5 },
+    { key = "StepDelay",          type = "int", min = 2,  max = 30,  renderFormat = "%ds",    default = 10 },
+    { key = "EndTimeout",         type = "int", min = 5,  max = 30,  renderFormat = "%ds",    default = 10 },
 }
 
 return function(ctxt, labels, cache)
@@ -16,21 +16,30 @@ return function(ctxt, labels, cache)
                     LineLabel(labels.speed.keys[v.key], nil, false, labels.speed.keys[v.key .. "Tooltip"])
                 end,
                 function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = v.key,
-                            type = v.type,
-                            value = BJI.Managers.Context.BJC.Speed[v.key],
-                            min = v.min,
-                            max = v.max,
-                            step = v.step,
-                            stepFast = v.stepFast,
-                            onUpdate = function(val)
+                    LineBuilder():btnIcon({
+                        id = v.key .. "reset",
+                        icon = ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = BJI.Managers.Context.BJC.Speed[v.key] == v.default,
+                        tooltip = labels.buttons.reset,
+                        onClick = function()
+                            BJI.Managers.Context.BJC.Speed[v.key] = v.default
+                            BJI.Tx.config.bjc("Speed." .. v.key, v.default)
+                        end
+                    }):slider({
+                        id = v.key,
+                        type = v.type,
+                        value = BJI.Managers.Context.BJC.Speed[v.key],
+                        min = v.min,
+                        max = v.max,
+                        renderFormat = v.renderFormat,
+                        onUpdate = function(val)
+                            if BJI.Managers.Context.BJC.Speed[v.key] ~= val then
                                 BJI.Managers.Context.BJC.Speed[v.key] = val
                                 BJI.Tx.config.bjc("Speed." .. v.key, val)
                             end
-                        })
-                        :build()
+                        end
+                    }):build()
                 end
             }
         })

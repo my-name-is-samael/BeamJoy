@@ -146,6 +146,9 @@ local function getCache(senderID)
             HuntersStartDelay = M.Data.Hunter.HuntersStartDelay,
             HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
             HuntersRespawnDelay = M.Data.Hunter.HuntersRespawnDelay,
+            HuntedResetRevealDuration = M.Data.Hunter.HuntedResetRevealDuration,
+            HuntedRevealProximityDistance = M.Data.Hunter.HuntedRevealProximityDistance,
+            HuntedResetDistanceThreshold = M.Data.Hunter.HuntedResetDistanceThreshold,
             EndTimeout = M.Data.Hunter.EndTimeout,
         }
 
@@ -259,6 +262,10 @@ local function clampValue(parent, key, value)
             return math.clamp(value, 10, 60)
         elseif key == "HuntersRespawnDelay" then
             return math.clamp(value, 0, 60)
+        elseif key == "HuntedResetRevealDuration" then
+            return math.clamp(value, 0, 30)
+        elseif table.includes({ "HuntedRevealProximityDistance", "HuntedResetDistanceThreshold" }, key) then
+            return math.clamp(value, 0, 500)
         end
     end
     return value

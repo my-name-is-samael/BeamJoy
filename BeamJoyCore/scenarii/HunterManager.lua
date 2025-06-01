@@ -64,6 +64,9 @@ end
 local function getCache()
     return {
         minimumParticipants = M.MINIMUM_PARTICIPANTS(),
+        huntedResetRevealDuration = BJCConfig.Data.Hunter.HuntedResetRevealDuration,
+        huntedRevealProximityDistance = BJCConfig.Data.Hunter.HuntedRevealProximityDistance,
+        huntedResetDistanceThreshold = BJCConfig.Data.Hunter.HuntedResetDistanceThreshold,
         state = M.state,
         participants = M.participants,
         preparationTimeout = M.preparationTimeout,

@@ -1,10 +1,13 @@
 local fields = Table({
-    { key = "PreparationTimeout",  type = "int", step = 1, min = 5, max = 180 },
-    { key = "HuntedStartDelay",    type = "int", step = 1, min = 0, max = 60 },
-    { key = "HuntersStartDelay",   type = "int", step = 1, min = 0, max = 60 },
-    { key = "HuntedStuckTimeout",  type = "int", step = 1, min = 3, max = 20 },
-    { key = "HuntersRespawnDelay", type = "int", step = 1, min = 0, max = 60 },
-    { key = "EndTimeout",          type = "int", step = 1, min = 5, max = 30 },
+    { key = "PreparationTimeout",            type = "int", min = 5, max = 180, renderFormat = "%ds", default = 30 },
+    { key = "HuntedStartDelay",              type = "int", min = 0, max = 60,  renderFormat = "%ds", default = 5 },
+    { key = "HuntersStartDelay",             type = "int", min = 0, max = 60,  renderFormat = "%ds", default = 10 },
+    { key = "HuntedStuckTimeout",            type = "int", min = 3, max = 20,  renderFormat = "%ds", default = 10 },
+    { key = "HuntersRespawnDelay",           type = "int", min = 0, max = 60,  renderFormat = "%ds", default = 10 },
+    { key = "HuntedResetRevealDuration",     type = "int", min = 0, max = 30,  renderFormat = "%ds", default = 5 },
+    { key = "HuntedRevealProximityDistance", type = "int", min = 0, max = 500, renderFormat = "%dm", default = 50 },
+    { key = "HuntedResetDistanceThreshold",  type = "int", min = 0, max = 500, renderFormat = "%dm", default = 150 },
+    { key = "EndTimeout",                    type = "int", min = 5, max = 30,  renderFormat = "%ds", default = 10 },
 })
 
 return function(ctxt, labels, cache)
@@ -15,20 +18,31 @@ return function(ctxt, labels, cache)
                     LineLabel(labels.hunter.keys[v.key], nil, false, labels.hunter.keys[v.key .. "Tooltip"])
                 end,
                 function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = v.key,
-                            type = v.type,
-                            value = BJI.Managers.Context.BJC.Hunter[v.key],
-                            min = v.min,
-                            max = v.max,
-                            step = v.step,
-                            onUpdate = function(val)
+                    LineBuilder():btnIcon({
+                        id = v.key .. "reset",
+                        icon = ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = BJI.Managers.Context.BJC.Hunter[v.key] == v.default,
+                        tooltip = labels.buttons.reset,
+                        onClick = function()
+                            BJI.Managers.Context.BJC.Hunter[v.key] = v.default
+                            BJI.Tx.config.bjc("Hunter." .. v.key, v.default)
+                        end
+                    }):slider({
+                        id = v.key,
+                        type = v.type,
+                        value = BJI.Managers.Context.BJC.Hunter[v.key],
+                        min = v.min,
+                        max = v.max,
+                        step = v.step,
+                        renderFormat = v.renderFormat,
+                        onUpdate = function(val)
+                            if BJI.Managers.Context.BJC.Hunter[v.key] ~= val then
                                 BJI.Managers.Context.BJC.Hunter[v.key] = val
-                                BJI.Tx.config.bjc(string.var("Hunter.{1}", { v.key }), val)
+                                BJI.Tx.config.bjc("Hunter." .. v.key, val)
                             end
-                        })
-                        :build()
+                        end
+                    }):build()
                 end
             }
         })

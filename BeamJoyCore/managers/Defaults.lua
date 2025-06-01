@@ -105,6 +105,7 @@ local function config()
             DerbyWinnerReward = 200,
         },
         Race = {
+            RaceSoloTimeBroadcast = false,
             PreparationTimeout = 10,
             VoteTimeout = 30,
             VoteThresholdRatio = .51,
@@ -113,7 +114,6 @@ local function config()
             RaceCountdown = 10,
             FinishTimeout = 5,
             RaceEndTimeout = 10,
-            RaceSoloTimeBroadcast = false,
         },
         Hunter = {
             PreparationTimeout = 30,
@@ -121,6 +121,9 @@ local function config()
             HuntersStartDelay = 5,
             HuntedStuckTimeout = 10,
             HuntersRespawnDelay = 10,
+            HuntedResetRevealDuration = 5,
+            HuntedRevealProximityDistance = 50,
+            HuntedResetDistanceThreshold = 150,
             EndTimeout = 10,
         },
         Speed = {

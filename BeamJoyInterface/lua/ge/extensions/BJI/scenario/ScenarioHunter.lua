@@ -1,8 +1,9 @@
 ---@class BJIScenarioHunter : BJIScenario
 local S = {
     MINIMUM_PARTICIPANTS = 3,
-    HUNTED_RESPAWN_DISTANCE = 150,
-    HUNTED_REVEAL_DISTANCE = 50,
+    huntedResetRevealDuration = 5,
+    huntedRevealProximityDistance = 50,
+    huntedResetDistanceThreshold = 150,
     STATES = {
         PREPARATION = 1,
         GAME = 2,
@@ -320,13 +321,14 @@ local function onVehicleResetted(gameVehID)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         end
 
-        if not ownVeh and S.proximityProcess.huntedVeh and gameVehID == S.proximityProcess.huntedVeh:getID() then
-            -- if fugitive resapwns, reveal for 5secs
+        if not ownVeh and S.huntedResetRevealDuration > 0 and
+            S.proximityProcess.huntedVeh and gameVehID == S.proximityProcess.huntedVeh:getID() then
+            -- if fugitive resapwns, reveal for few secs
             BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
             S.revealHuntedReset = true
             BJI.Managers.Async.delayTask(function()
                 S.revealHuntedReset = false
-            end, 5000, "BJIHuntedResetReveal")
+            end, S.huntedResetRevealDuration * 1000, "BJIHuntedResetReveal")
         end
     end
 end
@@ -627,8 +629,13 @@ end
 
 -- receive hunter data from backend
 local function rxData(data)
+    -- constants
     S.MINIMUM_PARTICIPANTS = data.minimumParticipants
     S.huntersRespawnDelay = data.huntersRespawnDelay
+    S.huntedResetRevealDuration = data.huntedResetRevealDuration
+    S.huntedRevealProximityDistance = data.huntedRevealProximityDistance
+    S.huntedResetDistanceThreshold = data.huntedResetDistanceThreshold
+
     if data.state == S.STATES.PREPARATION then
         if not S.state then
             initPreparation(data)
@@ -653,14 +660,15 @@ end
 local function fastTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if ctxt.isOwner and S.state == S.STATES.GAME and participant then
-        if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
+        if S.huntedResetDistanceThreshold > 0 and
+            participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
             -- respawn rest update
             local closeHunter = Table(S.participants)
                 :filter(function(_, playerID) return playerID ~= ctxt.user.playerID end)
                 :map(function(p) return BJI.Managers.Veh.getVehicleObject(p.gameVehID) end)
                 :map(function(veh) return BJI.Managers.Veh.getPositionRotation(veh) end)
                 :map(function(posRot) return ctxt.vehPosRot.pos:distance(posRot.pos) end)
-                :any(function(d) return d < S.HUNTED_RESPAWN_DISTANCE end)
+                :any(function(d) return d < S.huntedResetDistanceThreshold end)
             local resetAllState = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL)
             if closeHunter and not resetAllState then
                 BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
@@ -679,11 +687,14 @@ local function fastTick(ctxt)
                     S.dnf.targetTime = nil
                 end
             end
+        elseif S.huntedResetDistanceThreshold == 0 and
+            not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL) then
+            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
         end
 
         if not participant.hunted and S.hunterStartTime and S.hunterStartTime <= ctxt.now then
             -- proximity reveal update
-            if S.proximityProcess.huntedVeh and #S.proximityProcess.huntersVehs > 0 then
+            if S.huntedRevealProximityDistance > 0 and S.proximityProcess.huntedVeh and #S.proximityProcess.huntersVehs > 0 then
                 Table(S.participants):find(function(p) return p.hunted end,
                     function(hunted)
                         if not S.settings.lastWaypointGPS or hunted.waypoint < S.settings.waypoints - 1 then
@@ -692,9 +703,9 @@ local function fastTick(ctxt)
                                     BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh).pos
                                 )
                             end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
-                            if S.revealHuntedProximity and minDistance > S.HUNTED_REVEAL_DISTANCE then
+                            if S.revealHuntedProximity and minDistance > S.huntedRevealProximityDistance then
                                 S.revealHuntedProximity = false
-                            elseif not S.revealHuntedProximity and minDistance <= S.HUNTED_REVEAL_DISTANCE then
+                            elseif not S.revealHuntedProximity and minDistance <= S.huntedRevealProximityDistance then
                                 S.revealHuntedProximity = true
                             end
                         end

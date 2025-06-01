@@ -1,33 +1,44 @@
 local fields = {
     { key = "RaceSoloTimeBroadcast", type = "bool", },
-    { key = "PreparationTimeout",    type = "int",   step = 1,   stepFast = 5,  min = 5,   max = 120, },
-    { key = "VoteTimeout",           type = "int",   step = 1,   stepFast = 5,  min = 10,  max = 120, },
-    { key = "VoteThresholdRatio",    type = "float", step = .05, stepFast = .1, min = .01, max = 1,   precision = 2 },
+    { key = "PreparationTimeout",    type = "int",  min = 5,  max = 120, renderFormat = "%ds", default = 10 },
+    { key = "VoteTimeout",           type = "int",  min = 10, max = 120, renderFormat = "%ds", default = 30 },
+    {
+        key = "VoteThresholdRatio",
+        type = "float",
+        min = .01,
+        max = 1,
+        precision = 2,
+        renderFormat = function(val)
+            return string
+                .var("{1}%%", { math.round(val * 100) })
+        end,
+        default = .51,
+    },
     {
         key = "GridReadyTimeout",
         type = "int",
-        step = 1,
-        stepFast = 5,
         min = 5,
         max = function()
             return
                 BJI.Managers.Context.BJC.Race.GridTimeout - 1
         end,
+        renderFormat = "%ds",
+        default = 10
     },
     {
         key = "GridTimeout",
         type = "int",
-        step = 1,
-        stepFast = 5,
         min = function()
             return BJI.Managers
                 .Context.BJC.Race.GridReadyTimeout + 1
         end,
-        max = nil,
+        max = 300,
+        renderFormat = "%ds",
+        default = 60
     },
-    { key = "RaceCountdown",  type = "int", step = 1, stepFast = 5, min = 10, max = nil, },
-    { key = "FinishTimeout",  type = "int", step = 1, stepFast = 5, min = 5,  max = nil, },
-    { key = "RaceEndTimeout", type = "int", step = 1, stepFast = 5, min = 5,  max = nil, },
+    { key = "RaceCountdown",  type = "int", min = 10, max = 60, renderFormat = "%ds", default = 10 },
+    { key = "FinishTimeout",  type = "int", min = 5,  max = 30, renderFormat = "%ds", default = 5 },
+    { key = "RaceEndTimeout", type = "int", min = 5,  max = 30, renderFormat = "%ds", default = 10 },
 }
 
 return function(ctxt, labels, cache)
@@ -40,35 +51,43 @@ return function(ctxt, labels, cache)
                 end,
                 function()
                     if v.type == "bool" then
-                        LineBuilder()
-                            :btnIconToggle({
-                                id = v.key,
-                                state = not not BJI.Managers.Context.BJC.Race[v.key],
-                                coloredIcon = true,
-                                onClick = function()
-                                    BJI.Tx.config.bjc("Race." .. v.key,
-                                        not BJI.Managers.Context.BJC.Race[v.key])
-                                    BJI.Managers.Context.BJC.Race[v.key] = not BJI.Managers.Context.BJC.Race[v.key]
-                                end
-                            })
-                            :build()
+                        LineBuilder():btnIconToggle({
+                            id = v.key,
+                            state = not not BJI.Managers.Context.BJC.Race[v.key],
+                            coloredIcon = true,
+                            onClick = function()
+                                BJI.Tx.config.bjc("Race." .. v.key,
+                                    not BJI.Managers.Context.BJC.Race[v.key])
+                                BJI.Managers.Context.BJC.Race[v.key] = not BJI.Managers.Context.BJC.Race[v.key]
+                            end
+                        }):build()
                     else
-                        LineBuilder()
-                            :inputNumeric({
-                                id = v.key,
-                                type = tostring(v.type),
-                                precision = v.precision,
-                                value = BJI.Managers.Context.BJC.Race[v.key],
-                                min = type(v.min) == "function" and v.min() or v.min,
-                                max = type(v.max) == "function" and v.max() or v.max,
-                                step = v.step,
-                                stepFast = v.stepFast,
-                                onUpdate = function(val)
+                        LineBuilder():btnIcon({
+                            id = v.key .. "reset",
+                            icon = ICONS.refresh,
+                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            disabled = BJI.Managers.Context.BJC.Race[v.key] == v.default,
+                            tooltip = labels.buttons.reset,
+                            onClick = function()
+                                BJI.Managers.Context.BJC.Race[v.key] = v.default
+                                BJI.Tx.config.bjc("Race." .. v.key, v.default)
+                            end
+                        }):slider({
+                            id = v.key,
+                            type = tostring(v.type),
+                            precision = v.precision,
+                            value = BJI.Managers.Context.BJC.Race[v.key],
+                            min = type(v.min) == "function" and v.min() or v.min,
+                            max = type(v.max) == "function" and v.max() or v.max,
+                            renderFormat = type(v.renderFormat) == "function" and
+                                v.renderFormat(BJI.Managers.Context.BJC.Race[v.key]) or v.renderFormat,
+                            onUpdate = function(val)
+                                if BJI.Managers.Context.BJC.Race[v.key] ~= val then
                                     BJI.Managers.Context.BJC.Race[v.key] = val
                                     BJI.Tx.config.bjc("Race." .. v.key, val)
                                 end
-                            })
-                            :build()
+                            end
+                        }):build()
                     end
                 end
             }

@@ -1161,7 +1161,7 @@ LineBuilder = function(startSameLine)
 
     builder.slider = function(self, data)
         if not data.id or not data.type or not data.value or not data.min or not data.max or not data.onUpdate then
-            LogError("slider requires id, type, value, min, max and onChange", logTag)
+            LogError("slider requires id, type, value, min, max and onUpdate", logTag)
             return self
         elseif not table.includes({ "int", "float" }, data.type) then
             LogError("slider type must be int or float", logTag)
