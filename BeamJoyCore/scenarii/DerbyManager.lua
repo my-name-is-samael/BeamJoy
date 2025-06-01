@@ -6,7 +6,10 @@
 ---@field eliminationTime? integer
 ---@field startPosition integer
 
+---@class BJCScenarioDerby: BJCScenario
 local M = {
+    name = "Derby",
+
     MINIMUM_PARTICIPANTS = function()
         if BJCCore.Data.General.Debug and MP.GetPlayerCount() < 3 then
             return MP.GetPlayerCount()
@@ -74,6 +77,7 @@ local function stopDerby()
     M.game = {}
     M.countInvalidVehicles = {}
 
+    BJCScenario.CurrentScenario = nil
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
 
@@ -188,7 +192,7 @@ local function start(derbyIndex, lives, configs)
         player.scenario = nil
     end
 
-    M.baseArena = table.deepcopy(BJCScenario.Derby[derbyIndex])
+    M.baseArena = table.deepcopy(BJCScenarioData.Derby[derbyIndex])
     M.settings.lives = lives
     M.settings.configs = configs and Table(configs):clone() or Table()
     while #M.settings.configs >= 6 do -- limit to 5 configs max
@@ -202,6 +206,8 @@ local function start(derbyIndex, lives, configs)
         gamemode = "chat.events.gamemodes.derby",
     })
     startPreparationTimeout()
+
+    BJCScenario.CurrentScenario = M
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
 end
 
@@ -369,9 +375,10 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     return false
 end
 
-local function onPlayerDisconnect(targetID)
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
     if M.state then
-        local pos = getParticipantPosition(targetID)
+        local pos = getParticipantPosition(player.playerID)
         if pos then
             M.participants:remove(pos)
             updateDerbyState()
@@ -442,16 +449,14 @@ end
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-M.onClientStopDerby = onClientStopDerby
-
 M.start = start
-M.stop = stop
+M.clientUpdate = onClientUpdate
+M.stop = onClientStopDerby
+M.forceStop = stop
 
-M.onClientUpdate = onClientUpdate
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
-
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
+M.onPlayerDisconnect = onPlayerDisconnect
+M.onVehicleDeleted = onVehicleDeleted
 
 return M

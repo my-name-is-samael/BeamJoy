@@ -1,10 +1,49 @@
+---@class BJCPlayerVehicle
+---@field vehicleID integer
+---@field vid integer
+---@field pid integer
+---@field name string
+---@field freeze boolean
+---@field engine boolean
+
+---@class BJCAuthPlayer
+---@field playerName string
+---@field ip string
+---@field beammp? string
+---@field guest boolean
+---@field ready boolean
+
+---@class BJCPlayer: BJCAuthPlayer
+---@field playerID integer
+---@field group string
+---@field lang string
+---@field reputation integer
+---@field stats {delivery: integer, race: integer, bus: integer}
+---@field muted? boolean
+---@field muteReason string
+---@field banned? boolean
+---@field tempBanUntil integer
+---@field banReason string
+---@field kickReason string
+---@field hideNametag boolean
+---@field currentVehicle? integer
+---@field freeze boolean
+---@field engine boolean
+---@field vehicles BJCPlayerVehicle[]
+---@field ai integer[]
+---@field messages {time: integer, message: string}[]
+---@field scenario string
+---@field deliveryPackageStreak? integer
+
 local logTag = "PlayerManager"
 SetLogType(logTag, CONSOLE_COLORS.FOREGROUNDS.MAGENTA)
 
 local dbPath = BJCPluginPath:gsub("BeamJoyCore", "BeamJoyData/db/players/")
 
 local M = {
+    ---@type table<integer, BJCPlayer> index playerIDs
     Players = {},     -- connected players
+    ---@type table<string, BJCAuthPlayer> index playerNames
     AuthPlayers = {}, -- players between auth and connection
     MapCachePermissions = {
         [BJCCache.CACHES.USER] = "User",
@@ -14,6 +53,8 @@ local M = {
     _lastDatabaseUpdate = GetCurrentTime(),
 }
 
+---@param player? BJCPlayer
+---@return BJCPlayer
 local function sanitizeDBPlayer(player)
     player = type(player) == "table" and player or {}
     return {
@@ -37,6 +78,7 @@ local function sanitizeDBPlayer(player)
     }
 end
 
+---@param player BJCPlayer
 local function savePlayer(player)
     if not player.guest then
         BJCDao.players.save(sanitizeDBPlayer(player))
@@ -44,6 +86,10 @@ local function savePlayer(player)
     end
 end
 
+---@param playerName string
+---@param guest boolean
+---@param ip string
+---@param beammp string
 local function addAuthPlayer(playerName, guest, ip, beammp)
     M.AuthPlayers[playerName] = {
         playerName = playerName,
@@ -54,6 +100,9 @@ local function addAuthPlayer(playerName, guest, ip, beammp)
     }
 end
 
+---@param playerID integer
+---@param playerName string
+---@return boolean
 local function bindAuthPlayer(playerID, playerName)
     local player = M.AuthPlayers[playerName]
     if not player then
@@ -61,19 +110,20 @@ local function bindAuthPlayer(playerID, playerName)
             :var({ playerName = playerName }), logTag)
         return false
     else
-        M.Players[playerID] = {
+        M.Players[playerID] = table.assign({}, {
             playerID = playerID,
             playerName = player.playerName,
             guest = player.guest,
             ip = player.ip,
             beammp = player.beammp, -- nil if guest
             ready = player.ready,
-        }
+        })
         M.AuthPlayers[playerName] = nil
         return true
     end
 end
 
+---@param playerID integer
 local function instantiatePlayer(playerID)
     local player = M.Players[playerID]
 
@@ -100,6 +150,7 @@ local function instantiatePlayer(playerID)
 end
 
 -- block connection if needed (banned, tempbanned, whitelist, etc.)
+---@param playerID integer
 local function checkJoin(playerID)
     local player = M.Players[playerID]
     if not player then
@@ -158,6 +209,7 @@ local function onPlayerAuth(name, role, isGuest, identifiers)
     addAuthPlayer(name, isGuest, identifiers.ip, identifiers.beammp)
 end
 
+---@param playerID integer
 local function onPlayerConnecting(playerID)
     local playerName = MP.GetPlayerName(playerID)
     if bindAuthPlayer(playerID, playerName) then
@@ -170,9 +222,11 @@ local function onPlayerConnecting(playerID)
     end
 end
 
+---@param playerID integer
 local function onPlayerJoining(playerID)
 end
 
+---@param playerID integer
 local function onPlayerJoin(playerID)
     if not M.Players[playerID] then
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
@@ -181,6 +235,7 @@ local function onPlayerJoin(playerID)
 end
 
 -- Triggered when player is connected and ready to play
+---@param playerID integer
 local function onPlayerConnect(playerID)
     if M.Players[playerID] then
         M.Players[playerID].ready = true
@@ -193,30 +248,37 @@ local function onPlayerConnect(playerID)
     end
 end
 
+---@param playerID integer
 local function onPlayerDisconnect(playerID)
     if M.Players[playerID] then
-        local playerName = M.Players[playerID].playerName
+        local player = M.Players[playerID]
         M.Players[playerID] = nil
 
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
+        BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_DISCONNECTED, player)
     end
 end
 
-local function onVehicleSwitched(senderID, gameVehID)
-    local player = M.Players[senderID]
+---@param playerID integer
+---@param gameVehID integer
+local function onVehicleSwitched(playerID, gameVehID)
+    local player = M.Players[playerID]
     player.currentVehicle = gameVehID
-    BJCTx.cache.invalidate(senderID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-local function getCount(permission, excludeStaff)
-    if not permission then
-        permission = BJCGroups.Data[BJCGroups.GROUPS.NONE].level
+---@param level integer
+---@param excludeStaff? boolean
+---@return integer
+local function getCount(level, excludeStaff)
+    if not level then
+        level = BJCGroups.Data[BJCGroups.GROUPS.NONE].level
     end
 
     local count = 0
     for _, player in pairs(M.Players) do
-        if BJCPerm.hasPermission(player.playerID, permission) and
+        if BJCPerm.hasPermission(player.playerID, level) and
             (not excludeStaff or not BJCGroups.Data[player.group].staff) then
             count = count + 1
         end
@@ -226,6 +288,8 @@ end
 
 -- CACHES
 
+---@param playerID integer
+---@return table, string
 local function getCacheUser(playerID)
     local player = M.Players[playerID]
     if not player then
@@ -257,11 +321,15 @@ local function getCacheUser(playerID)
     end
 end
 
+---@param playerID integer
+---@return string
 local function getCacheUserHash(playerID)
     return M.Players[playerID] and Hash(M.Players[playerID]) or tostring(GetCurrentTime())
 end
 
-local function getCachePlayers(senderID)
+---@param playerID integer
+---@return table, string
+local function getCachePlayers(playerID)
     return Table(M.Players)
         :filter(function(p) return p.ready end, true)
         :map(function(p, pid)
@@ -285,7 +353,7 @@ local function getCachePlayers(senderID)
                     }
                 end),
             }
-            return not BJCPerm.isStaff(senderID) and res or table.assign(res, {
+            return not BJCPerm.isStaff(playerID) and res or table.assign(res, {
                 -- staff additional data
                 freeze = p.freeze,
                 engine = p.engine,
@@ -312,10 +380,12 @@ local function getCachePlayers(senderID)
         end), M.getCachePlayersHash()
 end
 
+---@return string
 local function getCachePlayersHash()
     return Hash(M.Players)
 end
 
+---@return table
 local function getDatabasePlayers()
     return Table(FS.ListFiles(dbPath))
         :map(function(filename)
@@ -346,11 +416,13 @@ local function getDatabasePlayers()
         end):values()
         :sort(function(a, b)
             return a.playerName < b.playerName
-        end)
+        end) or Table()
 end
 
 -- PLAYER MODERATION
 
+---@param playerID integer
+---@param reason? string
 local function drop(playerID, reason)
     local player = M.Players[playerID]
     if type(reason) ~= "string" or #reason == 0 then
@@ -372,6 +444,8 @@ local function drop(playerID, reason)
     end
 end
 
+---@param playerIDs integer[]
+---@param reasonKey? string
 local function dropMultiple(playerIDs, reasonKey)
     for _, playerID in ipairs(playerIDs) do
         local playerName = M.Players[playerID].playerName
@@ -381,6 +455,9 @@ local function dropMultiple(playerIDs, reasonKey)
     end
 end
 
+---@param ctxt BJCContext
+---@param targetName string
+---@param groupName string
 local function setGroup(ctxt, targetName, groupName)
     local target, connected = nil, false
     if not Table(M.Players):find(function(player)
@@ -449,10 +526,12 @@ local function setGroup(ctxt, targetName, groupName)
     BJCTx.database.playersUpdated()
 end
 
-local function toggleFreeze(targetID, vehID) -- optional vehID
-    local target = M.Players[targetID]
+---@param playerID integer
+---@param vehID? integer
+local function toggleFreeze(playerID, vehID)
+    local target = M.Players[playerID]
     if not target then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
     local vehicle
@@ -469,14 +548,16 @@ local function toggleFreeze(targetID, vehID) -- optional vehID
         target.freeze = not target.freeze
     end
 
-    BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.PLAYERS, BJCPerm.PERMISSIONS.FREEZE_PLAYERS)
 end
 
-local function toggleEngine(targetID, vehID) -- optional vehID
-    local target = M.Players[targetID]
+---@param playerID integer
+---@param vehID? integer
+local function toggleEngine(playerID, vehID)
+    local target = M.Players[playerID]
     if not target then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
     local vehicle
@@ -493,22 +574,26 @@ local function toggleEngine(targetID, vehID) -- optional vehID
         target.engine = not target.engine
     end
 
-    BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.PLAYERS, BJCPerm.PERMISSIONS.ENGINE_PLAYERS)
 end
 
-local function teleportFrom(senderID, targetID)
+---@param playerID integer
+---@param targetID integer
+local function teleportFrom(playerID, targetID)
     local target = M.Players[targetID]
     if not target then
         error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
     end
 
-    BJCTx.player.teleportToPlayer(target.playerID, senderID)
+    BJCTx.player.teleportToPlayer(target.playerID, playerID)
 end
 
+---@param ctxt BJCContext
+---@param playerName string
 local function whitelist(ctxt, playerName)
     for _, player in pairs(BJCPlayers.Players) do
-        if player.name == playerName and player.guest then
+        if player.playerName == playerName and player.guest then
             error({ key = "rx.errors.guestCannotBeWhitelisted" })
         end
     end
@@ -527,6 +612,9 @@ local function whitelist(ctxt, playerName)
     BJCTx.database.playersUpdated()
 end
 
+---@param ctxt BJCContext
+---@param targetName string
+---@param reason? string
 local function toggleMute(ctxt, targetName, reason)
     local target
     local connected = false
@@ -578,17 +666,20 @@ local function toggleMute(ctxt, targetName, reason)
     BJCTx.database.playersUpdated()
 end
 
-local function deleteVehicle(ctxt, targetID, gameVehID)
-    local target = M.Players[targetID]
+---@param ctxt BJCContext
+---@param playerID integer
+---@param gameVehID integer
+local function deleteVehicle(ctxt, playerID, gameVehID)
+    local target = M.Players[playerID]
     if not target then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
     if ctxt.origin == "player" then
         local self = M.Players[ctxt.senderID]
         local selfGroup = BJCGroups.Data[self.group]
         local targetGroup = BJCGroups.Data[target.group]
-        if selfGroup.level <= targetGroup.level and ctxt.senderID ~= targetID then
+        if selfGroup.level <= targetGroup.level and ctxt.senderID ~= playerID then
             error({ key = "rx.errors.insufficientPermissions" })
         end
     end
@@ -616,45 +707,47 @@ local function deleteVehicle(ctxt, targetID, gameVehID)
             return
         end
 
-        if ctxt.origin ~= "player" or ctxt.senderID ~= targetID then
-            local prefix = BJCLang.getServerMessage(targetID, "rx.vehicleRemoveMain")
+        if ctxt.origin ~= "player" or ctxt.senderID ~= playerID then
+            local prefix = BJCLang.getServerMessage(playerID, "rx.vehicleRemoveMain")
             if multipleVehicles and not current then
-                prefix = BJCLang.getServerMessage(targetID, "rx.vehicleRemoveOneOf")
+                prefix = BJCLang.getServerMessage(playerID, "rx.vehicleRemoveOneOf")
             end
-            BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveSuffix",
+            BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveSuffix",
                 { typeVehicleRemove = prefix }, 7)
         end
 
         if current then
             target.currentVehicle = nil
         end
-        MP.RemoveVehicle(targetID, vehID)
+        MP.RemoveVehicle(playerID, vehID)
         target.vehicles[vehID] = nil
-        BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
+        BJCEvents.trigger(BJCEvents.EVENTS.MP_VEHICLE_DELETED, playerID, vehID)
     else
         --remove all player vehicles
         target.currentVehicle = nil
         for vehID in pairs(target.vehicles) do
-            MP.RemoveVehicle(targetID, vehID)
+            MP.RemoveVehicle(playerID, vehID)
             target.vehicles[vehID] = nil
-            BJCEvents.trigger(BJCEvents.EVENTS.VEHICLE_DELETED, targetID, vehID)
+            BJCEvents.trigger(BJCEvents.EVENTS.MP_VEHICLE_DELETED, playerID, vehID)
         end
 
-        if ctxt.origin ~= "player" or ctxt.senderID ~= targetID then
-            BJCTx.player.toast(targetID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveAll",
+        if ctxt.origin ~= "player" or ctxt.senderID ~= playerID then
+            BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveAll",
                 nil, 7)
         end
     end
 
-    BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-local function markInvalidVehs(senderID, listVehIDs)
-    local player = M.Players[senderID]
+---@param playerID integer
+---@param listVehIDs integer[]
+local function markInvalidVehs(playerID, listVehIDs)
+    local player = M.Players[playerID]
     if not player then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
-    elseif not BJCPerm.canSpawnVehicle(senderID) then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
+    elseif not BJCPerm.canSpawnVehicle(playerID) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -670,14 +763,17 @@ local function markInvalidVehs(senderID, listVehIDs)
         end
     end)
 
-    BJCTx.cache.invalidate(senderID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-local function kick(ctxt, targetID, reason)
-    local target = M.Players[targetID]
+---@param ctxt BJCContext
+---@param playerID integer
+---@param reason? string
+local function kick(ctxt, playerID, reason)
+    local target = M.Players[playerID]
     if not target then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = targetID } })
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
     if ctxt.origin == "player" then -- can kick from console or votekick
@@ -696,10 +792,14 @@ local function kick(ctxt, targetID, reason)
         reason = BJCLang.getServerMessage(target.lang, "players.kicked")
     end
 
-    M.drop(targetID, reason)
+    M.drop(playerID, reason)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
+---@param ctxt BJCContext
+---@param targetName string
+---@param reason? string
+---@param duration integer
 local function tempBan(ctxt, targetName, reason, duration)
     local connected = false
     local target
@@ -746,6 +846,9 @@ local function tempBan(ctxt, targetName, reason, duration)
     BJCTx.database.playersUpdated()
 end
 
+---@param ctxt BJCContext
+---@param targetName string
+---@param reason? string
 local function ban(ctxt, targetName, reason)
     local target
     local connected = false
@@ -788,6 +891,7 @@ local function ban(ctxt, targetName, reason)
     BJCTx.database.playersUpdated()
 end
 
+---@param targetName string
 local function unban(targetName)
     local target = BJCDao.players.findByPlayerName(targetName)
 
@@ -805,8 +909,10 @@ local function unban(targetName)
     BJCTx.database.playersUpdated()
 end
 
-local function changeLang(targetID, lang)
-    local target = BJCPlayers.Players[targetID]
+---@param playerID integer
+---@param lang string
+local function changeLang(playerID, lang)
+    local target = BJCPlayers.Players[playerID]
     if lang == target.lang then
         return
     end
@@ -818,11 +924,13 @@ local function changeLang(targetID, lang)
     target.lang = lang
     M.savePlayer(target)
 
-    BJCTx.cache.invalidate(targetID, BJCCache.CACHES.USER)
-    BJCTx.cache.invalidate(targetID, BJCCache.CACHES.LANG)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
+    BJCTx.cache.invalidate(playerID, BJCCache.CACHES.LANG)
     BJCTx.database.playersUpdated()
 end
 
+---@param playerID integer
+---@param listVehIDs? integer[]
 local function updateAI(playerID, listVehIDs)
     local player = M.Players[playerID]
     if not player then
@@ -837,11 +945,15 @@ local function updateAI(playerID, listVehIDs)
     end
 end
 
+---@param playerID integer
+---@param scenario string
 local function setPlayerScenario(playerID, scenario)
     local self = M.Players[playerID]
     self.scenario = scenario
 end
 
+---@param playerID integer
+---@param finished boolean
 local function onRaceSoloEnd(playerID, finished)
     local player = M.Players[playerID]
     if player.scenario ~= BJCScenario.PLAYER_SCENARII.RACE_SOLO then
@@ -857,6 +969,8 @@ local function onRaceSoloEnd(playerID, finished)
     end
 end
 
+---@param playerID integer
+---@param pristine boolean
 local function onDeliveryVehicleSuccess(playerID, pristine)
     local self = M.Players[playerID]
     local reward = BJCConfig.Data.Reputation.DeliveryVehicleReward
@@ -868,10 +982,11 @@ local function onDeliveryVehicleSuccess(playerID, pristine)
     self.stats.delivery = self.stats.delivery + 1
 
     BJCAsync.delayTask(function()
-        BJCScenario.updateDeliveryLeaderboard()
+        BJCScenarioData.updateDeliveryLeaderboard()
     end, 0)
 end
 
+---@param playerID integer
 local function onDeliveryPackageSuccess(playerID)
     local self = M.Players[playerID]
     local streak = self.deliveryPackageStreak or 0
@@ -883,24 +998,29 @@ local function onDeliveryPackageSuccess(playerID)
     BJCTx.scenario.DeliveryPackageSuccess(playerID, self.deliveryPackageStreak)
 
     BJCAsync.delayTask(function()
-        BJCScenario.updateDeliveryLeaderboard()
+        BJCScenarioData.updateDeliveryLeaderboard()
     end, 0)
 end
 
+---@param playerID integer
 local function onDeliveryPackageFail(playerID)
     local self = M.Players[playerID]
     self.deliveryPackageStreak = nil
     self.scenario = BJCScenario.PLAYER_SCENARII.FREEROAM
 end
 
+---@param playerID integer
+---@param idBusLine integer
 local function onBusMissionReward(playerID, idBusLine)
-    local line = BJCScenario.BusLines[idBusLine]
+    local line = BJCScenarioData.BusLines[idBusLine]
     local ratio = line and math.round(line.distance / 1000, 1) or 1
     local reward = math.ceil(BJCConfig.Data.Reputation.BusMissionReward * ratio)
     M.Players[playerID].stats.bus = M.Players[playerID].stats.bus + 1
     M.reward(playerID, reward)
 end
 
+---@param playerID integer
+---@param amount integer
 local function reward(playerID, amount)
     local self = M.Players[playerID]
     self.reputation = self.reputation + amount
@@ -909,10 +1029,12 @@ local function reward(playerID, amount)
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
 end
 
-local function explodeVehicle(senderID, gameVehID)
-    local sender = M.Players[senderID]
+---@param playerID integer
+---@param gameVehID integer
+local function explodeVehicle(playerID, gameVehID)
+    local sender = M.Players[playerID]
     if not sender then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
     local group = BJCGroups.Data[sender.group]
     if not group then
@@ -945,6 +1067,8 @@ end
 
 -- CONSOLE
 
+---@param playerName string
+---@return tablelib<integer, BJCPlayer>
 local function findConnectedPlayers(playerName)
     local matches = Table()
     for _, p in pairs(M.Players) do
@@ -958,6 +1082,8 @@ local function findConnectedPlayers(playerName)
     return matches
 end
 
+---@param args string[]
+---@return string
 local function consoleSetGroup(args)
     local playerName, groupName = args[1], args[2]
     if not playerName then
@@ -1020,6 +1146,8 @@ local function consoleSetGroup(args)
         :var({ playerName = playerName, group = groupName })
 end
 
+---@param args string[]
+---@return string
 local function consoleKick(args)
     local playerName = args[1]
     if not playerName then
@@ -1068,6 +1196,8 @@ local function consoleKick(args)
     return BJCLang.getConsoleMessage("command.playerKicked"):var({ playerName = matches[1].playerName })
 end
 
+---@param args string[]
+---@return string
 local function consoleBan(args)
     local playerName = args[1]
     if not playerName then
@@ -1116,6 +1246,8 @@ local function consoleBan(args)
     return BJCLang.getConsoleMessage("command.playerBanned"):var({ playerName = matches[1].playerName })
 end
 
+---@param args string[]
+---@return string
 local function consoleTempBan(args)
     local playerName, duration = args[1], tonumber(args[2])
     if not playerName or not duration then
@@ -1172,6 +1304,8 @@ local function consoleTempBan(args)
     return BJCLang.getConsoleMessage("command.playerBanned"):var({ playerName = matches[1].playerName })
 end
 
+---@param args string[]
+---@return string
 local function consoleUnban(args)
     local playerName = args[1]
     if not playerName then
@@ -1201,6 +1335,8 @@ local function consoleUnban(args)
     return BJCLang.getConsoleMessage("command.playerUnbanned"):var({ playerName = playerName })
 end
 
+---@param args string[]
+---@return string
 local function consoleMute(args)
     local playerName = args[1]
     if not playerName then
@@ -1252,6 +1388,8 @@ local function consoleMute(args)
     return BJCLang.getConsoleMessage("command.playerMuted"):var({ playerName = matches[1].playerName })
 end
 
+---@param args string[]
+---@return string
 local function consoleUnmute(args)
     local playerName = args[1]
     if not playerName then
@@ -1347,11 +1485,11 @@ M.consoleUnban = consoleUnban
 M.consoleMute = consoleMute
 M.consoleUnmute = consoleUnmute
 
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_AUTH, onPlayerAuth)
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_CONNECTING, onPlayerConnecting)
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_JOINING, onPlayerJoining)
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_JOIN, onPlayerJoin)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_AUTH, onPlayerAuth)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_CONNECTING, onPlayerConnecting)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOINING, onPlayerJoining)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOIN, onPlayerJoin)
 M.onPlayerConnect = onPlayerConnect
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_DISCONNECT, onPlayerDisconnect)
 
 return M

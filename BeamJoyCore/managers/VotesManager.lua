@@ -113,18 +113,19 @@ function M.Kick.stop()
     end
 end
 
-function M.Kick.onPlayerDisconnect(playerID)
+---@param player BJCPlayer
+function M.Kick.onPlayerDisconnect(player)
     if not kickStarted() then
         return
     end
 
-    if M.Kick.targetID == playerID or
+    if M.Kick.targetID == player.playerID or
         getKickTotalPlayers() < 2 then
         kickReset()
         return
     end
 
-    local pos = table.indexOf(M.Kick.voters, playerID)
+    local pos = table.indexOf(M.Kick.voters, player.playerID)
     if pos then
         table.remove(M.Kick.voters, pos)
         if #M.Kick.voters == 0 then
@@ -242,12 +243,13 @@ function M.Map.stop()
     end
 end
 
-function M.Map.onPlayerDisconnect(playerID)
+---@param player BJCPlayer
+function M.Map.onPlayerDisconnect(player)
     if not mapStarted() then
         return
     end
 
-    local pos = table.indexOf(M.Map.voters, playerID)
+    local pos = table.indexOf(M.Map.voters, player.playerID)
     if pos then
         table.remove(M.Map.voters, pos)
         if #M.Map.voters == 0 then
@@ -311,7 +313,7 @@ local function raceVoteTimeout()
         if table.length(M.Race.voters) >= getRaceThreshold() then
             BJCChat.sendChatEvent("chat.events.voteAccepted", {
                 voteEvent = "chat.events.voteEvents.raceStart",
-                suffix = BJCScenario.getRace(M.Race.raceID).name
+                suffix = BJCScenarioData.getRace(M.Race.raceID).name
             })
             BJCScenario.RaceManager.start(M.Race.raceID, M.Race.settings)
             BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
@@ -320,7 +322,7 @@ local function raceVoteTimeout()
         else
             BJCChat.sendChatEvent("chat.events.voteDenied", {
                 voteEvent = "chat.events.voteEvents.raceStart",
-                suffix = BJCScenario.getRace(M.Race.raceID).name
+                suffix = BJCScenarioData.getRace(M.Race.raceID).name
             })
         end
     else
@@ -354,7 +356,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
     elseif BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS() then
         error({ key = "rx.errors.insufficientPlayers" })
     else
-        race = BJCScenario.getRace(raceID)
+        race = BJCScenarioData.getRace(raceID)
         if not race then
             error({ key = "rx.errors.invalidData" })
         end
@@ -414,7 +416,7 @@ function M.Race.vote(playerID)
     elseif playerID == M.Race.creatorID then
         BJCChat.sendChatEvent("chat.events.voteDenied", {
             voteEvent = "chat.events.voteEvents.raceStart",
-            suffix = BJCScenario.getRace(M.Race.raceID).name
+            suffix = BJCScenarioData.getRace(M.Race.raceID).name
         })
         raceReset()
     else
@@ -429,7 +431,7 @@ function M.Race.stop()
             BJCChat.sendChatEvent("chat.events.voteCancelled", {
                 playerName = BJCPlayers.Players[M.Race.creatorID].playerName,
                 voteEvent = "chat.events.voteEvents.raceStart",
-                suffix = BJCScenario.getRace(M.Race.raceID).name
+                suffix = BJCScenarioData.getRace(M.Race.raceID).name
             })
         else
             BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
@@ -441,19 +443,18 @@ function M.Race.stop()
     end
 end
 
-function M.Race.onPlayerDisconnect(playerID)
-    if not raceStarted() then
-        return
-    end
-
-    if M.Race.creatorID == playerID then
-        raceReset()
-    else
-        local pos = table.indexOf(M.Race.voters, playerID)
-        if pos then
-            table.remove(M.Race.voters, pos)
-            if #M.Race.voters == 0 then
-                raceReset()
+---@param player BJCPlayer
+function M.Race.onPlayerDisconnect(player)
+    if raceStarted() then
+        if M.Race.creatorID == player.playerID then
+            raceReset()
+        else
+            local pos = table.indexOf(M.Race.voters, player.playerID)
+            if pos then
+                table.remove(M.Race.voters, pos)
+                if #M.Race.voters == 0 then
+                    raceReset()
+                end
             end
         end
     end
@@ -553,9 +554,10 @@ function M.Speed.join(senderID, gameVehID)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
 
-function M.Speed.onPlayerDisconnect(playerID)
-    if speedStarted() and M.Speed.participants[playerID] then
-        M.Speed.participants[playerID] = nil
+---@param player BJCPlayer
+function M.Speed.onPlayerDisconnect(player)
+    if speedStarted() and M.Speed.participants[player.playerID] then
+        M.Speed.participants[player.playerID] = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
     end
 end
@@ -608,7 +610,8 @@ function M.getCacheHash()
     })
 end
 
-local function onPlayerDisconnect(playerID)
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
     Table({ {
         cond = kickStarted,
         fn = M.Kick.onPlayerDisconnect,
@@ -623,8 +626,8 @@ local function onPlayerDisconnect(playerID)
         fn = M.Speed.onPlayerDisconnect,
     } })
         :filter(function(el) return el.cond() end)
-        :forEach(function(el) el.fn(playerID) end)
+        :forEach(function(el) el.fn(player) end)
 end
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect)
 
 return M

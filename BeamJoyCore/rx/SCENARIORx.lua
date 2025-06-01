@@ -9,7 +9,7 @@ function ctrl.RaceDetails(ctxt)
     end
 
     local raceID = ctxt.data[1]
-    local race = BJCScenario.getRace(raceID)
+    local race = BJCScenarioData.getRace(raceID)
     if race then
         BJCTx.scenario.RaceDetails(ctxt.senderID, race)
     else
@@ -37,10 +37,10 @@ function ctrl.RaceToggle(ctxt)
     end
 
     local raceID, state = tonumber(ctxt.data[1]), ctxt.data[2] == true
-    local race = BJCScenario.getRace(raceID)
+    local race = BJCScenarioData.getRace(raceID)
     if race then
         race.enabled = state
-        local raceID = BJCScenario.saveRace(race)
+        local raceID = BJCScenarioData.saveRace(race)
     else
         error({ key = "rx.errors.invalidData" })
     end
@@ -51,11 +51,11 @@ function ctrl.RaceDelete(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.raceDelete(ctxt.data[1])
+    BJCScenarioData.raceDelete(ctxt.data[1])
 end
 
 function ctrl.RaceMultiUpdate(ctxt)
-    BJCScenario.RaceManager.onClientUpdate(ctxt.senderID, ctxt.data[1], ctxt.data[2])
+    BJCScenario.RaceManager.clientUpdate(ctxt.senderID, ctxt.data[1], ctxt.data[2])
 end
 
 function ctrl.RaceMultiStop(ctxt)
@@ -64,7 +64,7 @@ function ctrl.RaceMultiStop(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.RaceManager.onClientStopRace()
+    BJCScenario.RaceManager.stop()
 end
 
 function ctrl.RaceSoloStart(ctxt)
@@ -81,7 +81,7 @@ function ctrl.RaceSoloUpdate(ctxt)
     end
 
     local raceID, time, model = ctxt.data[1], ctxt.data[2], ctxt.data[3]
-    BJCScenario.onRaceSoloTime(ctxt.senderID, raceID, time, model)
+    BJCScenarioData.onRaceSoloTime(ctxt.senderID, raceID, time, model)
 end
 
 function ctrl.RaceSoloEnd(ctxt)
@@ -98,7 +98,7 @@ function ctrl.EnergyStationsSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveEnergyStations, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveEnergyStations, ctxt.data[1])
     BJCTx.scenario.EnergyStationsSave(ctxt.senderID, not err)
     if err then
         error(err)
@@ -110,7 +110,7 @@ function ctrl.GaragesSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveGarages, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveGarages, ctxt.data[1])
     BJCTx.scenario.GaragesSave(ctxt.senderID, not err)
     if err then
         error(err)
@@ -183,7 +183,7 @@ function ctrl.DeliveryMultiJoin(ctxt)
     end
 
     local gameVehID, pos = ctxt.data[1], ctxt.data[2]
-    BJCScenario.DeliveryMultiManager.join(ctxt.senderID, gameVehID, pos)
+    BJCScenario.Hybrids.DeliveryMultiManager.join(ctxt.senderID, gameVehID, pos)
 end
 
 function ctrl.DeliveryMultiResetted(ctxt)
@@ -191,7 +191,7 @@ function ctrl.DeliveryMultiResetted(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.DeliveryMultiManager.resetted(ctxt.senderID)
+    BJCScenario.Hybrids.DeliveryMultiManager.resetted(ctxt.senderID)
 end
 
 function ctrl.DeliveryMultiReached(ctxt)
@@ -199,7 +199,7 @@ function ctrl.DeliveryMultiReached(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.DeliveryMultiManager.reached(ctxt.senderID)
+    BJCScenario.Hybrids.DeliveryMultiManager.reached(ctxt.senderID)
 end
 
 function ctrl.DeliveryMultiLeave(ctxt)
@@ -207,7 +207,7 @@ function ctrl.DeliveryMultiLeave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.DeliveryMultiManager.leave(ctxt.senderID)
+    BJCScenario.Hybrids.DeliveryMultiManager.leave(ctxt.senderID)
 end
 
 function ctrl.BusLinesSave(ctxt)
@@ -215,7 +215,7 @@ function ctrl.BusLinesSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveBusLines, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveBusLines, ctxt.data[1])
     BJCTx.scenario.BusLinesSave(ctxt.senderID, not err)
     if err then
         error(err)
@@ -276,7 +276,7 @@ function ctrl.SpeedFail(ctxt)
     end
 
     local time = ctxt.data[1]
-    BJCScenario.SpeedManager.onPlayerFail(ctxt.senderID, time)
+    BJCScenario.SpeedManager.clientUpdate(ctxt.senderID, time)
 end
 
 function ctrl.SpeedStop(ctxt)
@@ -292,7 +292,7 @@ function ctrl.HunterSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveHunter, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveHunter, ctxt.data[1])
     BJCTx.scenario.HunterSave(ctxt.senderID, not err)
     if err then
         error(err)
@@ -313,7 +313,7 @@ function ctrl.HunterUpdate(ctxt)
     end
 
     local event, data = ctxt.data[1], ctxt.data[2]
-    BJCScenario.HunterManager.rx(ctxt.senderID, event, data)
+    BJCScenario.HunterManager.clientUpdate(ctxt.senderID, event, data)
 end
 
 function ctrl.HunterStop(ctxt)
@@ -330,7 +330,7 @@ function ctrl.DerbySave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveDerbyArenas, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveDerbyArenas, ctxt.data[1])
     BJCTx.scenario.DerbySave(ctxt.senderID, not err)
     if err then
         error(err)
@@ -348,7 +348,7 @@ end
 
 function ctrl.DerbyUpdate(ctxt)
     local event, data = ctxt.data[1], ctxt.data[2]
-    BJCScenario.DerbyManager.onClientUpdate(ctxt.senderID, event, data)
+    BJCScenario.DerbyManager.clientUpdate(ctxt.senderID, event, data)
 end
 
 function ctrl.DerbyStop(ctxt)
@@ -357,7 +357,7 @@ function ctrl.DerbyStop(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.DerbyManager.onClientStopDerby()
+    BJCScenario.DerbyManager.stop()
 end
 
 function ctrl.TagDuoJoin(ctxt)
@@ -367,7 +367,7 @@ function ctrl.TagDuoJoin(ctxt)
     end
 
     local lobbyIndex, vehID = ctxt.data[1], ctxt.data[2]
-    BJCScenario.TagDuoManager.onClientJoin(ctxt.senderID, lobbyIndex, vehID)
+    BJCScenario.Hybrids.TagDuoManager.onClientJoin(ctxt.senderID, lobbyIndex, vehID)
 end
 
 function ctrl.TagDuoUpdate(ctxt)
@@ -377,7 +377,7 @@ function ctrl.TagDuoUpdate(ctxt)
     end
 
     local lobbyIndex, event = ctxt.data[1], ctxt.data[2]
-    BJCScenario.TagDuoManager.onClientUpdate(ctxt.senderID, lobbyIndex, event)
+    BJCScenario.Hybrids.TagDuoManager.onClientUpdate(ctxt.senderID, lobbyIndex, event)
 end
 
 function ctrl.TagDuoLeave(ctxt)
@@ -386,7 +386,7 @@ function ctrl.TagDuoLeave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.TagDuoManager.onClientLeave(ctxt.senderID)
+    BJCScenario.Hybrids.TagDuoManager.onPlayerDisconnect(ctxt.sender)
 end
 
 return ctrl

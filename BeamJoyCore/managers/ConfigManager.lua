@@ -50,10 +50,11 @@ local function getCache(senderID)
 
     data.Freeroam = {
         Nametags = M.Data.Freeroam.Nametags,
+        VehicleSpawning = M.Data.Freeroam.VehicleSpawning,
+        AllowUnicycle = M.Data.Freeroam.AllowUnicycle,
     }
     if BJCPerm.canSpawnVehicle(senderID) then
         table.assign(data.Freeroam, {
-            AllowUnicycle = M.Data.Freeroam.AllowUnicycle,
             ResetDelay = M.Data.Freeroam.ResetDelay,
             TeleportDelay = M.Data.Freeroam.TeleportDelay,
             QuickTravel = M.Data.Freeroam.QuickTravel,
@@ -90,11 +91,6 @@ local function getCache(senderID)
             Timeout = M.Data.VoteMap.Timeout,
             ThresholdRatio = M.Data.VoteMap.ThresholdRatio,
         }
-
-        if not data.Freeroam then
-            data.Freeroam = {}
-        end
-        data.Freeroam.VehicleSpawning = M.Data.Freeroam.VehicleSpawning
 
         data.Reputation = {}
         for k, v in pairs(M.Data.Reputation) do

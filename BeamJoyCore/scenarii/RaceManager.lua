@@ -1,4 +1,7 @@
+---@class BJCScenarioRace: BJCScenario
 local M = {
+    name = "Race",
+
     MINIMUM_PARTICIPANTS = function()
         if BJCCore.Data.General.Debug then
             return 1
@@ -26,6 +29,7 @@ local M = {
     },
 
     state = nil,
+    ---@type {id: integer, name: string, author: string, hash: string, loopable: boolean, previewPosition: BJIPositionRotation, startPositions: BJIPositionRotation[], steps: BJIRaceWaypoint[][], record: {time: integer, playerName: string, model: string}?}?
     baseRace = nil,
     settings = {
         laps = nil,
@@ -45,6 +49,7 @@ local M = {
         ---@type Timer
         raceTimer = nil,
         startTime = nil,
+        ---@type {loopable: integer, wpPerLap: integer, steps: BJIRaceWaypoint[][]}?
         raceData = nil,
         leaderboard = {},
         finished = {},   -- list of finished players
@@ -84,10 +89,11 @@ local function stopRace()
         eliminated = {},
     }
 
+    BJCScenario.CurrentScenario = nil
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
 end
 
-local function onClientStopRace()
+local function onModerationStop()
     if not M.state then
         error({ key = "rx.errors.invalidData" })
     end
@@ -200,7 +206,7 @@ local function start(raceID, settings)
         player.scenario = nil
     end
 
-    M.baseRace = BJCScenario.getRace(raceID)
+    M.baseRace = BJCScenarioData.getRace(raceID)
     M.settings = settings
 
     M.grid.participants = {}
@@ -211,6 +217,8 @@ local function start(raceID, settings)
     M.state = M.STATES.GRID
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACE)
     startGridTimeout(M.grid.timeout)
+
+    BJCScenario.CurrentScenario = M
 end
 
 local function stop()
@@ -357,7 +365,7 @@ local function startFinishRace()
 end
 
 local function checkNewRecord(raceID, time, player, model)
-    local race = BJCScenario.getRace(raceID)
+    local race = BJCScenarioData.getRace(raceID)
     if race and (not race.record or race.record.time > time) then
         local err
         if not player.guest then
@@ -366,14 +374,14 @@ local function checkNewRecord(raceID, time, player, model)
                 playerName = player.playerName,
                 model = model,
             }
-            _, err = pcall(BJCScenario.saveRaceRecord, raceID, M.baseRace.record)
+            _, err = pcall(BJCScenarioData.saveRaceRecord, raceID, M.baseRace.record)
         end
         if not err then
             if race.record then
                 BJCPlayers.reward(player.playerID, BJCConfig.Data.Reputation.RaceRecordReward)
             end
             BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACES)
-            BJCScenario.broadcastRaceRecord(M.baseRace.name, player.playerName, M.baseRace.record.time)
+            BJCScenarioData.broadcastRaceRecord(M.baseRace.name, player.playerName, M.baseRace.record.time)
         end
     end
 end
@@ -602,17 +610,18 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     return false
 end
 
-local function onPlayerDisconnect(targetID)
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
     if M.state then
         local function removeFromGrid()
             local changed = false
-            local pos = table.indexOf(M.grid.ready, targetID)
+            local pos = table.indexOf(M.grid.ready, player.playerID)
             if pos then
                 table.remove(M.grid.ready, pos)
                 changed = true
             end
 
-            pos = table.indexOf(M.grid.participants, targetID)
+            pos = table.indexOf(M.grid.participants, player.playerID)
             if pos then
                 table.remove(M.grid.participants, pos)
                 changed = true
@@ -628,7 +637,7 @@ local function onPlayerDisconnect(targetID)
             local changed = removeFromGrid()
             local pos
             for i, lb in ipairs(M.race.leaderboard) do
-                if lb[1] == targetID then
+                if lb[1] == player.playerID then
                     pos = i
                     break
                 end
@@ -637,12 +646,12 @@ local function onPlayerDisconnect(targetID)
                 table.remove(M.race.leaderboard, pos)
                 changed = true
             end
-            pos = table.indexOf(M.race.finished, targetID)
+            pos = table.indexOf(M.race.finished, player.playerID)
             if pos then
                 table.remove(M.race.finished, pos)
                 changed = true
             end
-            pos = table.indexOf(M.race.eliminated, targetID)
+            pos = table.indexOf(M.race.eliminated, player.playerID)
             if pos then
                 table.remove(M.race.eliminated, pos)
                 changed = true
@@ -724,16 +733,15 @@ end
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-M.onClientStopRace = onClientStopRace
+M.stop = onModerationStop
 
 M.start = start
-M.stop = stop
+M.forceStop = stop
 
-M.onClientUpdate = onClientUpdate
+M.clientUpdate = onClientUpdate
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
-
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
+M.onVehicleDeleted = onVehicleDeleted
+M.onPlayerDisconnect = onPlayerDisconnect
 
 return M

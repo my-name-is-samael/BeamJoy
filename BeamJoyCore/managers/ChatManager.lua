@@ -143,7 +143,7 @@ local function broadcastTick()
 end
 
 BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_CONNECTED, onPlayerConnected)
-BJCEvents.addListener(BJCEvents.EVENTS.CHAT_MESSAGE, onChatMessage)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_CHAT_MESSAGE, onChatMessage)
 M.onServerChat = onServerChat
 M.sendChatEvent = sendChatEvent
 M.onPlayerDisconnect = onPlayerDisconnect

@@ -1,9 +1,15 @@
+---@class BJCTagDuoLobby
+---@field host integer
+---@field lastTagger integer
+---@field players {tagger: boolean, gameVehID: integer, ready: boolean}[] index playerIDs #{1-2}
+
 local M = {
     CLIENT_EVENTS = {
         READY = "ready",
         TOUCH = "touch",
     },
-    lobbies = {},
+    ---@type BJCTagDuoLobby[]
+    lobbies = Table(),
 }
 --[[singlelobby = {
     host = player1ID,
@@ -34,7 +40,7 @@ end
 
 -- stops all lobbies for an incoming server scenario
 local function stop()
-    M.lobbies = {}
+    M.lobbies = Table()
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
 end
@@ -143,33 +149,38 @@ local function onClientUpdate(senderID, lobbyIndex, event)
     end
 end
 
-local function onClientLeave(senderID)
-    local foundIndex
-    for i, lobby in ipairs(M.lobbies) do
-        if lobby.players[senderID] then
-            foundIndex = i
-            break
-        end
-    end
-    if foundIndex then
-        local lobby = M.lobbies[foundIndex]
-        if lobby.host == senderID then
-            table.remove(M.lobbies, foundIndex)
+---@param player BJCPlayer
+---@return boolean
+local function isParticipant(player)
+    return M.lobbies:any(function(lobby)
+        return lobby.players[player.playerID] ~= nil
+    end)
+end
+
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
+    M.lobbies:find(function(lobby)
+        return lobby.players[player.playerID] ~= nil
+    end, function(lobby, i)
+        if lobby.host == player.playerID then
+            table.remove(M.lobbies, i)
         else
-            M.lobbies[foundIndex].players[senderID] = nil
+            M.lobbies[i].players[player.playerID] = nil
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
-    end
+    end)
 end
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
+M.isParticipant = isParticipant
+
 M.onClientJoin = onClientJoin
 M.onClientUpdate = onClientUpdate
-M.onClientLeave = onClientLeave
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onClientLeave)
+M.onPlayerDisconnect = onPlayerDisconnect
 
 M.stop = stop
+M.forceStop = stop
 
 return M

@@ -138,7 +138,7 @@ local function setMap(mapName)
             -- if current or target is custom and not from the same mod, a reboot is mandatory
             Exit()
         else
-            BJCScenario.reload()
+            BJCScenarioData.reload()
         end
     end)
 end

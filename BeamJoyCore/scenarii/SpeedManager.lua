@@ -1,4 +1,7 @@
+---@class BJCScenarioSpeed: BJCScenario
 local M = {
+    name = "Speed",
+
     MINIMUM_PARTICIPANTS = function()
         if BJCCore.Data.General.Debug then
             return 1
@@ -56,6 +59,8 @@ local function start(participants, isEvent)
 
     M.stepSpeed = BJCConfig.Data.Speed.StepSpeed
     M.startTime = GetCurrentTime()
+
+    BJCScenario.CurrentScenario = M
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
 end
 
@@ -139,6 +144,8 @@ local function stop(ended)
     M.participants = Table()
     M.leaderboard = Table()
     M.speed = 0
+
+    BJCScenario.CurrentScenario = nil
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
 end
 
@@ -159,13 +166,14 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     return not M.participants[playerID]
 end
 
-local function onPlayerDisconnect(targetID)
-    if not M.participants[targetID] then
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
+    if not M.participants[player.playerID] then
         return
     end
 
     for i = 1, table.length(M.participants) do
-        if M.leaderboard[i] and M.leaderboard[i].playerID == targetID then
+        if M.leaderboard[i] and M.leaderboard[i].playerID == player.playerID then
             for j = i, table.length(M.participants) do
                 if M.leaderboard[j + 1] then
                     M.leaderboard[j] = M.leaderboard[j + 1]
@@ -177,8 +185,8 @@ local function onPlayerDisconnect(targetID)
         end
     end
 
-    if M.participants[targetID] then
-        M.participants[targetID] = nil
+    if M.participants[player.playerID] then
+        M.participants[player.playerID] = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
         checkEnd()
     end
@@ -207,15 +215,19 @@ M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 M.start = start
-M.onPlayerFail = onPlayerFail
+M.clientUpdate = onPlayerFail
 M.stop = stop
+M.forceStop = stop
+
+M.isForcedScenarioInProgress = function()
+    return M.startTime and M.isEvent
+end
 
 BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
 
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle
-
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
+M.onPlayerDisconnect = onPlayerDisconnect
+M.onVehicleDeleted = onVehicleDeleted
 
 return M

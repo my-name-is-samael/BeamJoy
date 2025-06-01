@@ -241,7 +241,7 @@ local function onConsoleInput(message)
 end
 
 local function _init()
-    BJCEvents.addListener(BJCEvents.EVENTS.CONSOLE_INPUT, onConsoleInput)
+    BJCEvents.addListener(BJCEvents.EVENTS.MP_CONSOLE_INPUT, onConsoleInput)
 
     -- Registering Console Commands
     M.addCommand("lang", "BJCCore.consoleSetLang")

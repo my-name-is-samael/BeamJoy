@@ -101,7 +101,7 @@ local function _reassignMembersAfterGroupDeletion(groupName, oldLevel)
                     end
                 end
                 if connectedID then
-                    BJCPlayers.setGroup({}, connectedID, newGroupName)
+                    BJCPlayers.setGroup(BJCInitContext(), connectedID, newGroupName)
                 else
                     player.group = newGroupName
                     BJCDao.players.save(player)

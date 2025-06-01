@@ -185,9 +185,9 @@ M.getCacheHash = getCacheHash
 
 M.onDriftEnded = onDriftEnded
 
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_SPAWN, onVehicleSpawn)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_EDITED, onVehicleEdited)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_RESET, onVehicleReset)
-BJCEvents.addListener(BJCEvents.EVENTS.VEHICLE_DELETED, onVehicleDeleted)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_SPAWN, onVehicleSpawn)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_EDITED, onVehicleEdited)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_RESET, onVehicleReset)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_DELETED, onVehicleDeleted)
 
 return M

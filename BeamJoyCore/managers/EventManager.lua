@@ -4,19 +4,20 @@
 
 local M = {
     EVENTS = {
-        CONSOLE_INPUT = { key = "onConsoleInput", base = true },
-        PLAYER_AUTH = { key = "onPlayerAuth", base = true },
-        PLAYER_CONNECTING = { key = "onPlayerConnecting", base = true },
-        PLAYER_JOINING = { key = "onPlayerJoining", base = true },
-        PLAYER_JOIN = { key = "onPlayerJoin", base = true },
-        PLAYER_DISCONNECT = { key = "onPlayerDisconnect", base = true },
-        CHAT_MESSAGE = { key = "onChatMessage", base = true },
-        VEHICLE_SPAWN = { key = "onVehicleSpawn", base = true },
-        VEHICLE_EDITED = { key = "onVehicleEdited", base = true },
-        VEHICLE_DELETED = { key = "onVehicleDeleted", base = true },
-        VEHICLE_RESET = { key = "onVehicleReset", base = true },
+        MP_CONSOLE_INPUT = { key = "onConsoleInput", base = true },
+        MP_PLAYER_AUTH = { key = "onPlayerAuth", base = true },
+        MP_PLAYER_CONNECTING = { key = "onPlayerConnecting", base = true },
+        MP_PLAYER_JOINING = { key = "onPlayerJoining", base = true },
+        MP_PLAYER_JOIN = { key = "onPlayerJoin", base = true },
+        MP_PLAYER_DISCONNECT = { key = "onPlayerDisconnect", base = true },
+        MP_CHAT_MESSAGE = { key = "onChatMessage", base = true },
+        MP_VEHICLE_SPAWN = { key = "onVehicleSpawn", base = true },
+        MP_VEHICLE_EDITED = { key = "onVehicleEdited", base = true },
+        MP_VEHICLE_DELETED = { key = "onVehicleDeleted", base = true },
+        MP_VEHICLE_RESET = { key = "onVehicleReset", base = true },
 
         PLAYER_CONNECTED = { key = "onPlayerConnected" },
+        PLAYER_DISCONNECTED = { key = "onPlayerDisconnected" },
         PLAYER_KICKED = { key = "onPlayerKicked" },
         SLOW_TICK = { key = "onSlowTick" },
         FAST_TICK = { key = "onFastTick" },
@@ -90,7 +91,7 @@ local function trigger(event, ...)
     local data = { ... }
     local returnCode = 0
     if BJCCore.Data.General.Debug and
-        not Table({ M.EVENTS.SLOW_TICK, M.EVENTS.FAST_TICK, M.EVENTS.CONSOLE_INPUT }):includes(event) then
+        not Table({ M.EVENTS.SLOW_TICK, M.EVENTS.FAST_TICK, M.EVENTS.MP_CONSOLE_INPUT }):includes(event) then
         Log(string.var("Event triggered : {1}", { event.key }), M._name)
     end
     if M.listeners[event.key] then

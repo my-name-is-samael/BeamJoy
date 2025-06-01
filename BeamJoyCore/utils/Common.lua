@@ -256,10 +256,18 @@ BJC_TOAST_TYPES = {
     ERROR = "error"
 }
 
+---@class BJCContext
+---@field time number
+---@field origin string
+---@field senderID? number
+---@field sender? BJCPlayer
+
+---@param data? BJCContext
+---@return BJCContext
 function BJCInitContext(data)
-    table.assign(data, {
+    return table.assign(data or {}, {
         time = GetCurrentTime(),
-        origin = data.senderID and "player" or "cmd",
+        origin = (data and data.senderID) and "player" or "cmd",
     })
 end
 

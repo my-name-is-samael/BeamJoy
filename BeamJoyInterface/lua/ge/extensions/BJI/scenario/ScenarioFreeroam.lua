@@ -117,7 +117,8 @@ local function onVehicleSpawned(gameVehID)
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJI.Managers.Context.User.currentVehicle then
+    if gameVehID ~= BJI.Managers.Context.User.currentVehicle or
+        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
         return
     end
 

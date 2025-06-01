@@ -37,7 +37,7 @@ require("utils/Common")
 SetLogType("BJC", CONSOLE_COLORS.FOREGROUNDS.LIGHT_BLUE)
 
 local function printLogo()
-    -- https://patorjk.com/software/taag/#p=display&f=Big%20Money-se&t=BeamJoy1.2.0
+    -- https://patorjk.com/software/taag/#p=display&f=Big%20Money-se&t=BeamJoy
     print([[
 
  _______                                        _____
@@ -78,6 +78,7 @@ local function loadBeamJoy()
     BJCChatCommand = require("managers/ChatCommandManager")
     BJCChat = require("managers/ChatManager")
 
+    BJCScenarioData = require("managers/ScenarioDataManager")
     BJCScenario = require("scenarii/ScenarioManager")
 
     require("rx/Rx")

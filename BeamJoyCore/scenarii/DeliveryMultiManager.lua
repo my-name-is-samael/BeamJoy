@@ -1,4 +1,7 @@
+---@class BJCScenarioDeliveryMulti: BJCScenarioHybrid
 local M = {
+    name = "DeliveryMulti",
+
     participants = Table(),
     ---@type BJIPositionRotation?
     target = nil,
@@ -6,7 +9,7 @@ local M = {
 
 local function initTarget(pos)
     local targets = {}
-    for _, delivery in pairs(BJCScenario.Deliveries) do
+    for _, delivery in pairs(BJCScenarioData.Deliveries) do
         table.insert(targets, {
             target = table.deepcopy(delivery),
             distance = math.horizontalDistance(pos, delivery.pos),
@@ -26,7 +29,7 @@ local function initTarget(pos)
 end
 
 local function join(playerID, gameVehID, pos)
-    if #BJCScenario.Deliveries == 0 then
+    if #BJCScenarioData.Deliveries == 0 then
         return
     elseif M.participants[playerID] then
         return
@@ -118,9 +121,16 @@ local function leave(playerID)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
-local function onPlayerDisconnect(playerID)
-    if M.participants[playerID] then
-        M.participants[playerID] = nil
+---@param player BJCPlayer
+---@return boolean
+local function isParticipant(player)
+    return M.participants[player.playerID] ~= nil
+end
+
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
+    if M.participants[player.playerID] then
+        M.participants[player.playerID] = nil
         checkEnd()
         if M.participants:length() > 0 then
             checkNextTarget()
@@ -156,7 +166,8 @@ M.resetted = resetted
 M.reached = reached
 M.leave = leave
 
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect)
+M.isParticipant = isParticipant
+M.onPlayerDisconnect = onPlayerDisconnect
 
 M.stop = stop
 
