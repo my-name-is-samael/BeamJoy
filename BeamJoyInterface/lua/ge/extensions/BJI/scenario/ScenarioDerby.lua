@@ -1,5 +1,9 @@
 ---@class BJIScenarioDerby : BJIScenario
 local S = {
+    _name = "Derby",
+    _key = "DERBY",
+    _isSolo = false,
+
     MINIMUM_PARTICIPANTS = 3,
     CLIENT_EVENTS = {
         JOIN = "Join",           -- preparation

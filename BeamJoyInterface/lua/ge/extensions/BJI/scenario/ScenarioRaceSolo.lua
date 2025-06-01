@@ -7,6 +7,10 @@
 
 ---@class BJIScenarioRaceSolo : BJIScenario
 local S = {
+    _name = "RaceSolor",
+    _key = "RACE_SOLO",
+    _isSolo = true,
+
     preRaceCam = nil,
     settings = {},
     race = {},

@@ -33,17 +33,27 @@ local function initScenarii()
     M.TYPES.FREEROAM = "FREEROAM"
     M.scenarii[M.TYPES.FREEROAM] = require("ge/extensions/BJI/scenario/ScenarioFreeroam")
 
-    registerSoloScenario("VEHICLE_DELIVERY", require("ge/extensions/BJI/scenario/ScenarioDeliveryVehicle"))
-    registerSoloScenario("PACKAGE_DELIVERY", require("ge/extensions/BJI/scenario/ScenarioDeliveryPackage"))
-    registerSoloScenario("BUS_MISSION", require("ge/extensions/BJI/scenario/ScenarioBusMission"))
-    registerSoloScenario("RACE_SOLO", require("ge/extensions/BJI/scenario/ScenarioRaceSolo"))
-
-    registerMultiScenario("RACE_MULTI", require("ge/extensions/BJI/scenario/ScenarioRaceMulti"))
-    registerMultiScenario("SPEED", require("ge/extensions/BJI/scenario/ScenarioSpeed"))
-    registerSoloScenario("DELIVERY_MULTI", require("ge/extensions/BJI/scenario/ScenarioDeliveryMulti"))
-    registerMultiScenario("HUNTER", require("ge/extensions/BJI/scenario/ScenarioHunter"))
-    registerMultiScenario("DERBY", require("ge/extensions/BJI/scenario/ScenarioDerby"))
-    --registerSoloScenario("TAG_DUO", require("ge/extensions/BJI/scenario/ScenarioTagDuo"))
+    Table(FS:directoryList("/lua/ge/extensions/BJI/scenario"))
+        :filter(function(path)
+            return path:endswith(".lua")
+        end):map(function(el)
+        return el:gsub("^/lua/", ""):gsub(".lua$", "")
+    end):forEach(function(scenarioPath)
+        ---@type boolean, BJIScenario
+        local ok, s = pcall(require, scenarioPath)
+        if ok then
+            if not M.scenarii[s._key] and not s._skip then
+                if s._isSolo then
+                    registerSoloScenario(s._key, s)
+                else
+                    registerMultiScenario(s._key, s)
+                end
+                LogInfo(string.var("Scenario {1} loaded", { s._name }))
+            end
+        else
+            LogError(string.var("Error loading scenario {1} : {2}", { scenarioPath, s }))
+        end
+    end)
 
     M.CurrentScenario = M.TYPES.FREEROAM
     if _curr().onLoad then

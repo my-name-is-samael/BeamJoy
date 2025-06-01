@@ -1,5 +1,9 @@
 ---@class BJIScenarioDeliveryMulti : BJIScenario
 local S = {
+    _name = "DeliveryTogether",
+    _key = "DELIVERY_MULTI",
+    _isSolo = false,
+
     -- server data
     participants = {},
     ---@type {pos: vec3, rot: vec3, radius: number}?

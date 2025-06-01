@@ -1,5 +1,9 @@
 ---@class BJIScenarioVehicleDelivery : BJIScenario
 local S = {
+    _name = "VehicleDelivery",
+    _key = "VEHICLE_DELIVERY",
+    _isSolo = true,
+    
     previousCamera = nil,
 
     model = nil,

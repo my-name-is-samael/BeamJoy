@@ -1,10 +1,18 @@
+---@class BJIScenarioTagDuo : BJIScenario
 local S = {
+    _name = "TagDuo",
+    _key = "TAG_DUO",
+    _isSolo = false,
+    _skip = true,
+
     CLIENT_EVENTS = {
         READY = "ready",
         TOUCH = "touch",
     },
+    ---@type BJCTagDuoLobby[]
     lobbies = {},
 
+    ---@type BJCTagDuoLobby?
     selfLobby = nil,
     selfLobbyIndex = nil,
 

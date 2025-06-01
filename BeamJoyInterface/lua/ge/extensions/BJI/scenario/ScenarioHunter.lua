@@ -1,5 +1,9 @@
 ---@class BJIScenarioHunter : BJIScenario
 local S = {
+    _name = "Hunter",
+    _key = "HUNTER",
+    _isSolo = false,
+
     MINIMUM_PARTICIPANTS = 3,
     huntedResetRevealDuration = 5,
     huntedRevealProximityDistance = 50,

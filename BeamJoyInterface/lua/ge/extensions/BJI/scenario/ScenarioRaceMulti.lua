@@ -1,5 +1,9 @@
 ---@class BJIScenarioRaceMulti : BJIScenario
 local S = {
+    _name = "RaceMulti",
+    _key = "RACE_MULTI",
+    _isSolo = false,
+
     MINIMUM_PARTICIPANTS = 2,
     STATES = {
         GRID = 1,     -- time when all players choose a vehicle

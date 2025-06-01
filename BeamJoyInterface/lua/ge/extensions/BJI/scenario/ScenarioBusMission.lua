@@ -1,5 +1,9 @@
 ---@class BJIScenarioBusMission : BJIScenario
 local S = {
+    _name = "BusMission",
+    _key = "BUS_MISSION",
+    _isSolo = true,
+
     BASE_MODEL = "citybus",
     config = nil,
     line = {

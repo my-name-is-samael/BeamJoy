@@ -1,5 +1,9 @@
 ---@class BJIScenarioSpeed : BJIScenario
 local S = {
+    _name = "Speed",
+    _key = "SPEED",
+    _isSolo = false,
+
     -- server data
     MINIMUM_PARTICIPANTS = 2,
     isEvent = false,

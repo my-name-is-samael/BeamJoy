@@ -11,22 +11,6 @@ local M = {
     ---@type BJCTagDuoLobby[]
     lobbies = Table(),
 }
---[[singlelobby = {
-    host = player1ID,
-    lastTagger = player1ID,
-    players = {
-        [player1ID] = {
-            tagger = true,
-            gameVehID = veh1ID,
-            ready = true,
-        },
-        [player2ID] = {
-            tagger = false,
-            gameVehID = veh2ID,
-            ready = true,
-        },
-    }
-}]]
 
 local function getCache()
     return {

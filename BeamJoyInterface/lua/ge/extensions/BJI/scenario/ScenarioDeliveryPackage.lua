@@ -1,5 +1,9 @@
 ---@class BJIScenarioPackageDelivery : BJIScenario
 local S = {
+    _name = "PackageDelivery",
+    _key = "PACKAGE_DELIVERY",
+    _isSolo = false,
+
     ---@type { pos: vec3, radius: number, distance?: number }?
     targetPosition = nil,
     baseDistance = nil,

@@ -146,3 +146,24 @@ BJI.Managers.Scenario.TYPES.SPEED = "SPEED"
 BJI.Managers.Scenario.TYPES.DELIVERY_MULTI = "DELIVERY_MULTI"
 BJI.Managers.Scenario.TYPES.HUNTER = "HUNTER"
 BJI.Managers.Scenario.TYPES.DERBY = "DERBY"
+
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.FREEROAM] = require(
+    "ge/extensions/BJI/scenario/ScenarioFreeRoam")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.RACE_SOLO] = require(
+    "ge/extensions/BJI/scenario/ScenarioRaceSolo")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.RACE_MULTI] = require(
+    "ge/extensions/BJI/scenario/ScenarioRaceMulti")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY] = require(
+    "ge/extensions/BJI/scenario/ScenarioDeliveryVehicle")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY] = require(
+    "ge/extensions/BJI/scenario/ScenarioDeliveryPackage")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.BUS_MISSION] = require(
+    "ge/extensions/BJI/scenario/ScenarioBusMission")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.SPEED] = require(
+    "ge/extensions/BJI/scenario/ScenarioSpeed")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DELIVERY_MULTI] = require(
+    "ge/extensions/BJI/scenario/ScenarioDeliveryMulti")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.HUNTER] = require(
+    "ge/extensions/BJI/scenario/ScenarioHunter")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DERBY] = require(
+    "ge/extensions/BJI/scenario/ScenarioDerby")
