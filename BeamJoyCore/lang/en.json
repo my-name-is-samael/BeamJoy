@@ -1469,6 +1469,8 @@
         "enabledTooltip": "Can this arena can be launched ?",
         "previewPosition": "Preview Position",
         "previewPositionTooltip": "Freecam position when the derby starts",
+        "centerPosition": "Center Position",
+        "radius": "Start Radius",
         "startPositions": "Start Positions",
         "startPositionName": "Start {index}",
         "amountStartPositionsNeeded": "{amount} more points missing",
@@ -1480,11 +1482,14 @@
           "toggleArenaVisibility": "Toggle arena visibility",
           "setPreviewPositionHere": "Set the arena preview position here",
           "showPreviewPosition": "Show arena preview position",
+          "setCenterPositionHere": "Set the arena center position here",
+          "showCenterPosition": "Show arena center position",
           "addStartPositionHere": "Add a start position here",
           "showStartPosition": "Show the start position",
           "setStartPositionHere": "Set the start position here",
           "deleteStartPosition": "Delete the start position",
           "errorMustHaveVehicle": "You need a vehicle",
+          "errorMustBeFreecaming": "You need to be freecaming",
           "errorInvalidData": "Some data is invalid"
         }
       },

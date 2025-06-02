@@ -15,7 +15,11 @@ local M = {
     Derby = {},
 }
 
-local function checkRacesData()
+-- INIT
+
+--- Update 2.0.0<br/>
+--- Add races hashes
+local function checkRacesUpdate2_0_0()
     table.forEach(M.Races, function(race)
         if not race.hash then
             race.hash = Hash({ race.loopable, race.startPositions, race.steps })
@@ -23,6 +27,39 @@ local function checkRacesData()
             LogDebug(string.var("Added hash to race \"{1}\"({2}): {3}", { race.name, race.id, race.hash }))
         end
     end)
+end
+
+--- Update 2.0.0<br/>
+--- Add arenas center positions and radiuses
+local function checkDerbyUpdate2_0_0()
+    if table.any(M.Derby, function(arena)
+            return not arena.centerPosition
+        end) then
+        ---@param arena BJArena
+        table.forEach(M.Derby, function(arena, i)
+            if not arena.centerPosition and #arena.startPositions > 0 then
+                arena.centerPosition = table.reduce(arena.startPositions, function(pos, sp)
+                    pos.x = pos.x + sp.pos.x
+                    pos.y = pos.y + sp.pos.y
+                    pos.z = pos.z + sp.pos.z
+                    return pos
+                end, { x = 0, y = 0, z = 0 })
+                arena.centerPosition.x = arena.centerPosition.x / #arena.startPositions
+                arena.centerPosition.y = arena.centerPosition.y / #arena.startPositions
+                arena.centerPosition.z = arena.centerPosition.z / #arena.startPositions
+
+                ---@param sp BJIPositionRotation
+                local maxDistance = table.reduce(arena.startPositions, function(res, sp)
+                    local dist = math.horizontalDistance(sp.pos, arena.centerPosition)
+                    return dist > res and dist or res
+                end, 0)
+                arena.radius = math.round(maxDistance + 5)
+
+                LogDebug(string.var("Added center position and radius to arena \"{1}\"({2})", { arena.name, i }))
+            end
+        end)
+        BJCDao.scenario.Derby.save(M.Derby)
+    end
 end
 
 local function reload()
@@ -40,8 +77,11 @@ local function reload()
         end
     end, 0)
 
-    checkRacesData()
+    checkRacesUpdate2_0_0()
+    checkDerbyUpdate2_0_0()
 end
+
+-- CACHES
 
 local function getCacheRaces(senderID)
     local cache = {}
@@ -152,6 +192,45 @@ local function getCacheDerbyHash()
     return Hash(M.Derby)
 end
 
+-- VALIDATORS
+
+---@param val any
+---@return boolean
+local function checkValidVec3(val)
+    return type(val) == "table" and
+        type(val.x) == "number" and
+        type(val.y) == "number" and
+        type(val.z) == "number"
+end
+
+---@param val any
+---@return boolean
+local function checkValidQuat(val)
+    return type(val) == "table" and
+        type(val.x) == "number" and
+        type(val.y) == "number" and
+        type(val.z) == "number" and
+        type(val.w) == "number"
+end
+
+---@param val any
+---@return boolean
+local function checkValidPosRot(val)
+    return type(val) == "table" and
+        checkValidVec3(val.pos) and
+        checkValidQuat(val.rot)
+end
+
+---@param val any
+---@return boolean
+local function checkValidPosAndRadius(val)
+    return type(val) == "table" and
+        checkValidVec3(val.pos) and
+        type(val.radius) == "number"
+end
+
+-- FUNCTIONAL
+
 local function getRace(raceID)
     for _, r in ipairs(M.Races) do
         if r.id == raceID then
@@ -159,19 +238,6 @@ local function getRace(raceID)
         end
     end
     return nil
-end
-
-local function checkVehPos(vehData)
-    return vehData and
-        vehData.pos and
-        type(vehData.pos.x) == "number" and type(vehData.pos.y) == "number" and type(vehData.pos.z) == "number" and
-        vehData.rot and
-        type(vehData.rot.x) == "number" and type(vehData.rot.y) == "number" and type(vehData.rot.z) == "number" and
-        type(vehData.rot.w) == "number"
-end
-
-local function checkCameraPos(camData)
-    return checkVehPos(camData)
 end
 
 ---@param race table
@@ -222,7 +288,7 @@ local function saveRace(race)
     end
 
     local function checkWP(raceData, wpData, wpStep)
-        return checkVehPos(wpData) and
+        return checkValidPosRot(wpData) and
             type(wpData.name) == "string" and #wpData.name > 0 and
             checkParents(raceData, wpData, wpStep) and
             checkChildren(raceData, wpData.name, wpStep) and
@@ -256,7 +322,7 @@ local function saveRace(race)
     if type(race.name) ~= "string" or #race.name == 0 or
         type(race.author) ~= "string" or #race.author == 0 or
         type(race.previewPosition) ~= "table" or
-        not checkCameraPos(race.previewPosition) then
+        not checkValidPosRot(race.previewPosition) then
         error({ key = "rx.errors.invalidData" })
     elseif not race.keepRecord then
         if type(race.loopable) ~= "boolean" or
@@ -265,7 +331,7 @@ local function saveRace(race)
             error({ key = "rx.errors.invalidData" })
         end
         for _, sp in ipairs(race.startPositions) do
-            if not checkVehPos(sp) then
+            if not checkValidPosRot(sp) then
                 error({ key = "rx.errors.invalidData" })
             end
         end
@@ -410,16 +476,11 @@ local function saveEnergyStations(stations)
         error({ key = "rx.errors.invalidData" })
     end
     for _, s in ipairs(stations) do
-        if type(s.name) ~= "string" or #s.name:trim() == 0 then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(s.pos) ~= "table" or
-            type(s.pos.x) ~= "number" or
-            type(s.pos.y) ~= "number" or
-            type(s.pos.z) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(s.radius) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(s.types) ~= "table" or #s.types == 0 then
+        if type(s.name) ~= "string" or
+            #s.name:trim() == 0 or
+            not checkValidPosAndRadius(s) or
+            not table.isArray(s.types) or
+            #s.types == 0 then
             error({ key = "rx.errors.invalidData" })
         end
         for _, type in ipairs(s.types) do
@@ -435,20 +496,13 @@ local function saveEnergyStations(stations)
 end
 
 local function saveGarages(garages)
-    if not garages then
+    if not table.isArray(garages) or
+        Table(garages):any(function(garage)
+            return type(garage.name) ~= "string" or
+                #garage.name:trim() == 0 or
+                not checkValidPosAndRadius(garage)
+        end) then
         error({ key = "rx.errors.invalidData" })
-    end
-    for _, g in ipairs(garages) do
-        if type(g.name) ~= "string" or #g.name:trim() == 0 then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(g.pos) ~= "table" or
-            type(g.pos.x) ~= "number" or
-            type(g.pos.y) ~= "number" or
-            type(g.pos.z) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(g.radius) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        end
     end
 
     BJCDao.scenario.Garages.save(garages)
@@ -458,15 +512,12 @@ end
 
 local function saveDeliveryPositions(positions)
     positions = positions or {}
-
-    for _, position in ipairs(positions) do
-        if type(position) ~= "table" then
-            error({ key = "rx.errors.invalidData" })
-        elseif type(position.radius) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        elseif not position.pos or not position.rot then
-            error({ key = "rx.errors.invalidData" })
-        end
+    if not table.isArray(positions) or
+        Table(positions):any(function(position)
+            return not checkValidPosRot(position) or
+                type(position.radius) ~= "number"
+        end) then
+        error({ key = "rx.errors.invalidData" })
     end
 
     BJCDao.scenario.Delivery.save(positions)
@@ -508,32 +559,21 @@ local function updateDeliveryLeaderboard()
 end
 
 local function saveBusLines(lines)
-    if type(lines) ~= "table" then
+    if not table.isArray(lines) or
+        Table(lines):any(function(line)
+            return type(line.name) ~= "string" or
+                #line.name:trim() == 0 or
+                type(line.loopable) ~= "boolean" or
+                not table.isArray(line.stops) or
+                #line.stops < 2 or
+                type(line.distance) ~= "number" or
+                Table(line.stops):any(function(stop)
+                    return type(stop.name) ~= "string" or #stop.name:trim() == 0 or
+                        not checkValidPosRot(stop) or
+                        type(stop.radius) ~= "number"
+                end)
+        end) then
         error({ key = "rx.errors.invalidData" })
-    end
-    for _, line in ipairs(lines) do
-        if type(line.name) ~= "string" or #line.name:trim() == 0 or
-            type(line.loopable) ~= "boolean" or
-            type(line.stops) ~= "table" or #line.stops < 2 or
-            type(line.distance) ~= "number" then
-            error({ key = "rx.errors.invalidData" })
-        end
-
-        for _, stop in ipairs(line.stops) do
-            if type(stop.name) ~= "string" or #stop.name:trim() == 0 or
-                type(stop.pos) ~= "table" or
-                type(stop.pos.x) ~= "number" or
-                type(stop.pos.y) ~= "number" or
-                type(stop.pos.z) ~= "number" or
-                type(stop.rot) ~= "table" or
-                type(stop.rot.x) ~= "number" or
-                type(stop.rot.y) ~= "number" or
-                type(stop.rot.z) ~= "number" or
-                type(stop.rot.w) ~= "number" or
-                type(stop.radius) ~= "number" then
-                error({ key = "rx.errors.invalidData" })
-            end
-        end
     end
 
     BJCDao.scenario.BusLines.save(lines)
@@ -544,66 +584,16 @@ local function saveBusLines(lines)
 end
 
 local function saveHunter(data)
-    if not data or
-        data.enabled == true and
-        (
-            type(data.targets) ~= "table" or
-            type(data.hunterPositions) ~= "table" or
-            type(data.huntedPositions) ~= "table"
-        ) then
+    if type(data) ~= "table" or (
+            data.enabled == true and (
+                not table.isArray(data.targets) or
+                not Table(data.targets):every(checkValidPosAndRadius) or
+                not table.isArray(data.hunterPositions) or
+                not Table(data.hunterPositions):every(checkValidPosRot) or
+                not table.isArray(data.huntedPositions) or
+                not Table(data.huntedPositions):every(checkValidPosRot)
+            )) then
         error({ key = "rx.errors.invalidData" })
-    end
-
-    -- enabled validation
-    if #data.targets < 2 or
-        #data.hunterPositions < 5 or
-        #data.huntedPositions < 2 then
-        -- forced disabled
-        data.enabled = false
-        data.targets = {}
-        data.hunterPositions = {}
-        data.huntedPositions = {}
-    end
-
-    -- data validation
-    if data.enabled then
-        for _, waypoint in ipairs(data.targets) do
-            if type(waypoint.pos) ~= "table" or
-                type(waypoint.pos.x) ~= "number" or
-                type(waypoint.pos.y) ~= "number" or
-                type(waypoint.pos.z) ~= "number" or
-                type(waypoint.radius) ~= "number" then
-                error({ key = "rx.errors.invalidData" })
-            end
-        end
-
-        for _, pos in ipairs(data.hunterPositions) do
-            if type(pos.pos) ~= "table" or
-                type(pos.pos.x) ~= "number" or
-                type(pos.pos.y) ~= "number" or
-                type(pos.pos.z) ~= "number" or
-                type(pos.rot) ~= "table" or
-                type(pos.rot.x) ~= "number" or
-                type(pos.rot.y) ~= "number" or
-                type(pos.rot.z) ~= "number" or
-                type(pos.rot.w) ~= "number" then
-                error({ key = "rx.errors.invalidData" })
-            end
-        end
-
-        for _, pos in ipairs(data.huntedPositions) do
-            if type(pos.pos) ~= "table" or
-                type(pos.pos.x) ~= "number" or
-                type(pos.pos.y) ~= "number" or
-                type(pos.pos.z) ~= "number" or
-                type(pos.rot) ~= "table" or
-                type(pos.rot.x) ~= "number" or
-                type(pos.rot.y) ~= "number" or
-                type(pos.rot.z) ~= "number" or
-                type(pos.rot.w) ~= "number" then
-                error({ key = "rx.errors.invalidData" })
-            end
-        end
     end
 
     BJCDao.scenario.Hunter.save(data)
@@ -611,29 +601,21 @@ local function saveHunter(data)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER_DATA)
 end
 
+---@param arenas BJArena[]
 local function saveDerbyArenas(arenas)
-    if type(arenas) ~= "table" then
-        error({ key = "rx.errors.invalidData" })
-    else
-        for _, arena in ipairs(arenas) do
-            if type(arena.name) ~= "string" or
+    if not table.isArray(arenas) or
+        Table(arenas):any(function(arena)
+            return type(arena.name) ~= "string" or
                 #arena.name:trim() == 0 or
                 type(arena.enabled) ~= "boolean" or
-                type(arena.previewPosition) ~= "table" or
-                not checkCameraPos(arena.previewPosition) or
-                type(arena.startPositions) ~= "table" or
-                #arena.startPositions < 6 then
-                error({ key = "rx.errors.invalidData" })
-            else
-                for _, pos in ipairs(arena.startPositions) do
-                    if not checkVehPos(pos) then
-                        error({ key = "rx.errors.invalidData" })
-                    end
-                end
-            end
-        end
-    end
-    if #Table(arenas):map(function(a) return a.name:trim() end):duplicates() > 0 then
+                not checkValidPosRot(arena.previewPosition) or
+                not table.isArray(arena.startPositions) or
+                #arena.startPositions < 6 or
+                not Table(arena.startPositions):every(checkValidPosRot) or
+                not checkValidVec3(arena.centerPosition) or
+                type(arena.radius) ~= "number"
+        end) or
+        #Table(arenas):map(function(a) return a.name:trim() end):duplicates() > 0 then
         error({ key = "rx.errors.invalidData" })
     end
 

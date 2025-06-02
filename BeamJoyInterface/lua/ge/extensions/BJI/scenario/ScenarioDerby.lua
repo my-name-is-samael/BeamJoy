@@ -21,10 +21,13 @@ local S = {
     state = nil,
     destroyedTimeout = 5,
     preparationTimeout = nil,
+    ---@type integer?
     startTime = nil,
+    ---@type integer?
+    zoneReductionTime = nil,
     ---@type BJIDerbyParticipant[]
     participants = {},
-    ---@type {name: string, startPositions: BJIPositionRotation[], previewPosition: BJIPositionRotation?}?
+    ---@type BJArena?
     baseArena = nil,
     configs = {},
 
@@ -276,12 +279,37 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     end
 end
 
+local function getZoneRadius(ctxt)
+    if not S.startTime or not S.zoneReductionTime then
+        return S.baseArena.radius
+    end
+    return math.scale(ctxt.now, S.startTime, S.zoneReductionTime, S.baseArena.radius, 5, true)
+end
+
+---@param ctxt TickContext
+local function renderTick(ctxt)
+    if S.startTime then
+        local bottomPos = vec3(S.baseArena.centerPosition)
+        bottomPos.z = bottomPos.z - S.baseArena.radius / 2
+        local topPos = vec3(S.baseArena.centerPosition)
+        topPos.z = topPos.z + 200
+        BJI.Utils.ShapeDrawer.Cylinder(bottomPos, topPos, getZoneRadius(ctxt),
+            BJI.Utils.ShapeDrawer.Color(.33, .33, 1, .15))
+    end
+end
+
+local function isVehInZone(ctxt)
+    return math.horizontalDistance(ctxt.vehPosRot.pos, S.baseArena.centerPosition) <= getZoneRadius(ctxt) and
+        ctxt.vehPosRot.pos.z >= S.baseArena.centerPosition.z - S.baseArena.radius / 2
+end
+
+---@param ctxt TickContext
 local function fastTick(ctxt)
     local participant = S.getParticipant()
     if participant and not S.isEliminated() and ctxt.isOwner then
         if S.state == S.STATES.GAME and S.startTime and ctxt.now > S.startTime and S.destroy.process then
             local cancelProcess = false
-            if not S.participants[2] or S.participants[2].eliminationTime then
+            if S.participants[2] and S.participants[2].eliminationTime then
                 -- game is over
                 cancelProcess = true
             elseif S.isEliminated() then
@@ -289,8 +317,10 @@ local function fastTick(ctxt)
                 cancelProcess = true
             else
                 local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
-                if dist and dist > S.destroy.distanceThreshold then
-                    -- self moved enough
+                local moved = dist ~= nil and dist > S.destroy.distanceThreshold * 10
+                local inZone = isVehInZone(ctxt)
+                if moved and inZone then
+                    -- self moved enough and inZone
                     cancelProcess = true
                 end
             end
@@ -304,6 +334,7 @@ local function fastTick(ctxt)
 end
 
 -- Destroy process is detected through slowTick, then checked through renderTick
+---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.getParticipant()
     if S.state == S.STATES.GAME and ctxt.isOwner and
@@ -311,8 +342,10 @@ local function slowTick(ctxt)
         S.startTime and ctxt.now > S.startTime and
         participant and not S.isEliminated() then
         local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
-        if dist and dist < S.destroy.distanceThreshold * 10 then
-            S.destroy.targetTime = ctxt.now + (S.destroyedTimeout * 1000)
+        local notMoved = dist and dist < S.destroy.distanceThreshold * 10
+        local outOfZone = not isVehInZone(ctxt)
+        if notMoved or outOfZone then
+            S.destroy.targetTime = ctxt.now + (S.destroyedTimeout * 1000) + 50
             S.destroy.process = true
             BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
             BJI.Managers.Message.flashCountdown("BJIDerbyDestroy", S.destroy.targetTime, false, nil, nil,
@@ -339,7 +372,7 @@ local function slowTick(ctxt)
                     end
                 end)
         end
-        if not S.destroy.process then
+        if not S.destroy.lastPos or not S.destroy.process then
             S.destroy.lastPos = ctxt.vehPosRot.pos
         end
     end
@@ -425,6 +458,7 @@ local function initGame(data)
     S.state = data.state
     S.baseArena = data.baseArena
     S.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
+    S.zoneReductionTime = BJI.Managers.Tick.applyTimeOffset(data.zoneReductionTime)
     S.participants = data.participants
     if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
         BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
@@ -591,6 +625,7 @@ S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleSwitched = onVehicleSwitched
+S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick
 

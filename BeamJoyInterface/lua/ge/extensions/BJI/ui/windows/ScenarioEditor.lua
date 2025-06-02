@@ -31,6 +31,7 @@ W.onLoad = function()
     if W.view.onLoad then W.view.onLoad() end
 
     listeners:insert(BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
     }, function()

@@ -1468,6 +1468,8 @@
         "enabledTooltip": "Cette arène peut-elle être utilisée ?",
         "previewPosition": "Position de prévisualisation",
         "previewPositionTooltip": "Position de la caméra libre lorsque le derby commence",
+        "centerPosition": "Position centrale",
+        "radius": "Rayon de départ",
         "startPositions": "Positions de départ",
         "startPositionName": "Départ {index}",
         "amountStartPositionsNeeded": "{amount} points de départ manquant",
@@ -1479,11 +1481,14 @@
           "toggleArenaVisibility": "Basculer la visibilité de l'arène",
           "setPreviewPositionHere": "Définir la position de prévisualisation ici",
           "showPreviewPosition": "Afficher la position de prévisualisation",
+          "setCenterPositionHere": "Définir le centre de l'arène ici",
+          "showCenterPosition": "Afficher le centre de l'arène",
           "addStartPositionHere": "Ajouter une position de départ ici",
           "showStartPosition": "Afficher la position de départ",
           "setStartPositionHere": "Définir la position de départ ici",
           "deleteStartPosition": "Supprimer la position de départ",
           "errorMustHaveVehicle": "Vous devez avoir un véhicule",
+          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
           "errorInvalidData": "Certaines données sont invalides"
         }
       },

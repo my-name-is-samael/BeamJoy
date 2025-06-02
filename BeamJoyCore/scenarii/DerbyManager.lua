@@ -43,7 +43,10 @@ local M = {
         timeout = nil,
     },
     game = {
+        ---@type integer?
         startTime = nil,
+        ---@type integer?
+        zoneReductionTime = nil,
         ---@type Timer?
         gameTimer = nil,
     },
@@ -95,6 +98,8 @@ local function startDerby()
     end
 
     M.game.startTime = GetCurrentTime() + BJCConfig.Data.Derby.StartCountdown
+    -- delay until minimum zone: #participants * lives * 30secs
+    M.game.zoneReductionTime = M.game.startTime + math.clamp(#M.participants * (M.settings.lives + 1) * 30, 120, 900)
     M.countInvalidVehicles = {}
     M.state = M.STATES.GAME
     BJCAsync.programTask(function()
@@ -431,6 +436,7 @@ local function getCache()
         preparationTimeout = M.preparation.timeout,
         -- game
         startTime = M.game.startTime,
+        zoneReductionTime = M.game.zoneReductionTime,
     }, M.getCacheHash()
 end
 

@@ -35,9 +35,13 @@ local function _insertWaypoint(wp)
             textBg = wp.textBg,
         })
     elseif wp.type == M.TYPES.CYLINDER then
+        wp.bottom = wp.bottom or 0
+        wp.top = wp.top or wp.radius*2
         table.insert(M.cylinders, {
             name = wp.name,
             pos = wp.pos,
+            top = wp.top,
+            bottom = wp.bottom,
             rot = wp.rot,
             radius = wp.radius,
             color = wp.color or M._wpColor,
@@ -176,8 +180,8 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.cylinders) do
-        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z)
-        local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
+        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + wp.bottom)
+        local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + wp.top)
         BJI.Utils.ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
         if #wp.name:trim() > 0 then
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,

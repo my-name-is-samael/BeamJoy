@@ -1468,6 +1468,8 @@
         "enabledTooltip": "Kann diese Arena eröffnet werden?",
         "previewPosition": "Vorschauposition",
         "previewPositionTooltip": "Freecam-Position zu Beginn des Derbys",
+        "centerPosition": "Zentralposition",
+        "radius": "Start-Radius",
         "startPositions": "Startpositionen",
         "startPositionName": "{index} starten",
         "amountStartPositionsNeeded": "{amount} weitere Punkte fehlen",
@@ -1479,11 +1481,14 @@
           "toggleArenaVisibility": "Arenasichtbarkeit umschalten",
           "setPreviewPositionHere": "Vorschaustellung hier setzen",
           "showPreviewPosition": "Vorschaustellung anzeigen",
+          "setCenterPositionHere": "Setze die Arenamitte hier",
+          "showCenterPosition": "Zeige Arenamitte",
           "addStartPositionHere": "Startposition hier hinzufügen",
           "showStartPosition": "Startposition anzeigen",
           "setStartPositionHere": "Startposition hier setzen",
           "deleteStartPosition": "Startposition löschen",
           "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
+          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
           "errorInvalidData": "Einige Daten sind ungültig"
         }
       },

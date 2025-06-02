@@ -24,3 +24,11 @@
 ---@field h? integer
 ---@field x? integer
 ---@field y? integer
+
+---@class BJArena
+---@field name string
+---@field enabled boolean
+---@field previewPosition BJIPositionRotation
+---@field startPositions tablelib<integer, BJIPositionRotation>
+---@field centerPosition vec3
+---@field radius number

@@ -40,7 +40,7 @@ local function _loadMapRaces()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultRaces
@@ -124,7 +124,7 @@ local function _loadMapStations()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultStations

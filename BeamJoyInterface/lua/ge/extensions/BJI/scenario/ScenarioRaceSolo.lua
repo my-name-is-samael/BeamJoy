@@ -89,8 +89,7 @@ end
 local function canChangeTo(ctxt)
     return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) and
-        #BJI.Managers.Context.Scenario.Data.Races > 0
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID())
 end
 
 -- load hook

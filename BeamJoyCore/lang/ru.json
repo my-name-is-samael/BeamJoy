@@ -1341,6 +1341,8 @@
         "enabledTooltip": "Можно ли запустить эту арену?",
         "previewPosition": "Позиция предварительного просмотра",
         "previewPositionTooltip": "Положение свободной камеры в начале дерби",
+        "centerPosition": "Центральная позиция",
+        "radius": "Начальный радиус",
         "startPositions": "Стартовые позиции",
         "startPositionName": "Начать {index}",
         "amountStartPositionsNeeded": "Не хватает еще {amount} баллов",
@@ -1352,11 +1354,14 @@
           "toggleArenaVisibility": "Переключить видимость арены",
           "setPreviewPositionHere": "Установить позицию предварительного просмотра здесь",
           "showPreviewPosition": "Показать позицию предварительного просмотра",
+          "setCenterPositionHere": "Установить центр арены здесь",
+          "showCenterPosition": "Показать центр арены",
           "addStartPositionHere": "Добавить стартовую позицию здесь",
           "showStartPosition": "Показать стартовую позицию",
           "setStartPositionHere": "Установить стартовую позицию здесь",
           "deleteStartPosition": "Удалить стартовую позицию",
           "errorMustHaveVehicle": "Необходимо иметь транспортное средство",
+          "errorMustBeFreecaming": "Вы должны быть в режиме свободной камеры",
           "errorInvalidData": "Некоторые данные недействительны"
         }
       },
