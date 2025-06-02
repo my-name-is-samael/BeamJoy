@@ -171,16 +171,8 @@ local function header(ctxt)
                                         return acc
                                     end, { gen = Table(), configs = table.clone(preset.configs) }).gen
                                     :map(function(gen)
-                                        return {
-                                            model = gen.model,
-                                            key = gen.key,
-
-                                            label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(gen.model),
-                                                BJI.Managers.Veh.getConfigLabel(gen.model, gen.key) }),
-                                            config = BJI.Managers.Veh.getFullConfig(BJI.Managers.Veh
-                                                .getConfigByModelAndKey(gen.model,
-                                                    gen.key)),
-                                        }
+                                        return BJI.Managers.Veh.getFullConfig(BJI.Managers.Veh
+                                            .getConfigByModelAndKey(gen.model, gen.key))
                                     end)
                                 )
                             end
@@ -194,20 +186,10 @@ end
 
 ---@param ctxt TickContext
 local function addCurrentConfig(ctxt)
-    local config = {
-        model = ctxt.veh.jbeam,
-        key = BJI.Managers.Veh.getCurrentConfigKey(),
-        label = BJI.Managers.Veh.isConfigCustom(ctxt.veh.partConfig) and
-            BJI.Managers.Lang.get("derby.settings.specificConfig"):var({
-                model = BJI.Managers.Veh.getModelLabel(ctxt.veh
-                    .jbeam)
-            }) or
-            string.var("{1} {2}",
-                { BJI.Managers.Veh.getModelLabel(ctxt.veh.jbeam), BJI.Managers.Veh.getCurrentConfigLabel() }),
-        config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig),
-    }
+    local config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig) or {}
+    ---@param c ClientVehicleConfig
     if W.data.configs:any(function(c)
-            return table.compare(config.config.parts, c.config.parts)
+            return table.compare(config.parts, c.parts)
         end) then
         BJI.Managers.Toast.error(BJI.Managers.Lang.get("derby.settings.toastConfigAlreadySaved"))
     else
@@ -257,7 +239,7 @@ local function body(ctxt)
                             onClick = function()
                                 local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle
-                                fn(config.model, config.key or { parts = config.config })
+                                fn(config.model, config.key or config)
                             end,
                         }):btnIcon({
                             id = string.var("removeDerbyConfig{1}", { i }),

@@ -559,6 +559,9 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
+---@param playerID integer
+---@param vehID integer
+---@param vehData ServerVehicleConfig
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     if M.state == M.STATES.GRID and
         table.includes(M.grid.participants, playerID) and
@@ -577,7 +580,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             if type(M.settings.config) == "table" then
                 -- forced config
                 M.settings.config = M.settings.config or {}
-                local sameConfig = vehData.vcf.model == M.settings.config.model and
+                local model = vehData.vcf.model or vehData.vcf.mainPartName
+                local sameConfig = model == M.settings.config.model and
                     BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.settings.config.parts)
                 if not sameConfig then
                     onWrongVehicleAtGrid()

@@ -817,7 +817,7 @@ end
 
 --- return the full config raw data
 ---@param config? string|table
----@return table|nil
+---@return ClientVehicleConfig?
 local function getFullConfig(config)
     local veh = M.getCurrentVehicle()
     if not config and not veh then
@@ -825,22 +825,32 @@ local function getFullConfig(config)
     end
 
     config = config or veh.partConfig
+    local res, status
     if isConfigCustom(config) then
         local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
         if type(fn) == "function" then
-            local status, data = pcall(fn)
+            status, res = pcall(fn)
             if not status then
                 return nil
             end
-            if data.partsTree then -- vehicle has been manually modified = > simplify parts
-                data.parts = convertPartsTree(data.partsTree)
-                data.partsTree = nil
+            if res.partsTree then -- vehicle has been manually modified = > simplify parts
+                res.parts = convertPartsTree(res.partsTree)
+                res.partsTree = nil
             end
-            return data
+            res.label = BJI.Managers.Veh.getModelLabel(res.model)
         end
     else
-        return jsonReadFile(config)
+        res = jsonReadFile(config)
+        res.key = tostring(config):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
+        if not res.model then
+            -- some configs are malformed and do not have model value (eg barstow-awful)
+            res.model = tostring(config):gsub("^vehicles/", ""):gsub("/.+%.pc$", "")
+        end
+        res.label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(res.model),
+            BJI.Managers.Veh.getConfigLabel(res.model, res.key) })
     end
+
+    return res
 end
 
 ---@param model string

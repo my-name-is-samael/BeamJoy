@@ -338,7 +338,7 @@ local function drawBodyPreparation(ctxt)
                     disabled = W.cache.disabledButtons,
                     tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
                     onClick = function()
-                        W.scenario.tryReplaceOrSpawn(confData.model, confData.config)
+                        W.scenario.tryReplaceOrSpawn(confData.model, confData)
                     end,
                 }):text(confData.label):build()
             end)

@@ -6,24 +6,24 @@
 ---@field _name string
 ---@field _key string
 ---@field _isSolo boolean
----@field _skip? boolean
+---@field _skip boolean?
 
 ---@class BJIWindow
 ---@field name string
 ---@field getState fun(ctxt): boolean
----@field onLoad? fun()
----@field onUnload? fun()
----@field menu? fun(ctxt: TickContext)
----@field header? fun(ctxt: TickContext)
+---@field onLoad fun()?
+---@field onUnload fun()?
+---@field menu fun(ctxt: TickContext)?
+---@field header fun(ctxt: TickContext)?
 ---@field body fun(ctxt: TickContext)
----@field footer? fun(ctxt: TickContext)
----@field footerLines? fun(ctxt: TickContext): integer
----@field flags? number[]
----@field onClose? fun()
----@field w? integer
----@field h? integer
----@field x? integer
----@field y? integer
+---@field footer fun(ctxt: TickContext)?
+---@field footerLines fun(ctxt: TickContext): integer?
+---@field flags number[]?
+---@field onClose fun()?
+---@field w integer?
+---@field h integer?
+---@field x integer?
+---@field y integer?
 
 ---@class BJArena
 ---@field name string
@@ -32,3 +32,21 @@
 ---@field startPositions tablelib<integer, BJIPositionRotation>
 ---@field centerPosition vec3
 ---@field radius number
+
+---@class ClientVehicleConfig
+---@field model string
+---@field label string
+---@field key string when saved config
+---@field parts table<string, string>
+---@field vars table<string, any>
+---@field paints table<string, table>?
+
+---@class ServerVehicleConfig
+---@field pid integer
+---@field vid integer client gameVehID
+---@field jbm string?
+---@field vcf {model: string?, mainPartName: string, parts: table<string, string>, vars: table<string, any>, paints: table<string, table>}
+---@field pro "0"|"1" vehicle's protection against cloning
+---@field pos number[] 3 indices
+---@field rot number[] 4 indices
+---@field ign number

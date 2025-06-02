@@ -161,15 +161,7 @@ local function getConfig(ctxt)
     if not ctxt.veh then
         return
     end
-
-    return {
-        model = ctxt.veh.jbeam,
-        label = BJI.Managers.Veh.isConfigCustom(ctxt.veh.partConfig) and W.labels.specificConfig
-            :var({ model = BJI.Managers.Veh.getModelLabel(ctxt.veh.jbeam) }) or
-            string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(ctxt.veh.jbeam),
-                BJI.Managers.Veh.getCurrentConfigLabel() }),
-        config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig),
-    }
+    return BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig)
 end
 
 ---@param ctxt TickContext
@@ -213,7 +205,7 @@ local function drawBody(ctxt)
                         onClick = function()
                             local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                 BJI.Managers.Veh.spawnNewVehicle
-                            fn(W.data.huntedConfig.model, W.data.huntedConfig.config)
+                            fn(W.data.huntedConfig.model, W.data.huntedConfig)
                         end,
                     }):btnIcon({
                         id = "refreshHuntedConfig",
@@ -267,7 +259,7 @@ local function drawBody(ctxt)
     })
 
     Range(1, math.min(#W.data.hunterConfigs + 1, 5)):forEach(function(i)
-        local confData = W.data.hunterConfigs[i]
+        local config = W.data.hunterConfigs[i]
         cols:addRow({
             cells = {
                 function()
@@ -276,7 +268,7 @@ local function drawBody(ctxt)
                     end
                 end,
                 function()
-                    if confData then
+                    if config then
                         LineBuilder():btnIcon({
                             id = string.var("showHunterConfig{1}", { i }),
                             icon = ctxt.isOwner and ICONS.carSensors or ICONS.visibility,
@@ -287,7 +279,7 @@ local function drawBody(ctxt)
                             onClick = function()
                                 local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
                                     BJI.Managers.Veh.spawnNewVehicle
-                                fn(confData.model, confData.config)
+                                fn(config.model, config.key or config)
                             end,
                         }):btnIcon({
                             id = string.var("removeHunterConfig{1}", { i }),
@@ -297,7 +289,7 @@ local function drawBody(ctxt)
                             onClick = function()
                                 table.remove(W.data.hunterConfigs, i)
                             end,
-                        }):text(confData.label):build()
+                        }):text(config.label):build()
                     else
                         local tooltip
                         if W.data.currentVehProtected then
@@ -317,7 +309,7 @@ local function drawBody(ctxt)
                                 local config = getConfig(ctxt) or {}
                                 if W.data.hunterConfigs:any(function(c)
                                         return config.model == c.model and
-                                            table.compare(config.config, c.config)
+                                            table.compare(config, c)
                                     end) then
                                     BJI.Managers.Toast.error(BJI.Managers.Lang.get(
                                         "hunter.settings.toastConfigAlreadySaved"))

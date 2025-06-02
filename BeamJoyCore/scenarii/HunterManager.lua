@@ -35,7 +35,9 @@ local M = {
     ---@type tablelib<integer, BJIHunterParticipant>
     participants = Table(),
     preparationTimeout = nil,
+    ---@type ClientVehicleConfig?
     huntedConfig = nil,
+    ---@type ClientVehicleConfig[]
     hunterConfigs = {},
     waypoints = 0,
     lastWaypointGPS = false,
@@ -364,9 +366,36 @@ local function onVehicleDeleted(playerID, vehID)
     end
 end
 
+---@param playerID integer
+---@param vehID integer
+---@param vehData ServerVehicleConfig
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     local participant = M.participants[playerID]
-    return M.state == M.STATES.PREPARATION and participant and not participant.ready
+    if M.state == M.STATES.PREPARATION and participant and not participant.ready then
+        if participant.hunted then
+            -- fugitive
+            if M.huntedConfig then
+                local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+                return model == M.huntedConfig.model and
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.huntedConfig.parts)
+            end
+            -- no config restriction
+            return true
+        else
+            -- hunter
+            if #M.hunterConfigs> 0 then
+                local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+                return Table(M.hunterConfigs):any(function(config)
+                    return model == config.model and
+                        BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
+                end)
+            end
+            -- no config restriction
+            return true
+        end
+    end
+    -- during game
+    return false
 end
 
 local function onStop()

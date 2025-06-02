@@ -157,7 +157,7 @@ end
 
 ---@param ctxt? TickContext
 local function updateButtonsStates(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = type(ctxt) == "table" and ctxt or BJI.Managers.Tick.getContext()
 
     local canSpawnOrReplace = BJI.Managers.Perm.canSpawnVehicle() and
         (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and table.length(ctxt.user.vehicles) < ctxt.group.vehicleCap)) and

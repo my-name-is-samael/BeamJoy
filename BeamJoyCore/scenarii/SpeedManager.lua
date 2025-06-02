@@ -162,6 +162,9 @@ local function slowTick(time)
     end
 end
 
+---@param playerID integer
+---@param vehID integer
+---@param vehData ServerVehicleConfig
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     return not M.participants[playerID]
 end

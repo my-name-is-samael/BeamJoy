@@ -353,7 +353,7 @@ local function body(ctxt)
                 style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableButtons,
                 tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                onClick = function() W.scenario.tryReplaceOrSpawn(c.model, c.config) end,
+                onClick = function() W.scenario.tryReplaceOrSpawn(c.model, c) end,
             }):text(c.label):build()
         end)
     elseif W.cache.showGame then

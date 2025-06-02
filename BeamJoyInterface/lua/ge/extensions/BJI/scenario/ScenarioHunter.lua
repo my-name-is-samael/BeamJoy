@@ -386,7 +386,7 @@ local function onJoinParticipants(participant)
 
         if S.settings.huntedConfig then
             -- forced config
-            model, config = S.settings.huntedConfig.model, S.settings.huntedConfig.config
+            model, config = S.settings.huntedConfig.model, S.settings.huntedConfig
         else
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)
@@ -396,7 +396,7 @@ local function onJoinParticipants(participant)
         -- hunter
         if #S.settings.hunterConfigs == 1 then
             -- forced config
-            model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1].config
+            model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1]
         elseif #S.settings.hunterConfigs == 0 then
             BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
                 3, false)

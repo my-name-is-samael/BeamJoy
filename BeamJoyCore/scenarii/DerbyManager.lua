@@ -343,6 +343,9 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
+---@param playerID integer
+---@param vehID integer
+---@param vehData ServerVehicleConfig
 local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     if not M.state then
         return true
@@ -354,9 +357,11 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
 
         if #M.settings.configs > 0 then
             -- forced config
-            local found = M.settings.configs:any(function(c)
-                return vehData.vcf.model == c.model and
-                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, c.config.parts)
+            dump({ M.settings.configs, vehData })
+            local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+            local found = M.settings.configs:any(function(config)
+                return model == config.model and
+                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
             end)
             if not found then
                 M.countInvalidVehicles[playerID] = true

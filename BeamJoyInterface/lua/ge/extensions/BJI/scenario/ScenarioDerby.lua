@@ -405,7 +405,7 @@ local function onJoinParticipants()
         BJI.Managers.Async.task(function()
             return S.canSpawnNewVehicle()
         end, function()
-            S.trySpawnNew(S.configs[1].model, S.configs[1].config)
+            S.trySpawnNew(S.configs[1].model, S.configs[1])
         end)
     end
 end
