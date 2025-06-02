@@ -258,7 +258,7 @@ local function saveRace(race)
         type(race.previewPosition) ~= "table" or
         not checkCameraPos(race.previewPosition) then
         error({ key = "rx.errors.invalidData" })
-    elseif race.keepRecord ~= true then
+    elseif not race.keepRecord then
         if type(race.loopable) ~= "boolean" or
             type(race.startPositions) ~= "table" or #race.startPositions == 0 or
             type(race.steps) ~= "table" or #race.steps == 0 then
@@ -292,7 +292,8 @@ local function saveRace(race)
 
         -- update hash
         race.hash = Hash({ race.loopable, race.startPositions, race.steps })
-    elseif race.keepRecord == true then
+        LogDebug(string.var("Race \"{1}\" hash saved: {2}", { race.name, race.hash }))
+    else
         if not baseRace then
             error({ key = "rx.errors.invalidData" })
         end

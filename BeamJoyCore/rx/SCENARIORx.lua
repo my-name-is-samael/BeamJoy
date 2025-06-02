@@ -23,7 +23,7 @@ function ctrl.RaceSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local status, raceID = pcall(BJCScenario.saveRace, ctxt.data[1])
+    local status, raceID = pcall(BJCScenarioData.saveRace, ctxt.data[1])
     BJCTx.scenario.RaceSave(ctxt.senderID, status and raceID or false)
     if not status then
         local err = raceID
@@ -122,7 +122,7 @@ function ctrl.DeliverySave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenario.saveDeliveryPositions, ctxt.data[1])
+    local _, err = pcall(BJCScenarioData.saveDeliveryPositions, ctxt.data[1])
     BJCTx.scenario.DeliverySave(ctxt.senderID, not err)
     if err then
         error(err)
