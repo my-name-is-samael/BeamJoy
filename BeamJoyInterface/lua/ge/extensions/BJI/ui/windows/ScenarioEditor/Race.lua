@@ -329,7 +329,7 @@ local function updateMarkers()
                 name = wp.name,
                 pos = wp.pos,
                 top = wp.stand and wp.radius * 2 or nil,
-                bottom = wp.stand and -wp.zOffset or nil,
+                bottom = wp.stand and -(wp.zOffset or 1) or nil,
                 rot = wp.rot,
                 zOffset = wp.zOffset or 1,
                 radius = wp.radius,
