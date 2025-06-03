@@ -167,26 +167,23 @@ local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
         return false
     end
 
-    local larger, smaller
-    if table.length(askedParts) > table.length(spawnedParts) then
-        larger = askedParts
-        smaller = spawnedParts
-    else
-        larger = spawnedParts
-        smaller = askedParts
-    end
+    -- remove empty parts
+    askedParts = Table(askedParts):filter(function(v) return #v > 0 end)
+    spawnedParts = Table(spawnedParts):filter(function(v, k) return askedParts[k] ~= nil and #v > 0 end)
 
-    local matches = Table(larger):reduce(function(acc, el, k)
-        if smaller[k] then
-            acc = acc + .5
-            if smaller[k] == el then
-                acc = acc + .5
-            end
-        end
-        return acc
-    end, 0)
-    local ratio = matches / table.length(larger)
-    local logFn = ratio > .9 and Log or LogError
+    local res = Table()
+    askedParts:forEach(function(v, k)
+        res[k] = v == spawnedParts[k]
+    end)
+    spawnedParts:filter(function(_, k)
+        return res[k] == nil
+    end):forEach(function(v, k)
+        res[k] = v == askedParts[k]
+    end)
+
+    local matches = res:filter(function(v) return v end):length()
+    local ratio = matches / res:length()
+    local logFn = ratio > .8 and Log or LogError
     logFn(string.var("Vehicle matches requirements up to {1}%%", { math.round(ratio * 100, 1) }))
     return ratio > .8
 end

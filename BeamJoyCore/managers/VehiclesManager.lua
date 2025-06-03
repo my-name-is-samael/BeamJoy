@@ -8,6 +8,7 @@ local M = {
 local function onVehicleSpawn(playerID, vehID, vehDataStr)
     local s, e = vehDataStr:find('%{')
     vehDataStr = s and vehDataStr:sub(s) or ""
+    ---@type ServerVehicleConfig?
     local vehData = JSON.parse(vehDataStr) or nil
 
     local player = BJCPlayers.Players[playerID]
@@ -49,7 +50,7 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
             return 1
         end
 
-        local model = vehData.jbm or vehData.vcf.model
+        local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
 
         if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
             if BJCPerm.isStaff(playerID) then
@@ -64,7 +65,7 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
             vehicleID = vehID,
             vid = vehData.vid,
             pid = vehData.pid,
-            name = model,
+            name = tostring(model),
             freeze = false,
             engine = true,
         }
