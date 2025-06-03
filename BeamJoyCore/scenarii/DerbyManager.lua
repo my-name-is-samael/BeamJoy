@@ -52,6 +52,7 @@ local M = {
     },
 
     countInvalidVehicles = {}, -- count to detect invalid setting config
+    positionsAnnounced = {},
 }
 
 local function getParticipantPosition(playerID)
@@ -179,7 +180,8 @@ local function updateDerbyState()
     elseif M.state == M.STATES.GAME then
         if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
             M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())].eliminationTime then
-            if M.participants[1] then
+            if M.participants[1] and not M.positionsAnnounced[1] then
+                M.positionsAnnounced[1] = true
                 BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
                     playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
                     gamemode = "chat.events.gamemodes.derby",
@@ -263,7 +265,8 @@ local function onClientDestroyed(playerID)
     sortParticipants()
     if participant.eliminationTime then
         M.participants:find(function(p) return p.playerID == playerID end, function(_, finalPos)
-            if finalPos > 1 then
+            if finalPos > 1 and not M.positionsAnnounced[finalPos] then
+                M.positionsAnnounced[finalPos] = true
                 BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
                     playerName = BJCPlayers.Players[playerID].playerName,
                     gamemode = "chat.events.gamemodes.derby",
@@ -324,16 +327,18 @@ local function onClientUpdate(senderID, event, data)
     elseif M.state == M.STATES.GAME then
         if event == M.CLIENT_EVENTS.LEAVE then
             M.participants
-                :filter(function(p) return not p.eliminationTime end)
-                :find(function(p) return p.playerID == senderID end, function(p)
+                :find(function(p) return p.playerID == senderID and not p.eliminationTime end, function(p)
                     p.eliminationTime = M.game.gameTimer:get()
                     sortParticipants()
                     local finalPos = getParticipantPosition(senderID)
-                    BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-                        playerName = BJCPlayers.Players[senderID].playerName,
-                        gamemode = "chat.events.gamemodes.derby",
-                        gamemodePosition = finalPos,
-                    })
+                    if not M.positionsAnnounced[finalPos] then
+                        M.positionsAnnounced[finalPos] = true
+                        BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
+                            playerName = BJCPlayers.Players[senderID].playerName,
+                            gamemode = "chat.events.gamemodes.derby",
+                            gamemodePosition = finalPos,
+                        })
+                    end
                     updateDerbyState()
                     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
                 end)
@@ -412,15 +417,7 @@ local function onVehicleDeleted(playerID, vehID)
             elseif M.state == M.STATES.GAME then
                 M.participants[pos].eliminationTime = (GetCurrentTime() - M.game.startTime) * 1000
                 sortParticipants()
-                if (not M.participants[2] or M.participants[2].eliminationTime) and
-                    M.participants[1] then
-                    BJCChat.sendChatEvent("chat.events.gamemodeFinished", {
-                        playerName = BJCPlayers.Players[M.participants[1].playerID].playerName,
-                        gamemode = "chat.events.gamemodes.derby",
-                        position = 1,
-                    })
-                    finishDerby()
-                end
+                updateDerbyState()
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
             end
         end
