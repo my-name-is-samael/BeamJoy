@@ -60,6 +60,7 @@ return function(ctxt, labels, cache)
             icon = BJI.Managers.Context.BJC.Whitelist.Enabled and ICONS.check_circle or ICONS.cancel,
             style = BJI.Managers.Context.BJC.Whitelist.Enabled and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                 BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = BJI.Managers.Context.BJC.Whitelist.Enabled and labels.whitelist.enabled or labels.whitelist.disabled,
             coloredIcon = true,
         })
     end

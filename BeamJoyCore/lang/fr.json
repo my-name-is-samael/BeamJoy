@@ -243,6 +243,8 @@
         "cancel": "Annuler",
         "close": "Fermer",
         "vote": "Voter",
+        "unvote": "Retirer le vote",
+        "stopVote": "Arrêter le vote",
         "set": "Définir",
         "create": "Créer",
         "edit": "Modifier",
@@ -1340,9 +1342,7 @@
         "voteTimeout": "Le vote se terminera dans {delay}",
         "voteAboutToEnd": "Le vote est sur le point de se terminer",
         "hasStartedVote": "{creatorName} a lancé un vote pour commencer un Speed",
-        "participants": "Participants",
-        "join": "Rejoindre",
-        "leave": "Quitter"
+        "participants": "Participants"
       },
       "title": "Jeu de Vitesse",
       "startsIn": "La partie commence dans {time}",

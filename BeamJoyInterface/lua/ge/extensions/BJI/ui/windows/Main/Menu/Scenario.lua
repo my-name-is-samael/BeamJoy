@@ -483,8 +483,7 @@ local function updateCache(ctxt)
 
     -- STOP MULTI RACE
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) and
-        (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) or
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO)) then
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.scenario.raceStop"),
             onClick = BJI.Tx.scenario.RaceMultiStop,

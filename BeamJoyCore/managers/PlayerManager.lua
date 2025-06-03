@@ -641,7 +641,9 @@ local function toggleMute(ctxt, targetName, reason)
     end
 
     target.muted = target.muted ~= true
-    target.muteReason = reason
+    if target.muted then
+        target.muteReason = reason
+    end
     M.savePlayer(target)
 
     if connected then

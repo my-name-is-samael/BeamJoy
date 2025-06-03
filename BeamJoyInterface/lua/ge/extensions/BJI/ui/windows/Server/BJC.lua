@@ -3,14 +3,17 @@ local W = {
 
     ACCORDION = Table({
         {
+            permission = BJI.Managers.Perm.PERMISSIONS.WHITELIST,
             labelKey = "whitelist",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/Whitelist"),
         },
         {
+            permission = BJI.Managers.Perm.PERMISSIONS.SET_CONFIG,
             labelKey = "voteKick",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/VoteKick"),
         },
         {
+            permission = BJI.Managers.Perm.PERMISSIONS.SET_CONFIG,
             labelKey = "mapVote",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/VoteMap"),
         },
@@ -55,6 +58,8 @@ local W = {
         whitelist = {
             title = "",
             state = "",
+            enabled = "",
+            disabled = "",
             players = "",
             offlinePlayers = "",
             addOfflinePlayer = "",
@@ -190,6 +195,8 @@ local function updateLabels()
     W.labels.server.title = BJI.Managers.Lang.get("serverConfig.bjc.server.title")
 
     W.labels.whitelist.state = BJI.Managers.Lang.get("common.state") .. " :"
+    W.labels.whitelist.enabled = BJI.Managers.Lang.get("common.enabled")
+    W.labels.whitelist.disabled = BJI.Managers.Lang.get("common.disabled")
     W.labels.whitelist.players = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.players") .. " :"
     W.labels.whitelist.offlinePlayers = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.offlinePlayers") .. " :"
     W.labels.whitelist.addOfflinePlayer = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.addOfflinePlayer") .. ":"
@@ -327,46 +334,56 @@ end
 local function updateCache()
     W.cache.disableInputs = false
 
-    W.cache.whitelist.online = Table(BJI.Managers.Context.Players):map(function(p)
-        return p.playerName
-    end):values()
-    W.cache.whitelist.offline = Table(BJI.Managers.Context.BJC.Whitelist.PlayerNames)
-        :filter(function(p)
-            return not table.includes(W.cache.whitelist.online, p)
+    if BJI.Managers.Context.BJC.Whitelist then
+        W.cache.whitelist.online = Table(BJI.Managers.Context.Players):map(function(p)
+            return p.playerName
         end):values()
+        W.cache.whitelist.offline = Table(BJI.Managers.Context.BJC.Whitelist.PlayerNames)
+            :filter(function(p)
+                return not table.includes(W.cache.whitelist.online, p)
+            end):values()
+    end
 
-    W.cache.voteKick.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
+    if BJI.Managers.Context.BJC.VoteKick then
+        W.cache.voteKick.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
+    end
 
-    W.cache.mapVote.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteMap.Timeout)
+    if BJI.Managers.Context.BJC.VoteMap then
+        W.cache.mapVote.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteMap.Timeout)
+    end
 
-    W.cache.tempban.minTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.minTime)
-    W.cache.tempban.maxTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.maxTime)
+    if BJI.Managers.Context.BJC.TempBan then
+        W.cache.tempban.minTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.minTime)
+        W.cache.tempban.maxTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.maxTime)
+    end
 
-    local res = Table(BJI.Managers.Veh.getAllVehicleLabels())
-        :map(function(label, model)
-            return {
-                value = model,
-                label = string.var("{1} ({2})", { label, model }),
-            }
+    if BJI.Managers.Context.BJC.VehicleDelivery then
+        local res = Table(BJI.Managers.Veh.getAllVehicleLabels())
+            :map(function(label, model)
+                return {
+                    value = model,
+                    label = string.var("{1} ({2})", { label, model }),
+                }
+            end)
+            :reduce(function(res, el)
+                if table.includes(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist, el.value) then
+                    res.display:insert({ model = el.value, label = el.label })
+                else
+                    res.combo:insert({ value = el.value, label = el.label })
+                end
+                return res
+            end, Table({ combo = Table(), display = Table() }))
+        res:forEach(function(list)
+            list:sort(function(a, b)
+                return a.label:lower() < b.label:lower()
+            end)
         end)
-        :reduce(function(res, el)
-            if table.includes(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist, el.value) then
-                res.display:insert({ model = el.value, label = el.label })
-            else
-                res.combo:insert({ value = el.value, label = el.label })
-            end
-            return res
-        end, Table({ combo = Table(), display = Table() }))
-    res:forEach(function(list)
-        list:sort(function(a, b)
-            return a.label:lower() < b.label:lower()
-        end)
-    end)
-    W.cache.vehicleDelivery.displayList = Table(res.display)
-    W.cache.vehicleDelivery.modelsCombo = Table(res.combo)
-    if not W.cache.vehicleDelivery.selectedModel or not W.cache.vehicleDelivery.modelsCombo
-        :find(function(mc) return mc.value == W.cache.vehicleDelivery.selectedModel.value end) then
-        W.cache.vehicleDelivery.selectedModel = W.cache.vehicleDelivery.modelsCombo[1]
+        W.cache.vehicleDelivery.displayList = Table(res.display)
+        W.cache.vehicleDelivery.modelsCombo = Table(res.combo)
+        if not W.cache.vehicleDelivery.selectedModel or not W.cache.vehicleDelivery.modelsCombo
+            :find(function(mc) return mc.value == W.cache.vehicleDelivery.selectedModel.value end) then
+            W.cache.vehicleDelivery.selectedModel = W.cache.vehicleDelivery.modelsCombo[1]
+        end
     end
 end
 

@@ -36,8 +36,8 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
             if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.MUTE) then
                 table.insert(actions, {
                     id = string.var("toggleMute{1}", { player.playerID }),
-                    icon = ICONS.speaker_notes_off,
-                    style = player.muted and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    icon = player.muted and ICONS.speaker_notes_off or ICONS.speaker_notes,
+                    style = player.muted and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     tooltip = cache.labels.players.moderation.buttons.mute,
                     onClick = function()
                         BJI.Tx.moderation.mute(player.playerName)
@@ -217,7 +217,8 @@ local function drawModeration(player, ctxt, cache)
                 function()
                     LineBuilder():inputString({
                         id = string.var("muteReason{1}", { player.playerID }),
-                        value = inputs.muteReason,
+                        value = player.muted and player.muteReason or inputs.muteReason,
+                        disabled = player.muted,
                         onUpdate = function(val)
                             inputs.muteReason = val
                         end
@@ -226,7 +227,7 @@ local function drawModeration(player, ctxt, cache)
                 function()
                     LineBuilder():btnIconToggle({
                         id = string.var("toggleMute{1}", { player.playerID }),
-                        icon = ICONS.speaker_notes_off,
+                        icon = player.muted and ICONS.speaker_notes_off or ICONS.speaker_notes,
                         state = player.muted == true,
                         tooltip = cache.labels.players.moderation.buttons.mute,
                         onClick = function()
@@ -237,7 +238,7 @@ local function drawModeration(player, ctxt, cache)
                 end
             }
         })
-    if player.muteReason and #player.muteReason > 0 then
+    if not player.muted and player.muteReason and #player.muteReason > 0 then
         cols:addRow({
             cells = {
                 function()
@@ -391,7 +392,7 @@ local function drawModeration(player, ctxt, cache)
                 id = string.var("demote{1}", { player.playerID }),
                 icon = ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
+                tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
                     { group = player.demoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
@@ -403,7 +404,7 @@ local function drawModeration(player, ctxt, cache)
                 id = string.var("promote{1}", { player.playerID }),
                 icon = ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
+                tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
                     { group = player.promoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
@@ -431,7 +432,8 @@ local function drawWaitingPlayers(cache)
                 id = string.var("demotewaiting{1}", { player.playerID }),
                 icon = ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                tooltip = player.demoteLabel,
+                tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
+                    { group = player.demoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
                 end
@@ -442,7 +444,8 @@ local function drawWaitingPlayers(cache)
                 id = string.var("promotewaiting{1}", { player.playerID }),
                 icon = ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                tooltip = player.promoteLabel,
+                tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
+                    { group = player.promoteLabel }),
                 onClick = function()
                     BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
                 end

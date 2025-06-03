@@ -9,7 +9,7 @@ local M = {
 local function menuServer(ctxt)
     if Table({ BJI.Managers.Perm.PERMISSIONS.SET_CONFIG, BJI.Managers.Perm.PERMISSIONS.SET_CORE,
             BJI.Managers.Perm.PERMISSIONS.SET_CEN, BJI.Managers.Perm.PERMISSIONS.SET_MAPS,
-            BJI.Managers.Perm.PERMISSIONS.SET_PERMISSIONS })
+            BJI.Managers.Perm.PERMISSIONS.SET_PERMISSIONS, BJI.Managers.Perm.PERMISSIONS.WHITELIST })
         :any(function(p) return BJI.Managers.Perm.hasPermission(p) end) then
         table.insert(M.cache.elems, {
             label = BJI.Managers.Lang.get("menu.config.server"),

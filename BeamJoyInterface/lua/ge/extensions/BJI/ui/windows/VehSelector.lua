@@ -155,6 +155,18 @@ local function isVehicleInCache(model)
         end)
 end
 
+local function isVehTypeAllowed(vehType)
+    if vehType == BJI.Managers.Veh.TYPES.TRAILER and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS) then
+        return false
+    end
+    if vehType == BJI.Managers.Veh.TYPES.PROP and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_PROPS) then
+        return false
+    end
+    return true
+end
+
 ---@param ctxt? TickContext
 local function updateButtonsStates(ctxt)
     ctxt = type(ctxt) == "table" and ctxt or BJI.Managers.Tick.getContext()
@@ -162,6 +174,11 @@ local function updateButtonsStates(ctxt)
     local canSpawnOrReplace = BJI.Managers.Perm.canSpawnVehicle() and
         (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and table.length(ctxt.user.vehicles) < ctxt.group.vehicleCap)) and
         (ctxt.isOwner and BJI.Managers.Scenario.canReplaceVehicle() or BJI.Managers.Scenario.canSpawnNewVehicle())
+    local currentVehTypeAllowed = ctxt.veh and isVehTypeAllowed(BJI.Managers.Veh.getType(ctxt.veh.jbeam))
+    local currentVehBlacklisted = ctxt.veh and BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
+        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
+    local vehCapNotReached = ctxt.group.vehicleCap == -1 or ctxt.group.vehicleCap > table.length(ctxt.user.vehicles)
+    local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and currentVehTypeAllowed and not currentVehBlacklisted
 
     local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
 
@@ -207,10 +224,7 @@ local function updateButtonsStates(ctxt)
         W.headerBtns.loadDefaultTooltip = BJI.Managers.Veh.getModelLabel(defaultVeh.model)
     end
 
-    W.headerBtns.cloneCurrentDisabled = not ctxt.veh or not canSpawnOrReplace or currentVehIsProtected or (
-        BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
-        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
-    )
+    W.headerBtns.cloneCurrentDisabled = not ctxt.veh or not canSpawnOrReplace or not canClone or currentVehIsProtected
     if W.headerBtns.cloneCurrentDisabled then
         if not ctxt.veh then
             W.headerBtns.cloneCurrentTooltip = W.labels.noVeh

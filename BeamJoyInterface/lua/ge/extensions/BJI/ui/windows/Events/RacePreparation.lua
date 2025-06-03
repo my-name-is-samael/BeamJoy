@@ -26,7 +26,11 @@ return function(ctxt, cache)
                     (vr.selfVoted and ICONS.event_busy or ICONS.event_available) or
                     ICONS.cancel,
                 state = not vr.selfVoted,
+                tooltip = vr.isVote and
+                    (vr.selfVoted and cache.buttons.unvote or cache.buttons.vote) or
+                    cache.buttons.stop,
                 disabled = cache.disableButtons,
+                big = true,
                 onClick = function()
                     cache.disableButtons = true
                     BJI.Tx.voterace.vote()
@@ -38,7 +42,9 @@ return function(ctxt, cache)
                 id = "stopPrepRace",
                 icon = ICONS.cancel,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = cache.buttons.stop,
                 disabled = cache.disableButtons,
+                big = true,
                 onClick = function()
                     cache.disableButtons = true
                     BJI.Tx.voterace.stop()

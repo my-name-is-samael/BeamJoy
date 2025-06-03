@@ -1205,6 +1205,7 @@ LineBuilder = function(startSameLine)
         end
         inputStylePreset(data.style, true)
 
+        data.value = math.round(data.value, data.precision or 0)
         local drawFn, val = im.SliderInt, im.IntPtr(data.value)
         if data.type == "float" then
             drawFn = im.SliderFloat
@@ -1213,7 +1214,7 @@ LineBuilder = function(startSameLine)
         if drawFn("##" .. tostring(data.id), val, data.min, data.max, data.renderFormat, im.flags(table.unpack(flags))) and
             not data.disabled then
             local parsed = math.round(val[0], data.precision)
-            if data.parsed ~= math.round(data.value, data.precision) then
+            if data.parsed ~= data.value then
                 data.onUpdate(parsed)
             end
         end

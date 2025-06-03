@@ -261,21 +261,26 @@ end
 -- when spawning AI vehicles, alpha can get desynced
 local function checkAIVehicles()
     if table.includes({ M.TYPES.GHOSTS, M.TYPES.FORCED }, M.type) then
-        Table(BJI.Managers.Context.Players)
-            :map(function(p)
-                return p.ai
-            end):flat()
-            :forEach(function(vid)
-                BJI.Managers.Async.task(function()
-                    return BJI.Managers.Veh.isVehReady(vid)
-                end, function()
-                    local a = getVehAlpha(vid)
-                    if a and a ~= M.playerAlpha then
-                        setAlpha(vid, M.playerAlpha)
-                        LogWarn(("Restored desync alpha from {1}"):var({ a }))
-                    end
-                end, string.var("CheckAIAlpha-{1}", { vid }))
+        BJI.Managers.Async.task(function()
+            return Table(BJI.Managers.Veh.getMPVehicles()):every(function(veh)
+                return veh.isSpawned and not veh.isDeleted
             end)
+        end, function()
+            BJI.Managers.Async.removeTask("CheckAIAlpha")
+            BJI.Managers.Async.delayTask(function()
+                Table(BJI.Managers.Context.Players)
+                    :map(function(p)
+                        return p.ai
+                    end):flat()
+                    :forEach(function(vid)
+                        local a = getVehAlpha(vid)
+                        if a and a ~= M.playerAlpha then
+                            setAlpha(vid, M.playerAlpha)
+                            LogWarn(("Restored desync alpha from {1}"):var({ a }))
+                        end
+                    end)
+            end, 5000)
+        end, "CheckAIAlpha")
     end
 end
 

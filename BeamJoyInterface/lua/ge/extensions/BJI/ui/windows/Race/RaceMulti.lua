@@ -132,9 +132,9 @@ local function updateLabels()
 
     W.cache.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
     W.cache.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
-    W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("races.play.markReady")
-    W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("races.play.forfeit")
-    W.cache.labels.buttons.show = BJI.Managers.Lang.get("races.play.show")
+    W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
+    W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
+    W.cache.labels.buttons.show = BJI.Managers.Lang.get("common.buttons.show")
     W.cache.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
 end
 

@@ -243,6 +243,8 @@
         "cancel": "Stornieren",
         "close": "Schließen",
         "vote": "Abstimmung",
+        "unvote": "Abstimmung zurückziehen",
+        "stopVote": "Abstimmung beenden",
         "set": "Satz",
         "create": "Erstellen",
         "edit": "Bearbeiten",
@@ -1340,9 +1342,7 @@
         "voteTimeout": "Die Abstimmung endet in {delay}",
         "voteAboutToEnd": "Die Abstimmung steht vor dem Ende",
         "hasStartedVote": "{creatorName} hat eine Abstimmung gestartet, um ein Geschwindigkeitsspiel zu starten",
-        "participants": "Teilnehmer",
-        "join": "Verbinden",
-        "leave": "Verlassen"
+        "participants": "Teilnehmer"
       },
       "title": "Geschwindigkeitsspiel",
       "startsIn": "Das Spiel beginnt in {time}",

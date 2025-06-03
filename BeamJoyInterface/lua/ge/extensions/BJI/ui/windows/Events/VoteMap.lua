@@ -2,7 +2,8 @@ return function(ctxt, cache)
     local vm = BJI.Managers.Votes.Map
     LineBuilder()
         :text(cache.creator,
-            BJI.Managers.Context.User.playerID == vm.creatorID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+            BJI.Managers.Context.User.playerID == vm.creatorID and
+            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
         :text(cache.hasStarted)
         :text(vm.mapLabel)
         :text(cache.mapCustom)
@@ -19,7 +20,9 @@ return function(ctxt, cache)
             id = "voteMap",
             icon = vm.selfVoted and ICONS.event_busy or ICONS.event_available,
             state = not vm.selfVoted,
+            tooltip = vm.selfVoted and cache.buttons.unvote or cache.buttons.vote,
             disabled = cache.voteDisabled,
+            big = true,
             onClick = function()
                 cache.voteDisabled = true
                 BJI.Tx.votemap.vote()
@@ -30,7 +33,9 @@ return function(ctxt, cache)
             id = "stopVoteMap",
             icon = ICONS.cancel,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+            tooltip = cache.buttons.stop,
             disabled = cache.disableButtons,
+            big = true,
             onClick = function()
                 cache.disableButtons = true
                 BJI.Tx.votemap.stop()

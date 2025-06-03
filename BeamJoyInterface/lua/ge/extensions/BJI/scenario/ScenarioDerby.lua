@@ -109,6 +109,8 @@ local function onUnload(ctxt)
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
+    BJI.Managers.Cam.resetRestrictedCameras()
+    BJI.Managers.Cam.resetForceCamera(true)
     if ctxt.isOwner then
         BJI.Managers.Veh.freeze(false)
         if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
@@ -121,6 +123,17 @@ local function onUnload(ctxt)
     end)
 end
 
+---@param ctxt TickContext
+local function postSpawn(ctxt)
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
+        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        if not BJI.Windows.VehSelector.show then
+            BJI.Windows.VehSelector.open(false)
+        end
+    end
+end
+
 local function tryReplaceOrSpawn(model, config)
     local participant = S.getParticipant()
     if S.state == S.STATES.PREPARATION and participant and not participant.ready then
@@ -129,13 +142,22 @@ local function tryReplaceOrSpawn(model, config)
             return
         end
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, S.baseArena.startPositions[participant.startPosition])
-        BJI.Managers.Veh.waitForVehicleSpawn(function()
-            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-            BJI.Managers.Veh.freeze(true)
-            if not BJI.Windows.VehSelector.show then
-                BJI.Windows.VehSelector.open(false)
-            end
-        end)
+        BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+    end
+end
+
+local function onVehicleSpawned(gameVehID)
+    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
+    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+    local participant = S.getParticipant()
+    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+        S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        local startPos = S.baseArena.startPositions[participant.startPosition]
+        if startPos and vehPosRot.pos:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+        end
     end
 end
 
@@ -463,6 +485,7 @@ local function initGame(data)
     if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
         BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.DERBY)
     end
+    BJI.Managers.Cam.resetForceCamera()
 
     local now = GetCurrentTimeMillis()
 
@@ -487,14 +510,9 @@ local function initGame(data)
                     BJI.Managers.Cam.setCamera(S.preDerbyCam)
                 end
             else
+                -- spec
                 if not ctxt.veh then
                     switchToRandomParticipant()
-                end
-                if table.includes({
-                        BJI.Managers.Cam.CAMERAS.BIG_MAP,
-                        BJI.Managers.Cam.CAMERAS.EXTERNAL
-                    }, ctxt.camera) then
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
                 end
             end
         end, S.startTime - 3000, "BJIDerbyPreStart")
@@ -623,6 +641,7 @@ S.doShowNametag = doShowNametag
 
 S.getPlayerListActions = getPlayerListActions
 
+S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleSwitched = onVehicleSwitched
 S.renderTick = renderTick

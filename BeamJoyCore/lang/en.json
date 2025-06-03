@@ -244,6 +244,8 @@
         "cancel": "Cancel",
         "close": "Close",
         "vote": "Vote",
+        "unvote": "Withdraw Vote",
+        "stopVote": "Stop Vote",
         "set": "Set",
         "create": "Create",
         "edit": "Edit",
@@ -1341,9 +1343,7 @@
         "voteTimeout": "The vote will end in {delay}",
         "voteAboutToEnd": "The vote is about to end",
         "hasStartedVote": "{creatorName} has started a vote to start a speed game",
-        "participants": "Participants",
-        "join": "Join",
-        "leave": "Leave"
+        "participants": "Participants"
       },
       "title": "Speed Game",
       "startsIn": "The game starts in {time}",

@@ -274,7 +274,6 @@ local function drawBody(ctxt)
                             icon = ctxt.isOwner and ICONS.carSensors or ICONS.visibility,
                             style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                                 BJI.Utils.Style.BTN_PRESETS.INFO,
-                            disabled = not ctxt.isOwner,
                             tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
                             onClick = function()
                                 local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
@@ -306,15 +305,15 @@ local function drawBody(ctxt)
                             disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
                             tooltip = tooltip,
                             onClick = function()
-                                local config = getConfig(ctxt) or {}
+                                local newConf = getConfig(ctxt) or {}
                                 if W.data.hunterConfigs:any(function(c)
-                                        return config.model == c.model and
-                                            table.compare(config, c)
+                                        return newConf.model == c.model and
+                                            table.compare(newConf.parts, c.parts)
                                     end) then
                                     BJI.Managers.Toast.error(BJI.Managers.Lang.get(
                                         "hunter.settings.toastConfigAlreadySaved"))
                                 else
-                                    table.insert(W.data.hunterConfigs, config)
+                                    table.insert(W.data.hunterConfigs, newConf)
                                 end
                             end,
                         }):build()

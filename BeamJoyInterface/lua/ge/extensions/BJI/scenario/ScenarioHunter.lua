@@ -166,20 +166,9 @@ local function onUnload()
     BJI.Windows.VehSelector.tryClose(true)
 end
 
----@param model string
----@param config table
-local function tryReplaceOrSpawn(model, config)
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if S.state == S.STATES.PREPARATION and participant and not participant.ready then
-        if table.length(BJI.Managers.Context.User.vehicles) > 0 and not BJI.Managers.Veh.isCurrentVehicleOwn() then
-            -- trying to spawn a second veh
-            return
-        end
-        local pos = participant.hunted and
-            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
-            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
-        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, pos)
-        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+---@param ctxt TickContext
+local function postSpawn(ctxt)
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
         BJI.Managers.Restrictions.update({
             {
                 restrictions = Table({
@@ -189,12 +178,48 @@ local function tryReplaceOrSpawn(model, config)
                 state = BJI.Managers.Restrictions.STATE.RESTRICTED
             },
         })
-        BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
-            BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
-            if not BJI.Windows.VehSelector.show then
-                BJI.Windows.VehSelector.open(false)
-            end
-        end)
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.toggleFreeCam()
+        end
+        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        if not BJI.Windows.VehSelector.show then
+            BJI.Windows.VehSelector.open(false)
+        end
+    end
+end
+
+---@param model string
+---@param config table
+local function tryReplaceOrSpawn(model, config)
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        if table.length(BJI.Managers.Context.User.vehicles) > 0 and not BJI.Managers.Veh.isCurrentVehicleOwn() then
+            -- trying to spawn a second veh
+            return
+        end
+        local startPos = participant.hunted and
+            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, startPos)
+        BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+    end
+end
+
+local function onVehicleSpawned(gameVehID)
+    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
+    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+        S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        local startPos = participant.hunted and
+            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        if vehPosRot.pos:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+        end
     end
 end
 
@@ -772,6 +797,7 @@ S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.doShowNametag = doShowNametag
 
+S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleDeleted = onVehicleDeleted
 S.onVehicleResetted = onVehicleResetted
 

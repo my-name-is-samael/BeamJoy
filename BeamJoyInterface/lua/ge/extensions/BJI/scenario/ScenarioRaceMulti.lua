@@ -241,6 +241,17 @@ local function initGrid(data)
     BJI.Managers.Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
 end
 
+---@param ctxt TickContext
+local function postSpawn(ctxt)
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
+        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.toggleFreeCam()
+        end
+        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+    end
+end
+
 local function tryReplaceOrSpawn(model, config)
     if S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
         if table.length(BJI.Managers.Context.User.vehicles) > 0 and not BJI.Managers.Veh.isCurrentVehicleOwn() then
@@ -250,10 +261,22 @@ local function tryReplaceOrSpawn(model, config)
         local pos = table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)
         local posrot = S.grid.startPositions[pos]
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, posrot)
-        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-        BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
-            BJI.Managers.Veh.freeze(true)
-        end)
+        BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+    end
+end
+
+local function onVehicleSpawned(gameVehID)
+    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
+    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+        S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+        local startPos = S.grid.startPositions
+            [table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)]
+        if startPos and vehPosRot.pos:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+        end
     end
 end
 
@@ -1056,6 +1079,7 @@ local function fastTick(ctxt)
                 end
             end
             if moved or damaged then
+                LogWarn("moved or damaged")
                 BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
                 BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
             end
@@ -1180,11 +1204,13 @@ S.stopRace = stopRace
 
 S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate
-S.canDeleteVehicle = canVehUpdate
-S.canDeleteOtherVehicles = FalseFn
 S.getCollisionsType = getCollisionsType
 
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
+
 S.doShowNametag = doShowNametag
+S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleSwitched = onVehicleSwitched
 
 return S

@@ -59,8 +59,7 @@ function ctrl.RaceMultiUpdate(ctxt)
 end
 
 function ctrl.RaceMultiStop(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) and
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -280,7 +279,7 @@ function ctrl.SpeedFail(ctxt)
 end
 
 function ctrl.SpeedStop(ctxt)
-    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -317,8 +316,7 @@ function ctrl.HunterUpdate(ctxt)
 end
 
 function ctrl.HunterStop(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) or
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -352,8 +350,7 @@ function ctrl.DerbyUpdate(ctxt)
 end
 
 function ctrl.DerbyStop(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) or
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 

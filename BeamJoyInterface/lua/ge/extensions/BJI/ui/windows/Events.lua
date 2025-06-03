@@ -10,6 +10,11 @@ local W = {
         hasStarted = "",
         voteAboutEnd = "",
         timeout = "",
+        buttons = {
+            vote = "",
+            unvote = "",
+            stop = "",
+        },
 
         creator = "",
         target = "",
@@ -21,6 +26,11 @@ local W = {
         hasStarted = "",
         voteAboutEnd = "",
         timeout = "",
+        buttons = {
+            vote = "",
+            unvote = "",
+            stop = "",
+        },
 
         creator = "",
         mapCustom = "",
@@ -36,6 +46,12 @@ local W = {
         votes = "",
         timeAboutEnd = "",
         timeout = "",
+        buttons = {
+            vote = "",
+            unvote = "",
+            stop = "",
+        },
+
         showVoteBtn = false,
         voteDisabled = false,
         stopDisabled = false,
@@ -45,6 +61,11 @@ local W = {
         timeAboutEnd = "",
         timeout = "",
         votes = "",
+        buttons = {
+            join = "",
+            spectate = "",
+        },
+
         showVoteBtn = false,
         voteDisabled = false,
         participants = "",
@@ -83,6 +104,9 @@ local function updateCaches(ctxt)
         W.kick.hasStarted = BJI.Managers.Lang.get("votekick.hasStarted")
         W.kick.voteAboutEnd = BJI.Managers.Lang.get("votekick.voteAboutToEnd")
         W.kick.timeout = BJI.Managers.Lang.get("votekick.voteTimeout")
+        W.kick.buttons.vote = BJI.Managers.Lang.get("common.buttons.vote")
+        W.kick.buttons.unvote = BJI.Managers.Lang.get("common.buttons.unvote")
+        W.kick.buttons.stop = BJI.Managers.Lang.get("common.buttons.stopVote")
 
         W.kick.creator = BJI.Managers.Votes.Kick.creatorID and
             BJI.Managers.Context.Players[BJI.Managers.Votes.Kick.creatorID].playerName or
@@ -99,6 +123,9 @@ local function updateCaches(ctxt)
         W.map.hasStarted = BJI.Managers.Lang.get("votemap.hasStarted")
         W.map.voteAboutEnd = BJI.Managers.Lang.get("votemap.voteAboutToEnd")
         W.map.timeout = BJI.Managers.Lang.get("votemap.voteTimeout")
+        W.map.buttons.vote = BJI.Managers.Lang.get("common.buttons.vote")
+        W.map.buttons.unvote = BJI.Managers.Lang.get("common.buttons.unvote")
+        W.map.buttons.stop = BJI.Managers.Lang.get("common.buttons.stopVote")
 
         local creator = BJI.Managers.Context.Players[BJI.Managers.Votes.Map.creatorID]
         W.map.creator = creator and creator.playerName or
@@ -170,6 +197,10 @@ local function updateCaches(ctxt)
 
         W.race.showVoteBtn = BJI.Managers.Votes.Race.isVote or BJI.Managers.Votes.Race.creatorID == ctxt.user.playerID
         W.race.disableButtons = false
+
+        W.race.buttons.vote = BJI.Managers.Lang.get("common.buttons.vote")
+        W.race.buttons.unvote = BJI.Managers.Lang.get("common.buttons.unvote")
+        W.race.buttons.stop = BJI.Managers.Lang.get("common.buttons.cancel")
     end
 
     if votes[4].show() then
@@ -191,6 +222,9 @@ local function updateCaches(ctxt)
                 return BJI.Managers.Context.Players[pid].playerName
             end):join(", "),
         })
+
+        W.speed.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
+        W.speed.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
     end
 end
 

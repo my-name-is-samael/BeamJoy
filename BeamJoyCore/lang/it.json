@@ -243,6 +243,8 @@
         "cancel": "Cancellare",
         "close": "Vicino",
         "vote": "Votare",
+        "unvote": "Ritirare il voto",
+        "stopVote": "Interrompere la votazione",
         "set": "Impostato",
         "create": "Creare",
         "edit": "Modificare",
@@ -1340,9 +1342,7 @@
         "voteTimeout": "La votazione terminerà tra {delay}",
         "voteAboutToEnd": "La votazione sta per finire",
         "hasStartedVote": "{creatorName} ha avviato una votazione per avviare un gioco di velocità",
-        "participants": "Partecipanti",
-        "join": "Giuntura",
-        "leave": "Partire"
+        "participants": "Partecipanti"
       },
       "title": "Gioco di velocità",
       "startsIn": "Il gioco inizia tra {time}",

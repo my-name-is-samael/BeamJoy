@@ -12,7 +12,8 @@ local W = {
         {
             show = function()
                 return BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
-                    BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG)
+                    (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) or
+                        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.WHITELIST))
             end,
             labelKey = "bjc",
             content = require("ge/extensions/BJI/ui/windows/Server/BJC"),
