@@ -1079,7 +1079,6 @@ local function fastTick(ctxt)
                 end
             end
             if moved or damaged then
-                LogWarn("moved or damaged")
                 BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
                 BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
             end

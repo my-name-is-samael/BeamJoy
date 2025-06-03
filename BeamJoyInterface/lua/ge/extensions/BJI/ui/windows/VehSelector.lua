@@ -123,23 +123,20 @@ local function updateCacheLabels()
     W.labels.paints = BJI.Managers.Lang.get("vehicleSelector.paints")
 end
 
----@param ctxt? TickContext
-local function updateCachePaints(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+local function updateCachePaints()
+    local ctxt = BJI.Managers.Tick.getContext()
     W.cache.paints = Table()
 
     if ctxt.isOwner then
-        W.cache.paints = type(ctxt.veh) == "userdata" and
-            table.map(BJI.Managers.Veh.getAllPaintsForModel(ctxt.veh.jbeam),
-                function(paintData, paintLabel)
-                    return {
-                        label = paintLabel,
-                        paint = paintData,
-                    }
-                end):values() or Table()
-        table.sort(W.cache.paints, function(a, b)
+        W.cache.paints = ctxt.veh and table.map(BJI.Managers.Veh.getAllPaintsForModel(ctxt.veh.jbeam),
+            function(paintData, paintLabel)
+                return {
+                    label = paintLabel,
+                    paint = paintData,
+                }
+            end):values():sort(function(a, b)
             return a.label < b.label
-        end)
+        end) or Table()
     end
 end
 
@@ -178,7 +175,8 @@ local function updateButtonsStates(ctxt)
     local currentVehBlacklisted = ctxt.veh and BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
         not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
     local vehCapNotReached = ctxt.group.vehicleCap == -1 or ctxt.group.vehicleCap > table.length(ctxt.user.vehicles)
-    local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and currentVehTypeAllowed and not currentVehBlacklisted
+    local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and
+        currentVehTypeAllowed and not currentVehBlacklisted
 
     local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
 
@@ -811,10 +809,7 @@ local function updateBaseModels()
     W.models.trailers = trailers
     W.models.props = props
 
-    W.cache = {
-        vehicles = {},
-        paints = {},
-    }
+    W.cache.vehicles = {}
     updateCacheVehicles()
 end
 
