@@ -330,6 +330,7 @@ end
 ---@param playerID integer
 ---@return table, string
 local function getCachePlayers(playerID)
+    local staff = BJCPerm.isStaff(playerID)
     return Table(M.Players)
         :filter(function(p) return p.ready end, true)
         :map(function(p, pid)
@@ -342,6 +343,7 @@ local function getCachePlayers(playerID)
                 staff = BJCPerm.isStaff(pid),
                 currentVehicle = p.currentVehicle,
                 ai = table.deepcopy(p.ai),
+                scenario = p.scenario,
                 isGhost = table.includes({
                     BJCScenario.PLAYER_SCENARII.RACE_SOLO
                 }, p.scenario),
@@ -353,7 +355,7 @@ local function getCachePlayers(playerID)
                     }
                 end),
             }
-            return not BJCPerm.isStaff(playerID) and res or table.assign(res, {
+            return not staff and res or table.assign(res, {
                 -- staff additional data
                 freeze = p.freeze,
                 engine = p.engine,

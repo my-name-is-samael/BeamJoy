@@ -135,7 +135,9 @@ local function addGhost(gameVehID, ctxt, onReset)
     BJI.Managers.Async.removeTask(eventName)
     BJI.Managers.Async.task(function(ctxt2)
         -- collisions changed or not valid anymore
-        if M.type ~= M.TYPES.GHOSTS or not BJI.Managers.Veh.getVehicleObject(gameVehID) or BJI.Managers.AI.isAIVehicle(gameVehID) then
+        if M.type ~= M.TYPES.GHOSTS or
+            not BJI.Managers.Veh.getVehicleObject(gameVehID) or
+            BJI.Managers.AI.isAIVehicle(gameVehID) then
             return true
         end
 
@@ -155,6 +157,7 @@ local function addGhost(gameVehID, ctxt, onReset)
         -- delay passed and not close to another vehicle
         return ctxt2.now >= minTime and #closeVehs == 0
     end, function(ctxt2)
+        BJI.Managers.Async.removeTask(string.var("ghostContamination-{1}", { gameVehID }))
         if M.type ~= M.TYPES.GHOSTS or not BJI.Managers.Veh.getVehicleObject(gameVehID) then
             return
         end
@@ -336,12 +339,13 @@ local function updatePermaGhosts()
                             M.permaGhosts[gameVehID] = true
                             if M.ghosts[gameVehID] then
                                 BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+                                M.ghosts[gameVehID] = nil
                             else
                                 applyGhostTransparency(gameVehID)
                             end
                         elseif not player.isGhost and M.permaGhosts[gameVehID] then
                             M.permaGhosts[gameVehID] = nil
-                            setAlpha(gameVehID, M.playerAlpha)
+                            addGhost(gameVehID)
                         end
                     end)
             end)
@@ -349,29 +353,33 @@ local function updatePermaGhosts()
 end
 
 ---@param ctxt TickContext
----@param nextType integer
-local function onTypeChange(ctxt, nextType)
+---@param previousType integer
+local function onTypeChange(ctxt, previousType)
     M.ghosts:forEach(function(_, gameVehID)
         BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
         setAlpha(gameVehID, M.playerAlpha)
     end)
     M.ghosts:clear()
     M.permaGhosts:clear()
-    if nextType ~= M.TYPES.GHOSTS then
-        if nextType == M.TYPES.DISABLED then
+    if M.type ~= M.TYPES.GHOSTS then
+        if M.type == M.TYPES.DISABLED then
             table.forEach(BJI.Managers.Veh.getMPVehicles(), function(veh)
                 if veh.gameVehicleID ~= ctxt.veh:getID() then
                     setAlpha(veh.gameVehicleID, M.ghostAlpha)
                 end
             end)
         end
-        setCollisions(nextType == M.TYPES.FORCED)
+        setCollisions(M.type == M.TYPES.FORCED)
     else
-        if M.type == M.TYPES.DISABLED then
-            if ctxt.veh then
-                -- set ghost as safety
-                addGhost(ctxt.veh:getID(), ctxt)
-            end
+        if previousType == M.TYPES.DISABLED and ctxt.veh then
+            -- set self ghost as safety
+            addGhost(ctxt.veh:getID(), ctxt)
+            -- restore others vehs alpha
+            BJI.Managers.Veh.getMPVehicles():filter(function(v)
+                return v.gameVehicleID ~= ctxt.veh:getID() and not M.ghosts[v.gameVehicleID] and not M.permaGhosts[v.gameVehicleID]
+            end):forEach(function(v)
+                setAlpha(v.gameVehicleID, M.playerAlpha)
+            end)
         end
         updatePermaGhosts()
     end
@@ -390,16 +398,14 @@ local function onLoad()
     }, function(ctxt)
         local nextType = BJI.Managers.Scenario.getCollisionsType(ctxt)
         if nextType ~= M.type then
-            onTypeChange(ctxt, nextType)
+            local previousType = M.type
             M.type = nextType
+            onTypeChange(ctxt, previousType)
         end
     end, M._name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
-            updatePermaGhosts()
-        end
-    end, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED, updatePermaGhosts,
+        M._name))
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
