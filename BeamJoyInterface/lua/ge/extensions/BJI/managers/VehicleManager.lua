@@ -70,11 +70,13 @@ local function getMPVehicles()
     return Table(MPVehicleGE.getVehicles()):map(function(v)
         -- BeamMP vehicle positions are inconsistent
         local pos, rot, vehicleHeight = vec3(), quat(), 0
-        local veh = M.getVehicleObject(v.gameVehicleID)
-        local posRot = M.getPositionRotation(veh)
-        if veh and posRot then
-            pos, rot = posRot.pos, posRot.rot
-            vehicleHeight = veh:getInitialHeight()
+        if v.isSpawned and not v.isDeleted then
+            local veh = M.getVehicleObject(v.gameVehicleID)
+            local posRot = veh and M.getPositionRotation(veh) or nil
+            if veh and posRot then
+                pos, rot = posRot.pos, posRot.rot
+                vehicleHeight = veh:getInitialHeight()
+            end
         end
         return {
             gameVehicleID = v.gameVehicleID,
