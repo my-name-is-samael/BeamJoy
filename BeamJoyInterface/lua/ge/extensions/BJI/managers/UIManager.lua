@@ -10,7 +10,7 @@ local M = {
 local function applyLoading(state, callbackFn)
     guihooks.trigger('app:waiting', state)
     if type(callbackFn) == "function" then
-        BJI.Managers.Async.delayTask(callbackFn, M.callbackDelay)
+        BJI.Managers.Async.delayTask(callbackFn, M.callbackDelay, "ApplyUILoading-" .. UUID())
     end
 end
 

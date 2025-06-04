@@ -110,13 +110,15 @@ local function processSlowTick()
         :map(function(e) return e end)
     local i = 1
     callbacks:forEach(function(fn, k)
+        local asyncEventName = string.var("SlowTick-{1}", { k })
+        BJI.Managers.Async.removeTask(asyncEventName)
         BJI.Managers.Async.delayTask(function()
             local ctxt = BJI.Managers.Tick.getContext(true)
             fn(ctxt)
             if BJI.Bench.STATE then
                 BJI.Bench.add(tostring(k), "slow_tick", GetCurrentTimeMillis() - ctxt.now)
             end
-        end, i / callbacks:length() * 1000)
+        end, i / callbacks:length() * 1000, asyncEventName)
         i = i + 1
     end)
 end

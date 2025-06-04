@@ -67,7 +67,7 @@ local function drawBody(ctxt)
     end
     if #lobbies > 0 then
         LineBuilder()
-            :title("Join an available lobby :")
+            :text("Join an available lobby :")
             :build()
         for i, l in ipairs(lobbies) do
             LineBuilder()

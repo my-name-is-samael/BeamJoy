@@ -7,8 +7,8 @@ local M = {
         RESTRICTIONS_RESET_TIMER = "restrictionsResetTimer",
         RESTRICTIONS_TELEPORT_TIMER = "restrictionsTeleportTimer",
     },
-    tasks = {},
-    delayedTasks = {},
+    tasks = Table(),
+    delayedTasks = Table(),
 }
 
 ---@param key string|integer
@@ -97,33 +97,29 @@ end
 
 local renderTimeout = 4
 local function renderTick(ctxt)
-    local delayed = {}
-    for key, ctask in pairs(M.delayedTasks) do
-        if ctask.time <= ctxt.now then
-            table.insert(delayed, { key, ctask })
-        end
-    end
-    table.sort(delayed, function(a, b)
-        return a[2].time < b[2].time
-    end)
-    for _, data in pairs(delayed) do
+    M.delayedTasks:filter(function(t)
+        return t.time <= ctxt.now
+    end):map(function(t, k)
+        return { key = k, task = t }
+    end):sort(function(a, b)
+        return a.task.time <= b.task.time
+    end):forEach(function(data)
         if GetCurrentTimeMillis() - ctxt.now > renderTimeout / 2 then
             LogDebug("Skipping async delayed (timeout)", M._name)
-            break
+            return
         end
-        local key, ctask = data[1], data[2]
-        local status, err = pcall(ctask.taskFn, ctxt)
+        local status, err = pcall(data.task.taskFn, ctxt)
         if not status then
-            LogError(string.var("Error executing delayed task {1} :", { key }))
+            LogError(string.var("Error executing delayed task {1} :", { data.key }))
             PrintObj(err)
         end
-        M.delayedTasks[key] = nil
-    end
+        M.delayedTasks[data.key] = nil
+    end)
 
-    for key, ctask in pairs(M.tasks) do
+    M.tasks:forEach(function(ctask, key)
         if GetCurrentTimeMillis() - ctxt.now > renderTimeout then
             LogDebug("Skipping async tasks (timeout)", M._name)
-            break
+            return
         end
         if ctask.conditionFn(ctxt) then
             local status, err = pcall(ctask.taskFn, ctxt)
@@ -133,7 +129,7 @@ local function renderTick(ctxt)
             end
             M.tasks[key] = nil
         end
-    end
+    end)
 end
 
 M.exists = exists

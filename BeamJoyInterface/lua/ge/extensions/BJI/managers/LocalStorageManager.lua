@@ -107,7 +107,8 @@ end
 local function sanitizeMapRacesPBs()
     local mapName = GetMapName()
     if not mapName or not BJI.Managers.Context.Scenario.Data.Races then
-        BJI.Managers.Async.delayTask(sanitizeMapRacesPBs, 500)
+        BJI.Managers.Async.removeTask("MapRacesPBSanitizer")
+        BJI.Managers.Async.delayTask(sanitizeMapRacesPBs, 500, "MapRacesPBSanitizer")
         LogDebug("LocalStorage Races PBs sanitizer waiting for map and races : looping...")
         return
     elseif mapName ~= BJI.Managers.Context.Scenario.Data.Races.mapName then

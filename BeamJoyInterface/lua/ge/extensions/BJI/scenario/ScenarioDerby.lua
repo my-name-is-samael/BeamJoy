@@ -109,6 +109,9 @@ local function onUnload(ctxt)
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
+    BJI.Managers.Async.removeTask("BJIDerbyResetLockSafe")
+    BJI.Managers.Async.removeTask("BJIDerbyPostResetRestrictionsResetsUpdate")
+    BJI.Managers.Async.removeTask("BJIDerbyPostEliminationSwitch")
     BJI.Managers.Cam.resetRestrictedCameras()
     BJI.Managers.Cam.resetForceCamera(true)
     if ctxt.isOwner then
@@ -263,14 +266,14 @@ local function onVehicleResetted(gameVehID)
         resetLock = true
         BJI.Managers.Async.delayTask(function() -- 1 sec reset lock safe
             resetLock = false
-        end, 1000)
+        end, 1000, "BJIDerbyResetLockSafe")
 
         BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
         BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
         if participant.lives > 1 then
             BJI.Managers.Async.delayTask(function() -- 1 sec respawn spamming safe
                 BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME)
-            end, 1000)
+            end, 1000, "BJIDerbyPostResetRestrictionsResetsUpdate")
         end
         BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
         local msg

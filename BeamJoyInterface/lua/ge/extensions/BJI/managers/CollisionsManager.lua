@@ -105,7 +105,7 @@ local function applyGhostTransparency(gameVehID, onReset)
                     (not ctxt.veh or ctxt.veh:getID() ~= gameVehID) then
                     setAlpha(gameVehID, M.ghostAlpha)
                 end
-            end, delay)
+            end, delay, string.var("applyGhostDelay-{1}-{2}", { gameVehID, delay }))
         end)
     else
         setAlpha(gameVehID, M.ghostAlpha)
@@ -149,7 +149,7 @@ local function addGhost(gameVehID, ctxt, onReset)
                     :forEach(function(veh)
                         addGhost(veh:getID(), ctxt3)
                     end)
-            end, 0)
+            end, 0, string.var("ghostContamination-{1}", { gameVehID }))
         end
 
         -- delay passed and not close to another vehicle
@@ -266,7 +266,7 @@ local function checkAIVehicles()
                 return veh.isSpawned and not veh.isDeleted
             end)
         end, function()
-            BJI.Managers.Async.removeTask("CheckAIAlpha")
+            BJI.Managers.Async.removeTask("CheckAIAlphaDelayed")
             BJI.Managers.Async.delayTask(function()
                 Table(BJI.Managers.Context.Players)
                     :map(function(p)
@@ -279,7 +279,7 @@ local function checkAIVehicles()
                             LogWarn(("Restored desync alpha from {1}"):var({ a }))
                         end
                     end)
-            end, 5000)
+            end, 5000, "CheckAIAlphaDelayed")
         end, "CheckAIAlpha")
     end
 end
