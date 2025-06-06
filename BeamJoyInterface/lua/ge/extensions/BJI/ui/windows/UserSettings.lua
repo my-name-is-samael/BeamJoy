@@ -100,14 +100,14 @@ local function updateLabels()
 end
 
 local function updateWidths()
-    W.widths.vehicleLabels = BJI.Utils.Common.GetColumnTextWidth(W.labels.vehicle.automaticLights)
+    W.widths.vehicleLabels = BJI.Utils.UI.GetColumnTextWidth(W.labels.vehicle.automaticLights)
 
     W.widths.nametagsLabels = 0
     table.forEach({ "hide", "showDistance", "fade", "fadeDistance", "invertFade",
         "dontFullyHide", "shorten", "nametagLength", "showSpecs",
         "colorsPlayerText", "colorsPlayerBg", "colorsIdleText",
         "colorsIdleBg", "colorsSpecText", "colorsSpecBg" }, function(k)
-        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.nametags[k])
+        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.nametags[k])
         if w > W.widths.nametagsLabels then
             W.widths.nametagsLabels = w
         end
@@ -115,7 +115,7 @@ local function updateWidths()
 
     W.widths.freecamLabels = 0
     table.forEach({ "smooth", "fov" }, function(k)
-        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.freecam[k])
+        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.freecam[k])
         if w > W.widths.freecamLabels then
             W.widths.freecamLabels = w
         end
@@ -123,7 +123,7 @@ local function updateWidths()
 
     W.widths.statsLabels = 0
     table.forEach({ "delivery", "race", "bus" }, function(k)
-        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.stats[k])
+        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.stats[k])
         if w > W.widths.statsLabels then
             W.widths.statsLabels = w
         end
@@ -154,7 +154,7 @@ end
 local function drawVehicleSettings(ctxt)
     LineBuilder()
         :icon({
-            icon = ICONS.directions_car,
+            icon = BJI.Utils.Icon.ICONS.directions_car,
             big = true,
         })
         :build()
@@ -171,8 +171,8 @@ local function drawVehicleSettings(ctxt)
                     LineBuilder()
                         :btnIconToggle({
                             id = "automaticLightsToggle",
-                            icon = state and ICONS.brightness_high or
-                                ICONS.brightness_low,
+                            icon = state and BJI.Utils.Icon.ICONS.brightness_high or
+                                BJI.Utils.Icon.ICONS.brightness_low,
                             state = state,
                             onClick = function()
                                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS,
@@ -403,7 +403,7 @@ local nametagsBeamjoyFields = {
 local function drawNametagsSettings(ctxt)
     LineBuilder()
         :icon({
-            icon = ICONS.speaker_notes,
+            icon = BJI.Utils.Icon.ICONS.speaker_notes,
             big = true,
         })
         :build()
@@ -490,7 +490,7 @@ local function drawNametagsSettings(ctxt)
                             })
                             :btnIcon({
                                 id = string.var("{1}-reset", { bjf.key.key }),
-                                icon = ICONS.refresh,
+                                icon = BJI.Utils.Icon.ICONS.refresh,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = disabled or table.compare(bjf.value, bjf.key.default),
                                 onClick = function()
@@ -513,7 +513,7 @@ end
 local function drawFreecamSettings(ctxt)
     LineBuilder()
         :icon({
-            icon = ICONS.simobject_camera,
+            icon = BJI.Utils.Icon.ICONS.simobject_camera,
             big = true,
         })
         :build()
@@ -555,7 +555,7 @@ local function drawFreecamSettings(ctxt)
                     LineBuilder()
                         :btnIcon({
                             id = "fovReset",
-                            icon = ICONS.refresh,
+                            icon = BJI.Utils.Icon.ICONS.refresh,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = fov == BJI.Managers.Cam.DEFAULT_FREECAM_FOV,
                             onClick = function()
@@ -593,7 +593,7 @@ end
 local function drawUserStats(ctxt)
     LineBuilder()
         :icon({
-            icon = ICONS.show_chart,
+            icon = BJI.Utils.Icon.ICONS.show_chart,
             big = true,
         })
         :build()

@@ -46,7 +46,7 @@ local function drawBody(ctxt)
     LineBuilder()
         :btnIcon({
             id = "tagLeave",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             onClick = function()
                 if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_SOLO) then
@@ -73,7 +73,7 @@ local function drawBody(ctxt)
             LineBuilder()
                 :btnIcon({
                     id = string.var("joinLobby-{1}", { i }),
-                    icon = ICONS.videogame_asset,
+                    icon = BJI.Utils.Icon.ICONS.videogame_asset,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     onClick = function()
                         BJI.Tx.scenario.TagDuoLeave()

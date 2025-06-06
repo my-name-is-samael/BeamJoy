@@ -226,8 +226,7 @@ end
 local function tryPaint(paint, paintNumber)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
-    if veh and
-        S.state == S.STATES.PREPARATION and
+    if veh and S.state == S.STATES.PREPARATION and
         participant and not participant.ready then
         BJI.Managers.Veh.paintVehicle(paint, paintNumber)
         BJI.Managers.Veh.freeze(true, veh:getID())
@@ -264,29 +263,30 @@ local function getModelList()
     return models
 end
 
+---@return boolean
+local function canSpawnNewVehicle()
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    return S.state == S.STATES.PREPARATION and participant and not participant.ready and
+        table.length(BJI.Managers.Context.User.vehicles) == 0
+end
+
+---@return boolean
 local function canVehUpdate()
     local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if S.state ~= S.STATES.PREPARATION or
-        not participant or participant.ready then
+    if S.state ~= S.STATES.PREPARATION or not participant or participant.ready or
+        not BJI.Managers.Veh.isCurrentVehicleOwn() then
         return false
     end
 
-    if BJI.Managers.Veh.isCurrentVehicleOwn() then
-        local forcedConfig = false
-        if participant.hunted and S.settings.huntedConfig then
-            forcedConfig = true
-        elseif not participant.hunted and #S.settings.hunterConfigs == 1 then
-            forcedConfig = true
-        end
-        if forcedConfig then
-            return false
-        end
-    end
-    return true
+    return (participant.hunted and not S.settings.huntedConfig) or
+        (not participant.hunted and #S.settings.hunterConfigs ~= 1)
 end
 
-local function canSpawnNewVehicle()
-    return canVehUpdate() and table.length(BJI.Managers.Context.User.vehicles) == 0
+---@return boolean
+local function canPaintVehicle()
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    return S.state == S.STATES.PREPARATION and participant and not participant.ready and
+        BJI.Managers.Veh.isCurrentVehicleOwn()
 end
 
 ---@param vehData BJIMPVehicle
@@ -793,6 +793,7 @@ S.tryPaint = tryPaint
 S.getModelList = getModelList
 S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate
+S.canPaintVehicle = canPaintVehicle
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.doShowNametag = doShowNametag

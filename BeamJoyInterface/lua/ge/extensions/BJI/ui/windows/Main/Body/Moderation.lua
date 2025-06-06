@@ -14,7 +14,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
             BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.DELETE_VEHICLE))) then
         table.insert(actions, {
             id = string.var("deleteVehicles{1}", { player.playerID }),
-            icon = ICONS.directions_car,
+            icon = BJI.Utils.Icon.ICONS.directions_car,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = cache.labels.players.moderation.buttons.deleteAllVehicles,
             onClick = function()
@@ -36,7 +36,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
             if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.MUTE) then
                 table.insert(actions, {
                     id = string.var("toggleMute{1}", { player.playerID }),
-                    icon = player.muted and ICONS.speaker_notes_off or ICONS.speaker_notes,
+                    icon = player.muted and BJI.Utils.Icon.ICONS.speaker_notes_off or BJI.Utils.Icon.ICONS.speaker_notes,
                     style = player.muted and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     tooltip = cache.labels.players.moderation.buttons.mute,
                     onClick = function()
@@ -70,7 +70,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
         if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.FREEZE_PLAYERS) then
             table.insert(actions, {
                 id = string.var("toggleFreeze{1}", { player.playerID }),
-                icon = ICONS.ac_unit,
+                icon = BJI.Utils.Icon.ICONS.ac_unit,
                 style = player.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = cache.labels.players.moderation.buttons.freeze,
                 onClick = function()
@@ -82,7 +82,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
         if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.ENGINE_PLAYERS) then
             table.insert(actions, {
                 id = string.var("toggleEngine{1}", { player.playerID }),
-                icon = ICONS.cogs,
+                icon = BJI.Utils.Icon.ICONS.cogs,
                 style = player.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = cache.labels.players.moderation.buttons.engine,
                 onClick = function()
@@ -113,19 +113,19 @@ local function drawVehicles(player, ctxt, cache)
                             local line = LineBuilder()
                             if vehicle.isAI then
                                 line:icon({
-                                    icon = ICONS.AIMicrochip,
+                                    icon = BJI.Utils.Icon.ICONS.AIMicrochip,
                                     style = { isCurrentVehicle and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT },
                                     coloredIcon = true,
                                 })
                             elseif isCurrentVehicle then
                                 line:icon({
-                                    icon = ICONS.visibility,
+                                    icon = BJI.Utils.Icon.ICONS.visibility,
                                     style = { BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT },
                                     coloredIcon = true,
                                 })
                             else
                                 line:icon({
-                                    icon = ICONS.visibility_off,
+                                    icon = BJI.Utils.Icon.ICONS.visibility_off,
                                     style = { BJI.Utils.Style.RGBA(0, 0, 0, 0) },
                                     coloredIcon = true,
                                 })
@@ -137,7 +137,7 @@ local function drawVehicles(player, ctxt, cache)
                             if canFocus then
                                 line:btnIcon({
                                     id = string.var("focus{1}-{2}", { player.playerID, vehID }),
-                                    icon = ICONS.cameraFocusOnVehicle2,
+                                    icon = BJI.Utils.Icon.ICONS.cameraFocusOnVehicle2,
                                     style = BJI.Utils.Style.BTN_PRESETS.INFO,
                                     disabled = isCurrentVehicle,
                                     tooltip = cache.labels.players.moderation.buttons.show,
@@ -148,7 +148,7 @@ local function drawVehicles(player, ctxt, cache)
                             end
                             line:btnIconToggle({
                                 id = string.var("toggleFreeze{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.ac_unit,
+                                icon = BJI.Utils.Icon.ICONS.ac_unit,
                                 state = not not vehicle.freeze,
                                 disabled = not vehicle.finalGameVehID,
                                 tooltip = cache.labels.players.moderation.buttons.freeze,
@@ -157,7 +157,7 @@ local function drawVehicles(player, ctxt, cache)
                                 end
                             }):btnIconToggle({
                                 id = string.var("toggleEngine{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.cogs,
+                                icon = BJI.Utils.Icon.ICONS.cogs,
                                 state = not not vehicle.engine,
                                 disabled = not vehicle.finalGameVehID,
                                 tooltip = cache.labels.players.moderation.buttons.engine,
@@ -166,7 +166,7 @@ local function drawVehicles(player, ctxt, cache)
                                 end
                             }):btnIcon({
                                 id = string.var("delete{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.delete_forever,
+                                icon = BJI.Utils.Icon.ICONS.delete_forever,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 tooltip = cache.labels.players.moderation.buttons.delete,
                                 onClick = function()
@@ -174,7 +174,7 @@ local function drawVehicles(player, ctxt, cache)
                                 end
                             }):btnIcon({
                                 id = string.var("explode{1}-{2}", { player.playerID, vehID }),
-                                icon = ICONS.whatshot,
+                                icon = BJI.Utils.Icon.ICONS.whatshot,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 disabled = not vehicle.finalGameVehID,
                                 tooltip = cache.labels.players.moderation.buttons.explode,
@@ -227,7 +227,7 @@ local function drawModeration(player, ctxt, cache)
                 function()
                     LineBuilder():btnIconToggle({
                         id = string.var("toggleMute{1}", { player.playerID }),
-                        icon = player.muted and ICONS.speaker_notes_off or ICONS.speaker_notes,
+                        icon = player.muted and BJI.Utils.Icon.ICONS.speaker_notes_off or BJI.Utils.Icon.ICONS.speaker_notes,
                         state = player.muted == true,
                         tooltip = cache.labels.players.moderation.buttons.mute,
                         onClick = function()
@@ -314,7 +314,7 @@ local function drawModeration(player, ctxt, cache)
             cache.data.players.canBan and function()
                 LineBuilder():btnIcon({
                     id = string.var("ban{1}", { player.playerID }),
-                    icon = ICONS.gavel,
+                    icon = BJI.Utils.Icon.ICONS.gavel,
                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                     tooltip = cache.labels.players.moderation.buttons.ban,
                     onClick = function()
@@ -351,12 +351,12 @@ local function drawModeration(player, ctxt, cache)
                 LineLabel(cache.labels.players.moderation.tempBanDuration)
             end,
             function()
-                LineLabel(BJI.Utils.Common.PrettyDelay(tonumber(inputs.tempBanDuration) or 0))
+                LineLabel(BJI.Utils.UI.PrettyDelay(tonumber(inputs.tempBanDuration) or 0))
             end,
             function()
                 LineBuilder():btnIcon({
                     id = string.var("tempBan{1}", { player.playerID }),
-                    icon = ICONS.av_timer,
+                    icon = BJI.Utils.Icon.ICONS.av_timer,
                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                     tooltip = cache.labels.players.moderation.buttons.tempban,
                     onClick = function()
@@ -379,7 +379,7 @@ local function drawModeration(player, ctxt, cache)
 
     if BJI.Managers.Context.BJC.TempBan then
         local min, max = BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
-        BJI.Utils.Common.DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
+        BJI.Utils.UI.DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
             inputs.tempBanDuration, min, max, BJI.Managers.Context.BJC.TempBan.minTime, function(val)
                 inputs.tempBanDuration = val
             end)
@@ -390,7 +390,7 @@ local function drawModeration(player, ctxt, cache)
         if player.demoteGroup then
             line:btnIcon({
                 id = string.var("demote{1}", { player.playerID }),
-                icon = ICONS.person,
+                icon = BJI.Utils.Icon.ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
                     { group = player.demoteLabel }),
@@ -402,7 +402,7 @@ local function drawModeration(player, ctxt, cache)
         if player.promoteGroup then
             line:btnIcon({
                 id = string.var("promote{1}", { player.playerID }),
-                icon = ICONS.person_add,
+                icon = BJI.Utils.Icon.ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
                     { group = player.promoteLabel }),
@@ -430,7 +430,7 @@ local function drawWaitingPlayers(cache)
         if player.demoteGroup then
             line:btnIcon({
                 id = string.var("demotewaiting{1}", { player.playerID }),
-                icon = ICONS.person,
+                icon = BJI.Utils.Icon.ICONS.person,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = string.var(cache.labels.players.moderation.buttons.demoteTo,
                     { group = player.demoteLabel }),
@@ -442,7 +442,7 @@ local function drawWaitingPlayers(cache)
         if player.promoteGroup then
             line:btnIcon({
                 id = string.var("promotewaiting{1}", { player.playerID }),
-                icon = ICONS.person_add,
+                icon = BJI.Utils.Icon.ICONS.person_add,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = string.var(cache.labels.players.moderation.buttons.promoteTo,
                     { group = player.promoteLabel }),

@@ -3,7 +3,7 @@
 ---@field raceID integer
 ---@field raceName string
 ---@field loopable boolean
----@field laps integer
+---@field laps integer?
 ---@field defaultRespawnStrategy? string
 ---@field respawnStrategies string[]
 ---@field vehicleMode string|nil
@@ -122,7 +122,7 @@ local function updateWidths()
         W.cache.labels.respawnStrategies.title,
         W.settings.multi and W.cache.labels.vehicle.title or nil,
     }, function(label)
-        local w = BJI.Utils.Common.GetColumnTextWidth(label or "")
+        local w = BJI.Utils.UI.GetColumnTextWidth(label or "")
         if w > W.cache.widths.labels then
             W.cache.widths.labels = w
         end
@@ -232,7 +232,7 @@ local function updateCache(ctxt)
         W.cache.data.currentVeh.configLabel = nil
     end
 
-    W.cache.data.showVoteBtn = W.settings.multi and
+    W.cache.data.showVoteBtn = W.settings.multi and not BJI.Managers.Tournament.state and
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
     W.cache.data.showStartBtn = (W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
         (not W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO))
@@ -408,7 +408,7 @@ local function drawFooter(ctxt)
     end
     local line = LineBuilder():btnIcon({
         id = "cancelRaceStart",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.cache.labels.cancel,
         onClick = function()
@@ -418,7 +418,7 @@ local function drawFooter(ctxt)
     if W.cache.data.showVoteBtn then
         line:btnIcon({
             id = "voteRaceStart",
-            icon = ICONS.event_available,
+            icon = BJI.Utils.Icon.ICONS.event_available,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             tooltip = W.cache.labels.startVote,
             onClick = function()
@@ -430,7 +430,7 @@ local function drawFooter(ctxt)
     if W.cache.data.showStartBtn then
         line:btnIcon({
             id = "raceStart",
-            icon = ICONS.videogame_asset,
+            icon = BJI.Utils.Icon.ICONS.videogame_asset,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             tooltip = W.cache.labels.startRace,
             onClick = function()
@@ -473,6 +473,7 @@ local function open(raceSettings)
         return
     end
 
+    raceSettings.laps = raceSettings.laps or W.settings.laps or 1
     W.settings = raceSettings
 
     if BJI.Managers.Scenario.isFreeroam() and

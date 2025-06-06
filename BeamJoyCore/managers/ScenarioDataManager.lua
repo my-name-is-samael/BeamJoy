@@ -426,10 +426,15 @@ local function saveRaceRecord(raceID, record)
         BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
 end
 
-local function broadcastRaceRecord(raceName, playerName, time)
+---@param raceName string
+---@param playerName string
+---@param time integer
+---@param isRecord boolean?
+local function broadcastRaceTime(raceName, playerName, time, isRecord)
     for playerID in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            BJCLang.getServerMessage(playerID, "broadcast.newRaceRecord")
+            BJCLang.getServerMessage(playerID, isRecord and
+                "broadcast.newRaceRecord" or "broadcast.raceTime")
             :var({
                 playerName = playerName,
                 raceName = raceName,
@@ -438,18 +443,10 @@ local function broadcastRaceRecord(raceName, playerName, time)
     end
 end
 
-local function broadcastRaceTime(raceName, playerName, time)
-    for playerID in pairs(BJCPlayers.Players) do
-        BJCChat.onServerChat(playerID,
-            BJCLang.getServerMessage(playerID, "broadcast.raceTime")
-            :var({
-                playerName = playerName,
-                raceName = raceName,
-                time = RaceDelay(time),
-            }))
-    end
-end
-
+---@param playerID integer
+---@param raceID integer
+---@param time integer
+---@param model string
 local function onRaceSoloTime(playerID, raceID, time, model)
     local player = BJCPlayers.Players[playerID]
     local race = M.getRace(raceID)
@@ -465,9 +462,13 @@ local function onRaceSoloTime(playerID, raceID, time, model)
             model = model,
             time = time,
         })
-        M.broadcastRaceRecord(race.name, player.playerName, time)
+        broadcastRaceTime(race.name, player.playerName, time, true)
     elseif BJCConfig.Data.Race.RaceSoloTimeBroadcast then
         broadcastRaceTime(race.name, player.playerName, time)
+    end
+
+    if BJCTournament.state then
+        BJCTournament.saveSoloRaceTime(player.playerName, time)
     end
 end
 
@@ -641,7 +642,7 @@ M.getRace = getRace
 M.saveRace = saveRace
 M.raceDelete = raceDelete
 M.saveRaceRecord = saveRaceRecord
-M.broadcastRaceRecord = broadcastRaceRecord
+M.broadcastRaceTime = broadcastRaceTime
 M.onRaceSoloTime = onRaceSoloTime
 
 M.saveEnergyStations = saveEnergyStations

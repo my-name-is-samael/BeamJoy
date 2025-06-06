@@ -176,7 +176,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -266,6 +266,7 @@ S.onGarageRepair = onGarageRepair
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
+S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.canSpawnAI = TrueFn

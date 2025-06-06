@@ -139,7 +139,7 @@ local function getPlayerListActions(player, ctxt)
             end, nil)
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
-            icon = ICONS.visibility,
+            icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID) or
@@ -154,7 +154,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -519,7 +519,7 @@ local function onCheckpointReached(wp, remainingSteps)
                 end
                 BJI.Managers.Message.flash("BJIRaceLap", lapMessage, 5, false)
             else
-                BJI.Managers.Message.flash("BJIRaceCheckpoint", BJI.Utils.Common.RaceDelay(lapTime), 2, false)
+                BJI.Managers.Message.flash("BJIRaceCheckpoint", BJI.Utils.UI.RaceDelay(lapTime), 2, false)
             end
         end
 
@@ -1140,12 +1140,26 @@ local function slowTick(ctxt)
     end
 end
 
-local function canVehUpdate()
-    return S.state == S.STATES.GRID and S.isParticipant() and not S.isReady()
+---@return boolean
+local function canSpawnNewVehicle()
+    return S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() and
+        table.length(BJI.Managers.Context.User.vehicles) == 0
 end
 
-local function canSpawnNewVehicle()
-    return canVehUpdate() and table.length(BJI.Managers.Context.User.vehicles) == 0
+---@return boolean
+local function canVehUpdate()
+    return S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() and
+        BJI.Managers.Veh.isCurrentVehicleOwn() and not S.settings.config
+end
+
+---@return boolean
+local function canPaintVehicle()
+    if S.state ~= S.STATES.GRID or not S.isParticipant() or S.isReady() or
+        not BJI.Managers.Veh.isCurrentVehicleOwn() then
+        return false
+    end
+
+    return true
 end
 
 local function getCollisionsType(ctxt)
@@ -1203,6 +1217,7 @@ S.stopRace = stopRace
 
 S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate
+S.canPaintVehicle = canPaintVehicle
 S.getCollisionsType = getCollisionsType
 
 S.canDeleteVehicle = FalseFn

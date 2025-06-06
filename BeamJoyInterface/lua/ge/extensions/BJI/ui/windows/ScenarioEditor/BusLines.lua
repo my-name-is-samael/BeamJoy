@@ -100,7 +100,7 @@ end
 local function udpateWidths()
     W.cache.labelsWidth = Table({ W.labels.stopName, W.labels.stopRadius })
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 end
@@ -183,7 +183,7 @@ local function header(ctxt)
     if not ctxt.veh or ctxt.veh.jbeam ~= "citybus" then
         line:btnIcon({
             id = "spawnBus",
-            icon = ICONS.directions_bus,
+            icon = BJI.Utils.Icon.ICONS.directions_bus,
             style = not ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING,
             tooltip = W.labels.buttons.spawnBus,
             onClick = function()
@@ -199,7 +199,7 @@ local function header(ctxt)
     end
     line:btnIcon({
         id = "createBusLine",
-        icon = ICONS.add,
+        icon = BJI.Utils.Icon.ICONS.add,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
         tooltip = string.var("{1}{2}", {
@@ -242,12 +242,12 @@ end
 local function drawStop(ctxt, iLine, bline, iStop, stop)
     local line = LineBuilder()
         :icon({
-            icon = ICONS.simobject_bng_waypoint,
+            icon = BJI.Utils.Icon.ICONS.simobject_bng_waypoint,
         })
         :text(BJI.Managers.Lang.get("buslines.edit.stop"):var({ index = iStop }))
         :btnIcon({
             id = string.var("busStopMoveUp{1}{2}", { iLine, iStop }),
-            icon = ICONS.arrow_drop_up,
+            icon = BJI.Utils.Icon.ICONS.arrow_drop_up,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or iStop == 1,
             tooltip = W.labels.buttons.moveUp,
@@ -261,7 +261,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
         })
         :btnIcon({
             id = string.var("busStopMoveDown{1}{2}", { iLine, iStop }),
-            icon = ICONS.arrow_drop_down,
+            icon = BJI.Utils.Icon.ICONS.arrow_drop_down,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or iStop == #bline.stops,
             tooltip = W.labels.buttons.moveDown,
@@ -275,7 +275,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
         })
         :btnIcon({
             id = string.var("busStopGoTo{1}{2}", { iLine, iStop }),
-            icon = ICONS.pin_drop,
+            icon = BJI.Utils.Icon.ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
             tooltip = string.var("{1}{2}", {
@@ -289,7 +289,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
         })
         :btnIcon({
             id = string.var("busStopMoveHere{1}{2}", { iLine, iStop }),
-            icon = ICONS.edit_location,
+            icon = BJI.Utils.Icon.ICONS.edit_location,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
             tooltip = string.var("{1}{2}", {
@@ -308,7 +308,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
     if iStop > 2 then
         line:btnIcon({
             id = string.var("busStopDelete{1}{2}", { iLine, iStop }),
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
             tooltip = W.labels.buttons.deleteStop,
@@ -392,7 +392,7 @@ local function drawLine(ctxt, iLine, bline)
     LineBuilder():text(BJI.Managers.Lang.get("buslines.edit.loopable"))
         :btnIconToggle({
             id = string.var("lineLoopable{1}", { iLine }),
-            icon = ICONS.rotate_90_degrees_ccw,
+            icon = BJI.Utils.Icon.ICONS.rotate_90_degrees_ccw,
             state = bline.loopable,
             disabled = W.cache.disableButtons,
             tooltip = W.labels.buttons.toggleLoopable,
@@ -405,7 +405,7 @@ local function drawLine(ctxt, iLine, bline)
         })
         :btnIcon({
             id = string.var("addStop{1}", { iLine }),
-            icon = ICONS.add_location,
+            icon = BJI.Utils.Icon.ICONS.add_location,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus",
             tooltip = string.var("{1}{2}", {
@@ -442,7 +442,7 @@ local function body(ctxt)
                         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
                     :text(string.var("({1})", { bline.name })):btnIcon({
                         id = string.var("reloadMarkers{1}", { iLine }),
-                        icon = ICONS.visibility,
+                        icon = BJI.Utils.Icon.ICONS.visibility,
                         style = displayed and BJI.Utils.Style.BTN_PRESETS.DISABLED or
                             BJI.Utils.Style.BTN_PRESETS.INFO,
                         active = displayed,
@@ -454,7 +454,7 @@ local function body(ctxt)
                         end,
                     }):btnIcon({
                         id = string.var("deleteLine{1}", { iLine }),
-                        icon = ICONS.delete_forever,
+                        icon = BJI.Utils.Icon.ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = W.cache.disableButtons,
                         tooltip = W.labels.buttons.deleteLine,
@@ -485,7 +485,7 @@ local function footer(ctxt)
     local line = LineBuilder()
         :btnIcon({
             id = "cancel",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.buttons.close,
             onClick = BJI.Windows.ScenarioEditor.onClose,
@@ -493,7 +493,7 @@ local function footer(ctxt)
     if W.changed then
         line:btnIcon({
             id = "save",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not W.valid,
             tooltip = W.labels.buttons.save,

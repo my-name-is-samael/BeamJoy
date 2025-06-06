@@ -7,6 +7,42 @@
 ---@field _key string
 ---@field _isSolo boolean
 ---@field _skip boolean?
+---@field onLoad (fun(ctxt: TickContext))?
+---@field onUnload (fun(ctxt: TickContext))?
+---@field onVehicleSpawned (fun(gameVehID: integer))?
+---@field onVehicleResetted (fun(gameVehID: integer))?
+---@field onVehicleSwitched (fun(oldGameVehID: integer, newGameVehID: integer))?
+---@field onVehicleDestroyed (fun(gameVehID: integer))?
+---@field updateVehicles (fun())?
+---@field onGarageRepair (fun())?
+---@field onDropPlayerAtCamera (fun())?
+---@field onDropPlayerAtCameraNoReset (fun())?
+---@field tryTeleportToPlayer (fun(targetID: integer, forced: boolean?))?
+---@field tryTeleportToPos (fun(pos: vec3, saveHome: boolean?))?
+---@field tryFocus (fun(targetID: integer))?
+---@field trySpawnNew (fun(model: string, config: table|string?))?
+---@field tryReplaceOrSpawn (fun(model: string, config: table|string?))?
+---@field tryPaint (fun(paint: table, paintNumber: integer))?
+---@field canRefuelAtStation (fun(): boolean)? default false
+---@field canRepairAtGarage (fun(): boolean)? default false
+---@field canSpawnNewVehicle (fun(): boolean)? default true
+---@field canReplaceVehicle (fun(): boolean)? default true
+---@field canPaintVehicle (fun(): boolean)? default true
+---@field canDeleteVehicle (fun(): boolean)? default true
+---@field canDeleteOtherVehicles (fun(): boolean)? default true
+---@field canDeleteOtherPlayersVehicle (fun(): boolean)? default false
+---@field canSpawnAI (fun(): boolean)? default false
+---@field canWalk (fun(): boolean)? default false
+---@field getModelList (fun(): table<string, table>)?
+---@field getPlayerListActions (fun(player: BJIPlayer, ctxt: TickContext?): table<integer, table>)?
+---@field canQuickTravel (fun(): boolean)? default false
+---@field canShowNametags (fun(): boolean)? default false
+---@field doShowNametag (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
+---@field doShowNametagsSpecs (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
+---@field getCollisionsType (fun(ctxt: TickContext): integer)? BJI.Managers.Collisions.TYPES
+---@field renderTick (fun(ctxt: TickContext))?
+---@field fastTick (fun(ctxt: TickContext))?
+---@field slowTick (fun(ctxt: TickContext))?
 
 ---@class BJIWindow
 ---@field name string

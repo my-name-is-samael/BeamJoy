@@ -214,7 +214,8 @@
         "gamemodeJoin": "{playerName} присоединился к {gamemode}",
         "gamemodeLeave": "{playerName} покинул {gamemode}",
         "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
-        "gamemodeTeamWon": "{teamName} победила в {gamemode}"
+        "gamemodeTeamWon": "{teamName} победила в {gamemode}",
+        "tournamentResult": "{playerName} завершил турнир на месте #{position} ({score} очков)"
       }
     },
     "nametags": {
@@ -318,7 +319,8 @@
           "stop": "Остановить дерби разрушения",
           "noArena": "Арена недоступна",
           "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
-        }
+        },
+        "tournament": "Турнир"
       },
       "edit": {
         "title": "Редактировать",
@@ -1392,6 +1394,33 @@
         "notReadyMark": "НЕ ГОТОВО",
         "amountLife": "{amount} жизни",
         "amountLives": "{amount} жизней"
+      }
+    },
+    "tournament": {
+      "title": "Турнир",
+      "state": "Включено",
+      "whitelist": "Белый список",
+      "activityTimeoutIn": "Активность завершится через {delay}",
+      "activityAboutToTimeout": "Активность скоро завершится",
+      "total": "Всего",
+      "startActivity": "Начать активность",
+      "track": "Трасса",
+      "arena": "Арена",
+      "duration": "Продолжительность",
+      "noParticipant": "Пока нет участников",
+      "buttons": {
+        "endSoloRace": "Завершить заезд на время",
+        "endTournament": "Завершить турнир",
+        "endTournamentTooltip": "Отобразит позиции участников в чате",
+        "errorMustHaveVehicle": "Вам нужно транспортное средство"
+      },
+      "activities": {
+        "raceSolo": "Заезд на время",
+        "race": "Гонка",
+        "speed": "Скорость",
+        "hunter": "Охотник",
+        "derby": "Дерби",
+        "tag": "Заражённый"
       }
     }
   }

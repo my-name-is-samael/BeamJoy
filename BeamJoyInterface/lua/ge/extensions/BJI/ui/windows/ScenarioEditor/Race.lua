@@ -191,13 +191,13 @@ end
 local function updateWidths()
     W.widths.startPositionsLabelsWidth = W.raceData.startPositions
         :reduce(function(acc, _, i)
-            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.startPosition:var({ index = i }))
+            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.startPosition:var({ index = i }))
             return w > acc and w or acc
         end, 0)
 
     W.widths.wpLabelsWidth = Table({ W.labels.wpName, W.labels.radius, W.labels.size,
         W.labels.bottomHeight, W.labels.parent }):reduce(function(acc, l)
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 end
@@ -585,16 +585,16 @@ local function drawTools(ctxt)
     local vehpos = ctxt.isOwner and ctxt.vehPosRot or nil
     if vehpos then
         LineBuilder():icon({
-            icon = ICONS.build,
+            icon = BJI.Utils.Icon.ICONS.build,
         }):text(W.labels.tools.title)
             :build()
 
         local line = LineBuilder():text(W.labels.tools.rotation)
         Table({
-            { value = -20, icon = ICONS.tb_spiral_left_inside },
-            { value = -10, icon = ICONS.tb_spiral_left_outside },
-            { value = 10,  icon = ICONS.tb_spiral_right_outside },
-            { value = 20,  icon = ICONS.tb_spiral_right_inside },
+            { value = -20, icon = BJI.Utils.Icon.ICONS.tb_spiral_left_inside },
+            { value = -10, icon = BJI.Utils.Icon.ICONS.tb_spiral_left_outside },
+            { value = 10,  icon = BJI.Utils.Icon.ICONS.tb_spiral_right_outside },
+            { value = 20,  icon = BJI.Utils.Icon.ICONS.tb_spiral_right_inside },
         }):forEach(function(r)
             line:btnIcon({
                 id = string.var("rotate{1}", { r.value }),
@@ -615,7 +615,7 @@ local function drawTools(ctxt)
         end)
         line:btnIcon({
             id = "rotate180",
-            icon = ICONS.tb_bank,
+            icon = BJI.Utils.Icon.ICONS.tb_bank,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             tooltip = W.labels.buttons.rotate180,
             onClick = function()
@@ -628,7 +628,7 @@ local function drawTools(ctxt)
         LineBuilder():text(W.labels.tools.reverse)
             :btnIcon({
                 id = "reverseRace",
-                icon = ICONS.reply_all,
+                icon = BJI.Utils.Icon.ICONS.reply_all,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = W.labels.buttons.reverseAllSteps,
                 onClick = reverseRace,
@@ -663,7 +663,7 @@ end
 local function drawPreviewPosition(ctxt)
     local line = LineBuilder()
         :icon({
-            icon = ICONS.simobject_camera,
+            icon = BJI.Utils.Icon.ICONS.simobject_camera,
             coloredIcon = true,
             style = { W.cache.invalid.previewPosition and
             BJI.Utils.Style.TEXT_COLORS.ERROR or BJI.Utils.Style.TEXT_COLORS.DEFAULT },
@@ -672,7 +672,7 @@ local function drawPreviewPosition(ctxt)
             W.labels.previewPositionTooltip)
         :btnIcon({
             id = "setPreviewPos",
-            icon = W.raceData.previewPosition and ICONS.edit_location or ICONS.add_location,
+            icon = W.raceData.previewPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
             style = W.raceData.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs,
@@ -686,7 +686,7 @@ local function drawPreviewPosition(ctxt)
     if W.raceData.previewPosition then
         line:btnIcon({
             id = "goToPreviewPos",
-            icon = ICONS.pin_drop,
+            icon = BJI.Utils.Icon.ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             tooltip = W.labels.buttons.showPreviewPosition,
             onClick = function()
@@ -705,7 +705,7 @@ local function drawLoopable()
     LineBuilder():text(W.labels.loopable)
         :btnIconToggle({
             id = "toggleLoopable",
-            icon = ICONS.rotate_90_degrees_ccw,
+            icon = BJI.Utils.Icon.ICONS.rotate_90_degrees_ccw,
             state = W.raceData.loopable,
             disabled = W.cache.disableInputs,
             tooltip = W.labels.buttons.toggleLoopable,
@@ -723,7 +723,7 @@ local function drawStartPositions(ctxt)
     AccordionBuilder():label("##startPositions"):commonStart(
         function(isOpen)
             local line = LineBuilder(true):icon({
-                icon = ICONS.simobject_player_spawn_sphere,
+                icon = BJI.Utils.Icon.ICONS.simobject_player_spawn_sphere,
                 coloredIcon = true,
                 style = { W.cache.invalid.startPositionsCount and
                 BJI.Utils.Style.TEXT_COLORS.ERROR or BJI.Utils.Style.TEXT_COLORS.DEFAULT },
@@ -733,7 +733,7 @@ local function drawStartPositions(ctxt)
                 local disabled = not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
                 line:btnIcon({
                     id = "addStartPos",
-                    icon = ICONS.add_location,
+                    icon = BJI.Utils.Icon.ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableInputs or disabled,
                     tooltip = string.var("{1}{2}", {
@@ -766,7 +766,7 @@ local function drawStartPositions(ctxt)
                         function()
                             LineBuilder():btnIcon({
                                 id = "moveUpStartPos" .. tostring(iSp),
-                                icon = ICONS.arrow_drop_up,
+                                icon = BJI.Utils.Icon.ICONS.arrow_drop_up,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = W.cache.disableInputs or iSp == 1,
                                 tooltip = W.labels.buttons.moveUp,
@@ -780,7 +780,7 @@ local function drawStartPositions(ctxt)
                                 end,
                             }):btnIcon({
                                 id = "moveDownStartPos" .. tostring(iSp),
-                                icon = ICONS.arrow_drop_down,
+                                icon = BJI.Utils.Icon.ICONS.arrow_drop_down,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = W.cache.disableInputs or iSp == #W.raceData.startPositions,
                                 tooltip = W.labels.buttons.moveDown,
@@ -794,7 +794,7 @@ local function drawStartPositions(ctxt)
                                 end,
                             }):btnIcon({
                                 id = "goToStartPos" .. tostring(iSp),
-                                icon = ICONS.pin_drop,
+                                icon = BJI.Utils.Icon.ICONS.pin_drop,
                                 style = BJI.Utils.Style.BTN_PRESETS.INFO,
                                 tooltip = W.labels.buttons.showStartPosition,
                                 onClick = function()
@@ -812,7 +812,7 @@ local function drawStartPositions(ctxt)
                                 end,
                             }):btnIcon({
                                 id = "moveStartPos" .. tostring(iSp),
-                                icon = ICONS.edit_location,
+                                icon = BJI.Utils.Icon.ICONS.edit_location,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = W.cache.disableInputs or not ctxt.veh or
                                     ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
@@ -830,7 +830,7 @@ local function drawStartPositions(ctxt)
                                 end,
                             }):btnIcon({
                                 id = "deleteStartPos" .. tostring(iSp),
-                                icon = ICONS.delete_forever,
+                                icon = BJI.Utils.Icon.ICONS.delete_forever,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 disabled = W.cache.disableInputs,
                                 tooltip = W.labels.buttons.deleteStartPosition,
@@ -861,7 +861,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
     local line = LineBuilder():text(#step == 1 and W.labels.waypoint or
         W.labels.branch .. tostring(iWp)):btnIcon({
         id = string.var("goToWP-{1}-{2}", { iStep, iWp }),
-        icon = ICONS.pin_drop,
+        icon = BJI.Utils.Icon.ICONS.pin_drop,
         style = BJI.Utils.Style.BTN_PRESETS.INFO,
         tooltip = W.labels.buttons.showWaypoint,
         onClick = function()
@@ -879,7 +879,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
         end,
     }):btnIcon({
         id = string.var("moveWP-{1}-{2}", { iStep, iWp }),
-        icon = ICONS.edit_location,
+        icon = BJI.Utils.Icon.ICONS.edit_location,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
         disabled = W.cache.disableInputs or not ctxt.veh or
             ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
@@ -897,7 +897,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
         end,
     }):btnIconToggle({
         id = string.var("toggleStandWP-{1}-{2}", { iStep, iWp }),
-        icon = ICONS.local_gas_station,
+        icon = BJI.Utils.Icon.ICONS.local_gas_station,
         state = wp.stand == true,
         disabled = W.cache.disableInputs,
         tooltip = W.labels.buttons.toggleStandWaypoint,
@@ -910,7 +910,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
         end
     }):btnIcon({
         id = string.var("deleteWP-{1}-{2}", { iStep, iWp }),
-        icon = ICONS.delete_forever,
+        icon = BJI.Utils.Icon.ICONS.delete_forever,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         disabled = W.cache.disableInputs,
         tooltip = W.labels.buttons.deleteWaypoint,
@@ -1017,7 +1017,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
                         if #wp.parents > 1 then
                             line:btnIcon({
                                 id = string.var("deleteWPParent-{1}-{2}-{3}", { iStep, iWp, iParent }),
-                                icon = ICONS.delete_forever,
+                                icon = BJI.Utils.Icon.ICONS.delete_forever,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 disabled = W.cache.disableInputs,
                                 tooltip = W.labels.buttons.removeParent,
@@ -1047,7 +1047,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
                     end)
                     LineBuilder():btnIcon({
                         id = string.var("addWPParent-{1}-{2}", { iStep, iWp }),
-                        icon = ICONS.addListItem,
+                        icon = BJI.Utils.Icon.ICONS.addListItem,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = W.cache.disableInputs,
                         tooltip = W.labels.buttons.addParent,
@@ -1088,7 +1088,7 @@ local function drawStep(ctxt, iStep, step)
         :text(W.labels.step .. tostring(iStep),
             BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):btnIcon({
         id = "moveupStep" .. tostring(iStep),
-        icon = ICONS.arrow_drop_up,
+        icon = BJI.Utils.Icon.ICONS.arrow_drop_up,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
         disabled = W.cache.disableInputs or iStep == 1,
         tooltip = W.labels.buttons.moveUp,
@@ -1107,7 +1107,7 @@ local function drawStep(ctxt, iStep, step)
         end
     }):btnIcon({
         id = "movedownStep" .. tostring(iStep),
-        icon = ICONS.arrow_drop_down,
+        icon = BJI.Utils.Icon.ICONS.arrow_drop_down,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
         disabled = W.cache.disableInputs or iStep == #W.raceData.steps,
         tooltip = W.labels.buttons.moveDown,
@@ -1126,7 +1126,7 @@ local function drawStep(ctxt, iStep, step)
         end
     }):btnIcon({
         id = "deleteStep" .. tostring(iStep),
-        icon = ICONS.delete_forever,
+        icon = BJI.Utils.Icon.ICONS.delete_forever,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         disabled = W.cache.disableInputs,
         tooltip = W.labels.buttons.deleteStep,
@@ -1145,7 +1145,7 @@ local function drawStep(ctxt, iStep, step)
         end
     }):btnIcon({
         id = "addStepBranchTop" .. tostring(iStep),
-        icon = ICONS.fg_sideways,
+        icon = BJI.Utils.Icon.ICONS.fg_sideways,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
         tooltip = string.var("{1}{2}", {
@@ -1165,7 +1165,7 @@ local function drawStep(ctxt, iStep, step)
     if #step > 1 then
         LineBuilder():btnIcon({
             id = "addStepBranchBottom" .. tostring(iStep),
-            icon = ICONS.fg_sideways,
+            icon = BJI.Utils.Icon.ICONS.fg_sideways,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
             tooltip = string.var("{1}{2}", {
@@ -1205,7 +1205,7 @@ local function drawSteps(ctxt)
     AccordionBuilder():label("##raceSteps"):commonStart(
         function(isOpen)
             local line = LineBuilder(true):icon({
-                icon = ICONS.simobject_bng_waypoint,
+                icon = BJI.Utils.Icon.ICONS.simobject_bng_waypoint,
                 coloredIcon = true,
                 style = { (W.cache.invalid.stepsCount or Table(W.cache.invalid.steps):flat()
                     :any(function(el) return el end)) and
@@ -1214,7 +1214,7 @@ local function drawSteps(ctxt)
             if isOpen then
                 line:btnIcon({
                     id = "addRaceStepTop",
-                    icon = ICONS.add_location,
+                    icon = BJI.Utils.Icon.ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableInputs or not ctxt.veh or
                         ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
@@ -1242,7 +1242,7 @@ local function drawSteps(ctxt)
             if #W.raceData.steps > 1 then
                 LineBuilder():btnIcon({
                     id = "addRaceStepBottom",
-                    icon = ICONS.add_location,
+                    icon = BJI.Utils.Icon.ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableInputs or not ctxt.veh or
                         ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
@@ -1263,7 +1263,7 @@ end
 local function header(ctxt)
     LineBuilder():text(W.labels.editTitle):btnIcon({
         id = "reloadMarkers",
-        icon = ICONS.sync,
+        icon = BJI.Utils.Icon.ICONS.sync,
         style = BJI.Utils.Style.BTN_PRESETS.INFO,
         tooltip = W.labels.buttons.refreshMarkers,
         onClick = updateMarkers,
@@ -1276,7 +1276,7 @@ local function header(ctxt)
 
     LineBuilder():text(W.labels.enabled):btnIconToggle({
         id = "raceEnabled",
-        icon = W.raceData.enabled and ICONS.visibility or ICONS.visibility_off,
+        icon = W.raceData.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
         state = W.raceData.enabled,
         tooltip = W.labels.buttons.toggleRaceVisibility,
         onClick = function()
@@ -1316,7 +1316,7 @@ local function footer(ctxt)
     end
     local line = LineBuilder():btnIcon({
         id = "tryRace",
-        icon = ICONS.fg_vehicle_race_car,
+        icon = BJI.Utils.Icon.ICONS.fg_vehicle_race_car,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
         disabled = tryDisabled,
         tooltip = string.var("{1}{2}", {
@@ -1345,7 +1345,7 @@ local function footer(ctxt)
     line = LineBuilder()
         :btnIcon({
             id = "leaveRaceEditor",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.buttons.leave,
             onClick = BJI.Windows.ScenarioEditor.onClose,
@@ -1353,7 +1353,7 @@ local function footer(ctxt)
     if W.raceData.changed or not W.raceData.id then
         line:btnIcon({
             id = "saveRace",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs or not W.cache.validSave,
             tooltip = string.var("{1}{2}", {

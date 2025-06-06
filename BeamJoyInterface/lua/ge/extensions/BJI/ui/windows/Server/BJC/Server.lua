@@ -15,7 +15,7 @@ local function drawServerBroadcasts(labels, cache)
                 BJI.Managers.Context.BJC.Server.Broadcasts.delay = val
             end
         })
-        :text(BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.Server.Broadcasts.delay))
+        :text(BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.Server.Broadcasts.delay))
         :build()
 
     LineBuilder()
@@ -36,7 +36,7 @@ local function drawServerBroadcasts(labels, cache)
     Indent(2)
     local maxI = #BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]
     local longestLabel = string.var("{1} {2}", { labels.server.broadcasts.broadcast, maxI })
-    local cols = ColumnsBuilder("serverBroadcasts", { BJI.Utils.Common.GetColumnTextWidth(longestLabel), -1 })
+    local cols = ColumnsBuilder("serverBroadcasts", { BJI.Utils.UI.GetColumnTextWidth(longestLabel), -1 })
     for i, broad in ipairs(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]) do
         cols:addRow({
             cells = {
@@ -68,7 +68,7 @@ local function drawServerBroadcasts(labels, cache)
     local line = LineBuilder()
         :btnIcon({
             id = "addServerBroadcastsMessage",
-            icon = ICONS.addListItem,
+            icon = BJI.Utils.Icon.ICONS.addListItem,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = lastMessage and #lastMessage == 0,
             tooltip = labels.server.add,
@@ -80,7 +80,7 @@ local function drawServerBroadcasts(labels, cache)
     if iLastMessage > 0 then
         line:btnIcon({
             id = "deleteServerBroadcastsMessage",
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = labels.server.remove,
             onClick = function()
@@ -95,7 +95,7 @@ local function drawServerBroadcasts(labels, cache)
     LineBuilder()
         :btnIcon({
             id = "saveServerBroadcasts",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs,
             tooltip = labels.server.save,
@@ -151,7 +151,7 @@ local function drawServerWelcomeMessages(labels, cache)
     LineBuilder()
         :btnIcon({
             id = "saveServerWelcomeMessage",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs,
             tooltip = labels.server.save,

@@ -13,21 +13,21 @@ local function controllerDispatch(self, ctxt)
     end
 end
 
+---@param senderID integer
+---@param data table?
+---@return {key: string, data: table?}?
 local function checkSenderAndData(senderID, data)
     if data == nil or not data.id then
-        error({ key = "rx.errors.invalidData" })
+        return { key = "rx.errors.invalidData" }
     elseif not data.parts and not data.part then
-        error({ key = "rx.errors.invalidData" })
+        return { key = "rx.errors.invalidData" }
     elseif data.parts and (not data.controller or not data.endpoint) then
-        error({ key = "rx.errors.invalidData" })
+        return { key = "rx.errors.invalidData" }
     elseif data.part and not data.data then
-        error({ key = "rx.errors.invalidData" })
+        return { key = "rx.errors.invalidData" }
+    elseif not BJCPlayers.Players[senderID] then
+        return { key = "rx.errors.senderIDInvalid", data = { senderID = senderID } }
     end
-    local sender = BJCPlayers.Players[senderID]
-    if not sender then
-        error({ key = "rx.errors.senderIDInvalid", data = { senderID = senderID } })
-    end
-    return sender
 end
 
 local function logAndToastError(senderID, key, data)
@@ -48,7 +48,7 @@ local ctrls = {}
 -- route events categories to controller files
 Table(BJC_EVENTS):forEach(function(v, k)
     if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
-        ctrls[k] = require("rx/" .. k:capitalizeWords():gsub(" ", "") .. "Rx")
+        ctrls[k] = require("rx/" .. tostring(k):capitalizeWords():gsub(" ", "") .. "Rx")
         ctrls[k].dispatchEvent = controllerDispatch
     end
 end)
@@ -100,9 +100,9 @@ local function finalizeCommunication(id)
 end
 
 function _BJCRxEvent(senderID, dataSent)
-    local data = JSON.parse(dataSent)
-    local ok, err = pcall(checkSenderAndData, senderID, data)
-    if not ok then
+    local data = JSON.parse(dataSent) or {}
+    local err = checkSenderAndData(senderID, data)
+    if err then
         logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)
         return
     end
@@ -127,9 +127,9 @@ function _BJCRxEvent(senderID, dataSent)
 end
 
 function _BJCRxEventParts(senderID, dataSent)
-    local data = JSON.parse(dataSent)
-    local ok, err = pcall(checkSenderAndData, senderID, data)
-    if not ok then
+    local data = JSON.parse(dataSent) or {}
+    local err = checkSenderAndData(senderID, data)
+    if err then
         logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)
         return
     end
@@ -147,17 +147,19 @@ function _BJCRxEventParts(senderID, dataSent)
     end
 end
 
+---@param time integer
 BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, function(time)
     _queue:forEach(function(comm, id)
         if comm.parts and comm.parts == #comm.data then
             finalizeCommunication(id)
         elseif comm.created + 30 < time then
-            LogError(string.var("Communication timed out : {1} - {2}.{3}", { comm.senderID, comm.controller, comm.endpoint }),
+            LogError(
+                string.var("Communication timed out : {1} - {2}.{3}", { comm.senderID, comm.controller, comm.endpoint }),
                 logTag)
             _queue[id] = nil
         end
     end)
-end)
+end, "Rx")
 
 MP.RegisterEvent(BJC_EVENTS.SERVER_EVENT, "_BJCRxEvent")
 MP.RegisterEvent(BJC_EVENTS.SERVER_EVENT_PARTS, "_BJCRxEventParts")

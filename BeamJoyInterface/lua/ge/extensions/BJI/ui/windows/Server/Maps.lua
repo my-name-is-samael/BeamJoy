@@ -44,7 +44,7 @@ local function updateWidths()
     W.labelsWidth = Table({ W.labels.newMapName, W.labels.mapLabel, W.labels.mapArchive })
         :addAll(Table(BJI.Managers.Context.Maps):keys())
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 end
@@ -97,7 +97,7 @@ local function drawMapsList(ctxt)
                     local line = LineBuilder()
                         :btnIconToggle({
                             id = string.var("map{1}State", { mapName }),
-                            icon = map.enabled and ICONS.visibility or ICONS.visibility_off,
+                            icon = map.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
                             state = map.enabled == true,
                             disabled = W.disableInputs or BJI.Managers.Context.UI.mapName == mapName,
                             onClick = function()
@@ -109,7 +109,7 @@ local function drawMapsList(ctxt)
                     if not table.compare(map, BJI.Managers.Context.Maps[mapName]) then
                         line:btnIcon({
                             id = string.var("map{1}save", { mapName }),
-                            icon = ICONS.save,
+                            icon = BJI.Utils.Icon.ICONS.save,
                             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = W.disableInputs or #map.label == 0 or
                                 (map.custom and #map.archive == 0),
@@ -123,7 +123,7 @@ local function drawMapsList(ctxt)
                     if map.custom then
                         line:btnIcon({
                             id = string.var("map{1}delete", { mapName }),
-                            icon = ICONS.delete_forever,
+                            icon = BJI.Utils.Icon.ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             disabled = W.disableInputs or mapName == BJI.Managers.Context.UI.mapName,
                             tooltip = W.labels.remove,
@@ -143,7 +143,7 @@ local function drawMapsList(ctxt)
                     LineBuilder()
                         :btnIcon({
                             id = string.var("map{1}reset", { mapName }),
-                            icon = ICONS.refresh,
+                            icon = BJI.Utils.Icon.ICONS.refresh,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.disableInputs or map.label == BJI.Managers.Context.Maps[mapName].label,
                             tooltip = W.labels.reset,
@@ -173,7 +173,7 @@ local function drawMapsList(ctxt)
                         LineBuilder()
                             :btnIcon({
                                 id = string.var("map{1}reset", { mapName }),
-                                icon = ICONS.refresh,
+                                icon = BJI.Utils.Icon.ICONS.refresh,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = W.disableInputs or map.archive == BJI.Managers.Context.Maps[mapName].archive,
                                 tooltip = W.labels.reset,
@@ -206,7 +206,7 @@ local function drawNewMap(ctxt)
         :text(W.labels.newMapTitle)
         :btnIcon({
             id = "addNewMap",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.disableInputs or #W.newMap.name == 0 or
                 #W.newMap.label == 0 or

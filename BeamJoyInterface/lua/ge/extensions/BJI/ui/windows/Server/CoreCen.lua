@@ -79,12 +79,12 @@ end
 
 local function updateWidths()
     W.coreLabelsWidth = Table(W.labelsCore.keys):reduce(function(acc, l)
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 
     W.cenLabelsWidth = Table(W.labelsCen.keys):reduce(function(acc, l)
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 end

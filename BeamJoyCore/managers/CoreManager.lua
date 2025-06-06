@@ -87,6 +87,8 @@ local function getMap()
     return mapName
 end
 
+---@param mapName string
+---@return boolean
 local function setMap(mapName)
     local currentMap = BJCMaps.Data[getMap()]
     local targetMap = BJCMaps.Data[mapName]
@@ -96,7 +98,7 @@ local function setMap(mapName)
     end
 
     if currentMap and targetMap and currentMap == targetMap then
-        return
+        return false
     end
 
     if currentMap and currentMap.custom then
@@ -136,11 +138,13 @@ local function setMap(mapName)
             (currentMap.custom or targetMap.custom) and
             targetMap.archive ~= currentMap.archive then
             -- if current or target is custom and not from the same mod, a reboot is mandatory
+            LogWarn("Map switch requires a reboot, restarting now...")
             Exit()
         else
             BJCScenarioData.reload()
         end
     end)
+    return true
 end
 
 local function consoleSetMap(args)

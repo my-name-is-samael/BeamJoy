@@ -128,19 +128,19 @@ end
 local function updateWidths()
     W.cache.permissionsNamesWidth = W.labels.permissionsNames
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l .. " :")
+            local w = BJI.Utils.UI.GetColumnTextWidth(l .. " :")
             return w > acc and w or acc
         end, 0)
 
     W.cache.groupKeysWidth = Table(W.labels.groupKeys)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
     W.cache.newGroup.labelsWidth = Table(W.labels.newGroup)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 end

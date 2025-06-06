@@ -21,11 +21,10 @@ Contact : https://github.com/my-name-is-samael
 require("ge/extensions/utils/LoadDefaults")
 
 require("log")
-require("ge/extensions/utils/Lua")
+require("ge/extensions/utils/Lua") ---@diagnostic disable-line
 require("ge/extensions/utils/Math")
 require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
-require("ge/extensions/utils/Icons")
 
 BJI = {
     VERSION = "1.2.0",
@@ -44,7 +43,8 @@ BJI = {
     DEBUG = nil,
 }
 BJI.Utils.ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")
-BJI.Utils.Common = require("ge/extensions/utils/Common")
+BJI.Utils.Icon = require("ge/extensions/utils/Icons")
+BJI.Utils.UI = require("ge/extensions/utils/UI")
 BJI.Utils.Style = require("ge/extensions/BJI/ui/CommonStyle")
 BJI.Bench = require("ge/extensions/utils/Bench")
 
@@ -151,15 +151,11 @@ end
 
 return M
 
--- FUTURE FEATURES TIPS
-
 -- hide/show ui apps
 -- guihooks.trigger('ShowApps', true/false)
 
--- get map height below pos
--- be:getSurfaceHeightBelow(vec3)
-
--- if stuck in loading screen during disconnect => core_gamestate.requestExitLoadingScreen("serverConnection")
+-- if stuck in loading screen during disconnect
+-- core_gamestate.requestExitLoadingScreen("serverConnection")
 
 --- Game functions we cannot hook onto (guess we are unlucky) :
 --- core_repository.requestMyMods (on open mods menu > tab my mods)

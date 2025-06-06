@@ -167,7 +167,23 @@ BJC_EVENTS = {
             TAG_SERVER_UPDATE = "TagServerUpdate",
             TAG_SERVER_STOP = "TagServerStop",
         }
-    }
+    },
+    TOURNAMENT = {
+        EVENT = "BJCTournament",
+        TX = {},
+        RX = {
+            CLEAR = "clear",
+            TOGGLE = "toggle",
+            END_TOURNAMENT = "endTournament",
+            TOGGLE_WHITELIST = "toggleWhitelist",
+            TOGGLE_WHITELIST_PLAYER = "toggleWhitelistPlayer",
+            REMOVE_ACTIVITY = "removeActivity",
+            EDIT_SCORE = "editScore",
+            REMOVE_PLAYER = "removePlayer",
+            ADD_SOLO_RACE = "addSoloRace",
+            END_SOLO_RACE = "endSoloRace",
+        },
+    },
 }
 
 BJC_ENV_PRESETS = {

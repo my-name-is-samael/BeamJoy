@@ -81,7 +81,7 @@ local function updateCache(ctxt)
         W.labels.lives,
         W.labels.configs,
     }):reduce(function(acc, label)
-        local w = BJI.Utils.Common.GetColumnTextWidth(label)
+        local w = BJI.Utils.UI.GetColumnTextWidth(label)
         return w > acc and w or acc
     end, 0)
 
@@ -232,7 +232,7 @@ local function body(ctxt)
                     if config then
                         LineBuilder():btnIcon({
                             id = string.var("showDerbyConfig{1}", { i }),
-                            icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
+                            icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.add,
                             style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                                 BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
@@ -243,7 +243,7 @@ local function body(ctxt)
                             end,
                         }):btnIcon({
                             id = string.var("removeDerbyConfig{1}", { i }),
-                            icon = ICONS.delete_forever,
+                            icon = BJI.Utils.Icon.ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             tooltip = W.labels.buttons.remove,
                             onClick = function()
@@ -261,7 +261,7 @@ local function body(ctxt)
                         end
                         LineBuilder():btnIcon({
                             id = "addDerbyConfig",
-                            icon = ICONS.add,
+                            icon = BJI.Utils.Icon.ICONS.add,
                             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
                             tooltip = tooltip,
@@ -281,13 +281,13 @@ end
 local function footer(ctxt)
     LineBuilder():btnIcon({
         id = "closeDerbySettings",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.labels.buttons.close,
         onClick = onClose,
     }):btnIcon({
         id = "startDerby",
-        icon = ICONS.check,
+        icon = BJI.Utils.Icon.ICONS.check,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         tooltip = W.labels.buttons.start,
         onClick = function()

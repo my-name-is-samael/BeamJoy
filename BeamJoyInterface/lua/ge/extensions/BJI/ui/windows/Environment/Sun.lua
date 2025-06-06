@@ -66,19 +66,19 @@ local function updateLabels()
 
     W.labelsCommonWidth = W.KEYS.common:reduce(function(acc, k)
         local l = W.labels[k]
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 
     W.labelsDayWidth = W.KEYS.day:reduce(function(acc, k)
         local l = W.labels[k]
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 
     W.labelsNightWidth = W.KEYS.night:reduce(function(acc, k)
         local l = W.labels[k]
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 end
@@ -99,7 +99,7 @@ end
 local function body()
     LineBuilder()
         :icon({
-            icon = ICONS.simobject_sun,
+            icon = BJI.Utils.Icon.ICONS.simobject_sun,
             big = true,
         })
         :build()
@@ -132,7 +132,7 @@ local function body()
         cells = {
             function() LineLabel(W.labels.timePlay) end,
             function()
-                BJI.Utils.Common.DrawTimePlayPauseButtons("envSunTimePlay", true,
+                BJI.Utils.UI.DrawTimePlayPauseButtons("envSunTimePlay", true,
                     not BJI.Managers.Env.Data.controlSun)
                 W.presets:reduce(function(line, p)
                     return line:btn({
@@ -171,7 +171,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "reset" .. rowData[1],
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -196,7 +196,7 @@ local function body()
                 finalKey2 and function()
                     LineBuilder():btnIcon({
                         id = "reset" .. rowData[2],
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -227,7 +227,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "resetToD",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -260,7 +260,7 @@ local function body()
                     }):build()
                 end,
                 function()
-                    LineLabel(BJI.Utils.Common.PrettyTime(BJI.Managers.Env.Data.ToD))
+                    LineLabel(BJI.Utils.UI.PrettyTime(BJI.Managers.Env.Data.ToD))
                 end
             }
         })
@@ -270,7 +270,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "resetdayLength",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -313,7 +313,7 @@ local function body()
                         onClick = function()
                             BJI.Managers.Env.Data.dayLength = 3600
                         end,
-                    }):text(BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength))
+                    }):text(BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength))
                         :build()
                 end
             }
@@ -328,7 +328,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "resetshadowTexSize",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -377,7 +377,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "resetskyDay.dayScale",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -393,7 +393,7 @@ local function body()
                         max = 99,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         renderFormat = string.var("%d%% ({1})",
-                            { BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength *
+                            { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
                                 BJI.Managers.Env.Data.skyDay.dayScale) }),
                         onUpdate = function(val)
                             BJI.Managers.Env.Data.skyDay.dayScale = math.round(val / 100, 2)
@@ -407,7 +407,7 @@ local function body()
                 function()
                     LineBuilder():btnIcon({
                         id = "resetnightScale",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         tooltip = W.labels.reset,
@@ -423,7 +423,7 @@ local function body()
                         max = 99,
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         renderFormat = string.var("%d%% ({1})",
-                            { BJI.Utils.Common.PrettyDelay(BJI.Managers.Env.Data.dayLength *
+                            { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
                                 BJI.Managers.Env.Data.skyNight.nightScale) }),
                         onUpdate = function(val)
                             BJI.Managers.Env.Data.skyNight.nightScale = math.round(val / 100, 2)

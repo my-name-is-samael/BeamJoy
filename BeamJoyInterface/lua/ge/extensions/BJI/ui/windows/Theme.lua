@@ -75,13 +75,13 @@ end
 local function updateWidths()
     W.widths.Button = Table(W.BUTTON_ELEMENTS)
         :reduce(function(acc, k)
-            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.categoriesElements.Button[k])
+            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.categoriesElements.Button[k])
             return w > acc and w or acc
         end, 0)
 
     W.widths.Input = Table(W.INPUT_ELEMENTS)
         :reduce(function(acc, k)
-            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.categoriesElements.Input[k])
+            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.categoriesElements.Input[k])
             return w > acc and w or acc
         end, 0)
 end
@@ -174,7 +174,7 @@ local function drawColorLine(data)
         if data.reset then
             line:btnIcon({
                 id = string.var("{1}-reset", { data.id }),
-                icon = ICONS.refresh,
+                icon = BJI.Utils.Icon.ICONS.refresh,
                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                 tooltip = W.labels.buttons.reset,
                 onClick = data.reset,
@@ -303,7 +303,7 @@ local function drawButtonsPresets()
                                 onClick = function() end,
                             }):btnIcon({
                                 id = string.var("Button-{1}-preview-icon", { btnPreset.key }),
-                                icon = ICONS.bug_report,
+                                icon = BJI.Utils.Icon.ICONS.bug_report,
                                 style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
                                 onClick = function() end,
                             }):build()
@@ -504,7 +504,7 @@ end
 local function drawFooter(ctxt)
     local line = LineBuilder():btnIcon({
         id = "cancel",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.labels.buttons.close,
         onClick = onClose,
@@ -512,7 +512,7 @@ local function drawFooter(ctxt)
     if W.changed then
         line:btnIcon({
             id = "reset",
-            icon = ICONS.refresh,
+            icon = BJI.Utils.Icon.ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             tooltip = W.labels.buttons.resetAll,
             onClick = function()
@@ -522,7 +522,7 @@ local function drawFooter(ctxt)
             end,
         }):btnIcon({
             id = "save",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             tooltip = W.labels.buttons.save,
             onClick = save,

@@ -32,7 +32,7 @@ local M = {
     state = nil,
     -- keep track of players joined participant to have valid hunted everytime
     joinOrder = Table(),
-    ---@type tablelib<integer, BJIHunterParticipant>
+    ---@type tablelib<integer, BJIHunterParticipant> index playerID
     participants = Table(),
     preparationTimeout = nil,
     ---@type ClientVehicleConfig?
@@ -100,6 +100,33 @@ local function getCacheHash()
     })
 end
 
+local function updateTournamentScores()
+    if BJCTournament.state then
+        local activityIndex = #BJCTournament.activities
+        local hunted, hunters, waypoint = nil, Table(), 0
+        M.participants:forEach(function(p, pid)
+            if p.hunted then
+                hunted = pid
+                waypoint = p.waypoint
+            else
+                hunters:insert(pid)
+            end
+        end)
+
+        local huntedScore = math.round(math.scale(waypoint, 0, M.waypoints, M.participants:length() - 1, 1))
+        local huntersScore = math.round(math.scale(waypoint, 0, M.waypoints, 1, M.participants:length()))
+        if hunted and BJCPlayers.Players[hunted] then
+            BJCTournament.editPlayerScore(BJCPlayers.Players[hunted].playerName, activityIndex, huntedScore)
+        end
+        hunters:forEach(function(pid)
+            local player = BJCPlayers.Players[pid]
+            if player then
+                BJCTournament.editPlayerScore(player.playerName, activityIndex, huntersScore)
+            end
+        end)
+    end
+end
+
 local function onPreparationTimeout()
     M.participants = M.participants:filter(function(p) return p.ready end)
     -- check players amount
@@ -143,6 +170,11 @@ local function onPreparationTimeout()
     M.huntedStartTime = GetCurrentTime() + BJCConfig.Data.Hunter.HuntedStartDelay
     M.hunterStartTime = GetCurrentTime() + BJCConfig.Data.Hunter.HuntersStartDelay
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+
+    if BJCTournament.state then
+        BJCTournament.addActivity(BJCTournament.ACTIVITIES_TYPES.HUNTER)
+        updateTournamentScores()
+    end
 end
 
 local function start(settings)
@@ -286,7 +318,7 @@ local function onGameEnd(huntedWinner)
     BJCAsync.delayTask(stop, BJCConfig.Data.Hunter.EndTimeout)
 end
 
-local function onRx(senderID, event, data)
+local function onClientUpdate(senderID, event, data)
     if M.state == M.STATES.PREPARATION then
         if event == M.CLIENT_EVENTS.JOIN then
             onJoin(senderID)
@@ -315,6 +347,9 @@ local function onRx(senderID, event, data)
                 else
                     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
                 end
+
+                BJCAsync.removeTask("BJCHunterUpdateTournamentScores")
+                BJCAsync.delayTask(updateTournamentScores, 0, "BJCHunterUpdateTournamentScores")
             end
         elseif event == M.CLIENT_EVENTS.ELIMINATED then
             if participant and participant.hunted then
@@ -340,7 +375,8 @@ local function onPlayerDisconnect(player)
         else
             M.joinOrder:remove(M.joinOrder:indexOf(player.playerID))
             sanitizePreparationHunted()
-            if not M.participants:any(function(p) return p.ready end) then
+            if not M.participants:any(function(p) return p.ready end) and
+                not BJCAsync.exists("BJCHunterPreparation") then
                 -- relaunch preparation timeout
                 M.preparationTimeout = GetCurrentTime() + BJCConfig.Data.Hunter.PreparationTimeout
                 BJCAsync.programTask(onPreparationTimeout, M.preparationTimeout, "BJCHunterPreparation")
@@ -383,7 +419,7 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             return true
         else
             -- hunter
-            if #M.hunterConfigs> 0 then
+            if #M.hunterConfigs > 0 then
                 local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
                 return Table(M.hunterConfigs):any(function(config)
                     return model == config.model and
@@ -416,7 +452,7 @@ M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 M.start = start
-M.clientUpdate = onRx
+M.clientUpdate = onClientUpdate
 M.stop = onStop
 M.forceStop = onStop
 

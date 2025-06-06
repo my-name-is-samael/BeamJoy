@@ -194,7 +194,7 @@ end
 local function header(ctxt)
     LineBuilder():text(W.labels.title):btnIcon({
         id = "reloadMarkers",
-        icon = ICONS.sync,
+        icon = BJI.Utils.Icon.ICONS.sync,
         style = BJI.Utils.Style.BTN_PRESETS.INFO,
         tooltip = W.labels.buttons.refreshMarkers,
         onClick = reloadMarkers,
@@ -202,7 +202,7 @@ local function header(ctxt)
 
     LineBuilder():text(W.labels.enabled):btnIconToggle({
         id = "toggleEnabled",
-        icon = W.cache.enabled and ICONS.visibility or ICONS.visibility_off,
+        icon = W.cache.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
         state = W.cache.enabled == true,
         disabled = W.cache.disableButtons,
         tooltip = W.labels.buttons.toggleModeVisibility,
@@ -222,7 +222,7 @@ local function drawHunters(ctxt)
     W.cache.hunterPositions:forEach(function(hunterPoint, i)
         LineBuilder():text(W.labels.hunterPositionName:var({ index = i })):btnIcon({
             id = string.var("gotoHunter{1}", { i }),
-            icon = ICONS.pin_drop,
+            icon = BJI.Utils.Icon.ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             tooltip = W.labels.buttons.showHunterStartPosition,
             onClick = function()
@@ -245,7 +245,7 @@ local function drawHunters(ctxt)
             end,
         }):btnIcon({
             id = string.var("moveHunter{1}", { i }),
-            icon = ICONS.edit_location,
+            icon = BJI.Utils.Icon.ICONS.edit_location,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
             tooltip = string.var("{1}{2}", {
@@ -261,7 +261,7 @@ local function drawHunters(ctxt)
             end,
         }):btnIcon({
             id = string.var("deleteHunter{1}", { i }),
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
             tooltip = W.labels.buttons.deleteHunterStartPosition,
@@ -280,7 +280,7 @@ local function drawHunted(ctxt)
     W.cache.huntedPositions:forEach(function(huntedPoint, i)
         LineBuilder():text(W.labels.huntedPositionName:var({ index = i })):btnIcon({
             id = string.var("gotoHunted{1}", { i }),
-            icon = ICONS.pin_drop,
+            icon = BJI.Utils.Icon.ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             tooltip = W.labels.buttons.showHuntedStartPosition,
             onClick = function()
@@ -303,7 +303,7 @@ local function drawHunted(ctxt)
             end,
         }):btnIcon({
             id = string.var("moveHunted{1}", { i }),
-            icon = ICONS.edit_location,
+            icon = BJI.Utils.Icon.ICONS.edit_location,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
             tooltip = string.var("{1}{2}", {
@@ -319,7 +319,7 @@ local function drawHunted(ctxt)
             end,
         }):btnIcon({
             id = string.var("deleteHunted{1}", { i }),
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
             tooltip = W.labels.buttons.deleteHuntedStartPosition,
@@ -338,7 +338,7 @@ local function drawWaypoints(ctxt)
     W.cache.targets:forEach(function(waypoint, i)
         LineBuilder():text(W.labels.targetName:var({ index = i })):btnIcon({
             id = string.var("gotoWaypoint{1}", { i }),
-            icon = ICONS.pin_drop,
+            icon = BJI.Utils.Icon.ICONS.pin_drop,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             tooltip = W.labels.buttons.showWaypoint,
             onClick = function()
@@ -361,7 +361,7 @@ local function drawWaypoints(ctxt)
             end,
         }):btnIcon({
             id = string.var("moveWaypoint{1}", { i }),
-            icon = ICONS.edit_location,
+            icon = BJI.Utils.Icon.ICONS.edit_location,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
             tooltip = string.var("{1}{2}", {
@@ -377,7 +377,7 @@ local function drawWaypoints(ctxt)
             end,
         }):btnIcon({
             id = string.var("deleteWaypoint{1}", { i }),
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableInputs,
             tooltip = W.labels.buttons.deleteWaypoint,
@@ -418,7 +418,7 @@ local function body(ctxt)
         if isOpen then
             line:btnIcon({
                 id = "addHunterPosition",
-                icon = ICONS.add_location,
+                icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
                 tooltip = string.var("{1}{2}", {
@@ -448,7 +448,7 @@ local function body(ctxt)
         if isOpen then
             line:btnIcon({
                 id = "addHuntedPosition",
-                icon = ICONS.add_location,
+                icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
                 tooltip = string.var("{1}{2}", {
@@ -478,7 +478,7 @@ local function body(ctxt)
         if isOpen then
             line:btnIcon({
                 id = "addWaypoint",
-                icon = ICONS.add_location,
+                icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
                 tooltip = string.var("{1}{2}", {
@@ -511,7 +511,7 @@ end
 local function footer(ctxt)
     local line = LineBuilder():btnIcon({
         id = "cancelHunterEdit",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.labels.buttons.close,
         onClick = BJI.Windows.ScenarioEditor.onClose,
@@ -519,7 +519,7 @@ local function footer(ctxt)
     if W.changed then
         line:btnIcon({
             id = "saveHunterEdit",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not W.valid,
             tooltip = string.var("{1}{2}", {

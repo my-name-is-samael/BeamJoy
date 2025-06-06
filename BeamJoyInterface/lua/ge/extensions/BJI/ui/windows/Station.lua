@@ -110,7 +110,7 @@ local function commonDrawEnergyLines(ctxt, energyStation)
         line:btnIcon({
             id = string.var("refill{1}", { energyType }),
             icon = energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
-                ICONS.ev_station or ICONS.local_gas_station,
+                BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = energyData.currentEnergy / energyData.maxEnergy > .95,
             onClick = function()
@@ -174,7 +174,7 @@ local function drawGarage(ctxt, garage)
     if not BJI.Managers.Scenario.canRefuelAtStation() then
         LineBuilder()
             :icon({
-                icon = ICONS.block,
+                icon = BJI.Utils.Icon.ICONS.block,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             })
             :text(W.labels.noRefuelScenario)
@@ -186,7 +186,7 @@ local function drawGarage(ctxt, garage)
     if not BJI.Managers.Scenario.canRepairAtGarage() then
         LineBuilder()
             :icon({
-                icon = ICONS.block,
+                icon = BJI.Utils.Icon.ICONS.block,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             })
             :text(W.labels.noRepairScenario)
@@ -196,7 +196,7 @@ local function drawGarage(ctxt, garage)
             :text(W.labels.damagedWarning)
             :btnIcon({
                 id = "repairVehicle",
-                icon = ICONS.build,
+                icon = BJI.Utils.Icon.ICONS.build,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 onClick = function()
                     onRepair(ctxt)
@@ -216,7 +216,7 @@ local function drawEnergyStation(ctxt, station)
     if not BJI.Managers.Scenario.canRefuelAtStation() then
         LineBuilder()
             :icon({
-                icon = ICONS.block,
+                icon = BJI.Utils.Icon.ICONS.block,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             })
             :text(W.labels.noRefuelScenario)
@@ -246,7 +246,7 @@ local function header(ctxt)
                 string.var(" {1} ", { W.labels.andJoin }))
             LineBuilder()
                 :icon({
-                    icon = ICONS.local_gas_station,
+                    icon = BJI.Utils.Icon.ICONS.local_gas_station,
                 })
                 :text(string.var("{1} \"{2}\"", { stationNamesLabel, station.name }))
                 :build()

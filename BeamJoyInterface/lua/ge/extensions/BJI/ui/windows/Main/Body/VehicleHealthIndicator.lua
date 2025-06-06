@@ -44,7 +44,7 @@ local function draw(ctxt)
             if cache.showGPSButton then
                 line:btnIcon({
                     id = "setRouteGarage",
-                    icon = ICONS.add_location,
+                    icon = BJI.Utils.Icon.ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                     onClick = function()

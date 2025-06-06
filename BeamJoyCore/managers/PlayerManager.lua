@@ -1489,11 +1489,11 @@ M.consoleUnban = consoleUnban
 M.consoleMute = consoleMute
 M.consoleUnmute = consoleUnmute
 
-BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_AUTH, onPlayerAuth)
-BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_CONNECTING, onPlayerConnecting)
-BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOINING, onPlayerJoining)
-BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOIN, onPlayerJoin)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_AUTH, onPlayerAuth, "PlayerManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_CONNECTING, onPlayerConnecting, "PlayerManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOINING, onPlayerJoining, "PlayerManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_JOIN, onPlayerJoin, "PlayerManager")
 M.onPlayerConnect = onPlayerConnect
-BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_DISCONNECT, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_PLAYER_DISCONNECT, onPlayerDisconnect, "PlayerManager")
 
 return M

@@ -97,7 +97,7 @@ local function drawBody(ctxt)
             :text("-", color)
         if lb then
             line:text(lb.player.playerName, color)
-                :text(string.var("({1}{2}, {3})", { lb.speed, W.labels.speedUnit, BJI.Utils.Common.RaceDelay(lb.time) }),
+                :text(string.var("({1}{2}, {3})", { lb.speed, W.labels.speedUnit, BJI.Utils.UI.RaceDelay(lb.time) }),
                     color)
         end
         line:build()

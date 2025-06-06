@@ -51,8 +51,8 @@ local function updateCache(ctxt)
 
     W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", {})
     if table.length(BJI.Managers.Context.Scenario.Data.Races) > 0 then
-        local namesWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.columnRace)
-        local PBsWidth = BJI.Utils.Common.GetColumnTextWidth(W.labels.columnPB)
+        local namesWidth = BJI.Utils.UI.GetColumnTextWidth(W.labels.columnRace)
+        local PBsWidth = BJI.Utils.UI.GetColumnTextWidth(W.labels.columnPB)
         local cols = Table(BJI.Managers.Context.Scenario.Data.Races):filter(function(race)
                 return type(race) == "table"
             end):map(function(race)
@@ -66,22 +66,22 @@ local function updateCache(ctxt)
                 }
                 return res
             end):map(function(race)
-                local w = BJI.Utils.Common.GetColumnTextWidth(race.name)
+                local w = BJI.Utils.UI.GetColumnTextWidth(race.name)
                 if w > namesWidth then
                     namesWidth = w
                 end
 
                 local pbLabel = ""
                 if race.pb then
-                    pbLabel = BJI.Utils.Common.RaceDelay(race.pb or 0)
-                    w = BJI.Utils.Common.GetColumnTextWidth(pbLabel)
-                    if w + GetBtnIconSize() > PBsWidth then
-                        PBsWidth = w + GetBtnIconSize()
+                    pbLabel = BJI.Utils.UI.RaceDelay(race.pb or 0)
+                    w = BJI.Utils.UI.GetColumnTextWidth(pbLabel)
+                    if w + BJI.Utils.UI.GetBtnIconSize() > PBsWidth then
+                        PBsWidth = w + BJI.Utils.UI.GetBtnIconSize()
                     end
                 end
 
                 local hasRecord = race.record and race.record.playerName == ctxt.user.playerName
-                local recordLabel = race.record and BJI.Utils.Common.RaceDelay(race.record.time) or ""
+                local recordLabel = race.record and BJI.Utils.UI.RaceDelay(race.record.time) or ""
                 return {
                     name = race.name,
                     cells = {
@@ -92,7 +92,7 @@ local function updateCache(ctxt)
                         race.pb and function()
                             LineBuilder():btnIcon({
                                 id = string.var("removePb-{1}", { race.id }),
-                                icon = ICONS.delete_forever,
+                                icon = BJI.Utils.Icon.ICONS.delete_forever,
                                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                 tooltip = W.labels.buttons.remove,
                                 onClick = function()
@@ -187,7 +187,7 @@ local function header()
             :text(W.labels.vSeparator)
             :btnIcon({
                 id = "btnRemoveAllPbs",
-                icon = ICONS.delete_forever,
+                icon = BJI.Utils.Icon.ICONS.delete_forever,
                 tooltip = W.labels.buttons.removeAllPBs,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 onClick = function()

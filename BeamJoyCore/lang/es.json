@@ -341,7 +341,8 @@
         "gamemodeJoin": "{playerName} se unió a {gamemode}",
         "gamemodeLeave": "{playerName} salió de {gamemode}",
         "gamemodeFinished": "{playerName} terminó {gamemode} en la posición #{gamemodePosition}",
-        "gamemodeTeamWon": "{teamName} ganó {gamemode}"
+        "gamemodeTeamWon": "{teamName} ganó {gamemode}",
+        "tournamentResult": "{playerName} terminó el torneo en la posición #{position} ({score} pts)"
       }
     },
     "nametags": {
@@ -445,7 +446,8 @@
           "stop": "Detener la destrucción Derby",
           "noArena": "No hay arena disponible",
           "missingPlayers": "Faltan {amount} jugador(es)"
-        }
+        },
+        "tournament": "Torneo"
       },
       "edit": {
         "title": "Editar",
@@ -1519,6 +1521,33 @@
         "notReadyMark": "NO LISTO",
         "amountLife": "{amount} vida",
         "amountLives": "{amount} vidas"
+      }
+    },
+    "tournament": {
+      "title": "Torneo",
+      "state": "Activado",
+      "whitelist": "Lista blanca",
+      "activityTimeoutIn": "Actividad termina en {delay}",
+      "activityAboutToTimeout": "La actividad está a punto de finalizar",
+      "total": "Total",
+      "startActivity": "Iniciar actividad",
+      "track": "Circuito",
+      "arena": "Arena",
+      "duration": "Duración",
+      "noParticipant": "Sin participantes aún",
+      "buttons": {
+        "endSoloRace": "Terminar contrarreloj",
+        "endTournament": "Terminar torneo",
+        "endTournamentTooltip": "Se publicarán las posiciones en el chat",
+        "errorMustHaveVehicle": "Necesitas un vehículo"
+      },
+      "activities": {
+        "raceSolo": "Contrarreloj",
+        "race": "Carrera",
+        "speed": "Velocidad",
+        "hunter": "Cazador",
+        "derby": "Derbi",
+        "tag": "Infectado"
       }
     }
   }

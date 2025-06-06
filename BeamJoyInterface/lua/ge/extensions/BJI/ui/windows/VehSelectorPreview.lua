@@ -7,7 +7,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_RESIZE,
         BJI.Utils.Style.WINDOW_FLAGS.NO_SCROLLBAR,
-        BJI.Utils.Style.WINDOW_FLAGS.NO_SCROLL_WITH_MOUSE
+        BJI.Utils.Style.WINDOW_FLAGS.NO_SCROLL_WITH_MOUSE,
+        BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
 
     preview = nil, -- image path

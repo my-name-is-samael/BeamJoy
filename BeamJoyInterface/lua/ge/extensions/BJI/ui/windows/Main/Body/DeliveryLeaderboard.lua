@@ -20,7 +20,7 @@ local function updateCache(ctxt)
     for i, lb in ipairs(BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard) do
         labels[i] = string.var("#{1} {2} :", { i, lb.playerName })
         scores[i] = string.var("{1} {2}", { lb.delivery, BJI.Managers.Lang.get("delivery.leaderboard.delivered") })
-        local w = BJI.Utils.Common.GetColumnTextWidth(labels[i])
+        local w = BJI.Utils.UI.GetColumnTextWidth(labels[i])
         if w > cache.playernamesWidth then
             cache.playernamesWidth = w
         end

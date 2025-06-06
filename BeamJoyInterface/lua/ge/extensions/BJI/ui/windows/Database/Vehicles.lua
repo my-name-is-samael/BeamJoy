@@ -79,7 +79,7 @@ local function header(ctxt)
     LineLabel(W.labels.title)
     LineBuilder():btnIcon({
         id = "addBlacklistedModel",
-        icon = ICONS.add,
+        icon = BJI.Utils.Icon.ICONS.add,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableInputs or not W.cache.selectedModel,
         tooltip = W.labels.add,
@@ -104,7 +104,7 @@ local function body(data)
     W.cache.blackListDisplay:forEach(function(el)
         LineBuilder():btnIcon({
             id = string.var("removeBlacklisted-{1}", { el.model }),
-            icon = ICONS.delete_forever,
+            icon = BJI.Utils.Icon.ICONS.delete_forever,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableInputs,
             tooltip = W.labels.remove,

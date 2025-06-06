@@ -38,7 +38,7 @@ end
 local function updateWidths()
     W.labelsWidth = Table(W.labels.keys)
         :reduce(function(acc, l, k)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 end

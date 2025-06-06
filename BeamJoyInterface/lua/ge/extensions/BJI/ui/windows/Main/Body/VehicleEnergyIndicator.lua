@@ -114,7 +114,7 @@ local function draw(ctxt)
         if cache.showGPSButton[energyType] then
             line:btnIcon({
                 id = string.var("setRouteStation{1}", { i }),
-                icon = ICONS.add_location,
+                icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation"),
                 tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),

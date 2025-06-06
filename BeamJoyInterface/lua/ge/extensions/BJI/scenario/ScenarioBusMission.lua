@@ -210,7 +210,7 @@ local function drawUI(ctxt, cache)
         local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
         line:btnIconToggle({
             id = "toggleBusLoop",
-            icon = ICONS.all_inclusive,
+            icon = BJI.Utils.Icon.ICONS.all_inclusive,
             state = loop,
             tooltip = cache.labels.busMission.loop,
             onClick = function()
@@ -221,7 +221,7 @@ local function drawUI(ctxt, cache)
     end
     line:btnIcon({
         id = "stopBusMission",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         big = true,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = cache.labels.busMission.leave,
@@ -309,7 +309,7 @@ local function getPlayerListActions(player, ctxt)
         BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -356,6 +356,7 @@ S.onTargetReached = onTargetReached
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
+S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 

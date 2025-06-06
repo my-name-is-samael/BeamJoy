@@ -14,7 +14,7 @@ return function(ctxt, cache)
     end
     local remainingTime = vr.endsAt - ctxt.now
     line:text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
-        :var({ delay = BJI.Utils.Common.PrettyDelay(math.floor(remainingTime / 1000)) }))
+        :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
         :build()
 
     if cache.showVoteBtn or BJI.Managers.Perm.isStaff() then
@@ -23,8 +23,8 @@ return function(ctxt, cache)
             line:btnIconToggle({
                 id = "voteRace",
                 icon = vr.isVote and
-                    (vr.selfVoted and ICONS.event_busy or ICONS.event_available) or
-                    ICONS.cancel,
+                    (vr.selfVoted and BJI.Utils.Icon.ICONS.event_busy or BJI.Utils.Icon.ICONS.event_available) or
+                    BJI.Utils.Icon.ICONS.cancel,
                 state = not vr.selfVoted,
                 tooltip = vr.isVote and
                     (vr.selfVoted and cache.buttons.unvote or cache.buttons.vote) or
@@ -40,7 +40,7 @@ return function(ctxt, cache)
         if BJI.Managers.Perm.isStaff() and vr.isVote or not cache.showVoteBtn then
             line:btnIcon({
                 id = "stopPrepRace",
-                icon = ICONS.cancel,
+                icon = BJI.Utils.Icon.ICONS.cancel,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = cache.buttons.stop,
                 disabled = cache.disableButtons,

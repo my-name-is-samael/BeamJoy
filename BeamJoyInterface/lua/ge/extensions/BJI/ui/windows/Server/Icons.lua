@@ -1,14 +1,14 @@
 local W = {}
 
 local filter = ""
-local filtered = table.clone(ICONS_FLAT)
+local filtered = table.clone(BJI.Utils.Icon.ICONS_FLAT)
 local function updateFilter()
     local query = filter:lower()
     if #query == 0 then
-        filtered = table.clone(ICONS_FLAT)
+        filtered = table.clone(BJI.Utils.Icon.ICONS_FLAT)
     else
         filtered = {}
-        for _, icon in ipairs(ICONS_FLAT) do
+        for _, icon in ipairs(BJI.Utils.Icon.ICONS_FLAT) do
             if icon:lower():find(query) then
                 table.insert(filtered, icon)
             end
@@ -20,7 +20,7 @@ end
 local function drawFilter()
     LineBuilder()
         :icon({
-            icon = ICONS.ab_filter_default,
+            icon = BJI.Utils.Icon.ICONS.ab_filter_default,
         })
         :inputString({
             id = "iconsFilter",
@@ -39,7 +39,7 @@ local function body(ctxt)
         :commonStart(function()
             LineBuilder(true)
                 :icon({
-                    icon = ICONS.warning,
+                    icon = BJI.Utils.Icon.ICONS.warning,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     coloredIcon = true,
                 })
@@ -48,7 +48,7 @@ local function body(ctxt)
         end)
         :openedBehavior(function()
             local w = ui_imgui.GetContentRegionAvail().x
-            local iconSize = GetBtnIconSize(true)
+            local iconSize = BJI.Utils.UI.GetBtnIconSize(true)
             local colsAmount = math.floor(w / iconSize)
             local widths = {}
             for _ = 1, colsAmount do

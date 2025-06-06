@@ -85,12 +85,13 @@ local function onVehicleResetted(gameVehID)
         not isTagger() then
         BJI.Managers.Veh.freeze(true, gameVehID)
         BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-        BJI.Managers.Message.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, true, "FLEE !", nil, function()
-            BJI.Managers.Veh.freeze(false, gameVehID)
-            BJI.Managers.Restrictions.updateResets(Table()
-                :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
-        end, false)
+        BJI.Managers.Message.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, true, "FLEE !", nil,
+            function()
+                BJI.Managers.Veh.freeze(false, gameVehID)
+                BJI.Managers.Restrictions.updateResets(Table()
+                    :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
+                    :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
+            end, false)
     end
 end
 
@@ -111,7 +112,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -241,10 +242,12 @@ S.onVehicleSwitched = onVehicleSwitched
 S.onVehicleDestroyed = onVehicleDestroyed
 
 S.canRefuelAtStation = TrueFn
-S.canRepairAtGarage = TrueFn
+
+S.canRepairAtGarage = FalseFn
+S.canDeleteVehicle = FalseFn
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
-S.canDeleteVehicle = TrueFn
+S.canPaintVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 
 S.getPlayerListActions = getPlayerListActions

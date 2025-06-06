@@ -437,12 +437,12 @@ end
 
 local baseSort = table.sort
 ---@generic T
----@param tab tablelib<integer,T>|table<integer,T>|T[]
+---@param tab tablelib<any,T>|table<any,T>|T[]
 ---@param sortFn? fun(a: T, b: T): boolean
----@return tablelib<T>
+---@return tablelib<integer, T>
 table.sort = function(tab, sortFn) ---@diagnostic disable-line
-    tab = tab or {}
-    if table.isObject(tab) then
+    tab = Table(tab)
+    if tab:isObject() then
         tab = Table(tab):values()
     end
     local ok, err = pcall(baseSort, tab, sortFn)
@@ -450,4 +450,20 @@ table.sort = function(tab, sortFn) ---@diagnostic disable-line
         LogError(string.var("Error while sorting table : {1}", { err }))
     end
     return Table(tab)
+end
+
+---@generic T
+---@param tab tablelib<any,T>|table<any,T>|T[]
+---@return tablelib<integer, T>
+table.shuffle = table.shuffle or function(tab)
+    if type(tab) ~= "table" then return Table() end
+    tab = Table(tab):clone()
+    if table.isObject(tab) then
+        tab = Table(tab):values()
+    end
+    for i = #tab, 2, -1 do
+        local j = math.random(i)
+        tab[i], tab[j] = tab[j], tab[i]
+    end
+    return tab
 end

@@ -205,9 +205,29 @@ local function switchToRandomParticipant()
     end
 end
 
+---@return boolean
+local function canSpawnNewVehicle()
+    local participant = S.getParticipant()
+    return S.state == S.STATES.PREPARATION and participant ~= nil and not participant.ready and
+        table.length(BJI.Managers.Context.User.vehicles) == 0
+end
+
+---@return boolean
 local function canVehUpdate()
     local participant = S.getParticipant()
-    return S.state == S.STATES.PREPARATION and participant ~= nil and not participant.ready
+    if S.state ~= S.STATES.PREPARATION or not participant or participant.ready or
+        not BJI.Managers.Veh.isCurrentVehicleOwn() then
+        return false
+    end
+
+    return #S.configs ~= 1
+end
+
+---@return boolean
+local function canPaintVehicle()
+    local participant = S.getParticipant()
+    return S.state == S.STATES.PREPARATION and participant ~= nil and not participant.ready and
+        BJI.Managers.Veh.isCurrentVehicleOwn()
 end
 
 local function doShowNametag(vehData)
@@ -229,7 +249,7 @@ local function getPlayerListActions(player, ctxt)
             end, nil)
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
-            icon = ICONS.visibility,
+            icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
                 (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
@@ -243,7 +263,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -362,10 +382,12 @@ end
 ---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.getParticipant()
-    if S.state == S.STATES.GAME and ctxt.isOwner and
-        not S.destroy.process and not S.destroy.lock and
-        S.startTime and ctxt.now > S.startTime and
-        participant and not S.isEliminated() then
+    local isDNFProcessAvail = not S.destroy.process and not S.destroy.lock
+    local gameStarted = S.startTime and ctxt.now > S.startTime
+    local validParticipant = participant and not S.isEliminated()
+    local gameNotOver = not S.participants[2] or not S.participants[2].eliminationTime
+    if S.state == S.STATES.GAME and ctxt.isOwner and isDNFProcessAvail and
+        gameStarted and validParticipant and gameNotOver then
         local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
         local notMoved = dist and dist < S.destroy.distanceThreshold * 10
         local outOfZone = not isVehInZone(ctxt)
@@ -635,8 +657,9 @@ S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
 S.getModelList = getModelList
 
-S.canSpawnNewVehicle = canVehUpdate
+S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate
+S.canPaintVehicle = canPaintVehicle
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end

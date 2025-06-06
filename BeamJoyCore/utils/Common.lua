@@ -261,6 +261,7 @@ BJC_TOAST_TYPES = {
 ---@field origin string
 ---@field senderID? number
 ---@field sender? BJCPlayer
+---@field data table
 
 ---@param data? BJCContext
 ---@return BJCContext
@@ -312,8 +313,7 @@ end
 function CountdownKickAll(delaySec, getMessage, kickReasonKey, callback)
     delaySec = math.clamp(tonumber(delaySec) or 2, 2, 60)
     if MP.GetPlayerCount() == 0 then
-        MP.Sleep(500)
-        if callback then callback() end
+        if type(callback) == "function" then callback() end
         return
     end
 

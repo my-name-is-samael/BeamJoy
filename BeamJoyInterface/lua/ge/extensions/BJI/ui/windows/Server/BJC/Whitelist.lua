@@ -5,7 +5,7 @@ local function drawWhitelistOnlinePlayers(playerNames, labels, cache)
         local included = table.includes(BJI.Managers.Context.BJC.Whitelist.PlayerNames, playerName)
         LineBuilder():btnIconToggle({
             id = string.var("toggleWhitelist{1}", { playerName }),
-            icon = included and ICONS.remove_circle or ICONS.add_circle,
+            icon = included and BJI.Utils.Icon.ICONS.remove_circle or BJI.Utils.Icon.ICONS.add_circle,
             state = not included,
             coloredIcon = true,
             disabled = cache.disableInputs,
@@ -25,7 +25,7 @@ local function drawWhitelistOfflinePlayers(playerNames, labels, cache)
     for _, playerName in ipairs(playerNames) do
         LineBuilder():btnIcon({
             id = string.var("removeWhitelist{1}", { playerName }),
-            icon = ICONS.remove_circle,
+            icon = BJI.Utils.Icon.ICONS.remove_circle,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             coloredIcon = true,
             disabled = cache.disableInputs,
@@ -57,7 +57,7 @@ return function(ctxt, labels, cache)
         })
     else
         line:icon({
-            icon = BJI.Managers.Context.BJC.Whitelist.Enabled and ICONS.check_circle or ICONS.cancel,
+            icon = BJI.Managers.Context.BJC.Whitelist.Enabled and BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
             style = BJI.Managers.Context.BJC.Whitelist.Enabled and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                 BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Context.BJC.Whitelist.Enabled and labels.whitelist.enabled or labels.whitelist.disabled,
@@ -84,7 +84,7 @@ return function(ctxt, labels, cache)
         end
     }):btnIcon({
         id = "addWhitelist",
-        icon = ICONS.addListItem,
+        icon = BJI.Utils.Icon.ICONS.addListItem,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = not canAdd or cache.disableInputs,
         tooltip = labels.whitelist.add,

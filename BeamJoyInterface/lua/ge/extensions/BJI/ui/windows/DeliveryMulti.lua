@@ -68,7 +68,7 @@ local function updateCache(ctxt)
         }
     end)
     W.cache.playerNamesWidth = W.cache.playersList:reduce(function(acc, p)
-        local w = BJI.Utils.Common.GetColumnTextWidth(p.playerName)
+        local w = BJI.Utils.UI.GetColumnTextWidth(p.playerName)
         return w > acc and w or acc
     end, 0)
 end
@@ -103,7 +103,7 @@ local function header(ctxt)
         -- distance
         LineBuilder()
             :text(W.labels.distance)
-            :text(BJI.Utils.Common.PrettyDistance(W.scenario.distance))
+            :text(BJI.Utils.UI.PrettyDistance(W.scenario.distance))
             :build()
         if W.scenario.baseDistance then
             ProgressBar({
@@ -141,7 +141,7 @@ local function footer(ctxt)
     LineBuilder()
         :btnIcon({
             id = "deliveryMultiLeave",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             disabled = W.cache.disableButtons,
             tooltip = W.labels.leave,

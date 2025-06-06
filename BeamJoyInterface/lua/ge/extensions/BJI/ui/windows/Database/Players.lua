@@ -70,7 +70,7 @@ local function updateWidths()
         W.labels.muted,
         W.labels.muteReason,
     }):reduce(function(acc, l)
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 end
@@ -174,7 +174,7 @@ local function header(ctxt)
     LineBuilder()
         :btnIcon({
             id = "databasePlayersRefresh",
-            icon = ICONS.refresh,
+            icon = BJI.Utils.Icon.ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = W.cache.disableInputs,
             tooltip = W.labels.buttons.refresh,
@@ -247,7 +247,7 @@ local function body(ctxt)
                 else
                     line:btnIconToggle({
                         id = "databasePlayerBanned",
-                        icon = ICONS.gavel,
+                        icon = BJI.Utils.Icon.ICONS.gavel,
                         state = W.cache.currentPlayer.banned == true or W.cache.currentPlayer.tempBanUntil ~= nil,
                         disabled = W.cache.disableInputs,
                         onClick = function()
@@ -262,7 +262,7 @@ local function body(ctxt)
                 end
                 if W.cache.currentPlayer.tempBanUntil then
                     line:text(W.labels.tempBanEndsIn:var({
-                        secs = BJI.Utils.Common.PrettyDelay(
+                        secs = BJI.Utils.UI.PrettyDelay(
                             W.cache.currentPlayer.tempBanUntil -
                             BJI.Managers.Tick.applyTimeOffset(math.floor(ctxt.now / 1000))
                         )
@@ -303,7 +303,7 @@ local function body(ctxt)
                     LineBuilder()
                         :btnIconToggle({
                             id = "databasePlayerMuted",
-                            icon = ICONS.mic_off,
+                            icon = BJI.Utils.Icon.ICONS.mic_off,
                             state = W.cache.currentPlayer.muted == true,
                             disabled = W.cache.disableInputs,
                             tooltip = W.labels.buttons.mute,

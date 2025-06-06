@@ -1,6 +1,6 @@
 ---@return integer
 function GetCurrentTime()
-    return os.time(os.date("!*t")) -- - offset
+    return os.time(os.date("!*t")) ---@diagnostic disable-line
 end
 
 ---@param str string

@@ -14,10 +14,10 @@ return function(ctxt, labels, cache)
         })
         :text(cache.tempban.minTimePretty)
         :build()
-    BJI.Utils.Common.DrawLineDurationModifiers("tempBanMinTime", BJI.Managers.Context.BJC.TempBan.minTime, 0, nil, 300,
+    BJI.Utils.UI.DrawLineDurationModifiers("tempBanMinTime", BJI.Managers.Context.BJC.TempBan.minTime, 0, nil, 300,
         function(val)
             BJI.Managers.Context.BJC.TempBan.minTime = val
-            cache.tempban.minTimePretty = BJI.Utils.Common.PrettyDelay(val)
+            cache.tempban.minTimePretty = BJI.Utils.UI.PrettyDelay(val)
         end, cache.disableInputs)
 
     LineBuilder():text(labels.tempban.maxTime, nil, labels.tempban.zeroTooltip)
@@ -35,17 +35,17 @@ return function(ctxt, labels, cache)
         })
         :text(cache.tempban.maxTimePretty)
         :build()
-    BJI.Utils.Common.DrawLineDurationModifiers("tempBanMaxTime", BJI.Managers.Context.BJC.TempBan.maxTime, 0, nil,
+    BJI.Utils.UI.DrawLineDurationModifiers("tempBanMaxTime", BJI.Managers.Context.BJC.TempBan.maxTime, 0, nil,
         31536000, function(val)
             BJI.Managers.Context.BJC.TempBan.maxTime = val
-            cache.tempban.maxTimePretty = BJI.Utils.Common.PrettyDelay(val)
+            cache.tempban.maxTimePretty = BJI.Utils.UI.PrettyDelay(val)
         end, cache.disableInputs)
 
     local canSave =
         LineBuilder()
         :btnIcon({
             id = "tempBanLimitsSave",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs or
                 BJI.Managers.Context.BJC.TempBan.minTime < 0 or

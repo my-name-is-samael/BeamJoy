@@ -48,7 +48,7 @@ local function menuMap(ctxt)
                         end) or Table(), function(line, mapName, onClose)
                             line:btnIcon({
                                 id = "voteMapValid",
-                                icon = ICONS.event_available,
+                                icon = BJI.Utils.Icon.ICONS.event_available,
                                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                                 tooltip = BJI.Managers.Lang.get("common.buttons.vote"),
                                 onClick = function()
@@ -111,13 +111,11 @@ local function menuRace(ctxt)
                                     raceID = race.id,
                                     raceName = race.name,
                                     loopable = race.loopable,
-                                    laps = 1,
                                     defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
                                     respawnStrategies = respawnStrategies:filter(function(rs)
                                         return race.hasStand or
-                                            rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                            rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
                                     end),
-                                    vehicleMode = nil,
                                 })
                             end
                         }
@@ -148,14 +146,12 @@ local function menuRace(ctxt)
                                             raceID = race.id,
                                             raceName = race.name,
                                             loopable = race.loopable,
-                                            laps = 1,
                                             defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
                                                 .LAST_CHECKPOINT.key,
                                             respawnStrategies = respawnStrategies:filter(function(rs)
                                                 return race.hasStand or
-                                                    rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                                    rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
                                             end),
-                                            vehicleMode = nil,
                                         })
                                     end)
                             end, { BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO })

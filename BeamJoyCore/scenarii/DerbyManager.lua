@@ -36,7 +36,7 @@ local M = {
         configs = Table(),
     },
 
-    ---@type tablelib<integer, BJIDerbyParticipant> index 1-N
+    ---@type tablelib<integer, BJIDerbyParticipant> index 1-N position
     participants = Table(),
 
     preparation = {
@@ -93,6 +93,46 @@ local function onClientStopDerby()
     stopDerby()
 end
 
+local function updateTournamentScores()
+    if BJCTournament.state then
+        local lives, finished = Table(), Table()
+        M.participants:forEach(function(p, i)
+            local player = BJCPlayers.Players[p.playerID]
+            if player then
+                if not p.eliminationTime then
+                    if not lives[p.lives] then
+                        lives[p.lives] = Table()
+                    end
+                    lives[p.lives]:insert(player.playerName)
+                else
+                    finished:insert({
+                        playerName = player.playerName,
+                        time = p.eliminationTime,
+                    })
+                end
+            end
+        end)
+
+        local activityIndex = #BJCTournament.activities
+        local pos = 1
+        Range(M.settings.lives, 0)
+            :forEach(function(i)
+                if lives[i] then
+                    lives[i]:forEach(function(p)
+                        BJCTournament.editPlayerScore(p, activityIndex, pos)
+                    end)
+                    pos = pos + 1
+                end
+            end)
+        finished:sort(function(a, b)
+            return a.time > b.time
+        end):forEach(function(el)
+            BJCTournament.editPlayerScore(el.playerName, activityIndex, pos)
+            pos = pos + 1
+        end)
+    end
+end
+
 local function startDerby()
     if M.state ~= M.STATES.PREPARATION then
         error({ key = "rx.errors.invalidData" })
@@ -108,6 +148,11 @@ local function startDerby()
     end, M.game.startTime, "BJCDerbyGameStartTimer")
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
+
+    if BJCTournament.state then
+        BJCTournament.addActivity(BJCTournament.ACTIVITIES_TYPES.DERBY, M.baseArena.name)
+        updateTournamentScores()
+    end
 end
 
 local function onPreparationTimeout()
@@ -243,6 +288,11 @@ local function sortParticipants()
         end
         return a.lives > b.lives
     end)
+
+    if BJCTournament.state then
+        BJCAsync.removeTask("BJCDerbyUpdateTournamentScores")
+        BJCAsync.delayTask(updateTournamentScores, 0, "BJCDerbyUpdateTournamentScores")
+    end
 end
 
 ---@param playerID integer

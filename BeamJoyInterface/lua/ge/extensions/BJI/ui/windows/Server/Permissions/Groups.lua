@@ -7,7 +7,7 @@ local function drawGroupNewPermission(labels, cache, gkey, group, cols)
                 LineBuilder()
                     :btnIcon({
                         id = string.var("newPerm{1}", { gkey }),
-                        icon = ICONS.check,
+                        icon = BJI.Utils.Icon.ICONS.check,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = readOnly or cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
                         tooltip = labels.add,
@@ -178,7 +178,7 @@ local function drawGroupData(labels, cache, gkey, group)
                     LineBuilder()
                         :btnIcon({
                             id = string.var("deleteGroupPerm-{1}-{2}", { gkey, permName }),
-                            icon = ICONS.delete_forever,
+                            icon = BJI.Utils.Icon.ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             disabled = readOnly or cache.disableInputs,
                             onClick = function()
@@ -240,7 +240,7 @@ local function drawNewGroup(labels, cache)
     LineBuilder()
         :btnIcon({
             id = "addNewGroup",
-            icon = ICONS.addListItem,
+            icon = BJI.Utils.Icon.ICONS.addListItem,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs or #cache.newGroup.label < 4 or
                 Table(BJI.Managers.Perm.Groups):any(function(g, k)
@@ -275,7 +275,7 @@ return function(labels, cache)
                     group.level < cache.selfGroup then
                     line:btnIcon({
                         id = "deleteGroup" .. gkey,
-                        icon = ICONS.delete_forever,
+                        icon = BJI.Utils.Icon.ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = cache.disableInputs,
                         tooltip = labels.remove,

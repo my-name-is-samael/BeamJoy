@@ -27,7 +27,7 @@ local function draw(ctxt)
     end
 
     -- VOTES
-    if #menuVote.cache.elems > 0 then
+    if #menuVote.cache.elems > 0 and not BJI.Managers.Tournament.state then
         menu:addEntry(menuVote.cache.label, menuVote.cache.elems)
     end
 

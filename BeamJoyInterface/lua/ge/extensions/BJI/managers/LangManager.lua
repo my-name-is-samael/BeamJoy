@@ -67,7 +67,7 @@ local function drawSelector(data)
         line:text(data.label)
     else
         line:icon({
-            icon = ICONS.translate,
+            icon = BJI.Utils.Icon.ICONS.translate,
             style = { BJI.Utils.Style.TEXT_COLORS.DEFAULT },
             coloredIcon = true,
         })

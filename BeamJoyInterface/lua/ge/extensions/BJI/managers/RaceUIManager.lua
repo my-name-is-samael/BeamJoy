@@ -107,13 +107,13 @@ local function drawHotlap()
             symbol = "+"
         end
         if diff ~= 0 then
-            diffLabel = string.var("{1}{2}", { symbol, BJI.Utils.Common.RaceDelay(math.abs(diff)) })
+            diffLabel = string.var("{1}{2}", { symbol, BJI.Utils.UI.RaceDelay(math.abs(diff)) })
         end
         table.insert(rows, {
             lap = i,
-            duration = BJI.Utils.Common.RaceDelay(row.duration),
+            duration = BJI.Utils.UI.RaceDelay(row.duration),
             diff = diffLabel,
-            total = BJI.Utils.Common.RaceDelay(row.total),
+            total = BJI.Utils.UI.RaceDelay(row.total),
         })
     end
 

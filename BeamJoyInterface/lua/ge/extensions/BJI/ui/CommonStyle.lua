@@ -13,7 +13,6 @@ end
 
 U.RGBA_PRECISION = 3
 
----@type table<string, number>
 U.WINDOW_FLAGS = {
     MENU_BAR = im.WindowFlags_MenuBar,
     NO_SCROLLBAR = im.WindowFlags_NoScrollbar,

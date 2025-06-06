@@ -273,13 +273,13 @@ end
 local function updateWidths()
     W.cache.voteKick.labelsWidth = Table({ W.labels.voteKick.timeout, W.labels.voteKick.thresholdRatio })
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
     W.cache.mapVote.labelsWidth = Table({ W.labels.mapVote.timeout, W.labels.mapVote.thresholdRatio })
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
@@ -289,7 +289,7 @@ local function updateWidths()
             return not k:endswith("Tooltip")
         end)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
@@ -299,7 +299,7 @@ local function updateWidths()
             return not k:endswith("Tooltip")
         end)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
@@ -309,7 +309,7 @@ local function updateWidths()
             return not k:endswith("Tooltip")
         end)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
@@ -319,13 +319,13 @@ local function updateWidths()
             return not k:endswith("Tooltip")
         end)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(l)
+            local w = BJI.Utils.UI.GetColumnTextWidth(l)
             return w > acc and w or acc
         end, 0)
 
     W.cache.server.welcomeMessage.langsWidth = Table(BJI.Managers.Lang.Langs)
         :reduce(function(acc, l)
-            local w = BJI.Utils.Common.GetColumnTextWidth(W.labels.server.welcomeMessage.message
+            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.server.welcomeMessage.message
                 :var({ lang = l:upper() }))
             return w > acc and w or acc
         end, 0)
@@ -345,16 +345,16 @@ local function updateCache()
     end
 
     if BJI.Managers.Context.BJC.VoteKick then
-        W.cache.voteKick.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
+        W.cache.voteKick.timeoutPretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
     end
 
     if BJI.Managers.Context.BJC.VoteMap then
-        W.cache.mapVote.timeoutPretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.VoteMap.Timeout)
+        W.cache.mapVote.timeoutPretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.VoteMap.Timeout)
     end
 
     if BJI.Managers.Context.BJC.TempBan then
-        W.cache.tempban.minTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.minTime)
-        W.cache.tempban.maxTimePretty = BJI.Utils.Common.PrettyDelay(BJI.Managers.Context.BJC.TempBan.maxTime)
+        W.cache.tempban.minTimePretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.TempBan.minTime)
+        W.cache.tempban.maxTimePretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.TempBan.maxTime)
     end
 
     if BJI.Managers.Context.BJC.VehicleDelivery then

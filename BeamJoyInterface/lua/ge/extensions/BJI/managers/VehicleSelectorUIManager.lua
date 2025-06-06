@@ -3,8 +3,9 @@ local M = {
     _name = "VehSelectorUI",
     baseFunctions = {},
 
-    stateSelector = true,
-    stateEditor = true,
+    stateSelector = true, -- allow for veh selector
+    stateEditor = true,   -- allow for vehicle parts editor
+    statePaint = true,    -- allow for paint current veh
 }
 
 -- VEHICLE SELECTOR
@@ -253,11 +254,12 @@ local function spawnNewVehicle(model, opts)
 end
 
 local function replaceVehicle(model, opt, otherVeh)
-    if not M.stateSelector then
+    if not M.stateSelector and not M.statePaint then
         return
     elseif BJI.Managers.Veh.isCurrentVehicleOwn() then
-        if not BJI.Managers.Scenario.canReplaceVehicle() then
-            -- cannot update veh in current scenario
+        if not BJI.Managers.Scenario.canReplaceVehicle() and
+            not BJI.Managers.Scenario.canPaintVehicle() then
+            -- cannot update veh now during current scenario
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
             return
         end
@@ -331,10 +333,12 @@ local function onUpdateRestrictions()
     local function _update()
         M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and (
             BJI.Managers.Scenario.canSpawnNewVehicle() or (
-                BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.getCurrentVehicleOwn()
+                BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn()
             )
         )
         M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam()
+        M.statePaint = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn() and
+            BJI.Managers.Scenario.canPaintVehicle()
         BJI.Managers.Restrictions.update({
             {
                 -- update selector restriction

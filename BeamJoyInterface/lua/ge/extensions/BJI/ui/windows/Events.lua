@@ -180,7 +180,7 @@ local function updateCaches(ctxt)
                 playerName = BJI.Managers.Votes.Race.record.playerName,
                 model = BJI.Managers.Veh.getModelLabel(BJI.Managers.Votes.Race.record.model) or
                     BJI.Managers.Votes.Race.record.model,
-                time = BJI.Utils.Common.RaceDelay(BJI.Managers.Votes.Race.record.time)
+                time = BJI.Utils.UI.RaceDelay(BJI.Managers.Votes.Race.record.time)
             })
         end
 
@@ -245,7 +245,7 @@ end
 local function body(ctxt)
     LineBuilder()
         :icon({
-            icon = ICONS.event_note,
+            icon = BJI.Utils.Icon.ICONS.event_note,
             big = true,
         })
         :build()

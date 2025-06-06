@@ -1,5 +1,6 @@
 local M = {
     _dbPath = nil,
+    _tournamentPath = nil,
     _TYPES = {
         RACES = "_races",
         STATIONS = "_stations",
@@ -15,10 +16,12 @@ local M = {
     BusLines = {},
     Hunter = {},
     Derby = {},
+    Tournament = {},
 }
 
 function M.init(dbPath)
     M._dbPath = string.var("{1}/scenarii", { dbPath })
+    M._tournamentPath = string.var("{1}/tournaments.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         FS.CreateDirectory(M._dbPath)
@@ -31,7 +34,8 @@ local function _getFilePath(type)
 end
 
 -- RACES
-local function _loadMapRaces()
+---@return table
+function M.Races.findAll()
     local filePath = _getFilePath(M._TYPES.RACES)
 
     local defaultRaces = {}
@@ -46,10 +50,7 @@ local function _loadMapRaces()
     return defaultRaces
 end
 
-function M.Races.findAll()
-    return _loadMapRaces()
-end
-
+---@param race table
 function M.Races.save(race)
     local races = M.Races.findAll()
 
@@ -94,6 +95,7 @@ function M.Races.save(race)
     return race.id
 end
 
+---@param id integer
 function M.Races.delete(id)
     local races = M.Races.findAll()
     for i, race in ipairs(races) do
@@ -111,6 +113,7 @@ function M.Races.delete(id)
 end
 
 -- ENERGY STATIONS / GARAGES
+---@return table
 local function _loadMapStations()
     local filePath = _getFilePath(M._TYPES.STATIONS)
 
@@ -130,10 +133,12 @@ local function _loadMapStations()
     return defaultStations
 end
 
+---@return table
 function M.EnergyStations.findAll()
     return _loadMapStations().EnergyStations
 end
 
+---@param energyStations table
 function M.EnergyStations.save(energyStations)
     local data = _loadMapStations()
     data.EnergyStations = energyStations
@@ -145,10 +150,12 @@ function M.EnergyStations.save(energyStations)
     end
 end
 
+---@return table
 function M.Garages.findAll()
     return _loadMapStations().Garages
 end
 
+---@param garages table
 function M.Garages.save(garages)
     local data = _loadMapStations()
     data.Garages = garages
@@ -161,7 +168,8 @@ function M.Garages.save(garages)
 end
 
 -- DELIVERIES
-local function _loadMapDeliveries()
+---@return table
+function M.Delivery.findAll()
     local filePath = _getFilePath(M._TYPES.DELIVERIES)
 
     local defaultDeliveries = {}
@@ -171,16 +179,13 @@ local function _loadMapDeliveries()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultDeliveries
 end
 
-function M.Delivery.findAll()
-    return _loadMapDeliveries()
-end
-
+---@param deliveries table
 function M.Delivery.save(deliveries)
     local filePath = _getFilePath(M._TYPES.DELIVERIES)
     if #deliveries == 0 then
@@ -191,7 +196,8 @@ function M.Delivery.save(deliveries)
 end
 
 -- BUS LINES
-local function _loadMapBusLines()
+---@return table
+function M.BusLines.findAll()
     local filePath = _getFilePath(M._TYPES.BUS_LINES)
 
     local defaultBusLines = {}
@@ -201,16 +207,13 @@ local function _loadMapBusLines()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultBusLines
 end
 
-function M.BusLines.findAll()
-    return _loadMapBusLines()
-end
-
+---@param busLines table
 function M.BusLines.save(busLines)
     local filePath = _getFilePath(M._TYPES.BUS_LINES)
     if #busLines == 0 then
@@ -221,7 +224,8 @@ function M.BusLines.save(busLines)
 end
 
 -- HUNTER
-local function _loadMapHunter()
+---@return table
+function M.Hunter.findAll()
     local filePath = _getFilePath(M._TYPES.HUNTER)
 
     local defaultHunterData = {
@@ -236,23 +240,21 @@ local function _loadMapHunter()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultHunterData
 end
 
-function M.Hunter.findAll()
-    return _loadMapHunter()
-end
-
+---@param hunterData table
 function M.Hunter.save(hunterData)
     local filePath = _getFilePath(M._TYPES.HUNTER)
     BJCDao._saveFile(filePath, hunterData)
 end
 
 -- DERBY
-local function _loadMapDerby()
+---@return table
+function M.Derby.findAll()
     local filePath = _getFilePath(M._TYPES.DERBY)
 
     local defaultDerbyData = {}
@@ -262,22 +264,62 @@ local function _loadMapDerby()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            return JSON.parse(data) or {}
         end
     end
     return defaultDerbyData
 end
 
-function M.Derby.findAll()
-    return _loadMapDerby()
-end
-
+---@param derbyData table
 function M.Derby.save(derbyData)
     local filePath = _getFilePath(M._TYPES.DERBY)
     if #derbyData == 0 then
         FS.Remove(filePath)
     else
         BJCDao._saveFile(filePath, derbyData)
+    end
+end
+
+-- TOURNAMENT
+---@return table
+function M.Tournament.get()
+    local defaultTournamentData = {
+        activities = {},
+        players = {},
+        whitelist = false,
+        whitelistPlayers = {},
+    }
+
+    if FS.Exists(M._tournamentPath) then
+        local file, err = io.open(M._tournamentPath, "r")
+        if file and not err then
+            local data = file:read("*a")
+            file:close()
+            return JSON.parse(data) or {}
+        end
+    end
+    return defaultTournamentData
+end
+
+---@param activities BJTournamentActivity[]
+---@param players BJTournamentPlayer[]
+---@param whitelist boolean
+---@param whitelistPlayers string[]
+function M.Tournament.save(activities, players, whitelist, whitelistPlayers)
+    if whitelist and #whitelistPlayers == 0 then
+        whitelist = false
+    end
+    if #whitelistPlayers == 0 and #players == 0 and #activities == 0 then
+        if FS.Exists(M._tournamentPath) then
+            FS.Remove(M._tournamentPath)
+        end
+    else
+        BJCDao._saveFile(M._tournamentPath, {
+            activities = activities,
+            players = players,
+            whitelist = whitelist,
+            whitelistPlayers = whitelistPlayers,
+        })
     end
 end
 

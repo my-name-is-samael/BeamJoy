@@ -91,7 +91,7 @@ local function fastTick(time)
     end):forEach(function(el, key)
         local ok, err = pcall(el.taskFn, time)
         if not ok then
-            LogError(string.var("Error executing programmed task {1} :", { key }))
+            LogError(string.var("Error executing async task {1} :", { key }))
             dump(err)
         end
         M.tasks[key] = nil
@@ -106,6 +106,6 @@ M.delayTask = delayTask
 M.programTask = programTask
 M.removeTask = removeTask
 
-BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, fastTick)
+BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, fastTick, "AsyncManager")
 
 return M

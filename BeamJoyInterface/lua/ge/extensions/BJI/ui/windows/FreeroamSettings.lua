@@ -94,10 +94,10 @@ local function updateCache(ctxt)
     W.cache.labelsWidth = Table(W.labels)
         :filter(function(_, k) return not tostring(k):endswith("Tooltip") end)
         :reduce(function(acc, label)
-            local w = BJI.Utils.Common.GetColumnTextWidth(label)
+            local w = BJI.Utils.UI.GetColumnTextWidth(label)
             return w > acc and w or acc
         end, 0)
-    W.cache.buttonsWidth = GetBtnIconSize()
+    W.cache.buttonsWidth = BJI.Utils.UI.GetBtnIconSize()
 
     W.cache.colsConfig = Table({
         {
@@ -230,7 +230,7 @@ local function updateCache(ctxt)
                             LineBuilder()
                                 :btnIcon({
                                     id = conf.keyData,
-                                    icon = ICONS.refresh,
+                                    icon = BJI.Utils.Icon.ICONS.refresh,
                                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                     tooltip = W.labels.buttons.reset,
                                     onClick = function()
@@ -297,7 +297,7 @@ local function footer(ctxt)
     local line = LineBuilder()
         :btnIcon({
             id = "closeFreeroamSettings",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.buttons.close,
             onClick = function()
@@ -307,7 +307,7 @@ local function footer(ctxt)
     if W.changed then
         line:btnIcon({
             id = "reset",
-            icon = ICONS.refresh,
+            icon = BJI.Utils.Icon.ICONS.refresh,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             tooltip = W.labels.buttons.resetAll,
             onClick = function()
@@ -317,7 +317,7 @@ local function footer(ctxt)
         })
             :btnIcon({
                 id = "save",
-                icon = ICONS.save,
+                icon = BJI.Utils.Icon.ICONS.save,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = W.labels.buttons.save,
                 onClick = function()

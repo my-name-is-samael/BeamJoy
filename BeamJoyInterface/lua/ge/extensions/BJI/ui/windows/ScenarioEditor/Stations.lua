@@ -77,7 +77,7 @@ end
 local function udpateWidths()
     W.cache.labelsWidth = Table({ W.labels.name, W.labels.types, W.labels.radius })
         :reduce(function(res, label)
-            local w = BJI.Utils.Common.GetColumnTextWidth(label)
+            local w = BJI.Utils.UI.GetColumnTextWidth(label)
             return w > res and w or res
         end, 0)
 end
@@ -152,13 +152,13 @@ end
 local function header(ctxt)
     LineBuilder():text(W.labels.title):btnIcon({
         id = "reloadMarkers",
-        icon = ICONS.sync,
+        icon = BJI.Utils.Icon.ICONS.sync,
         style = BJI.Utils.Style.BTN_PRESETS.INFO,
         tooltip = W.labels.buttons.refreshMarkers,
         onClick = reloadMarkers,
     }):btnIcon({
         id = "createStation",
-        icon = ICONS.add_location,
+        icon = BJI.Utils.Icon.ICONS.add_location,
         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
         disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
         tooltip = string.var("{1}{2}", {
@@ -268,7 +268,7 @@ local function body(ctxt)
                     function()
                         LineBuilder():btnIcon({
                             id = string.var("goToStation{1}", { i }),
-                            icon = ICONS.pin_drop,
+                            icon = BJI.Utils.Icon.ICONS.pin_drop,
                             style = BJI.Utils.Style.BTN_PRESETS.INFO,
                             tooltip = W.labels.buttons.showStation,
                             onClick = function()
@@ -279,7 +279,7 @@ local function body(ctxt)
                             end
                         }):btnIcon({
                             id = string.var("moveStation{1}", { i }),
-                            icon = ICONS.edit_location,
+                            icon = BJI.Utils.Icon.ICONS.edit_location,
                             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
                             tooltip = string.var("{1}{2}", {
@@ -295,7 +295,7 @@ local function body(ctxt)
                             end
                         }):btnIcon({
                             id = string.var("deleteStation{1}", { i }),
-                            icon = ICONS.delete_forever,
+                            icon = BJI.Utils.Icon.ICONS.delete_forever,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             disabled = W.cache.disableInputs,
                             tooltip = W.labels.buttons.deleteStation,
@@ -318,7 +318,7 @@ end
 local function footer(ctxt)
     local line = LineBuilder():btnIcon({
         id = "closeEnergyStations",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.labels.buttons.close,
         onClick = BJI.Windows.ScenarioEditor.onClose,
@@ -326,7 +326,7 @@ local function footer(ctxt)
     if W.changed then
         line:btnIcon({
             id = "saveEnergyStations",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs or not W.valid,
             tooltip = string.var("{1}{2}", { W.labels.buttons.save,

@@ -10,7 +10,7 @@ return function(ctxt, cache)
         :build()
     local remainingTime = vm.endsAt - ctxt.now
     local delayLabel = remainingTime < 1000 and cache.voteAboutEnd or cache.timeout
-        :var({ delay = BJI.Utils.Common.PrettyDelay(math.floor(remainingTime / 1000)) })
+        :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) })
     LineBuilder()
         :text(cache.votes)
         :text(delayLabel)
@@ -18,7 +18,7 @@ return function(ctxt, cache)
     local line = LineBuilder()
         :btnIconToggle({
             id = "voteMap",
-            icon = vm.selfVoted and ICONS.event_busy or ICONS.event_available,
+            icon = vm.selfVoted and BJI.Utils.Icon.ICONS.event_busy or BJI.Utils.Icon.ICONS.event_available,
             state = not vm.selfVoted,
             tooltip = vm.selfVoted and cache.buttons.unvote or cache.buttons.vote,
             disabled = cache.voteDisabled,
@@ -31,7 +31,7 @@ return function(ctxt, cache)
     if BJI.Managers.Perm.isStaff() then
         line:btnIcon({
             id = "stopVoteMap",
-            icon = ICONS.cancel,
+            icon = BJI.Utils.Icon.ICONS.cancel,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = cache.buttons.stop,
             disabled = cache.disableButtons,

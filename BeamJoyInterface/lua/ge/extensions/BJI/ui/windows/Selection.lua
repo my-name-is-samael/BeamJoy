@@ -7,7 +7,7 @@ local W = {
     w = 350,
     h = 125,
 
-    LIMIT_ELEMS_THRESHOLD = 15,
+    LIMIT_ELEMS_THRESHOLD = 20,
 
     labels = {
         title = "",
@@ -108,7 +108,7 @@ end
 local function footer()
     local line = LineBuilder():btnIcon({
         id = "selectionCancel",
-        icon = ICONS.exit_to_app,
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = W.labels.cancel,
         onClick = onClose,
@@ -119,7 +119,7 @@ local function footer()
         elseif W.callback then
             line:btnIcon({
                 id = "selectionConfirm",
-                icon = ICONS.check,
+                icon = BJI.Utils.Icon.ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = W.labels.valid,
                 onClick = function()

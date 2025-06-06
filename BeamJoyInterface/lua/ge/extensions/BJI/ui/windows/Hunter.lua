@@ -108,7 +108,10 @@ local function updateCache(ctxt)
     if W.cache.showPreparation then
         W.cache.preparationTimeoutTargetTime = W.scenario.preparationTimeout
         W.cache.isReady = W.cache.isParticipant and W.scenario.participants[BJI.Managers.Context.User.playerID].ready
-        W.cache.showPreparationActions = BJI.Managers.Perm.canSpawnVehicle() and not W.cache.isReady
+        W.cache.showPreparationActions = BJI.Managers.Perm.canSpawnVehicle() and not W.cache.isReady and (
+            not BJI.Managers.Tournament.state or not BJI.Managers.Tournament.whitelist or
+            BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName)
+        )
         W.cache.showConfigs = W.cache.isParticipant and not W.cache.isReady and
             not W.cache.isHunted and #W.scenario.settings.hunterConfigs > 1
     end
@@ -127,7 +130,7 @@ local function updateCache(ctxt)
 
         W.cache.showManualResetBtn = W.cache.isParticipant
         if W.cache.showManualResetBtn then
-            W.cache.manualResetWidth = GetBtnIconSize(true) + BJI.Utils.Common.GetTextWidth("  ")
+            W.cache.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) + BJI.Utils.UI.GetTextWidth("  ")
         end
     end
 
@@ -164,8 +167,19 @@ local function onLoad()
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        function(ctxt)
+            if W.scenario.participants[ctxt.user.playerID] and BJI.Managers.Tournament.whitelist and
+                not BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
+                -- got out of whitelist
+                BJI.Tx.scenario.HunterUpdate(W.scenario.state == W.scenario.STATES.PREPARATION and
+                    W.scenario.CLIENT_EVENTS.JOIN or W.scenario.CLIENT_EVENTS.LEAVE)
+            end
+        end, W.name .. "AutoLeaveTournament"))
 end
 
 local function onUnload()
@@ -187,7 +201,7 @@ local function drawHeaderPreparation(ctxt)
         local remaining = getDiffTime(W.cache.preparationTimeoutTargetTime, ctxt.now)
         local label = remaining < 1 and
             W.labels.preparationTimeoutAboutToEnd or
-            W.labels.preparationTimeoutIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
+            W.labels.preparationTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
         LineLabel(label, remaining < 10 and
             BJI.Utils.Style.TEXT_COLORS.ERROR or
             BJI.Utils.Style.TEXT_COLORS.DEFAULT
@@ -199,7 +213,7 @@ local function drawHeaderPreparation(ctxt)
     if W.cache.showPreparationActions then
         local line = LineBuilder():btnIconToggle({
             id = "joinParticipants",
-            icon = W.cache.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
+            icon = W.cache.isParticipant and BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
             state = not W.cache.isParticipant,
             disabled = W.cache.disabledButtons,
             tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
@@ -212,7 +226,7 @@ local function drawHeaderPreparation(ctxt)
         if ctxt.isOwner and not W.cache.isReady then
             line:btnIcon({
                 id = "readyHunter",
-                icon = ICONS.check,
+                icon = BJI.Utils.Icon.ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = not ctxt.isOwner or W.cache.disabledButtons,
                 tooltip = W.labels.buttons.markReady,
@@ -235,7 +249,7 @@ local function drawHeaderGame(ctxt)
                 W.cache.showGameActions and function()
                     local line = LineBuilder():btnIcon({
                         id = "leaveHunter",
-                        icon = ICONS.exit_to_app,
+                        icon = BJI.Utils.Icon.ICONS.exit_to_app,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = W.cache.disabledButtons,
                         tooltip = W.labels.buttons.forfeit,
@@ -254,7 +268,7 @@ local function drawHeaderGame(ctxt)
                     if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
                         local remaining = getDiffTime(W.cache.startTime, ctxt.now)
                         if remaining > 0 then
-                            label = W.labels.playStartIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
+                            label = W.labels.playStartIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
                         else
                             label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
                         end
@@ -267,7 +281,7 @@ local function drawHeaderGame(ctxt)
                             if W.scenario.dnf.process and W.scenario.dnf.targetTime and
                                 ctxt.now < W.scenario.dnf.targetTime then
                                 local remaining = getDiffTime(W.scenario.dnf.targetTime, ctxt.now)
-                                label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) })
+                                label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
                                 color = remaining <= 3 and
                                     BJI.Utils.Style.TEXT_COLORS.ERROR or
                                     BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
@@ -277,7 +291,7 @@ local function drawHeaderGame(ctxt)
                             if W.scenario.hunterRespawnTargetTime and ctxt.now < W.scenario.hunterRespawnTargetTime + 3000 then
                                 local remaining = getDiffTime(W.scenario.hunterRespawnTargetTime, ctxt.now)
                                 label = remaining >= 0 and
-                                    W.labels.hunterResumeIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) }) or
+                                    W.labels.hunterResumeIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }) or
                                     W.labels.flashStartHunter
                                 color = remaining <= 3 and
                                     BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
@@ -287,7 +301,7 @@ local function drawHeaderGame(ctxt)
                     end
                     if label then
                         line:icon({
-                            icon = ICONS.timer,
+                            icon = BJI.Utils.Icon.ICONS.timer,
                             big = true,
                         }):text(label, color)
                     end
@@ -296,7 +310,7 @@ local function drawHeaderGame(ctxt)
                 W.cache.showManualResetBtn and function()
                     LineBuilder():btnIcon({
                         id = "manualReset",
-                        icon = ICONS.build,
+                        icon = BJI.Utils.Icon.ICONS.build,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         big = true,
                         disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
@@ -332,7 +346,7 @@ local function drawBodyPreparation(ctxt)
             :forEach(function(confData, i)
                 LineBuilder():btnIcon({
                     id = string.var("spawnConfig{1}", { i }),
-                    icon = ctxt.isOwner and ICONS.carSensors or ICONS.add,
+                    icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.add,
                     style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disabledButtons,

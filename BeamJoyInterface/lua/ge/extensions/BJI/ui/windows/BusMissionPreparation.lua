@@ -47,7 +47,7 @@ local function updateCache(ctxt)
         W.labels.line,
         W.labels.config,
     }):reduce(function(acc, label)
-        local w = BJI.Utils.Common.GetColumnTextWidth(label)
+        local w = BJI.Utils.UI.GetColumnTextWidth(label)
         return w > acc and w or acc
     end, 0)
 
@@ -55,7 +55,7 @@ local function updateCache(ctxt)
         :map(function(line, i)
             return {
                 id = i,
-                label = string.var("{1} ({2})", { line.name, BJI.Utils.Common.PrettyDistance(line.distance) }),
+                label = string.var("{1} ({2})", { line.name, BJI.Utils.UI.PrettyDistance(line.distance) }),
                 loopable = line.loopable,
                 stops = table.clone(line.stops),
             }
@@ -212,14 +212,14 @@ local function footer(ctxt)
     LineBuilder()
         :btnIcon({
             id = "cancelBusMission",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.cancel,
             onClick = onClose,
         })
         :btnIcon({
             id = "startBusMission",
-            icon = ICONS.videogame_asset,
+            icon = BJI.Utils.Icon.ICONS.videogame_asset,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = not W.data.lineSelected.id or not W.data.configSelected.config,
             tooltip = W.labels.start,

@@ -9,6 +9,7 @@ local M = {
     },
     tasks = Table(),
     delayedTasks = Table(),
+    delayedOrder = Table(),
 }
 
 ---@param key string|integer
@@ -49,6 +50,19 @@ local function task(conditionFn, taskFn, key)
     end
 end
 
+local function sortDelayedTasks()
+    M.delayedOrder = M.delayedTasks:map(function(el, k)
+        return { key = k, time = el.time }
+    end):sort(function(a, b)
+        if a.time == b.time then
+            return a.key < b.key
+        end
+        return a.time < b.time
+    end):map(function(el)
+        return el.key
+    end)
+end
+
 ---@param taskFn fun(ctxt: TickContext)
 ---@param delayMs integer|number
 ---@param key? string|integer
@@ -67,6 +81,7 @@ local function delayTask(taskFn, delayMs, key)
             time = GetCurrentTimeMillis() + delayMs,
         }
     end
+    sortDelayedTasks()
 end
 
 ---@param taskFn fun(ctxt: TickContext)
@@ -87,34 +102,41 @@ local function programTask(taskFn, targetMs, key)
             time = targetMs,
         }
     end
+    sortDelayedTasks()
 end
 
 ---@param key string
 local function removeTask(key)
     M.tasks[key] = nil
     M.delayedTasks[key] = nil
+    if M.delayedOrder:includes(key) then
+        M.delayedOrder:remove(M.delayedOrder:indexOf(key))
+    end
 end
 
 local renderTimeout = 4
 local function renderTick(ctxt)
-    M.delayedTasks:filter(function(t)
-        return t.time <= ctxt.now
-    end):map(function(t, k)
-        return { key = k, task = t }
-    end):sort(function(a, b)
-        return a.task.time <= b.task.time
-    end):forEach(function(data)
-        if GetCurrentTimeMillis() - ctxt.now > renderTimeout / 2 then
-            LogDebug("Skipping async delayed (timeout)", M._name)
-            return
+    if M.delayedOrder[1] then
+        local key = M.delayedOrder[1]
+        if not M.delayedTasks[key] then
+            M.delayedOrder:remove(1)
+        elseif M.delayedTasks[key].time <= ctxt.now then
+            local start = GetCurrentTimeMillis()
+            local ctask = M.delayedTasks[key]
+            local status, err = pcall(ctask.taskFn, ctxt)
+            if not status then
+                LogError(string.var("Error executing delayed task {1} :", { key }))
+                dump(err)
+            end
+            local benchTime = GetCurrentTimeMillis() - start
+            M.delayedTasks[key] = nil
+            M.delayedOrder:remove(1)
+            if benchTime > renderTimeout / 2 then
+                LogWarn(string.var("Delayed task {1} took {2}ms", { key, benchTime }))
+                return
+            end
         end
-        local status, err = pcall(data.task.taskFn, ctxt)
-        if not status then
-            LogError(string.var("Error executing delayed task {1} :", { data.key }))
-            PrintObj(err)
-        end
-        M.delayedTasks[data.key] = nil
-    end)
+    end
 
     M.tasks:forEach(function(ctask, key)
         if GetCurrentTimeMillis() - ctxt.now > renderTimeout then

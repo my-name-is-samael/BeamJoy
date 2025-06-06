@@ -4,7 +4,7 @@ return function(ctxt, labels, cache)
     LineBuilder()
         :btnIcon({
             id = "addVehDeliveryBlackListModel",
-            icon = ICONS.add,
+            icon = BJI.Utils.Icon.ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs or #cache.vehicleDelivery.modelsCombo <= 1,
             tooltip = labels.vehicleDelivery.add,
@@ -33,7 +33,7 @@ return function(ctxt, labels, cache)
         LineBuilder()
             :btnIcon({
                 id = string.var("removeVehDeliveryBlackListModel{1}", { v.model }),
-                icon = ICONS.delete_forever,
+                icon = BJI.Utils.Icon.ICONS.delete_forever,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 disabled = cache.disableInputs,
                 tooltip = labels.vehicleDelivery.remove,

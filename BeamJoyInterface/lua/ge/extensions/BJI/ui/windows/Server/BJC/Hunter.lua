@@ -20,7 +20,7 @@ return function(ctxt, labels, cache)
                 function()
                     LineBuilder():btnIcon({
                         id = v.key .. "reset",
-                        icon = ICONS.refresh,
+                        icon = BJI.Utils.Icon.ICONS.refresh,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = BJI.Managers.Context.BJC.Hunter[v.key] == v.default,
                         tooltip = labels.buttons.reset,

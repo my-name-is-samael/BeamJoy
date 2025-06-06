@@ -53,7 +53,7 @@ local function menuSoloRace(ctxt)
                                     defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
                                     respawnStrategies = respawnStrategies:filter(function(rs)
                                         return race.hasStand or
-                                            rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                            rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
                                     end),
                                 })
                             end
@@ -82,7 +82,7 @@ local function menuSoloRace(ctxt)
                                                 .LAST_CHECKPOINT.key,
                                             respawnStrategies = respawnStrategies:filter(function(rs)
                                                 return race.hasStand or
-                                                    rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                                    rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
                                             end),
                                         })
                                     end)
@@ -328,12 +328,6 @@ local function menuSpeedGame(ctxt)
                 end,
             })
         end
-    elseif BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.scenario.speed.stop"),
-            onClick = BJI.Tx.scenario.SpeedStop,
-        })
     end
 end
 
@@ -376,12 +370,6 @@ local function menuHunter(ctxt)
                 end,
             })
         end
-    elseif BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.scenario.hunter.stop"),
-            onClick = BJI.Tx.scenario.HunterStop,
-        })
     end
 end
 
@@ -452,12 +440,6 @@ local function menuDerby(ctxt)
                 })
             end
         end
-    elseif BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.scenario.derby.stop"),
-            onClick = BJI.Tx.scenario.DerbyStop,
-        })
     end
 end
 
@@ -469,7 +451,8 @@ local function updateCache(ctxt)
         elems = {},
     }
 
-    if not BJI.Windows.ScenarioEditor.getState() then
+    if not BJI.Windows.ScenarioEditor.getState() and
+        not BJI.Managers.Tournament.state then
         menuSoloRace(ctxt)
         menuVehicleDelivery(ctxt)
         menuPackageDelivery(ctxt)
@@ -481,13 +464,46 @@ local function updateCache(ctxt)
         menuDerby(ctxt)
     end
 
-    -- STOP MULTI RACE
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.scenario.raceStop"),
-            onClick = BJI.Tx.scenario.RaceMultiStop,
-        })
+    -- STOP Server Scenario
+    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+        if BJI.Managers.Scenario.isServerScenarioInProgress() then
+            if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.raceStop"),
+                    onClick = BJI.Tx.scenario.RaceMultiStop,
+                })
+            elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.speed.stop"),
+                    onClick = BJI.Tx.scenario.SpeedStop,
+                })
+            elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.hunter.stop"),
+                    onClick = BJI.Tx.scenario.HunterStop,
+                })
+            elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
+                table.insert(M.cache.elems, {
+                    label = BJI.Managers.Lang.get("menu.scenario.derby.stop"),
+                    onClick = BJI.Tx.scenario.DerbyStop,
+                })
+            end
+        end
+
+        if not BJI.Managers.Tournament.state then
+            table.insert(M.cache.elems, {
+                label = BJI.Managers.Lang.get("menu.scenario.tournament"),
+                active = BJI.Windows.Tournament.manualShow,
+                onClick = function()
+                    if BJI.Windows.Tournament.manualShow and
+                        BJI.Windows.Tournament.onClose then
+                        BJI.Windows.Tournament.onClose()
+                    else
+                        BJI.Windows.Tournament.open()
+                    end
+                end,
+            })
+        end
     end
 end
 
@@ -505,7 +521,9 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+        BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, "MainMenuScenario"))
 
     ---@param data {cache: string}

@@ -1,4 +1,6 @@
-ICONS = {
+local U = {}
+
+U.ICONS = {
     AIMicrochip = "AIMicrochip",
     AIRace = "AIRace",
     BNGMicrochip = "BNGMicrochip",
@@ -1397,14 +1399,9 @@ ICONS = {
     zoom_out = "zoom_out",
     zoom_out_map = "zoom_out_map",
 }
+U.ICONS_FLAT = Table(U.ICONS):values():sort(function(a, b) return a:lower() < b:lower() end)
 
-ICONS_FLAT = {}
-for _, icon in pairs(ICONS) do
-    table.insert(ICONS_FLAT, icon)
-end
-table.sort(ICONS_FLAT, function(a, b) return a:lower() < b:lower() end)
-
-function GetIcon(icon)
+function U.GetIcon(icon)
     local res = BJI.Managers.Context.GUI.icons[icon]
     if not res then
         LogError(string.var("Invalid icon '{1}'", { icon }))
@@ -1414,11 +1411,4 @@ function GetIcon(icon)
     return res
 end
 
-function GetIconSize(big)
-    return math.round((big and 32 or 20) * BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
-end
-
-ICON_BTN_MARGIN = 10
-function GetBtnIconSize(big)
-    return GetIconSize(big) + math.round(ICON_BTN_MARGIN * BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
-end
+return U

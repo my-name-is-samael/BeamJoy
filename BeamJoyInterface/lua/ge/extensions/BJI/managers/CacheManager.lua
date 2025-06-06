@@ -26,6 +26,7 @@ local M = {
         DERBY_DATA = "derbydata",
         DERBY = "derby",
         TAG_DUO = "tagduo",
+        TOURNAMENT = "tournament",
         -- admin
         DATABASE_VEHICLES = "databaseVehicles",
         -- owner

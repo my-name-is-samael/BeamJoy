@@ -294,7 +294,7 @@ local function getPlayerListActions(player, ctxt)
         end
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
-            icon = ICONS.visibility,
+            icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = disabled,
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
@@ -329,7 +329,7 @@ local function getPlayerListActions(player, ctxt)
         if player.self and BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
             table.insert(actions, {
                 id = "stopWalking",
-                icon = ICONS.directions_run,
+                icon = BJI.Utils.Icon.ICONS.directions_run,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = BJI.Managers.Lang.get("playersBlock.buttons.stopWalking"),
                 onClick = BJI.Managers.Veh.deleteCurrentOwnVehicle,
@@ -339,7 +339,7 @@ local function getPlayerListActions(player, ctxt)
         if not player.self and player.vehiclesCount > 0 then
             table.insert(actions, {
                 id = string.var("gpsPlayer{1}", { player.playerID }),
-                icon = ICONS.add_location,
+                icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                 onClick = function()
@@ -350,7 +350,7 @@ local function getPlayerListActions(player, ctxt)
             if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.TELEPORT_TO) then
                 table.insert(actions, {
                     id = string.var("teleportTo{1}", { player.playerID }),
-                    icon = ICONS.tb_height_higher,
+                    icon = BJI.Utils.Icon.ICONS.tb_height_higher,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = S.teleport.restricted,
                     tooltip = BJI.Managers.Lang.get("playersBlock.buttons.teleportTo"),
@@ -366,7 +366,7 @@ local function getPlayerListActions(player, ctxt)
                 if finalGameVehID and BJI.Managers.Veh.getVehOwnerID(finalGameVehID) == player.playerID then
                     table.insert(actions, {
                         id = string.var("teleportFrom{1}", { player.playerID }),
-                        icon = ICONS.tb_height_lower,
+                        icon = BJI.Utils.Icon.ICONS.tb_height_lower,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
                             not ctxt.isOwner or
@@ -386,7 +386,7 @@ local function getPlayerListActions(player, ctxt)
         BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()

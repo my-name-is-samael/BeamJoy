@@ -226,7 +226,7 @@ local function renderTick(ctxt)
 end
 
 local function fastTick(ctxt)
-    -- Update forced camera -- TODO CHECK WITH FAST_TICK
+    -- Update forced camera
     if M.isForcedCamera() then
         if ctxt.camera ~= M.forced.cam then
             M.setCamera(M.forced.cam, false)

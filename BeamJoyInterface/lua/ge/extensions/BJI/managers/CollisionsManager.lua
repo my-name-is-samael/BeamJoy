@@ -186,7 +186,7 @@ local function onVehicleResetted(gameVehID)
 
     if M.type == M.TYPES.GHOSTS then
         local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
-        if not veh or not isVehicle(gameVehID) then
+        if not veh or not isVehicle(gameVehID) or veh.isParked or veh.isTraffic then
             return
         end
 
@@ -376,7 +376,8 @@ local function onTypeChange(ctxt, previousType)
             addGhost(ctxt.veh:getID(), ctxt)
             -- restore others vehs alpha
             BJI.Managers.Veh.getMPVehicles():filter(function(v)
-                return v.gameVehicleID ~= ctxt.veh:getID() and not M.ghosts[v.gameVehicleID] and not M.permaGhosts[v.gameVehicleID]
+                return v.gameVehicleID ~= ctxt.veh:getID() and not M.ghosts[v.gameVehicleID] and
+                    not M.permaGhosts[v.gameVehicleID]
             end):forEach(function(v)
                 setAlpha(v.gameVehicleID, M.playerAlpha)
             end)

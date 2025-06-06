@@ -27,7 +27,7 @@ local function menuTimePresets(ctxt)
         local elems = {
             [1] = {
                 render = function()
-                    BJI.Utils.Common.DrawTimePlayPauseButtons("menuTimePlay", true)
+                    BJI.Utils.UI.DrawTimePlayPauseButtons("menuTimePlay", true)
                 end,
             }
         }
@@ -337,7 +337,7 @@ local function menuRaces(ctxt)
                             render = function()
                                 LineBuilder():btnIconToggle({
                                     id = "toggle-" .. tostring(race.id),
-                                    icon = race.enabled and ICONS.visibility or ICONS.visibility_off,
+                                    icon = race.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
                                     state = race.enabled == true,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.toggle"),
                                     onClick = function()
@@ -345,7 +345,7 @@ local function menuRaces(ctxt)
                                     end
                                 }):btnIcon({
                                     id = "editRace-" .. tostring(race.id),
-                                    icon = ICONS.mode_edit,
+                                    icon = BJI.Utils.Icon.ICONS.mode_edit,
                                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
                                     onClick = function()
@@ -353,7 +353,7 @@ local function menuRaces(ctxt)
                                     end
                                 }):btnIcon({
                                     id = "copyRace-" .. tostring(race.id),
-                                    icon = ICONS.content_copy,
+                                    icon = BJI.Utils.Icon.ICONS.content_copy,
                                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
                                     onClick = function()
@@ -361,7 +361,7 @@ local function menuRaces(ctxt)
                                     end
                                 }):btnIcon({
                                     id = "deleteRace-" .. tostring(race.id),
-                                    icon = ICONS.delete_forever,
+                                    icon = BJI.Utils.Icon.ICONS.delete_forever,
                                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
                                     onClick = function()
@@ -401,7 +401,7 @@ local function menuRaces(ctxt)
                                 -- create race
                                 line:btnIcon({
                                     id = "createRace",
-                                    icon = ICONS.add,
+                                    icon = BJI.Utils.Icon.ICONS.add,
                                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.create"),
                                     onClick = function()
@@ -414,7 +414,7 @@ local function menuRaces(ctxt)
                             rawRaces:find(function(r) return r.id == raceID end, function(race)
                                 line:btnIcon({
                                     id = "editRace-" .. tostring(raceID),
-                                    icon = ICONS.mode_edit,
+                                    icon = BJI.Utils.Icon.ICONS.mode_edit,
                                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
                                     onClick = function()
@@ -423,7 +423,7 @@ local function menuRaces(ctxt)
                                     end
                                 }):btnIcon({
                                     id = "copyRace-" .. tostring(race.id),
-                                    icon = ICONS.content_copy,
+                                    icon = BJI.Utils.Icon.ICONS.content_copy,
                                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
                                     onClick = function()
@@ -432,7 +432,7 @@ local function menuRaces(ctxt)
                                     end
                                 }):btnIcon({
                                     id = "deleteRace-" .. tostring(race.id),
-                                    icon = ICONS.delete_forever,
+                                    icon = BJI.Utils.Icon.ICONS.delete_forever,
                                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
                                     onClick = function()

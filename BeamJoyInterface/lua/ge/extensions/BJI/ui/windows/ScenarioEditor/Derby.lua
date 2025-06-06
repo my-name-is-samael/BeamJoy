@@ -137,7 +137,7 @@ local function udpateWidths()
         W.labels.radius,
         W.labels.startPositionName
     }):reduce(function(acc, l)
-        local w = BJI.Utils.Common.GetColumnTextWidth(l)
+        local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
 end
@@ -215,7 +215,7 @@ local function header(ctxt)
     LineBuilder():text(W.labels.title)
         :btnIcon({
             id = "addArena",
-            icon = ICONS.add,
+            icon = BJI.Utils.Icon.ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             tooltip = W.labels.buttons.addArena,
             onClick = function()
@@ -224,6 +224,7 @@ local function header(ctxt)
                     enabled = false,
                     previewPosition = nil,
                     startPositions = Table(),
+                    radius = 10,
                 })
                 W.changed = true
                 validateArenas()
@@ -237,7 +238,7 @@ end
 local function drawArena(ctxt, iArena, arena)
     LineBuilder():text(W.labels.arena:var({ index = iArena })):btnIcon({
         id = string.var("reloadMarkersArena{1}", { iArena }),
-        icon = ICONS.visibility,
+        icon = BJI.Utils.Icon.ICONS.visibility,
         style = BJI.Utils.Style.BTN_PRESETS.INFO,
         disabled = W.markersArena == iArena or #arena.startPositions == 0,
         tooltip = W.labels.buttons.showArena,
@@ -246,7 +247,7 @@ local function drawArena(ctxt, iArena, arena)
         end,
     }):btnIcon({
         id = string.var("deleteArena{1}", { iArena }),
-        icon = ICONS.delete_forever,
+        icon = BJI.Utils.Icon.ICONS.delete_forever,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         disabled = W.cache.disableButtons,
         tooltip = W.labels.buttons.deleteArena,
@@ -285,7 +286,7 @@ local function drawArena(ctxt, iArena, arena)
                 LineBuilder()
                     :btnIconToggle({
                         id = string.var("toggleArenaEnabled{1}", { iArena }),
-                        icon = arena.enabled and ICONS.visibility or ICONS.visibility_off,
+                        icon = arena.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
                         state = arena.enabled,
                         disabled = W.cache.disableButtons,
                         tooltip = W.labels.buttons.toggleArenaVisibility,
@@ -308,7 +309,7 @@ local function drawArena(ctxt, iArena, arena)
             function()
                 local line = LineBuilder():btnIcon({
                     id = string.var("setArenaPreviewPos{1}", { iArena }),
-                    icon = arena.previewPosition and ICONS.edit_location or ICONS.add_location,
+                    icon = arena.previewPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
                     style = arena.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableButtons,
@@ -322,7 +323,7 @@ local function drawArena(ctxt, iArena, arena)
                 if arena.previewPosition then
                     line:btnIcon({
                         id = string.var("showArenaPreviePosition{1}", { iArena }),
-                        icon = ICONS.visibility,
+                        icon = BJI.Utils.Icon.ICONS.visibility,
                         style = BJI.Utils.Style.BTN_PRESETS.INFO,
                         tooltip = W.labels.buttons.showPreviewPosition,
                         onClick = function()
@@ -347,7 +348,7 @@ local function drawArena(ctxt, iArena, arena)
             function()
                 local line = LineBuilder():btnIcon({
                     id = string.var("setArenaCenterPos{1}", { iArena }),
-                    icon = arena.centerPosition and ICONS.edit_location or ICONS.add_location,
+                    icon = arena.centerPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
                     style = arena.centerPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableButtons or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
@@ -365,7 +366,7 @@ local function drawArena(ctxt, iArena, arena)
                 if arena.centerPosition then
                     line:btnIcon({
                         id = string.var("showArenaCenterPos{1}", { iArena }),
-                        icon = ICONS.visibility,
+                        icon = BJI.Utils.Icon.ICONS.visibility,
                         style = BJI.Utils.Style.BTN_PRESETS.INFO,
                         tooltip = W.labels.buttons.showCenterPosition,
                         onClick = function()
@@ -407,7 +408,7 @@ local function drawArena(ctxt, iArena, arena)
             function()
                 local line = LineBuilder():btnIcon({
                     id = string.var("addStartPos{1}", { iArena }),
-                    icon = ICONS.add_location,
+                    icon = BJI.Utils.Icon.ICONS.add_location,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
                     tooltip = string.var("{1}{2}", {
@@ -441,7 +442,7 @@ local function drawArena(ctxt, iArena, arena)
                 function()
                     LineBuilder():text(W.labels.startPositionName:var({ index = i })):btnIcon({
                         id = string.var("upArenaStartPos{1}{2}", { iArena, i }),
-                        icon = ICONS.arrow_drop_up,
+                        icon = BJI.Utils.Icon.ICONS.arrow_drop_up,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = W.cache.disableButtons or i == 1,
                         tooltip = W.labels.buttons.moveUp,
@@ -453,7 +454,7 @@ local function drawArena(ctxt, iArena, arena)
                         end,
                     }):btnIcon({
                         id = string.var("downArenaStartPos{1}{2}", { iArena, i }),
-                        icon = ICONS.arrow_drop_down,
+                        icon = BJI.Utils.Icon.ICONS.arrow_drop_down,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = W.cache.disableButtons or i == #arena.startPositions,
                         tooltip = W.labels.buttons.moveDown,
@@ -465,7 +466,7 @@ local function drawArena(ctxt, iArena, arena)
                         end,
                     }):btnIcon({
                         id = string.var("gotoArenaStartPos{1}{2}", { iArena, i }),
-                        icon = ICONS.pin_drop,
+                        icon = BJI.Utils.Icon.ICONS.pin_drop,
                         style = BJI.Utils.Style.BTN_PRESETS.INFO,
                         tooltip = W.labels.buttons.showStartPosition,
                         onClick = function()
@@ -489,7 +490,7 @@ local function drawArena(ctxt, iArena, arena)
                         end,
                     }):btnIcon({
                         id = string.var("moveHereArenaStartPos{1}{2}", { iArena, i }),
-                        icon = ICONS.edit_location,
+                        icon = BJI.Utils.Icon.ICONS.edit_location,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = W.cache.disableInputs or not ctxt.veh or
                             ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
@@ -506,7 +507,7 @@ local function drawArena(ctxt, iArena, arena)
                         end
                     }):btnIcon({
                         id = string.var("deleteArenaStartPos{1}{2}", { iArena, i }),
-                        icon = ICONS.delete_forever,
+                        icon = BJI.Utils.Icon.ICONS.delete_forever,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = W.cache.disableInputs,
                         tooltip = W.labels.buttons.deleteStartPosition,
@@ -537,7 +538,7 @@ local function footer(ctxt)
     local line = LineBuilder()
         :btnIcon({
             id = "cancelDerbyEdit",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.buttons.close,
             onClick = BJI.Windows.ScenarioEditor.onClose,
@@ -545,7 +546,7 @@ local function footer(ctxt)
     if W.changed then
         line:btnIcon({
             id = "saveDerbyEdit",
-            icon = ICONS.save,
+            icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs or not W.valid,
             tooltip = string.var("{1}{2}", {

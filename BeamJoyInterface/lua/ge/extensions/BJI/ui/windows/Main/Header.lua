@@ -87,7 +87,7 @@ local function updateCacheData(ctxt)
         cache.data.temp = nil
     elseif cache.data.showTimeAndTemp then
         -- static time, cached
-        cache.data.time = BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time)
+        cache.data.time = BJI.Utils.UI.PrettyTime(BJI.Managers.Env.getTime().time)
         local temp = BJI.Managers.Env.getTemperature()
         local tempUnit = settings.getValue("uiUnitTemperature")
         if tempUnit == "k" then
@@ -109,8 +109,8 @@ local function updateCacheData(ctxt)
 end
 
 local function updateWidths()
-    cache.data.firstRowRightButtonsWidth = math.round(GetBtnIconSize() * 2)
-    cache.data.secondRowRightButtonsWidth = math.round(GetBtnIconSize() *
+    cache.data.firstRowRightButtonsWidth = math.round(BJI.Utils.UI.GetBtnIconSize() * 2)
+    cache.data.secondRowRightButtonsWidth = math.round(BJI.Utils.UI.GetBtnIconSize() *
         (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) and 2 or 1))
 end
 
@@ -177,7 +177,7 @@ local function draw(ctxt)
                 function()
                     local line = LineBuilder():btnIcon({
                         id = "toggleUserSettings",
-                        icon = ICONS.settings,
+                        icon = BJI.Utils.Icon.ICONS.settings,
                         style = BJI.Utils.Style.BTN_PRESETS.INFO,
                         active = BJI.Windows.UserSettings.show,
                         tooltip = cache.labels.buttons.userSettings,
@@ -188,7 +188,7 @@ local function draw(ctxt)
                     if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
                         line:btnIcon({
                             id = "toggleVehicleSelector",
-                            icon = ICONS.directions_car,
+                            icon = BJI.Utils.Icon.ICONS.directions_car,
                             style = BJI.Utils.Style.BTN_PRESETS.INFO,
                             active = BJI.Windows.VehSelector.show,
                             tooltip = cache.labels.buttons.vehicleSelector,
@@ -203,7 +203,7 @@ local function draw(ctxt)
                     end
                     line:btnIconToggle({
                         id = "togleNametags",
-                        icon = cache.data.nametagsVisible and ICONS.speaker_notes or ICONS.speaker_notes_off,
+                        icon = cache.data.nametagsVisible and BJI.Utils.Icon.ICONS.speaker_notes or BJI.Utils.Icon.ICONS.speaker_notes_off,
                         state = cache.data.nametagsVisible,
                         coloredIcon = true,
                         tooltip = cache.labels.buttons.toggleNametags,
@@ -215,7 +215,7 @@ local function draw(ctxt)
                     if BJI.Managers.GPS.isClearable() then
                         line:btnIcon({
                             id = "clearGPS",
-                            icon = ICONS.location_off,
+                            icon = BJI.Utils.Icon.ICONS.location_off,
                             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                             coloredIcon = true,
                             tooltip = cache.labels.buttons.clearGPS,
@@ -237,7 +237,7 @@ local function draw(ctxt)
                     local value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
                     LineBuilder():btnIcon({
                         id = "uiScaleZoomOut",
-                        icon = ICONS.zoom_out,
+                        icon = BJI.Utils.Icon.ICONS.zoom_out,
                         tooltip = cache.labels.buttons.zoomOut,
                         onClick = function()
                             local scale = math.clamp(value - 0.05, minScale, maxScale)
@@ -251,7 +251,7 @@ local function draw(ctxt)
                         end
                     }):btnIcon({
                         id = "uiScaleZoomIn",
-                        icon = ICONS.zoom_in,
+                        icon = BJI.Utils.Icon.ICONS.zoom_in,
                         tooltip = cache.labels.buttons.zoomIn,
                         onClick = function()
                             local scale = math.clamp(value + 0.05, minScale, maxScale)
@@ -282,7 +282,7 @@ local function draw(ctxt)
                     local labels = {}
                     if cache.data.showTime then
                         table.insert(labels,
-                            cache.data.time or BJI.Utils.Common.PrettyTime(BJI.Managers.Env.getTime().time))
+                            cache.data.time or BJI.Utils.UI.PrettyTime(BJI.Managers.Env.getTime().time))
                     end
 
                     if cache.data.showTemp then
@@ -311,7 +311,7 @@ local function draw(ctxt)
                 function()
                     local line = LineBuilder():btnIcon({
                         id = "debugAppWaiting",
-                        icon = ICONS.bug_report,
+                        icon = BJI.Utils.Icon.ICONS.bug_report,
                         style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         coloredIcon = true,
                         tooltip = cache.labels.buttons.debug,
@@ -324,7 +324,7 @@ local function draw(ctxt)
                         local state = BJI.Managers.Context.Core.Private
                         line:btnIconToggle({
                             id = "toggleCorePrivate",
-                            icon = state and ICONS.visibility_off or ICONS.visibility,
+                            icon = state and BJI.Utils.Icon.ICONS.visibility_off or BJI.Utils.Icon.ICONS.visibility,
                             state = not state,
                             tooltip = cache.labels.buttons.serverVisibility,
                             onClick = function()
@@ -367,7 +367,7 @@ local function draw(ctxt)
                 local resetDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER)
                 if resetDelay then
                     line:text(cache.labels.resetCooldownLabel)
-                        :text(BJI.Utils.Common.PrettyDelay(math.round(resetDelay / 1000)),
+                        :text(BJI.Utils.UI.PrettyDelay(math.round(resetDelay / 1000)),
                             BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(cache.labels.resetCooldownAvailable)
@@ -382,7 +382,7 @@ local function draw(ctxt)
                     .RESTRICTIONS_TELEPORT_TIMER)
                 if teleportDelay then
                     line:text(cache.labels.teleportCooldownLabel)
-                        :text(BJI.Utils.Common.PrettyDelay(math.round(teleportDelay / 1000)),
+                        :text(BJI.Utils.UI.PrettyDelay(math.round(teleportDelay / 1000)),
                             BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                 else
                     line:text(cache.labels.teleportCooldownAvailable)

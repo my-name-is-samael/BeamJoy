@@ -1,5 +1,6 @@
 local ctrl = {}
 
+---@param ctxt BJCContext
 function ctrl.RaceDetails(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) and
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) and
@@ -18,6 +19,7 @@ function ctrl.RaceDetails(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -31,6 +33,7 @@ function ctrl.RaceSave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceToggle(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -46,6 +49,7 @@ function ctrl.RaceToggle(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceDelete(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -54,10 +58,12 @@ function ctrl.RaceDelete(ctxt)
     BJCScenarioData.raceDelete(ctxt.data[1])
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceMultiUpdate(ctxt)
     BJCScenario.RaceManager.clientUpdate(ctxt.senderID, ctxt.data[1], ctxt.data[2])
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceMultiStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -66,6 +72,7 @@ function ctrl.RaceMultiStop(ctxt)
     BJCScenario.RaceManager.stop()
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceSoloStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -74,6 +81,7 @@ function ctrl.RaceSoloStart(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.RACE_SOLO)
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceSoloUpdate(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -83,6 +91,7 @@ function ctrl.RaceSoloUpdate(ctxt)
     BJCScenarioData.onRaceSoloTime(ctxt.senderID, raceID, time, model)
 end
 
+---@param ctxt BJCContext
 function ctrl.RaceSoloEnd(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -92,6 +101,7 @@ function ctrl.RaceSoloEnd(ctxt)
     BJCPlayers.onRaceSoloEnd(ctxt.senderID, finished)
 end
 
+---@param ctxt BJCContext
 function ctrl.EnergyStationsSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -104,6 +114,7 @@ function ctrl.EnergyStationsSave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.GaragesSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -116,6 +127,7 @@ function ctrl.GaragesSave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliverySave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -128,6 +140,7 @@ function ctrl.DeliverySave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryVehicleStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -136,6 +149,7 @@ function ctrl.DeliveryVehicleStart(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.DELIVERY_VEHICLE)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryVehicleSuccess(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -144,6 +158,7 @@ function ctrl.DeliveryVehicleSuccess(ctxt)
     BJCPlayers.onDeliveryVehicleSuccess(ctxt.senderID, ctxt.data[1] == true)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryVehicleFail(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -152,6 +167,7 @@ function ctrl.DeliveryVehicleFail(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.FREEROAM)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryPackageStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -160,6 +176,7 @@ function ctrl.DeliveryPackageStart(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.DELIVERY_PACKAGE)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryPackageSuccess(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -168,6 +185,7 @@ function ctrl.DeliveryPackageSuccess(ctxt)
     BJCPlayers.onDeliveryPackageSuccess(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryPackageFail(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -176,6 +194,7 @@ function ctrl.DeliveryPackageFail(ctxt)
     BJCPlayers.onDeliveryPackageFail(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryMultiJoin(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -185,6 +204,7 @@ function ctrl.DeliveryMultiJoin(ctxt)
     BJCScenario.Hybrids.DeliveryMultiManager.join(ctxt.senderID, gameVehID, pos)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryMultiResetted(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -193,6 +213,7 @@ function ctrl.DeliveryMultiResetted(ctxt)
     BJCScenario.Hybrids.DeliveryMultiManager.resetted(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryMultiReached(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -201,6 +222,7 @@ function ctrl.DeliveryMultiReached(ctxt)
     BJCScenario.Hybrids.DeliveryMultiManager.reached(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
 function ctrl.DeliveryMultiLeave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -209,6 +231,7 @@ function ctrl.DeliveryMultiLeave(ctxt)
     BJCScenario.Hybrids.DeliveryMultiManager.leave(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
 function ctrl.BusLinesSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -221,6 +244,7 @@ function ctrl.BusLinesSave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.BusMissionStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -229,6 +253,7 @@ function ctrl.BusMissionStart(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.BUS_MISSION)
 end
 
+---@param ctxt BJCContext
 function ctrl.BusMissionReward(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -238,6 +263,7 @@ function ctrl.BusMissionReward(ctxt)
     BJCPlayers.onBusMissionReward(ctxt.senderID, idBusLine)
 end
 
+---@param ctxt BJCContext
 function ctrl.BusMissionStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -246,6 +272,7 @@ function ctrl.BusMissionStop(ctxt)
     BJCPlayers.setPlayerScenario(ctxt.senderID, BJCScenario.PLAYER_SCENARII.FREEROAM)
 end
 
+---@param ctxt BJCContext
 function ctrl.SpeedStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) and
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
@@ -260,6 +287,7 @@ function ctrl.SpeedStart(ctxt)
     BJCVote.Speed.start(ctxt.senderID, isVote)
 end
 
+---@param ctxt BJCContext
 function ctrl.SpeedJoin(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -269,6 +297,7 @@ function ctrl.SpeedJoin(ctxt)
     BJCVote.Speed.join(ctxt.senderID, gameVehID)
 end
 
+---@param ctxt BJCContext
 function ctrl.SpeedFail(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -278,6 +307,7 @@ function ctrl.SpeedFail(ctxt)
     BJCScenario.SpeedManager.clientUpdate(ctxt.senderID, time)
 end
 
+---@param ctxt BJCContext
 function ctrl.SpeedStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -286,6 +316,7 @@ function ctrl.SpeedStop(ctxt)
     BJCScenario.SpeedManager.stop()
 end
 
+---@param ctxt BJCContext
 function ctrl.HunterSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -298,6 +329,7 @@ function ctrl.HunterSave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.HunterStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -306,6 +338,7 @@ function ctrl.HunterStart(ctxt)
     BJCScenario.HunterManager.start(ctxt.data[1])
 end
 
+---@param ctxt BJCContext
 function ctrl.HunterUpdate(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -315,6 +348,7 @@ function ctrl.HunterUpdate(ctxt)
     BJCScenario.HunterManager.clientUpdate(ctxt.senderID, event, data)
 end
 
+---@param ctxt BJCContext
 function ctrl.HunterStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -323,6 +357,7 @@ function ctrl.HunterStop(ctxt)
     BJCScenario.HunterManager.stop()
 end
 
+---@param ctxt BJCContext
 function ctrl.DerbySave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -335,6 +370,7 @@ function ctrl.DerbySave(ctxt)
     end
 end
 
+---@param ctxt BJCContext
 function ctrl.DerbyStart(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -344,11 +380,13 @@ function ctrl.DerbyStart(ctxt)
     BJCScenario.DerbyManager.start(derbyIndex, lives, configs)
 end
 
+---@param ctxt BJCContext
 function ctrl.DerbyUpdate(ctxt)
     local event, data = ctxt.data[1], ctxt.data[2]
     BJCScenario.DerbyManager.clientUpdate(ctxt.senderID, event, data)
 end
 
+---@param ctxt BJCContext
 function ctrl.DerbyStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -357,6 +395,7 @@ function ctrl.DerbyStop(ctxt)
     BJCScenario.DerbyManager.stop()
 end
 
+---@param ctxt BJCContext
 function ctrl.TagDuoJoin(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
@@ -367,6 +406,7 @@ function ctrl.TagDuoJoin(ctxt)
     BJCScenario.Hybrids.TagDuoManager.onClientJoin(ctxt.senderID, lobbyIndex, vehID)
 end
 
+---@param ctxt BJCContext
 function ctrl.TagDuoUpdate(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
@@ -377,6 +417,7 @@ function ctrl.TagDuoUpdate(ctxt)
     BJCScenario.Hybrids.TagDuoManager.onClientUpdate(ctxt.senderID, lobbyIndex, event)
 end
 
+---@param ctxt BJCContext
 function ctrl.TagDuoLeave(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) or
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then

@@ -79,10 +79,10 @@ end
 ---@return tablelib<integer, {label: string, ToD: number, icon: string}>
 function utils.timePresets()
     return Table({
-        { label = "dawn",     ToD = .791, icon = ICONS.brightness_3 },
-        { label = "midday",   ToD = 0,    icon = ICONS.brightness_high },
-        { label = "dusk",     ToD = .210, icon = ICONS.brightness_3 },
-        { label = "midnight", ToD = .5,   icon = ICONS.brightness_low }
+        { label = "dawn",     ToD = .791, icon = BJI.Utils.Icon.ICONS.brightness_3 },
+        { label = "midday",   ToD = 0,    icon = BJI.Utils.Icon.ICONS.brightness_high },
+        { label = "dusk",     ToD = .210, icon = BJI.Utils.Icon.ICONS.brightness_3 },
+        { label = "midnight", ToD = .5,   icon = BJI.Utils.Icon.ICONS.brightness_low }
     })
 end
 

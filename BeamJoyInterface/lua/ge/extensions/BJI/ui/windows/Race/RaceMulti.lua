@@ -13,7 +13,7 @@ local W = {
             ---@type Timer
             lapTimer = nil,
             raceTimeOffset = 0,
-            baseTime = BJI.Utils.Common.RaceDelay(0),
+            baseTime = BJI.Utils.UI.RaceDelay(0),
             showFinalTime = false,
             finalTime = "",
             showForfeitBtn = false,
@@ -153,11 +153,11 @@ local function updateCache(ctxt)
     W.cache.data.recordStr = W.cache.data.showRecord and W.cache.labels.record:var({
         playerName = W.scenario.record.playerName,
         model = BJI.Managers.Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model,
-        time = BJI.Utils.Common.RaceDelay(W.scenario.record.time)
+        time = BJI.Utils.UI.RaceDelay(W.scenario.record.time)
     }) or ""
     local _, pbTime = BJI.Managers.RaceWaypoint.getPB(W.scenario.raceHash)
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
-    W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.Common.RaceDelay(pbTime or 0) or ""
+    W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
     W.cache.data.showForfeitBtn = W.scenario.isRaceStarted() and not W.scenario.isRaceFinished() and
         not W.scenario.isSpec()
     W.cache.data.startTime = W.scenario.race.startTime
@@ -193,7 +193,7 @@ local function updateCache(ctxt)
         W.cache.data.showChooseYourVehicleLabel = table.includes(gridData.participants,
             BJI.Managers.Context.User.playerID)
         W.cache.data.grid.showJoinLeaveBtn = not table.includes(gridData.ready, BJI.Managers.Context.User.playerID) and
-            BJI.Managers.Perm.canSpawnVehicle()
+            BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Tournament.canJoinActivity()
         W.cache.data.grid.isParticipant = table.includes(gridData.participants, BJI.Managers.Context.User.playerID)
         W.cache.data.grid.showRemainingPlaces = W.cache.data.grid.showJoinLeaveBtn and
             not W.cache.data.grid.isParticipant
@@ -220,14 +220,14 @@ local function updateCache(ctxt)
         W.cache.data.race.colWidths = Table()
         local isSpec = W.scenario.isSpec()
         if isSpec then
-            W.cache.data.race.colWidths:insert(1, GetBtnIconSize())
+            W.cache.data.race.colWidths:insert(1, BJI.Utils.UI.GetBtnIconSize())
         end
 
         local playerNames = Table()
         table.insert(W.cache.data.race.colWidths, Table(leaderboard):reduce(function(acc, lb, i)
             local player = BJI.Managers.Context.Players[lb.playerID]
             playerNames[i] = player and player.playerName or W.cache.labels.unknown
-            local w = BJI.Utils.Common.GetColumnTextWidth(playerNames[i])
+            local w = BJI.Utils.UI.GetColumnTextWidth(playerNames[i])
             return w > acc and w or acc
         end, 0))
 
@@ -235,14 +235,14 @@ local function updateCache(ctxt)
         if showLapCol then
             table.insert(W.cache.data.race.colWidths, Range(1, W.scenario.settings.laps):reduce(function(acc, i)
                 local label = W.cache.labels.lapCounter:var({ lap = i })
-                local w = BJI.Utils.Common.GetColumnTextWidth(label)
+                local w = BJI.Utils.UI.GetColumnTextWidth(label)
                 return w > acc and w or acc
             end, 0))
         end
 
         table.insert(W.cache.data.race.colWidths, Range(1, wpPerLap):reduce(function(acc, i)
             local label = W.cache.labels.wpCounter:var({ wp = i })
-            local w = BJI.Utils.Common.GetColumnTextWidth(label)
+            local w = BJI.Utils.UI.GetColumnTextWidth(label)
             return w > acc and w or acc
         end, 0))
         table.insert(W.cache.data.race.colWidths, -1)
@@ -276,7 +276,7 @@ local function updateCache(ctxt)
                     end
                     LineBuilder():btnIcon({
                         id = string.var("watchPlayer{1}", { i }),
-                        icon = ICONS.visibility,
+                        icon = BJI.Utils.Icon.ICONS.visibility,
                         disabled = disabled,
                         tooltip = W.cache.labels.buttons.show,
                         onClick = function()
@@ -291,11 +291,11 @@ local function updateCache(ctxt)
                 table.insert(cells, function() LineLabel(W.cache.labels.lapCounter:var({ lap = lb.lap }), color) end)
             end
             table.insert(cells, function() LineLabel(W.cache.labels.wpCounter:var({ wp = lb.wp }), color) end)
-            local playerTime = BJI.Utils.Common.RaceDelay(lb.time or 0)
+            local playerTime = BJI.Utils.UI.RaceDelay(lb.time or 0)
             local diffLabel = i > 1 and W.cache.labels.wpDifference
                 :var({ wpDifference = firstPlayerCurrentWp - playerCurrentWP }) or ""
             local diffVal = math.abs(lb.diff or 0)
-            local diffTime = string.var("+{1}", { BJI.Utils.Common.RaceDelay(diffVal) })
+            local diffTime = string.var("+{1}", { BJI.Utils.UI.RaceDelay(diffVal) })
             local diffColor = diffVal > 0 and BJI.Utils.Style.TEXT_COLORS.ERROR or BJI.Utils.Style.TEXT_COLORS.DEFAULT
             table.insert(cells, function()
                 if i == 1 then
@@ -318,7 +318,7 @@ local function updateCache(ctxt)
             BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
         }, W.scenario.settings.respawnStrategy)
         if W.cache.data.showManualResetBtn then
-            W.cache.data.manualResetWidth = GetBtnIconSize(true) + BJI.Utils.Common.GetTextWidth("  ")
+            W.cache.data.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) + BJI.Utils.UI.GetTextWidth("  ")
         end
     end
 end
@@ -344,6 +344,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.RACE_NEW_PB,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
     }, updateCache, W.name))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
@@ -361,6 +362,16 @@ local function onLoad()
                 BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeave"))
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        function(ctxt)
+            if W.scenario.isParticipant() and BJI.Managers.Tournament.whitelist and
+                not BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
+                -- got out of whitelist
+                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.state == W.scenario.STATES.GRID and
+                    W.scenario.CLIENT_EVENTS.JOIN or W.scenario.CLIENT_EVENTS.LEAVE)
+            end
+        end, W.name .. "AutoLeaveTournament"))
 end
 
 local function onUnload()
@@ -403,7 +414,7 @@ local function header(ctxt)
                 W.cache.data.showForfeitBtn and function()
                     LineBuilder():btnIcon({
                         id = "forfeitRace",
-                        icon = ICONS.exit_to_app,
+                        icon = BJI.Utils.Icon.ICONS.exit_to_app,
                         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                         disabled = W.cache.data.disableButtons,
                         tooltip = W.cache.labels.buttons.forfeit,
@@ -417,7 +428,7 @@ local function header(ctxt)
                 W.cache.data.showManualResetBtn and function()
                     LineBuilder():btnIcon({
                         id = "manualReset",
-                        icon = ICONS.build,
+                        icon = BJI.Utils.Icon.ICONS.build,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         big = true,
                         disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
@@ -435,13 +446,13 @@ local function header(ctxt)
     end
 
     if W.cache.data.showTimer then
-        LineBuilder():icon({ icon = ICONS.flag })
-            :text(BJI.Utils.Common.RaceDelay(W.cache.data.raceTimer:get() + W.cache.data.raceTimeOffset))
+        LineBuilder():icon({ icon = BJI.Utils.Icon.ICONS.flag })
+            :text(BJI.Utils.UI.RaceDelay(W.cache.data.raceTimer:get() + W.cache.data.raceTimeOffset))
             :build()
 
         if W.cache.data.showWpCounter then
-            LineBuilder():icon({ icon = ICONS.timer }):text(W.cache.data.wpCounter)
-                :text(BJI.Utils.Common.RaceDelay(W.cache.data.lapTimer:get() + W.cache.data.raceTimeOffset))
+            LineBuilder():icon({ icon = BJI.Utils.Icon.ICONS.timer }):text(W.cache.data.wpCounter)
+                :text(BJI.Utils.UI.RaceDelay(W.cache.data.lapTimer:get() + W.cache.data.raceTimeOffset))
                 :build()
         end
 
@@ -449,7 +460,7 @@ local function header(ctxt)
     end
 
     line = LineBuilder():icon({
-        icon = ICONS.timer,
+        icon = BJI.Utils.Icon.ICONS.timer,
         big = true,
     })
 
@@ -460,7 +471,7 @@ local function header(ctxt)
     if W.cache.data.hasStartTime then
         local remaining = getDiffTime(W.cache.data.startTime, ctxt.now)
         if remaining > 0 then
-            line:text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.Common.PrettyDelay(remaining) }))
+            line:text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }))
         elseif remaining > -3 then
             line:text(W.cache.labels.flashCountdownZero)
         elseif W.cache.data.DNFEnabled and W.cache.data.DNFData.process and W.cache.data.DNFData.targetTime then
@@ -469,7 +480,7 @@ local function header(ctxt)
                 local color = remaining > 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                     BJI.Utils.Style.TEXT_COLORS.ERROR
                 if remaining > 0 then
-                    line:text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.Common.PrettyDelay(math.abs(remaining)) }))
+                    line:text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.UI.PrettyDelay(math.abs(remaining)) }))
                 else
                     line:text(W.cache.labels.eliminated, color)
                 end
@@ -484,14 +495,15 @@ end
 local function drawGrid(ctxt)
     local gridTimeoutRemaining = getDiffTime(W.scenario.grid.timeout, ctxt.now)
     LineBuilder():text(gridTimeoutRemaining < 1 and W.cache.labels.gridAboutToTimeout or
-        W.cache.labels.gridTimeout:var({ delay = BJI.Utils.Common.PrettyDelay(gridTimeoutRemaining) }),
+        W.cache.labels.gridTimeout:var({ delay = BJI.Utils.UI.PrettyDelay(gridTimeoutRemaining) }),
         gridTimeoutRemaining < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
         :build()
 
     if W.cache.data.grid.showJoinLeaveBtn then
         local line = LineBuilder():btnIconToggle({
             id = "joinRace",
-            icon = W.cache.data.grid.isParticipant and ICONS.exit_to_app or ICONS.videogame_asset,
+            icon = W.cache.data.grid.isParticipant and BJI.Utils.Icon.ICONS.exit_to_app or
+                BJI.Utils.Icon.ICONS.videogame_asset,
             state = not W.cache.data.grid.isParticipant,
             disabled = W.cache.data.disableButtons,
             tooltip = W.cache.data.grid.isParticipant and W.cache.labels.buttons.spectate or W.cache.labels.buttons.join,
@@ -507,7 +519,7 @@ local function drawGrid(ctxt)
             local showReadyCooldown = ctxt.now < W.cache.data.grid.readyCooldownTime
             line:btnIcon({
                 id = "raceReady",
-                icon = ICONS.check,
+                icon = BJI.Utils.Icon.ICONS.check,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.data.disableButtons or showReadyCooldown,
                 tooltip = W.cache.labels.buttons.markReady,
@@ -519,7 +531,7 @@ local function drawGrid(ctxt)
             })
             if showReadyCooldown then
                 line:text(W.cache.labels.markReadyCooldown:var({
-                    delay = BJI.Utils.Common.PrettyDelay(getDiffTime(W.cache.data.grid.readyCooldownTime, ctxt.now))
+                    delay = BJI.Utils.UI.PrettyDelay(getDiffTime(W.cache.data.grid.readyCooldownTime, ctxt.now))
                 }))
             end
         end

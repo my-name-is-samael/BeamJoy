@@ -31,6 +31,7 @@ local M = {
         CONFIG_REMOVED = "config_removed",
         CONFIG_PROTECTION_UPDATED = "config_protection_updated",
         STATION_PROXIMITY_CHANGED = "station_proximity_changed",
+        TOURNAMENT_UPDATED = "tournament_updated",
 
         -- base game events
 
@@ -55,8 +56,10 @@ local M = {
 
     ---@type table<string, table<string, fun(ctxt: any, data: any)>>
     listeners = {},
-    ---@type {event: string, data: table}[]
-    queued = {},
+    ---@type tablelib<integer, {event: string, target: string, callback: fun(...), data: table?}>
+    queued = Table(),
+    ---@type tablelib<integer, {target: string, callback: fun(ctxt: TickContext)}>
+    fastTickQueued = Table(),
 }
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
@@ -106,20 +109,21 @@ local function removeListener(id)
 end
 
 local function processSlowTick()
-    local callbacks = Table(M.listeners[M.EVENTS.SLOW_TICK])
-        :map(function(e) return e end)
-    local i = 1
-    callbacks:forEach(function(fn, k)
-        local asyncEventName = string.var("SlowTick-{1}", { k })
+    Table(M.listeners[M.EVENTS.SLOW_TICK]):map(function(fn, k)
+        return {
+            callback = fn,
+            id = k
+        }
+    end):values():forEach(function(el, i, tab)
+        local asyncEventName = string.var("SlowTick-{1}", { el.id })
         BJI.Managers.Async.removeTask(asyncEventName)
         BJI.Managers.Async.delayTask(function()
             local ctxt = BJI.Managers.Tick.getContext(true)
-            fn(ctxt)
+            el.callback(ctxt)
             if BJI.Bench.STATE then
-                BJI.Bench.add(tostring(k), "slow_tick", GetCurrentTimeMillis() - ctxt.now)
+                BJI.Bench.add(tostring(el.id), "slow_tick", GetCurrentTimeMillis() - ctxt.now)
             end
-        end, i / callbacks:length() * 1000, asyncEventName)
-        i = i + 1
+        end, i / tab:length() * 1000, asyncEventName)
     end)
 end
 
@@ -143,10 +147,14 @@ local function trigger(events, ...)
     for _, event in ipairs(events) do
         if event == M.EVENTS.SLOW_TICK then
             processSlowTick()
+        elseif event == M.EVENTS.FAST_TICK then
+            M.listeners[event]:forEach(function(callback, k)
+                M.fastTickQueued:insert({ target = k, callback = callback })
+            end)
         elseif M.listeners[event] then
             local data = { ... }
             M.listeners[event]:forEach(function(callback, k)
-                table.insert(M.queued, { event = event, target = k, fn = callback, data = data })
+                M.queued:insert({ event = event, target = k, callback = callback, data = data })
             end)
         end
     end
@@ -154,9 +162,26 @@ end
 
 local renderTimeout = 2
 local function renderTick(ctxt)
-    while #M.queued > 0 do
-        ---@type {event: string, target: string, fn: fun(...), data: table|nil}
-        local el = table.remove(M.queued, 1)
+    if #M.fastTickQueued > 0 then
+        local el = M.fastTickQueued:remove(1)
+        local start = GetCurrentTimeMillis()
+        local ok, err = pcall(el.callback, ctxt, { _event = M.EVENTS.FAST_TICK })
+        local bench = GetCurrentTimeMillis() - start
+        if BJI.Bench.STATE then
+            BJI.Bench.add(tostring(el.target), el.event, bench)
+        end
+        if not ok then
+            LogError(string.var("Error firing event {1}.{2} :", { M.EVENTS.FAST_TICK, el.target }))
+            dump(err)
+        end
+        if bench > renderTimeout then
+            LogWarn(string.var("Event {1}.{2} took {3}ms", { M.EVENTS.FAST_TICK, el.target, bench }))
+        end
+    end
+
+    if #M.queued > 0 then
+        ---@type {event: string, target: string, callback: fun(...), data: table?}
+        local el = M.queued:remove(1)
         if not M.LOG_BLACKLIST_EVENTS:includes(el.event) then
             LogDebug(string.var("Event triggered : {1}{2}", {
                 el.event,
@@ -164,33 +189,34 @@ local function renderTick(ctxt)
                 string.var(" ({1})", { el.data[1].cache }) or ""
             }), M._name)
         end
+        local start = GetCurrentTimeMillis()
         local isNg = el.event:startswith("ng")
         local data = table.clone(el.data) or {}
         local ok, err
         if isNg then
-            ok, err = pcall(el.fn, table.unpack(data))
+            ok, err = pcall(el.callback, table.unpack(data))
         else
             data[1] = data[1] or {}
             data[1]._event = el.event
-            ok, err = pcall(el.fn, ctxt, data[1])
+            ok, err = pcall(el.callback, ctxt, data[1])
         end
+        local bench = GetCurrentTimeMillis() - start
         if BJI.Bench.STATE then
-            BJI.Bench.add(tostring(el.target), el.event, GetCurrentTimeMillis() - ctxt.now)
+            BJI.Bench.add(tostring(el.target), el.event, bench)
         end
         if not ok then
-            LogError(string.var("Error firing event {1} :", { el.event }))
+            LogError(string.var("Error firing event {1}.{2} :", { el.event, el.target }))
             dump(err)
         end
-        if GetCurrentTimeMillis() - ctxt.now > renderTimeout then
-            LogDebug(string.var("Skipping event {1} (timeout)", { el.target }), M._name)
-            return
+        if bench > renderTimeout then
+            LogWarn(string.var("Event {1}.{2} took {3}ms", { el.event, el.target, bench }))
         end
     end
 end
 
 local function onUnload()
     table.clear(M.listeners)
-    table.clear(M.queued)
+    M.queued:clear()
 end
 
 M.addListener = addListener

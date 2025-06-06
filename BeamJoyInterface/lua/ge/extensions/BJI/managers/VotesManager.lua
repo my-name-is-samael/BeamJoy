@@ -214,7 +214,11 @@ local function slowTick(ctxt)
         if M.Speed.isEvent and
             not M.Speed.participants[BJI.Managers.Context.User.playerID] and
             ctxt.isOwner then
-            BJI.Tx.scenario.SpeedJoin(ctxt.veh:getID())
+            if BJI.Managers.Tournament.state and BJI.Managers.Tournament.whitelist and not BJI.Managers.Tournament.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
+                BJI.Managers.Veh.deleteAllOwnVehicles()
+            else
+                BJI.Tx.scenario.SpeedJoin(ctxt.veh:getID())
+            end
         end
 
         -- auto leave or update vehicle

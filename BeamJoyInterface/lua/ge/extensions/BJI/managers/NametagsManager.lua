@@ -127,7 +127,7 @@ local function renderAI(ctxt, veh, ownPos)
 
             local label = M.labels.self
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             -- offset
@@ -150,7 +150,7 @@ local function renderAI(ctxt, veh, ownPos)
             local owner = BJI.Managers.Context.Players[veh.ownerID]
             local label = owner.tagName
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             -- offset
@@ -205,7 +205,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 distance > M._minDistanceShow
 
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             local zOffset = 0
@@ -232,7 +232,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 distance > M._minDistanceShow
 
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             local zOffset = veh.vehicleHeight
@@ -272,7 +272,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
             local label = M.labels.self
             if settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow then
-                label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             local zOffset = 0
@@ -311,7 +311,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             label = string.var("[{1}]{2}", { tag, label })
         end
         if showDist then
-            label = string.var("{1}({2})", { label, BJI.Utils.Common.PrettyDistance(distance) })
+            label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
         end
 
         local zOffset = veh.vehicleHeight

@@ -135,7 +135,7 @@ local function renderTick(ctxt)
     end
 end
 
-local function fastTick(ctxt) -- TODO CHECK REACTIVITY (maybe roll back to single chunk detection)
+local function fastTick(ctxt)
     local veh = ctxt.isOwner and ctxt.veh or nil
     if M.station then
         if not veh or not BJI.Managers.Perm.canSpawnVehicle() or

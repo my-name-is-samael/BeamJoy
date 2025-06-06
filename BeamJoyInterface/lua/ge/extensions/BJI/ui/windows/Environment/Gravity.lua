@@ -12,7 +12,7 @@ local function updateLabels()
     W.labelsWidth = 0
     W.KEYS:forEach(function(k)
         W.labels[k] = string.var("{1} :", { BJI.Managers.Lang.get(string.var("environment.{1}", { k })) })
-        local w = BJI.Utils.Common.GetColumnTextWidth(W.labels[k])
+        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels[k])
         if w > W.labelsWidth then
             W.labelsWidth = w
         end
@@ -49,7 +49,7 @@ local function updateCols()
             function()
                 LineBuilder():btnIcon({
                     id = "resetgravityRate",
-                    icon = ICONS.refresh,
+                    icon = BJI.Utils.Icon.ICONS.refresh,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     disabled = not BJI.Managers.Env.Data.controlGravity,
                     tooltip = W.labels.reset,
@@ -117,7 +117,7 @@ end
 local function body()
     LineBuilder()
         :icon({
-            icon = ICONS.fitness_center,
+            icon = BJI.Utils.Icon.ICONS.fitness_center,
             big = true,
         })
         :build()

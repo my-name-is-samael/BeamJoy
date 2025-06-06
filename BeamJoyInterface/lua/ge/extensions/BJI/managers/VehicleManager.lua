@@ -1151,21 +1151,17 @@ local function paintVehicle(paint, paintNumber)
         return
     end
 
+    paintNumber = paintNumber == math.clamp(paintNumber or 0, 1, 3) and paintNumber or 1
     local config = M.getFullConfig(veh.partConfig)
-    config = config or {}
+    if not config then
+        return
+    end
 
     if not config.paints then
         config.paints = {}
     end
-    if paintNumber == 2 then
-        config.paints[2] = paint
-    elseif paintNumber == 3 then
-        config.paints[3] = paint
-    else
-        config.paints[1] = paint
-    end
-
-    core_vehicles.replaceVehicle(M.getCurrentModel(), { config = config, paint = paint })
+    config.paints[paintNumber] = paint
+    core_vehicles.replaceVehicle(config.model, { config = config, paint = paint })
 end
 
 local factorMJToReadable = {
@@ -1189,7 +1185,8 @@ end
 
 local lastConfig
 local function onVehicleResetted(gameVehID)
-    if M.isVehicleOwn(gameVehID) then
+    local veh = M.getCurrentVehicleOwn()
+    if veh and veh:getID() == gameVehID then
         local config = M.getFullConfig() or {}
         if not table.compare(config, lastConfig or {}, true) then
             -- detects veh edition

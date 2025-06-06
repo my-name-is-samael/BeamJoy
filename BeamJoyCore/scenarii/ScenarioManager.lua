@@ -26,7 +26,7 @@
 
 local M = {
     PLAYER_SCENARII = {
-        FREEROAM = "freeroam",
+        FREEROAM = nil,
         RACE_SOLO = "raceSolo",
         DELIVERY_VEHICLE = "deliveryVehicle",
         DELIVERY_PACKAGE = "deliveryPackage",
@@ -141,7 +141,8 @@ local function canWalk(playerID)
 
     if M.CurrentScenario then
         if M.CurrentScenario.canWalk then
-            return M.CurrentScenario.canWalk(playerID)
+            local res = M.CurrentScenario.canWalk(playerID)
+            return res
         end
         return false
     end
@@ -243,7 +244,7 @@ M.canWalk = canWalk
 
 M.isVehicleSpawnedMatchesRequired = isVehicleSpawnedMatchesRequired
 
-BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_DELETED, onVehicleDeleted)
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_DELETED, onVehicleDeleted, "ScenarioManager")
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect, "ScenarioManager")
 
 return M

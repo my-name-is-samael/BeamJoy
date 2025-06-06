@@ -74,16 +74,19 @@ BJI.Managers.WaypointEdit = require("ge/extensions/BJI/managers/WaypointEditMana
 BJI.Managers.Windows = require("ge/extensions/BJI/managers/WindowsManager")
 ---@type BJIManagerGameState
 BJI.Managers.GameState = require("ge/extensions/BJI/managers/GameStateManager")
+---@type BJIManagerTournament
+BJI.Managers.Tournament = require("ge/extensions/BJI/managers/TournamentManager")
 
-BJI.Tx.cache = require("ge/extensions/BJI/tx/CacheTx")()
-BJI.Tx.config = require("ge/extensions/BJI/tx/ConfigTx")()
-BJI.Tx.database = require("ge/extensions/BJI/tx/DatabaseTx")()
-BJI.Tx.moderation = require("ge/extensions/BJI/tx/ModerationTx")()
-BJI.Tx.player = require("ge/extensions/BJI/tx/PlayerTx")()
-BJI.Tx.scenario = require("ge/extensions/BJI/tx/ScenarioTx")()
-BJI.Tx.votekick = require("ge/extensions/BJI/tx/VoteKickTx")()
-BJI.Tx.votemap = require("ge/extensions/BJI/tx/VoteMapTx")()
-BJI.Tx.voterace = require("ge/extensions/BJI/tx/VoteRaceTx")()
+BJI.Tx.cache = require("ge/extensions/BJI/tx/CacheTx")(BJI.Tx)
+BJI.Tx.config = require("ge/extensions/BJI/tx/ConfigTx")(BJI.Tx)
+BJI.Tx.database = require("ge/extensions/BJI/tx/DatabaseTx")(BJI.Tx)
+BJI.Tx.moderation = require("ge/extensions/BJI/tx/ModerationTx")(BJI.Tx)
+BJI.Tx.player = require("ge/extensions/BJI/tx/PlayerTx")(BJI.Tx)
+BJI.Tx.scenario = require("ge/extensions/BJI/tx/ScenarioTx")(BJI.Tx)
+BJI.Tx.votekick = require("ge/extensions/BJI/tx/VoteKickTx")(BJI.Tx)
+BJI.Tx.votemap = require("ge/extensions/BJI/tx/VoteMapTx")(BJI.Tx)
+BJI.Tx.voterace = require("ge/extensions/BJI/tx/VoteRaceTx")(BJI.Tx)
+BJI.Tx.tournament = require("ge/extensions/BJI/tx/TournamentTx")(BJI.Tx)
 
 BJI.Rx.ctrls.CACHE = require("ge/extensions/BJI/rx/CacheRx")
 BJI.Rx.ctrls.DATABASE = require("ge/extensions/BJI/rx/DatabaseRx")
@@ -134,6 +137,8 @@ BJI.Windows.Server = require("ge/extensions/BJI/ui/windows/Server")
 BJI.Windows.ScenarioEditor = require("ge/extensions/BJI/ui/windows/ScenarioEditor")
 ---@type BJIWindowSelection
 BJI.Windows.Selection = require("ge/extensions/BJI/ui/windows/Selection")
+---@type BJIWindowTournament
+BJI.Windows.Tournament = require("ge/extensions/BJI/ui/windows/Tournament")
 
 
 BJI.Managers.Scenario.TYPES.FREEROAM = "FREEROAM"

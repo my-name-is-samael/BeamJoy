@@ -341,7 +341,8 @@
         "gamemodeJoin": "{playerName} a rejoint {gamemode}",
         "gamemodeLeave": "{playerName} a quitté {gamemode}",
         "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}",
-        "gamemodeTeamWon": "{teamName} gagne(nt) {gamemode}"
+        "gamemodeTeamWon": "{teamName} gagne(nt) {gamemode}",
+        "tournamentResult": "{playerName} a terminé le tournoi à la position n°{position} ({score} pts)"
       }
     },
     "nametags": {
@@ -445,7 +446,8 @@
           "stop": "Arrêter le Destruction Derby",
           "noArena": "Aucune arène disponible",
           "missingPlayers": "Il manque encore {amount} joueur(s)"
-        }
+        },
+        "tournament": "Tournoi"
       },
       "edit": {
         "title": "Editer",
@@ -1519,6 +1521,33 @@
         "notReadyMark": "PAS PRÊT",
         "amountLife": "{amount} vie",
         "amountLives": "{amount} vies"
+      }
+    },
+    "tournament": {
+      "title": "Tournoi",
+      "state": "Activé",
+      "whitelist": "Whitelist",
+      "activityTimeoutIn": "Fin de l'activité dans {delay}",
+      "activityAboutToTimeout": "L'activité est sur le point de se terminer",
+      "total": "Totaux",
+      "startActivity": "Démarrer une activité",
+      "track": "Circuit",
+      "arena": "Arène",
+      "duration": "Durée",
+      "noParticipant": "Aucun participant pour le moment",
+      "buttons": {
+        "endSoloRace": "Terminer le time attack",
+        "endTournament": "Terminer le tournoi",
+        "endTournamentTooltip": "Affichera la position des participants dans le chat",
+        "errorMustHaveVehicle": "Vous devez avoir un véhicule"
+      },
+      "activities": {
+        "raceSolo": "Time Attack",
+        "race": "Course",
+        "speed": "Vitesse",
+        "hunter": "Chasseur",
+        "derby": "Derby",
+        "tag": "Infecté"
       }
     }
   }

@@ -261,7 +261,7 @@ local function updateCachePlayers(ctxt)
         local vehiclesLabelWidth = 0
         if selfStaff and vehiclesCount > 0 then
             table.forEach(p.vehicles, function(veh)
-                local w = BJI.Utils.Common.GetColumnTextWidth(string.var("{1} {2}", { vehicleCursor, veh.model }))
+                local w = BJI.Utils.UI.GetColumnTextWidth(string.var("{1} {2}", { vehicleCursor, veh.model }))
                 if w > vehiclesLabelWidth then
                     vehiclesLabelWidth = w
                 end
@@ -325,14 +325,14 @@ local function updateCachePlayers(ctxt)
             "moderationBlock.tempBanDuration",
         }) do
             local label = BJI.Managers.Lang.get(k)
-            local w = BJI.Utils.Common.GetColumnTextWidth(label .. ":")
+            local w = BJI.Utils.UI.GetColumnTextWidth(label .. ":")
             if w > cache.widths.players.moderation.labels then
                 cache.widths.players.moderation.labels = w
             end
         end
     end
-    cache.widths.players.moderation.buttons = math.max(GetBtnIconSize(),
-        BJI.Utils.Common.GetColumnTextWidth(cache.labels.players.moderation.buttons.kick))
+    cache.widths.players.moderation.buttons = math.max(BJI.Utils.UI.GetBtnIconSize(),
+        BJI.Utils.UI.GetColumnTextWidth(cache.labels.players.moderation.buttons.kick))
 end
 
 local listeners = Table()

@@ -10,7 +10,9 @@ local M = {
     end,
     isEvent = false,
     startTime = nil,
+    ---@type tablelib<integer, integer> index playerIDs, value gameVehID
     participants = Table(),
+    ---@type tablelib<integer, {playerID: integer, speed: integer?, time: integer?}>
     leaderboard = Table(),
     speed = 0,
     endTimeout = 0,
@@ -41,6 +43,33 @@ local function getCacheHash()
     })
 end
 
+local function updateTournamentScores()
+    if BJCTournament.state then
+        local activityIndex = #BJCTournament.activities
+        local firsts = M.participants:keys():filter(function(pid)
+            return not M.leaderboard:any(function(lb, i) return i > 1 and lb.playerID == pid end)
+        end)
+        local nexts = Range(1, #M.leaderboard):map(function(i)
+            return (i > 1 and M.leaderboard[i]) and M.leaderboard[i].playerID or nil
+        end)
+        local pos = 1
+        firsts:forEach(function(pid)
+            local player = BJCPlayers.Players[pid]
+            if player then
+                BJCTournament.editPlayerScore(player.playerName, activityIndex, pos)
+            end
+        end)
+        pos = 2
+        nexts:forEach(function(pid)
+            local player = BJCPlayers.Players[pid]
+            if player then
+                BJCTournament.editPlayerScore(player.playerName, activityIndex, pos)
+            end
+            pos = pos + 1
+        end)
+    end
+end
+
 local function start(participants, isEvent)
     if table.length(participants) < M.MINIMUM_PARTICIPANTS() then
         return
@@ -62,6 +91,11 @@ local function start(participants, isEvent)
 
     BJCScenario.CurrentScenario = M
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
+
+    if BJCTournament.state then
+        BJCTournament.addActivity(BJCTournament.ACTIVITIES_TYPES.SPEED)
+        updateTournamentScores()
+    end
 end
 
 local function checkEnd()
@@ -128,6 +162,8 @@ local function onPlayerFail(playerID, time)
         })
         checkEnd()
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.SPEED)
+
+        updateTournamentScores()
     end
 end
 
@@ -226,7 +262,7 @@ M.isForcedScenarioInProgress = function()
     return M.startTime and M.isEvent
 end
 
-BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick)
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, slowTick, "SpeedManager")
 
 M.canSpawnVehicle = canSpawnOrEditVehicle
 M.canEditVehicle = canSpawnOrEditVehicle

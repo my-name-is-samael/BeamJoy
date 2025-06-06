@@ -995,12 +995,12 @@ LineBuilder = function(startSameLine)
             end
         end
 
-        local icon = GetIcon(data.icon)
+        local icon = BJI.Utils.Icon.GetIcon(data.icon)
         if not icon then
             return self
         end
 
-        local size = GetIconSize(data.big)
+        local size = BJI.Utils.UI.GetIconSize(data.big)
         local border = data.border or nil
 
         data.style = data.style and table.clone(data.style) or
@@ -1042,7 +1042,7 @@ LineBuilder = function(startSameLine)
             end
         end
 
-        local icon = GetIcon(data.icon)
+        local icon = BJI.Utils.Icon.GetIcon(data.icon)
         if not icon then
             -- error already logged inside GetIcon(str)
             return self
@@ -1050,7 +1050,7 @@ LineBuilder = function(startSameLine)
         self:_commonStartElem()
         data.style = data.style and table.clone(data.style) or nil
 
-        local size = GetIconSize(data.big)
+        local size = BJI.Utils.UI.GetIconSize(data.big)
         if data.disabled then
             data.style = table.clone(BJI.Utils.Style.BTN_PRESETS.DISABLED)
         end
@@ -1108,7 +1108,7 @@ LineBuilder = function(startSameLine)
             return self
         end
 
-        data.icon = data.icon or (data.state and ICONS.check_circle or ICONS.cancel)
+        data.icon = data.icon or (data.state and BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel)
         data.style = data.style or
             (data.state and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR)
         data.tooltip = data.tooltip or BJI.Managers.Lang.get("common.buttons.toggle")

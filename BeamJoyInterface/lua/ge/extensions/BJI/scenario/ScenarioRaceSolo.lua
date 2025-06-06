@@ -167,7 +167,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -532,7 +532,7 @@ local function onCheckpointReached(wp, remainingSteps)
             onLap()
         else
             -- regular checkpoint
-            BJI.Managers.Message.flash("BJIRaceCheckpoint", BJI.Utils.Common.RaceDelay(lapTime), 2, false)
+            BJI.Managers.Message.flash("BJIRaceCheckpoint", BJI.Utils.UI.RaceDelay(lapTime), 2, false)
             BJI.Managers.RaceUI.setWaypoint(S.race.waypoint % S.race.raceData.wpPerLap, S.race.raceData.wpPerLap)
         end
 
@@ -799,6 +799,7 @@ S.restartRace = restartRace
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
+S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.getCollisionsType = getCollisionsType

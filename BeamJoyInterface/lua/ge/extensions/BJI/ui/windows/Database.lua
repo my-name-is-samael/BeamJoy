@@ -111,7 +111,7 @@ local function footer(ctxt)
     LineBuilder()
         :btnIcon({
             id = "databaseEditorClose",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = W.labels.close,
             onClick = onClose,

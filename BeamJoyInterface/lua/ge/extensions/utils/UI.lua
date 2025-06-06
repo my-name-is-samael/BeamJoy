@@ -1,31 +1,58 @@
-local U = {}
+local U = {
+    INPUT_MARGIN_WIDTH = 5,
+    COMBO_BUTTON_WIDTH = 35,
+}
+
+-- SIZES
 
 ---@param text string
 ---@return integer
 function U.GetTextWidth(text)
-    if type(text) ~= "string" then
-        return 0
-    end
-    return math.round(ui_imgui.CalcTextSize(text).x * (BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
+    text = text and tostring(text) or ""
+    return math.round(ui_imgui.CalcTextSize(text).x *
+        (BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
 end
 
-local function getColumnsMargin()
-    return U.GetTextWidth("  ")
-end
-
----@param text string
+---@param content any
 ---@return integer
-function U.GetColumnTextWidth(text)
-    return U.GetTextWidth(text) + getColumnsMargin()
+function U.GetColumnTextWidth(content)
+    return U.GetTextWidth(tostring(content)) + U.INPUT_MARGIN_WIDTH * 2
 end
 
 ---@param content any
 ---@param typeNumber? boolean
 ---@return integer
 function U.GetInputWidthByContent(content, typeNumber)
-    local inputOffset = 4 + (typeNumber and 50 or 0)
-    return U.GetTextWidth(tostring(content)) + inputOffset
+    if typeNumber then
+        return U.GetInputWidthByContent(content) + U.GetInputWidthByContent("-") + U.GetInputWidthByContent("+")
+    else
+        return U.GetTextWidth(content) + U.INPUT_MARGIN_WIDTH * 4
+    end
 end
+
+---@param content any
+---@return integer
+function U.GetComboWidthByContent(content)
+    local inputOffset = U.INPUT_MARGIN_WIDTH * 2 +
+        U.COMBO_BUTTON_WIDTH * (BJI.Managers.LocalStorage.get(
+            BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1)
+    return U.GetInputWidthByContent(tostring(content)) + inputOffset
+end
+
+---@param big boolean?
+---@return integer
+function U.GetIconSize(big)
+    return math.round((big and 32 or 20) *
+        BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
+end
+
+---@param big boolean?
+---@return integer
+function U.GetBtnIconSize(big)
+    return U.GetIconSize(big) + U.INPUT_MARGIN_WIDTH * 2
+end
+
+-- FORMATTING
 
 ---@param secs number
 ---@return string
@@ -198,6 +225,8 @@ function U.PrettyTime(ToD)
     return string.format("%02d:%02d", curHours, curMins)
 end
 
+-- DRAWERS
+
 ---@param id string
 ---@param value integer
 ---@param min? integer
@@ -257,7 +286,7 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, 
         id = string.var("{1}M1m", { id }),
         label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.minute") }),
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = disabled,
+        disabled = disabled,
         onClick = function()
             callback(math.clamp(value - 60, min, max))
         end
@@ -306,9 +335,9 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, 
     end
     line:btnIcon({
         id = string.var("{1}reset", { id }),
-        icon = ICONS.refresh,
+        icon = BJI.Utils.Icon.ICONS.refresh,
         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            disabled = disabled,
+        disabled = disabled,
         tooltip = BJI.Managers.Lang.get("common.buttons.reset"),
         onClick = function()
             callback(resetValue)
@@ -324,8 +353,9 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
     LineBuilder()
         :btnIcon({
             id = string.var("{1}-pause", { id }),
-            icon = ICONS.pause,
-            style = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.INFO,
+            icon = BJI.Utils.Icon.ICONS.pause,
+            style = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or
+                BJI.Utils.Style.BTN_PRESETS.INFO,
             coloredIcon = not BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
             tooltip = BJI.Managers.Lang.get("common.buttons.stop"),
@@ -339,8 +369,9 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
         })
         :btnIcon({
             id = string.var("{1}-play", { id }),
-            icon = ICONS.play,
-            style = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO,
+            icon = BJI.Utils.Icon.ICONS.play,
+            style = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                BJI.Utils.Style.BTN_PRESETS.INFO,
             coloredIcon = BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
             tooltip = BJI.Managers.Lang.get("common.buttons.play"),

@@ -161,6 +161,17 @@ local function startRace()
             BJCPlayers.reward(playerID, BJCConfig.Data.Reputation.RaceParticipationReward)
         end
     end, M.race.startTime)
+
+    if BJCTournament.state then
+        BJCTournament.addActivity(BJCTournament.ACTIVITIES_TYPES.RACE, M.baseRace.name)
+        local activityIndex = #BJCTournament.activities
+        M.grid.participants:forEach(function(playerID)
+            local player = BJCPlayers.Players[playerID]
+            if player then
+                BJCTournament.editPlayerScore(player.playerName, activityIndex, 1)
+            end
+        end)
+    end
 end
 
 local function checkRaceReady()
@@ -355,6 +366,19 @@ local function sortLeaderboard()
         end
         return aTime < bTime
     end)
+
+    if BJCTournament.state then
+        BJCAsync.removeTask("RaceSortParticipantsTournament")
+        BJCAsync.delayTask(function()
+            local activityIndex = #BJCTournament.activities
+            M.race.leaderboard:forEach(function(lb, pos)
+                local player = BJCPlayers.Players[lb[1]]
+                if player then
+                    BJCTournament.editPlayerScore(player.playerName, activityIndex, pos)
+                end
+            end)
+        end, 0, "RaceSortParticipantsTournament")
+    end
 end
 
 local function startFinishRace()
@@ -381,7 +405,7 @@ local function checkNewRecord(raceID, time, player, model)
                 BJCPlayers.reward(player.playerID, BJCConfig.Data.Reputation.RaceRecordReward)
             end
             BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.RACES)
-            BJCScenarioData.broadcastRaceRecord(M.baseRace.name, player.playerName, M.baseRace.record.time)
+            BJCScenarioData.broadcastRaceTime(M.baseRace.name, player.playerName, M.baseRace.record.time, true)
         end
     end
 end

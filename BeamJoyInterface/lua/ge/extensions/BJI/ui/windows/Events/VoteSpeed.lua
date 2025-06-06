@@ -5,7 +5,7 @@ return function(ctxt, cache)
     local remainingTime = vs.endsAt - ctxt.now
     LineBuilder()
         :text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
-            :var({ delay = BJI.Utils.Common.PrettyDelay(math.floor(remainingTime / 1000)) }))
+            :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
         :build()
 
     if cache.showVoteBtn then
@@ -13,7 +13,7 @@ return function(ctxt, cache)
             :btnIconToggle({
                 id = "joinSpeed",
                 icon = vs.participants[BJI.Managers.Context.User.playerID] and
-                    ICONS.exit_to_app or ICONS.videogame_asset,
+                    BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
                 state = not vs.participants[BJI.Managers.Context.User.playerID],
                 tooltip = vs.participants[BJI.Managers.Context.User.playerID] and
                     cache.buttons.spectate or cache.buttons.join,

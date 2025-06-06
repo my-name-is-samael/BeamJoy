@@ -143,6 +143,8 @@ local function onDropPlayerAtCameraNoReset()
     end
 end
 
+---@param targetID integer
+---@param forced boolean?
 local function tryTeleportToPlayer(targetID, forced)
     BJI.Managers.Reputation.vehicleTeleported()
     if _curr().tryTeleportToPlayer then
@@ -150,6 +152,8 @@ local function tryTeleportToPlayer(targetID, forced)
     end
 end
 
+---@param pos vec3
+---@param saveHome boolean?
 local function tryTeleportToPos(pos, saveHome)
     BJI.Managers.Reputation.vehicleTeleported()
     if _curr().tryTeleportToPos then
@@ -157,30 +161,38 @@ local function tryTeleportToPos(pos, saveHome)
     end
 end
 
+---@param targetID integer
 local function tryFocus(targetID)
     if _curr().tryFocus then
         _curr().tryFocus(targetID)
     end
 end
 
+---@param model string
+---@param config table|string?
 local function trySpawnNew(model, config)
     if _curr().trySpawnNew then
         _curr().trySpawnNew(model, config)
     end
 end
 
+---@param model string
+---@param config table|string?
 local function tryReplaceOrSpawn(model, config)
     if _curr().tryReplaceOrSpawn then
         _curr().tryReplaceOrSpawn(model, config)
     end
 end
 
+---@param paint table
+---@param paintNumber integer
 local function tryPaint(paint, paintNumber)
     if _curr().tryPaint then
         _curr().tryPaint(paint, paintNumber)
     end
 end
 
+---@return boolean
 local function canRefuelAtStation()
     if _curr().canRefuelAtStation then
         return _curr().canRefuelAtStation()
@@ -188,6 +200,7 @@ local function canRefuelAtStation()
     return false
 end
 
+---@return boolean
 local function canRepairAtGarage()
     if _curr().canRepairAtGarage then
         return _curr().canRepairAtGarage()
@@ -195,6 +208,7 @@ local function canRepairAtGarage()
     return false
 end
 
+---@return boolean
 local function canSpawnNewVehicle()
     if _curr().canSpawnNewVehicle then
         return _curr().canSpawnNewVehicle()
@@ -202,6 +216,7 @@ local function canSpawnNewVehicle()
     return true
 end
 
+---@return boolean
 local function canReplaceVehicle()
     if _curr().canReplaceVehicle then
         return _curr().canReplaceVehicle()
@@ -209,6 +224,15 @@ local function canReplaceVehicle()
     return true
 end
 
+---@return boolean
+local function canPaintVehicle()
+    if _curr().canPaintVehicle then
+        return _curr().canPaintVehicle()
+    end
+    return true
+end
+
+---@return boolean
 local function canDeleteVehicle()
     if _curr().canDeleteVehicle then
         return _curr().canDeleteVehicle()
@@ -216,6 +240,7 @@ local function canDeleteVehicle()
     return true
 end
 
+---@return boolean
 local function canDeleteOtherVehicles()
     if _curr().canDeleteOtherVehicles then
         return _curr().canDeleteOtherVehicles()
@@ -223,6 +248,7 @@ local function canDeleteOtherVehicles()
     return true
 end
 
+---@return boolean
 local function canDeleteOtherPlayersVehicle()
     if _curr().canDeleteOtherPlayersVehicle then
         return _curr().canDeleteOtherPlayersVehicle()
@@ -230,6 +256,7 @@ local function canDeleteOtherPlayersVehicle()
     return false
 end
 
+---@return boolean
 local function canSpawnAI()
     if _curr().canSpawnAI then
         return _curr().canSpawnAI()
@@ -237,6 +264,7 @@ local function canSpawnAI()
     return false
 end
 
+---@return boolean
 local function canWalk()
     if _curr().canWalk then
         return _curr().canWalk()
@@ -244,6 +272,7 @@ local function canWalk()
     return false
 end
 
+---@return table<string, table> models
 local function getModelList()
     if _curr().getModelList then
         return _curr().getModelList()
@@ -251,6 +280,9 @@ local function getModelList()
     return {}
 end
 
+---@param player BJIPlayer
+---@param ctxt? TickContext
+---@return table<integer, table> buttons
 local function getPlayerListActions(player, ctxt)
     if _curr().getPlayerListActions then
         return _curr().getPlayerListActions(player, ctxt or BJI.Managers.Tick.getContext())
@@ -259,6 +291,7 @@ local function getPlayerListActions(player, ctxt)
     end
 end
 
+---@return boolean
 local function canQuickTravel()
     if _curr().canQuickTravel then
         return _curr().canQuickTravel()
@@ -266,6 +299,7 @@ local function canQuickTravel()
     return false
 end
 
+---@return boolean
 local function canShowNametags()
     if _curr().canShowNametags then
         return _curr().canShowNametags()
@@ -293,6 +327,7 @@ local function doShowNametagsSpecs(vehData)
     end
 end
 
+---@return integer
 local function getCollisionsType(ctxt)
     if _curr().getCollisionsType then
         return _curr().getCollisionsType(ctxt or BJI.Managers.Tick.getContext())
@@ -485,6 +520,7 @@ M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
+M.canPaintVehicle = canPaintVehicle
 M.canDeleteVehicle = canDeleteVehicle
 M.canDeleteOtherVehicles = canDeleteOtherVehicles
 M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle

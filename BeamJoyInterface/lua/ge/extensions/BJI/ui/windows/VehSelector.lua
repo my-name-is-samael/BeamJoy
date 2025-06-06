@@ -368,7 +368,7 @@ local function drawHeader(ctxt)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
             line:btnIcon({
                 id = "openVehSelectorUI",
-                icon = ICONS.open_in_new,
+                icon = BJI.Utils.Icon.ICONS.open_in_new,
                 style = BJI.Utils.Style.BTN_PRESETS.INFO,
                 tooltip = W.labels.openVehSelector,
                 onClick = function()
@@ -381,12 +381,12 @@ local function drawHeader(ctxt)
         end
         if #W.vehFilter == 0 then
             line:icon({
-                icon = ICONS.ab_filter_default,
+                icon = BJI.Utils.Icon.ICONS.ab_filter_default,
             })
         else
             line:btnIcon({
                 id = "removeVehFilter",
-                icon = ICONS.ab_filter_default,
+                icon = BJI.Utils.Icon.ICONS.ab_filter_default,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 coloredIcon = true,
                 tooltip = W.labels.remove,
@@ -414,7 +414,7 @@ local function drawConfig(modelKey, config)
     if not limitReached then
         line:btnIcon({
             id = string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
-            icon = ICONS.add,
+            icon = BJI.Utils.Icon.ICONS.add,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             tooltip = W.labels.spawn,
             onClick = function()
@@ -428,7 +428,7 @@ local function drawConfig(modelKey, config)
         end
         line:btnIcon({
             id = string.var("replace-{1}-{2}", { modelKey, config.key }),
-            icon = ICONS.carSensors,
+            icon = BJI.Utils.Icon.ICONS.carSensors,
             style = BJI.Utils.Style.BTN_PRESETS.WARNING,
             tooltip = W.labels.replace,
             onClick = function()
@@ -446,7 +446,7 @@ local function drawModel(model)
     local function drawModelButtons(line, withSpawn)
         line:btnIcon({
             id = string.var("preview-{1}", { model.key }),
-            icon = ICONS.ab_asset_image,
+            icon = BJI.Utils.Icon.ICONS.ab_asset_image,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             tooltip = W.labels.show,
             onClick = function()
@@ -457,7 +457,7 @@ local function drawModel(model)
             if not limitReached then
                 line:btnIcon({
                     id = string.var("spawnNew-{1}", { model.key }),
-                    icon = ICONS.add,
+                    icon = BJI.Utils.Icon.ICONS.add,
                     style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     tooltip = W.labels.spawn,
                     onClick = function()
@@ -468,7 +468,7 @@ local function drawModel(model)
             if ownVeh then
                 line:btnIcon({
                     id = string.var("replace-{1}", { model.key }),
-                    icon = ICONS.carSensors,
+                    icon = BJI.Utils.Icon.ICONS.carSensors,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     tooltip = W.labels.replace,
                     onClick = function()
@@ -481,7 +481,7 @@ local function drawModel(model)
         if #model.configs > 1 and (ownVeh or not limitReached) then
             line:btnIcon({
                 id = string.var("spawnRandom-{1}", { model.key }),
-                icon = ICONS.casino,
+                icon = BJI.Utils.Icon.ICONS.casino,
                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                 tooltip = W.labels.random,
                 onClick = function()
@@ -559,7 +559,7 @@ local function drawType(vehs, label, name, icon)
             if #vehs > 0 then
                 line:btnIcon({
                     id = string.var("random-{1}", { name }),
-                    icon = ICONS.casino,
+                    icon = BJI.Utils.Icon.ICONS.casino,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                     tooltip = W.labels.random,
                     onClick = function()
@@ -605,14 +605,13 @@ end
 
 ---@param baseColor number[]
 local function paintToIconStyle(baseColor)
-    local im = ui_imgui
+    local converted = ui_imgui.ImVec4(baseColor[1], baseColor[2], baseColor[3], baseColor[4] or 1.2)
     local contrasted = baseColor[1] + baseColor[2] + baseColor[3] > 1.5 and 0 or 1
-    local converted = im.ImVec4(baseColor[1], baseColor[2], baseColor[3], baseColor[4] or 1.2)
     return {
         converted,
         converted,
         converted,
-        im.ImVec4(contrasted, contrasted, contrasted, 1),
+        ui_imgui.ImVec4(contrasted, contrasted, contrasted, 1),
     }
 end
 
@@ -624,11 +623,11 @@ local function drawPaints(paints)
 
     for i, paintData in ipairs(paints) do
         local line = LineBuilder()
+        local style = paintToIconStyle(paintData.paint.baseColor)
         for j = 1, 3 do
-            local style = paintToIconStyle(paintData.paint.baseColor)
             line:btnIcon({
                 id = string.var("applyPaint-{1}-{2}", { i, j }),
-                icon = ICONS.format_color_fill,
+                icon = BJI.Utils.Icon.ICONS.format_color_fill,
                 style = style,
                 tooltip = W.labels.applyPaint:var({ position = j }),
                 onClick = function()
@@ -649,22 +648,22 @@ local function drawBody(ctxt)
     local vehsDrew = false
 
     if W.cache.vehicles.cars then
-        drawType(W.cache.vehicles.cars, W.labels.cars, "car", ICONS.fg_vehicle_suv)
+        drawType(W.cache.vehicles.cars, W.labels.cars, "car", BJI.Utils.Icon.ICONS.fg_vehicle_suv)
         vehsDrew = true
     end
 
     if W.cache.vehicles.trucks then
-        drawType(W.cache.vehicles.trucks, W.labels.trucks, "truck", ICONS.fg_vehicle_truck)
+        drawType(W.cache.vehicles.trucks, W.labels.trucks, "truck", BJI.Utils.Icon.ICONS.fg_vehicle_truck)
         vehsDrew = true
     end
 
     if W.cache.vehicles.trailers then
-        drawType(W.cache.vehicles.trailers, W.labels.trailers, "trailer", ICONS.fg_vehicle_tanker_trailer)
+        drawType(W.cache.vehicles.trailers, W.labels.trailers, "trailer", BJI.Utils.Icon.ICONS.fg_vehicle_tanker_trailer)
         vehsDrew = true
     end
 
     if W.cache.vehicles.props then
-        drawType(W.cache.vehicles.props, W.labels.props, "prop", ICONS.fg_traffic_cone)
+        drawType(W.cache.vehicles.props, W.labels.props, "prop", BJI.Utils.Icon.ICONS.fg_traffic_cone)
         vehsDrew = true
     end
 
@@ -680,7 +679,7 @@ local function drawBody(ctxt)
             :commonStart(function()
                 LineBuilder(true)
                     :icon({
-                        icon = ICONS.style,
+                        icon = BJI.Utils.Icon.ICONS.style,
                     })
                     :build()
             end)
@@ -698,7 +697,7 @@ local function drawFooter(ctxt)
         LineBuilder()
             :btnIcon({
                 id = "closeVehicleSelector",
-                icon = ICONS.exit_to_app,
+                icon = BJI.Utils.Icon.ICONS.exit_to_app,
                 style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = W.labels.close,
                 onClick = W.onClose,

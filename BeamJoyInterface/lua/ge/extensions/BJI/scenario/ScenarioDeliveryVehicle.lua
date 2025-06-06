@@ -225,7 +225,7 @@ local function drawUI(ctxt, cache)
             :text(string.var("{1}: {2}", {
                 cache.labels.delivery.current,
                 cache.labels.delivery.distanceLeft
-                    :var({ distance = BJI.Utils.Common.PrettyDistance(S.distance) })
+                    :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
             }))
             :build()
 
@@ -245,7 +245,7 @@ local function drawUI(ctxt, cache)
     LineBuilder()
         :btnIconToggle({
             id = "vehicleDeliveryLoop",
-            icon = ICONS.all_inclusive,
+            icon = BJI.Utils.Icon.ICONS.all_inclusive,
             big = true,
             state = loop,
             tooltip = cache.labels.delivery.loop,
@@ -256,7 +256,7 @@ local function drawUI(ctxt, cache)
         })
         :btnIcon({
             id = "stopVehicleDelivery",
-            icon = ICONS.exit_to_app,
+            icon = BJI.Utils.Icon.ICONS.exit_to_app,
             big = true,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = cache.labels.delivery.leave,
@@ -328,7 +328,7 @@ local function getPlayerListActions(player, ctxt)
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         table.insert(actions, {
             id = string.var("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
+            icon = BJI.Utils.Icon.ICONS.event_busy,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
             onClick = function()
@@ -358,6 +358,7 @@ S.doShowNametagsSpecs = TrueFn
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
+S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 

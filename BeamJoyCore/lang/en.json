@@ -342,7 +342,8 @@
         "gamemodeJoin": "{playerName} joined {gamemode}",
         "gamemodeLeave": "{playerName} left {gamemode}",
         "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}",
-        "gamemodeTeamWon": "{teamName} won {gamemode}"
+        "gamemodeTeamWon": "{teamName} won {gamemode}",
+        "tournamentResult": "{playerName} finished the tournament #{position} ({score} pts)"
       }
     },
     "nametags": {
@@ -446,7 +447,8 @@
           "stop": "Stop Destruction Derby",
           "noArena": "No arena available",
           "missingPlayers": "Missing {amount} more player(s)"
-        }
+        },
+        "tournament": "Tournament"
       },
       "edit": {
         "title": "Edit",
@@ -1520,6 +1522,33 @@
         "notReadyMark": "NOT READY",
         "amountLife": "{amount} life",
         "amountLives": "{amount} lives"
+      }
+    },
+    "tournament": {
+      "title": "Tournament",
+      "state": "Enabled",
+      "whitelist": "Whitelist",
+      "activityTimeoutIn": "Activity timeout in {delay}",
+      "activityAboutToTimeout": "Activity is about to timeout",
+      "total": "Total",
+      "startActivity": "Start Activity",
+      "track": "Track",
+      "arena": "Arena",
+      "duration": "Duration",
+      "noParticipant": "No participant yet",
+      "buttons": {
+        "endSoloRace": "End Time Attack Activity",
+        "endTournament": "End Tournament",
+        "endTournamentTooltip": "Will broadcast participants positions in the chat",
+        "errorMustHaveVehicle": "You need a vehicle"
+      },
+      "activities": {
+        "raceSolo": "Time Attack",
+        "race": "Race",
+        "speed": "Speed",
+        "hunter": "Hunter",
+        "derby": "Derby",
+        "tag": "Infected"
       }
     }
   }

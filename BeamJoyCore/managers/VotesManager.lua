@@ -628,6 +628,6 @@ local function onPlayerDisconnect(player)
         :filter(function(el) return el.cond() end)
         :forEach(function(el) el.fn(player) end)
 end
-BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect)
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect, "VotesManager")
 
 return M
