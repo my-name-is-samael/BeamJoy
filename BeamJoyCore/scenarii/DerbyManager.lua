@@ -11,7 +11,7 @@ local M = {
     name = "Derby",
 
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.General.Debug and MP.GetPlayerCount() < 3 then
+        if BJCCore.Data.Debug and MP.GetPlayerCount() < 3 then
             return MP.GetPlayerCount()
         end
         return 3

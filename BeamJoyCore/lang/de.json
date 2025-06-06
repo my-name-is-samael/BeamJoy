@@ -168,7 +168,8 @@
         "invalidLang": "Ungültige Sprache „{lang}“",
         "insufficientPlayers": "Nicht genügend Spieler",
         "guestCannotBeWhitelisted": "Gäste können nicht auf die Whitelist gesetzt werden",
-        "playerAmbiguity": "Mehrdeutigkeit mit Spielern: {playerList}"
+        "playerAmbiguity": "Mehrdeutigkeit mit Spielern: {playerList}",
+        "coreWritingDisabled": "Das Schreiben der Kernkonfiguration ist durch deinen Hosting-Anbieter nicht erlaubt. Die Konfiguration wird nach einem Neustart nicht gespeichert."
       },
       "vehicleRemoveOneOf": "Eines Ihrer Fahrzeuge",
       "vehicleRemoveMain": "Ihr Fahrzeug",

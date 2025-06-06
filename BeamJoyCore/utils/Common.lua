@@ -132,7 +132,7 @@ end
 function LogDebug(content, tag)
     local show = true
     if BJCCore then
-        show = BJCCore.Data.General.Debug
+        show = BJCCore.Data.Debug
     end
     if not show then
         return

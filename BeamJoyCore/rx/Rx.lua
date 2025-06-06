@@ -71,7 +71,7 @@ local function finalizeCommunication(id)
     if not Table(ctrls):find(function(_, e)
             return (type(BJC_EVENTS[e]) == "table" and BJC_EVENTS[e].EVENT == ctxt.event)
         end, function(ctrl)
-            if BJCCore.Data.General.Debug then
+            if BJCCore.Data.Debug then
                 Log(BJCLang.getConsoleMessage("rx.eventReceived")
                     :var({
                         eventName = ctxt.event,

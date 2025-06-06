@@ -235,13 +235,14 @@ local function drawCoreConfig(ctxt)
     Indent(2)
     drawCoreFormattingHints()
 
-    local cols = ColumnsBuilder("CoreSettings", { W.coreLabelsWidth, -1 })
-    for k, v in pairs(BJI.Managers.Context.Core) do
-        cols:addRow({
+    Table(BJI.Managers.Context.Core):filter(function(_, k)
+        return k ~= "Map"
+    end):reduce(function(res, v, k)
+        res:addRow({
             cells = {
                 function() LineLabel(W.labelsCore.keys[k]) end,
                 function()
-                    if table.includes({ "Tags", "Description" }, k) then
+                    if k == "Description" then
                         LineBuilder()
                             :inputString({
                                 id = string.var("core{1}", { k }),
@@ -283,6 +284,7 @@ local function drawCoreConfig(ctxt)
                             line:inputString({
                                 id = "core" .. k,
                                 value = v,
+                                size = 250,
                                 onUpdate = function(val)
                                     BJI.Managers.Context.Core[k] = val
                                     BJI.Tx.config.core(k, val)
@@ -312,12 +314,12 @@ local function drawCoreConfig(ctxt)
                     end
                 end
                 if colorFound then
-                    drawCoreTextPreview(cols, v:gsub("\n", "%^p"), k)
+                    drawCoreTextPreview(res, v:gsub("\n", "%^p"), k)
                 end
             end
         end
-    end
-    cols:build()
+        return res
+    end, ColumnsBuilder("CoreSettings", { W.coreLabelsWidth, -1 })):build()
     Indent(-2)
 end
 

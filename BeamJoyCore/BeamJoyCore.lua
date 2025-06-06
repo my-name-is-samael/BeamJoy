@@ -57,13 +57,13 @@ end
 local function loadBeamJoy()
     Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
 
+    BJCCore = require("managers/CoreManager")
     BJCEvents = require("managers/EventsManager")
 
     BJCAsync = require("managers/AsyncManager")
     BJCDefaults = require("managers/Defaults")
     BJCDao = require("dao/DaoFile")
     BJCCache = require("managers/CacheManager")
-    BJCCore = require("managers/CoreManager")
     BJCVehicles = require("managers/VehiclesManager")
     BJCConfig = require("managers/ConfigManager")
     BJCLang = require("managers/LangManager")

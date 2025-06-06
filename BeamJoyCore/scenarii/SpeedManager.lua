@@ -3,7 +3,7 @@ local M = {
     name = "Speed",
 
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.General.Debug then
+        if BJCCore.Data.Debug then
             return 1
         end
         return 2

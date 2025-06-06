@@ -100,44 +100,24 @@ local function List()
 end
 
 local function Settings(args)
-    local settings = {}
-    for parentK, parentV in pairs(BJCCore.Data) do
-        for childK, childV in pairs(parentV) do
-            local key = string.var("{1}.{2}", { parentK, childK })
-            if not table.includes({ "General.AuthKey", "General.ResourceFolder" }, key) then
-                table.insert(settings, {
-                    key = key,
-                    value = childV
-                })
-            end
-        end
-    end
-    table.sort(settings, function(a, b) return a.key < b.key end)
+    local settings = BJCCore.KEYS_CONFIG:filter(function(k) return not k.prevent end):map(function(_, k)
+        return {
+            key = k,
+            value = BJCCore.Data[k],
+        }
+    end):sort(function(a, b) return a.key < b.key end) or Table()
 
     if #args == 0 then -- print all settings
-        local out = "Settings :"
-        for _, s in ipairs(settings) do
-            out = string.var("{1}\n    {2} = {3}", { out, s.key, s.value })
-        end
-        return out
+        return string.var("Settings :\n    {1}", {
+            settings:map(function(el) return el.key .. " = " .. tostring(el.value) end):join("\n    ")
+        })
     end
 
     -- print or assign specific setting
-    local found = false
-    for _, s in ipairs(settings) do
-        if s.key == args[1] then
-            found = true
-            break
-        end
-    end
-    if not found then -- invalid setting key
-        local list = {}
-        for _, s in ipairs(settings) do
-            table.insert(list, s.key)
-        end
+    if not settings:any(function(el) return el.key == args[1] end) then
         return BJCLang.getConsoleMessage("command.errors.usage"):var({
             command = string.var("settings [<setting> [value]], available settings : {1}", {
-                table.join(list, ", ")
+                settings:map(function(el) return el.key end):join(", ")
             })
         })
     end

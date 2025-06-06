@@ -142,7 +142,7 @@ local function trigger(event, ...)
     end
 
     local params = { ... }
-    if BJCCore.Data.General.Debug and
+    if BJCCore.Data.Debug and
         not Table({ M.EVENTS.SLOW_TICK, M.EVENTS.FAST_TICK, M.EVENTS.MP_CONSOLE_INPUT }):includes(event) then
         Log(string.var("Event triggered : {1}", { event.key }), M._name)
     end

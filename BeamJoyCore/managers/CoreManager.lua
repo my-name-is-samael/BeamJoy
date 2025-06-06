@@ -1,63 +1,130 @@
 local resourcesFolderPath = BJCPluginPath:gsub("Server/BeamJoyCore", "")
 
 local M = {
-    Data = {},
+    KEYS_CONFIG = Table({
+        Debug       = { type = "boolean", },
+        Private     = { type = "boolean", },
+        MaxCars     = { type = "number", prevent = true },
+        MaxPlayers  = { type = "number", },
+        Map         = { type = "string", maxLength = 100 },
+        Name        = { type = "string", maxLength = 250 },
+        Description = { type = "string", maxLength = 1000 },
+        -- Tags        = { type = "string", maxLength = 100 },
+    }),
+
+    Data = {
+        Debug = false,
+        Private = false,
+        MaxCars = 0,
+        MaxPlayers = 0,
+        Map = "",
+        Name = "",
+        Description = "",
+    },
+
     _mapFullNamePrefix = "/levels/",
     _mapFullNameSuffix = "/info.json",
+
+    _canWriteConfig = nil,
 }
 
-local function readServerConfig()
-    local result = {}
-
-    local file, error = io.open("ServerConfig.toml", "r")
-    if file and not error then
-        local text = file:read("*a")
-        file:close()
-        result = TOML.parse(text)
+local function writeCoreConfig()
+    if M._canWriteConfig == nil then
+        local file, err = io.open("ServerConfig.toml", "r")
+        M._canWriteConfig = not err
+        if file and not err then
+            file:close()
+        end
     end
 
-    return result
-end
+    if M._canWriteConfig == false then
+        error({ key = "rx.errors.coreWritingDisabled" })
+    end
 
-local function writeServerConfig()
-    local tmpfile, error = io.open("ServerConfig.temp", "w")
-    if tmpfile and not error then
-        local data = TOML.encode(M.Data) -- TOML encoding is altering data
-        tmpfile:write(data)
-        tmpfile:close()
+    local core = {}
+    local file, err = io.open("ServerConfig.toml", "r")
+    if M._canWriteConfig == nil or err then
+        M._canWriteConfig = false
+        error({ key = "rx.errors.coreWritingDisabled" })
+    end
+    if file and not err then
+        local text = file:read("*a")
+        file:close()
+        core = TOML.parse(text)
+    end
+    table.assign(core.General, M.Data)
+
+    file, err = io.open("ServerConfig.temp", "w")
+    if file and not err then
+        local data = TOML.encode(core) -- TOML encoding is altering data
+        file:write(data)
+        file:close()
 
         FS.Remove("ServerConfig.toml")
         FS.Rename("ServerConfig.temp", "ServerConfig.toml")
+    else
+        error({ key = "rx.errors.coreWritingDisabled" })
     end
 end
 
-local function init()
-    local core = readServerConfig()
-    M.Data = {
-        General = {
-            Name = core.General.Name,
-            Port = tonumber(core.General.Port),
-            AuthKey = core.General.AuthKey,
-            Tags = core.General.Tags,
-            Debug = core.General.Debug == true,
-            Private = core.General.Private == true,
-            MaxCars = core.General.MaxCars,
-            MaxPlayers = core.General.MaxPlayers,
-            Map = core.General.Map,
-            Description = core.General.Description,
-            ResourceFolder = core.General.ResourceFolder,
-        },
-        Misc = {
-            ImScaredOfUpdates = core.Misc.ImScaredOfUpdates == true,
-            SendErrorsShowMessage = core.Misc.SendErrorsShowMessage == true,
-            SendErrors = core.Misc.SendErrors == true
-        }
-    }
+local function _set(key, value)
+    if not M.KEYS_CONFIG[key] then
+        error({ key = "rx.errors.invalidKey", data = { key = key } })
+    elseif type(value) ~= M.KEYS_CONFIG[key].type then
+        error({ key = "rx.errors.invalidValue", data = { value = value } })
+    elseif M.KEYS_CONFIG[key].type == "string" and #value > M.KEYS_CONFIG[key].maxLength then
+        error({ key = "rx.errors.invalidValue", data = { value = value } })
+    end
 
-    -- fix invalid MaxCars
-    if M.Data.General.MaxCars < 0 then
-        M.Data.General.MaxCars = 0
-        writeServerConfig()
+    if M.KEYS_CONFIG[key].type == "number" then
+        value = math.round(value)
+    end
+
+    MP.Set(MP.Settings[key], value)
+    M.Data[key] = value
+    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
+
+    -- https://github.com/BeamMP/BeamMP-Server/issues/433
+    writeCoreConfig()
+end
+
+local function initLegacy()
+    local core = {}
+    local file, err = io.open("ServerConfig.toml", "r")
+    if file and not err then
+        local text = file:read("*a")
+        file:close()
+        core = TOML.parse(text)
+    end
+
+    if not core then
+        error(
+            "You hosting provider is not allowing configuration reading and your BeamMP server version is too old to workaround this issue. Please update your BeamMP server to version 3.6.0 or higher.")
+    end
+
+    M.Data = Table({
+        Debug = core.General.Debug == true,
+        Private = core.General.Private == true,
+        MaxCars = core.General.MaxCars,
+        MaxPlayers = core.General.MaxPlayers,
+        Map = core.General.Map,
+        Name = core.General.Name,
+        Description = core.General.Description,
+    })
+end
+
+local function init()
+    if not MP.Get then
+        initLegacy()
+    else
+        M.Data = M.KEYS_CONFIG:map(function(_, k)
+            return MP.Get(MP.Settings[k])
+        end)
+    end
+
+    -- applies fixed value and lets the mod handle the rest
+    if not tonumber(M.Data.MaxCars) or M.Data.MaxCars < 200 then
+        pcall(_set, "MaxCars", 200)
     end
 end
 
@@ -83,7 +150,7 @@ local function consoleSetLang(args)
 end
 
 local function getMap()
-    local mapName = M.Data.General.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
+    local mapName = M.Data.Map:gsub(M._mapFullNamePrefix, ""):gsub(M._mapFullNameSuffix, "")
     return mapName
 end
 
@@ -130,9 +197,7 @@ local function setMap(mapName)
         end
         return messagesCache[player.lang]:var({ delay = PrettyDelay(delaySec) })
     end, "mapSwitch.kick", function()
-        M.Data.General.Map = newFullName
-        MP.Set(MP.Settings.Map, newFullName)
-        writeServerConfig()
+        _set("Map", newFullName)
 
         if currentMap and targetMap and
             (currentMap.custom or targetMap.custom) and
@@ -191,68 +256,48 @@ local function consoleSetMap(args)
 end
 
 local function set(key, value)
-    local keys = { "Name", "Debug", "Private", "MaxCars", "MaxPlayers" }
-    if type(M.Data.General[key]) == type(value) and table.includes(keys, key) then
-        M.Data.General[key] = value
-        MP.Set(MP.Settings[key], value)
-        writeServerConfig()
-        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
-    elseif key == "Map" then
+    if not M.KEYS_CONFIG[key] or M.KEYS_CONFIG[key].prevent then
+        error({ key = "rx.errors.invalidKey", data = { key = key } })
+    elseif M.KEYS_CONFIG[key].type ~= type(value) then
+        error({ key = "rx.errors.invalidValue", data = { value = value } })
+    end
+
+    if key == "Map" then
         setMap(value)
-    elseif key == "Tags" then
-        value = value:gsub("\n", ",")
-        M.Data.General.Tags = value
-        writeServerConfig()
-        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
-    elseif key == "Description" then
-        value = value:gsub("\n", "^p")
-        M.Data.General.Description = value
-        writeServerConfig()
-        BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
+    elseif M.KEYS_CONFIG:filter(function(k) return not k.prevent end)[key] then
+        if key == "Description" then
+            value = value:gsub("\n", "^p")
+        end
+        _set(key, value)
     end
 end
 
 local function consoleSet(key, value)
-    local keyParts = key:split(".")
-    if #keyParts ~= 2 then
-        error({ key = "rx.errors.invalidKey", data = { key = key } })
-    end
-    if not keyParts[1] or not keyParts[2] or not M.Data[keyParts[1]] or M.Data[keyParts[1]][keyParts[2]] == nil then
+    if not M.KEYS_CONFIG[key] or M.KEYS_CONFIG[key].prevent then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     end
 
-    if keyParts[1] == "General" then
-        -- AuthKey is not editable
-        if keyParts[2] == "AuthKey" then
-            error({ key = "rx.errors.forbidden" })
+    -- value types validation
+    if M.KEYS_CONFIG[key].type == "number" then
+        value = tonumber(value)
+        if not value then
+            error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
-
-        -- value types validation
-        if table.includes({ "Port", "MaxPlayers", "MaxCars" }, keyParts[2]) then
-            value = tonumber(value)
-            if not value then
-                error({ key = "rx.errors.invalidValue", data = { value = value } })
-            end
-        elseif table.includes({ "Debug", "Private" }, keyParts[2]) then
-            if value == "true" then
-                value = true
-            elseif value == "false" then
-                value = false
-            else
-                error({ key = "rx.errors.invalidValue", data = { value = value } })
-            end
-        end
-
-        -- apply
-        if keyParts[2] == "Map" then
-            -- not an actual error but will be printed next instead of default message
-            error({ key = M.consoleSetMap({ value }) })
+    elseif M.KEYS_CONFIG[key].type == "boolean" then
+        if value == "true" then
+            value = true
+        elseif value == "false" then
+            value = false
         else
-            M.set(keyParts[2], value)
+            error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
-    elseif keyParts[2] then -- other than "General"
-        M.data[keyParts[1]][keyParts[2]] = value
-        writeServerConfig()
+    end
+
+    if key == "Map" then
+        -- not an actual error but will be printed next instead of default message
+        error({ key = M.consoleSetMap({ value }) })
+    else
+        M.set(key, value)
     end
 end
 
@@ -275,18 +320,13 @@ local function stop()
 end
 
 local function getCache()
-    local fields = { "Name", "Tags", "Debug", "Private", "MaxCars", "MaxPlayers", "Description" }
-    local cache = {}
-    local config = table.deepcopy(M.Data.General)
-    for _, v in ipairs(fields) do
-        cache[v] = config[v]
-        if v == "Tags" then
-            cache[v] = cache[v]:gsub(",", "\n")
-        elseif v == "Description" then
-            cache[v] = cache[v]:gsub("%^p", "\n")
+    return M.KEYS_CONFIG:filter(function(k) return not k.prevent end):reduce(function(res, _, k)
+        res[k] = M.Data[k]
+        if k == "Description" then
+            res[k] = res[k]:gsub("%^p", "\n")
         end
-    end
-    return cache, M.getCacheHash()
+        return res
+    end, Table()), M.getCacheHash()
 end
 
 local function getCacheHash()

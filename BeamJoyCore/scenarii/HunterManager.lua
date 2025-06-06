@@ -11,7 +11,7 @@ local M = {
     name = "Hunter",
 
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.General.Debug and
+        if BJCCore.Data.Debug and
             MP.GetPlayerCount() == 1 then
             return 1
         end
@@ -142,7 +142,7 @@ local function onPreparationTimeout()
     end
 
     if not M.participants:any(function(p) return p.hunted end) and
-        not BJCCore.Data.General.Debug then
+        not BJCCore.Data.Debug then
         LogError("Hunted player not found")
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "hunter.invalidHunted")
         BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
@@ -247,7 +247,7 @@ local function onJoin(senderID)
     elseif M.participants:length() == 0 then
         -- first to join is hunted (or debug)
         local hunted = true
-        if BJCCore.Data.General.Debug and MP.GetPlayerCount() == 1 then
+        if BJCCore.Data.Debug and MP.GetPlayerCount() == 1 then
             hunted = math.random() > 0.5
         end
         M.participants[senderID] = {
