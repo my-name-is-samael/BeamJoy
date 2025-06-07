@@ -28,7 +28,7 @@ local M = {
     _canWriteConfig = nil,
 }
 
-local function writeCoreConfig()
+local function initCanWriteConfig()
     if M._canWriteConfig == nil then
         local file, err = io.open("ServerConfig.toml", "r")
         M._canWriteConfig = not err
@@ -36,6 +36,10 @@ local function writeCoreConfig()
             file:close()
         end
     end
+end
+
+local function writeCoreConfig()
+    initCanWriteConfig()
 
     if M._canWriteConfig == false then
         error({ key = "rx.errors.coreWritingDisabled" })
@@ -166,6 +170,13 @@ local function setMap(mapName)
 
     if currentMap and targetMap and currentMap == targetMap then
         return false
+    end
+
+    initCanWriteConfig()
+    if M._canWriteConfig == false and (currentMap.custom or targetMap.custom) then
+        -- https://github.com/BeamMP/BeamMP-Server/issues/433
+        -- server needs a reboot and config writing is disabled
+        error({ key = "rx.errors.coreWritingDisabled" })
     end
 
     if currentMap and currentMap.custom then
