@@ -134,7 +134,7 @@ end
 local function tryApplyTimeFromServer(ToD)
     if not M.ToDEdit and ToD ~= nil and
         M.Data.controlSun and
-        math.abs(M.Data.ToD - ToD) > .01 then
+        math.abs(M.Data.ToD - ToD) > .0001 then
         -- sync only if client got offset
         M.Data.ToD = ToD
     end
@@ -397,8 +397,7 @@ local function renderTick(ctxt)
                 if M.Data.controlSimSpeed and M.Data.simSpeed ~= 1 then
                     step = step * M.Data.simSpeed
                 end
-                step = math.round(step, 6)
-                M.Data.ToD = (M.Data.ToD + step) % 1
+                M.Data.ToD = math.round((M.Data.ToD + step) % 1, 7)
                 _tryApplyTime()
             end
             lastRenderTick = ctxt.now

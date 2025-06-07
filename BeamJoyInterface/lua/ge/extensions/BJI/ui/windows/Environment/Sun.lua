@@ -298,6 +298,8 @@ local function body()
                         disabled = not BJI.Managers.Env.Data.controlSun,
                         onClick = function()
                             BJI.Managers.Env.Data.dayLength = 86400
+                            BJI.Managers.Env.Data.skyDay.dayScale = .5
+                            BJI.Managers.Env.Data.skyNight.nightScale = .5
                         end,
                     }):btn({
                         id = "dayLength20min",
