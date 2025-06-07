@@ -924,14 +924,10 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
         -- cached data
         local configs = table.clone(M.allVehicleConfigs)
         if withTrailers then
-            for k, v in pairs(M.allTrailerConfigs) do
-                configs[k] = table.clone(v)
-            end
+            table.assign(configs, Table(M.allTrailerConfigs):clone())
         end
         if withProps then
-            for k, v in pairs(M.allPropConfigs) do
-                configs[k] = table.clone(v)
-            end
+            table.assign(configs, Table(M.allPropConfigs):clone())
         end
         return configs
     end
@@ -944,7 +940,17 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     local vehicles = {}
     local trailers = {}
     local props = {}
+    local bench = {
+        all = 0,
+        gather = 0,
+        checkModded = 0,
+        parse = 0,
+        labels = 0,
+    }
+    local start = GetCurrentTimeMillis()
+    bench.all = start
     local vehs = core_vehicles.getVehicleList().vehicles
+    bench.gather = GetCurrentTimeMillis() - start
     for _, veh in ipairs(vehs) do
         if veh.model then
             local isVeh = true -- Truck | Car
@@ -952,14 +958,28 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 isVeh = false
             end
 
-            if isVeh and veh.model.preview == "/ui/images/appDefault.png" then
-                -- not loaded vehicle
-                goto skipVeh
-            elseif table.includes(INVALID_VEHICLES, veh.model.key) then
+            if table.includes(INVALID_VEHICLES, veh.model.key) then
                 -- do not use
                 goto skipVeh
             end
 
+            start = GetCurrentTimeMillis()
+            if veh.model.aggregates.Source.Mod then
+                local jbeamIO = require('jbeam/io')
+                local function tryLoadVeh()
+                    if not jbeamIO.getPart(jbeamIO.startLoading({ "/vehicles/common/",
+                            string.var("/vehicles/{1}/", { veh.model.key }) }), veh.model.key) then
+                        error()
+                    end
+                end
+                if not pcall(tryLoadVeh) then
+                    -- vehicle lot loaded
+                    goto skipVeh
+                end
+            end
+            bench.checkModded = bench.checkModded + (GetCurrentTimeMillis() - start)
+
+            start = GetCurrentTimeMillis()
             local target
             if isVeh then
                 target = vehicles
@@ -1000,6 +1020,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                     end
                 end
             end
+            bench.parse = bench.parse + (GetCurrentTimeMillis() - start)
         end
         ::skipVeh::
     end
@@ -1008,6 +1029,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     M.allPropConfigs = props
 
     -- LABELS
+    start = GetCurrentTimeMillis()
     M.allVehicleLabels = {}
     for model, d in pairs(vehicles) do
         M.allVehicleLabels[model] = d.label or model
@@ -1020,10 +1042,23 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     for model, d in pairs(props) do
         M.allPropLabels[model] = d.label or model
     end
+    bench.labels = GetCurrentTimeMillis() - start
+    bench.all = GetCurrentTimeMillis() - bench.all
+
+    BJI.Managers.Async.delayTask(function()
+        LogInfo("BJI Vehicles Configurations Bechmark :")
+        LogInfo(string.var("    Vehicles gathered in {1}ms", { bench.gather }))
+        LogInfo(string.var("    Modded vehicles checked in {1}ms", { bench.checkModded }))
+        LogInfo(string.var("    Data parsed in {1}ms", { bench.parse }))
+        LogInfo(string.var("    Complete process done in {1}ms", { bench.all }))
+    end, 0, "VehConfigsCacheBench")
 
     if not forced then
         -- first loading
         BJI.Managers.Message.message("All vehicles cached !")
+    else
+        -- update potentially already opened veh selector
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
     -- return cached data
     return M.getAllVehicleConfigs(withTrailers, withProps)
