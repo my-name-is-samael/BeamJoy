@@ -100,7 +100,7 @@ local function List()
 end
 
 local function Settings(args)
-    local settings = BJCCore.KEYS_CONFIG:filter(function(k) return not k.prevent end):map(function(_, k)
+    local settings = BJC_CORE_CONFIG:filter(function(k) return not k.prevent end):map(function(_, k)
         return {
             key = k,
             value = BJCCore.Data[k],

@@ -1,3 +1,26 @@
+local W = {
+    name = "ServerCoreCen",
+
+    labelsCore = {
+        formatting = {
+            title = "",
+            hints = {},
+        },
+        title = "",
+        previewTooltip = "",
+        keys = {},
+    },
+    labelsCen = {
+        title = "",
+        titleTooltip = "",
+        keys = {},
+    },
+    showCore = false,
+    showCEN = false,
+    coreLabelsWidth = 0,
+    cenLabelsWidth = 0,
+}
+
 local FORMATTING_CODES = {
     {
         { code = "^r", key = "reset" },
@@ -29,29 +52,6 @@ local FORMATTING_CODES = {
 }
 local FAVORITE_NAME_OFFLINE_SUFFIX = "[OFFLINE]"
 
-local W = {
-    name = "ServerCoreCen",
-
-    labelsCore = {
-        formatting = {
-            title = "",
-            hints = {},
-        },
-        title = "",
-        previewTooltip = "",
-        keys = {},
-    },
-    labelsCen = {
-        title = "",
-        titleTooltip = "",
-        keys = {},
-    },
-    showCore = false,
-    showCEN = false,
-    coreLabelsWidth = 0,
-    cenLabelsWidth = 0,
-}
-
 local function updateLabels()
     W.labelsCore.formatting.title = BJI.Managers.Lang.get("serverConfig.core.formattingHints.title")
     Range(1, math.max(#FORMATTING_CODES[1], #FORMATTING_CODES[2], #FORMATTING_CODES[3]))
@@ -68,6 +68,10 @@ local function updateLabels()
     W.labelsCore.previewTooltip = BJI.Managers.Lang.get("serverConfig.core.previewTooltip")
     Table(BJI.Managers.Context.Core):keys():forEach(function(k)
         W.labelsCore.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}", { k })) .. " :"
+        local tooltip = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}Tooltip", { k }), "")
+        if #tooltip > 0 then
+            W.labelsCore.keys[k .. "Tooltip"] = tooltip
+        end
     end)
 
     W.labelsCen.title = BJI.Managers.Lang.get("serverConfig.cen.title") .. " :"
@@ -78,7 +82,9 @@ local function updateLabels()
 end
 
 local function updateWidths()
-    W.coreLabelsWidth = Table(W.labelsCore.keys):reduce(function(acc, l)
+    W.coreLabelsWidth = Table(W.labelsCore.keys):filter(function(_, k)
+        return not tostring(k):endswith("Tooltip")
+    end):reduce(function(acc, l)
         local w = BJI.Utils.UI.GetColumnTextWidth(l)
         return w > acc and w or acc
     end, 0)
@@ -150,6 +156,24 @@ local function drawCoreFormattingHints()
         :build()
 end
 
+---@param value string
+---@return boolean
+local function isContainingColors(value)
+    if value:find("%^") then
+        for i = 2, #FORMATTING_CODES do
+            for _, color in ipairs(FORMATTING_CODES[i]) do
+                if value:find(string.var("%{1}", { color.code })) then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+---@param cols ColumnsBuilder
+---@param value string
+---@param key string
 local function drawCoreTextPreview(cols, value, key)
     local reset = {
         char = FORMATTING_CODES[1][1].code:sub(2),               -- RESET CHAR
@@ -229,96 +253,157 @@ local function drawCoreTextPreview(cols, value, key)
     })
 end
 
+local CORE_CONFIG = Table({
+    {
+        key = "Name",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():inputString({
+                            id = "coreName",
+                            value = BJI.Managers.Context.Core.Name,
+                            size = 250,
+                            onUpdate = function(val)
+                                BJI.Managers.Context.Core.Name = val
+                                BJI.Tx.config.core("Name", val)
+                            end
+                        }):build()
+                    end
+                }
+            })
+            if isContainingColors(BJI.Managers.Context.Core.Name) then
+                drawCoreTextPreview(cols, BJI.Managers.Context.Core.Name:gsub("\n", "%^p"), "Name")
+            end
+        end
+    },
+    {
+        key = "Description",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():inputString({
+                            id = "coreDescription",
+                            value = BJI.Managers.Context.Core.Description,
+                            multiline = true,
+                            autoheight = true,
+                            size = 1000,
+                            onUpdate = function(val)
+                                BJI.Managers.Context.Core.Description = val
+                                BJI.Tx.config.core("Description", val)
+                            end
+                        }):build()
+                    end
+                }
+            })
+            if isContainingColors(BJI.Managers.Context.Core.Description) then
+                drawCoreTextPreview(cols, BJI.Managers.Context.Core.Description:gsub("\n", "%^p"),
+                    "Description")
+            end
+        end
+    },
+    {
+        key = "MaxPlayers",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():inputNumeric({
+                            id = "coreMaxPlayers",
+                            type = "int",
+                            value = BJI.Managers.Context.Core.MaxPlayers,
+                            step = 1,
+                            min = 0,
+                            onUpdate = function(val)
+                                BJI.Managers.Context.Core.MaxPlayers = val
+                                BJI.Tx.config.core("MaxPlayers", val)
+                            end
+                        }):build()
+                    end
+                }
+            })
+        end
+    },
+    {
+        key = "Private",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():btnIconToggle({
+                            id = "corePrivate",
+                            state = BJI.Managers.Context.Core.Private,
+                            coloredIcon = true,
+                            onClick = function()
+                                BJI.Managers.Context.Core.Private = not BJI.Managers.Context.Core.Private
+                                BJI.Tx.config.core("Private", BJI.Managers.Context.Core.Private)
+                            end
+                        }):build()
+                    end
+                }
+            })
+        end
+    },
+    {
+        key = "Debug",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():btnIconToggle({
+                            id = "coreDebug",
+                            state = BJI.Managers.Context.Core.Debug,
+                            coloredIcon = true,
+                            onClick = function()
+                                BJI.Managers.Context.Core.Debug = not BJI.Managers.Context.Core.Debug
+                                BJI.Tx.config.core("Debug", BJI.Managers.Context.Core.Debug)
+                            end
+                        }):build()
+                    end
+                }
+            })
+        end
+    },
+    {
+        key = "InformationPacket",
+        render = function(cols, label, tooltip)
+            cols:addRow({
+                cells = {
+                    function() LineLabel(label, nil, false, tooltip) end,
+                    function()
+                        LineBuilder():btnIconToggle({
+                            id = "coreInformationPacket",
+                            state = BJI.Managers.Context.Core.InformationPacket,
+                            coloredIcon = true,
+                            onClick = function()
+                                BJI.Managers.Context.Core.InformationPacket = not BJI.Managers.Context.Core
+                                    .InformationPacket
+                                BJI.Tx.config.core("InformationPacket", BJI.Managers.Context.Core.InformationPacket)
+                            end
+                        }):build()
+                    end
+                }
+            })
+        end
+    }
+})
+
 local function drawCoreConfig(ctxt)
     LineLabel(W.labelsCore.title)
 
     Indent(2)
     drawCoreFormattingHints()
-
-    Table(BJI.Managers.Context.Core):filter(function(_, k)
-        return k ~= "Map"
-    end):reduce(function(res, v, k)
-        res:addRow({
-            cells = {
-                function() LineLabel(W.labelsCore.keys[k]) end,
-                function()
-                    if k == "Description" then
-                        LineBuilder()
-                            :inputString({
-                                id = string.var("core{1}", { k }),
-                                value = v,
-                                multiline = true,
-                                autoheight = true,
-                                size = k == "Description" and 512 or 128,
-                                onUpdate = function(val)
-                                    BJI.Managers.Context.Core[k] = val
-                                    BJI.Tx.config.core(k, val)
-                                end
-                            })
-                            :build()
-                    else
-                        local line = LineBuilder()
-                        if type(v) == "boolean" then
-                            line:btnIconToggle({
-                                id = "core" .. k,
-                                state = v,
-                                coloredIcon = true,
-                                onClick = function()
-                                    BJI.Tx.config.core(k, not v)
-                                    BJI.Managers.Context.Core[k] = not v
-                                end
-                            })
-                        elseif type(v) == "number" then
-                            line:inputNumeric({
-                                id = "core" .. k,
-                                type = "int",
-                                value = v,
-                                step = 1,
-                                min = 0,
-                                onUpdate = function(val)
-                                    BJI.Managers.Context.Core[k] = val
-                                    BJI.Tx.config.core(k, val)
-                                end
-                            })
-                        elseif type(v) == "string" then
-                            line:inputString({
-                                id = "core" .. k,
-                                value = v,
-                                size = 250,
-                                onUpdate = function(val)
-                                    BJI.Managers.Context.Core[k] = val
-                                    BJI.Tx.config.core(k, val)
-                                end
-                            })
-                        else
-                            line:text(v)
-                        end
-                        line:build()
-                    end
-                end
-            }
-        })
-
-        if table.includes({ "Name", "Description" }, k) then
-            if v:find("%^") then
-                local colorFound = false
-                for i = 2, #FORMATTING_CODES do
-                    for _, color in ipairs(FORMATTING_CODES[i]) do
-                        if v:find(string.var("%{1}", { color.code })) then
-                            colorFound = true
-                            break
-                        end
-                    end
-                    if colorFound then
-                        break
-                    end
-                end
-                if colorFound then
-                    drawCoreTextPreview(res, v:gsub("\n", "%^p"), k)
-                end
-            end
+    CORE_CONFIG:reduce(function(cols, conf)
+        if BJI.Managers.Context.Core[conf.key] ~= nil then
+            conf.render(cols, W.labelsCore.keys[conf.key], W.labelsCore.keys[conf.key .. "Tooltip"])
         end
-        return res
+        return cols
     end, ColumnsBuilder("CoreSettings", { W.coreLabelsWidth, -1 })):build()
     Indent(-2)
 end

@@ -29,7 +29,6 @@ require("utils/String")
 require("utils/Table")
 SHA = require("utils/SHA")
 JSON = require("utils/JSON")
-TOML = require("utils/TOML")
 
 require("utils/Constants")
 require("utils/Common")
@@ -57,12 +56,12 @@ end
 local function loadBeamJoy()
     Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
 
-    BJCCore = require("managers/CoreManager")
     BJCEvents = require("managers/EventsManager")
 
     BJCAsync = require("managers/AsyncManager")
     BJCDefaults = require("managers/Defaults")
     BJCDao = require("dao/DaoFile")
+    BJCCore = require("managers/CoreManager")
     BJCCache = require("managers/CacheManager")
     BJCVehicles = require("managers/VehiclesManager")
     BJCConfig = require("managers/ConfigManager")

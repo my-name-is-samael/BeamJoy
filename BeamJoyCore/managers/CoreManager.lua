@@ -1,134 +1,66 @@
+---@class BJCoreConfig
+---@field Debug boolean
+---@field Private boolean
+---@field MaxCars integer
+---@field MaxPlayers integer
+---@field Map string
+---@field Name string
+---@field Description string
+---@field Tags string
+---@field LogChat boolean
+
 local resourcesFolderPath = BJCPluginPath:gsub("Server/BeamJoyCore", "")
 
 local M = {
-    KEYS_CONFIG = Table({
-        Debug       = { type = "boolean", },
-        Private     = { type = "boolean", },
-        MaxCars     = { type = "number", prevent = true },
-        MaxPlayers  = { type = "number", },
-        Map         = { type = "string", maxLength = 100 },
-        Name        = { type = "string", maxLength = 250 },
-        Description = { type = "string", maxLength = 1000 },
-        -- Tags        = { type = "string", maxLength = 100 },
-    }),
-
-    Data = {
-        Debug = false,
-        Private = false,
-        MaxCars = 0,
-        MaxPlayers = 0,
-        Map = "",
-        Name = "",
-        Description = "",
-    },
+    ---@type BJCoreConfig?
+    Data = nil,
 
     _mapFullNamePrefix = "/levels/",
     _mapFullNameSuffix = "/info.json",
-
-    _canWriteConfig = nil,
 }
 
-local function initCanWriteConfig()
-    if M._canWriteConfig == nil then
-        local file, err = io.open("ServerConfig.toml", "r")
-        M._canWriteConfig = not err
-        if file and not err then
-            file:close()
-        end
-    end
-end
-
-local function writeCoreConfig()
-    initCanWriteConfig()
-
-    if M._canWriteConfig == false then
-        error({ key = "rx.errors.coreWritingDisabled" })
-    end
-
-    local core = {}
-    local file, err = io.open("ServerConfig.toml", "r")
-    if M._canWriteConfig == nil or err then
-        M._canWriteConfig = false
-        error({ key = "rx.errors.coreWritingDisabled" })
-    end
-    if file and not err then
-        local text = file:read("*a")
-        file:close()
-        core = TOML.parse(text)
-    end
-    table.assign(core.General, M.Data)
-
-    file, err = io.open("ServerConfig.temp", "w")
-    if file and not err then
-        local data = TOML.encode(core) -- TOML encoding is altering data
-        file:write(data)
-        file:close()
-
-        FS.Remove("ServerConfig.toml")
-        FS.Rename("ServerConfig.temp", "ServerConfig.toml")
-    else
-        error({ key = "rx.errors.coreWritingDisabled" })
-    end
-end
-
+---@param key string
+---@param value any
 local function _set(key, value)
-    if not M.KEYS_CONFIG[key] then
+    if not BJC_CORE_CONFIG[key] then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
-    elseif type(value) ~= M.KEYS_CONFIG[key].type then
+    elseif type(value) ~= BJC_CORE_CONFIG[key].type then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
-    elseif M.KEYS_CONFIG[key].type == "string" and #value > M.KEYS_CONFIG[key].maxLength then
+    elseif BJC_CORE_CONFIG[key].type == "string" and #value > BJC_CORE_CONFIG[key].maxLength then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     end
 
-    if M.KEYS_CONFIG[key].type == "number" then
+    if BJC_CORE_CONFIG[key].type == "number" then
         value = math.round(value)
     end
 
-    MP.Set(MP.Settings[key], value)
+    if MP.Settings[key] then
+        MP.Set(MP.Settings[key], value)
+    end
     M.Data[key] = value
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.CORE, BJCPerm.PERMISSIONS.SET_CORE)
 
-    -- https://github.com/BeamMP/BeamMP-Server/issues/433
-    writeCoreConfig()
-end
-
-local function initLegacy()
-    local core = {}
-    local file, err = io.open("ServerConfig.toml", "r")
-    if file and not err then
-        local text = file:read("*a")
-        file:close()
-        core = TOML.parse(text)
-    end
-
-    if not core then
-        error(
-            "You hosting provider is not allowing configuration reading and your BeamMP server version is too old to workaround this issue. Please update your BeamMP server to version 3.6.0 or higher.")
-    end
-
-    M.Data = Table({
-        Debug = core.General.Debug == true,
-        Private = core.General.Private == true,
-        MaxCars = core.General.MaxCars,
-        MaxPlayers = core.General.MaxPlayers,
-        Map = core.General.Map,
-        Name = core.General.Name,
-        Description = core.General.Description,
-    })
+    BJCDao.core.save(M.Data)
 end
 
 local function init()
-    if not MP.Get then
-        initLegacy()
-    else
-        M.Data = M.KEYS_CONFIG:map(function(_, k)
-            return MP.Get(MP.Settings[k])
-        end)
-    end
+    M.Data = BJCDao.core.findAll()
 
     -- applies fixed value and lets the mod handle the rest
     if not tonumber(M.Data.MaxCars) or M.Data.MaxCars < 200 then
-        pcall(_set, "MaxCars", 200)
+        M.Data.MaxCars = 200
+    end
+
+    Table(M.Data):forEach(function(v, k)
+        if MP.Settings[k] then
+            MP.Set(MP.Settings[k], v)
+        end
+    end)
+
+    local serverUnhandledValues = Table(MP.Settings):keys()
+        :filter(function(k) return not BJC_CORE_CONFIG[k] end)
+    if #serverUnhandledValues > 0 then
+        LogDebug("Server has unhandled config values: " .. table.join(serverUnhandledValues, ", "))
     end
 end
 
@@ -170,13 +102,6 @@ local function setMap(mapName)
 
     if currentMap and targetMap and currentMap == targetMap then
         return false
-    end
-
-    initCanWriteConfig()
-    if M._canWriteConfig == false and (currentMap.custom or targetMap.custom) then
-        -- https://github.com/BeamMP/BeamMP-Server/issues/433
-        -- server needs a reboot and config writing is disabled
-        error({ key = "rx.errors.coreWritingDisabled" })
     end
 
     if currentMap and currentMap.custom then
@@ -267,15 +192,15 @@ local function consoleSetMap(args)
 end
 
 local function set(key, value)
-    if not M.KEYS_CONFIG[key] or M.KEYS_CONFIG[key].prevent then
+    if not BJC_CORE_CONFIG[key] or BJC_CORE_CONFIG[key].prevent then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
-    elseif M.KEYS_CONFIG[key].type ~= type(value) then
+    elseif BJC_CORE_CONFIG[key].type ~= type(value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     end
 
     if key == "Map" then
         setMap(value)
-    elseif M.KEYS_CONFIG:filter(function(k) return not k.prevent end)[key] then
+    elseif BJC_CORE_CONFIG:filter(function(k) return not k.prevent end)[key] then
         if key == "Description" then
             value = value:gsub("\n", "^p")
         end
@@ -284,17 +209,17 @@ local function set(key, value)
 end
 
 local function consoleSet(key, value)
-    if not M.KEYS_CONFIG[key] or M.KEYS_CONFIG[key].prevent then
+    if not BJC_CORE_CONFIG[key] or BJC_CORE_CONFIG[key].prevent then
         error({ key = "rx.errors.invalidKey", data = { key = key } })
     end
 
     -- value types validation
-    if M.KEYS_CONFIG[key].type == "number" then
+    if BJC_CORE_CONFIG[key].type == "number" then
         value = tonumber(value)
         if not value then
             error({ key = "rx.errors.invalidValue", data = { value = value } })
         end
-    elseif M.KEYS_CONFIG[key].type == "boolean" then
+    elseif BJC_CORE_CONFIG[key].type == "boolean" then
         if value == "true" then
             value = true
         elseif value == "false" then
@@ -331,7 +256,7 @@ local function stop()
 end
 
 local function getCache()
-    return M.KEYS_CONFIG:filter(function(k) return not k.prevent end):reduce(function(res, _, k)
+    return BJC_CORE_CONFIG:filter(function(k) return not k.prevent end):reduce(function(res, _, k)
         res[k] = M.Data[k]
         if k == "Description" then
             res[k] = res[k]:gsub("%^p", "\n")

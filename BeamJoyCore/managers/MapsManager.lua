@@ -16,10 +16,6 @@ local function set(mapName, label, archive)
     local map = M.Data[mapName]
     if not map then
         -- creation
-        if not BJCCore._canWriteConfig then
-            error({ key = "rx.errors.coreWritingDisabled" })
-            BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.MAPS)
-        end
         if type(label) ~= "string" or #label == 0 or not type(archive) == "string" or #archive == 0 then
             error({ key = "rx.errors.invalidData" })
         end
@@ -66,9 +62,6 @@ local function setMapState(mapName, state)
     local map = M.Data[mapName]
     if not map or type(state) ~= "boolean" then
         error({ key = "rx.errors.invalidData" })
-    elseif map.custom and state and not BJCCore._canWriteConfig then
-        error({ key = "rx.errors.coreWritingDisabled" })
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.MAPS)
     end
 
     if map.enabled ~= state then

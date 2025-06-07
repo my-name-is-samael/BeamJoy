@@ -169,8 +169,7 @@
         "insufficientPlayers": "Not enough players",
         "guestCannotBeWhitelisted": "Guests cannot be whitelisted",
         "playerAmbiguity": "Ambiguity with players : {playerList}",
-        "forbidden": "Forbidden",
-        "coreWritingDisabled": "Writing core configuration is not allowed by the hosting provider. Configurations will not be saved after a reboot. This feature may not work as intended."
+        "forbidden": "Forbidden"
       },
       "vehicleRemoveOneOf": "One of your vehicles",
       "vehicleRemoveMain": "Your vehicle",
@@ -932,13 +931,18 @@
       "core": {
         "title": "Core",
         "Name": "Name",
+        "NameTooltip": "How players will see your server in the browser",
         "Description": "Description",
-        "Tags": "Tags",
-        "MaxCars": "Max Cars",
+        "DescriptionTooltip": "What players will see when they click your server in the browser",
         "MaxPlayers": "Max Players",
+        "MaxPlayersTooltip": "Maximum number of players allowed in the server",
         "Private": "Private",
+        "PrivateTooltip": "When activated, your server is not visible in the browser",
         "Debug": "Debug",
+        "DebugTooltip": "Will activate debug mode and allow you to see and do a lot of things",
         "previewTooltip": "Preview does only display colors",
+        "InformationPacket": "Information Packet",
+        "InformationPacketTooltip": "Allow unconnected clients to get the public server information without joining",
         "formattingHints": {
           "title": "Formatting Hints (only applied on Name and Description)",
           "reset": "Reset",

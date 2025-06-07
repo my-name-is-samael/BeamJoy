@@ -1,6 +1,7 @@
 local dbPath = BJCPluginPath:gsub("BeamJoyCore", "BeamJoyData/db")
 
 BJCDao = {
+    core = require("dao/DaoFile/FileCore"),
     config = require("dao/DaoFile/FileConfig"),
     groups = require("dao/DaoFile/FileGroups"),
     permissions = require("dao/DaoFile/FilePermissions"),
@@ -24,6 +25,8 @@ local function init()
     end
 end
 
+---@param filePath string
+---@param data any
 function BJCDao._saveFile(filePath, data)
     local tempFilePath = string.var("{1}.temp", { filePath })
     local tmpfile, error = io.open(tempFilePath, "w")
