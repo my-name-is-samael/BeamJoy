@@ -8,24 +8,16 @@ local M = {
 }
 
 local function initTarget(pos)
-    local targets = {}
-    for _, delivery in pairs(BJCScenarioData.Deliveries) do
-        table.insert(targets, {
+    M.target = Table(BJCScenarioData.Deliveries):map(function(delivery)
+        return {
             target = table.deepcopy(delivery),
             distance = math.horizontalDistance(pos, delivery.pos),
-        })
-    end
-
-    table.sort(targets, function(a, b)
+        }
+    end):sort(function(a, b)
         return a.distance > b.distance
-    end)
-    if #targets > 1 then
-        local threhsholdPos = math.ceil(#targets * .66) + 1 -- 66% furthest
-        while targets[threhsholdPos] do
-            table.remove(targets, threhsholdPos)
-        end
-    end
-    M.target = table.random(targets).target
+    end):values():filter(function(_, i)
+        return i < math.round(Table(BJCScenarioData.Deliveries):length() * .66) + 1 -- keep only 66% furthest
+    end):random().target
 end
 
 local function join(playerID, gameVehID, pos)
