@@ -95,6 +95,15 @@ local function _tryRequestCaches(cachesToRequest)
         end)
         LogDebug(string.var("Requesting caches : {1}", { finalCaches:join(", ") }), M._name)
         BJI.Tx.cache.require(finalCaches)
+
+        -- softlock prevention
+        finalCaches:forEach(function(c)
+            BJI.Managers.Async.delayTask(function()
+                if M._states[c] == M.CACHE_STATES.PROCESSING then
+                    M._states[c] = M.CACHE_STATES.EMPTY
+                end
+            end, 5000, "BJICacheRequire" .. c)
+        end)
     end
 end
 
