@@ -168,8 +168,7 @@
         "invalidLang": "Langue invalide \"{lang}\"",
         "insufficientPlayers": "Pas assez de joueurs",
         "guestCannotBeWhitelisted": "Les invités ne peuvent pas être sur la whitelist",
-        "playerAmbiguity": "Ambiguïté avec les joueurs : {playerList}",
-        "coreWritingDisabled": "L'écriture de la configuration principale est interdite par votre hébergeur. La configuration ne sera pas sauvegardée après un redémarrage."
+        "playerAmbiguity": "Ambiguïté avec les joueurs : {playerList}"
       },
       "vehicleRemoveOneOf": "Un de vos véhicules",
       "vehicleRemoveMain": "Votre véhicule",

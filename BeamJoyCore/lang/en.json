@@ -170,7 +170,7 @@
         "guestCannotBeWhitelisted": "Guests cannot be whitelisted",
         "playerAmbiguity": "Ambiguity with players : {playerList}",
         "forbidden": "Forbidden",
-        "coreWritingDisabled": "Writing core configuration is not allowed by your hosting provider. The configuration will not be saved after a reboot."
+        "coreWritingDisabled": "Writing core configuration is not allowed by the hosting provider. Configurations will not be saved after a reboot. This feature may not work as intended."
       },
       "vehicleRemoveOneOf": "One of your vehicles",
       "vehicleRemoveMain": "Your vehicle",

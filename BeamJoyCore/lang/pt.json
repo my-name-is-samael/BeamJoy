@@ -168,8 +168,7 @@
         "invalidLang": "Idioma inválido \"{lang}\"",
         "insufficientPlayers": "Não há jogadores suficientes",
         "guestCannotBeWhitelisted": "Os convidados não podem ser colocados na lista de permissões",
-        "playerAmbiguity": "Ambiguidade com jogadores: {playerList}",
-        "coreWritingDisabled": "Seu provedor de hospedagem não permite gravar a configuração principal. A configuração não será salva após uma reinicialização."
+        "playerAmbiguity": "Ambiguidade com jogadores: {playerList}"
       },
       "vehicleRemoveOneOf": "Um de seus veículos",
       "vehicleRemoveMain": "Seu veículo",

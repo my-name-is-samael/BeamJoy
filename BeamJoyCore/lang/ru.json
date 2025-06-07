@@ -41,8 +41,7 @@
         "invalidLang": "Неверный язык \"{lang}\"",
         "insufficientPlayers": "Недостаточно игроков",
         "guestCannotBeWhitelisted": "Гостей нельзя внести в белый список",
-        "playerAmbiguity": "Неоднозначность с игроками: {playerList}",
-        "coreWritingDisabled": "Ваш хостинг-провайдер запретил запись основной конфигурации. Конфигурация не будет сохранена после перезагрузки."
+        "playerAmbiguity": "Неоднозначность с игроками: {playerList}"
       },
       "vehicleRemoveOneOf": "Один из ваших автомобилей",
       "vehicleRemoveMain": "Ваш автомобиль",

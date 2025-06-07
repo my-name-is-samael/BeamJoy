@@ -164,6 +164,10 @@ function M.Map.start(senderID, mapName)
         error({ key = "rx.errors.invalidData" })
     elseif mapName == BJCCore.getMap() then
         error({ key = "rx.errors.invalidData" })
+    elseif not BJCCore._canWriteConfig and
+        (BJCMaps.Data[mapName].custom or BJCMaps.Data[BJCCore.getMap()].custom) then
+        error({ key = "rx.errors.coreWritingDisabled" })
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
     end
 
     if table.length(BJCPlayers.Players) == 1 then
