@@ -388,9 +388,14 @@ local function updateData()
                 return W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
                     r.places > 1
             end):map(function(r, i)
+                local label = r.name
+                if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE then
+                    label = label .. string.var(" ({1})",
+                        { BJI.Managers.Lang.get("races.preparation.places"):var({ places = r.places }) })
+                end
                 return {
                     value = i,
-                    label = r.name,
+                    label = label,
                 }
             end):values():sort(function(a, b)
                 if not a.label or not b.label then
