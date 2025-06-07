@@ -23,8 +23,7 @@ local function task(conditionFn, taskFn, key)
         error("Tasks need conditionFn and taskFn")
     end
     key = key or UUID()
-    local existingTask = M.tasks[key]
-    if not existingTask then
+    if not M.tasks[key] then
         M.tasks[key] = {
             conditionFn = conditionFn,
             taskFn = taskFn,
@@ -86,6 +85,10 @@ local function fastTick(time)
         M.delayedTasks[key] = nil
     end)
 
+    if type(M.tasks) == "number" then
+        LogError("Async tasks became a number ???")
+        return
+    end
     M.tasks:filter(function(el)
         return el.conditionFn()
     end):forEach(function(el, key)
