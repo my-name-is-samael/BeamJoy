@@ -1104,6 +1104,7 @@
           "standpenalty": "Ultima resistenza con penalità",
           "delay": "Ritardo"
         },
+        "collisions": "Collisioni",
         "vehicles": {
           "playerVehicle": "Veicolo del giocatore",
           "all": "Sono ammessi tutti i veicoli",

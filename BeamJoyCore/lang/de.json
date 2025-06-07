@@ -1104,6 +1104,7 @@
           "standpenalty": "Letztes Gefecht mit Strafe",
           "delay": "Verzögerung"
         },
+        "collisions": "Kollisionen",
         "vehicles": {
           "playerVehicle": "Spielerfahrzeug",
           "all": "Alle Fahrzeuge erlaubt",

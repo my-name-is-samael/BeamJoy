@@ -19,8 +19,7 @@ local W = {
         creator = "",
         target = "",
         votes = "",
-        voteDisabled = false,
-        stopDisabled = false,
+        disableButtons = false,
     },
     map = {
         hasStarted = "",
@@ -35,8 +34,7 @@ local W = {
         creator = "",
         mapCustom = "",
         votes = "",
-        voteDisabled = false,
-        stopDisabled = false,
+        disableButtons = false,
     },
     race = {
         hasStarted = "",
@@ -53,8 +51,7 @@ local W = {
         },
 
         showVoteBtn = false,
-        voteDisabled = false,
-        stopDisabled = false,
+        disableButtons = false,
     },
     speed = {
         hasStarted = "",
@@ -67,7 +64,7 @@ local W = {
         },
 
         showVoteBtn = false,
-        voteDisabled = false,
+        disableButtons = false,
         participants = "",
     },
 }
@@ -167,6 +164,11 @@ local function updateCaches(ctxt)
                     :var({ model = model }))
             end
         end
+        settings:insert(string.var("{1}: {2}", {
+            BJI.Managers.Lang.get("races.settings.collisions"),
+            BJI.Managers.Votes.Race.collisions and BJI.Managers.Lang.get("common.enabled") or
+            BJI.Managers.Lang.get("common.disabled")
+        }))
         settings:insert(string.var("{1}: {2}", {
             BJI.Managers.Lang.get("races.settings.respawnStrategies.respawns"),
             BJI.Managers.Lang.get(string.var("races.settings.respawnStrategies.{1}",

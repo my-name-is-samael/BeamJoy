@@ -1103,6 +1103,7 @@
           "standpenalty": "Last Stand with Penalty",
           "delay": "Delay"
         },
+        "collisions": "Collisions",
         "vehicles": {
           "playerVehicle": "Player Vehicle",
           "all": "All vehicles allowed",

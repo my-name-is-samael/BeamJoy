@@ -450,7 +450,7 @@ local function onJoinParticipants()
         BJI.Windows.VehSelector.open(false)
     elseif #S.configs == 1 then
         BJI.Managers.Async.task(function()
-            return S.canSpawnNewVehicle()
+            return BJI.Managers.VehSelectorUI.stateSelector
         end, function()
             S.trySpawnNew(S.configs[1].model, S.configs[1])
         end)

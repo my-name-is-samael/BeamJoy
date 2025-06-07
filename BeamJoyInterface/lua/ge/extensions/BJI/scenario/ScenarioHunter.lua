@@ -432,9 +432,9 @@ local function onJoinParticipants(participant)
     -- when forced config
     if config then
         BJI.Managers.Async.task(function(ctxt)
-            return S.canSpawnNewVehicle()
+            return BJI.Managers.VehSelectorUI.stateSelector
         end, function(ctxt)
-            S.tryReplaceOrSpawn(model, config)
+            S.trySpawnNew(model, config)
         end, "BJIHunterForcedConfigSpawn")
     end
 end

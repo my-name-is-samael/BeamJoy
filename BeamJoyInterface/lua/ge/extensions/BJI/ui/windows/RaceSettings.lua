@@ -4,8 +4,9 @@
 ---@field raceName string
 ---@field loopable boolean
 ---@field laps integer?
----@field defaultRespawnStrategy? string
+---@field defaultRespawnStrategy string?
 ---@field respawnStrategies string[]
+---@field collisions boolean?
 ---@field vehicleMode string|nil
 
 ---@class BJIWindowRaceSettings : BJIWindow
@@ -30,6 +31,7 @@ local W = {
         laps = 1,
         defaultRespawnStrategy = nil,
         respawnStrategies = {},
+        collisions = true,
         vehicleMode = nil,
     },
 
@@ -67,6 +69,7 @@ local W = {
                 lastcheckpoint = "",
                 stand = "",
             },
+            collisions = "",
             vehicle = {
                 title = "",
                 all = "",
@@ -102,6 +105,8 @@ local function updateLabels()
     W.cache.labels.respawnStrategies.lastcheckpoint = BJI.Managers.Lang.get(
         "races.settings.respawnStrategies.lastcheckpoint")
     W.cache.labels.respawnStrategies.stand = BJI.Managers.Lang.get("races.settings.respawnStrategies.stand")
+
+    W.cache.labels.collisions = BJI.Managers.Lang.get("races.settings.collisions")
 
     W.cache.labels.vehicle.title = BJI.Managers.Lang.get("races.settings.vehicles.playerVehicle")
     W.cache.labels.vehicle.all = BJI.Managers.Lang.get("races.settings.vehicles.all")
@@ -387,6 +392,23 @@ local function drawBody(ctxt)
 
     drawRespawnStrategies(cols)
     if W.settings.multi then
+        cols:addRow({
+            cells = {
+                function()
+                    LineLabel(W.cache.labels.collisions)
+                end,
+                function()
+                    LineBuilder():btnIconToggle({
+                        id = "raceSettingsCollisions",
+                        state = W.settings.collisions,
+                        coloredIcon = true,
+                        onClick = function()
+                            W.settings.collisions = not W.settings.collisions
+                        end,
+                    }):build()
+                end
+            }
+        })
         drawVehicleSelector(cols, ctxt)
     end
 
@@ -399,6 +421,7 @@ local function getPayloadSettings()
         model = W.cache.data.vehicleSelected.value ~= W.VEHICLE_MODES.ALL and W.cache.data.currentVeh.model or nil,
         config = W.cache.data.vehicleSelected.value == W.VEHICLE_MODES.CONFIG and W.cache.data.currentVeh.config or nil,
         respawnStrategy = W.cache.data.respawnStrategySelected.value,
+        collisions = W.settings.collisions
     }
 end
 
@@ -474,6 +497,7 @@ local function open(raceSettings)
     end
 
     raceSettings.laps = raceSettings.laps or W.settings.laps or 1
+    raceSettings.collisions = raceSettings.collisions or W.settings.collisions
     W.settings = raceSettings
 
     if BJI.Managers.Scenario.isFreeroam() and

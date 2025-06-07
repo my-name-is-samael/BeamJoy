@@ -128,6 +128,7 @@ M.Race = {
     model = nil,
     specificConfig = false,
     respawnStrategy = nil,
+    collisions = true,
     amountVotes = 0,
     selfVoted = false,
 }
@@ -148,6 +149,7 @@ function M.Race.onLoad()
             M.Race.model = cacheData.Race.model
             M.Race.specificConfig = cacheData.Race.specificConfig == true
             M.Race.respawnStrategy = cacheData.Race.respawnStrategy
+            M.Race.collisions = cacheData.Race.collisions == true
             M.Race.amountVotes = cacheData.Race.voters and table.length(cacheData.Race.voters) or 0
             M.Race.selfVoted = cacheData.Race.voters and
                 table.includes(cacheData.Race.voters, BJI.Managers.Context.User.playerID) or false

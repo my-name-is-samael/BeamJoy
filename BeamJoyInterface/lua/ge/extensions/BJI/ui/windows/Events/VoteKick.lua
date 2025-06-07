@@ -21,10 +21,10 @@ return function(ctxt, cache)
             icon = vk.selfVoted and BJI.Utils.Icon.ICONS.event_busy or BJI.Utils.Icon.ICONS.event_available,
             state = not vk.selfVoted,
             tooltip = vk.selfVoted and cache.buttons.unvote or cache.buttons.vote,
-            disabled = cache.voteDisabled,
+            disabled = cache.disableButtons,
             big = true,
             onClick = function()
-                cache.voteDisabled = true
+                cache.disableButtons = true
                 BJI.Tx.votekick.vote()
                 vk.selfVoted = not vk.selfVoted
                 vk.amountVotes = vk.amountVotes + (vk.selfVoted and 1 or -1)

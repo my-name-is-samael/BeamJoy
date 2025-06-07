@@ -272,6 +272,7 @@ M.Race = {
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     },
 
     voters = {}, -- list of playerIDs
@@ -293,6 +294,7 @@ local function raceReset()
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     }
     M.Race.voters = {}
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
@@ -391,6 +393,7 @@ function M.Race.start(creatorID, isVote, raceID, settings)
         model = settings.model,
         config = settings.config,
         respawnStrategy = settings.respawnStrategy,
+        collisions = settings.collisions == true,
     }
     M.Race.voters = { creatorID }
 
@@ -593,6 +596,7 @@ function M.getCache()
             model = M.Race.settings.model,
             specificConfig = not not M.Race.settings.config,
             respawnStrategy = M.Race.settings.respawnStrategy,
+            collisions = M.Race.settings.collisions,
             voters = M.Race.voters,
         },
         Speed = {

@@ -1104,6 +1104,7 @@
           "standpenalty": "Última resistência com pênalti",
           "delay": "Atraso"
         },
+        "collisions": "Colisões",
         "vehicles": {
           "playerVehicle": "Veículo do Jogador",
           "all": "Todos os veículos permitidos",

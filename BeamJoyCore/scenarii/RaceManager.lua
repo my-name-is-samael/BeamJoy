@@ -36,6 +36,7 @@ local M = {
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     },
 
     grid = {
@@ -73,6 +74,7 @@ local function stopRace()
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     }
     M.grid = {
         participants = {},
@@ -732,6 +734,7 @@ local function getCache()
         model = M.settings.model,
         config = M.settings.config,
         respawnStrategy = M.settings.respawnStrategy,
+        collisions = M.settings.collisions,
         -- grid
         previewPosition = M.baseRace and M.baseRace.previewPosition or nil,
         startPositions = M.baseRace and M.baseRace.startPositions or nil,

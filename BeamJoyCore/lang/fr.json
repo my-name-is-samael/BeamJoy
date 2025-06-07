@@ -1104,6 +1104,7 @@
           "standpenalty": "Dernier stand avec pénalité",
           "delay": "Délai"
         },
+        "collisions": "Collisions",
         "vehicles": {
           "playerVehicle": "Véhicule du joueur",
           "all": "Tous les véhicules autorisés",

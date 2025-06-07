@@ -21,10 +21,10 @@ return function(ctxt, cache)
             icon = vm.selfVoted and BJI.Utils.Icon.ICONS.event_busy or BJI.Utils.Icon.ICONS.event_available,
             state = not vm.selfVoted,
             tooltip = vm.selfVoted and cache.buttons.unvote or cache.buttons.vote,
-            disabled = cache.voteDisabled,
+            disabled = cache.disableButtons,
             big = true,
             onClick = function()
-                cache.voteDisabled = true
+                cache.disableButtons = true
                 BJI.Tx.votemap.vote()
             end
         })

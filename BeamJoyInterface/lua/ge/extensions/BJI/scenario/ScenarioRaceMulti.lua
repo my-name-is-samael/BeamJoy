@@ -37,6 +37,7 @@ local function initManagerData()
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     }
 
     S.grid = {
@@ -243,7 +244,7 @@ end
 
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) and ctxt.veh then
         if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
             BJI.Managers.Cam.toggleFreeCam()
         end
@@ -326,10 +327,10 @@ local function onJoinGridParticipants()
 
     if S.settings.config then
         BJI.Managers.Async.task(function()
-            return S.canSpawnNewVehicle()
+            return BJI.Managers.VehSelectorUI.stateSelector
         end, function()
             -- if forced config, then no callback from vehicle selector
-            tryReplaceOrSpawn(S.settings.model, S.settings.config)
+            S.trySpawnNew(S.settings.model, S.settings.config)
             BJI.Windows.VehSelector.open(false)
         end)
     else
@@ -943,6 +944,7 @@ local function rxData(data)
         S.settings.model = data.model
         S.settings.config = data.config
         S.settings.respawnStrategy = data.respawnStrategy
+        S.settings.collisions = data.collisions
         -- grid
         local wasParticipant = table.includes(S.grid.participants, BJI.Managers.Context.User.playerID)
         local wasReady = table.includes(S.grid.ready, BJI.Managers.Context.User.playerID)
@@ -971,7 +973,7 @@ local function rxData(data)
                 end
             end
         elseif data.state == S.STATES.RACE then
-            if not S.state or S.state == S.STATES.GRID then
+            if S.state ~= S.STATES.RACE then
                 initRace(data)
             elseif S.state == S.STATES.RACE then
                 updateRace(data)
@@ -1163,7 +1165,10 @@ local function canPaintVehicle()
 end
 
 local function getCollisionsType(ctxt)
-    return S.isRaceStarted(ctxt) and BJI.Managers.Collisions.TYPES.GHOSTS or BJI.Managers.Collisions.TYPES.FORCED
+    if S.settings.collisions then
+        return S.isRaceStarted(ctxt) and BJI.Managers.Collisions.TYPES.GHOSTS or BJI.Managers.Collisions.TYPES.FORCED
+    end
+    return BJI.Managers.Collisions.TYPES.DISABLED
 end
 
 ---@param vehData { gameVehicleID: integer, ownerID: integer }

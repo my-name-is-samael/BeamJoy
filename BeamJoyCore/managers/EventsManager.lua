@@ -6,7 +6,7 @@
 local M = {
     EVENTS = {
         MP_ON_INIT = { key = "onInit", base = true },
-        MP_ON_SHUTDOWN = { key = "onShutdown", base = true },
+        --MP_ON_SHUTDOWN = { key = "onShutdown", base = true },
         MP_PLAYER_AUTH = { key = "onPlayerAuth", base = true, cancellable = true }, -- not allowed with 1, bypass with 2, reason with string
         MP_PLAYER_CONNECTING = { key = "onPlayerConnecting", base = true },
         MP_PLAYER_JOINING = { key = "onPlayerJoining", base = true },
