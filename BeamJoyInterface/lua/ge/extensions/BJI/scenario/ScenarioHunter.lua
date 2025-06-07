@@ -797,6 +797,7 @@ S.canPaintVehicle = canPaintVehicle
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.doShowNametag = doShowNametag
+S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleDeleted = onVehicleDeleted
