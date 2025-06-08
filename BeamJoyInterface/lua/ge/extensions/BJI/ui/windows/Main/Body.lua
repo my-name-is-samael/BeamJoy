@@ -6,7 +6,8 @@ local cache = {
     name = "MainBody",
 
     data = {
-        showVehIndicators = false,
+        showVehEnergy = false,
+        showVehDamages = false,
         showDeliveryLeaderboard = false,
         raceLeaderboard = {
             show = false,
@@ -91,9 +92,12 @@ end
 local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
-    cache.data.showVehIndicators = ctxt.isOwner and
-        not BJI.Managers.Scenario.isServerScenarioInProgress() and
+    cache.data.showVehEnergy = ctxt.isOwner and
+        BJI.Managers.Scenario.canRefuelAtStation() and
         BJI.Managers.Context.Scenario.Data.EnergyStations
+    cache.data.showVehDamages = ctxt.isOwner and
+        BJI.Managers.Scenario.canRepairAtGarage() and
+        BJI.Managers.Context.Scenario.Data.Garages
     cache.data.showDeliveryLeaderboard = table.some({
             BJI.Managers.Scenario.TYPES.FREEROAM,
             BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY,
@@ -304,6 +308,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED,
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -377,8 +382,10 @@ local function onUnload()
 end
 
 local function draw(ctxt)
-    if cache.data.showVehIndicators then
+    if cache.data.showVehEnergy then
         energyIndicator.draw(ctxt)
+    end
+    if cache.data.showVehDamages then
         healthIndicator.draw(ctxt)
     end
 

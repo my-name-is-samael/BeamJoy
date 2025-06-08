@@ -10,10 +10,15 @@ local S = {
     target = nil,
 
     baseDistance = nil,
+    ---@type number?
     distance = nil,
     nextResetGarage = false,    -- exempt reset when repairing at a garage
     tanksSaved = nil,
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+    ---@type integer?
+    checkTargetTime = nil,
+
+    disableBtns = false,
 }
 
 local function stop()
@@ -23,8 +28,12 @@ local function stop()
 
     S.baseDistance = nil
     S.distance = nil
-    S.tanksSaved = nil
     S.nextResetGarage = false
+    S.tanksSaved = nil
+    S.checkTargetProcess = false
+    S.checkTargetTime = nil
+
+    S.disableBtns = false
 
     BJI.Managers.Message.flash("BJIDeliveryMultiStop", BJI.Managers.Lang.get("packageDelivery.flashEnd"), 3, false)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
@@ -129,7 +138,9 @@ local function slowTick(ctxt)
 
     if S.participants[BJI.Managers.Context.User.playerID].reached then
         BJI.Managers.Message.realtimeDisplay("deliverymulti",
-            BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"))
+            BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"):var({
+                amount = Table(S.participants):filter(function(p) return not p.reached end):length()
+            }))
     elseif not S.target then
         BJI.Managers.Message.realtimeDisplay("deliverymulti", BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
     else
@@ -151,7 +162,8 @@ local function slowTick(ctxt)
         local distance = ctxt.vehPosRot.pos:distance(S.target.pos)
         if distance < S.target.radius * getRadiusMultiplier() then
             if not S.checkTargetProcess then
-                BJI.Managers.Message.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false,
+                S.checkTargetTime = ctxt.now + 3100
+                BJI.Managers.Message.flashCountdown("BJIDeliveryMultiTarget", S.checkTargetTime, false,
                     BJI.Managers.Lang.get("deliveryTogether.flashPackage"), nil,
                     onTargetReached)
                 S.checkTargetProcess = true
@@ -160,6 +172,7 @@ local function slowTick(ctxt)
             if S.checkTargetProcess then
                 BJI.Managers.Message.cancelFlash("BJIDeliveryMultiTarget")
                 S.checkTargetProcess = false
+                S.checkTargetTime = nil
             end
             if #BJI.Managers.GPS.targets == 0 then
                 BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
@@ -169,7 +182,8 @@ local function slowTick(ctxt)
     end
 end
 
--- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
@@ -188,7 +202,69 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
--- unload hook (before switch to another scenario)
+---@param ctxt TickContext
+local function drawUI(ctxt)
+    local participant = S.participants[ctxt.user.playerID]
+    if not participant then
+        return
+    end
+
+    local line = LineBuilder():btnIcon({
+        id = "deliveryMultiLeave",
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        disabled = S.disableBtns,
+        tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
+        onClick = function()
+            S.disableBtns = true
+            BJI.Tx.scenario.DeliveryMultiLeave()
+        end,
+    }):text(BJI.Managers.Lang.get("deliveryTogether.title"))
+    if S.checkTargetTime then
+        local remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        if remainingSec > 0 then
+            line:text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.depositIn"):var({
+                delay = remainingSec
+            }) }), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        end
+    end
+    line:build()
+
+    line = LineBuilder()
+    if participant.reached then
+        local remainingPlayers = Table(S.participants):filter(function(p) return not p.reached end):length()
+        if remainingPlayers == 0 then
+            line:text(BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
+        else
+            line:text(string.var(BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"),
+                { amount = remainingPlayers }))
+        end
+    else
+        line:text(BJI.Managers.Lang.get("deliveryTogether.reachDestination"),
+            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+    end
+    if participant.nextTargetReward then
+        line:text(string.var("({1}: {2})", { BJI.Managers.Lang.get("deliveryTogether.streak"),
+            participant.streak }))
+    else
+        line:text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.resetted") }),
+            BJI.Utils.Style.TEXT_COLORS.ERROR)
+    end
+    line:build()
+
+    if not participant.reached and S.distance then
+        ProgressBar({
+            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
+            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+            tooltip = string.var("{1}: {2}", {
+                BJI.Managers.Lang.get("deliveryTogether.distance"),
+                BJI.Utils.UI.PrettyDistance(S.distance)
+            }),
+        })
+    end
+end
+
+---@param ctxt TickContext
 local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
@@ -272,6 +348,7 @@ S.canDeleteOtherVehicles = FalseFn
 S.canSpawnAI = TrueFn
 
 S.getPlayerListActions = getPlayerListActions
+S.drawUI = drawUI
 
 S.slowTick = slowTick
 

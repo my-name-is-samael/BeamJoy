@@ -20,6 +20,8 @@ local S = {
     baseDistance = nil,
     distance = nil,
 
+    nextResetExempt = false,        -- scenario start fail-safe
+
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
 }
 
@@ -175,8 +177,12 @@ local function start()
             BJI.Managers.RaceWaypoint.resetAll()
             initDelivery()
             BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+                S.nextResetExempt = true
                 BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
                 BJI.Managers.UI.applyLoading(false)
+                BJI.Managers.Async.delayTask(function()
+                    S.nextResetExempt = false
+                end, 1000, "BJIVehDeliveryStartResetExempt")
             end)
         else
             BJI.Managers.UI.applyLoading(false)
@@ -209,6 +215,11 @@ end
 local function onVehicleResetted(gameVehID)
     if gameVehID ~= S.gameVehID or
         not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        return
+    end
+
+    if S.nextResetExempt then
+        S.nextResetExempt = false
         return
     end
 
@@ -292,10 +303,7 @@ local function slowTick(ctxt)
         return
     end
 
-    S.distance = BJI.Managers.GPS.getRouteLength({
-        vec3(ctxt.vehPosRot.pos),
-        vec3(S.targetPosition.pos),
-    })
+    S.distance = BJI.Managers.GPS.getCurrentRouteLength()
     if S.distance > S.baseDistance then
         S.baseDistance = S.distance
     end

@@ -1295,14 +1295,15 @@
       "flashEnd": "Livraison terminée"
     },
     "deliveryTogether": {
+      "title": "Livraison Ensemble",
+      "reachDestination": "Atteindre la destination",
       "streak": "Série",
+      "resetted": "Réinitialisé",
       "distance": "Distance",
-      "resetted": "Reset",
-      "arrived": "Arrivé",
-      "onTheWay": "En chemin",
       "flashPackage": "Colis livré !",
-      "waitingForOtherPlayers": "En attente des autres joueurs...",
-      "waitingForTarget": "En attente de la destination..."
+      "waitingForOtherPlayers": "En attente de {amount} joueur(s)...",
+      "waitingForTarget": "En attente de la prochaine destination...",
+      "depositIn": "Livraison dans {delay}"
     },
     "buslines": {
       "edit": {

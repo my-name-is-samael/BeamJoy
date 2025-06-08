@@ -1168,14 +1168,15 @@
       "flashEnd": "Доставка завершена"
     },
     "deliveryTogether": {
-      "streak": "Полоса",
-      "distance": "Расстояние",
-      "resetted": "Сброшен",
-      "arrived": "Приехал",
-      "onTheWay": "В пути",
+      "title": "Совместная доставка",
+      "reachDestination": "Доберитесь до точки назначения",
+      "streak": "Серия",
+      "resetted": "Сброшено",
+      "distance": "Дистанция",
       "flashPackage": "Посылка доставлена!",
-      "waitingForOtherPlayers": "Ждем других игроков...",
-      "waitingForTarget": "Ожидание цели..."
+      "waitingForOtherPlayers": "Ожидание ещё {amount} игрок(ов)...",
+      "waitingForTarget": "Ожидание следующей цели...",
+      "depositIn": "Доставка через {delay}"
     },
     "buslines": {
       "edit": {

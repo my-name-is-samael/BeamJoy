@@ -1295,14 +1295,15 @@
       "flashEnd": "Entrega finalizada"
     },
     "deliveryTogether": {
+      "title": "Entrega en grupo",
+      "reachDestination": "Llega al destino",
       "streak": "Racha",
-      "distance": "Distancia",
       "resetted": "Reiniciado",
-      "arrived": "Llegó",
-      "onTheWay": "en el camino",
+      "distance": "Distancia",
       "flashPackage": "¡Paquete entregado!",
-      "waitingForOtherPlayers": "Esperando a otros jugadores...",
-      "waitingForTarget": "Esperando al objetivo..."
+      "waitingForOtherPlayers": "Esperando a {amount} jugador(es) más...",
+      "waitingForTarget": "Esperando el siguiente destino...",
+      "depositIn": "Entrega en {delay}"
     },
     "buslines": {
       "edit": {

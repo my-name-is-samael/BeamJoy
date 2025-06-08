@@ -1296,14 +1296,15 @@
       "flashEnd": "Delivery ended"
     },
     "deliveryTogether": {
+      "title": "Delivery together",
+      "reachDestination": "Reach the destination",
       "streak": "Streak",
-      "distance": "Distance",
       "resetted": "Resetted",
-      "arrived": "Arrived",
-      "onTheWay": "On the way",
+      "distance": "Distance",
       "flashPackage": "Package delivered !",
-      "waitingForOtherPlayers": "Waiting for other players...",
-      "waitingForTarget": "Waiting for target..."
+      "waitingForOtherPlayers": "Waiting for {amount} more player(s)...",
+      "waitingForTarget": "Waiting for the next target...",
+      "depositIn": "Deposit in {delay}"
     },
     "buslines": {
       "edit": {

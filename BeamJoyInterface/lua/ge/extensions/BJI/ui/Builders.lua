@@ -1251,7 +1251,7 @@ end
 ---@param data {floatPercent: number, width: number|string?, text: string?, tooltip: string?, style: number[]|table<string, number>?}
 ProgressBar = function(data)
     data.floatPercent = data.floatPercent or 0
-    if tonumber(data.width) then
+    if tonumber(data.width) and data.width ~= -1 then
         data.width = math.floor(tonumber(data) or 0) *
             BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
     elseif tostring(data.width):find("%d+%%") then
@@ -1259,7 +1259,6 @@ ProgressBar = function(data)
     else
         data.width = -1
     end
-    data.width = data.width or -1
     local text = data.text or ""
     local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
 
