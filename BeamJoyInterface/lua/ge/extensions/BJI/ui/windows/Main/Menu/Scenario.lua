@@ -229,22 +229,22 @@ local function menuTagDuo(ctxt)
         BJI.Managers.Scenario.isFreeroam() then
         local errorMessage
         if not ctxt.veh or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagDuo.missingOwnVehicle")
+            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.missingOwnVehicle")
         elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagDuo.aiNotAllowed")
+            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.aiNotAllowed")
         end
 
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.tagDuo.join"),
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.tagduo.join"),
                         BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
             local lobbyEntries = {}
             table.insert(lobbyEntries, {
-                label = BJI.Managers.Lang.get("menu.scenario.tagDuo.createLobby"),
+                label = BJI.Managers.Lang.get("menu.scenario.tagduo.createLobby"),
                 onClick = function()
                     BJI.Tx.scenario.TagDuoJoin(-1, ctxt.veh:getID())
                 end,
@@ -252,7 +252,7 @@ local function menuTagDuo(ctxt)
             for i, l in ipairs(BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO).lobbies) do
                 if table.length(l.players) < 2 then
                     table.insert(lobbyEntries, {
-                        label = string.var(BJI.Managers.Lang.get("menu.scenario.tagDuo.joinLobby"),
+                        label = string.var(BJI.Managers.Lang.get("menu.scenario.tagduo.joinLobby"),
                             { playerName = BJI.Managers.Context.Players[l.host].playerName }),
                         onClick = function()
                             BJI.Tx.scenario.TagDuoJoin(i, ctxt.veh:getID())
@@ -261,13 +261,13 @@ local function menuTagDuo(ctxt)
                 end
             end
             table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.scenario.tagDuo.join"),
+                label = BJI.Managers.Lang.get("menu.scenario.tagduo.join"),
                 elems = lobbyEntries,
             })
         end
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_DUO) then
         table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.scenario.tagDuo.leave"),
+            label = BJI.Managers.Lang.get("menu.scenario.tagduo.leave"),
             onClick = function()
                 BJI.Tx.scenario.TagDuoLeave()
             end,
