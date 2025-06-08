@@ -156,11 +156,11 @@ local function onStopDelivery()
     onDeliveryEnded()
 end
 
-local function drawUI(ctxt, cache)
+local function drawUI(ctxt)
     if S.distance then
         LineLabel(string.var("{1}: {2}", {
-            cache.labels.delivery.current,
-            cache.labels.delivery.distanceLeft
+            BJI.Managers.Lang.get("delivery.currentDelivery"),
+            BJI.Managers.Lang.get("delivery.distanceLeft")
                 :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
         }))
 
@@ -171,8 +171,9 @@ local function drawUI(ctxt, cache)
         })
     end
 
-    LineLabel(cache.labels.delivery.package.streak:var({ streak = S.streak }), nil,
-        false, cache.labels.delivery.package.streakTooltip)
+    LineLabel(BJI.Managers.Lang.get("packageDelivery.currentStreak")
+        :var({ streak = S.streak }), nil, false,
+        BJI.Managers.Lang.get("packageDelivery.streakTooltip"))
 
     LineBuilder()
         :btnIcon({
@@ -180,7 +181,7 @@ local function drawUI(ctxt, cache)
             icon = BJI.Utils.Icon.ICONS.exit_to_app,
             big = true,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = cache.labels.delivery.leave,
+            tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
             onClick = S.onStopDelivery,
         })
         :build()

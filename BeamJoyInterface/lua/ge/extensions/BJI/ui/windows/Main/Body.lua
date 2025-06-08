@@ -32,25 +32,6 @@ local cache = {
         raceLeaderboard = {
             title = "",
         },
-        delivery = {
-            current = "",
-            distanceLeft = "",
-            leave = "",
-            loop = "",
-            vehicle = {
-                currentConfig = "",
-            },
-            package = {
-                streak = "",
-                streakTooltip = "",
-            },
-        },
-        busMission = {
-            line = "",
-            stopCount = "",
-            leave = "",
-            loop = "",
-        },
         players = {
             moderation = {
                 waiting = "",
@@ -123,16 +104,7 @@ local function updateCache(ctxt)
         BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard and
         #BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard > 0
 
-    cache.data.scenarioUIFn = nil
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY) then
-        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).drawUI
-    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY) then
-        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).drawUI
-    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.BUS_MISSION) then
-        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION).drawUI
-    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_DUO) then
-        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO).drawUI
-    end
+    cache.data.scenarioUIFn = BJI.Managers.Scenario.getUIRenderFn()
 
     if BJI.Managers.Perm.isStaff() then
         cache.data.playersFn = require("ge/extensions/BJI/ui/windows/Main/Body/Moderation")
@@ -148,22 +120,6 @@ local function updateLabels()
     cache.labels.loading = BJI.Managers.Lang.get("common.loading")
 
     cache.labels.raceLeaderboard.title = BJI.Managers.Lang.get("races.leaderboard.title")
-
-    -- GLOBAL DELIVERIES
-    cache.labels.delivery.current = BJI.Managers.Lang.get("delivery.currentDelivery")
-    cache.labels.delivery.distanceLeft = BJI.Managers.Lang.get("delivery.distanceLeft")
-    cache.labels.delivery.leave = BJI.Managers.Lang.get("common.buttons.leave")
-    cache.labels.delivery.loop = BJI.Managers.Lang.get("common.buttons.loop")
-    -- VEHICLE DELIVERY
-    cache.labels.delivery.vehicle.currentConfig = BJI.Managers.Lang.get("vehicleDelivery.vehicle")
-    -- PACKAGE DELIVERY
-    cache.labels.delivery.package.streak = BJI.Managers.Lang.get("packageDelivery.currentStreak")
-    cache.labels.delivery.package.streakTooltip = BJI.Managers.Lang.get("packageDelivery.streakTooltip")
-    -- BUS MISSION
-    cache.labels.busMission.line = BJI.Managers.Lang.get("buslines.play.line")
-    cache.labels.busMission.stopCount = BJI.Managers.Lang.get("buslines.play.stopCount")
-    cache.labels.busMission.leave = BJI.Managers.Lang.get("common.buttons.leave")
-    cache.labels.busMission.loop = BJI.Managers.Lang.get("common.buttons.loop")
 
     -- PLAYERS LIST
     cache.labels.players.moderation.waiting = string.var("{1}:",
@@ -445,7 +401,7 @@ local function draw(ctxt)
     end
 
     if type(cache.data.scenarioUIFn) == "function" then
-        cache.data.scenarioUIFn(ctxt, cache)
+        cache.data.scenarioUIFn(ctxt)
         Separator()
     end
 

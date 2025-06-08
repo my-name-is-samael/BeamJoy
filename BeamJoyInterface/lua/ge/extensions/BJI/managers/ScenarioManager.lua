@@ -336,6 +336,14 @@ local function getCollisionsType(ctxt)
     end
 end
 
+local function getUIRenderFn()
+    if _curr().drawUI then
+        return _curr().drawUI
+    else
+        return nil
+    end
+end
+
 local tickErrorProcess = { countRender = 0, countFast = 0, countSlow = 0 }
 
 ---@param ctxt TickContext
@@ -533,6 +541,7 @@ M.canShowNametags = canShowNametags
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType
+M.getUIRenderFn = getUIRenderFn
 
 M.getAvailableScenarii = getAvailableScenarii
 M.switchScenario = switchScenario

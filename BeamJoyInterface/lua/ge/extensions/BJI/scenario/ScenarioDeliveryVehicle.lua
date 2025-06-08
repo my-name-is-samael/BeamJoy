@@ -3,7 +3,7 @@ local S = {
     _name = "VehicleDelivery",
     _key = "VEHICLE_DELIVERY",
     _isSolo = true,
-    
+
     previousCamera = nil,
 
     model = nil,
@@ -219,12 +219,12 @@ local function onStopDelivery()
     onDeliveryFailed()
 end
 
-local function drawUI(ctxt, cache)
+local function drawUI(ctxt)
     if S.distance then
         LineBuilder()
             :text(string.var("{1}: {2}", {
-                cache.labels.delivery.current,
-                cache.labels.delivery.distanceLeft
+                BJI.Managers.Lang.get("delivery.currentDelivery"),
+                BJI.Managers.Lang.get("delivery.distanceLeft")
                     :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
             }))
             :build()
@@ -237,9 +237,8 @@ local function drawUI(ctxt, cache)
     end
 
     LineBuilder():text(string.var("{1}: {2}{3}", {
-        cache.labels.delivery.vehicle.currentConfig, S.modelLabel, S.configLabel and
-    string.var(" {1}", { S.configLabel }) or
-    "",
+        BJI.Managers.Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
+    string.var(" {1}", { S.configLabel }) or "",
     })):build()
     local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     LineBuilder()
@@ -248,7 +247,7 @@ local function drawUI(ctxt, cache)
             icon = BJI.Utils.Icon.ICONS.all_inclusive,
             big = true,
             state = loop,
-            tooltip = cache.labels.delivery.loop,
+            tooltip = BJI.Managers.Lang.get("common.buttons.loop"),
             onClick = function()
                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
                     not loop)
@@ -259,7 +258,7 @@ local function drawUI(ctxt, cache)
             icon = BJI.Utils.Icon.ICONS.exit_to_app,
             big = true,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = cache.labels.delivery.leave,
+            tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
             onClick = S.onStopDelivery,
         })
         :build()

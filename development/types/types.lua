@@ -41,6 +41,7 @@
 ---@field doShowNametag (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
 ---@field doShowNametagsSpecs (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
 ---@field getCollisionsType (fun(ctxt: TickContext): integer)? BJI.Managers.Collisions.TYPES
+---@field drawUI (fun(ctxt: TickContext))?
 ---@field renderTick (fun(ctxt: TickContext))?
 ---@field fastTick (fun(ctxt: TickContext))?
 ---@field slowTick (fun(ctxt: TickContext))?

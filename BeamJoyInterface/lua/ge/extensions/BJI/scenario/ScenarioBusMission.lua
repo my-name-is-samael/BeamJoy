@@ -192,12 +192,12 @@ local function onStopBusMission()
     onMissionFailed()
 end
 
-local function drawUI(ctxt, cache)
+local function drawUI(ctxt)
     LineBuilder()
-        :text(cache.labels.busMission.line:var({ name = S.line.name }))
+        :text(BJI.Managers.Lang.get("buslines.play.line"):var({ name = S.line.name }))
         :build()
     LineBuilder()
-        :text(cache.labels.busMission.stopCount
+        :text(BJI.Managers.Lang.get("buslines.play.stopCount")
             :var({ current = S.nextStop - 1, total = #S.line.stops }))
         :build()
     ProgressBar({
@@ -212,7 +212,7 @@ local function drawUI(ctxt, cache)
             id = "toggleBusLoop",
             icon = BJI.Utils.Icon.ICONS.all_inclusive,
             state = loop,
-            tooltip = cache.labels.busMission.loop,
+            tooltip = BJI.Managers.Lang.get("common.buttons.loop"),
             onClick = function()
                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
             end,
@@ -224,7 +224,7 @@ local function drawUI(ctxt, cache)
         icon = BJI.Utils.Icon.ICONS.exit_to_app,
         big = true,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = cache.labels.busMission.leave,
+        tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
         onClick = onStopBusMission,
     }):build()
 end
