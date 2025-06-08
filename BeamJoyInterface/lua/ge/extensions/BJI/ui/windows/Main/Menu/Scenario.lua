@@ -24,11 +24,8 @@ local function menuSoloRace(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.soloRace.start"), BJI.Utils.Style.TEXT_COLORS
-                            .DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -115,11 +112,8 @@ local function menuVehicleDelivery(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
-                            BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -155,11 +149,8 @@ local function menuPackageDelivery(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.packageDelivery.start"),
-                            BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.packageDelivery.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -196,11 +187,8 @@ local function menuDeliveryMulti(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
-                            BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -289,11 +277,8 @@ local function menuBusMission(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.busMission.start"),
-                            BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.busMission.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -329,10 +314,8 @@ local function menuSpeedGame(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.speed.start"), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.speed.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -366,10 +349,8 @@ local function menuHunter(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.hunter.start"), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.hunter.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -410,10 +391,8 @@ local function menuDerby(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.scenario.derby.start"), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.scenario.derby.start"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else

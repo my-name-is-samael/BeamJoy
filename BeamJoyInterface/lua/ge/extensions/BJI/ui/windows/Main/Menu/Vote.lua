@@ -65,7 +65,7 @@ end
 
 local function menuRace(ctxt)
     if BJI.Managers.Votes.Race.canStartVote() then
-        local raceErrorMessage = nil
+        local errorMessage = nil
         local minParticipants = (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI) or {})
             .MINIMUM_PARTICIPANTS
         local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
@@ -73,19 +73,17 @@ local function menuRace(ctxt)
             :filter(function(race) return race.enabled and race.places > 1 end)
 
         if #rawRaces == 0 then
-            raceErrorMessage = BJI.Managers.Lang.get("menu.vote.race.noRace")
+            errorMessage = BJI.Managers.Lang.get("menu.vote.race.noRace")
         elseif potentialPlayers < minParticipants then
-            raceErrorMessage = BJI.Managers.Lang.get("menu.vote.race.missingPlayers")
+            errorMessage = BJI.Managers.Lang.get("menu.vote.race.missingPlayers")
                 :var({ amount = minParticipants - potentialPlayers })
         end
 
-        if raceErrorMessage then
+        if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.vote.race.title"), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { raceErrorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.vote.race.title"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else
@@ -177,10 +175,8 @@ local function menuSpeed(ctxt)
         if errorMessage then
             table.insert(M.cache.elems, {
                 render = function()
-                    LineBuilder()
-                        :text(BJI.Managers.Lang.get("menu.vote.speed.title"), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :text(string.var("({1})", { errorMessage }), BJI.Utils.Style.TEXT_COLORS.DISABLED)
-                        :build()
+                    LineLabel(BJI.Managers.Lang.get("menu.vote.speed.title"),
+                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
                 end
             })
         else

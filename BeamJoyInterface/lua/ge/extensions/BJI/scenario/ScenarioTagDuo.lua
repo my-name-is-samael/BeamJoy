@@ -151,7 +151,7 @@ local function drawUI(ctxt)
         id = "leaveTagDuo",
         icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("menu.scenario.tagDuo.leave"),
+        tooltip = BJI.Managers.Lang.get("menu.scenario.tagduo.leave"),
         onClick = function()
             BJI.Tx.scenario.TagDuoLeave()
         end
