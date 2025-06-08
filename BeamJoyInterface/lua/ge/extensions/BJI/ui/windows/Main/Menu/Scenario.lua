@@ -18,7 +18,9 @@ local function menuSoloRace(ctxt)
         if #rawRaces == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.soloRace.noRace")
         elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.soloRace.missingOwnVehicle")
+            errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
+        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+            errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
         if errorMessage then
@@ -143,7 +145,9 @@ local function menuPackageDelivery(ctxt)
             #BJI.Managers.Context.Scenario.Data.Deliveries < 2 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.packageDelivery.noDelivery")
         elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.packageDelivery.missingOwnVehicle")
+            errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
+        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+            errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
         if errorMessage then
@@ -181,7 +185,9 @@ local function menuDeliveryMulti(ctxt)
             #BJI.Managers.Context.Scenario.Data.Deliveries < 2 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.noDelivery")
         elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.missingOwnVehicle")
+            errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
+        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+            errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
         if errorMessage then
@@ -217,9 +223,9 @@ local function menuTagDuo(ctxt)
         BJI.Managers.Scenario.isFreeroam() then
         local errorMessage
         if not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.missingOwnVehicle")
+            errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
         elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.aiNotAllowed")
+            errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
         if errorMessage then
@@ -306,7 +312,7 @@ local function menuSpeedGame(ctxt)
         local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.speed.missingPlayers"):var({
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -341,7 +347,7 @@ local function menuHunter(ctxt)
             not BJI.Managers.Context.Scenario.Data.Hunter.enabled then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
         elseif potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.hunter.missingPlayers"):var({
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -383,7 +389,7 @@ local function menuDerby(ctxt)
         if #rawArenas == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.noArena")
         elseif potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.missingPlayers"):var({
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
@@ -448,11 +454,12 @@ local function updateCache(ctxt)
     if not BJI.Windows.ScenarioEditor.getState() and
         not BJI.Managers.Tournament.state then
         menuSoloRace(ctxt)
+        menuBusMission(ctxt)
         menuVehicleDelivery(ctxt)
         menuPackageDelivery(ctxt)
         menuDeliveryMulti(ctxt)
         menuTagDuo(ctxt)
-        menuBusMission(ctxt)
+        table.insert(M.cache.elems, {separator = true})
         menuSpeedGame(ctxt)
         menuHunter(ctxt)
         menuDerby(ctxt)

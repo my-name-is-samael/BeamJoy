@@ -299,7 +299,13 @@
       "cannotSpawnAnyMoreVeh": "You cannot spawn any more vehicle",
       "unavailableDuringScenario": "Unavailable during scenario",
       "scenarioUnavailable": "Scenario unavailable",
-      "toastModelBlacklisted": "This vehicle is blacklisted"
+      "toastModelBlacklisted": "This vehicle is blacklisted",
+      "missingOwnVehicle": "Missing an owned vehicle",
+      "cannotStartWodeWithAI": "You cannot start this mode with an AI vehicle",
+      "missingPlayers": "Missing {amount} more player(s)",
+      "mustBeFreecaming": "You must be freecaming",
+      "mustHaveVehicle": "You must have a vehicle",
+      "someDataAreInvalid": "Some data are invalid"
     },
     "chat": {
       "staffTag": "STAFF",
@@ -392,12 +398,10 @@
         },
         "race": {
           "title": "Race",
-          "noRace": "No race available",
-          "missingPlayers": "Missing {amount} more player(s)"
+          "noRace": "No race available"
         },
         "speed": {
-          "title": "Speed Game",
-          "missingPlayers": "Missing {amount} more player(s)"
+          "title": "Speed Game"
         }
       },
       "scenario": {
@@ -405,8 +409,7 @@
         "soloRace": {
           "start": "Start Solo Race",
           "stop": "Stop Race",
-          "noRace": "No race available",
-          "missingOwnVehicle": "Missing an owned vehicle"
+          "noRace": "No race available"
         },
         "vehicleDelivery": {
           "start": "Start Vehicle Delivery",
@@ -416,14 +419,12 @@
         "packageDelivery": {
           "start": "Start Package Delivery",
           "stop": "Stop Delivery",
-          "noDelivery": "No delivery available",
-          "missingOwnVehicle": "Missing an owned vehicle"
+          "noDelivery": "No delivery available"
         },
         "deliveryMulti": {
           "join": "Join Delivery Together",
           "leave": "Leave Delivery Together",
-          "noDelivery": "No delivery available",
-          "missingOwnVehicle": "Missing an owned vehicle"
+          "noDelivery": "No delivery available"
         },
         "busMission": {
           "start": "Start Bus Mission",
@@ -432,29 +433,24 @@
         },
         "speed": {
           "start": "Start Speed Game",
-          "stop": "Stop Speed Game",
-          "missingPlayers": "Missing {amount} more player(s)"
+          "stop": "Stop Speed Game"
         },
         "raceStop": "Stop Race",
         "hunter": {
           "start": "Start Hunter",
           "stop": "Stop Hunter",
-          "modeDisabled": "disabled",
-          "missingPlayers": "Missing {amount} more player(s)"
+          "modeDisabled": "disabled"
         },
         "derby": {
           "start": "Start Destruction Derby",
           "stop": "Stop Destruction Derby",
-          "noArena": "No arena available",
-          "missingPlayers": "Missing {amount} more player(s)"
+          "noArena": "No arena available"
         },
         "tagduo": {
           "join": "Join TagDuo",
           "leave": "Leave TagDuo",
           "createLobby": "Create a lobby",
-          "joinLobby": "Join {playerName}'s lobby",
-          "missingOwnVehicle": "Missing an owned vehicle",
-          "aiNotAllowed": "You cannot join with an AI vehicle"
+          "joinLobby": "Join {playerName}'s lobby"
         },
         "tournament": "Tournament"
       },

@@ -298,7 +298,13 @@
       "cannotSpawnAnyMoreVeh": "Tu ne peux plus faire apparaître de véhicule",
       "unavailableDuringScenario": "Indisponible pendant le scénario",
       "scenarioUnavailable": "Scénario indisponible",
-      "toastModelBlacklisted": "Ce véhicule est blacklisté"
+      "toastModelBlacklisted": "Ce véhicule est blacklisté",
+      "missingOwnVehicle": "Véhicule possédé manquant",
+      "cannotStartWodeWithAI": "Vous ne pouvez pas démarrer ce mode avec un véhicule IA",
+      "missingPlayers": "Il manque encore {amount} joueur(s)",
+      "mustBeFreecaming": "Vous devez être en caméra libre",
+      "mustHaveVehicle": "Vous devez avoir un véhicule",
+      "someDataAreInvalid": "Certaines données sont invalides"
     },
     "chat": {
       "staffTag": "STAFF",
@@ -391,12 +397,10 @@
         },
         "race": {
           "title": "Course",
-          "noRace": "Aucune course disponible",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "noRace": "Aucune course disponible"
         },
         "speed": {
-          "title": "Speed",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "title": "Speed"
         }
       },
       "scenario": {
@@ -404,8 +408,7 @@
         "soloRace": {
           "start": "Commencer une Course Solo",
           "stop": "Arrêter la Course",
-          "noRace": "Aucune course disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noRace": "Aucune course disponible"
         },
         "vehicleDelivery": {
           "start": "Commencer une Livraison de Véhicule",
@@ -415,14 +418,12 @@
         "packageDelivery": {
           "start": "Commencer une Livraison de Colis",
           "stop": "Arrêter la Livraison",
-          "noDelivery": "Aucune livraison disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noDelivery": "Aucune livraison disponible"
         },
         "deliveryMulti": {
           "join": "Rejoindre la Livraison en Groupe",
           "leave": "Quitter la Livraison en Groupe",
-          "noDelivery": "Aucune livraison disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noDelivery": "Aucune livraison disponible"
         },
         "busMission": {
           "start": "Commencer un Itinéraire de Bus",
@@ -431,29 +432,24 @@
         },
         "speed": {
           "start": "Commencer un Speed",
-          "stop": "Arrêter le Speed",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "stop": "Arrêter le Speed"
         },
         "raceStop": "Arrêter la Course",
         "hunter": {
           "start": "Commencer un Hunter",
           "stop": "Arrêter le Hunter",
-          "modeDisabled": "désactivé",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "modeDisabled": "désactivé"
         },
         "derby": {
           "start": "Commencer un Destruction Derby",
           "stop": "Arrêter le Destruction Derby",
-          "noArena": "Aucune arène disponible",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "noArena": "Aucune arène disponible"
         },
         "tagduo": {
           "join": "Jeu du Loup",
           "leave": "Quitter le jeu du Loup",
           "createLobby": "Créer un lobby",
-          "joinLobby": "Rejoindre le lobby de {playerName}",
-          "missingOwnVehicle": "Véhicule personnel manquant",
-          "aiNotAllowed": "Impossible de rejoindre avec un véhicule IA"
+          "joinLobby": "Rejoindre le lobby de {playerName}"
         },
         "tournament": "Tournoi"
       },

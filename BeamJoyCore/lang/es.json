@@ -298,7 +298,13 @@
       "cannotSpawnAnyMoreVeh": "No puedes generar más vehículos.",
       "unavailableDuringScenario": "No disponible durante el escenario",
       "scenarioUnavailable": "Escenario no disponible",
-      "toastModelBlacklisted": "Este vehículo está en la lista negra."
+      "toastModelBlacklisted": "Este vehículo está en la lista negra.",
+      "missingOwnVehicle": "Falta un vehículo propio",
+      "cannotStartWodeWithAI": "No puedes iniciar este modo con un vehículo de IA",
+      "missingPlayers": "Faltan {amount} jugador(es)",
+      "mustBeFreecaming": "Debes estar en modo cámara libre",
+      "mustHaveVehicle": "Necesitas un vehículo",
+      "someDataAreInvalid": "Algunos datos no son válidos"
     },
     "chat": {
       "staffTag": "PERSONAL",
@@ -391,12 +397,10 @@
         },
         "race": {
           "title": "Carrera",
-          "noRace": "No hay carrera disponible",
-          "missingPlayers": "Faltan {amount} jugador(es)"
+          "noRace": "No hay carrera disponible"
         },
         "speed": {
-          "title": "Juego de velocidad",
-          "missingPlayers": "Faltan {amount} jugador(es)"
+          "title": "Juego de velocidad"
         }
       },
       "scenario": {
@@ -404,8 +408,7 @@
         "soloRace": {
           "start": "Iniciar carrera en solitario",
           "stop": "Detener carrera",
-          "noRace": "No hay carrera disponible",
-          "missingOwnVehicle": "Falta un vehículo propio"
+          "noRace": "No hay carrera disponible"
         },
         "vehicleDelivery": {
           "start": "Iniciar entrega de vehículos",
@@ -415,14 +418,12 @@
         "packageDelivery": {
           "start": "Iniciar la entrega del paquete",
           "stop": "Detener entrega",
-          "noDelivery": "No hay entrega disponible",
-          "missingOwnVehicle": "Falta un vehículo propio"
+          "noDelivery": "No hay entrega disponible"
         },
         "deliveryMulti": {
           "join": "Únase a la entrega juntos",
           "leave": "Dejar la entrega juntos",
-          "noDelivery": "No hay entrega disponible",
-          "missingOwnVehicle": "Falta un vehículo propio"
+          "noDelivery": "No hay entrega disponible"
         },
         "busMission": {
           "start": "Iniciar la misión del autobús",
@@ -431,29 +432,24 @@
         },
         "speed": {
           "start": "Iniciar juego de velocidad",
-          "stop": "Detener el juego de velocidad",
-          "missingPlayers": "Faltan {amount} jugador(es)"
+          "stop": "Detener el juego de velocidad"
         },
         "raceStop": "Detener carrera",
         "hunter": {
           "start": "Iniciar cazador",
           "stop": "Detener cazador",
-          "modeDisabled": "desactivado",
-          "missingPlayers": "Faltan {amount} jugador(es)"
+          "modeDisabled": "desactivado"
         },
         "derby": {
           "start": "Derby de destrucción inicial",
           "stop": "Detener la destrucción Derby",
-          "noArena": "No hay arena disponible",
-          "missingPlayers": "Faltan {amount} jugador(es)"
+          "noArena": "No hay arena disponible"
         },
         "tagduo": {
           "join": "Unirse a PillaPilla",
           "leave": "Salir de PillaPilla",
           "createLobby": "Crear una sala",
-          "joinLobby": "Unirse a la sala de {playerName}",
-          "missingOwnVehicle": "Falta un vehículo propio",
-          "aiNotAllowed": "No se permite unirse con un vehículo IA"
+          "joinLobby": "Unirse a la sala de {playerName}"
         },
         "tournament": "Torneo"
       },

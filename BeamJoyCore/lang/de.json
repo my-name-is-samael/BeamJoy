@@ -298,7 +298,13 @@
       "cannotSpawnAnyMoreVeh": "Es können keine weiteren Fahrzeuge spawnen",
       "unavailableDuringScenario": "Während des Szenarios nicht verfügbar",
       "scenarioUnavailable": "Szenario nicht verfügbar",
-      "toastModelBlacklisted": "Dieses Fahrzeug steht auf der schwarzen Liste"
+      "toastModelBlacklisted": "Dieses Fahrzeug steht auf der schwarzen Liste",
+      "missingOwnVehicle": "Fehlendes eigenes Fahrzeug",
+      "cannotStartWodeWithAI": "Du kannst diesen Modus nicht mit einem KI-Fahrzeug starten",
+      "missingPlayers": "Es fehlen noch {amount} Spieler",
+      "mustBeFreecaming": "Du musst im Freecam-Modus sein",
+      "mustHaveVehicle": "Du brauchst ein Fahrzeug",
+      "someDataAreInvalid": "Einige Daten sind ungültig"
     },
     "chat": {
       "staffTag": "PERSONAL",
@@ -391,12 +397,10 @@
         },
         "race": {
           "title": "Wettrennen",
-          "noRace": "Kein Rennen verfügbar",
-          "missingPlayers": "Es fehlen noch {amount} Spieler"
+          "noRace": "Kein Rennen verfügbar"
         },
         "speed": {
-          "title": "Geschwindigkeitsspiel",
-          "missingPlayers": "Es fehlen noch {amount} Spieler"
+          "title": "Geschwindigkeitsspiel"
         }
       },
       "scenario": {
@@ -404,8 +408,7 @@
         "soloRace": {
           "start": "Solo-Rennen starten",
           "stop": "Stoppen Sie das Rennen",
-          "noRace": "Kein Rennen verfügbar",
-          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+          "noRace": "Kein Rennen verfügbar"
         },
         "vehicleDelivery": {
           "start": "Fahrzeugauslieferung starten",
@@ -415,14 +418,12 @@
         "packageDelivery": {
           "start": "Starten Sie die Paketzustellung",
           "stop": "Lieferung stoppen",
-          "noDelivery": "Keine Lieferung verfügbar",
-          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+          "noDelivery": "Keine Lieferung verfügbar"
         },
         "deliveryMulti": {
           "join": "Nehmen Sie gemeinsam an der Lieferung teil",
           "leave": "Überlassen Sie die Lieferung gemeinsam",
-          "noDelivery": "Keine Lieferung verfügbar",
-          "missingOwnVehicle": "Fehlendes eigenes Fahrzeug"
+          "noDelivery": "Keine Lieferung verfügbar"
         },
         "busMission": {
           "start": "Busmission starten",
@@ -431,29 +432,24 @@
         },
         "speed": {
           "start": "Geschwindigkeitsspiel starten",
-          "stop": "Stoppen Sie das Geschwindigkeitsspiel",
-          "missingPlayers": "Es fehlen noch {amount} Spieler"
+          "stop": "Stoppen Sie das Geschwindigkeitsspiel"
         },
         "raceStop": "Stoppen Sie das Rennen",
         "hunter": {
           "start": "Starten Sie Hunter",
           "stop": "Stoppen Sie Hunter",
-          "modeDisabled": "deaktiviert",
-          "missingPlayers": "Es fehlen noch {amount} Spieler"
+          "modeDisabled": "deaktiviert"
         },
         "derby": {
           "start": "Starten Sie Destruction Derby",
           "stop": "Stop Destruction Derby",
-          "noArena": "Keine Arena verfügbar",
-          "missingPlayers": "Es fehlen noch {amount} Spieler"
+          "noArena": "Keine Arena verfügbar"
         },
         "tagduo": {
           "join": "Fangen beitreten",
           "leave": "Fangen verlassen",
           "createLobby": "Lobby erstellen",
-          "joinLobby": "Lobby von {playerName} beitreten",
-          "missingOwnVehicle": "Eigenes Fahrzeug fehlt",
-          "aiNotAllowed": "Beitritt mit KI-Fahrzeug nicht erlaubt"
+          "joinLobby": "Lobby von {playerName} beitreten"
         },
         "tournament": "Turnier"
       },

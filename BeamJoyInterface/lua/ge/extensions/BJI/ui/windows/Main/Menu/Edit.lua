@@ -337,7 +337,8 @@ local function menuRaces(ctxt)
                             render = function()
                                 LineBuilder():btnIconToggle({
                                     id = "toggle-" .. tostring(race.id),
-                                    icon = race.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
+                                    icon = race.enabled and BJI.Utils.Icon.ICONS.visibility or
+                                        BJI.Utils.Icon.ICONS.visibility_off,
                                     state = race.enabled == true,
                                     tooltip = BJI.Managers.Lang.get("common.buttons.toggle"),
                                     onClick = function()
@@ -518,7 +519,6 @@ local function updateCache(ctxt)
         elems = {},
     }
 
-    menuFreeroamSettings(ctxt)
     menuTimePresets(ctxt)
     menuWeatherPresets(ctxt)
     menuGravityPresets(ctxt)
@@ -526,7 +526,12 @@ local function updateCache(ctxt)
 
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
         menuSwitchMap(ctxt)
+    end
 
+    table.insert(M.cache.elems, { separator = true })
+    menuFreeroamSettings(ctxt)
+
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
         -- scenario editors
         menuEnergyStations(ctxt)
         menuGarages(ctxt)

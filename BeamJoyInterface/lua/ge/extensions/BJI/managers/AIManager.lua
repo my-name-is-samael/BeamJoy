@@ -91,6 +91,7 @@ local function updateAllAIVehicles(aiVehs)
     M.aiVehs = aiVehs
     if diff then
         BJI.Managers.Collisions.checkAIVehicles()
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
     end
 end
 

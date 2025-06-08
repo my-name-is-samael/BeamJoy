@@ -75,7 +75,7 @@ local function menuRace(ctxt)
         if #rawRaces == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.vote.race.noRace")
         elseif potentialPlayers < minParticipants then
-            errorMessage = BJI.Managers.Lang.get("menu.vote.race.missingPlayers")
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers")
                 :var({ amount = minParticipants - potentialPlayers })
         end
 
@@ -167,7 +167,7 @@ local function menuSpeed(ctxt)
             .MINIMUM_PARTICIPANTS
         local errorMessage = nil
         if potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("menu.vote.speed.missingPlayers"):var({
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
                 amount = minimumParticipants - potentialPlayers
             })
         end
