@@ -967,8 +967,10 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             if veh.model.aggregates.Source.Mod then
                 local jbeamIO = require('jbeam/io')
                 local function tryLoadVeh()
-                    if not jbeamIO.getPart(jbeamIO.startLoading({ "/vehicles/common/",
-                            string.var("/vehicles/{1}/", { veh.model.key }) }), veh.model.key) then
+                    if not jbeamIO.getMainPartName(jbeamIO.startLoading({
+                            string.var("/vehicles/{1}/", { veh.model.key }),
+                            "/vehicles/common/"
+                        })) then
                         error()
                     end
                 end
