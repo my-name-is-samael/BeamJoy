@@ -447,6 +447,14 @@
           "noArena": "Nenhuma arena disponível",
           "missingPlayers": "Faltam {amount} jogador(es)"
         },
+        "tagduo": {
+          "join": "Entrar no Apanhada/Pega-Pega",
+          "leave": "Sair do Apanhada/Pega-Pega",
+          "createLobby": "Criar uma sala",
+          "joinLobby": "Entrar na sala de {playerName}",
+          "missingOwnVehicle": "Falta um veículo próprio",
+          "aiNotAllowed": "Não podes entrar com um veículo IA"
+        },
         "tournament": "Torneio"
       },
       "edit": {
@@ -1555,6 +1563,15 @@
         "derby": "Demolição",
         "tag": "Infectado"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Esperando por um jogador...",
+      "flashWaitForSpread": "Espalhem-se para continuar",
+      "flashChase": "Apanha-o!",
+      "flashFlee": "Foge!",
+      "flashTag": "Tocado!",
+      "title": "Apanhada/Pega-pega - Sala de {playerName}",
+      "taggerMark": "Pegador"
     }
   }
 }

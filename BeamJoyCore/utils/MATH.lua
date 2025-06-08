@@ -51,7 +51,8 @@ end
 ---@param pos2 vec3
 ---@return number
 math.horizontalDistance = math.horizontalDistance or function(pos1, pos2)
-    if not pos1.x or not pos1.y or
+    if not pos1 or not pos2 or
+        not pos1.x or not pos1.y or
         not pos2.x or not pos2.y then
         LogError("invalid position")
         return 0

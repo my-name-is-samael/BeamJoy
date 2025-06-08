@@ -154,6 +154,8 @@ return M
 -- hide/show ui apps
 -- guihooks.trigger('ShowApps', true/false)
 
+-- core_vehicleBridge.executeAction(getPlayerVehicle(0), 'setOtherVehiclesAIMode', "chase")
+
 -- if stuck in loading screen during disconnect
 -- core_gamestate.requestExitLoadingScreen("serverConnection")
 

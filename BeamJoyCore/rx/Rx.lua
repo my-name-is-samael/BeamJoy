@@ -58,31 +58,28 @@ local _queue = Table()
 local function finalizeCommunication(id)
     local comm = _queue[id]
     local rawData = table.join(comm.data)
-    rawData = #rawData > 0 and JSON.parse(rawData) or {}
+    local parsedData = #rawData > 0 and JSON.parse(rawData) or {}
     local ctxt = {
         senderID = comm.senderID,
         sender = BJCPlayers.Players[comm.senderID] or {},
         event = comm.controller,
         endpoint = comm.endpoint,
-        data = rawData,
+        data = parsedData,
     }
     BJCInitContext(ctxt)
 
     if not Table(ctrls):find(function(_, e)
             return (type(BJC_EVENTS[e]) == "table" and BJC_EVENTS[e].EVENT == ctxt.event)
         end, function(ctrl)
-            if BJCCore.Data.Debug then
-                Log(BJCLang.getConsoleMessage("rx.eventReceived")
-                    :var({
-                        eventName = ctxt.event,
-                        endpoint = ctxt.endpoint,
-                        playerName = ctxt.sender.playerName,
-                    }),
-                    logTag)
-                if table.length(ctxt.data) > 0 then
-                    PrintObj(ctxt.data, string.var("{1}.{2} ({3} parts data)",
-                        { ctxt.event, ctxt.endpoint, comm.parts }))
-                end
+            LogDebug(BJCLang.getConsoleMessage("rx.eventReceived")
+                :var({
+                    eventName = ctxt.event,
+                    endpoint = ctxt.endpoint,
+                    playerName = ctxt.sender.playerName,
+                }),
+                logTag)
+            if BJCCore.Data.Debug and table.length(ctxt.data) > 0 then
+                PrintObj(ctxt.data)
             end
 
             local _, err = pcall(ctrl.dispatchEvent, ctrl, ctxt)

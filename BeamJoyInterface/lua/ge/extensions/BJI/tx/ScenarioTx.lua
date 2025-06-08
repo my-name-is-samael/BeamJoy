@@ -181,10 +181,14 @@ return function(TX)
         TX._send(event.EVENT, event.TX.DERBY_STOP)
     end
 
+    ---@param lobbyId integer?
+    ---@param gameVehID integer
     function scenario.TagDuoJoin(lobbyId, gameVehID)
         TX._send(event.EVENT, event.TX.TAG_DUO_JOIN, { lobbyId, gameVehID })
     end
 
+    ---@param lobbyId integer
+    ---@param clientEvent string
     function scenario.TagDuoUpdate(lobbyId, clientEvent)
         TX._send(event.EVENT, event.TX.TAG_DUO_UPDATE, { lobbyId, clientEvent })
     end

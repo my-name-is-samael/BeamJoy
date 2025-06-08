@@ -320,6 +320,14 @@
           "noArena": "Арена недоступна",
           "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
         },
+        "tagduo": {
+          "join": "Присоединиться к Салки",
+          "leave": "Выйти из Салки",
+          "createLobby": "Создать лобби",
+          "joinLobby": "Присоединиться к лобби {playerName}",
+          "missingOwnVehicle": "Отсутствует личное транспортное средство",
+          "aiNotAllowed": "Нельзя присоединиться с машиной ИИ"
+        },
         "tournament": "Турнир"
       },
       "edit": {
@@ -1428,6 +1436,15 @@
         "derby": "Дерби",
         "tag": "Заражённый"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Ожидание игрока...",
+      "flashWaitForSpread": "Разойдитесь, чтобы продолжить",
+      "flashChase": "Лови его!",
+      "flashFlee": "Беги!",
+      "flashTag": "Пойман!",
+      "title": "Салки - Лобби {playerName}",
+      "taggerMark": "Водящий"
     }
   }
 }

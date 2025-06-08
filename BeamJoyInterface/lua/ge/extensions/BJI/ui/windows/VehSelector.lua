@@ -294,8 +294,8 @@ local function drawHeader(ctxt)
         disabled = W.headerBtns.setAsDefaultDisabled,
         tooltip = W.headerBtns.setAsDefaultTooltip,
         onClick = function()
-            core_vehicle_partmgmt.savedefault();
-            -- todo add listener on this game action
+            core_vehicle_partmgmt.savedefault()
+            updateButtonsStates(ctxt)
         end,
     }):btn({
         id = "loadDefault",

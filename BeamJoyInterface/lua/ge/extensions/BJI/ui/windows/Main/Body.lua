@@ -130,6 +130,8 @@ local function updateCache(ctxt)
         cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).drawUI
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.BUS_MISSION) then
         cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION).drawUI
+    elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_DUO) then
+        cache.data.scenarioUIFn = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO).drawUI
     end
 
     if BJI.Managers.Perm.isStaff() then

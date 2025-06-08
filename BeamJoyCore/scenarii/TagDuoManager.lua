@@ -1,14 +1,14 @@
----@class BJCTagDuoLobby
+---@class BJTagDuoLobby
 ---@field host integer
----@field lastTagger integer
----@field players {tagger: boolean, gameVehID: integer, ready: boolean}[] index playerIDs #{1-2}
+---@field lastTagger integer?
+---@field players tablelib<integer, {tagger: boolean, gameVehID: integer, ready: boolean}> index playerIDs #{1-2}
 
 local M = {
     CLIENT_EVENTS = {
         READY = "ready",
-        TOUCH = "touch",
+        TAG = "tag",
     },
-    ---@type BJCTagDuoLobby[]
+    ---@type tablelib<integer, BJTagDuoLobby>
     lobbies = Table(),
 }
 
@@ -34,22 +34,17 @@ local function onClientJoin(senderID, lobbyIndex, gameVehID)
         error({ key = "rx.errors.invalidData" })
     end
 
-    local foundIndex
-    for i, lobby in ipairs(M.lobbies) do
-        if lobby.players[senderID] then
-            foundIndex = i
-            break
-        end
-    end
-    if foundIndex then -- player already in a lobby
+    if M.lobbies:find(function(lobby) return lobby.players[senderID] end) then
+        -- player already in a lobby
         error({ key = "rx.errors.invalidData" })
     end
 
-    if lobbyIndex then -- joining an existing lobby
+    if lobbyIndex ~= -1 then -- joining an existing lobby
         local lobby = M.lobbies[lobbyIndex]
         if not lobby or
             lobby.host == senderID or
-            table.length(lobby.players) > 1 then -- invalid lobby or already host or already 2 players in lobby
+            lobby.players:length() > 1 then
+            -- invalid lobby or already host or already 2 players in lobby
             error({ key = "rx.errors.invalidData" })
         end
 
@@ -60,63 +55,61 @@ local function onClientJoin(senderID, lobbyIndex, gameVehID)
         }
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
     else -- creating a new lobby
-        table.insert(M.lobbies, {
+        M.lobbies:insert({
             host = senderID,
             lastTagger = nil,
-            players = {
+            players = Table({
                 [senderID] = {
                     tagger = false,
                     gameVehID = gameVehID,
                     ready = false,
                 }
-            }
+            })
         })
     end
 end
 
+---@param senderID integer
+---@param lobby BJTagDuoLobby
 local function onClientReady(senderID, lobby)
     if lobby.players[senderID].ready then
         return
     end
 
-    lobby.players[senderID].ready = true
-    local readyCount = 0
-    for _, p in pairs(lobby.players) do
-        if p.ready then
-            readyCount = readyCount + 1
-        end
-    end
-    if readyCount == 2 then -- both players ready > start tag
-        local tagger
-        if not lobby.lastTagger then
-            tagger = table.random(table.keys(lobby.players))
-        else
-            for id in pairs(lobby.players) do
-                if id ~= lobby.lastTagger then
-                    tagger = id
-                    break
-                end
-            end
-        end
 
-        for id, p in pairs(lobby.players) do
-            p.tagger = id == tagger
-        end
-        lobby.lastTagger = tagger
+    lobby.players[senderID].ready = true
+    if #lobby.players:filter(function(p) return p.ready end):values() == 2 then
+        -- both players ready > start tag
+        LogWarn(string.var("both players ready", { senderID }))
+        local nextTagger = lobby.lastTagger and lobby.players:keys()
+            :filter(function(_, pid) return pid ~= lobby.lastTagger end)
+            :find(function() return true end) or
+            lobby.players:keys():random()
+
+        lobby.players:forEach(function(p, id)
+            p.tagger = id == nextTagger
+        end)
+        lobby.lastTagger = nextTagger
+        dump(lobby)
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
 end
 
-local function onClientTouch(senderID, lobby)
+---@param senderID integer
+---@param lobby BJTagDuoLobby
+local function onClientTag(senderID, lobby)
     if not lobby.players[senderID].tagger then
         return
     end
 
-    for p in pairs(lobby.players) do
+    LogWarn(string.var("player {1} tag", { senderID }))
+
+    lobby.players:forEach(function(p)
         p.ready = false
-        p.tagger = nil
-    end
-    -- TODO RP reward
+        p.tagger = false
+    end)
+    -- TODO RP reward config
+    BJCPlayers.reward(senderID, 5)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
 end
 
@@ -128,8 +121,8 @@ local function onClientUpdate(senderID, lobbyIndex, event)
 
     if event == M.CLIENT_EVENTS.READY then
         onClientReady(senderID, lobby)
-    elseif event == M.CLIENT_EVENTS.TOUCH then
-        onClientTouch(senderID, lobby)
+    elseif event == M.CLIENT_EVENTS.TAG then
+        onClientTag(senderID, lobby)
     end
 end
 

@@ -129,7 +129,7 @@ end
 math.horizontalDistance = math.horizontalDistance or function(pos1, pos2)
     local _, _, err = pcall(vec3, pos1)
     local _, _, err2 = pcall(vec3, pos2)
-    if err or err2 then
+    if err or err2 or not pos1 or not pos2 then
         LogError("invalid position", "GetHorizontalDistance")
         return 0
     end

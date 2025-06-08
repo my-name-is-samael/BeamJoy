@@ -107,7 +107,7 @@ local function slowTick()
             [BJCCache.CACHES.HUNTER] = BJCScenario.HunterManager.getCacheHash(),
             [BJCCache.CACHES.DERBY_DATA] = BJCScenarioData.getCacheDerbyHash(),
             [BJCCache.CACHES.DERBY] = BJCScenario.DerbyManager.getCacheHash(),
-            --[BJCCache.CACHES.TAG_DUO] = BJCScenario.Hybrids.TagDuoManager.getCacheHash(),
+            [BJCCache.CACHES.TAG_DUO] = BJCScenario.Hybrids.TagDuoManager.getCacheHash(),
             [BJCCache.CACHES.TOURNAMENT] = BJCTournament.getCacheHash(),
         }
         serverTickData.serverTime = GetCurrentTime()

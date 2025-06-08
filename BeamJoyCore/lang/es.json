@@ -447,6 +447,14 @@
           "noArena": "No hay arena disponible",
           "missingPlayers": "Faltan {amount} jugador(es)"
         },
+        "tagduo": {
+          "join": "Unirse a PillaPilla",
+          "leave": "Salir de PillaPilla",
+          "createLobby": "Crear una sala",
+          "joinLobby": "Unirse a la sala de {playerName}",
+          "missingOwnVehicle": "Falta un vehículo propio",
+          "aiNotAllowed": "No se permite unirse con un vehículo IA"
+        },
         "tournament": "Torneo"
       },
       "edit": {
@@ -1555,6 +1563,15 @@
         "derby": "Derbi",
         "tag": "Infectado"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Esperando a un jugador...",
+      "flashWaitForSpread": "Sepárense para continuar",
+      "flashChase": "¡Atrápalo!",
+      "flashFlee": "¡Corre!",
+      "flashTag": "¡Tocado!",
+      "title": "Pilla-pilla - Sala de {playerName}",
+      "taggerMark": "Pillador"
     }
   }
 }

@@ -447,6 +447,14 @@
           "noArena": "Nessuna arena disponibile",
           "missingPlayers": "Mancano ancora {amount} giocatore/i"
         },
+        "tagduo": {
+          "join": "Unisciti a Ce L'hai",
+          "leave": "Lascia Ce L'hai",
+          "createLobby": "Crea una lobby",
+          "joinLobby": "Unisciti alla lobby di {playerName}",
+          "missingOwnVehicle": "Veicolo personale mancante",
+          "aiNotAllowed": "Non puoi partecipare con un veicolo IA"
+        },
         "tournament": "Torneo"
       },
       "edit": {
@@ -1555,6 +1563,15 @@
         "derby": "Demolizione",
         "tag": "Infetto"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "In attesa di un giocatore...",
+      "flashWaitForSpread": "Allontanatevi per continuare",
+      "flashChase": "Prendilo!",
+      "flashFlee": "Scappa!",
+      "flashTag": "Preso!",
+      "title": "Ce l'hai! - Lobby di {playerName}",
+      "taggerMark": "Inseguitore"
     }
   }
 }

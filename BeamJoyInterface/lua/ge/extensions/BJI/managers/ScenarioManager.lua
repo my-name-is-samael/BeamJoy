@@ -480,7 +480,7 @@ local function onLoad()
         [BJI.Managers.Cache.CACHES.SPEED] = M.TYPES.SPEED,
         [BJI.Managers.Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
         [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
-        --[BJICache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
+        [BJI.Managers.Cache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
     }, function(scenarioType, cacheName)
         BJI.Managers.Cache.addRxHandler(cacheName, function(cacheData)
             local sc = M.get(scenarioType)

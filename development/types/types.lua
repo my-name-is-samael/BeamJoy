@@ -7,6 +7,7 @@
 ---@field _key string
 ---@field _isSolo boolean
 ---@field _skip boolean?
+---@field canChangeTo (fun(ctxt: TickContext): boolean)
 ---@field onLoad (fun(ctxt: TickContext))?
 ---@field onUnload (fun(ctxt: TickContext))?
 ---@field onVehicleSpawned (fun(gameVehID: integer))?

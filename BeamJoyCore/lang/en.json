@@ -448,6 +448,14 @@
           "noArena": "No arena available",
           "missingPlayers": "Missing {amount} more player(s)"
         },
+        "tagduo": {
+          "join": "Join TagDuo",
+          "leave": "Leave TagDuo",
+          "createLobby": "Create a lobby",
+          "joinLobby": "Join {playerName}'s lobby",
+          "missingOwnVehicle": "Missing an owned vehicle",
+          "aiNotAllowed": "You cannot join with an AI vehicle"
+        },
         "tournament": "Tournament"
       },
       "edit": {
@@ -1556,6 +1564,15 @@
         "derby": "Derby",
         "tag": "Infected"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Waiting for a player...",
+      "flashWaitForSpread": "Spread out to continue",
+      "flashChase": "Chase !",
+      "flashFlee": "Flee !",
+      "flashTag": "Tag !",
+      "title": "Tag - {playerName}'s lobby",
+      "taggerMark": "Tagger"
     }
   }
 }

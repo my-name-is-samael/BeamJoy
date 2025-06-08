@@ -151,6 +151,7 @@ BJI.Managers.Scenario.TYPES.SPEED = "SPEED"
 BJI.Managers.Scenario.TYPES.DELIVERY_MULTI = "DELIVERY_MULTI"
 BJI.Managers.Scenario.TYPES.HUNTER = "HUNTER"
 BJI.Managers.Scenario.TYPES.DERBY = "DERBY"
+BJI.Managers.Scenario.TYPES.TAG_DUO = "TAG_DUO"
 
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.FREEROAM] = require(
     "ge/extensions/BJI/scenario/ScenarioFreeRoam")
@@ -172,3 +173,5 @@ BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.HUNTER] = require(
     "ge/extensions/BJI/scenario/ScenarioHunter")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DERBY] = require(
     "ge/extensions/BJI/scenario/ScenarioDerby")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.TAG_DUO] = require(
+    "ge/extensions/BJI/scenario/ScenarioTagDuo")

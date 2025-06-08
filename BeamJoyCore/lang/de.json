@@ -447,6 +447,14 @@
           "noArena": "Keine Arena verfügbar",
           "missingPlayers": "Es fehlen noch {amount} Spieler"
         },
+        "tagduo": {
+          "join": "Fangen beitreten",
+          "leave": "Fangen verlassen",
+          "createLobby": "Lobby erstellen",
+          "joinLobby": "Lobby von {playerName} beitreten",
+          "missingOwnVehicle": "Eigenes Fahrzeug fehlt",
+          "aiNotAllowed": "Beitritt mit KI-Fahrzeug nicht erlaubt"
+        },
         "tournament": "Turnier"
       },
       "edit": {
@@ -1555,6 +1563,15 @@
         "derby": "Derby",
         "tag": "Infiziert"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Warte auf einen Spieler...",
+      "flashWaitForSpread": "Geht auseinander, um fortzufahren",
+      "flashChase": "Fang ihn!",
+      "flashFlee": "Lauf weg!",
+      "flashTag": "Abgetippt!",
+      "title": "Fangen - Lobby von {playerName}",
+      "taggerMark": "Fänger"
     }
   }
 }

@@ -447,6 +447,14 @@
           "noArena": "Aucune arène disponible",
           "missingPlayers": "Il manque encore {amount} joueur(s)"
         },
+        "tagduo": {
+          "join": "Jeu du Loup",
+          "leave": "Quitter le jeu du Loup",
+          "createLobby": "Créer un lobby",
+          "joinLobby": "Rejoindre le lobby de {playerName}",
+          "missingOwnVehicle": "Véhicule personnel manquant",
+          "aiNotAllowed": "Impossible de rejoindre avec un véhicule IA"
+        },
         "tournament": "Tournoi"
       },
       "edit": {
@@ -1555,6 +1563,15 @@
         "derby": "Derby",
         "tag": "Infecté"
       }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "En attente d'un joueur...",
+      "flashWaitForSpread": "Écartez-vous pour continuer",
+      "flashChase": "Attrape !",
+      "flashFlee": "Fuis !",
+      "flashTag": "Touché !",
+      "title": "Jeu du Loup - Lobby de {playerName}",
+      "taggerMark": "Loup"
     }
   }
 }

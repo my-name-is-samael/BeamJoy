@@ -110,6 +110,7 @@ local function updateVehicle(gameVehID, aiState)
     elseif not state and M.selfVehs:includes(gameVehID) then
         M.selfVehs:remove(M.selfVehs:indexOf(gameVehID))
     end
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
 end
 
 local function onVehicleRemoved()
