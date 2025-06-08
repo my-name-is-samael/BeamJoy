@@ -2,7 +2,7 @@ local ctrl = {}
 
 ---@param ctxt BJCContext
 function ctrl.clear(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -11,7 +11,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.toggle(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -20,7 +20,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.endTournament(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -29,7 +29,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.toggleWhitelist(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -38,7 +38,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.toggleWhitelistPlayer(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -48,7 +48,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.removeActivity(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -58,7 +58,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.editScore(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -68,7 +68,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.removePlayer(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -78,7 +78,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.addSoloRace(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
@@ -88,7 +88,7 @@ end
 
 ---@param ctxt BJCContext
 function ctrl.endSoloRace(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) then
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
