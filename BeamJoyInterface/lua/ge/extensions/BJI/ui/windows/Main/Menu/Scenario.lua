@@ -228,7 +228,7 @@ local function menuTagDuo(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI.Managers.Scenario.isFreeroam() then
         local errorMessage
-        if not ctxt.veh or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        if not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.missingOwnVehicle")
         elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.tagduo.aiNotAllowed")

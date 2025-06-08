@@ -52,6 +52,7 @@ end
 local function onUnload(ctxt)
     BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
     BJI.Managers.Message.stopRealtimeDisplay()
+    S.playerVehs = Table()
 
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
@@ -100,15 +101,10 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    local selfVehID = S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID
-    if oldGameVehID == selfVehID or newGameVehID ~= selfVehID then
-        BJI.Managers.Veh.focusVehicle(selfVehID)
-    end
-end
-
 local function onVehicleDestroyed(gameVehID)
-    BJI.Tx.scenario.TagDuoLeave()
+    if S.selfLobby and S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID == gameVehID then
+        BJI.Tx.scenario.TagDuoLeave()
+    end
 end
 
 ---@param vehData BJIMPVehicle
@@ -377,17 +373,16 @@ S.isLobbyFilled = isLobbyFilled
 S.isTagger = isTagger
 
 S.onVehicleResetted = onVehicleResetted
-S.onVehicleSwitched = onVehicleSwitched
 S.onVehicleDestroyed = onVehicleDestroyed
 
 S.canRefuelAtStation = TrueFn
+S.canRepairAtGarage = TrueFn
+S.canSpawnAI = TrueFn
 
-S.canRepairAtGarage = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn
 S.canPaintVehicle = FalseFn
-S.canDeleteOtherVehicles = FalseFn
 S.doShowNametagsSpecs = FalseFn
 
 S.doShowNametag = doShowNametag
