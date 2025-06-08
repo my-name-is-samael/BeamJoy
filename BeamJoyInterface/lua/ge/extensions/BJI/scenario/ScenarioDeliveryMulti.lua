@@ -182,6 +182,15 @@ local function slowTick(ctxt)
     end
 end
 
+---@param vehData BJIMPVehicle
+---@return boolean, BJIColor?, BJIColor?
+local function doShowNametag(vehData)
+    if vehData.ownerID ~= BJI.Managers.Context.User.playerID and S.participants[vehData.ownerID] then
+        return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(.66, 1, .66, .5)
+    end
+    return true
+end
+
 ---@param player BJIPlayer
 ---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
@@ -347,6 +356,7 @@ S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.canSpawnAI = TrueFn
 
+S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 S.drawUI = drawUI
 
