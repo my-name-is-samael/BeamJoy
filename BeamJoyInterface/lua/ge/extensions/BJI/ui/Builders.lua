@@ -532,7 +532,7 @@ end
 ---@field btnIcon fun(self, data: {id: string, icon: string, onClick: fun(), big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?, tooltip: string?}): LineBuilder
 ---@field btnIconToggle fun(self, data: {id: string, state: boolean, onClick: fun(), icon: string?, big: boolean?, style: vec4[]?, disabled: boolean?, coloredIcon: boolean?, sound: string?, tooltip: string?}): LineBuilder
 ---@field colorPicker fun(self, data: {id: string, value: number[]|BJIColor, onChange: fun(value: number[]), alpha: boolean?, disabled: boolean?}): LineBuilder
----@field slider fun(self, data: {id: string, type: "int"|"float", value: number, min: number, max: number, onUpdate: fun(value: number), precision: number?, width: number?, disabled: boolean?, style: number[][]?, renderFormat: string?}): LineBuilder
+---@field slider fun(self, data: {id: string, type: "int"|"float", value: number, min: number, max: number, onUpdate: fun(value: number), precision: integer?, width: number?, disabled: boolean?, style: number[][]?, renderFormat: string?}): LineBuilder
 ---@field build fun(self)
 
 ---@param startSameLine? boolean

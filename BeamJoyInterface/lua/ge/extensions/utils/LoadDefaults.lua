@@ -13,7 +13,7 @@ quat = quat or function(x, y, z, w) return {} end
 ---@return quat
 quatFromDir = quatFromDir or function(dir, up) return quat() end
 ---@return quat
-quatFromEuler = quatFromEuler or function(x, y, a) return quat() end
+quatFromEuler = quatFromEuler or function(x, y, z) return quat() end
 ---@return point
 Point2F = Point2F or function(x, y) return {} end
 ---@return vec4

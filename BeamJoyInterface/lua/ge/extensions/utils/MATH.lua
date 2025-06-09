@@ -7,7 +7,10 @@
 ---@class vec3: point
 ---@field z number
 ---@field distance fun(self: vec3, target: vec3): number|nil
----@field normalized fun(self: vec3): vec3
+---@field normalized fun(self: vec3): vec3 -- non-mutable
+---@field normalize fun(self: vec3) -- self-mutable
+---@field cross fun(self: vec3, target: vec3): vec3
+---@field dot fun(self: vec3, target: vec3): number
 
 ---@class vec4 : point
 ---@field z number
@@ -17,6 +20,8 @@
 ---@field z number
 ---@field w number
 ---@field inversed fun(self: quat): quat
+---@field setFromEuler fun(self: quat, x: number, y: number, z: number)
+---@field setMul2 fun(self: quat, target: quat, target2: quat)
 
 ---@param value number
 ---@param fromMin number
