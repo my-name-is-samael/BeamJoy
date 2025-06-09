@@ -887,11 +887,13 @@
           "race": "Race",
           "speed": "Speed",
           "hunter": "Hunter",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "TagDuo & Infected"
         },
         "KmDriveReward": "Drive Reward /km",
         "DeliveryVehicleReward": "Vehicle Delivery Reward",
-        "DeliveryVehiclePristineReward": "Vehicle Delivery Reward for intact vehicle",
+        "DeliveryVehiclePristineReward": "Intact vehicle bonus",
+        "DeliveryVehiclePristineRewardTooltip": "Applied only to vehicle delivery",
         "DeliveryPackageReward": "Package Delivery Reward",
         "DeliveryPackageStreakReward": "Package Delivery Streak Reward",
         "DeliveryPackageStreakRewardTooltip": "Will be multiplied by current streak and added to base reward",
@@ -911,7 +913,9 @@
         "HunterWinnerRewardTooltip": "Applies to every players in the winning team (hunters or fugitive)",
         "DerbyParticipationReward": "Derby Participation Reward",
         "DerbyWinnerReward": "Derby Winner Reward",
-        "DerbyWinnerRewardTooltip": "Will be divided by the player position in the leaderboard"
+        "DerbyWinnerRewardTooltip": "Will be divided by the player position in the leaderboard",
+        "TagDuoReward": "TagDuo Reward",
+        "TagDuoRewardTooltip": "Applied when tagging the opponent in a duo lobby"
       },
       "permissions": {
         "title": "Groups & Permissions",

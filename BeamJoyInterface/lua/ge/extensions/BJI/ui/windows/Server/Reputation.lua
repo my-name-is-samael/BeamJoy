@@ -6,6 +6,7 @@ local categories = Table({
     { category = "speed",    keys = Table({ "SpeedReward" }) },
     { category = "hunter",   keys = Table({ "HunterParticipationReward", "HunterWinnerReward" }) },
     { category = "derby",    keys = Table({ "DerbyParticipationReward", "DerbyWinnerReward" }) },
+    { category = "tag",      keys = Table({ "TagDuoReward" }) },
 })
 
 local W = {

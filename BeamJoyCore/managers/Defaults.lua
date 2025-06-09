@@ -103,6 +103,7 @@ local function config()
             HunterWinnerReward = 100,
             DerbyParticipationReward = 20,
             DerbyWinnerReward = 200,
+            TagDuoReward = 7,
         },
         Race = {
             RaceSoloTimeBroadcast = false,

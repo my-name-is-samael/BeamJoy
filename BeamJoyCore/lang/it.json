@@ -886,11 +886,13 @@
           "race": "Gara",
           "speed": "Velocità",
           "hunter": "Cacciatore",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "Acchiapparella & Infetto"
         },
         "KmDriveReward": "Guida ricompensa/km",
         "DeliveryVehicleReward": "Premio per la consegna del veicolo",
-        "DeliveryVehiclePristineReward": "Premio per la consegna del veicolo per il veicolo intatto",
+        "DeliveryVehiclePristineReward": "Bonus veicolo intatto",
+        "DeliveryVehiclePristineRewardTooltip": "Applicato solo alla consegna di veicoli",
         "DeliveryPackageReward": "Premio per la consegna del pacco",
         "DeliveryPackageStreakReward": "Premio per la serie di consegne di pacchi",
         "DeliveryPackageStreakRewardTooltip": "Verrà moltiplicato per la serie attuale e aggiunto alla ricompensa base",
@@ -910,7 +912,9 @@
         "HunterWinnerRewardTooltip": "Si applica a tutti i giocatori della squadra vincente (cacciatori o fuggitivi)",
         "DerbyParticipationReward": "Premio per la partecipazione al derby",
         "DerbyWinnerReward": "Premio vincitore derby",
-        "DerbyWinnerRewardTooltip": "Sarà diviso in base alla posizione del giocatore nella classifica"
+        "DerbyWinnerRewardTooltip": "Sarà diviso in base alla posizione del giocatore nella classifica",
+        "TagDuoReward": "Ricompensa Acchiapparella",
+        "TagDuoRewardTooltip": "Applicata quando si colpisce l'avversario in una lobby duo"
       },
       "permissions": {
         "title": "Gruppi e autorizzazioni",

@@ -886,11 +886,13 @@
           "race": "Carrera",
           "speed": "Velocidad",
           "hunter": "Cazador",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "Pilla-Pilla Dúo & Infectado"
         },
         "KmDriveReward": "Recompensa de conducción /km",
         "DeliveryVehicleReward": "Recompensa por entrega de vehículo",
-        "DeliveryVehiclePristineReward": "Recompensa por entrega de vehículo por vehículo intacto",
+        "DeliveryVehiclePristineReward": "Bono por vehículo intacto",
+        "DeliveryVehiclePristineRewardTooltip": "Aplicado solo al entregar vehículos",
         "DeliveryPackageReward": "Recompensa por entrega de paquete",
         "DeliveryPackageStreakReward": "Recompensa por racha de entrega de paquetes",
         "DeliveryPackageStreakRewardTooltip": "Se multiplicará por la racha actual y se agregará a la recompensa base.",
@@ -910,7 +912,9 @@
         "HunterWinnerRewardTooltip": "Se aplica a todos los jugadores del equipo ganador (cazadores o fugitivos)",
         "DerbyParticipationReward": "Recompensa por participación en la derby",
         "DerbyWinnerReward": "Recompensa del ganador de la derby",
-        "DerbyWinnerRewardTooltip": "Se dividirá según la posición del jugador en la clasificación"
+        "DerbyWinnerRewardTooltip": "Se dividirá según la posición del jugador en la clasificación",
+        "TagDuoReward": "Recompensa de Pilla-Pilla",
+        "TagDuoRewardTooltip": "Se aplica al etiquetar al oponente en un lobby dúo"
       },
       "permissions": {
         "title": "Grupos y permisos",

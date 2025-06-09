@@ -759,11 +759,13 @@
           "race": "Гонка",
           "speed": "Скорость",
           "hunter": "Охотник",
-          "derby": "Дерби"
+          "derby": "Дерби",
+          "tag": "Салки и Инфицированный"
         },
         "KmDriveReward": "Награда за проезд/км",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
-        "DeliveryVehiclePristineReward": "Вознаграждение за доставку автомобиля в целости и сохранности",
+        "DeliveryVehiclePristineReward": "Бонус за целый автомобиль",
+        "DeliveryVehiclePristineRewardTooltip": "Применяется только при доставке автомобилей",
         "DeliveryPackageReward": "Вознаграждение за доставку посылки",
         "DeliveryPackageStreakReward": "Награда за доставку посылок",
         "DeliveryPackageStreakRewardTooltip": "Будет умножено на текущую серию и добавлено к базовой награде.",
@@ -783,7 +785,9 @@
         "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам).",
         "DerbyParticipationReward": "Награда за участие в дерби",
         "DerbyWinnerReward": "Награда победителю дерби",
-        "DerbyWinnerRewardTooltip": "Будет разделено в зависимости от позиции игрока в таблице лидеров"
+        "DerbyWinnerRewardTooltip": "Будет разделено в зависимости от позиции игрока в таблице лидеров",
+        "TagDuoReward": "Награда за Салки",
+        "TagDuoRewardTooltip": "Присуждается за поимку соперника в дуо-лобби"
       },
       "permissions": {
         "title": "Группы и разрешения",

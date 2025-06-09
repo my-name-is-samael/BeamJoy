@@ -886,11 +886,13 @@
           "race": "Course",
           "speed": "Vitesse",
           "hunter": "Chasseur",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "Jeu du Loup & Infecté"
         },
         "KmDriveReward": "Récompense par Km conduit",
         "DeliveryVehicleReward": "Récompense de Livraison de Véhicule",
-        "DeliveryVehiclePristineReward": "Récompense pour Véhicule Livré Intact",
+        "DeliveryVehiclePristineReward": "Bonus véhicule intact",
+        "DeliveryVehiclePristineRewardTooltip": "Appliqué uniquement lors d'une livraison de véhicule",
         "DeliveryPackageReward": "Récompense de Livraison de Colis",
         "DeliveryPackageStreakReward": "Récompense de Livraison de Colis à la suite",
         "DeliveryPackageStreakRewardTooltip": "Multiplié par la série en cours et ajouté à la récompense de base",
@@ -910,7 +912,9 @@
         "HunterWinnerRewardTooltip": "S'applique à tous les joueurs de l'équipe gagnante (chasseurs ou fugitif)",
         "DerbyParticipationReward": "Récompense de Participation au Derby",
         "DerbyWinnerReward": "Récompense de Victoire du Derby",
-        "DerbyWinnerRewardTooltip": "Sera répartie selon la position du joueur dans le classement"
+        "DerbyWinnerRewardTooltip": "Sera répartie selon la position du joueur dans le classement",
+        "TagDuoReward": "Récompense Jeu du Loup",
+        "TagDuoRewardTooltip": "Appliquée en touchant l'adversaire dans un lobby duo"
       },
       "permissions": {
         "title": "Groupes & Permissions",

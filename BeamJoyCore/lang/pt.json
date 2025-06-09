@@ -886,11 +886,13 @@
           "race": "Corrida",
           "speed": "Velocidade",
           "hunter": "Caçador",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "Apanhada/Pega-pega & Infectado"
         },
         "KmDriveReward": "Recompensa de condução/km",
         "DeliveryVehicleReward": "Recompensa de entrega de veículo",
-        "DeliveryVehiclePristineReward": "Recompensa de entrega de veículo para veículo intacto",
+        "DeliveryVehiclePristineReward": "Bônus por veículo intacto",
+        "DeliveryVehiclePristineRewardTooltip": "Aplicado apenas na entrega de veículos",
         "DeliveryPackageReward": "Recompensa de entrega de pacote",
         "DeliveryPackageStreakReward": "Recompensa por sequência de entrega de pacotes",
         "DeliveryPackageStreakRewardTooltip": "Será multiplicado pela sequência atual e adicionado à recompensa base",
@@ -910,7 +912,9 @@
         "HunterWinnerRewardTooltip": "Aplica-se a todos os jogadores da equipe vencedora (caçadores ou fugitivos)",
         "DerbyParticipationReward": "Recompensa de Participação na derby",
         "DerbyWinnerReward": "Recompensa do Vencedor da derby",
-        "DerbyWinnerRewardTooltip": "Será dividido de acordo com a posição do jogador no placar"
+        "DerbyWinnerRewardTooltip": "Será dividido de acordo com a posição do jogador no placar",
+        "TagDuoReward": "Recompensa Apanhada/Pega-pega",
+        "TagDuoRewardTooltip": "Aplicada ao pegar o oponente em um lobby duo"
       },
       "permissions": {
         "title": "Grupos e permissões",

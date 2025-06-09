@@ -119,8 +119,7 @@ local function onClientTag(senderID, lobby)
         p.ready = false
         p.tagger = false
     end)
-    -- TODO RP reward config
-    BJCPlayers.reward(senderID, 5)
+    BJCPlayers.reward(senderID, BJCConfig.Data.Reputation.TagDuoReward)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
 end
 

@@ -886,11 +886,13 @@
           "race": "Rennen",
           "speed": "Geschwindigkeit",
           "hunter": "Jagd",
-          "derby": "Derby"
+          "derby": "Derby",
+          "tag": "Fangen & Infiziert"
         },
         "KmDriveReward": "Fahrtprämie/km",
         "DeliveryVehicleReward": "Belohnung für Fahrzeuglieferung",
-        "DeliveryVehiclePristineReward": "Fahrzeuglieferungsprämie für intaktes Fahrzeug",
+        "DeliveryVehiclePristineReward": "Bonus für unbeschädigtes Fahrzeug",
+        "DeliveryVehiclePristineRewardTooltip": "Nur bei Fahrzeuglieferungen anwendbar",
         "DeliveryPackageReward": "Belohnung für die Paketzustellung",
         "DeliveryPackageStreakReward": "Paketzustellungssträhne-Belohnung",
         "DeliveryPackageStreakRewardTooltip": "Wird mit der aktuellen Serie multipliziert und zur Basisbelohnung addiert",
@@ -910,7 +912,9 @@
         "HunterWinnerRewardTooltip": "Gilt für alle Spieler im Gewinnerteam (Jäger oder Flüchtling)",
         "DerbyParticipationReward": "Belohnung für die Teilnahme an der Derby",
         "DerbyWinnerReward": "Derby Gewinner-Belohnung",
-        "DerbyWinnerRewardTooltip": "Wird entsprechend der Platzierung in der Rangliste aufgeteilt"
+        "DerbyWinnerRewardTooltip": "Wird entsprechend der Platzierung in der Rangliste aufgeteilt",
+        "TagDuoReward": "Fangen-Belohnung",
+        "TagDuoRewardTooltip": "Erhalten beim Abklatschen des Gegners in einer Duo-Lobby"
       },
       "permissions": {
         "title": "Gruppen und Berechtigungen",
