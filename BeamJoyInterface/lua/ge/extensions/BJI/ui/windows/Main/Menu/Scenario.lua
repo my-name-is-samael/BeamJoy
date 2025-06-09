@@ -247,7 +247,7 @@ local function menuTagDuo(ctxt)
                 if table.length(l.players) < 2 then
                     table.insert(lobbyEntries, {
                         label = string.var(BJI.Managers.Lang.get("menu.scenario.tagduo.joinLobby"),
-                            { playerName = BJI.Managers.Context.Players[l.host].playerName }),
+                            { playerName = ctxt.players[l.host].playerName }),
                         onClick = function()
                             BJI.Tx.scenario.TagDuoJoin(i, ctxt.veh:getID())
                         end,

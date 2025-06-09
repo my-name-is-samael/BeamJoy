@@ -123,7 +123,7 @@ local function updateCache(ctxt)
         Table(W.scenario.participants):find(function(part) return part.hunted end,
             function(_, playerID)
                 W.cache.huntedID = playerID
-                W.cache.huntedPlayer = BJI.Managers.Context.Players[playerID]
+                W.cache.huntedPlayer = ctxt.players[playerID]
             end)
         W.cache.showGameActions = W.cache.isParticipant
         W.cache.startTime = W.cache.isHunted and W.scenario.huntedStartTime or W.scenario.hunterStartTime
@@ -137,7 +137,7 @@ local function updateCache(ctxt)
     W.cache.playersList = Table(W.scenario.participants)
         :map(function(p, playerID)
             return {
-                playerName = BJI.Managers.Context.Players[playerID].playerName,
+                playerName = ctxt.players[playerID].playerName,
                 self = playerID == ctxt.user.playerID,
                 readyLabel = p.ready and W.labels.readyMark or W.labels.notReadyMark,
                 color = p.ready and BJI.Utils.Style.TEXT_COLORS.SUCCESS or BJI.Utils.Style.TEXT_COLORS.ERROR,

@@ -157,7 +157,7 @@ local function updateCachePlayers(ctxt)
     local selfStaff = BJI.Managers.Perm.isStaff()
 
     cache.data.players.waiting = Table()
-    table.filter(BJI.Managers.Context.Players, function(_, playerID)
+    ctxt.players:filter(function(_, playerID)
         return not BJI.Managers.Perm.canSpawnVehicle(playerID) and not BJI.Managers.Perm.isStaff(playerID)
     end):forEach(function(player, playerID)
         local playerGroup = BJI.Managers.Perm.Groups[player.group] or { level = 0 }
@@ -187,7 +187,7 @@ local function updateCachePlayers(ctxt)
     end)
 
     cache.data.players.list = Table()
-    table.filter(BJI.Managers.Context.Players, function(_, playerID)
+    ctxt.players:filter(function(_, playerID)
         return BJI.Managers.Perm.canSpawnVehicle(playerID) or BJI.Managers.Perm.isStaff(playerID)
     end):forEach(function(p, playerID)
         local isSelf = BJI.Managers.Context.isSelf(playerID) and not BJI.DEBUG ~= nil

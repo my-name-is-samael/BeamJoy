@@ -271,17 +271,15 @@ local function checkAIVehicles()
         end, function()
             BJI.Managers.Async.removeTask("CheckAIAlphaDelayed")
             BJI.Managers.Async.delayTask(function()
-                Table(BJI.Managers.Context.Players)
-                    :map(function(p)
-                        return p.ai
-                    end):flat()
-                    :forEach(function(vid)
-                        local a = getVehAlpha(vid)
-                        if a and a ~= M.playerAlpha then
-                            setAlpha(vid, M.playerAlpha)
-                            LogWarn(("Restored desync alpha from {1}"):var({ a }))
-                        end
-                    end)
+                BJI.Managers.Context.Players:map(function(p)
+                    return p.ai
+                end):flat():forEach(function(vid)
+                    local a = getVehAlpha(vid)
+                    if a and a ~= M.playerAlpha then
+                        setAlpha(vid, M.playerAlpha)
+                        LogWarn(("Restored desync alpha from {1}"):var({ a }))
+                    end
+                end)
             end, 5000, "CheckAIAlphaDelayed")
         end, "CheckAIAlpha")
     end
@@ -325,30 +323,29 @@ end
 
 local function updatePermaGhosts()
     if M.type == M.TYPES.GHOSTS then
-        Table(BJI.Managers.Context.Players)
-            :filter(function(p) return p.playerID ~= BJI.Managers.Context.User.playerID end)
-            :forEach(function(player)
-                Table(player.vehicles)
-                    :map(function(v) return v.finalGameVehID end)
-                    :filter(function(gameVehID)
-                        local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
-                        return veh ~= nil and canBecomeGhost(gameVehID)
-                    end)
-                    :forEach(function(gameVehID)
-                        if player.isGhost and not M.permaGhosts[gameVehID] then
-                            M.permaGhosts[gameVehID] = true
-                            if M.ghosts[gameVehID] then
-                                BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
-                                M.ghosts[gameVehID] = nil
-                            else
-                                applyGhostTransparency(gameVehID)
-                            end
-                        elseif not player.isGhost and M.permaGhosts[gameVehID] then
-                            M.permaGhosts[gameVehID] = nil
-                            addGhost(gameVehID)
-                        end
-                    end)
+        BJI.Managers.Context.Players:filter(function(p)
+            return p.playerID ~= BJI.Managers.Context.User.playerID
+        end):forEach(function(player)
+            player.vehicles:map(function(v)
+                return v.finalGameVehID
+            end):filter(function(gameVehID)
+                local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+                return veh ~= nil and canBecomeGhost(gameVehID)
+            end):forEach(function(gameVehID)
+                if player.isGhost and not M.permaGhosts[gameVehID] then
+                    M.permaGhosts[gameVehID] = true
+                    if M.ghosts[gameVehID] then
+                        BJI.Managers.Async.removeTask(string.var(M.ghostProcessKey, { gameVehID }))
+                        M.ghosts[gameVehID] = nil
+                    else
+                        applyGhostTransparency(gameVehID)
+                    end
+                elseif not player.isGhost and M.permaGhosts[gameVehID] then
+                    M.permaGhosts[gameVehID] = nil
+                    addGhost(gameVehID)
+                end
             end)
+        end)
     end
 end
 

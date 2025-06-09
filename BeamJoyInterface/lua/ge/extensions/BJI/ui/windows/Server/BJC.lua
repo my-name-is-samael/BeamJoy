@@ -335,7 +335,7 @@ local function updateCache()
     W.cache.disableInputs = false
 
     if BJI.Managers.Context.BJC.Whitelist then
-        W.cache.whitelist.online = Table(BJI.Managers.Context.Players):map(function(p)
+        W.cache.whitelist.online = BJI.Managers.Context.Players:map(function(p)
             return p.playerName
         end):values()
         W.cache.whitelist.offline = Table(BJI.Managers.Context.BJC.Whitelist.PlayerNames)

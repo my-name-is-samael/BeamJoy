@@ -74,13 +74,13 @@ local function slowTick(ctxt)
     --detect changes and update if needed
     if BJI.Managers.Perm.canSpawnVehicle() and M.isTrafficSpawned() then
         local listVehs = getCurrentSelfAIList()
-        table.sort(BJI.Managers.Context.Players[ctxt.user.playerID].ai)
-        if not listVehs:compare(BJI.Managers.Context.Players[ctxt.user.playerID].ai) then
+        ctxt.players[ctxt.user.playerID].ai:sort()
+        if not listVehs:compare(ctxt.players[ctxt.user.playerID].ai) then
             BJI.Tx.player.UpdateAI(listVehs)
         end
-    elseif BJI.Managers.Context.Players[ctxt.user.playerID] and
-        BJI.Managers.Context.Players[ctxt.user.playerID].ai and
-        #BJI.Managers.Context.Players[ctxt.user.playerID].ai > 0 then
+    elseif ctxt.players[ctxt.user.playerID] and
+        ctxt.players[ctxt.user.playerID].ai and
+        #ctxt.players[ctxt.user.playerID].ai > 0 then
         BJI.Tx.player.UpdateAI({})
     end
 end

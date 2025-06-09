@@ -542,18 +542,18 @@ function M.Speed.start(senderID, isVote)
 end
 
 function M.Speed.join(senderID, gameVehID)
+    M.Speed.participants[senderID] = gameVehID ~= -1 and gameVehID or nil
     if M.Speed.participants[senderID] then
-        BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
-            playerName = BJCPlayers.Players[M.Speed.creatorID].playerName,
-            gamemode = "chat.events.gamemodes.speed",
-        })
-    else
         BJCChat.sendChatEvent("chat.events.gamemodeJoin", {
             playerName = BJCPlayers.Players[M.Speed.creatorID].playerName,
             gamemode = "chat.events.gamemodes.speed",
         })
+    else
+        BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+            playerName = BJCPlayers.Players[M.Speed.creatorID].playerName,
+            gamemode = "chat.events.gamemodes.speed",
+        })
     end
-    M.Speed.participants[senderID] = gameVehID ~= -1 and gameVehID or nil
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
 end
 

@@ -11,23 +11,23 @@ local W = {
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.RACE] = function()
             return table.filter(BJI.Managers.Context.Scenario.Data.Races,
                     function(r) return r.places > 1 end):length() > 0 and
-                table.length(BJI.Managers.Context.Players) >=
+                BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.SPEED] = function()
-            return table.length(BJI.Managers.Context.Players) >=
+            return BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.HUNTER] = function()
             return BJI.Managers.Context.Scenario.Data.Hunter and
                 BJI.Managers.Context.Scenario.Data.Hunter.enabled and
-                table.length(BJI.Managers.Context.Players) >=
+                BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
                 .MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.DERBY] = function()
             return table.length(BJI.Managers.Context.Scenario.Data.Derby) > 0 and
-                table.length(BJI.Managers.Context.Players) >=
+                BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.TAG] = function()
@@ -100,7 +100,7 @@ local W = {
         editNumInput = 0,
         editInputsCol = 0,
         chart = {},
-        whitelistPlayerCombo = 0,
+        addPlayerCombo = 0,
         addActivityLabels = 0,
         addActivityCombos = 0,
         clearAndEnd = 0,
@@ -234,7 +234,7 @@ local function updateWidths()
         W.widths.chart[1] = -1
     end
 
-    W.widths.whitelistPlayerCombo = Table(BJI.Managers.Context.Players)
+    W.widths.addPlayerCombo = BJI.Managers.Context.Players
         :map(function(p) return p.playerName end)
         :filter(function(p) return not W.manager.players:any(function(p2) return p == p2.playerName end) end)
         :reduce(function(res, p)
@@ -326,10 +326,10 @@ local function updateData()
     W.cache.disableToggleBtns = not inFreeroam
 
     -- player combo
-    W.cache.showPlayersCombo = staff and W.manager.whitelist and showPlayerAddOrRemove
+    W.cache.showPlayersCombo = staff and showPlayerAddOrRemove
     W.cache.playersCombo = Table()
     if W.cache.showPlayersCombo then
-        W.cache.playersCombo = Table(BJI.Managers.Context.Players)
+        W.cache.playersCombo = BJI.Managers.Context.Players
             :map(function(p) return p.playerName end)
             :filter(function(p) return not W.manager.players:any(function(p2) return p == p2.playerName end) end)
             :values():sort(function(a, b) return a < b end)
@@ -749,7 +749,7 @@ local function body(ctxt)
                 #W.cache.selectedPlayer == 0,
             onClick = function()
                 W.cache.disableInputs = true
-                BJI.Tx.tournament.toggleWhitelistPlayer(W.cache.selectedPlayer, true)
+                BJI.Tx.tournament.togglePlayer(W.cache.selectedPlayer, true)
             end
         }):inputCombo({
             id = "whitelistPlayersCombo",
@@ -757,7 +757,7 @@ local function body(ctxt)
                 return not W.cache.disableInputs or p == W.cache.selectedPlayer
             end),
             value = W.cache.selectedPlayer,
-            width = W.widths.whitelistPlayerCombo,
+            width = W.widths.addPlayerCombo,
             onChange = function(v)
                 W.cache.selectedPlayer = tostring(v)
             end

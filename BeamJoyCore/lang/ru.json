@@ -202,7 +202,8 @@
           "speed": "Скоростная игра",
           "hunter": "Охота",
           "derby": "Дестракшн дерби",
-          "delivery": "Совместная доставка"
+          "delivery": "Совместная доставка",
+          "tagduo": "Салки Дуо"
         },
         "gamemodeStopReasons": {
           "manual": "модерация",
@@ -218,6 +219,7 @@
         "gamemodeEnded": "{gamemode} завершён",
         "gamemodeStopped": "{gamemode} остановлен: {reason}",
         "gamemodeJoin": "{playerName} присоединился к {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} создал лобби режима {gamemode}",
         "gamemodeLeave": "{playerName} покинул {gamemode}",
         "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} победила в {gamemode}",

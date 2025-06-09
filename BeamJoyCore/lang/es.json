@@ -329,7 +329,8 @@
           "speed": "Juego de velocidad",
           "hunter": "Modo cazador",
           "derby": "Destruction Derby",
-          "delivery": "Entrega cooperativa"
+          "delivery": "Entrega cooperativa",
+          "tagduo": "Pilla-Pilla"
         },
         "gamemodeStopReasons": {
           "manual": "moderación",
@@ -345,6 +346,7 @@
         "gamemodeEnded": "{gamemode} finalizado",
         "gamemodeStopped": "{gamemode} detenido: {reason}",
         "gamemodeJoin": "{playerName} se unió a {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} ha creado una sala de {gamemode}",
         "gamemodeLeave": "{playerName} salió de {gamemode}",
         "gamemodeFinished": "{playerName} terminó {gamemode} en la posición #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} ganó {gamemode}",

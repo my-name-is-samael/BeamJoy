@@ -207,7 +207,7 @@ local function updateCache(ctxt)
         W.cache.data.grid.participantsList = Table(gridData.participants):map(function(pid)
             local readyState = table.includes(gridData.ready, pid)
             return {
-                playerName = BJI.Managers.Context.Players[pid].playerName,
+                playerName = ctxt.players[pid].playerName,
                 readyState = readyState,
                 readyLabel = string.var("({1})",
                     { readyState and W.cache.labels.playerReady or W.cache.labels.playerNotReady }),
@@ -225,7 +225,7 @@ local function updateCache(ctxt)
 
         local playerNames = Table()
         table.insert(W.cache.data.race.colWidths, Table(leaderboard):reduce(function(acc, lb, i)
-            local player = BJI.Managers.Context.Players[lb.playerID]
+            local player = ctxt.players[lb.playerID]
             playerNames[i] = player and player.playerName or W.cache.labels.unknown
             local w = BJI.Utils.UI.GetColumnTextWidth(playerNames[i])
             return w > acc and w or acc
@@ -265,10 +265,10 @@ local function updateCache(ctxt)
             if isSpec then
                 table.insert(cells, function()
                     local ctxt2 = BJI.Managers.Tick.getContext()
-                    local target = BJI.Managers.Context.Players[lb.playerID]
-                    local disabled = table.includes(W.scenario.race.finished, lb.playerID) or
-                        table.includes(W.scenario.race.eliminated, lb.playerID) or
-                        not target
+                    local target = ctxt.players[lb.playerID]
+                    local disabled = not target or
+                        table.includes(W.scenario.race.finished, lb.playerID) or
+                        table.includes(W.scenario.race.eliminated, lb.playerID)
                     if not disabled then
                         local finalGameVehID = BJI.Managers.Veh.getVehicleObject(target.currentVehicle)
                         finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil

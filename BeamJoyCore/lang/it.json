@@ -329,7 +329,8 @@
           "speed": "Gioco di velocità",
           "hunter": "Modalità cacciatore",
           "derby": "Destruction Derby",
-          "delivery": "Consegna cooperativa"
+          "delivery": "Consegna cooperativa",
+          "tagduo": "Acchiapparella Duo"
         },
         "gamemodeStopReasons": {
           "manual": "moderazione",
@@ -345,6 +346,7 @@
         "gamemodeEnded": "{gamemode} terminato",
         "gamemodeStopped": "{gamemode} fermato: {reason}",
         "gamemodeJoin": "{playerName} è entrato in {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} ha creato una lobby {gamemode}",
         "gamemodeLeave": "{playerName} ha lasciato {gamemode}",
         "gamemodeFinished": "{playerName} ha finito {gamemode} al #{gamemodePosition} posto",
         "gamemodeTeamWon": "{teamName} ha vinto {gamemode}",

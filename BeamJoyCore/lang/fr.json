@@ -329,7 +329,8 @@
           "speed": "Jeu de Speed",
           "hunter": "Mode Hunter",
           "derby": "Destruction Derby",
-          "delivery": "Livraison en équipe"
+          "delivery": "Livraison en équipe",
+          "tagduo": "Jeu du Loup"
         },
         "gamemodeStopReasons": {
           "manual": "modération",
@@ -345,6 +346,7 @@
         "gamemodeEnded": "{gamemode} terminé(e)",
         "gamemodeStopped": "{gamemode} arrêté(e) : {reason}",
         "gamemodeJoin": "{playerName} a rejoint {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} a créé un lobby de {gamemode}",
         "gamemodeLeave": "{playerName} a quitté {gamemode}",
         "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} gagne(nt) {gamemode}",

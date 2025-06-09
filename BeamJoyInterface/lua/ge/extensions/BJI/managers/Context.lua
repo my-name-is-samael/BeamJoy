@@ -31,9 +31,9 @@
 ---@field reputation integer
 ---@field staff boolean
 ---@field currentVehicle? integer
----@field ai integer[]
+---@field ai tablelib<integer, integer>
 ---@field isGhost boolean
----@field vehicles table<integer, BJIPlayerVehicle>
+---@field vehicles tablelib<integer, BJIPlayerVehicle> index vehServerID
 
 ---@class BJIManagerContext : BJIManager
 local M = {
@@ -69,7 +69,10 @@ local M = {
         previousVehConfig = nil,
     },
 
+    ---@type table<string, integer>
     UserStats = {},
+    ---@type tablelib<string, BJIPlayer> index playerID
+    Players = Table(),
 
     -- CONFIG DATA
     BJC = {
@@ -88,10 +91,8 @@ local M = {
             ClientMods = {},
             Theme = {},
         },
-    },            -- BeamJoy config
-    ---@type table<string, BJIPlayer>
-    Players = {}, -- player list
-    ---@type table<string, {}>
+    },
+    ---@type table<string, {}> techName index
     Maps = {},
     Scenario = {
         Data = {}, -- Scenarii data
@@ -174,7 +175,7 @@ local function loadUser()
 end
 
 local function updateAllVehiclesAndAI()
-    table.forEach(M.Players, function(player)
+    M.Players:forEach(function(player)
         if M.isSelf(player.playerID) then
             -- parse vehicles finalGameVehID
             table.forEach(player.vehicles or {}, function(veh)
@@ -194,7 +195,7 @@ local function updateAllVehiclesAndAI()
     end)
 
     -- update AI vehicles (to hide their nametags)
-    BJI.Managers.AI.updateAllAIVehicles(Table(M.Players)
+    BJI.Managers.AI.updateAllAIVehicles(M.Players
         :filter(function(player) return #player.ai > 0 end)
         :map(function(player) return player.ai end)
         :reduce(function(acc, aiVehs) return acc:addAll(aiVehs, true) end, Table())
@@ -207,36 +208,31 @@ end
 
 local function loadPlayers()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PLAYERS, function(cacheData)
-        local previousPlayers = table.clone(M.Players)
+        ---@type tablelib<integer, BJIPlayer> playerID index
+        local previousPlayers = M.Players:clone()
         Table(cacheData):forEach(function(p)
             if not M.Players[p.playerID] then
-                M.Players[p.playerID] = table.assign(p, {
+                M.Players[p.playerID] = table.assign({
                     muteReason = "",
                     kickReason = "",
                     banReason = "",
                     tempBanDuration = M.BJC.TempBan and M.BJC.TempBan.minTime or 0, -- input for mods+
                     hideNametag = false,                                            -- future use ?
                     tagName = BJI.Managers.Nametags.getPlayerTagName(p.playerName),
-                })
+                }, p)
             else
                 table.assign(M.Players[p.playerID], p)
-                M.Players[p.playerID].vehicles = p.vehicles or {}
-                M.Players[p.playerID].ai = p.ai or {}
+                M.Players[p.playerID].vehicles = Table(p.vehicles or {})
+                M.Players[p.playerID].ai = Table(p.ai or {})
             end
         end)
 
         -- remove obsolete players
-        for k, v in pairs(M.Players) do
-            local found = false
-            for _, v2 in pairs(cacheData) do
-                if v.playerName == v2.playerName then
-                    found = true
-                end
+        M.Players:forEach(function(p, pid)
+            if not cacheData[pid] or cacheData[pid].playerName ~= p.playerName then
+                M.Players[pid] = nil
             end
-            if not found then
-                M.Players[k] = nil
-            end
-        end
+        end)
 
         BJI.Managers.Async.removeTask("BJILoadPlayersUpdateVehicles")
         BJI.Managers.Async.task(function()
@@ -246,12 +242,12 @@ local function loadPlayers()
         end, updateAllVehiclesAndAI, "BJILoadPlayersUpdateVehicles")
 
         -- events detection
-        local previousPlayersCount = table.length(previousPlayers)
-        local currentPlayersCount = table.length(M.Players)
+        local previousPlayersCount = previousPlayers:length()
+        local currentPlayersCount = M.Players:length()
         if previousPlayersCount ~= currentPlayersCount then
             if previousPlayersCount < currentPlayersCount then
                 -- player connected
-                table.find(M.Players, function(_, playerID)
+                M.Players:find(function(_, playerID)
                     return not previousPlayers[playerID]
                 end, function(player)
                     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_CONNECT, {
@@ -261,7 +257,7 @@ local function loadPlayers()
                 end)
             else
                 -- player disconnected
-                table.find(previousPlayers, function(_, playerID)
+                previousPlayers:find(function(_, playerID)
                     return not M.Players[playerID]
                 end, function(player)
                     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT, {

@@ -235,11 +235,13 @@ local function doShowNametag(vehData)
 end
 
 -- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if S.isSpec() and not S.isSpec(player.playerID) then
-        local finalGameVehID = Table(BJI.Managers.Context.Players[player.playerID].vehicles)
+        local finalGameVehID = ctxt.players[player.playerID].vehicles
             :reduce(function(acc, v)
                 if not acc then
                     local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)

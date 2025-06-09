@@ -92,7 +92,8 @@ local function onLoad()
 end
 
 local function hasMinimumGroup(targetGroupName, playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
@@ -129,7 +130,8 @@ local function hasMinimumGroup(targetGroupName, playerID)
 end
 
 local function hasPermission(permissionName, playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
     local permissionLevel = M.Permissions[permissionName]
@@ -162,7 +164,8 @@ local function hasPermission(permissionName, playerID)
 end
 
 local function hasMinimumGroupOrPermission(targetGroupName, permissionName, playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
@@ -175,7 +178,8 @@ local function hasMinimumGroupOrPermission(targetGroupName, permissionName, play
 end
 
 local function canSpawnVehicle(playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
@@ -190,7 +194,8 @@ local function canSpawnVehicle(playerID)
 end
 
 local function canSpawnAI(playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
@@ -205,7 +210,8 @@ local function canSpawnAI(playerID)
 end
 
 local function isStaff(playerID)
-    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() then
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
@@ -256,7 +262,7 @@ local function getPreviousGroup(groupName)
 end
 
 local function getCountPlayersCanSpawnVehicle()
-    return Table(BJI.Managers.Context.Players)
+    return BJI.Managers.Context.Players
         :filter(function(p) return M.canSpawnVehicle(p.playerID) end)
         :length()
 end

@@ -2,6 +2,7 @@
 ---@field now integer
 ---@field user BJIUser
 ---@field group BJIGroup
+---@field players tablelib<integer, BJIPlayer> index playerID
 ---@field veh? userdata|any
 ---@field vehPosRot? BJIPositionRotation
 ---@field isOwner boolean
@@ -42,6 +43,7 @@ local function getContext(slow)
         now = GetCurrentTimeMillis(),
         user = BJI.Managers.Context.User,
         group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
+        players = BJI.Managers.Context.Players,
         veh = veh,
         vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil,
         isOwner = isOwner,

@@ -58,15 +58,14 @@ local function drawPlayers(cache, ctxt)
     Indent(-1)
 end
 
+---@param ctxt TickContext
+---@param cache table
 return function(ctxt, cache)
     local waitingPlayers, players = {}, {}
-    for playerID, player in pairs(BJI.Managers.Context.Players) do
-        if BJI.Managers.Perm.canSpawnVehicle(playerID) then
-            table.insert(players, table.clone(player))
-        else
-            table.insert(waitingPlayers, table.clone(player))
-        end
-    end
+    ctxt.players:forEach(function(player, playerID)
+        table.insert(BJI.Managers.Perm.canSpawnVehicle(playerID) and
+            players or waitingPlayers, table.clone(player))
+    end)
     table.sort(waitingPlayers, function(a, b)
         return a.playerName < b.playerName
     end)

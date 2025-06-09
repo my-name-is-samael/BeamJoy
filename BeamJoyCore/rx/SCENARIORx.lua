@@ -424,7 +424,7 @@ function ctrl.TagDuoLeave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCScenario.Hybrids.TagDuoManager.onPlayerDisconnect(ctxt.sender)
+    BJCScenario.Hybrids.TagDuoManager.onClientLeave(ctxt.senderID)
 end
 
 return ctrl

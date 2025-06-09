@@ -181,7 +181,7 @@ local function tryTeleportToPlayer(targetID, forced)
     if target == nil then
         LogError(string.var("Invalid player {1}", { targetID }))
         return
-    elseif table.length(target.vehicles) == 0 or not target.currentVehicle then
+    elseif not target.currentVehicle or target.vehicles:length() == 0 then
         LogError(string.var("Player {1} has no vehicle", { targetID }))
         return
     end

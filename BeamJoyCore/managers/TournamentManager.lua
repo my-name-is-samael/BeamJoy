@@ -263,7 +263,7 @@ end
 
 ---@param playerName string
 ---@param state boolean
-local function toggleWhitelistPlayer(playerName, state)
+local function togglePlayer(playerName, state)
     if not M.whitelist then
         error({ key = "rx.errors.invalidData" })
     end
@@ -416,7 +416,7 @@ M.endTournament = endTournament
 M.editPlayerScore = editPlayerScore
 M.removePlayer = removePlayer
 M.toggleWhitelist = toggleWhitelist
-M.toggleWhitelistPlayer = toggleWhitelistPlayer
+M.togglePlayer = togglePlayer
 M.addSoloRaceActivity = addSoloRaceActivity
 M.saveSoloRaceTime = saveSoloRaceTime
 M.endSoloRaceActivity = endSoloRaceActivity

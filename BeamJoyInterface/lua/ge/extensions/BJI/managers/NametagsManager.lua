@@ -415,7 +415,7 @@ local function slowTick(ctxt)
         local shorten, shortenLength = settings.getValue("shortenNametags", false),
             tonumber(settings.getValue("nametagCharLimit", 50))
         if shorten ~= lastShorten or (shorten and shortenLength ~= lastShortenLength) then
-            Table(BJI.Managers.Context.Players):forEach(function(p)
+            BJI.Managers.Context.Players:forEach(function(p)
                 p.tagName = getPlayerTagName(p.playerName, shorten, shortenLength)
             end)
             lastShorten = shorten

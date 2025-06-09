@@ -33,14 +33,9 @@ function M.Kick.started()
 end
 
 function M.Kick.getTotalPlayers()
-    local totalPlayers = 0
-    for playerID in pairs(BJI.Managers.Context.Players) do
-        if not BJI.Managers.Perm.isStaff(playerID) then
-            -- not counting staff in the total
-            totalPlayers = totalPlayers + 1
-        end
-    end
-    return totalPlayers
+    return BJI.Managers.Context.Players
+        :filter(function(_, pid) return not BJI.Managers.Perm.isStaff(pid) end)
+        :length()
 end
 
 function M.Kick.canStartVote(targetID)
@@ -90,13 +85,9 @@ function M.Map.started()
 end
 
 function M.Map.getTotalPlayers()
-    local count = 0
-    for playerID in pairs(BJI.Managers.Context.Players) do
-        if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_MAP, playerID) then
-            count = count + 1
-        end
-    end
-    return count
+    return BJI.Managers.Context.Players:filter(function(_, pid)
+        return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_MAP, pid)
+    end):length()
 end
 
 function M.Map.canStartVote()

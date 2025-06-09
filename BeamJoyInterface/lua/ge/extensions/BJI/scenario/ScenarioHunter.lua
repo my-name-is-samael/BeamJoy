@@ -746,7 +746,7 @@ local function fastTick(ctxt)
             if reveal and not BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
                 Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
                     BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, .1, nil,
-                        BJI.Managers.Context.Players[huntedID].playerName, false)
+                        ctxt.players[huntedID].playerName, false)
                 end)
             elseif not reveal and BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
                 BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)

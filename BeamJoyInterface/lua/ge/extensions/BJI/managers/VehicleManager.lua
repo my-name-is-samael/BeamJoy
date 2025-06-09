@@ -89,14 +89,14 @@ local function getMPVehicles()
             remoteVehID = v.remoteVehID,
             serverVehicleID = v.serverVehicleID,
             serverVehicleString = v.serverVehicleString,
-            spectators = Table(BJI.Managers.Context.Players)
-                :reduce(function(res, p, pid) -- specs system remake cause a lot of desyncs with default one
-                    if p.currentVehicle == (BJI.Managers.Context.isSelf(v.ownerID) and
-                            v.gameVehicleID or v.remoteVehID) then
-                        res[pid] = true
-                    end
-                    return res
-                end, {}),
+            spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
+                -- specs system remake because a lot of desyncs with default one
+                if p.currentVehicle == (BJI.Managers.Context.isSelf(v.ownerID) and
+                        v.gameVehicleID or v.remoteVehID) then
+                    res[pid] = true
+                end
+                return res
+            end, {}),
             protected = v.protected == "1",
             position = pos,
             rotation = rot,
@@ -119,13 +119,13 @@ local function getMPOwnVehicles()
             remoteVehID = v.remoteVehID,
             serverVehicleID = v.serverVehicleID,
             serverVehicleString = v.serverVehicleString,
-            spectators = Table(BJI.Managers.Context.Players)
-                :reduce(function(res, p, pid) -- specs system remake cause a lot of desyncs with default one
-                    if p.currentVehicle == v.gameVehicleID then
-                        res[pid] = true
-                    end
-                    return res
-                end, {}),
+            spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
+                -- specs system remake because a lot of desyncs with default one
+                if p.currentVehicle == v.gameVehicleID then
+                    res[pid] = true
+                end
+                return res
+            end, {}),
         }
     end):values()
 end
@@ -1449,7 +1449,7 @@ local function forceVehsSync(ctxt)
             :map(function(v) return v.gameVehID end)
             :values()
             :addAll(
-                Table(BJI.Managers.Context.Players[ctxt.user.playerID].vehicles)
+                ctxt.players[ctxt.user.playerID].vehicles
                 :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
                 :map(function(v) return v.gameVehID end)
                 :values(),

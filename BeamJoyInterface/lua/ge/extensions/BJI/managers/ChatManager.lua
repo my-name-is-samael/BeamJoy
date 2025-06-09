@@ -35,23 +35,19 @@ local function parseColor(color)
 end
 
 local function _onPlayerChat(playerName, message, color)
-    local player
-    for _, p in pairs(BJI.Managers.Context.Players) do
-        if p.playerName == playerName then
-            player = p
-            break
-        end
-    end
-    if not player then
-        LogError("Invalid player chat data (playerName)", M._name)
-        return
-    end
-    local playerTag = player.staff and BJI.Managers.Lang.get("chat.staffTag") or
-        string.var("{1}{2}",
-            { BJI.Managers.Lang.get("chat.reputationTag"), BJI.Managers.Reputation.getReputationLevel(player.reputation) })
-    playerName = string.var("[{1}]{2}", { playerTag, playerName })
+    if not BJI.Managers.Context.Players:find(function(p)
+            return p.playerName == playerName
+        end, function(p)
+            local playerTag = p.staff and BJI.Managers.Lang.get("chat.staffTag") or
+                string.var("{1}{2}",
+                    { BJI.Managers.Lang.get("chat.reputationTag"), BJI.Managers.Reputation.getReputationLevel(p
+                        .reputation) })
+            playerName = string.var("[{1}]{2}", { playerTag, playerName })
 
-    _printChat(playerName, message, color)
+            _printChat(playerName, message, color)
+        end) then
+        LogError("Invalid player chat data (playerName)", M._name)
+    end
 end
 
 ---@param eventKey string

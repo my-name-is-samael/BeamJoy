@@ -698,9 +698,8 @@ end
 local function restartRace(settings, raceData)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     BJI.Managers.Async.task(function(ctxt)
-        return Table(BJI.Managers.Context.Players):any(function(p)
-            return p.playerID == ctxt.user.playerID and not p.isGhost
-        end)
+        return BJI.Managers.Context.Players[ctxt.user.playerID] and
+            BJI.Managers.Context.Players[ctxt.user.playerID].isGhost
     end, function()
         if BJI.Managers.Scenario.isFreeroam() then
             S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)

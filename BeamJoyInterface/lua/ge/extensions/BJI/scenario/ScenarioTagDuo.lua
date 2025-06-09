@@ -144,7 +144,7 @@ local function drawUI(ctxt)
 
     local other
     if not S.waitForPlayers then
-        other = BJI.Managers.Context.Players
+        other = ctxt.players
             [S.selfLobby.players:keys():find(function(p) return p ~= ctxt.user.playerID end)]
     end
     LineBuilder():btnIcon({
@@ -156,10 +156,7 @@ local function drawUI(ctxt)
             BJI.Tx.scenario.TagDuoLeave()
         end
     }):text(string.var(BJI.Managers.Lang.get("tagduo.title"),
-            {
-                playerName = S.selfLobby.host == ctxt.user.playerID and
-                    ctxt.user.playerName or other.playerName
-            }),
+            { playerName = ctxt.players[S.selfLobby.host].playerName }),
         S.selfLobby.host == ctxt.user.playerID and
         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil):build()
 
@@ -292,10 +289,9 @@ local function onDataUpdate(ctxt, newLobby)
         BJI.Managers.Message.flash("BJITagDuoStartChase", msg, 3, false, ctxt.now)
         if newLobby.players[ctxt.user.playerID].tagger then
             Table(newLobby.players):find(function(_, pid) return pid ~= ctxt.user.playerID end, function(_, pid)
-                local other = BJI.Managers.Context.Players[pid]
-                if other then
+                if ctxt.players[pid] then
                     BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, 0, nil,
-                        other.playerName, false)
+                        ctxt.players[pid].playerName, false)
                 end
             end)
         end

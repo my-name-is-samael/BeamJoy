@@ -106,10 +106,10 @@ local function updateCaches(ctxt)
         W.kick.buttons.stop = BJI.Managers.Lang.get("common.buttons.stopVote")
 
         W.kick.creator = BJI.Managers.Votes.Kick.creatorID and
-            BJI.Managers.Context.Players[BJI.Managers.Votes.Kick.creatorID].playerName or
+            ctxt.players[BJI.Managers.Votes.Kick.creatorID].playerName or
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.kick.target = BJI.Managers.Votes.Kick.targetID and
-            BJI.Managers.Context.Players[BJI.Managers.Votes.Kick.targetID].playerName or
+            ctxt.players[BJI.Managers.Votes.Kick.targetID].playerName or
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.kick.votes = string.var("{1}/{2}", { BJI.Managers.Votes.Kick.amountVotes, BJI.Managers.Votes.Kick.threshold })
         W.kick.voteDisabled = BJI.Managers.Votes.Kick.targetID == ctxt.user.playerID
@@ -124,7 +124,7 @@ local function updateCaches(ctxt)
         W.map.buttons.unvote = BJI.Managers.Lang.get("common.buttons.unvote")
         W.map.buttons.stop = BJI.Managers.Lang.get("common.buttons.stopVote")
 
-        local creator = BJI.Managers.Context.Players[BJI.Managers.Votes.Map.creatorID]
+        local creator = ctxt.players[BJI.Managers.Votes.Map.creatorID]
         W.map.creator = creator and creator.playerName or
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.map.mapCustom = BJI.Managers.Votes.Map.mapCustom and string.var("({1})",
@@ -134,7 +134,7 @@ local function updateCaches(ctxt)
     end
 
     if votes[3].show() then
-        local creator = BJI.Managers.Context.Players[BJI.Managers.Votes.Race.creatorID]
+        local creator = ctxt.players[BJI.Managers.Votes.Race.creatorID]
         local creatorName = creator and creator.playerName or
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.race.hasStarted = BJI.Managers.Lang.get(BJI.Managers.Votes.Race.isVote and
@@ -206,7 +206,7 @@ local function updateCaches(ctxt)
     end
 
     if votes[4].show() then
-        local creator = BJI.Managers.Context.Players[BJI.Managers.Votes.Speed.creatorID]
+        local creator = ctxt.players[BJI.Managers.Votes.Speed.creatorID]
         local creatorName = creator and creator.playerName or
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.speed.hasStarted = BJI.Managers.Lang.get(BJI.Managers.Votes.Speed.isEvent and
@@ -221,7 +221,7 @@ local function updateCaches(ctxt)
         W.speed.participants = string.var("{1}: {2}", {
             BJI.Managers.Lang.get("speed.vote.participants"),
             Table(BJI.Managers.Votes.Speed.participants):map(function(_, pid)
-                return BJI.Managers.Context.Players[pid].playerName
+                return ctxt.players[pid].playerName
             end):join(", "),
         })
 

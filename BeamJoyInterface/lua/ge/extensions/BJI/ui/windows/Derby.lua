@@ -120,7 +120,7 @@ local function updateCache(ctxt)
     if W.cache.showPreparation then
         W.cache.preparationParticipants = Table(W.scenario.participants):map(function(p)
             return {
-                name = BJI.Managers.Context.Players[p.playerID].playerName,
+                name = ctxt.players[p.playerID].playerName,
                 nameColor = p.playerID == BJI.Managers.Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                     BJI.Utils.Style.TEXT_COLORS.DEFAULT,
                 nameSuffix = p.ready and W.labels.readyMark or W.labels.notReadyMark,
@@ -149,7 +149,7 @@ local function updateCache(ctxt)
         local selfSpec = not W.scenario.isParticipant() or W.scenario.isEliminated()
         ---@param p BJIDerbyParticipant
         local cols = Table(W.scenario.participants):map(function(p)
-            local name, nameColor = BJI.Managers.Context.Players[p.playerID].playerName,
+            local name, nameColor = ctxt.players[p.playerID].playerName,
                 p.playerID == BJI.Managers.Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                 BJI.Utils.Style.TEXT_COLORS.DEFAULT
             local w = BJI.Utils.UI.GetColumnTextWidth(name) + BJI.Utils.UI.GetBtnIconSize()

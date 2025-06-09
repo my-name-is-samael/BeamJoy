@@ -329,7 +329,8 @@
           "speed": "Speed-Spiel",
           "hunter": "Jägermodus",
           "derby": "Destruction Derby",
-          "delivery": "Gemeinsame Lieferung"
+          "delivery": "Gemeinsame Lieferung",
+          "tagduo": "Fangen"
         },
         "gamemodeStopReasons": {
           "manual": "Moderation",
@@ -345,6 +346,7 @@
         "gamemodeEnded": "{gamemode} beendet",
         "gamemodeStopped": "{gamemode} gestoppt: {reason}",
         "gamemodeJoin": "{playerName} ist {gamemode} beigetreten",
+        "gamemodeCreatedLobby": "{playerName} hat eine {gamemode}-Lobby erstellt",
         "gamemodeLeave": "{playerName} hat {gamemode} verlassen",
         "gamemodeFinished": "{playerName} hat {gamemode} als #{gamemodePosition} beendet",
         "gamemodeTeamWon": "{teamName} hat {gamemode} gewonnen",

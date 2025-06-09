@@ -37,13 +37,13 @@ function ctrl.toggleWhitelist(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.toggleWhitelistPlayer(ctxt)
+function ctrl.togglePlayer(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
     local playerName, state = ctxt.data[1], ctxt.data[2] == true
-    BJCTournament.toggleWhitelistPlayer(playerName, state)
+    BJCTournament.togglePlayer(playerName, state)
 end
 
 ---@param ctxt BJCContext

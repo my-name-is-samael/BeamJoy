@@ -330,7 +330,8 @@
           "speed": "Speed game",
           "hunter": "Hunter mode",
           "derby": "Destruction derby",
-          "delivery": "Delivery Together"
+          "delivery": "Delivery Together",
+          "tagduo": "Tag Duo"
         },
         "gamemodeStopReasons": {
           "manual": "moderation",
@@ -346,6 +347,7 @@
         "gamemodeEnded": "{gamemode} ended",
         "gamemodeStopped": "{gamemode} stopped: {reason}",
         "gamemodeJoin": "{playerName} joined {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} created {gamemode} lobby",
         "gamemodeLeave": "{playerName} left {gamemode}",
         "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} won {gamemode}",

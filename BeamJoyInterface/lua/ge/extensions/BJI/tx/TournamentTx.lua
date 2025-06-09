@@ -25,8 +25,8 @@ return function(TX)
 
     ---@param playerName string
     ---@param state boolean
-    function tournament.toggleWhitelistPlayer(playerName, state)
-        TX._send(event.EVENT, event.TX.TOGGLE_WHITELIST_PLAYER, { playerName, state })
+    function tournament.togglePlayer(playerName, state)
+        TX._send(event.EVENT, event.TX.TOGGLE_PLAYER, { playerName, state })
     end
 
     ---@param activityIndex integer

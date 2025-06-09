@@ -144,13 +144,9 @@ local function _commonCreateWaypoint(key, pos, radius, callback, playerName, pre
             return
         end
 
-        local targetPlayer = nil
-        for _, player in pairs(BJI.Managers.Context.Players) do
-            if player.playerName == playerName then
-                targetPlayer = player
-                break
-            end
-        end
+        local targetPlayer = BJI.Managers.Context.Players:find(function(p)
+            return p.playerName == playerName
+        end)
         if not targetPlayer or not targetPlayer.currentVehicle then
             LogError("Invalid waypoint player")
             return
@@ -315,15 +311,11 @@ local function slowTick()
                 return deleteAndCheckLast(i)
             end
 
-            local player = Table(BJI.Managers.Context.Players)
-                :find(function(p) return p.playerName == t.playerName end)
-            if not player then
-                -- player left
-                return deleteAndCheckLast(i)
-            end
-
-            if not player.currentVehicle then
-                -- player doesn't have a vehicle
+            local player = BJI.Managers.Context.Players:find(function(p)
+                return p.playerName == t.playerName
+            end)
+            if not player  or not player.currentVehicle then
+                -- player left or no target vehicle
                 return deleteAndCheckLast(i)
             end
 

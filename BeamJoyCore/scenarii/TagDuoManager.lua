@@ -54,6 +54,11 @@ local function onClientJoin(senderID, lobbyIndex, gameVehID)
             ready = false,
         }
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
+
+        BJCChat.sendChatEvent("chat.events.gamemodeJoin", {
+            playerName = BJCPlayers.Players[senderID].playerName,
+            gamemode = "chat.events.gamemodes.tagduo",
+        })
     else -- creating a new lobby
         M.lobbies:insert({
             host = senderID,
@@ -65,6 +70,12 @@ local function onClientJoin(senderID, lobbyIndex, gameVehID)
                     ready = false,
                 }
             })
+        })
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
+
+        BJCChat.sendChatEvent("chat.events.gamemodeCreatedLobby", {
+            playerName = BJCPlayers.Players[senderID].playerName,
+            gamemode = "chat.events.gamemodes.tagduo",
         })
     end
 end
@@ -134,18 +145,44 @@ local function isParticipant(player)
     end)
 end
 
----@param player BJCPlayer
-local function onPlayerDisconnect(player)
+---@param senderID integer
+---@param disconnect boolean?
+local function onClientLeave(senderID, disconnect)
     M.lobbies:find(function(lobby)
-        return lobby.players[player.playerID] ~= nil
+        return lobby.players[senderID] ~= nil
     end, function(lobby, i)
-        if lobby.host == player.playerID then
-            table.remove(M.lobbies, i)
+        if lobby.host == senderID then
+            lobby.players:find(function(_, pid)
+                return pid ~= senderID
+            end, function(_, pid)
+                -- broadcasts other player in the lobby leaving it
+                BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+                    playerName = BJCPlayers.Players[pid].playerName,
+                    gamemode = "chat.events.gamemodes.tagduo",
+                })
+            end)
+            M.lobbies:remove(i)
         else
-            M.lobbies[i].players[player.playerID] = nil
+            lobby.players[senderID] = nil
+            table.assign(lobby.players[lobby.host], {
+                ready = false,
+                tagger = false,
+            })
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
+
+        if not disconnect then
+            BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+                playerName = BJCPlayers.Players[senderID].playerName,
+                gamemode = "chat.events.gamemodes.tagduo",
+            })
+        end
     end)
+end
+
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
+    onClientLeave(player.playerID, true)
 end
 
 M.getCache = getCache
@@ -155,6 +192,7 @@ M.isParticipant = isParticipant
 
 M.onClientJoin = onClientJoin
 M.onClientUpdate = onClientUpdate
+M.onClientLeave = onClientLeave
 M.onPlayerDisconnect = onPlayerDisconnect
 
 M.stop = stop
