@@ -33,6 +33,7 @@ local S = {
 
     -- self data
     preDerbyCam = nil,
+    resetLock = true,
     destroy = {
         distanceThreshold = .1,
         process = false,
@@ -49,6 +50,7 @@ local function stop()
     S.participants = {}
     S.baseArena = nil
 
+    S.resetLock = true
     S.destroy.process = false
     S.destroy.lastPos = nil
     S.destroy.targetTime = nil
@@ -86,10 +88,7 @@ local function onLoad(ctxt)
         BJI.Managers.GPS.reset()
     end
     BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-        }):flat(),
+        restrictions = BJI.Managers.Restrictions.OTHER.BIG_MAP,
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
@@ -100,7 +99,6 @@ local function onUnload(ctxt)
     BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -144,8 +142,13 @@ local function tryReplaceOrSpawn(model, config)
             -- trying to spawn a second veh
             return
         end
-        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, S.baseArena.startPositions[participant.startPosition])
-        BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+        local startPos = S.baseArena.startPositions[participant.startPosition]
+        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, startPos)
+        BJI.Managers.Veh.waitForVehicleSpawn(
+            function(ctxt)
+                BJI.Managers.Veh.saveHome(startPos)
+                postSpawn(ctxt)
+            end)
     end
 end
 
@@ -159,7 +162,10 @@ local function onVehicleSpawned(gameVehID)
         if startPos and vehPosRot.pos:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+            BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+                BJI.Managers.Veh.saveHome(startPos)
+                postSpawn(ctxt)
+            end)
         end
     end
 end
@@ -230,6 +236,7 @@ local function canPaintVehicle()
         BJI.Managers.Veh.isCurrentVehicleOwn()
 end
 
+---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     return S.isParticipant(vehData.ownerID) and not S.isEliminated(vehData.ownerID)
 end
@@ -263,40 +270,26 @@ local function getPlayerListActions(player, ctxt)
     end
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
 end
 
-local resetLock = false -- prevent multiple triggers
-local function onVehicleResetted(gameVehID)
+---@param ctxt TickContext
+---@return boolean?
+local function tryRespawn(ctxt)
     local participant = S.getParticipant()
-    if S.state == S.STATES.GAME and participant and
-        BJI.Managers.Veh.isVehicleOwn(gameVehID) then
-        if resetLock then
-            return
-        end
-        resetLock = true
+    if participant and participant.lives > 0 and not S.resetLock then
+        BJI.Managers.Veh.loadHome()
+        S.resetLock = true
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         BJI.Managers.Async.delayTask(function() -- 1 sec reset lock safe
-            resetLock = false
+            S.resetLock = false
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         end, 1000, "BJIDerbyResetLockSafe")
 
         BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
-        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-        if participant.lives > 1 then
-            BJI.Managers.Async.delayTask(function() -- 1 sec respawn spamming safe
-                BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME)
-            end, 1000, "BJIDerbyPostResetRestrictionsResetsUpdate")
-        end
         BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
         local msg
         if participant.lives == 1 then
@@ -311,6 +304,7 @@ local function onVehicleResetted(gameVehID)
             })
         end
         BJI.Managers.Message.flash("BJIDerbyRemainingLives", msg, 3, false)
+        return true
     end
 end
 
@@ -410,6 +404,8 @@ local function slowTick(ctxt)
                         S.destroy.targetTime = nil
                         S.destroy.lastPos = nil
                         S.destroy.lock = true
+                        S.resetLock = true
+                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
                         BJI.Managers.Async.task(function()
                             -- wait for data update before unlocking destroy process
                             local updated = S.getParticipant()
@@ -417,6 +413,8 @@ local function slowTick(ctxt)
                                 (type(updated) == "table" and updated.lives == participant.lives - 1)
                         end, function()
                             S.destroy.lock = false
+                            S.resetLock = false
+                            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
                         end, "BJIDerbyDestroyLockSafe")
                     end
                 end)
@@ -524,9 +522,10 @@ local function initGame(data)
         if participant then
             BJI.Managers.Veh.freeze(false)
             if participant.lives > 0 then
-                BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME)
+                S.resetLock = false
             end
         end
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
 
     if now < S.startTime then
@@ -553,12 +552,8 @@ end
 local function onElimination()
     local participant, pos = S.getParticipant()
     if participant then
-        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+        S.resetLock = true
         BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.RESET.ALL,
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-            },
             {
                 restrictions = Table({
                     BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -670,8 +665,9 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleSpawned = onVehicleSpawned
-S.onVehicleResetted = onVehicleResetted
 S.onVehicleSwitched = onVehicleSwitched
+S.saveHome = tryRespawn
+S.loadHome = tryRespawn
 S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick

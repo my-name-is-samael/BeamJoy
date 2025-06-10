@@ -296,6 +296,7 @@
       "modManagementDisabled": "La gestione delle mod è disabilitata su questo server!",
       "cannotSpawnVeh": "Non puoi generare veicoli",
       "cannotSpawnAnyMoreVeh": "Non puoi generare altri veicoli",
+      "cannotResetNow": "Non puoi reimpostare ora",
       "unavailableDuringScenario": "Non disponibile durante lo scenario",
       "scenarioUnavailable": "Scenario non disponibile",
       "toastModelBlacklisted": "Questo veicolo è nella lista nera",
@@ -1259,7 +1260,6 @@
       }
     },
     "delivery": {
-      "title": "Consegna del veicolo",
       "leaderboard": {
         "title": "Classifica delle consegne",
         "delivered": "veicoli e pacchi consegnati"
@@ -1282,6 +1282,7 @@
       }
     },
     "vehicleDelivery": {
+      "title": "Consegna del veicolo",
       "vehicle": "Veicolo",
       "damagedWarning": "Il veicolo è danneggiato, la tua ricompensa sarà ridotta.",
       "flashStart": "Consegnare il veicolo",
@@ -1289,6 +1290,7 @@
       "flashSuccess": "Ben fatto !"
     },
     "packageDelivery": {
+      "title": "Consegna del pacco",
       "currentStreak": "Pacchi consegnati: {streak}",
       "streakTooltip": "Continua a consegnare pacchi di seguito, quindi otterrai premi extra",
       "flashStart": "Consegnare il pacco",

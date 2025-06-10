@@ -276,11 +276,12 @@ local function getVehCorners(ctxt)
     angle = (angle + math.pi / 2) % (math.pi * 2);
 
     local w = vec3(0, ctxt.veh:getInitialWidth() / 2, 0);
+    local off = vec3(0, 0, ctxt.veh:getInitialHeight() / 2)
     return {
-        fl = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle),
-        fr = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle + math.pi),
-        bl = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle),
-        br = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle + math.pi),
+        fl = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle) + off,
+        fr = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle + math.pi) + off,
+        bl = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle) + off,
+        br = origin + math.rotate2DVec(len, angle + math.pi) + math.rotate2DVec(w, angle + math.pi) + off,
     }
 end
 

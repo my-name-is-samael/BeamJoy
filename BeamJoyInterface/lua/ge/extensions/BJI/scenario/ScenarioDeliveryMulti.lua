@@ -57,11 +57,7 @@ local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.Restrictions.update({
         {
-            restrictions = Table({
-                BJI.Managers.Restrictions.RESET.TELEPORT,
-                BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            }):flat(),
+            restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         },
     })
@@ -276,11 +272,7 @@ end
 ---@param ctxt TickContext
 local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.TELEPORT,
-            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        }):flat(),
+        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
@@ -354,6 +346,8 @@ S.canReplaceVehicle = FalseFn
 S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
+
+S.canRecoverVehicle = TrueFn
 S.canSpawnAI = TrueFn
 
 S.doShowNametag = doShowNametag

@@ -386,4 +386,16 @@ function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
         :build()
 end
 
+function U.AddPlayerActionVoteKick(actions, playerID)
+    table.insert(actions, {
+        id = string.var("voteKick{1}", { playerID }),
+        icon = BJI.Utils.Icon.ICONS.event_busy,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
+        onClick = function()
+            BJI.Managers.Votes.Kick.start(playerID)
+        end
+    })
+end
+
 return U

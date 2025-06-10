@@ -60,27 +60,22 @@ local function resetted(playerID)
 end
 
 local function checkNextTarget()
-    if M.participants:length() == 0 then
-        return
+    if M.participants:length() > 0 and M.participants:every(function(p) return p.reached end) then
+        -- all participants reached target
+        initTarget(M.target.pos)
+        M.participants:forEach(function(playerData, playerID)
+            playerData.reached = false
+            if playerData.nextTargetReward then
+                local reward = BJCConfig.Data.Reputation.DeliveryPackageReward +
+                    playerData.streak * BJCConfig.Data.Reputation.DeliveryPackageStreakReward
+                local player = BJCPlayers.Players[playerID]
+                player.stats.delivery = player.stats.delivery + 1
+                BJCPlayers.reward(playerID, reward)
+                playerData.streak = playerData.streak + 1
+            end
+            playerData.nextTargetReward = true
+        end)
     end
-    if not M.participants:every(function(p) return p.reached end) then
-        return
-    end
-
-    -- all participants reached target
-    initTarget(M.target.pos)
-    M.participants:forEach(function(playerData, playerID)
-        playerData.reached = false
-        if playerData.nextTargetReward then
-            local reward = BJCConfig.Data.Reputation.DeliveryPackageReward +
-                playerData.streak * BJCConfig.Data.Reputation.DeliveryPackageStreakReward
-            local player = BJCPlayers.Players[playerID]
-            player.stats.delivery = player.stats.delivery + 1
-            BJCPlayers.reward(playerID, reward)
-            playerData.streak = playerData.streak + 1
-        end
-        playerData.nextTargetReward = true
-    end)
 end
 
 local function reached(playerID)
@@ -105,11 +100,14 @@ local function leave(playerID)
     end
 
     M.participants[playerID] = nil
-    checkEnd()
     BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
         playerName = BJCPlayers.Players[playerID].playerName,
         gamemode = "chat.events.gamemodes.delivery",
     })
+    checkEnd()
+    if M.participants:length() > 0 then
+        checkNextTarget()
+    end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 

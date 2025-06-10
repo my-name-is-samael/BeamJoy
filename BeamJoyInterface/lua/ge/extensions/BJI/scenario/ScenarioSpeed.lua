@@ -27,7 +27,6 @@ end
 local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -44,7 +43,6 @@ end
 local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -117,7 +115,6 @@ local function onElimination()
     switchToRandomParticipant()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
         }):flat(),
@@ -188,7 +185,6 @@ local function initScenario(data)
     BJI.Managers.Message.flash("BJISpeedStart", BJI.Managers.Lang.get("speed.flashStart"), 3, false)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
         }):flat(),
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,

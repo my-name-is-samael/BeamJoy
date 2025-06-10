@@ -31,7 +31,7 @@ end
 
 ---@param pos vec3
 ---@param radius number
----@param shapeColor BJIColor
+---@param shapeColor BJIColor?
 local function Sphere(pos, radius, shapeColor)
     local err, _
     _, pos, err = pcall(vec3, pos)
@@ -46,8 +46,8 @@ end
 
 ---@param text string
 ---@param pos vec3
----@param textColor BJIColor
----@param bgColor BJIColor
+---@param textColor BJIColor?
+---@param bgColor BJIColor?
 ---@param shadow? boolean
 local function Text(text, pos, textColor, bgColor, shadow)
     local err, _
@@ -70,7 +70,7 @@ end
 ---@param fromWidth number
 ---@param toPos vec3
 ---@param toWidth number
----@param shapeColor BJIColor
+---@param shapeColor BJIColor?
 local function SquarePrism(fromPos, fromWidth, toPos, toWidth, shapeColor)
     local err, _
     _, fromPos, err = pcall(vec3, fromPos)
@@ -94,7 +94,7 @@ end
 ---@param bottomPos vec3
 ---@param topPos vec3
 ---@param radius number
----@param shapeColor BJIColor
+---@param shapeColor BJIColor?
 local function Cylinder(bottomPos, topPos, radius, shapeColor)
     local errBottom, errTop, _
     _, bottomPos, errBottom = pcall(vec3, bottomPos)
@@ -113,7 +113,7 @@ end
 ---@param posA vec3
 ---@param posB vec3
 ---@param posC vec3
----@param shapeColor BJIColor
+---@param shapeColor BJIColor?
 local function Triangle(posA, posB, posC, shapeColor)
     local errA, errB, errC, _
     _, posA, errA = pcall(vec3, posA)
@@ -133,7 +133,7 @@ end
 ---@param pos vec3
 ---@param rot quat
 ---@param radius number
----@param shapeColor BJIColor
+---@param shapeColor BJIColor?
 local function Arrow(pos, rot, radius, shapeColor)
     local errPos, errRot, _
     _, pos, errPos = pcall(vec3, pos)

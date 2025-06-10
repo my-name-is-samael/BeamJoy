@@ -74,6 +74,10 @@ local function initManagerData()
     S.currentSpeed = 0
     ---@type MapRacePBWP[]
     S.lapData = {}
+    S.lastLaunchedCheckpoint = nil
+    S.lastLaunchedCheckpointTime = 0
+
+    S.resetLock = true
 
     S.dnf.process = false -- true if countdown is launched
     S.dnf.lastPos = nil
@@ -111,10 +115,7 @@ local function onLoad(ctxt)
         BJI.Managers.Veh.deleteAllOwnVehicles()
     end
     BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-        }):flat(),
+        restrictions = BJI.Managers.Restrictions.OTHER.BIG_MAP,
         state = BJI.Managers.Restrictions.STATE.RESTRICTED,
     } })
     BJI.Managers.RaceWaypoint.resetAll()
@@ -155,15 +156,7 @@ local function getPlayerListActions(player, ctxt)
     end
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -196,7 +189,6 @@ local function onUnload(ctxt)
     end
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -313,6 +305,48 @@ local function getModelList()
     return models
 end
 
+---@return boolean
+local function canRecoverVehicle()
+    local ctxt = BJI.Managers.Tick.getContext()
+    return S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
+        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) and
+        S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key
+end
+
+---@param ctxt TickContext
+---@return boolean?
+local function saveHome(ctxt)
+    if S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
+        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
+        if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+            if S.lastLaunchedCheckpoint and ctxt.now - S.lastLaunchedCheckpointTime > 1000 then
+                BJI.Managers.Veh.setPosRotVel(S.lastLaunchedCheckpoint)
+                S.lastLaunchedCheckpointTime = ctxt.now
+                return true
+            else
+                BJI.Managers.Veh.loadHome()
+                return true
+            end
+        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+            BJI.Managers.Veh.loadHome()
+            return true
+        end
+    end
+end
+
+---@param ctxt TickContext
+---@return boolean?
+local function loadHome(ctxt)
+    if S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
+        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
+            S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+            BJI.Managers.Veh.loadHome()
+            return true
+        end
+    end
+end
+
 local function onJoinGridParticipants()
     -- join participants
     BJI.Managers.Restrictions.update({
@@ -383,9 +417,9 @@ local function specRandomRacer()
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
-    local previousRestrictions = BJI.Managers.Restrictions.getCurrentResets()
-    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+    S.resetLock = true
     S.dnf.standExempt = true
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 
     delayMs = delayMs and math.max(delayMs, 3000) or 5000
     BJI.Managers.Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
@@ -418,8 +452,9 @@ local function onStandStop(delayMs, wp, lastWp, callback)
         if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJI.Managers.Async.delayTask(function()
                 -- delays reset restriction remove
-                BJI.Managers.Restrictions.updateResets(previousRestrictions)
+                S.resetLock = false
                 S.dnf.standExempt = false
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
             end, 1000, "BJIRacePostStart")
         end
         if type(callback) == "function" then
@@ -486,6 +521,9 @@ local function onCheckpointReached(wp, remainingSteps)
                 }, S.settings.respawnStrategy) then
                 if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
                     BJI.Managers.Veh.saveHome({ pos = wp.pos, rot = wp.rot })
+                    BJI.Managers.Veh.getPosRotVel(nil, function(data)
+                        S.lastLaunchedCheckpoint = data
+                    end)
                 elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
                     -- check if current or previous stand is different than last
                     ---@param stand RaceStand
@@ -655,7 +693,6 @@ local function onFinishReached()
 
         if not isLast then
             -- multiplayer and not last
-            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
             BJI.Managers.Veh.freeze(true)
 
             local isLappedRacer = false
@@ -874,15 +911,7 @@ local function initRace(data)
         if S.isParticipant() then
             BJI.Managers.Veh.freeze(false)
             S.race.timers.lap = math.timer()
-            if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-                local restrictions = BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME
-                if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-                    restrictions = Table()
-                        :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                        :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD)
-                end
-                BJI.Managers.Restrictions.updateResets(restrictions)
-            end
+            S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
         end
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end, S.race.startTime, "BJIRaceStartTime")
@@ -891,7 +920,7 @@ end
 local function updateRace(data)
     if not S.isRaceFinished() and BJI.Managers.Veh.isCurrentVehicleOwn() then
         if S.isFinished() or S.isEliminated() then
-            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+            S.resetLock = true
             BJI.Managers.Restrictions.update({
                 {
                     restrictions = Table({
@@ -918,6 +947,7 @@ local function updateRace(data)
 end
 
 local function initRaceFinish()
+    S.resetLock = true
     S.state = S.STATES.FINISHED
     S.race.timers = {}
 
@@ -1017,9 +1047,11 @@ local function isSpec(playerID)
     )
 end
 
+---@return boolean
 local function isRaceStarted(ctxt)
     local now = ctxt and ctxt.now or GetCurrentTimeMillis()
-    return isStateRaceOrFinished() and S.race.startTime and now >= S.race.startTime
+    return isStateRaceOrFinished() and S.race.startTime ~= nil and
+        now >= S.race.startTime
 end
 
 local function isRaceOrCountdownStarted()
@@ -1202,6 +1234,10 @@ S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
 S.getModelList = getModelList
+
+S.canRecoverVehicle = canRecoverVehicle
+S.saveHome = saveHome
+S.loadHome = loadHome
 
 S.getPlayerListActions = getPlayerListActions
 

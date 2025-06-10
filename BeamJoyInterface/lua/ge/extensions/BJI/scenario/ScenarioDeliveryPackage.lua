@@ -157,34 +157,29 @@ local function onStopDelivery()
 end
 
 local function drawUI(ctxt)
-    if S.distance then
-        LineLabel(string.var("{1}: {2}", {
-            BJI.Managers.Lang.get("delivery.currentDelivery"),
-            BJI.Managers.Lang.get("delivery.distanceLeft")
-                :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
-        }))
-
-        ProgressBar({
-            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
-            width = 250,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
-        })
-    end
+    LineBuilder():btnIcon({
+        id = "stopPackageDelivery",
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"),
+        onClick = S.onStopDelivery,
+    }):text(BJI.Managers.Lang.get("packageDelivery.title")):build()
 
     LineLabel(BJI.Managers.Lang.get("packageDelivery.currentStreak")
         :var({ streak = S.streak }), nil, false,
         BJI.Managers.Lang.get("packageDelivery.streakTooltip"))
 
-    LineBuilder()
-        :btnIcon({
-            id = "stopPackageDelivery",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            big = true,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
-            onClick = S.onStopDelivery,
+    if S.distance then
+        ProgressBar({
+            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
+            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+            tooltip = string.var("{1}: {2}", {
+                BJI.Managers.Lang.get("delivery.currentDelivery"),
+                BJI.Managers.Lang.get("delivery.distanceLeft")
+                    :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
+            })
         })
-        :build()
+    end
 end
 
 local function onTargetReached(ctxt)
@@ -249,15 +244,7 @@ local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions

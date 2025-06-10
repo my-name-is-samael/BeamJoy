@@ -14,10 +14,6 @@ local S = {
     engineStates = {},
 }
 
-local function canChangeTo()
-    return true
-end
-
 local function onLoad(ctxt)
     BJI.Managers.Cam.resetForceCamera(true)
     BJI.Managers.Cam.resetRestrictedCameras()
@@ -25,13 +21,6 @@ local function onLoad(ctxt)
     S.reset.restricted = false
     S.reset.nextExempt = false
     S.teleport.restricted = false
-end
-
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.RESET.ALL,
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
 end
 
 local function tryApplyFreeze(gameVehID)
@@ -133,14 +122,14 @@ local function onVehicleResetted(gameVehID)
     local bypass = BJI.Managers.Perm.isStaff() or S.reset.nextExempt
     if isResetDelay and not bypass then
         S.reset.restricted = true
-        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         BJI.Managers.Async.delayTask(
             function()
                 S.reset.restricted = false
-                BJI.Managers.Restrictions.updateResets({})
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
             end,
             BJI.Managers.Context.BJC.Freeroam.ResetDelay * 1000,
-            BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER
+            "restrictionsResetTimer"
         )
     end
     S.reset.nextExempt = false
@@ -156,6 +145,29 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
         not BJI.Windows.ScenarioEditor.getState() then
         tryApplyFreeze(newGameVehID)
         tryApplyEngineState(newGameVehID)
+    end
+end
+
+---@return boolean
+local function canReset()
+    return not S.reset.restricted
+end
+
+---@param ctxt BJCContext
+---@return boolean?
+local function saveHome(ctxt)
+    if not S.reset.restricted then
+        BJI.Managers.Veh.saveHome()
+        return true
+    end
+end
+
+---@param ctxt BJCContext
+---@return boolean?
+local function loadHome(ctxt)
+    if not S.reset.restricted then
+        BJI.Managers.Veh.loadHome()
+        return true
     end
 end
 
@@ -381,30 +393,23 @@ local function getPlayerListActions(player, ctxt)
         end
     end
 
-    if not BJI.Managers.Perm.isStaff() and not player.self and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_KICK) and
-        BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
 end
 
-S.canChangeTo = canChangeTo
+S.canChangeTo = TrueFn
 S.onLoad = onLoad
-S.onUnload = onUnload
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleSwitched = onVehicleSwitched
+
+S.canReset = canReset
+S.saveHome = saveHome
+S.loadHome = loadHome
 
 S.onDropPlayerAtCamera = onDropPlayerAtCamera
 S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset

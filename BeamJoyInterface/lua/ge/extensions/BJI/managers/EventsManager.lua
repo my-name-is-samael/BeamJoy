@@ -31,6 +31,7 @@ local M = {
         CONFIG_REMOVED = "config_removed",
         CONFIG_PROTECTION_UPDATED = "config_protection_updated",
         STATION_PROXIMITY_CHANGED = "station_proximity_changed",
+        STATION_PROCESS_CHANGED = "station_process_changed",
         TOURNAMENT_UPDATED = "tournament_updated",
 
         -- base game events

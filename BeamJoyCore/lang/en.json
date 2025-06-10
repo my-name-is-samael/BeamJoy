@@ -297,6 +297,7 @@
       "modManagementDisabled": "Mod management is disabled on this server !",
       "cannotSpawnVeh": "You cannot spawn vehicle",
       "cannotSpawnAnyMoreVeh": "You cannot spawn any more vehicle",
+      "cannotResetNow": "You cannot reset right now",
       "unavailableDuringScenario": "Unavailable during scenario",
       "scenarioUnavailable": "Scenario unavailable",
       "toastModelBlacklisted": "This vehicle is blacklisted",
@@ -1260,7 +1261,6 @@
       }
     },
     "delivery": {
-      "title": "Vehicle delivery",
       "leaderboard": {
         "title": "Delivery Leaderboard",
         "delivered": "vehicles & packages delivered"
@@ -1283,6 +1283,7 @@
       }
     },
     "vehicleDelivery": {
+      "title": "Vehicle delivery",
       "vehicle": "Vehicle",
       "damagedWarning": "The vehicle is damaged, your reward will be diminished.",
       "flashStart": "Deliver the vehicle",
@@ -1290,6 +1291,7 @@
       "flashSuccess": "Well done !"
     },
     "packageDelivery": {
+      "title": "Package delivery",
       "currentStreak": "Package(s) delivered: {streak}",
       "streakTooltip": "Continue delivering packages in a row, then you will gain extra rewards",
       "flashStart": "Deliver the package",

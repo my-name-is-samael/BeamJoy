@@ -17,6 +17,7 @@ local S = {
 
     playerVehs = Table(),
 
+    resetLock = false,
     waitForPlayers = true,
     waitForSpread = true,
     eventLock = false,
@@ -30,11 +31,10 @@ local function canChangeTo(ctxt)
 end
 
 local function onLoad(ctxt)
+    S.resetLock = false
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.TELEPORT,
-            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -56,8 +56,6 @@ local function onUnload(ctxt)
 
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.TELEPORT,
-            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -86,17 +84,15 @@ local function isTagger()
 end
 
 local function onVehicleResetted(gameVehID)
-    if S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID == gameVehID and
-        isChasing() and
-        not isTagger() then
+    if S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID == gameVehID and isChasing() and not isTagger() then
         BJI.Managers.Veh.freeze(true, gameVehID)
-        BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+        S.resetLock = true
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         BJI.Managers.Message.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, false, "FLEE !", nil,
             function()
                 BJI.Managers.Veh.freeze(false, gameVehID)
-                BJI.Managers.Restrictions.updateResets(Table()
-                    :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                    :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
+                S.resetLock = false
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
             end, false)
     end
 end
@@ -122,15 +118,7 @@ local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -269,13 +257,8 @@ local function onDataUpdate(ctxt, newLobby)
 
     if previousReadyCount == 2 and readyCount < 2 then -- TAG or LEFT
         -- cancel reset process
-        if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL) then
-            BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
-            BJI.Managers.Veh.freeze(false, S.selfLobby.players[ctxt.user.playerID].gameVehID)
-            BJI.Managers.Restrictions.updateResets(Table()
-                :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
-        end
+        BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
+        BJI.Managers.Veh.freeze(false, S.selfLobby.players[ctxt.user.playerID].gameVehID)
 
         BJI.Managers.Message.flash("BJITagDuoTagged", BJI.Managers.Lang.get("tagduo.flashTag"), 3)
     elseif previousReadyCount < 2 and readyCount == 2 then -- START CHASE
@@ -373,6 +356,7 @@ S.onVehicleDestroyed = onVehicleDestroyed
 
 S.canRefuelAtStation = TrueFn
 S.canRepairAtGarage = TrueFn
+S.canRecoverVehicle = TrueFn
 S.canSpawnAI = TrueFn
 
 S.canDeleteVehicle = FalseFn

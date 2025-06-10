@@ -13,13 +13,12 @@ end
 
 local cache = newCache()
 
+---@param ctxt TickContext
 local function updateCache(ctxt)
     cache = newCache()
 
     cache.damageThreshold = BJI.Managers.Context.VehiclePristineThreshold
-    cache.canShowDeliveryDamagedWarning = ctxt.vehData and
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY)
-    cache.canShowGlobalDamageWarning = ctxt.vehData and not cache.canShowDeliveryDamagedWarning
+    cache.canShowGlobalDamageWarning = ctxt.vehData ~= nil
     cache.showGPSButton = cache.canShowGlobalDamageWarning and BJI.Managers.Scenario.canRepairAtGarage() and
         BJI.Managers.Context.Scenario.Data.Garages and #BJI.Managers.Context.Scenario.Data.Garages > 0 and
         (not BJI.Managers.Stations.station or BJI.Managers.Stations.station.isEnergy)
@@ -34,11 +33,7 @@ local function draw(ctxt)
     end
 
     if ctxt.vehData.damageState > cache.damageThreshold then
-        if cache.canShowDeliveryDamagedWarning then
-            LineBuilder()
-                :text(cache.labels.deliveryDamageWarning, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                :build()
-        elseif cache.canShowGlobalDamageWarning then
+        if cache.canShowGlobalDamageWarning then
             local line = LineBuilder()
                 :text(cache.labels.damageWarning)
             if cache.showGPSButton then

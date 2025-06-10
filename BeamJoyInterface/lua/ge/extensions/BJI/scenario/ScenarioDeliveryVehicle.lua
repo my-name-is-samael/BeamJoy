@@ -20,7 +20,7 @@ local S = {
     baseDistance = nil,
     distance = nil,
 
-    nextResetExempt = false,        -- scenario start fail-safe
+    nextResetExempt = false,    -- scenario start fail-safe
 
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
 }
@@ -231,48 +231,44 @@ local function onStopDelivery()
 end
 
 local function drawUI(ctxt)
+    local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
+    LineBuilder():btnIcon({
+        id = "stopVehicleDelivery",
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.stop"),
+        onClick = S.onStopDelivery,
+    }):btnIconToggle({
+        id = "vehicleDeliveryLoop",
+        icon = BJI.Utils.Icon.ICONS.all_inclusive,
+        state = loop,
+        tooltip = BJI.Managers.Lang.get("common.buttons.loop"),
+        onClick = function()
+            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
+                not loop)
+        end,
+    }):text(BJI.Managers.Lang.get("vehicleDelivery.title")):build()
+
+    LineLabel(string.var("{1}: {2}{3}", {
+        BJI.Managers.Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
+    string.var(" {1}", { S.configLabel }) or "",
+    }))
+
+    if ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+        LineLabel(BJI.Managers.Lang.get("vehicleDelivery.damagedWarning"), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+    end
+
     if S.distance then
-        LineBuilder()
-            :text(string.var("{1}: {2}", {
+        ProgressBar({
+            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
+            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+            tooltip = string.var("{1}: {2}", {
                 BJI.Managers.Lang.get("delivery.currentDelivery"),
                 BJI.Managers.Lang.get("delivery.distanceLeft")
                     :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
-            }))
-            :build()
-
-        ProgressBar({
-            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
-            width = 250,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+            }),
         })
     end
-
-    LineBuilder():text(string.var("{1}: {2}{3}", {
-        BJI.Managers.Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
-    string.var(" {1}", { S.configLabel }) or "",
-    })):build()
-    local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
-    LineBuilder()
-        :btnIconToggle({
-            id = "vehicleDeliveryLoop",
-            icon = BJI.Utils.Icon.ICONS.all_inclusive,
-            big = true,
-            state = loop,
-            tooltip = BJI.Managers.Lang.get("common.buttons.loop"),
-            onClick = function()
-                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
-                    not loop)
-            end,
-        })
-        :btnIcon({
-            id = "stopVehicleDelivery",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            big = true,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
-            onClick = S.onStopDelivery,
-        })
-        :build()
 end
 
 local function onTargetReached(ctxt)
@@ -333,15 +329,7 @@ local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions

@@ -446,7 +446,7 @@ local function header(ctxt)
                         icon = BJI.Utils.Icon.ICONS.build,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         big = true,
-                        disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                        disabled = W.scenario.resetLock,
                         tooltip = string.var("{1} ({2})", {
                             W.cache.labels.manualReset,
                             extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()

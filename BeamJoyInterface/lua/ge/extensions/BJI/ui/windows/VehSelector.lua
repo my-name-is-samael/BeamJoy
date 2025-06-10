@@ -235,7 +235,7 @@ local function updateButtonsStates(ctxt)
         W.headerBtns.cloneCurrentTooltip = nil
     end
 
-    W.headerBtns.resetAllDisabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD)
+    W.headerBtns.resetAllDisabled = not BJI.Managers.Scenario.isFreeroam()
     if W.headerBtns.resetAllDisabled then
         W.headerBtns.resetAllTooltip = W.labels.notAllowed
     else

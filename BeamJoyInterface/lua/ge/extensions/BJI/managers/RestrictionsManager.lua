@@ -11,25 +11,15 @@ local M = {
         ALLOWED = false,
     },
 
-    RESET = {
-        TELEPORT = {
-            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
-            "recover_to_last_road"
-        },
-        HEAVY_RELOAD = {
-            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
-        },
-        ALL = {
-            "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
-            "recover_to_last_road",
-            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
-            "recover_vehicle", "recover_vehicle_alt"
-        },
-        ALL_BUT_LOADHOME = { -- only load home allowed
-            "saveHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint", "recover_to_last_road",
-            "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
-            "recover_vehicle", "recover_vehicle_alt"
-        },
+    RESETS = {
+        ALL = { "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt" },
+        SCENARIO = { "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
+            "recover_vehicle", "recover_vehicle_alt" },
+        ONLY_RECOVER = { "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
+            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles" },
     },
     CEN = {
         CONSOLE = {
@@ -44,7 +34,12 @@ local M = {
     },
     OTHER = {
         VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
-        CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7", "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down", "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right", "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next", "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs", "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
+        CAMERA_CHANGE = { "camera_1", "camera_2", "camera_3", "camera_4", "camera_5", "camera_6", "camera_7",
+            "camera_8", "camera_9", "camera_10", "center_camera", "look_back", "rotate_camera_down",
+            "rotate_camera_horizontal", "rotate_camera_hz_mouse", "rotate_camera_left", "rotate_camera_right",
+            "rotate_camera_up", "rotate_camera_vertical", "rotate_camera_vt_mouse", "switch_camera_next",
+            "switch_camera_prev", "changeCameraSpeed", "movedown", "movefast", "moveup", "rollAbs",
+            "xAxisAbs", "yAxisAbs", "yawAbs", "zAxisAbs", "pitchAbs" },
         FREE_CAM = { "toggleCamera", "dropCameraAtPlayer" },
         BIG_MAP = { "toggleBigMap" },
         PHOTO_MODE = { "photoMode" },
@@ -64,7 +59,7 @@ local M = {
 ---@param resets string[]
 local function updateResets(resets)
     M._restrictions = M._restrictions
-        :filter(function(r) return not table.includes(M.RESET.ALL, r) end)
+        :filter(function(r) return not table.includes(M.RESETS.ALL, r) end)
         :addAll(resets, true)
 end
 
@@ -100,7 +95,7 @@ end
 
 ---@return tablelib<string>
 local function getCurrentResets()
-    return M._restrictions:filter(function(el) return table.includes(M.RESET.ALL, el) end)
+    return M._restrictions:filter(function(el) return table.includes(M.RESETS.ALL, el) end)
 end
 
 ---@param restrictions tablelib<string>|string[]
@@ -123,12 +118,25 @@ local function renderTick(ctxt)
     end
 end
 
-local function onUpdate()
+---@param ctxt TickContext
+local function onUpdate(ctxt)
     BJI.Managers.GameState.updateMenuItems(
         not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
         not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
         not getState(M.OTHER.BIG_MAP)
     )
+
+    if ctxt.user.stationProcess then
+        updateResets(M.RESETS.ALL)
+    elseif not ctxt.isOwner then
+        updateResets(M.RESETS.ONLY_RECOVER)
+    elseif BJI.Managers.Scenario.canReset() then
+        updateResets({})
+    elseif BJI.Managers.Scenario.canRecoverVehicle() then
+        updateResets(M.RESETS.ONLY_RECOVER)
+    else
+        updateResets(M.RESETS.SCENARIO)
+    end
 end
 
 local function onLoad()
@@ -139,10 +147,11 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.STATION_PROCESS_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
     }, onUpdate, M._name)
 end
 
-M.updateResets = updateResets
 M.updateCEN = updateCEN
 M.update = update
 M.getCurrentResets = getCurrentResets

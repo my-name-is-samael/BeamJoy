@@ -296,6 +296,7 @@
       "modManagementDisabled": "La gestion des mods est désactivée sur ce serveur !",
       "cannotSpawnVeh": "Tu ne peux pas faire apparaître de véhicule",
       "cannotSpawnAnyMoreVeh": "Tu ne peux plus faire apparaître de véhicule",
+      "cannotResetNow": "Vous ne pouvez pas réinitialiser maintenant",
       "unavailableDuringScenario": "Indisponible pendant le scénario",
       "scenarioUnavailable": "Scénario indisponible",
       "toastModelBlacklisted": "Ce véhicule est blacklisté",
@@ -1259,7 +1260,6 @@
       }
     },
     "delivery": {
-      "title": "Livraison de véhicules",
       "leaderboard": {
         "title": "Classement des livreurs",
         "delivered": "véhicules et colis livrés"
@@ -1282,6 +1282,7 @@
       }
     },
     "vehicleDelivery": {
+      "title": "Livraison de véhicule",
       "vehicle": "Véhicule",
       "damagedWarning": "Le véhicule est endommagé, votre récompense sera réduite.",
       "flashStart": "Livre le véhicule",
@@ -1289,6 +1290,7 @@
       "flashSuccess": "Bien joué !"
     },
     "packageDelivery": {
+      "title": "Livraison de colis",
       "currentStreak": "Colis livrés : {streak}",
       "streakTooltip": "Continue à livrer des colis à la suite, tu obtiendras des points supplémentaires",
       "flashStart": "Livre le colis",

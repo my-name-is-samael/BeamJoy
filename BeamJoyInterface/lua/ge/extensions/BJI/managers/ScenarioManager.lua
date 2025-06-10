@@ -9,6 +9,7 @@ local M = {
     scenarii = {},
 }
 
+---@return BJIScenario
 local function _curr()
     return M.scenarii[M.CurrentScenario] or {}
 end
@@ -57,7 +58,7 @@ local function initScenarii()
 
     M.CurrentScenario = M.TYPES.FREEROAM
     if _curr().onLoad then
-        _curr().onLoad()
+        _curr().onLoad(BJI.Managers.Tick.getContext())
     end
 end
 
@@ -192,6 +193,34 @@ local function tryPaint(paint, paintNumber)
     end
 end
 
+---@param gameVehID integer
+local function saveHome(gameVehID)
+    local ctxt = BJI.Managers.Tick.getContext()
+    if ctxt.isOwner and ctxt.veh:getID() == gameVehID then
+        if not _curr().saveHome or not _curr().saveHome(ctxt) then
+            local canReset = _curr().canReset and _curr().canReset()
+            local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
+            if not canReset and not canRecover then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotResetNow"), 3)
+            end
+        end
+    end
+end
+
+---@param gameVehID integer
+local function loadHome(gameVehID)
+    local ctxt = BJI.Managers.Tick.getContext()
+    if ctxt.isOwner and ctxt.veh:getID() == gameVehID then
+        if not _curr().loadHome or not _curr().loadHome(ctxt) then
+            local canReset = _curr().canReset and _curr().canReset()
+            local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
+            if not canReset and not canRecover then
+                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotResetNow"), 3)
+            end
+        end
+    end
+end
+
 ---@return boolean
 local function canRefuelAtStation()
     if _curr().canRefuelAtStation then
@@ -204,6 +233,22 @@ end
 local function canRepairAtGarage()
     if _curr().canRepairAtGarage then
         return _curr().canRepairAtGarage()
+    end
+    return false
+end
+
+---@return boolean
+local function canReset()
+    if _curr().canReset then
+        return _curr().canReset()
+    end
+    return false
+end
+
+---@return boolean
+local function canRecoverVehicle()
+    if _curr().canRecoverVehicle then
+        return _curr().canRecoverVehicle()
     end
     return false
 end
@@ -523,9 +568,13 @@ M.tryFocus = tryFocus
 M.trySpawnNew = trySpawnNew
 M.tryReplaceOrSpawn = tryReplaceOrSpawn
 M.tryPaint = tryPaint
+M.saveHome = saveHome
+M.loadHome = loadHome
 
 M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
+M.canReset = canReset
+M.canRecoverVehicle = canRecoverVehicle
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
 M.canPaintVehicle = canPaintVehicle

@@ -6,6 +6,8 @@ guihooks = guihooks or {
     trigger = function(key, data) end,
 }
 
+RESET_PHYSICS = RESET_PHYSICS or 1
+
 ---@return vec3
 vec3 = vec3 or function(x, y, z) return {} end
 ---@return quat

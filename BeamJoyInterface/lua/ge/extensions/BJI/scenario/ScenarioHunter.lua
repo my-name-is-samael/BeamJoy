@@ -48,6 +48,7 @@ local S = {
     revealHuntedReset = false,
     waypoint = 1,
 
+    resetLock = true,
     dnf = {
         process = false,
         targetTime = nil,
@@ -75,6 +76,7 @@ local function stop()
     S.revealHuntedLastWaypoint = false
     S.revealHuntedReset = false
     S.waypoint = 1
+    S.resetLock = true
     S.dnf = {
         process = false,
         targetTime = nil,
@@ -113,7 +115,6 @@ local function onLoad(ctxt)
     BJI.Managers.Veh.deleteAllOwnVehicles()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -154,7 +155,6 @@ local function onUnload()
     end
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -233,6 +233,13 @@ local function tryPaint(paint, paintNumber)
     end
 end
 
+local function canRecoverVehicle()
+    local ctxt = BJI.Managers.Tick.getContext()
+    local participant = S.participants[ctxt.user.playerID]
+    return S.state == S.STATES.GAME and participant and not S.resetLock and
+        (participant.hunted and S.huntedStartTime or S.hunterStartTime) < ctxt.now
+end
+
 ---@return table<string, table>?
 local function getModelList()
     local participant = S.participants[BJI.Managers.Context.User.playerID]
@@ -309,7 +316,8 @@ local function doShowNametag(vehData)
     return false
 end
 
-local function onVehicleDeleted(gameVehID)
+---@param gameVehID integer
+local function onVehicleDestroyed(gameVehID)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if BJI.Managers.Veh.isVehicleOwn(gameVehID) and participant then
         if S.state == S.STATES.PREPARATION then
@@ -324,9 +332,10 @@ local function onVehicleDeleted(gameVehID)
     end
 end
 
+---@param gameVehID integer
 local function onVehicleResetted(gameVehID)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if S.state == S.STATES.GAME and -- sle fhunter during game
+    if S.state == S.STATES.GAME and -- self hunter during game
         participant and not participant.hunted and
         S.hunterStartTime < GetCurrentTimeMillis() and
         not S.finished then
@@ -335,24 +344,25 @@ local function onVehicleResetted(gameVehID)
         if ownVeh and S.huntersRespawnDelay > 0 then -- minimum stuck delay configured
             BJI.Managers.Veh.freeze(true, gameVehID)
             BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
             S.hunterRespawnTargetTime = GetCurrentTimeMillis() + (S.huntersRespawnDelay * 1000) + 50
+            S.resetLock = true
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+
             BJI.Managers.Async.programTask(function(ctxt)
                 BJI.Managers.Cam.resetForceCamera(true)
             end, S.hunterRespawnTargetTime - 3000, "BJIHunterResetCam")
+
             BJI.Managers.Message.flashCountdown("BJIHunterReset", S.hunterRespawnTargetTime,
                 false, BJI.Managers.Lang.get("hunter.play.flashHunterResume"), S.huntersRespawnDelay, function()
                     BJI.Managers.Veh.freeze(false, gameVehID)
-                    BJI.Managers.Restrictions.updateResets(Table()
-                        :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                        :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD))
+                    S.resetLock = false
+                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
                 end)
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         end
 
         if not ownVeh and S.huntedResetRevealDuration > 0 and
             S.proximityProcess.huntedVeh and gameVehID == S.proximityProcess.huntedVeh:getID() then
-            -- if fugitive resapwns, reveal for few secs
+            -- if fugitive respawns, reveal for few secs
             BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
             S.revealHuntedReset = true
             BJI.Managers.Async.delayTask(function()
@@ -518,6 +528,8 @@ local function initGameHunted(participant)
     local function start()
         BJI.Managers.Message.flash("BJIHuntedStart", BJI.Managers.Lang.get("hunter.play.flashHuntedStart"), 5, false)
         BJI.Managers.Veh.freeze(false, participant.gameVehID)
+        S.resetLock = false
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
 
     if S.huntedStartTime > GetCurrentTimeMillis() then
@@ -549,10 +561,6 @@ local function initGameHunter(participant)
     local function start()
         BJI.Managers.Message.flash("BJIHunterStart", BJI.Managers.Lang.get("hunter.play.flashHunterResume"), 5, false)
         BJI.Managers.Veh.freeze(false, participant.gameVehID)
-        BJI.Managers.Restrictions.updateResets(Table({
-            BJI.Managers.Restrictions.RESET.TELEPORT,
-            BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-        }):flat())
         if S.settings.lastWaypointGPS then
             Table(S.participants):find(function(p) return p.hunted end, function(hunted)
                 if hunted.waypoint == S.settings.waypoints - 1 then
@@ -560,6 +568,8 @@ local function initGameHunter(participant)
                 end
             end)
         end
+        S.resetLock = false
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
 
     if S.hunterStartTime > GetCurrentTimeMillis() then
@@ -644,7 +654,6 @@ local function updateGame(data)
         BJI.Managers.Restrictions.update({
             {
                 restrictions = Table({
-                    BJI.Managers.Restrictions.RESET.ALL,
                     BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                     BJI.Managers.Restrictions.OTHER.FREE_CAM,
                 }):flat(),
@@ -698,14 +707,12 @@ local function fastTick(ctxt)
                 :map(function(veh) return BJI.Managers.Veh.getPositionRotation(veh) end)
                 :map(function(posRot) return ctxt.vehPosRot.pos:distance(posRot.pos) end)
                 :any(function(d) return d < S.huntedResetDistanceThreshold end)
-            local resetAllState = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL)
-            if closeHunter and not resetAllState then
-                BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
-            elseif not closeHunter and resetAllState then
-                BJI.Managers.Restrictions.updateResets(Table({
-                    BJI.Managers.Restrictions.RESET.TELEPORT,
-                    BJI.Managers.Restrictions.RESET.HEAVY_RELOAD,
-                }):flat())
+            if closeHunter and not S.resetLock then
+                S.resetLock = true
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+            elseif not closeHunter and S.resetLock then
+                S.resetLock = false
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
             end
 
             -- DNF disabling update
@@ -716,9 +723,9 @@ local function fastTick(ctxt)
                     S.dnf.targetTime = nil
                 end
             end
-        elseif S.huntedResetDistanceThreshold == 0 and
-            not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL) then
-            BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+        elseif S.huntedResetDistanceThreshold == 0 and not S.resetLock then
+            S.resetLock = true
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
         end
 
         if not participant.hunted and S.hunterStartTime and S.hunterStartTime <= ctxt.now then
@@ -790,6 +797,7 @@ S.onUnload = onUnload
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
+S.canRecoverVehicle = canRecoverVehicle
 S.getModelList = getModelList
 S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate
@@ -800,7 +808,7 @@ S.doShowNametag = doShowNametag
 S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end
 
 S.onVehicleSpawned = onVehicleSpawned
-S.onVehicleDeleted = onVehicleDeleted
+S.onVehicleDestroyed = onVehicleDestroyed
 S.onVehicleResetted = onVehicleResetted
 
 S.rxData = rxData

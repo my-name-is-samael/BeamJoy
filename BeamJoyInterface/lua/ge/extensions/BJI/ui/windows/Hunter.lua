@@ -313,7 +313,7 @@ local function drawHeaderGame(ctxt)
                         icon = BJI.Utils.Icon.ICONS.build,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         big = true,
-                        disabled = BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.RESET.ALL),
+                        disabled = W.scenario.resetLock,
                         tooltip = string.var("{1} ({2})", {
                             W.labels.buttons.manualReset,
                             extensions.core_input_bindings.getControlForAction("recover_vehicle"):capitalizeWords()

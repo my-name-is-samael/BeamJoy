@@ -24,8 +24,12 @@
 ---@field trySpawnNew (fun(model: string, config: table|string?))?
 ---@field tryReplaceOrSpawn (fun(model: string, config: table|string?))?
 ---@field tryPaint (fun(paint: table, paintNumber: integer))?
+---@field saveHome (fun(ctxt: TickContext): boolean?)?
+---@field loadHome (fun(ctxt: TickContext): boolean?)?
 ---@field canRefuelAtStation (fun(): boolean)? default false
 ---@field canRepairAtGarage (fun(): boolean)? default false
+---@field canReset (fun(): boolean)?
+---@field canRecoverVehicle (fun(): boolean)?
 ---@field canSpawnNewVehicle (fun(): boolean)? default true
 ---@field canReplaceVehicle (fun(): boolean)? default true
 ---@field canPaintVehicle (fun(): boolean)? default true

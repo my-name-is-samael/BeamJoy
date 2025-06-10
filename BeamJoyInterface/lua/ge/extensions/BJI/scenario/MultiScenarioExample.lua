@@ -17,8 +17,8 @@ local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({
         {
             restrictions = Table({
-                BJI.Managers.Restrictions.RESET.TELEPORT,
                 BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
             }):flat(),
             state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         },
@@ -115,6 +115,7 @@ end
 
 -- player list contextual actions getter
 local function getPlayerListActions(player)
+    return {}
 end
 
 -- each frame tick hook
@@ -135,8 +136,8 @@ local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({
         {
             restrictions = Table({
-                BJI.Managers.Restrictions.RESET.TELEPORT,
                 BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
             }):flat(),
             state = false, -- forbidden bindings
         },

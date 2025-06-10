@@ -131,10 +131,7 @@ local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.Restrictions.update({
         {
-            restrictions = Table({
-                BJI.Managers.Restrictions.RESET.ALL,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            }):flat(),
+            restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             state = BJI.Managers.Restrictions.STATE.RESTRICTED,
         }
     })
@@ -192,20 +189,15 @@ local function onStopBusMission()
     onMissionFailed()
 end
 
+---@param ctxt TickContext
 local function drawUI(ctxt)
-    LineBuilder()
-        :text(BJI.Managers.Lang.get("buslines.play.line"):var({ name = S.line.name }))
-        :build()
-    LineBuilder()
-        :text(BJI.Managers.Lang.get("buslines.play.stopCount")
-            :var({ current = S.nextStop - 1, total = #S.line.stops }))
-        :build()
-    ProgressBar({
-        floatPercent = S.progression,
-        width = 250,
-        style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+    local line = LineBuilder():btnIcon({
+        id = "stopBusMission",
+        icon = BJI.Utils.Icon.ICONS.exit_to_app,
+        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+        tooltip = BJI.Managers.Lang.get("menu.scenario.busMission.stop"),
+        onClick = onStopBusMission,
     })
-    local line = LineBuilder()
     if S.line.loopable then
         local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
         line:btnIconToggle({
@@ -216,19 +208,23 @@ local function drawUI(ctxt)
             onClick = function()
                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
             end,
-            big = true,
         })
     end
-    line:btnIcon({
-        id = "stopBusMission",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        big = true,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
-        onClick = onStopBusMission,
-    }):build()
+    line:text(BJI.Managers.Lang.get("buslines.play.title")):build()
+
+    local stopLabel = BJI.Managers.Lang.get("buslines.play.stopCount")
+        :var({ current = S.nextStop - 1, total = #S.line.stops })
+    LineBuilder():text(BJI.Managers.Lang.get("buslines.play.line")
+        :var({ name = S.line.name }), nil, stopLabel):build()
+
+    ProgressBar({
+        floatPercent = S.progression,
+        style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
+        tooltip = stopLabel,
+    })
 end
 
+---@param ctxt TickContext
 local function onTargetReached(ctxt)
     S.checkTargetProcess = false
     local flashMsg = BJI.Managers.Lang.get("buslines.play.flashDriveNext")
@@ -251,6 +247,7 @@ local function onTargetReached(ctxt)
     BJI.Managers.Message.flash("BJIBusMissionTarget", flashMsg, 3, false)
 end
 
+---@param reached boolean
 local function updateCornerMarkersColor(reached)
     for _, marker in ipairs(S.cornerMarkers) do
         if reached then
@@ -261,6 +258,7 @@ local function updateCornerMarkersColor(reached)
     end
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.isOwner then
         S.onStopBusMission()
@@ -301,21 +299,13 @@ local function slowTick(ctxt)
     end
 end
 
+---@param player BJIPlayer
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    if not BJI.Managers.Perm.isStaff() and not player.self and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_KICK) and
-        BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -334,10 +324,7 @@ local function onUnload(ctxt)
     removeCornerMarkers()
     reset()
     BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        }):flat(),
+        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
         state = BJI.Managers.Restrictions.STATE.ALLOWED,
     } })
     BJI.Managers.GPS.reset()

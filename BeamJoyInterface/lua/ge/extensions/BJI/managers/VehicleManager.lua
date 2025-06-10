@@ -14,6 +14,10 @@
 ---@field pos vec3
 ---@field rot? quat
 
+---@class BJIPositionRotationVelocity: BJIPositionRotation
+---@field vel vec3
+---@field gearbox {grb_bhv: string, grb_mde: string?, grb_idx: integer?}
+
 ---@class BJIManagerVeh : BJIManager
 local M = {
     _name = "Veh",
@@ -38,6 +42,9 @@ local M = {
     tankEmergencyRefuelThreshold = .02, -- threshold for when emergency refuel button appears
     tankLowThreshold = .05,             -- threshold for when fuel amount becomes critical + warning sound
     tankMedThreshold = .15,             -- threshold for when fuel amount becomes warning
+
+    ---@type table<integer, BJIPositionRotation> index gameVehID
+    homes = {},
 }
 
 --gameplay_walk.toggleWalkingMode()
@@ -283,11 +290,23 @@ local function waitForVehicleSpawn(callback)
     end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
 end
 
+---@param gameVehID integer
 local function onVehicleSpawned(gameVehID)
     local vehicle = M.getVehicleObject(gameVehID)
     if vehicle then
         vehicle:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
+        if M.isVehicleOwn(gameVehID) then
+            vehicle:queueLuaCommand(
+                "recovery.saveHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.saveHome('..tostring(obj:getID())..')') end")
+            vehicle:queueLuaCommand(
+                "recovery.loadHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.loadHome('..tostring(obj:getID())..')') end")
+        end
     end
+end
+
+---@param gameVehID integer
+local function onVehicleDestroyed(gameVehID)
+    M.homes[gameVehID] = nil
 end
 
 local function focus(playerID)
@@ -411,34 +430,33 @@ end
 local function saveHome(posRot)
     local veh = M.getCurrentVehicleOwn()
     if veh then
-        local pointStr = ""
+        local finalPoint
         if posRot then
-            local angle = math.angleFromQuatRotation(posRot.rot)
-            local dirFront = vec3(math.rotate2DVec(vec3(0, 1, 0), angle))
-            local dirUp = vec3(0, 0, 1)
-            pointStr = string.var([[{
-                pos = vec3({1}, {2}, {3}),
-                dirFront = vec3({4}, {5}, {6}),
-                dirUp = vec3({7}, {8}, {9}),
-            }]], {
-                posRot.pos.x, posRot.pos.y, posRot.pos.z,
-                dirFront.x, dirFront.y, dirFront.z,
-                dirUp.x, dirUp.y, dirUp.z
-            })
-
-            local revertedRot = posRot.rot * quat(0, 0, 0, 1)
-            veh:setOriginalTransform(posRot.pos.x, posRot.pos.y, posRot.pos.z,
-                revertedRot.x, revertedRot.y, revertedRot.z, revertedRot.w)
+            finalPoint = {
+                pos = vec3(posRot.pos),
+                rot = quat(posRot.rot),
+            }
+        else
+            finalPoint = M.getPositionRotation(veh)
         end
-        veh:queueLuaCommand(string.var("recovery.saveHome({1})", { pointStr }))
+        M.homes[veh:getID()] = finalPoint
+        if BJI.Managers.Scenario.isFreeroam() and finalPoint then
+            guihooks.message("vehicle.recovery.saveHome", 5, "recovery")
+        end
     end
 end
 
 ---@param callback? fun(ctxt: TickContext)
 local function loadHome(callback)
     local veh = M.getCurrentVehicleOwn()
-    if veh then
-        veh:queueLuaCommand("recovery.loadHome()")
+    if veh and M.homes[veh:getID()] then
+        local home = M.homes[veh:getID()]
+        veh:requestReset(RESET_PHYSICS)
+        local pos, rot = vec3(home.pos) + vec3(0, 0, veh:getInitialHeight() / 2), quat(home.rot)
+        M.setPositionRotation(pos, rot)
+        if BJI.Managers.Scenario.isFreeroam() then
+            guihooks.message("vehicle.recovery.loadHome", 5, "recovery")
+        end
         if type(callback) == "function" then
             waitForVehicleSpawn(callback)
         end
@@ -457,7 +475,7 @@ local function recoverInPlace(callback)
 end
 
 ---@param veh? userdata
----@return BJIPositionRotation|nil
+---@return BJIPositionRotation?
 local function getPositionRotation(veh)
     if not veh then
         veh = M.getCurrentVehicle()
@@ -465,9 +483,8 @@ local function getPositionRotation(veh)
 
     if veh then
         local nodeId = veh:getRefNodeId()
-        --local pos = veh:getSpawnWorldOOBB():getCenter()
-        local pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID()))
-        pos.z = pos.z - veh:getInitialHeight() * .5 -- center at ground
+        local pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID())) -
+            vec3(0, 0, veh:getInitialHeight() / 2) -- center at ground
         local rot = quat(veh:getClusterRotationSlow(nodeId))
 
         return math.roundPositionRotation({ pos = pos, rot = rot })
@@ -475,16 +492,46 @@ local function getPositionRotation(veh)
     return nil
 end
 
---[[
-<ul>
-    <li>safe?: boolean DEFAULT true</li>
-    <li>saveHome?: boolean NULLABLE</li>
-    <li>noReset?: boolean DEFAULT false</li>
-</ul>
-]]
+---@param veh? userdata
+---@param callback fun(posRotVel: BJIPositionRotationVelocity)
+local function getPosRotVel(veh, callback)
+    if not veh then
+        veh = M.getCurrentVehicle()
+    end
+    if veh then
+        ---@type table
+        local res = math.roundPositionRotation(M.getPositionRotation(veh) or {})
+        local vel = vec3(veh:getVelocity())
+        ---@type table
+        table.assign(res, {
+            vel = vec3(
+                math.round(vel.x, 2),
+                math.round(vel.y, 2),
+                math.round(vel.z, 2)
+            )
+        })
+        ---@param bhv string
+        ---@param mde string
+        ---@param idx string
+        M.TMP_SET_GEARBOX = function(bhv, mde, idx)
+            res.gearbox = {
+                grb_bhv = bhv,
+                grb_mde = #mde > 0 and mde or nil,
+                grb_idx = #idx > 0 and tonumber(idx) or nil,
+            }
+            M.TMP_SET_GEARBOX = nil
+            callback(res)
+        end
+        veh:queueLuaCommand([[
+            local state = controller.mainController.getState()
+            obj:queueGameEngineLua("BJI.Managers.Veh.TMP_SET_GEARBOX('"..state.grb_bhv.."', '"..(state.grb_mde or "").."', '"..(tostring(state.grb_idx) or "").."')")
+        ]])
+    end
+end
+
 ---@param pos vec3
 ---@param rot? quat DEFAULT to currentVeh:rot
----@param options? { safe?: boolean, saveHome?: boolean, noReset?: boolean }
+---@param options? { safe?: boolean, saveHome?: boolean, noReset?: boolean } safe default true, noReset default false
 local function setPositionRotation(pos, rot, options)
     if not pos then
         return
@@ -499,8 +546,8 @@ local function setPositionRotation(pos, rot, options)
     if not options then options = { safe = true } end
     if options.safe == nil then options.safe = true end
 
-    local veh = M.getCurrentVehicle()
-    if veh and M.isVehicleOwn(veh:getID()) then
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
         pos.z = pos.z + veh:getInitialHeight() * .5 -- add half the height of vehicle
 
         if options.noReset then
@@ -530,6 +577,29 @@ local function setPositionRotation(pos, rot, options)
         if options.saveHome then
             M.saveHome()
         end
+    end
+end
+
+---@param posRotVel BJIPositionRotationVelocity
+local function setPosRotVel(posRotVel)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        local vehRot = quat(veh:getClusterRotationSlow(veh:getRefNodeId()))
+        local diffRot = vehRot:inversed() * posRotVel.rot
+        M.setPositionRotation(posRotVel.pos, posRotVel.rot, {safe = false})
+        veh:resetBrokenFlexMesh()
+        veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
+        veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, posRotVel.vel.x, posRotVel.vel.y, posRotVel.vel.z)
+        local cmd = [[controller.mainController.setState({]] ..
+            Table(posRotVel.gearbox):map(function(v, k)
+                if type(v) == "string" then
+                    return string.var('{1}="{2}"', { k, v })
+                else
+                    return string.var("{1}={2}", { k, v })
+                end
+            end):join(",") ..
+            "})"
+        veh:queueLuaCommand(cmd)
     end
 end
 
@@ -1490,6 +1560,7 @@ M.onLoad = function()
     end, "BJIVehSaveRemoveConfigOverride")
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
@@ -1542,7 +1613,9 @@ M.loadHome = loadHome
 M.recoverInPlace = recoverInPlace
 
 M.getPositionRotation = getPositionRotation
+M.getPosRotVel = getPosRotVel
 M.setPositionRotation = setPositionRotation
+M.setPosRotVel = setPosRotVel
 M.stopCurrentVehicle = stopCurrentVehicle
 
 M.freeze = freeze

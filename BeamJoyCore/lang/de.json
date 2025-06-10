@@ -296,6 +296,7 @@
       "modManagementDisabled": "Die Modverwaltung ist auf diesem Server deaktiviert!",
       "cannotSpawnVeh": "Du kannst kein Fahrzeug spawnen",
       "cannotSpawnAnyMoreVeh": "Es können keine weiteren Fahrzeuge spawnen",
+      "cannotResetNow": "Du kannst jetzt nicht zurücksetzen",
       "unavailableDuringScenario": "Während des Szenarios nicht verfügbar",
       "scenarioUnavailable": "Szenario nicht verfügbar",
       "toastModelBlacklisted": "Dieses Fahrzeug steht auf der schwarzen Liste",
@@ -1259,7 +1260,6 @@
       }
     },
     "delivery": {
-      "title": "Fahrzeuglieferung",
       "leaderboard": {
         "title": "Liefer-Rangliste",
         "delivered": "Fahrzeuge und Pakete geliefert"
@@ -1282,6 +1282,7 @@
       }
     },
     "vehicleDelivery": {
+      "title": "Fahrzeuglieferung",
       "vehicle": "Fahrzeug",
       "damagedWarning": "Wenn das Fahrzeug beschädigt ist, wird Ihre Prämie gemindert.",
       "flashStart": "Liefern Sie das Fahrzeug",
@@ -1289,6 +1290,7 @@
       "flashSuccess": "Gut gemacht !"
     },
     "packageDelivery": {
+      "title": "Paketlieferung",
       "currentStreak": "Zugestellte(s) Paket(e): {streak}",
       "streakTooltip": "Liefern Sie weiterhin Pakete nacheinander aus, dann erhalten Sie zusätzliche Belohnungen",
       "flashStart": "Liefern Sie das Paket ab",

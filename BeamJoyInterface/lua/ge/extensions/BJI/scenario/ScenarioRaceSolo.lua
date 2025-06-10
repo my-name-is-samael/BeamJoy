@@ -68,7 +68,11 @@ local function initManagerData()
     S.currentSpeed = 0
     ---@type MapRacePBWP[]
     S.lapData = {}
+    ---@type BJIPositionRotationVelocity?
+    S.lastLaunchedCheckpoint = nil
+    S.lastLaunchedCheckpointTime = 0
 
+    S.resetLock = true
     S.dnf.process = false -- true if countdown is launched
     S.dnf.standExempt = false
     S.dnf.lastPos = nil
@@ -97,7 +101,6 @@ local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -145,7 +148,6 @@ local function onUnload(ctxt)
     end
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
-            BJI.Managers.Restrictions.RESET.ALL,
             BJI.Managers.Restrictions.OTHER.BIG_MAP,
             BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
             BJI.Managers.Restrictions.OTHER.FREE_CAM,
@@ -165,15 +167,7 @@ local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -340,9 +334,9 @@ local function updateLeaderBoard(remainingSteps, raceTime, lapTime)
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
-    local previousRestrictions = BJI.Managers.Restrictions.getCurrentResets()
-    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+    S.resetLock = true
     S.dnf.standExempt = true
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 
     BJI.Managers.Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
         BJI.Managers.Lang.get("races.play.flashCountdownZero"))
@@ -374,8 +368,9 @@ local function onStandStop(delayMs, wp, lastWp, callback)
         if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJI.Managers.Async.delayTask(function()
                 -- delays reset restriction remove
-                BJI.Managers.Restrictions.updateResets(previousRestrictions)
+                S.resetLock = false
                 S.dnf.standExempt = false
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
             end, 1000, "BJIRaceStandEndRestrictionReset")
         end
         if type(callback) == "function" then
@@ -434,6 +429,9 @@ local function onCheckpointReached(wp, remainingSteps)
             S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
                 BJI.Managers.Veh.saveHome({ pos = wp.pos, rot = wp.rot })
+                BJI.Managers.Veh.getPosRotVel(nil, function(data)
+                    S.lastLaunchedCheckpoint = data
+                end)
             elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
                 -- check if current or previous stand is different than last
                 ---@param stand RaceStand
@@ -682,15 +680,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         S.race.timers.race = math.timer()
         S.race.timers.lap = math.timer()
         BJI.Managers.Veh.freeze(false)
-        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            local restrictions = BJI.Managers.Restrictions.RESET.ALL_BUT_LOADHOME
-            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-                restrictions = Table()
-                    :addAll(BJI.Managers.Restrictions.RESET.TELEPORT)
-                    :addAll(BJI.Managers.Restrictions.RESET.HEAVY_RELOAD)
-            end
-            BJI.Managers.Restrictions.updateResets(restrictions)
-        end
+        S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end, S.race.startTime, "BJIRaceStartTime")
 end
@@ -699,14 +689,54 @@ local function restartRace(settings, raceData)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
     BJI.Managers.Async.task(function(ctxt)
         return BJI.Managers.Context.Players[ctxt.user.playerID] and
-            BJI.Managers.Context.Players[ctxt.user.playerID].isGhost
-    end, function()
-        if BJI.Managers.Scenario.isFreeroam() then
+            not BJI.Managers.Context.Players[ctxt.user.playerID].isGhost
+    end, function(ctxt2)
+        if BJI.Managers.Scenario.isFreeroam() and ctxt2.isOwner then
             S.initRace(BJI.Managers.Tick.getContext(), settings, raceData)
         end
     end)
 end
 
+---@return boolean
+local function canRecoverVehicle()
+    local ctxt = BJI.Managers.Tick.getContext()
+    return S.isRaceStarted(ctxt) and not S.isRaceFinished() and
+        S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key
+end
+
+---@param ctxt TickContext
+---@return boolean?
+local function saveHome(ctxt)
+    if S.isRaceStarted(ctxt) and not S.isRaceFinished() then
+        if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+            if S.lastLaunchedCheckpoint and ctxt.now - S.lastLaunchedCheckpointTime > 1000 then
+                BJI.Managers.Veh.setPosRotVel(S.lastLaunchedCheckpoint)
+                S.lastLaunchedCheckpointTime = ctxt.now
+                return true
+            else
+                BJI.Managers.Veh.loadHome()
+                return true
+            end
+        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+            BJI.Managers.Veh.loadHome()
+            return true
+        end
+    end
+end
+
+---@param ctxt TickContext
+---@return boolean?
+local function loadHome(ctxt)
+    if S.isRaceStarted(ctxt) and not S.isRaceFinished() then
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
+            S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+            BJI.Managers.Veh.loadHome()
+            return true
+        end
+    end
+end
+
+---@return boolean
 local function isSprint()
     return not S.settings.laps or S.settings.laps == 1
 end
@@ -795,6 +825,10 @@ S.onUnload = onUnload
 
 S.initRace = initRace
 S.restartRace = restartRace
+
+S.canRecoverVehicle = canRecoverVehicle
+S.saveHome = saveHome
+S.loadHome = loadHome
 
 S.canSpawnNewVehicle = FalseFn
 S.canReplaceVehicle = FalseFn

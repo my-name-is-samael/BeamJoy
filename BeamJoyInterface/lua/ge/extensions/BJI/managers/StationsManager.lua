@@ -190,6 +190,7 @@ local function fastTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     if not ctxt.isOwner or not ctxt.vehData or not ctxt.vehData.tanks then return end
     if not energyTypes or #energyTypes == 0 then return end
@@ -209,14 +210,13 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
 
     -- start process
     BJI.Managers.Veh.stopCurrentVehicle()
-    BJI.Managers.Context.User.stationProcess = true
-    local previousRestrictions = BJI.Managers.Restrictions.getCurrentResets()
-    BJI.Managers.Restrictions.updateResets(BJI.Managers.Restrictions.RESET.ALL)
+    ctxt.user.stationProcess = true
     BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
-    BJI.Managers.Veh.freeze(true, ctxt.vehData.vehGameID)
+    BJI.Managers.Veh.freeze(true, ctxt.vehData.gameVehID)
     ctxt.vehData.engineStation = false
-    BJI.Managers.Veh.engine(false, ctxt.vehData.vehGameID)
+    BJI.Managers.Veh.engine(false, ctxt.vehData.gameVehID)
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROCESS_CHANGED)
 
     local completedKey = table.length(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
         "energyStations.flashTankFilled"
@@ -234,15 +234,15 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     BJI.Managers.Async.delayTask(function()
         ctxt.vehData.freezeStation = false
         if not ctxt.vehData.freeze then
-            BJI.Managers.Veh.freeze(false, ctxt.vehData.vehGameID)
+            BJI.Managers.Veh.freeze(false, ctxt.vehData.gameVehID)
         end
         ctxt.vehData.engineStation = true
         if ctxt.vehData.engine then
-            BJI.Managers.Veh.engine(true, ctxt.vehData.vehGameID)
+            BJI.Managers.Veh.engine(true, ctxt.vehData.gameVehID)
         end
         BJI.Managers.Cam.resetForceCamera(true)
-        BJI.Managers.Restrictions.updateResets(previousRestrictions)
         BJI.Managers.Context.User.stationProcess = false
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROCESS_CHANGED)
     end, fillDuration * 1000, "BJIStationRefillEnd")
 end
 
