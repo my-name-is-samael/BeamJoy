@@ -961,7 +961,7 @@ end
 local function onRaceSoloEnd(playerID, finished)
     local player = M.Players[playerID]
     if player.scenario ~= BJCScenario.PLAYER_SCENARII.RACE_SOLO then
-        error({ key = "rx.errors.invalidData" })
+        return
     end
 
     M.setPlayerScenario(playerID, BJCScenario.PLAYER_SCENARII.FREEROAM)

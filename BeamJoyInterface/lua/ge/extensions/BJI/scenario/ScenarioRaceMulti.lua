@@ -231,7 +231,14 @@ local function initGrid(data)
         end
     end
 
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+    if BJI.Windows.Race.getState() then
+        -- hard switch from solo race
+        BJI.Windows.Race.onUnload()
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+        BJI.Windows.Race.onLoad()
+    else
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+    end
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
     BJI.Managers.Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
 end
