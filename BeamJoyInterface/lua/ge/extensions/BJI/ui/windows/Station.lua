@@ -57,29 +57,31 @@ local function onRepair(ctxt)
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
-    BJI.Managers.Veh.freeze(true, ctxt.vehData.finalGameVehID)
+    BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
     ctxt.vehData.engineStation = false
-    BJI.Managers.Veh.engine(false, ctxt.vehData.finalGameVehID)
+    BJI.Managers.Veh.engine(false, ctxt.veh:getID())
     BJI.Managers.Reputation.onGarageRepair()
     BJI.Managers.Scenario.onGarageRepair()
 
     BJI.Managers.Message.flashCountdown("BJIRefill", GetCurrentTimeMillis() + 5010, false,
         BJI.Managers.Lang.get("garages.flashVehicleRepaired"))
-    BJI.Managers.Async.delayTask(function()
-        BJI.Managers.Veh.setPositionRotation(BJI.Managers.Veh.getPositionRotation().pos, nil, {
-            safe = false
-        })
-        BJI.Managers.Veh.postResetPreserveEnergy(ctxt.vehData.gameVehID)
-        ctxt.vehData.freezeStation = false
-        if not ctxt.vehData.freeze then
-            BJI.Managers.Veh.freeze(false, ctxt.vehData.finalGameVehID)
+    BJI.Managers.Async.delayTask(function(ctxt2)
+        if ctxt2.veh then
+            BJI.Managers.Veh.setPositionRotation(BJI.Managers.Veh.getPositionRotation().pos, nil, {
+                safe = false
+            })
+            BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh:getID())
+            ctxt2.vehData.freezeStation = false
+            if not ctxt2.vehData.freeze then
+                BJI.Managers.Veh.freeze(false, ctxt2.veh:getID())
+            end
+            ctxt2.vehData.engineStation = true
+            if ctxt2.vehData.engine then
+                BJI.Managers.Veh.engine(true, ctxt2.veh:getID())
+            end
+            BJI.Managers.Cam.resetForceCamera(true)
         end
-        ctxt.vehData.engineStation = true
-        if ctxt.vehData.engine then
-            BJI.Managers.Veh.engine(true, ctxt.vehData.finalGameVehID)
-        end
-        BJI.Managers.Cam.resetForceCamera(true)
-        ctxt.user.stationProcess = false
+        ctxt2.user.stationProcess = false
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end, 5000, "BJIStationRepair")
 end

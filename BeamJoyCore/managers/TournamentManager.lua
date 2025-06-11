@@ -264,10 +264,6 @@ end
 ---@param playerName string
 ---@param state boolean
 local function togglePlayer(playerName, state)
-    if not M.whitelist then
-        error({ key = "rx.errors.invalidData" })
-    end
-
     local exists = M.whitelistPlayers:includes(playerName)
     if not state and exists then
         M.players:find(function(p) return p.playerName == playerName end, function(p, i)

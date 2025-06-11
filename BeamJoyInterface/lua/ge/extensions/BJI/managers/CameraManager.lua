@@ -227,6 +227,9 @@ end
 local function fastTick(ctxt)
     -- Update forced camera
     if M.isForcedCamera() then
+        if M.forced.cam ~= M.CAMERAS.FREE and not ctxt.veh then
+            resetForceCamera() -- veh deletion safe
+        end
         if ctxt.camera ~= M.forced.cam then
             M.setCamera(M.forced.cam, false)
             ctxt.camera = M.getCamera()
