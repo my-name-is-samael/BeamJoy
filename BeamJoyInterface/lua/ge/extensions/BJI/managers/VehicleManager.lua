@@ -45,6 +45,8 @@ local M = {
 
     ---@type table<integer, BJIPositionRotation> index gameVehID
     homes = {},
+
+    DEBUG_FFB_TIMEOUT = 1500,
 }
 
 --gameplay_walk.toggleWalkingMode()
@@ -580,28 +582,75 @@ local function setPositionRotation(pos, rot, options)
     end
 end
 
+-- TO REWORK : BREAKS GEARBOX with some modes
 ---@param posRotVel BJIPositionRotationVelocity
 local function setPosRotVel(posRotVel)
-    local veh = M.getCurrentVehicleOwn()
+    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
     if veh then
-        local vehRot = quat(veh:getClusterRotationSlow(veh:getRefNodeId()))
-        local diffRot = vehRot:inversed() * posRotVel.rot
-        M.setPositionRotation(posRotVel.pos, posRotVel.rot, {safe = false})
-        veh:resetBrokenFlexMesh()
-        veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
-        veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, posRotVel.vel.x, posRotVel.vel.y, posRotVel.vel.z)
-        local cmd = [[controller.mainController.setState({]] ..
-            Table(posRotVel.gearbox):map(function(v, k)
-                if type(v) == "string" then
-                    return string.var('{1}="{2}"', { k, v })
-                else
-                    return string.var("{1}={2}", { k, v })
-                end
-            end):join(",") ..
-            "})"
-        veh:queueLuaCommand(cmd)
+        BJI.Managers.Veh.TMP_GET_FFB = function(ffb)
+            local previousSmoothing = ffb.smoothing
+            local previousForce = ffb.forceCoef
+            ffb.smoothing = ffb.smoothing * 2
+            ffb.forceCoef = ffb.forceCoef / 2
+            be:getPlayerVehicle(0):queueLuaCommand([[
+                hydros.setFFBConfig({
+                    forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
+                    gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
+                    smoothing=]] .. tostring(ffb.smoothing) .. [[,
+                    smoothing2=]] .. tostring(ffb.smoothing2) .. [[,
+                    smoothing2automatic=]] .. tostring(ffb.smoothing2automatic) .. [[,
+                    softlockForce=]] .. tostring(ffb.softlockForce) .. [[
+                })
+            ]]);
+
+            BJI.Managers.Veh.setPositionRotation(posRotVel.pos, posRotVel.rot, { safe = false })
+            veh:resetBrokenFlexMesh()
+            veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
+            veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, posRotVel.vel.x, posRotVel.vel.y, posRotVel.vel.z)
+            local cmd = [[controller.mainController.setState({]] ..
+                Table(posRotVel.gearbox):map(function(v, k)
+                    if type(v) == "string" then
+                        return string.var('{1}="{2}"', { k, v })
+                    else
+                        return string.var("{1}={2}", { k, v })
+                    end
+                end):join(",") ..
+                "})"
+            veh:queueLuaCommand(cmd)
+
+            BJI.Managers.Async.delayTask(function()
+                ffb.smoothing = previousSmoothing
+                ffb.forceCoef = previousForce
+                be:getPlayerVehicle(0):queueLuaCommand([[
+                hydros.setFFBConfig({
+                    forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
+                    gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
+                    smoothing=]] .. tostring(ffb.smoothing) .. [[,
+                    smoothing2=]] .. tostring(ffb.smoothing2) .. [[,
+                    smoothing2automatic=]] .. tostring(ffb.smoothing2automatic) .. [[,
+                    softlockForce=]] .. tostring(ffb.softlockForce) .. [[
+                })
+            ]]);
+            end, 1500)
+
+            BJI.Managers.Veh.TMP_GET_FFB = nil
+        end
+
+        local params = Table({
+            'forceCoef="..tostring(ffb.forceCoef).."',
+            'gforceCoef="..tostring(ffb.gforceCoef).."',
+            'smoothing="..tostring(ffb.smoothing).."',
+            'smoothing2="..tostring(ffb.smoothing2).."',
+            'smoothing2automatic="..tostring(ffb.smoothing2automatic).."',
+            'softlockForce="..tostring(ffb.softlockForce).."',
+        }):join(",")
+        be:getPlayerVehicle(0):queueLuaCommand([[
+            local ffb = hydros.getFFBConfig()
+            obj:queueGameEngineLua("BJI.Managers.Veh.TMP_GET_FFB({]] .. params .. [[})")
+        ]]);
     end
 end
+
 
 local function stopCurrentVehicle()
     local veh = M.getCurrentVehicleOwn()

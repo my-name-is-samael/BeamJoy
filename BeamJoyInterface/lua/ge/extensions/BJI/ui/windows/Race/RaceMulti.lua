@@ -21,7 +21,7 @@ local W = {
             finalTime = "",
             showForfeitBtn = false,
             showManualResetBtn = false,
-            showLaunchRespawnBtn = false,
+            showLaunchedRespawnBtn = false,
             manualResetWidth = 0,
             disableButtons = false,
             showTimer = false,
@@ -332,12 +332,12 @@ local function updateCache(ctxt)
             BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
         }, W.scenario.settings.respawnStrategy)
         W.cache.data.manualResetWidth = 0
-        W.cache.data.showLaunchRespawnBtn = W.cache.data.showManualResetBtn and
-            W.scenario.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key
+        W.cache.data.showLaunchedRespawnBtn = false --[[W.cache.data.showManualResetBtn and
+            W.scenario.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key]]
         if W.cache.data.showManualResetBtn then
             W.cache.data.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) +
                 BJI.Utils.UI.GetTextWidth("  ") -- load home reset
-            if W.cache.data.showLaunchRespawnBtn then
+            if W.cache.data.showLaunchedRespawnBtn then
                 W.cache.data.manualResetWidth = W.cache.data.manualResetWidth +
                     BJI.Utils.UI.GetBtnIconSize(true) -- launched reset
             end
@@ -453,7 +453,7 @@ local function header(ctxt)
                 end or nil,
                 W.cache.data.showManualResetBtn and function()
                     line = LineBuilder()
-                    if W.cache.data.showLaunchRespawnBtn then
+                    if W.cache.data.showLaunchedRespawnBtn then
                         line:btnIcon({
                             id = "manualLaunchedRespawn",
                             icon = BJI.Utils.Icon.ICONS.vertical_align_top,

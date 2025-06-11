@@ -528,9 +528,9 @@ local function onCheckpointReached(wp, remainingSteps)
                 }, S.settings.respawnStrategy) then
                 if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
                     BJI.Managers.Veh.saveHome({ pos = wp.pos, rot = wp.rot })
-                    BJI.Managers.Veh.getPosRotVel(nil, function(data)
+                    --[[BJI.Managers.Veh.getPosRotVel(nil, function(data)
                         S.lastLaunchedCheckpoint = data
-                    end)
+                    end)]]
                 elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
                     -- check if current or previous stand is different than last
                     ---@param stand RaceStand
