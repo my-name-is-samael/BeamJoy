@@ -585,9 +585,9 @@ end
 -- TO REWORK : BREAKS GEARBOX with some modes
 ---@param posRotVel BJIPositionRotationVelocity
 local function setPosRotVel(posRotVel)
-    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    local veh = M.getCurrentVehicleOwn()
     if veh then
-        BJI.Managers.Veh.TMP_GET_FFB = function(ffb)
+        M.TMP_GET_FFB = function(ffb)
             local previousSmoothing = ffb.smoothing
             local previousForce = ffb.forceCoef
             ffb.smoothing = ffb.smoothing * 2
@@ -603,7 +603,7 @@ local function setPosRotVel(posRotVel)
                 })
             ]]);
 
-            BJI.Managers.Veh.setPositionRotation(posRotVel.pos, posRotVel.rot, { safe = false })
+            M.setPositionRotation(posRotVel.pos, posRotVel.rot, { safe = false })
             veh:resetBrokenFlexMesh()
             veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
             veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, posRotVel.vel.x, posRotVel.vel.y, posRotVel.vel.z)
@@ -633,7 +633,7 @@ local function setPosRotVel(posRotVel)
             ]]);
             end, 1500)
 
-            BJI.Managers.Veh.TMP_GET_FFB = nil
+            M.TMP_GET_FFB = nil
         end
 
         local params = Table({
@@ -958,7 +958,7 @@ local function getFullConfig(config)
                 res.parts = convertPartsTree(res.partsTree)
                 res.partsTree = nil
             end
-            res.label = BJI.Managers.Veh.getModelLabel(res.model)
+            res.label = M.getModelLabel(res.model)
         end
     else
         res = jsonReadFile(config)
@@ -967,8 +967,8 @@ local function getFullConfig(config)
             -- some configs are malformed and do not have model value (eg barstow-awful)
             res.model = tostring(config):gsub("^vehicles/", ""):gsub("/.+%.pc$", "")
         end
-        res.label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(res.model),
-            BJI.Managers.Veh.getConfigLabel(res.model, res.key) })
+        res.label = string.var("{1} {2}", { M.getModelLabel(res.model),
+            M.getConfigLabel(res.model, res.key) })
     end
 
     return res
