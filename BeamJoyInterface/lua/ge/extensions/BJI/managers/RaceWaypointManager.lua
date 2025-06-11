@@ -270,6 +270,9 @@ local function getVehCorners(ctxt)
     local origin = vec3(ctxt.vehPosRot.pos);
     local len = vec3(ctxt.veh:getInitialLength() / 2, 0, 0);
     local vdata = map.objects[ctxt.veh:getID()];
+    if not vdata then
+        error("Invalid vehicle")
+    end
     local dir = vdata.dirVec;
     local angle = math.atan2(dir:dot(vec3(1, 0, 0)), dir:dot(vec3(0, -1, 0)));
     angle = math.scale(angle, -math.pi, math.pi, 0, math.pi * 2);
