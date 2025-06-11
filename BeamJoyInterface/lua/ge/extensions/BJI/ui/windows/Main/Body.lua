@@ -382,38 +382,63 @@ local function onUnload()
 end
 
 local function draw(ctxt)
-    if cache.data.showVehEnergy then
-        energyIndicator.draw(ctxt)
-    end
-    if cache.data.showVehDamages then
-        healthIndicator.draw(ctxt)
+    local needSpace, needSeparator = false, false
+    local function Delim()
+        if needSeparator then
+            Separator()
+        end
+        if needSpace then
+            EmptyLine()
+        end
     end
 
-    if cache.data.showDeliveryLeaderboard then
-        deliveryLeaderboard.draw(ctxt)
+    local showHealthIndicator = cache.data.showVehDamages and healthIndicator.isVisible(ctxt)
+    if cache.data.showVehEnergy or showHealthIndicator then
+        if cache.data.showVehEnergy then
+            energyIndicator.draw(ctxt)
+        end
+        if showHealthIndicator then
+            if cache.data.showVehEnergy then
+                Separator()
+            end
+            healthIndicator.draw(ctxt)
+        end
+        needSpace, needSeparator = true, true
     end
 
-    if cache.data.raceLeaderboard.show then
-        LineBuilder()
-            :btnSwitch({
-                id = "toggleRacesLeaderboardWindow",
-                labelOn = cache.labels.raceLeaderboard.title,
-                labelOff = cache.labels.raceLeaderboard.title,
-                state = not BJI.Windows.RacesLeaderboard.show,
-                onClick = function()
-                    BJI.Windows.RacesLeaderboard.show = not BJI.Windows.RacesLeaderboard.show
-                end
-            })
-            :build()
+    if cache.data.showDeliveryLeaderboard or cache.data.raceLeaderboard.show then
+        Delim()
+        if cache.data.showDeliveryLeaderboard then
+            deliveryLeaderboard.draw(ctxt)
+        end
+
+        if cache.data.raceLeaderboard.show then
+            LineBuilder()
+                :btnSwitch({
+                    id = "toggleRacesLeaderboardWindow",
+                    labelOn = cache.labels.raceLeaderboard.title,
+                    labelOff = cache.labels.raceLeaderboard.title,
+                    state = not BJI.Windows.RacesLeaderboard.show,
+                    onClick = function()
+                        BJI.Windows.RacesLeaderboard.show = not BJI.Windows.RacesLeaderboard.show
+                    end
+                })
+                :build()
+        end
+        needSpace, needSeparator = true, false
     end
+
 
     if type(cache.data.scenarioUIFn) == "function" then
+        Delim()
         cache.data.scenarioUIFn(ctxt)
-        Separator()
+        needSpace, needSeparator = true, true
     end
 
     if type(cache.data.playersFn) == "function" then
+        Delim()
         cache.data.playersFn(ctxt, cache)
+        needSpace, needSeparator = true, true
     end
 end
 
