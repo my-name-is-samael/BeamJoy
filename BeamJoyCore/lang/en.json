@@ -1147,7 +1147,7 @@
       "play": {
         "race": "Race",
         "by": "by {author}",
-        "record": "Record by {playerName} with {model} : {time}",
+        "record": "Record",
         "timeout": "Race will time out in {delay}",
         "aboutToTimeout": "The race is about to time out",
         "join": "Join Race",
@@ -1170,7 +1170,8 @@
         "finishFlashMulti": "You finished #{place} !",
         "eliminatedTime": "ELIMINATED",
         "flashWinner": "{playerName} won the race !",
-        "flashDnfOut": "ELIMINATED"
+        "flashDnfOut": "ELIMINATED",
+        "launchedRespawn": "Launched respawn"
       },
       "leaderboard": {
         "title": "Races Leaderboard",

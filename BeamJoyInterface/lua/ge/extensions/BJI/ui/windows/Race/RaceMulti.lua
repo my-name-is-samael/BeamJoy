@@ -4,9 +4,12 @@ local W = {
     cache = {
         data = {
             showRecord = false,
-            recordStr = "",
+            recordTime = "",
+            recordTooltip = "",
+            recordColor = nil,
             showPb = false,
             pbTime = "",
+            pbWidth = 0,
 
             ---@type Timer
             raceTimer = nil,
@@ -18,6 +21,7 @@ local W = {
             finalTime = "",
             showForfeitBtn = false,
             showManualResetBtn = false,
+            showLaunchRespawnBtn = false,
             manualResetWidth = 0,
             disableButtons = false,
             showTimer = false,
@@ -86,6 +90,7 @@ local W = {
                 markReady = "",
                 forfeit = "",
                 show = "",
+                launchedRespawn = "",
                 manualReset = "",
             },
         },
@@ -105,16 +110,12 @@ local function updateLabels()
         BJI.Managers.Lang.get("races.settings.lap"):var({ lap = W.scenario.settings.laps }) or
         BJI.Managers.Lang.get("races.settings.laps"):var({ laps = W.scenario.settings.laps })
     })
-    W.cache.labels.record = BJI.Managers.Lang.get("races.play.record")
-    W.cache.labels.pb = string.var("{1} :", { BJI.Managers.Lang.get("races.leaderboard.pb") })
+    W.cache.labels.record = BJI.Managers.Lang.get("races.play.record") .. " :"
+    W.cache.labels.pb = BJI.Managers.Lang.get("races.leaderboard.pb") .. " :"
     W.cache.labels.gameStartsIn = BJI.Managers.Lang.get("races.play.gameStartsIn")
     W.cache.labels.flashCountdownZero = BJI.Managers.Lang.get("races.play.flashCountdownZero")
     W.cache.labels.eliminatedIn = BJI.Managers.Lang.get("races.play.eliminatedIn")
-    W.cache.labels.eliminated = BJI.Managers.Lang.get("races.play.flashDnfOut")
-    W.cache.labels.gameStartsIn = BJI.Managers.Lang.get("races.play.gameStartsIn")
-    W.cache.labels.flashCountdownZero = BJI.Managers.Lang.get("races.play.flashCountdownZero")
-    W.cache.labels.eliminatedIn = BJI.Managers.Lang.get("races.play.eliminatedIn")
-    W.cache.labels.eliminated = BJI.Managers.Lang.get("races.play.flashDnfOut")
+    W.cache.labels.eliminated = BJI.Managers.Lang.get("races.play.eliminatedTime")
 
     W.cache.labels.wpCounter = BJI.Managers.Lang.get("races.play.WP")
     W.cache.labels.lapCounter = BJI.Managers.Lang.get("races.play.Lap")
@@ -135,6 +136,7 @@ local function updateLabels()
     W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
     W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
     W.cache.labels.buttons.show = BJI.Managers.Lang.get("common.buttons.show")
+    W.cache.labels.launchedRespawn = BJI.Managers.Lang.get("races.play.launchedRespawn")
     W.cache.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
 end
 
@@ -150,14 +152,20 @@ local function updateCache(ctxt)
 
     -- header
     W.cache.data.showRecord = not not W.scenario.record
-    W.cache.data.recordStr = W.cache.data.showRecord and W.cache.labels.record:var({
-        playerName = W.scenario.record.playerName,
-        model = BJI.Managers.Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model,
-        time = BJI.Utils.UI.RaceDelay(W.scenario.record.time)
+    W.cache.data.recordTime = W.cache.data.showRecord and
+        BJI.Utils.UI.RaceDelay(W.scenario.record.time) or ""
+    W.cache.data.recordTooltip = W.cache.data.showRecord and string.var("{1} - {2}", {
+        W.scenario.record.playerName,
+        BJI.Managers.Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model
     }) or ""
+    W.cache.data.recordColor = (W.cache.data.showRecord and
+            W.scenario.record.playerName == ctxt.user.playerName) and
+        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
     local _, pbTime = BJI.Managers.RaceWaypoint.getPB(W.scenario.raceHash)
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
+    W.cache.data.pbWidth = W.cache.data.showPb and BJI.Utils.UI.GetColumnTextWidth(string.var("{1} {2}",
+        { W.cache.labels.pb, W.cache.data.pbTime })) or 0
     W.cache.data.showForfeitBtn = W.scenario.isRaceStarted() and not W.scenario.isRaceFinished() and
         not W.scenario.isSpec()
     W.cache.data.startTime = W.scenario.race.startTime
@@ -297,6 +305,7 @@ local function updateCache(ctxt)
             local diffVal = math.abs(lb.diff or 0)
             local diffTime = string.var("+{1}", { BJI.Utils.UI.RaceDelay(diffVal) })
             local diffColor = diffVal > 0 and BJI.Utils.Style.TEXT_COLORS.ERROR or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+            local eliminated = W.scenario.isEliminated(lb.playerID)
             table.insert(cells, function()
                 if i == 1 then
                     -- first player
@@ -307,7 +316,12 @@ local function updateCache(ctxt)
                     if playerCurrentWP < firstPlayerCurrentWp then
                         line:text(diffLabel, BJI.Utils.Style.TEXT_COLORS.ERROR):text(W.cache.labels.vSeparator)
                     end
-                    line:text(diffTime, diffColor):build()
+                    if eliminated then
+                        line:text(W.cache.labels.eliminated, BJI.Utils.Style.TEXT_COLORS.ERROR)
+                    else
+                        line:text(diffTime, diffColor):build()
+                    end
+                    line:build()
                 end
             end)
             return { cells = cells }
@@ -317,8 +331,16 @@ local function updateCache(ctxt)
             BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key,
             BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
         }, W.scenario.settings.respawnStrategy)
+        W.cache.data.manualResetWidth = 0
+        W.cache.data.showLaunchRespawnBtn = W.cache.data.showManualResetBtn and
+            W.scenario.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key
         if W.cache.data.showManualResetBtn then
-            W.cache.data.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) + BJI.Utils.UI.GetTextWidth("  ")
+            W.cache.data.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) +
+                BJI.Utils.UI.GetTextWidth("  ") -- load home reset
+            if W.cache.data.showLaunchRespawnBtn then
+                W.cache.data.manualResetWidth = W.cache.data.manualResetWidth +
+                    BJI.Utils.UI.GetBtnIconSize(true) -- launched reset
+            end
         end
     end
 end
@@ -396,14 +418,18 @@ local function header(ctxt)
     end
     line:build()
 
-    if W.cache.data.showRecord then
-        LineBuilder():text(W.cache.data.recordStr):build()
-    else
-        EmptyLine()
-    end
-
-    if W.cache.data.showPb then
-        LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
+    if W.cache.data.showRecord or W.cache.data.showPb then
+        ColumnsBuilder("RaceSoloRecordPb", { -1, W.cache.data.pbWidth }):addRow({
+            cells = { W.cache.data.showRecord and function()
+                LineBuilder()
+                    :text(W.cache.labels.record, nil, W.cache.data.recordTooltip)
+                    :text(W.cache.data.recordTime, W.cache.data.recordColor, W.cache.data.recordTooltip)
+                    :build()
+            end or nil,
+                W.cache.data.showPb and function()
+                    LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
+                end or nil }
+        }):build()
     else
         EmptyLine()
     end
@@ -426,7 +452,24 @@ local function header(ctxt)
                     }):build()
                 end or nil,
                 W.cache.data.showManualResetBtn and function()
-                    LineBuilder():btnIcon({
+                    line = LineBuilder()
+                    if W.cache.data.showLaunchRespawnBtn then
+                        line:btnIcon({
+                            id = "manualLaunchedRespawn",
+                            icon = BJI.Utils.Icon.ICONS.vertical_align_top,
+                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            big = true,
+                            disabled = W.scenario.resetLock,
+                            tooltip = string.var("{1} ({2})", {
+                                W.cache.labels.launchedRespawn,
+                                extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()
+                            }),
+                            onClick = function()
+                                BJI.Managers.Scenario.saveHome(ctxt.veh:getID())
+                            end,
+                        })
+                    end
+                    line:btnIcon({
                         id = "manualReset",
                         icon = BJI.Utils.Icon.ICONS.build,
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
@@ -469,18 +512,20 @@ local function header(ctxt)
     end
 
     if W.cache.data.hasStartTime then
-        local remaining = getDiffTime(W.cache.data.startTime, ctxt.now)
-        if remaining > 0 then
-            line:text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }))
-        elseif remaining > -3 then
+        local remainingStart = getDiffTime(W.cache.data.startTime, ctxt.now)
+        local remainingDNF = (remainingStart < -3 and W.cache.data.DNFEnabled and
+                W.cache.data.DNFData.process and W.cache.data.DNFData.targetTime) and
+            getDiffTime(W.cache.data.DNFData.targetTime, ctxt.now) or nil
+        if remainingStart > 0 then
+            line:text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingStart) }))
+        elseif remainingStart > -3 then
             line:text(W.cache.labels.flashCountdownZero)
-        elseif W.cache.data.DNFEnabled and W.cache.data.DNFData.process and W.cache.data.DNFData.targetTime then
-            remaining = getDiffTime(W.cache.data.DNFData.targetTime, ctxt.now)
-            if remaining < W.cache.data.DNFData.timeout then
-                local color = remaining > 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+        elseif remainingDNF then
+            if remainingDNF < W.cache.data.DNFData.timeout then
+                local color = remainingDNF > 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                     BJI.Utils.Style.TEXT_COLORS.ERROR
-                if remaining > 0 then
-                    line:text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.UI.PrettyDelay(math.abs(remaining)) }))
+                if remainingDNF > 0 then
+                    line:text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingDNF) }))
                 else
                     line:text(W.cache.labels.eliminated, color)
                 end

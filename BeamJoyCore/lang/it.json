@@ -1148,7 +1148,7 @@
       "play": {
         "race": "Gara",
         "by": "di {author}",
-        "record": "Registra da {playerName} con {model}: {time}",
+        "record": "Record",
         "timeout": "La gara terminerà tra {delay}",
         "aboutToTimeout": "La gara sta per scadere per timeout",
         "join": "Partecipa alla gara",
@@ -1171,7 +1171,8 @@
         "finishFlashMulti": "Hai finito #{place}!",
         "eliminatedTime": "ELIMINATO",
         "flashWinner": "{playerName} ha vinto la gara!",
-        "flashDnfOut": "ELIMINATO"
+        "flashDnfOut": "ELIMINATO",
+        "launchedRespawn": "Respawn avviato"
       },
       "leaderboard": {
         "title": "Classifica delle gare",

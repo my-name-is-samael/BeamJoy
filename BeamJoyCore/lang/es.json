@@ -1148,7 +1148,7 @@
       "play": {
         "race": "Carrera",
         "by": "por {author}",
-        "record": "Grabar por {playerName} con {model} : {time}",
+        "record": "Récord",
         "timeout": "La carrera finalizará en {delay}",
         "aboutToTimeout": "La carrera está a punto de agotarse por tiempo",
         "join": "Unirse a la carrera",
@@ -1171,7 +1171,8 @@
         "finishFlashMulti": "¡Terminaste #{place}!",
         "eliminatedTime": "ELIMINADO",
         "flashWinner": "¡{playerName} ganó la carrera!",
-        "flashDnfOut": "ELIMINADO"
+        "flashDnfOut": "ELIMINADO",
+        "launchedRespawn": "Reaparición iniciada"
       },
       "leaderboard": {
         "title": "Clasificación de carreras",

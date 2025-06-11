@@ -116,16 +116,12 @@ end
 ---@return string
 string.capitalizeWords = string.capitalizeWords or function(str)
     if type(str) ~= "string" then return "" end
-    local delims = { " ", "-", ".", ",", ":", ";", "'", '"', "(", ")" }
-    table.forEach(delims, function(d)
-        ---@type string[]
-        local words = str:split(d)
-        for i in ipairs(words) do
-            words[i] = words[i]:capitalize()
-        end
-        str = table.join(words, d)
-    end)
-    return str
+    return Table({ " ", "-", ".", ",", ":", ";", "'", '"', "(", ")", "_", "+" })
+        :reduce(function(res, d)
+            return Table(res:split2(d)):map(function(w)
+                return w:gsub("^%l", string.upper)
+            end):join(d)
+        end, str:lower())
 end
 
 ---@param str string

@@ -1148,7 +1148,7 @@
       "play": {
         "race": "Corrida",
         "by": "por {author}",
-        "record": "Gravação de {playerName} com {model}: {time}",
+        "record": "Recorde",
         "timeout": "A corrida terminará em {delay}",
         "aboutToTimeout": "A corrida está prestes a terminar por tempo esgotado",
         "join": "Junte-se à corrida",
@@ -1171,7 +1171,8 @@
         "finishFlashMulti": "Você terminou #{place} !",
         "eliminatedTime": "ELIMINADO",
         "flashWinner": "{playerName} venceu a corrida!",
-        "flashDnfOut": "ELIMINADO"
+        "flashDnfOut": "ELIMINADO",
+        "launchedRespawn": "Reaparecimento iniciado"
       },
       "leaderboard": {
         "title": "Tabela de classificação das corridas",

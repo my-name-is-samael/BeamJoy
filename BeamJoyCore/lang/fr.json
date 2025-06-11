@@ -1148,7 +1148,7 @@
       "play": {
         "race": "Course",
         "by": "par {author}",
-        "record": "Record établi par {playerName} avec {model} : {time}",
+        "record": "Record",
         "timeout": "La course expirera dans {delay}",
         "aboutToTimeout": "La course est sur le point d'expirer",
         "join": "Rejoindre la course",
@@ -1171,7 +1171,8 @@
         "finishFlashMulti": "Tu as terminé #{place} !",
         "eliminatedTime": "ÉLIMINÉ",
         "flashWinner": "{playerName} a gagné la course !",
-        "flashDnfOut": "ÉLIMINÉ"
+        "flashDnfOut": "ÉLIMINÉ",
+        "launchedRespawn": "Réapparition lancée"
       },
       "leaderboard": {
         "title": "Classement des courses",

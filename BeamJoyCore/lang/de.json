@@ -1148,7 +1148,7 @@
       "play": {
         "race": "Wettrennen",
         "by": "von {author}",
-        "record": "Aufnahme von {playerName} mit {model}: {time}",
+        "record": "Rekord",
         "timeout": "Das Rennen wird in {delay} abgebrochen",
         "aboutToTimeout": "Das Rennen steht kurz vor dem Timeout",
         "join": "Nehmen Sie am Rennen teil",
@@ -1171,7 +1171,8 @@
         "finishFlashMulti": "Du hast #{place} abgeschlossen!",
         "eliminatedTime": "BESEITIGT",
         "flashWinner": "{playerName} hat das Rennen gewonnen!",
-        "flashDnfOut": "BESEITIGT"
+        "flashDnfOut": "BESEITIGT",
+        "launchedRespawn": "Wiederbelebung gestartet"
       },
       "leaderboard": {
         "title": "Rennen-Rangliste",

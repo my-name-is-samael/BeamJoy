@@ -1021,7 +1021,7 @@
       "play": {
         "race": "Раса",
         "by": "автор: {author}",
-        "record": "Запись пользователя {playerName} с {model}: {time}",
+        "record": "Рекорд",
         "timeout": "Тайм-аут гонки истечет через {delay}",
         "aboutToTimeout": "Гонка вот-вот завершится по таймеру",
         "join": "Присоединяйтесь к гонке",
@@ -1044,7 +1044,8 @@
         "finishFlashMulti": "Вы закончили #{place} !",
         "eliminatedTime": "УДАЛЕНО",
         "flashWinner": "{playerName} выиграл гонку!",
-        "flashDnfOut": "УДАЛЕНО"
+        "flashDnfOut": "УДАЛЕНО",
+        "launchedRespawn": "Возрождение запущено"
       },
       "leaderboard": {
         "title": "Таблица лидеров гонок",
