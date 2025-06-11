@@ -77,6 +77,10 @@ local function fastTick(time)
     M.delayedTasks:filter(function(el)
         return el.time < time
     end):forEach(function(el, key)
+        if type(el.taskFn) == "number" then
+            LogError(string.var("Async delayed callback \"{1}\" became a number ???", { key }))
+            return
+        end
         local ok, err = pcall(el.taskFn, time)
         if not ok then
             LogError(string.var("Error executing delayed task {1} :", { key }))
@@ -92,6 +96,10 @@ local function fastTick(time)
     M.tasks:filter(function(el)
         return el.conditionFn()
     end):forEach(function(el, key)
+        if type(el.taskFn) == "number" then
+            LogError(string.var("Async callback \"{1}\" became a number ???", { key }))
+            return
+        end
         local ok, err = pcall(el.taskFn, time)
         if not ok then
             LogError(string.var("Error executing async task {1} :", { key }))
