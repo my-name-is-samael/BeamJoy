@@ -206,10 +206,7 @@ local function slowTick(ctxt)
         return
     end
 
-    S.distance = BJI.Managers.GPS.getRouteLength({
-        vec3(ctxt.vehPosRot.pos),
-        vec3(S.targetPosition.pos),
-    })
+    S.distance = BJI.Managers.GPS.getCurrentRouteLength()
     if S.distance > S.baseDistance then
         S.baseDistance = S.distance
     end
