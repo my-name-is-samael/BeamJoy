@@ -267,7 +267,8 @@ local function validateRace()
         local stepWpNames = Table()
         wps:forEach(function(wp, iWp)
             W.cache.invalid.steps[iStep][iWp] = {}
-            if #wp.name == 0 or wp.name:trim() == "start" then
+            if #wp.name == 0 or wp.name:trim() == "start" or
+                previousWpNames:includes(wp.name) then
                 W.cache.invalid.steps[iStep][iWp].name = true
                 W.cache.validSave = false
                 W.cache.validTry = false
@@ -672,7 +673,8 @@ local function drawPreviewPosition(ctxt)
             W.labels.previewPositionTooltip)
         :btnIcon({
             id = "setPreviewPos",
-            icon = W.raceData.previewPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
+            icon = W.raceData.previewPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS
+                .add_location,
             style = W.raceData.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableInputs,
@@ -947,6 +949,18 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
                                 BJI.Utils.Style.INPUT_PRESETS.ERROR,
                             disabled = W.cache.disableInputs,
                             onUpdate = function(val)
+                                -- update all references before updating
+                                W.raceData.steps:forEach(function(wps, iStep2)
+                                    if iStep2 > iStep then
+                                        wps:forEach(function(wp2)
+                                            wp2.parents:forEach(function(p, i)
+                                                if p == wp.name then
+                                                    wp2.parents[i] = val
+                                                end
+                                            end)
+                                        end)
+                                    end
+                                end)
                                 wp.name = val
                                 W.raceData.changed = true
                                 W.raceData.keepRecord = false
