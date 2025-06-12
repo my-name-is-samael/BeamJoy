@@ -1282,7 +1282,8 @@
       "damagedWarning": "O veículo está danificado, sua recompensa será diminuída.",
       "flashStart": "Entregue o veículo",
       "flashFail": "Falha na entrega",
-      "flashSuccess": "Bom trabalho !"
+      "flashSuccess": "Bom trabalho !",
+      "deliveredIn": "Entregue em {delay}"
     },
     "packageDelivery": {
       "title": "Entrega de pacote",
@@ -1291,7 +1292,8 @@
       "flashStart": "Entregue o pacote",
       "flashFirstPackage": "Pacote entregue!",
       "flashPackageStreak": "{streak} pacotes entregues!",
-      "flashEnd": "Entrega encerrada"
+      "flashEnd": "Entrega encerrada",
+      "depositIn": "Depositado em {delay}"
     },
     "deliveryTogether": {
       "title": "Entrega em grupo",
@@ -1302,7 +1304,7 @@
       "flashPackage": "Encomenda entregue!",
       "waitingForOtherPlayers": "À espera de mais {amount} jogador(es)...",
       "waitingForTarget": "À espera do próximo destino...",
-      "depositIn": "Entrega em {delay}"
+      "depositIn": "Depositado em {delay}"
     },
     "buslines": {
       "edit": {

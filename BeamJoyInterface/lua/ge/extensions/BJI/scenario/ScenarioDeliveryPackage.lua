@@ -12,7 +12,9 @@ local S = {
 
     nextResetGarage = false,    -- exempt reset when repairing at a garage
     tanksSaved = nil,
-    checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+
+    ---@type integer?
+    checkTargetTime = nil, -- process to check player reached target and stayed in its radius
 }
 
 local function reset()
@@ -23,7 +25,7 @@ local function reset()
 
     S.nextResetGarage = false
     S.tanksSaved = nil
-    S.checkTargetProcess = false
+    S.checkTargetTime = nil
 end
 
 local function canChangeTo(ctxt)
@@ -157,13 +159,22 @@ local function onStopDelivery()
 end
 
 local function drawUI(ctxt)
-    LineBuilder():btnIcon({
+    local line = LineBuilder():btnIcon({
         id = "stopPackageDelivery",
         icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
         tooltip = BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"),
         onClick = S.onStopDelivery,
-    }):text(BJI.Managers.Lang.get("packageDelivery.title")):build()
+    }):text(BJI.Managers.Lang.get("packageDelivery.title"))
+    if S.checkTargetTime then
+        local remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        if remainingSec > 0 then
+            line:text(string.var("({1})", { BJI.Managers.Lang.get("packageDelivery.depositIn"):var({
+                delay = remainingSec
+            }) }), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        end
+    end
+    line:build()
 
     LineLabel(BJI.Managers.Lang.get("packageDelivery.currentStreak")
         :var({ streak = S.streak }), nil, false,
@@ -213,7 +224,7 @@ local function slowTick(ctxt)
 
     local distance = ctxt.vehPosRot.pos:distance(S.targetPosition.pos)
     if distance < S.targetPosition.radius then
-        if not S.checkTargetProcess then
+        if not S.checkTargetTime then
             local streak = S.streak + 1
             local msg
             if streak == 1 then
@@ -221,14 +232,14 @@ local function slowTick(ctxt)
             else
                 msg = BJI.Managers.Lang.get("packageDelivery.flashPackageStreak"):var({ streak = streak })
             end
-            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", ctxt.now + 3100, false, msg, nil,
+            S.checkTargetTime = ctxt.now + 3100
+            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false, msg, nil,
                 onTargetReached)
-            S.checkTargetProcess = true
         end
     else
-        if S.checkTargetProcess then
+        if S.checkTargetTime then
             BJI.Managers.Message.cancelFlash("BJIDeliveryTarget")
-            S.checkTargetProcess = false
+            S.checkTargetTime = nil
         end
         if #BJI.Managers.GPS.targets == 0 then
             BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.targetPosition.pos,

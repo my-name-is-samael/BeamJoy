@@ -71,8 +71,8 @@ local function getPlayerListActions(player, ctxt)
     local actions = {}
 
     if S.isSpec() and S.isParticipant(player.playerID) then
-        local finalGameVehID = BJI.Managers.Veh.getVehicleObject(S.participants[player.playerID])
-        finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
+        local veh = BJI.Managers.Veh.getVehicleObject(S.participants[player.playerID])
+        local finalGameVehID = veh and veh:getID() or nil
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
             icon = BJI.Utils.Icon.ICONS.visibility,
@@ -82,7 +82,7 @@ local function getPlayerListActions(player, ctxt)
                 not S.isSpec(player.playerID),
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
-                BJI.Managers.Veh.focusVehicle(finalGameVehID)
+                BJI.Managers.Veh.focusVehicle(finalGameVehID or -1)
             end
         })
     end
@@ -198,7 +198,7 @@ local function initScenario(data)
             }):flat(),
             state = BJI.Managers.Restrictions.STATE.ALLOWED,
         } })
-        local ownerID = BJI.Managers.Veh.getVehOwnerID()
+        local ownerID = BJI.Managers.Veh.getVehOwnerID(BJI.Managers.Context.User.currentVehicle)
         if not ownerID or not S.participants[ownerID] then
             switchToRandomParticipant()
         end

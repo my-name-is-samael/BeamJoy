@@ -1155,7 +1155,8 @@
       "damagedWarning": "Транспортное средство повреждено, ваша награда будет уменьшена.",
       "flashStart": "Доставить автомобиль",
       "flashFail": "Доставка не удалась",
-      "flashSuccess": "Отличная работа !"
+      "flashSuccess": "Отличная работа !",
+      "deliveredIn": "Доставлено через {delay}"
     },
     "packageDelivery": {
       "title": "Доставка посылки",
@@ -1164,7 +1165,8 @@
       "flashStart": "Доставить посылку",
       "flashFirstPackage": "Посылка доставлена!",
       "flashPackageStreak": "Посылки {streak} доставлены!",
-      "flashEnd": "Доставка завершена"
+      "flashEnd": "Доставка завершена",
+      "depositIn": "Передано через {delay}"
     },
     "deliveryTogether": {
       "title": "Совместная доставка",
@@ -1175,7 +1177,7 @@
       "flashPackage": "Посылка доставлена!",
       "waitingForOtherPlayers": "Ожидание ещё {amount} игрок(ов)...",
       "waitingForTarget": "Ожидание следующей цели...",
-      "depositIn": "Доставка через {delay}"
+      "depositIn": "Передано через {delay}"
     },
     "buslines": {
       "edit": {

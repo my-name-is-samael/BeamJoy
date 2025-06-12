@@ -1282,7 +1282,8 @@
       "damagedWarning": "Il veicolo è danneggiato, la tua ricompensa sarà ridotta.",
       "flashStart": "Consegnare il veicolo",
       "flashFail": "La consegna non è riuscita",
-      "flashSuccess": "Ben fatto !"
+      "flashSuccess": "Ben fatto !",
+      "deliveredIn": "Consegnato in {delay}"
     },
     "packageDelivery": {
       "title": "Consegna del pacco",
@@ -1291,7 +1292,8 @@
       "flashStart": "Consegnare il pacco",
       "flashFirstPackage": "Pacchetto consegnato!",
       "flashPackageStreak": "{streak} pacchi consegnati!",
-      "flashEnd": "La consegna è terminata"
+      "flashEnd": "La consegna è terminata",
+      "depositIn": "Deposito in {delay}"
     },
     "deliveryTogether": {
       "title": "Consegna di gruppo",
@@ -1302,7 +1304,7 @@
       "flashPackage": "Pacco consegnato!",
       "waitingForOtherPlayers": "In attesa di altri {amount} giocatore(i)...",
       "waitingForTarget": "In attesa del prossimo obiettivo...",
-      "depositIn": "Consegna tra {delay}"
+      "depositIn": "Deposito in {delay}"
     },
     "buslines": {
       "edit": {

@@ -1282,7 +1282,8 @@
       "damagedWarning": "Wenn das Fahrzeug beschädigt ist, wird Ihre Prämie gemindert.",
       "flashStart": "Liefern Sie das Fahrzeug",
       "flashFail": "Die Lieferung ist fehlgeschlagen",
-      "flashSuccess": "Gut gemacht !"
+      "flashSuccess": "Gut gemacht !",
+      "deliveredIn": "Geliefert in {delay}"
     },
     "packageDelivery": {
       "title": "Paketlieferung",
@@ -1291,7 +1292,8 @@
       "flashStart": "Liefern Sie das Paket ab",
       "flashFirstPackage": "Paket geliefert!",
       "flashPackageStreak": "{streak} Pakete geliefert!",
-      "flashEnd": "Lieferung beendet"
+      "flashEnd": "Lieferung beendet",
+      "depositIn": "Einzahlung in {delay}"
     },
     "deliveryTogether": {
       "title": "Gemeinsame Lieferung",
@@ -1302,7 +1304,7 @@
       "flashPackage": "Paket geliefert!",
       "waitingForOtherPlayers": "Warte auf {amount} weitere(n) Spieler...",
       "waitingForTarget": "Warte auf das nächste Ziel...",
-      "depositIn": "Ablieferung in {delay}"
+      "depositIn": "Einzahlung in {delay}"
     },
     "buslines": {
       "edit": {

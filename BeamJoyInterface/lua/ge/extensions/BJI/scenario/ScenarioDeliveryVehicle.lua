@@ -20,9 +20,10 @@ local S = {
     baseDistance = nil,
     distance = nil,
 
-    nextResetExempt = false,    -- scenario start fail-safe
+    nextResetExempt = false, -- scenario start fail-safe
 
-    checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+    ---@type integer?
+    checkTargetTime = nil, -- process to check player reached target and stayed in its radius
 }
 
 local function reset()
@@ -39,7 +40,7 @@ local function reset()
     S.baseDistance = nil
     S.distance = nil
 
-    S.checkTargetProcess = false
+    S.checkTargetTime = nil
 end
 
 local function canChangeTo(ctxt)
@@ -65,7 +66,7 @@ local function initVehicle()
 
         -- config
         local config
-        while not config or config.label:find("Traffic") do
+        while not config or config.label:lower():find("simplified") do
             config = table.random(model.configs)
         end
         if config then
@@ -232,7 +233,7 @@ end
 
 local function drawUI(ctxt)
     local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
-    LineBuilder():btnIcon({
+    local line = LineBuilder():btnIcon({
         id = "stopVehicleDelivery",
         icon = BJI.Utils.Icon.ICONS.exit_to_app,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
@@ -247,7 +248,16 @@ local function drawUI(ctxt)
             BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
                 not loop)
         end,
-    }):text(BJI.Managers.Lang.get("vehicleDelivery.title")):build()
+    }):text(BJI.Managers.Lang.get("vehicleDelivery.title"))
+    if S.checkTargetTime then
+        local remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        if remainingSec > 0 then
+            line:text(string.var("({1})", { BJI.Managers.Lang.get("vehicleDelivery.deliveredIn"):var({
+                delay = remainingSec
+            }) }), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        end
+    end
+    line:build()
 
     LineLabel(string.var("{1}: {2}{3}", {
         BJI.Managers.Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
@@ -306,17 +316,17 @@ local function slowTick(ctxt)
 
     local distance = ctxt.vehPosRot.pos:distance(S.targetPosition.pos)
     if distance < S.targetPosition.radius then
-        if not S.checkTargetProcess then
-            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", ctxt.now + 3100, false,
+        if not S.checkTargetTime then
+            S.checkTargetTime = ctxt.now + 3100
+            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false,
                 BJI.Managers.Lang.get("vehicleDelivery.flashSuccess"),
                 nil,
                 onTargetReached)
-            S.checkTargetProcess = true
         end
     else
-        if S.checkTargetProcess then
+        if S.checkTargetTime then
             BJI.Managers.Message.cancelFlash("BJIDeliveryTarget")
-            S.checkTargetProcess = false
+            S.checkTargetTime = nil
         end
         if #BJI.Managers.GPS.targets == 0 then
             BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.targetPosition.pos,

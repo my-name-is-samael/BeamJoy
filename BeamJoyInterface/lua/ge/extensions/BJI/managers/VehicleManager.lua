@@ -1172,7 +1172,8 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             for key, config in pairs(veh.configs) do
                 if config.key then
                     local label = (config.Configuration or config.key):gsub("_", " ")
-                    if not label:lower():find("simple traffic") then
+                    if not config.key:lower():endswith("_parked") and
+                        not label:lower():find("simple traffic") then
                         configs[key] = table.clone(config)
                         table.assign(configs[key], {
                             label = label,

@@ -1,14 +1,14 @@
 ---@class BJIUser
 ---@field playerID integer
 ---@field playerName string
----@field group? string
----@field lang? string
+---@field group string?
+---@field lang string?
 ---@field freeze boolean
 ---@field engine boolean
 ---@field vehicles table<integer, BJIVehicleData>
----@field currentVehicle? integer gameVehID
----@field stationProcess? boolean (auto injected)
----@field previousVehConfig? table
+---@field currentVehicle integer? gameVehID
+---@field stationProcess boolean? (auto injected)
+---@field previousVehConfig table?
 
 ---@class BJIPlayerVehicle
 ---@field vehID integer

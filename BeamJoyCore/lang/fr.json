@@ -1282,7 +1282,8 @@
       "damagedWarning": "Le véhicule est endommagé, votre récompense sera réduite.",
       "flashStart": "Livre le véhicule",
       "flashFail": "Échec de la livraison",
-      "flashSuccess": "Bien joué !"
+      "flashSuccess": "Bien joué !",
+      "deliveredIn": "Livré dans {delay}"
     },
     "packageDelivery": {
       "title": "Livraison de colis",
@@ -1291,7 +1292,8 @@
       "flashStart": "Livre le colis",
       "flashFirstPackage": "Colis livré !",
       "flashPackageStreak": "{streak} colis livrés !",
-      "flashEnd": "Livraison terminée"
+      "flashEnd": "Livraison terminée",
+      "depositIn": "Déposé dans {delay}"
     },
     "deliveryTogether": {
       "title": "Livraison Ensemble",
@@ -1302,7 +1304,7 @@
       "flashPackage": "Colis livré !",
       "waitingForOtherPlayers": "En attente de {amount} joueur(s)...",
       "waitingForTarget": "En attente de la prochaine destination...",
-      "depositIn": "Livraison dans {delay}"
+      "depositIn": "Déposé dans {delay}"
     },
     "buslines": {
       "edit": {

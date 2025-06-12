@@ -347,6 +347,7 @@ local function onLoad()
     updateCacheRaces()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
     }, function(ctxt2, data)
         if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
@@ -396,14 +397,13 @@ local function draw(ctxt)
     if cache.data.showVehEnergy or showHealthIndicator then
         if cache.data.showVehEnergy then
             energyIndicator.draw(ctxt)
+            Separator()
         end
         if showHealthIndicator then
-            if cache.data.showVehEnergy then
-                Separator()
-            end
             healthIndicator.draw(ctxt)
+            Separator()
         end
-        needSpace, needSeparator = true, true
+        needSpace, needSeparator = true, false
     end
 
     if cache.data.showDeliveryLeaderboard or cache.data.raceLeaderboard.show then
