@@ -1098,9 +1098,7 @@
           "deleteWaypoint": "Wegpunkt löschen",
           "removeParent": "Elternelement entfernen",
           "addParent": "Elternelement hinzufügen",
-          "tryRace": "Rennen ausprobieren",
-          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
-          "errorInvalidData": "Einige Daten sind ungültig"
+          "tryRace": "Rennen ausprobieren"
         }
       },
       "settings": {
@@ -1231,9 +1229,7 @@
           "addStationHere": "Station hier hinzufügen",
           "showStation": "Station anzeigen",
           "setStationHere": "Station hier setzen",
-          "deleteStation": "Station löschen",
-          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
-          "errorInvalidData": "Einige Daten sind ungültig"
+          "deleteStation": "Station löschen"
         }
       }
     },
@@ -1254,9 +1250,7 @@
           "addGarageHere": "Garage hier hinzufügen",
           "showGarage": "Garage anzeigen",
           "setGarageHere": "Garage hier setzen",
-          "deleteGarage": "Garage löschen",
-          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
-          "errorInvalidData": "Einige Daten sind ungültig"
+          "deleteGarage": "Garage löschen"
         }
       }
     },
@@ -1277,8 +1271,7 @@
           "addPosition": "Position hier hinzufügen",
           "showPosition": "Position anzeigen",
           "setPosition": "Position hier setzen",
-          "deletePosition": "Position löschen",
-          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug"
+          "deletePosition": "Position löschen"
         }
       }
     },
@@ -1444,9 +1437,7 @@
           "addWaypointHere": "Wegpunkt hier hinzufügen",
           "showWaypoint": "Wegpunkt anzeigen",
           "setWaypointHere": "Wegpunkt hier setzen",
-          "deleteWaypoint": "Wegpunkt löschen",
-          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
-          "errorInvalidData": "Einige Daten sind ungültig"
+          "deleteWaypoint": "Wegpunkt löschen"
         }
       },
       "settings": {
@@ -1508,10 +1499,7 @@
           "addStartPositionHere": "Startposition hier hinzufügen",
           "showStartPosition": "Startposition anzeigen",
           "setStartPositionHere": "Startposition hier setzen",
-          "deleteStartPosition": "Startposition löschen",
-          "errorMustHaveVehicle": "Du brauchst ein Fahrzeug",
-          "errorMustBeFreecaming": "Du musst im Freecam-Modus sein",
-          "errorInvalidData": "Einige Daten sind ungültig"
+          "deleteStartPosition": "Startposition löschen"
         }
       },
       "settings": {

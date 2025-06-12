@@ -123,9 +123,9 @@ local function updateLabels()
     W.labels.buttons.moveDown = BJI.Managers.Lang.get("common.buttons.moveDown")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("derby.edit.buttons.errorMustHaveVehicle")
-    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("derby.edit.buttons.errorMustBeFreecaming")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("derby.edit.buttons.errorInvalidData")
+    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
+    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("errors.mustBeFreecaming")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
 local function udpateWidths()

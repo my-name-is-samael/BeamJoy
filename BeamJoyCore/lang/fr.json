@@ -1098,9 +1098,7 @@
           "deleteWaypoint": "Supprimer le point",
           "removeParent": "Retirer le parent",
           "addParent": "Ajouter un parent",
-          "tryRace": "Tester la course",
-          "errorMustHaveVehicle": "Vous devez avoir un véhicule",
-          "errorInvalidData": "Des données sont invalides"
+          "tryRace": "Tester la course"
         }
       },
       "settings": {
@@ -1231,9 +1229,7 @@
           "addStationHere": "Ajouter une station ici",
           "showStation": "Afficher la station",
           "setStationHere": "Définir la station ici",
-          "deleteStation": "Supprimer la station",
-          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
-          "errorInvalidData": "Certaines données sont invalides"
+          "deleteStation": "Supprimer la station"
         }
       }
     },
@@ -1254,9 +1250,7 @@
           "addGarageHere": "Ajouter un garage ici",
           "showGarage": "Afficher le garage",
           "setGarageHere": "Définir le garage ici",
-          "deleteGarage": "Supprimer le garage",
-          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
-          "errorInvalidData": "Certaines données sont invalides"
+          "deleteGarage": "Supprimer le garage"
         }
       }
     },
@@ -1277,8 +1271,7 @@
           "addPosition": "Ajouter une position ici",
           "showPosition": "Afficher la position",
           "setPosition": "Définir la position ici",
-          "deletePosition": "Supprimer la position",
-          "errorMustHaveVehicle": "Vous devez avoir un véhicule"
+          "deletePosition": "Supprimer la position"
         }
       }
     },
@@ -1444,9 +1437,7 @@
           "addWaypointHere": "Ajouter un point de passage ici",
           "showWaypoint": "Afficher le point de passage",
           "setWaypointHere": "Définir le point de passage ici",
-          "deleteWaypoint": "Supprimer le point de passage",
-          "errorMustHaveVehicle": "Vous devez avoir un véhicule",
-          "errorInvalidData": "Certaines données sont invalides"
+          "deleteWaypoint": "Supprimer le point de passage"
         }
       },
       "settings": {
@@ -1508,10 +1499,7 @@
           "addStartPositionHere": "Ajouter une position de départ ici",
           "showStartPosition": "Afficher la position de départ",
           "setStartPositionHere": "Définir la position de départ ici",
-          "deleteStartPosition": "Supprimer la position de départ",
-          "errorMustHaveVehicle": "Vous devez avoir un véhicule",
-          "errorMustBeFreecaming": "Vous devez être en mode caméra libre",
-          "errorInvalidData": "Certaines données sont invalides"
+          "deleteStartPosition": "Supprimer la position de départ"
         }
       },
       "settings": {

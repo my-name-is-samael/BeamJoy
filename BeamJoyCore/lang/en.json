@@ -1097,9 +1097,7 @@
           "deleteWaypoint": "Delete waypoint",
           "removeParent": "Remove parent",
           "addParent": "Add a parent",
-          "tryRace": "Try out the race",
-          "errorMustHaveVehicle": "You need a vehicle",
-          "errorInvalidData": "Some data is invalid"
+          "tryRace": "Try out the race"
         }
       },
       "settings": {
@@ -1232,9 +1230,7 @@
           "addStationHere": "Add a station here",
           "showStation": "Show the station",
           "setStationHere": "Set the station here",
-          "deleteStation": "Delete the station",
-          "errorMustBeFreecaming": "You need to be freecaming",
-          "errorInvalidData": "Some data are invalid"
+          "deleteStation": "Delete the station"
         }
       }
     },
@@ -1255,9 +1251,7 @@
           "addGarageHere": "Add a garage here",
           "showGarage": "Show the garage",
           "setGarageHere": "Set the garage here",
-          "deleteGarage": "Delete the garage",
-          "errorMustBeFreecaming": "You need to be freecaming",
-          "errorInvalidData": "Some data are invalid"
+          "deleteGarage": "Delete the garage"
         }
       }
     },
@@ -1278,8 +1272,7 @@
           "addPosition": "Add position here",
           "showPosition": "Show position",
           "setPosition": "Set position here",
-          "deletePosition": "Delete position",
-          "errorMustHaveVehicle": "You need a vehicle"
+          "deletePosition": "Delete position"
         }
       }
     },
@@ -1445,9 +1438,7 @@
           "addWaypointHere": "Add a waypoint here",
           "showWaypoint": "Show waypoint",
           "setWaypointHere": "Set waypoint here",
-          "deleteWaypoint": "Delete waypoint",
-          "errorMustHaveVehicle": "You must have a vehicle",
-          "errorInvalidData": "Some data is invalid"
+          "deleteWaypoint": "Delete waypoint"
         }
       },
       "settings": {
@@ -1509,10 +1500,7 @@
           "addStartPositionHere": "Add a start position here",
           "showStartPosition": "Show the start position",
           "setStartPositionHere": "Set the start position here",
-          "deleteStartPosition": "Delete the start position",
-          "errorMustHaveVehicle": "You need a vehicle",
-          "errorMustBeFreecaming": "You need to be freecaming",
-          "errorInvalidData": "Some data is invalid"
+          "deleteStartPosition": "Delete the start position"
         }
       },
       "settings": {

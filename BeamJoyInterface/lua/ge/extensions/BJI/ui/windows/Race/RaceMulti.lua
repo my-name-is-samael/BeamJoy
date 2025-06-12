@@ -278,8 +278,8 @@ local function updateCache(ctxt)
                         table.includes(W.scenario.race.finished, lb.playerID) or
                         table.includes(W.scenario.race.eliminated, lb.playerID)
                     if not disabled then
-                        local finalGameVehID = BJI.Managers.Veh.getVehicleObject(target.currentVehicle)
-                        finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
+                        local veh = BJI.Managers.Veh.getVehicleObject(target.currentVehicle)
+                        local finalGameVehID = veh and veh:getID() or nil
                         disabled = finalGameVehID and ctxt2.veh and ctxt2.veh:getID() == finalGameVehID or false
                     end
                     LineBuilder():btnIcon({

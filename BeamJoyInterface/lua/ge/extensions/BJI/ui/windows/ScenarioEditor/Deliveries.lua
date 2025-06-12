@@ -59,7 +59,7 @@ local function updateLabels()
     W.labels.buttons.deletePosition = BJI.Managers.Lang.get("delivery.edit.buttons.deletePosition")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("delivery.edit.buttons.errorMustHaveVehicle")
+    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
 end
 
 local function udpateWidths()

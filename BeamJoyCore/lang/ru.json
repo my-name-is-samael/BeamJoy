@@ -971,9 +971,7 @@
           "deleteWaypoint": "Удалить точку маршрута",
           "removeParent": "Удалить родителя",
           "addParent": "Добавить родителя",
-          "tryRace": "Попробовать гонку",
-          "errorMustHaveVehicle": "Нужно транспортное средство",
-          "errorInvalidData": "Некоторые данные недействительны"
+          "tryRace": "Попробовать гонку"
         }
       },
       "settings": {
@@ -1104,9 +1102,7 @@
           "addStationHere": "Добавить станцию здесь",
           "showStation": "Показать станцию",
           "setStationHere": "Установить станцию здесь",
-          "deleteStation": "Удалить станцию",
-          "errorMustBeFreecaming": "Необходимо находиться в режиме свободной камеры",
-          "errorInvalidData": "Некоторые данные недействительны"
+          "deleteStation": "Удалить станцию"
         }
       }
     },
@@ -1127,9 +1123,7 @@
           "addGarageHere": "Добавить гараж здесь",
           "showGarage": "Показать гараж",
           "setGarageHere": "Установить гараж здесь",
-          "deleteGarage": "Удалить гараж",
-          "errorMustBeFreecaming": "Необходимо находиться в режиме свободной камеры",
-          "errorInvalidData": "Некоторые данные недействительны"
+          "deleteGarage": "Удалить гараж"
         }
       }
     },
@@ -1150,8 +1144,7 @@
           "addPosition": "Добавить позицию здесь",
           "showPosition": "Показать позицию",
           "setPosition": "Установить позицию здесь",
-          "deletePosition": "Удалить позицию",
-          "errorMustHaveVehicle": "Необходимо иметь транспортное средство"
+          "deletePosition": "Удалить позицию"
         }
       }
     },
@@ -1317,9 +1310,7 @@
           "addWaypointHere": "Добавить точку пути здесь",
           "showWaypoint": "Показать точку пути",
           "setWaypointHere": "Установить точку пути здесь",
-          "deleteWaypoint": "Удалить точку пути",
-          "errorMustHaveVehicle": "Необходимо иметь транспортное средство",
-          "errorInvalidData": "Некоторые данные недействительны"
+          "deleteWaypoint": "Удалить точку пути"
         }
       },
       "settings": {
@@ -1381,10 +1372,7 @@
           "addStartPositionHere": "Добавить стартовую позицию здесь",
           "showStartPosition": "Показать стартовую позицию",
           "setStartPositionHere": "Установить стартовую позицию здесь",
-          "deleteStartPosition": "Удалить стартовую позицию",
-          "errorMustHaveVehicle": "Необходимо иметь транспортное средство",
-          "errorMustBeFreecaming": "Вы должны быть в режиме свободной камеры",
-          "errorInvalidData": "Некоторые данные недействительны"
+          "deleteStartPosition": "Удалить стартовую позицию"
         }
       },
       "settings": {

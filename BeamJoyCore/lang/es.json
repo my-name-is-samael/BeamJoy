@@ -1098,9 +1098,7 @@
           "deleteWaypoint": "Eliminar punto de control",
           "removeParent": "Eliminar padre",
           "addParent": "Agregar padre",
-          "tryRace": "Probar la carrera",
-          "errorMustHaveVehicle": "Necesitas un vehículo",
-          "errorInvalidData": "Algunos datos no son válidos"
+          "tryRace": "Probar la carrera"
         }
       },
       "settings": {
@@ -1231,9 +1229,7 @@
           "addStationHere": "Agregar estación aquí",
           "showStation": "Mostrar estación",
           "setStationHere": "Establecer estación aquí",
-          "deleteStation": "Eliminar estación",
-          "errorMustBeFreecaming": "Debes estar en modo cámara libre",
-          "errorInvalidData": "Algunos datos no son válidos"
+          "deleteStation": "Eliminar estación"
         }
       }
     },
@@ -1254,9 +1250,7 @@
           "addGarageHere": "Agregar garaje aquí",
           "showGarage": "Mostrar garaje",
           "setGarageHere": "Establecer garaje aquí",
-          "deleteGarage": "Eliminar garaje",
-          "errorMustBeFreecaming": "Debes estar en modo cámara libre",
-          "errorInvalidData": "Algunos datos no son válidos"
+          "deleteGarage": "Eliminar garaje"
         }
       }
     },
@@ -1277,8 +1271,7 @@
           "addPosition": "Agregar posición aquí",
           "showPosition": "Mostrar posición",
           "setPosition": "Establecer posición aquí",
-          "deletePosition": "Eliminar posición",
-          "errorMustHaveVehicle": "Necesitas un vehículo"
+          "deletePosition": "Eliminar posición"
         }
       }
     },
@@ -1444,9 +1437,7 @@
           "addWaypointHere": "Agregar punto de paso aquí",
           "showWaypoint": "Mostrar punto de paso",
           "setWaypointHere": "Establecer punto de paso aquí",
-          "deleteWaypoint": "Eliminar punto de paso",
-          "errorMustHaveVehicle": "Necesitas un vehículo",
-          "errorInvalidData": "Algunos datos no son válidos"
+          "deleteWaypoint": "Eliminar punto de paso"
         }
       },
       "settings": {
@@ -1508,10 +1499,7 @@
           "addStartPositionHere": "Agregar posición inicial aquí",
           "showStartPosition": "Mostrar posición inicial",
           "setStartPositionHere": "Establecer posición inicial aquí",
-          "deleteStartPosition": "Eliminar posición inicial",
-          "errorMustHaveVehicle": "Necesitas un vehículo",
-          "errorMustBeFreecaming": "Debes estar en modo cámara libre",
-          "errorInvalidData": "Algunos datos no son válidos"
+          "deleteStartPosition": "Eliminar posición inicial"
         }
       },
       "settings": {

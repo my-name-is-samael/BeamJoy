@@ -95,6 +95,7 @@ local function updateLabels()
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
     W.labels.buttons.errorNeedABus = BJI.Managers.Lang.get("buslines.edit.buttons.errorNeedABus")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
 local function udpateWidths()
@@ -222,6 +223,7 @@ local function header(ctxt)
             })
             W.changed = true
             reloadMarkers(#W.cache.lines)
+            validateBuslines()
         end
     }):build()
 end
@@ -496,7 +498,10 @@ local function footer(ctxt)
             icon = BJI.Utils.Icon.ICONS.save,
             style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not W.valid,
-            tooltip = W.labels.buttons.save,
+            tooltip = string.var("{1}{2}", {
+                W.labels.buttons.save,
+                (not W.valid) and " (" .. W.labels.buttons.errorInvalidData .. ")" or ""
+            }),
             onClick = save,
         })
     end

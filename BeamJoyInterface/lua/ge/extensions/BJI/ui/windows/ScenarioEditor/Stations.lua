@@ -70,8 +70,8 @@ local function updateLabels()
     W.labels.buttons.deleteStation = BJI.Managers.Lang.get("energyStations.edit.buttons.deleteStation")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("energyStations.edit.buttons.errorMustBeFreecaming")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("energyStations.edit.buttons.errorInvalidData")
+    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("errors.mustBeFreecaming")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
 local function udpateWidths()

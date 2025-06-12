@@ -58,8 +58,8 @@ local function updateLabels()
     W.labels.buttons.deleteGarage = BJI.Managers.Lang.get("garages.edit.buttons.deleteGarage")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("garages.edit.buttons.errorMustBeFreecaming")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("garages.edit.buttons.errorInvalidData")
+    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("errors.mustBeFreecaming")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
 local function udpateWidths()

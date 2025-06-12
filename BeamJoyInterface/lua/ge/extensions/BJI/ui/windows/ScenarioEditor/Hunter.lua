@@ -108,8 +108,8 @@ local function updateLabels()
     W.labels.buttons.deleteWaypoint = BJI.Managers.Lang.get("hunter.edit.buttons.deleteWaypoint")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("hunter.edit.buttons.errorMustHaveVehicle")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("hunter.edit.buttons.errorInvalidData")
+    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
+    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
 local function udpateWidths()
