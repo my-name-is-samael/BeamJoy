@@ -394,7 +394,7 @@ local function draw(ctxt)
     end
 
     -- COLLISIONS INDICATOR
-    LineBuilder():text(cache.labels.collisions.title):text(BJI.Managers.Collisions.state and
+    LineBuilder():text(cache.labels.collisions.title):text(BJI.Managers.Collisions.getState(ctxt) and
         cache.labels.collisions.enabled or cache.labels.collisions.disabled,
         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
 

@@ -7,11 +7,11 @@ local M = {
 
     -- caches
 
-    ---@type tablelib<integer[]>
+    ---@type tablelib<integer, integer> index 1-N, value gameVehID
     aiVehs = Table(),     -- all ai cars on the server to prevent nametags
-    ---@type tablelib<integer[]>
+    ---@type tablelib<integer, integer> index 1-N, value gameVehID
     selfVehs = Table(),   -- traffic vehs and manually toggled ones
-    ---@type tablelib<integer[]>
+    ---@type tablelib<integer, integer> index 1-N, value gameVehID
     parkedVehs = Table(), -- parked vehs (since they are not firing the onAiModeChange event)
 }
 
@@ -85,20 +85,28 @@ local function slowTick(ctxt)
     end
 end
 
+---@param aiVehs tablelib<integer, integer> index 1-N, value gameVehID
 local function updateAllAIVehicles(aiVehs)
     aiVehs:sort()
     local diff = not M.aiVehs:compare(aiVehs)
     M.aiVehs = aiVehs
     if diff then
-        BJI.Managers.Collisions.checkAIVehicles()
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
     end
 end
 
+---@param gameVehID integer
+---@return boolean
+local function isSelfAIVehicle(gameVehID)
+    return M.selfVehs:includes(gameVehID) or
+        M.parkedVehs:includes(gameVehID)
+end
+
+---@param gameVehID integer
+---@return boolean
 local function isAIVehicle(gameVehID)
     return M.aiVehs:includes(gameVehID) or
-        M.selfVehs:includes(gameVehID) or
-        M.parkedVehs:includes(gameVehID)
+        M.isSelfAIVehicle(gameVehID)
 end
 
 --- Change vehicle manual AI state
@@ -203,6 +211,7 @@ M.removeVehicles = removeVehicles
 M.toggle = toggle
 
 M.updateAllAIVehicles = updateAllAIVehicles
+M.isSelfAIVehicle = isSelfAIVehicle
 M.isAIVehicle = isAIVehicle
 
 M.onLoad = onLoad

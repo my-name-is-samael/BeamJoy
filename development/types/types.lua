@@ -92,3 +92,28 @@
 ---@field pos number[] 3 indices
 ---@field rot number[] 4 indices
 ---@field ign number
+
+---@class NGVehicle
+---@field jbeam string
+---@field JBeam string
+---@field partConfig string
+---@field getID fun(self: NGVehicle): integer
+---@field getId fun(self: NGVehicle): integer
+---@field queueLuaCommand fun(self: NGVehicle, command: string)
+---@field getInitialLength fun(self: NGVehicle): number
+---@field getInitialHeight fun(self: NGVehicle): number
+---@field getInitialWidth fun(self: NGVehicle): number
+---@field isTraffic "true"?
+---@field isParked "true"?
+---@field delete fun(self: NGVehicle)
+---@field requestReset fun(self: NGVehicle, type: integer)
+---@field getRefNodeId fun(self: NGVehicle): integer
+---@field getClusterRotationSlow fun(self: NGVehicle, nodeId: integer): quat
+---@field setClusterPosRelRot fun(self: NGVehicle, nodeId: integer, posX: number, posY: number, posZ: number, rotX: number, rotY: number, rotZ: number, rotW: number)
+---@field getVelocity fun(self: NGVehicle): vec3
+---@field applyClusterVelocityScaleAdd fun(self: NGVehicle, nodeId: integer, scale: integer, velX: number, velY: number, velZ: number)
+---@field setPosRot fun(self: NGVehicle, posX: number, posY: number, posZ: number, rotX: number, rotY: number, rotZ: number, rotW: number)
+---@field initialNodePosBB {getCenter: fun(self: any): vec3}
+---@field getInitialNodePosition fun(self: NGVehicle, nodeId: integer): vec3
+---@field resetBrokenFlexMesh fun(self: NGVehicle)
+---@field getMeshAlpha fun(self: NGVehicle, meshID: integer): number

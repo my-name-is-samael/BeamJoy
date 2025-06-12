@@ -33,7 +33,7 @@ local function getContext(slow)
     local vehData
     if isOwner then
         for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-            if v.gameVehID == veh:getID() then
+            if veh and v.gameVehID == veh:getID() then
                 vehData = v
                 break
             end

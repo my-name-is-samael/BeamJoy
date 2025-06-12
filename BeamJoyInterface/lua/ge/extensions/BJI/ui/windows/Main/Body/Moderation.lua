@@ -189,14 +189,16 @@ local function drawVehicles(player, ctxt, cache)
             cols:build()
         end
 
-        local vehsLabel = string.var("{1} ({2}):", { cache.labels.players.moderation.vehicles, player.vehiclesCount })
         if player.showModeration then
             AccordionBuilder()
-                :label(vehsLabel)
+                :label(cache.labels.players.moderation.vehicles .. "##" .. string.var("vehicles{1}", { player.playerID }))
+                :commonStart(function()
+                    LineLabel(string.var("({1}):", { player.vehiclesCount }), nil, true)
+                end)
                 :openedBehavior(drawList)
                 :build()
         else
-            LineLabel(vehsLabel)
+            LineLabel(string.var("{1} ({2}):", { cache.labels.players.moderation.vehicles, player.vehiclesCount }))
             drawList()
         end
     end
@@ -227,7 +229,8 @@ local function drawModeration(player, ctxt, cache)
                 function()
                     LineBuilder():btnIconToggle({
                         id = string.var("toggleMute{1}", { player.playerID }),
-                        icon = player.muted and BJI.Utils.Icon.ICONS.speaker_notes_off or BJI.Utils.Icon.ICONS.speaker_notes,
+                        icon = player.muted and BJI.Utils.Icon.ICONS.speaker_notes_off or
+                            BJI.Utils.Icon.ICONS.speaker_notes,
                         state = player.muted == true,
                         tooltip = cache.labels.players.moderation.buttons.mute,
                         onClick = function()

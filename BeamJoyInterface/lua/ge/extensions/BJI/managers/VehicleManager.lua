@@ -159,10 +159,13 @@ local function dropPlayerAtCamera(withReset)
     end
 end
 
+---@return NGVehicle?
 local function getCurrentVehicle()
     return be:getPlayerVehicle(0)
 end
 
+---@param gameVehID integer?
+---@return NGVehicle?
 local function getVehicleObject(gameVehID)
     gameVehID = tonumber(gameVehID)
     if not gameVehID then
@@ -178,6 +181,8 @@ local function getVehicleObject(gameVehID)
     return veh or nil
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getRemoteVehID(gameVehID)
     local vehs = M.getMPVehicles()
     for _, v in pairs(vehs) do
@@ -188,6 +193,8 @@ local function getRemoteVehID(gameVehID)
     return nil
 end
 
+---@param remoteVehID integer
+---@return integer?
 local function getGameVehIDByRemoteVehID(remoteVehID)
     local vehs = M.getMPVehicles()
     for _, v in pairs(vehs) do
@@ -198,6 +205,8 @@ local function getGameVehIDByRemoteVehID(remoteVehID)
     return nil
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getVehOwnerID(gameVehID)
     local vehs = M.getMPVehicles()
     for _, v in pairs(vehs) do
@@ -208,6 +217,8 @@ local function getVehOwnerID(gameVehID)
     return nil
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getVehIDByGameVehID(gameVehID)
     if not M.isGEInit() or
         gameVehID == -1 or
@@ -221,6 +232,9 @@ local function getVehIDByGameVehID(gameVehID)
     return tonumber(veh.serverVehicleID)
 end
 
+---@param playerID integer
+---@param vehID integer?
+---@return integer?
 local function getGameVehicleID(playerID, vehID)
     local srvVehID = string.var("{1}-{2}", { playerID, vehID or 0 })
     if not M.getMPVehicles()[srvVehID] then
@@ -239,10 +253,13 @@ local function isVehProtected(gameVehID)
         end)
 end
 
+---@param gameVehID integer
+---@return boolean
 local function isVehicleOwn(gameVehID)
     return M.isGEInit() and MPVehicleGE.isOwn(gameVehID)
 end
 
+---@return boolean
 local function isCurrentVehicleOwn()
     local vehicle = M.getCurrentVehicle()
     if vehicle then
@@ -253,6 +270,7 @@ local function isCurrentVehicleOwn()
     return false
 end
 
+---@return NGVehicle?
 local function getCurrentVehicleOwn()
     local veh = M.getCurrentVehicle()
     if veh and M.isVehicleOwn(veh:getID()) and M.isGEInit() then
@@ -311,6 +329,7 @@ local function onVehicleDestroyed(gameVehID)
     M.homes[gameVehID] = nil
 end
 
+---@param playerID integer
 local function focus(playerID)
     local player = BJI.Managers.Context.Players[playerID]
     local veh = (player and player.currentVehicle) and M.getVehicleObject(player.currentVehicle) or nil
@@ -323,6 +342,7 @@ local function focus(playerID)
     end
 end
 
+---@param gameVehID integer
 local function focusVehicle(gameVehID)
     local veh = M.getVehicleObject(gameVehID)
     if veh then
@@ -337,6 +357,7 @@ local function focusNextVehicle()
     be:enterNextVehicle(0, 1)
 end
 
+---@param targetID integer
 local function teleportToPlayer(targetID)
     if not M.isCurrentVehicleOwn() then
         return
@@ -476,7 +497,7 @@ local function recoverInPlace(callback)
     end
 end
 
----@param veh? userdata
+---@param veh NGVehicle?
 ---@return BJIPositionRotation?
 local function getPositionRotation(veh)
     if not veh then
@@ -494,7 +515,7 @@ local function getPositionRotation(veh)
     return nil
 end
 
----@param veh? userdata
+---@param veh NGVehicle?
 ---@param callback fun(posRotVel: BJIPositionRotationVelocity)
 local function getPosRotVel(veh, callback)
     if not veh then
@@ -811,15 +832,17 @@ local function shiftDown(vehID)
 end
 
 -- return the current vehicle model key
+---@return string?
 local function getCurrentModel()
     local veh = M.getCurrentVehicle()
     if not veh then
         return nil
     end
 
-    return veh.JBeam
+    return veh.jbeam
 end
 
+---@return {model: string, config: ClientVehicleConfig}?
 local function getDefaultModelAndConfig()
     local config = jsonReadFile("settings/default.pc")
     if config then
@@ -831,6 +854,7 @@ local function getDefaultModelAndConfig()
     return nil
 end
 
+---@return boolean
 local function isDefaultModelVehicle()
     local default = M.getDefaultModelAndConfig()
     return default and M.getAllVehicleConfigs(true, true)[default.model] ~= nil or false
@@ -902,21 +926,27 @@ local function getConfigLabel(model, configKey)
 end
 
 -- config is optionnal
+---@param config string?
+---@return boolean
 local function isConfigCustom(config)
     local veh = M.getCurrentVehicle()
     if not config and not veh then
         return false
     end
 
-    config = config or veh.partConfig
+    config = config or (veh and veh.partConfig or "")
     return not config:endswith(".pc")
 end
 
+---@param model string
+---@return boolean
 local function isModelBlacklisted(model)
     return #BJI.Managers.Context.Database.Vehicles.ModelBlacklist > 0 and
         table.includes(BJI.Managers.Context.Database.Vehicles.ModelBlacklist, model)
 end
 
+---@param tree table
+---@return table<string, string>
 local function convertPartsTree(tree)
     local parts = {}
     local function recursParts(data)
@@ -945,9 +975,9 @@ local function getFullConfig(config)
         return nil
     end
 
-    config = config or veh.partConfig
+    config = config or (veh and veh.partConfig or "")
     local res, status
-    if isConfigCustom(config) then
+    if isConfigCustom(tostring(config)) then
         local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
         if type(fn) == "function" then
             status, res = pcall(fn)
@@ -991,6 +1021,8 @@ local function getType(model)
     return nil
 end
 
+---@param gameVehID integer?
+---@return boolean
 local function isUnicycle(gameVehID)
     local veh = gameVehID and M.getVehicleObject(gameVehID) or M.getCurrentVehicle()
     if not veh then
@@ -1000,6 +1032,9 @@ local function isUnicycle(gameVehID)
     return veh.partConfig:find("unicycle") ~= nil
 end
 
+---@param model string
+---@param configKey string
+---@return string
 local function getConfigByModelAndKey(model, configKey)
     return string.var("vehicles/{1}/{2}.pc", { model, configKey })
 end
@@ -1011,9 +1046,11 @@ local function getCurrentConfigKey()
         return nil
     end
 
-    return veh.partConfig:gsub("^vehicles/.*/", ""):gsub(".pc", "")
+    local res = veh.partConfig:gsub("^vehicles/.*/", ""):gsub(".pc", "")
+    return res
 end
 
+---@return string?
 local function getCurrentConfigLabel()
     local veh = M.getCurrentVehicle()
     if not veh then
@@ -1038,6 +1075,9 @@ local INVALID_VEHICLES = {
     "roof_crush_tester"
 }
 -- cache spawnable data
+---@param withTrailers boolean?
+---@param withProps boolean?
+---@param forced boolean?
 local function getAllVehicleConfigs(withTrailers, withProps, forced)
     if not forced and M.allVehicleConfigs then
         -- cached data
