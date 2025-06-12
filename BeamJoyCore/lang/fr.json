@@ -720,7 +720,8 @@
       },
       "freecam": {
         "smoothed": "Caméra Adoucie",
-        "fov": "Champ de Vision"
+        "fov": "Champ de Vision",
+        "speed": "Vitesse de la caméra"
       },
       "stats": {
         "delivery": "Livraisons effectuées",

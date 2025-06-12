@@ -3,6 +3,7 @@ local M = {
     _name = "Cam",
 
     DEFAULT_FREECAM_FOV = 65,
+    DEFAULT_FREECAM_SPEED = 30,
     CAMERAS = {
         ORBIT = "orbit",
         BIG_MAP = "bigMap",
@@ -182,19 +183,36 @@ local function setFreeCamSmooth(state)
     core_camera.setSmoothedCam(0, state)
 end
 
+---@return number
 local function getFOV()
     return core_camera.getFovDeg()
 end
 
--- default: float DEFAULT 65, 10-120 range
+---@param deg number? 10-120
 local function setFOV(deg)
-    if deg == nil then
-        deg = 65
+    if not deg then
+        deg = M.DEFAULT_FREECAM_FOV
     elseif type(deg) ~= "number" then
         return
     end
 
-    core_camera.setFOV(0, deg)
+    core_camera.setFOV(0, math.clamp(deg, 10, 120))
+end
+
+---@return number
+local function getSpeed()
+    return core_camera.getSpeed()
+end
+
+---@param value number? 2-100
+local function setSpeed(value)
+    if not value then
+        value = M.DEFAULT_FREECAM_SPEED
+    elseif type(value) ~= "number" then
+        return
+    end
+
+    core_camera.setSpeed(math.clamp(value, 2, 100))
 end
 
 local initKey
@@ -252,10 +270,18 @@ local function fastTick(ctxt)
 end
 
 local function slowTick(ctxt)
-    if ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
-        -- update FOV
-        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, M.getFOV())
+    if ctxt.camera == M.CAMERAS.FREE then
+        local currentFov = M.getFOV()
+        if currentFov ~= BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
+            -- update FoV
+            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, currentFov)
+        end
+
+        local currentSpeed = M.getSpeed()
+        if currentSpeed ~= BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED) then
+            -- update speed
+            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, currentSpeed)
+        end
     end
 end
 
@@ -281,12 +307,14 @@ local function onCameraChange(newCamera)
 
     if newCamera == M.CAMERAS.FREE then
         M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setSpeed(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED))
     end
 end
 
 local function onLoad()
     if M.getCamera() == M.CAMERAS.FREE then
         M.setFOV(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setSpeed(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED))
     end
 
     initKey = BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED, onConnection)
@@ -316,6 +344,9 @@ M.setFreeCamSmooth = setFreeCamSmooth
 
 M.getFOV = getFOV
 M.setFOV = setFOV
+
+M.getSpeed = getSpeed
+M.setSpeed = setSpeed
 
 M.onCameraChange = onCameraChange
 

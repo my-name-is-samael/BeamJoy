@@ -68,6 +68,7 @@ GetMapName = function()
     local map = mission:gsub("/levels/", ""):gsub("/.+%.json", "")
     return #map > 0 and map or nil
 end
+ui_message = ui_message or function(msg, ttl, category, icon) end
 
 nop = nop or {}
 be = be or {}

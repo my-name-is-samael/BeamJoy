@@ -720,7 +720,8 @@
       },
       "freecam": {
         "smoothed": "Câmera Suavizada",
-        "fov": "Campo de visão"
+        "fov": "Campo de visão",
+        "speed": "Velocidade da câmara"
       },
       "stats": {
         "delivery": "Entregas realizadas",

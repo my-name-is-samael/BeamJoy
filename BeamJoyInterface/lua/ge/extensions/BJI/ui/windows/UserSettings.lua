@@ -39,6 +39,7 @@ local W = {
         freecam = {
             smooth = "",
             fov = "",
+            speed = "",
         },
         stats = {
             delivery = "",
@@ -55,48 +56,39 @@ local W = {
 }
 
 local function updateLabels()
-    W.labels.vehicle.automaticLights = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.vehicles.automaticLights") })
+    W.labels.vehicle.automaticLights = BJI.Managers.Lang.get("userSettings.vehicles.automaticLights") .. ":"
     W.labels.vehicle.automaticLightsTooltip = BJI.Managers.Lang.get("userSettings.vehicles.automaticLightsTooltip")
 
-    W.labels.nametags.preview = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.nametags.preview") })
-    W.labels.nametags.hide = string.var("{1}:", { MPTranslate("ui.options.multiplayer.nameTags") })
-    W.labels.nametags.showDistance = string.var("{1}:",
-        { MPTranslate("ui.options.multiplayer.nameTagShowDistance") })
-    W.labels.nametags.fade = string.var("{1}:", { MPTranslate("ui.options.multiplayer.nametagFade") })
+    W.labels.nametags.preview = BJI.Managers.Lang.get("userSettings.nametags.preview") .. ":"
+    W.labels.nametags.hide = MPTranslate("ui.options.multiplayer.nameTags") .. ":"
+    W.labels.nametags.showDistance = MPTranslate("ui.options.multiplayer.nameTagShowDistance") .. ":"
+    W.labels.nametags.fade = MPTranslate("ui.options.multiplayer.nametagFade") .. ":"
     W.labels.nametags.fadeIn = MPTranslate("ui.options.multiplayer.nametagFadeIn")
     W.labels.nametags.fadeOut = MPTranslate("ui.options.multiplayer.nametagFadeOut")
-    W.labels.nametags.fadeDistance = string.var("{1}:",
-        { MPTranslate("ui.options.multiplayer.nametagFadeDistance") })
+    W.labels.nametags.fadeDistance = MPTranslate("ui.options.multiplayer.nametagFadeDistance") .. ":"
     W.labels.nametags.fadeDistanceTooltip = MPTranslate("ui.options.multiplayer.nametagFadeDistance.tooltip")
-    W.labels.nametags.invertFade = string.var("{1}:", { MPTranslate("ui.options.multiplayer.nametagInvertFade") })
-    W.labels.nametags.dontFullyHide = string.var("{1}:",
-        { MPTranslate("ui.options.multiplayer.nametagDontFullyHide") })
-    W.labels.nametags.shorten = string.var("{1}:", { MPTranslate("ui.options.multiplayer.shortenNametags") })
+    W.labels.nametags.invertFade = MPTranslate("ui.options.multiplayer.nametagInvertFade") .. ":"
+    W.labels.nametags.dontFullyHide = MPTranslate("ui.options.multiplayer.nametagDontFullyHide") .. ":"
+    W.labels.nametags.shorten = MPTranslate("ui.options.multiplayer.shortenNametags") .. ":"
     W.labels.nametags.shortenTooltip = MPTranslate("ui.options.multiplayer.shortenNametags.tooltip")
-    W.labels.nametags.nametagLength = string.var("{1}:", { MPTranslate("ui.options.multiplayer.nametagCharLimit") })
+    W.labels.nametags.nametagLength = MPTranslate("ui.options.multiplayer.nametagCharLimit") .. ":"
     W.labels.nametags.nametagLengthTooltip = MPTranslate("ui.options.multiplayer.nametagCharLimit.tooltip")
-    W.labels.nametags.showSpecs = string.var("{1}:", { MPTranslate("ui.options.multiplayer.showSpectators") })
+    W.labels.nametags.showSpecs = MPTranslate("ui.options.multiplayer.showSpectators") .. ":"
     W.labels.nametags.showSpecsTooltip = MPTranslate("ui.options.multiplayer.showSpectators.tooltip")
-    W.labels.nametags.colorsPlayerText = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.player.text") })
-    W.labels.nametags.colorsPlayerBg = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.player.bg") })
-    W.labels.nametags.colorsIdleText = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.idle.text") })
-    W.labels.nametags.colorsIdleBg = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.idle.bg") })
-    W.labels.nametags.colorsSpecText = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.spec.text") })
-    W.labels.nametags.colorsSpecBg = string.var("{1}:",
-        { BJI.Managers.Lang.get("userSettings.nametags.colors.spec.bg") })
+    W.labels.nametags.colorsPlayerText = BJI.Managers.Lang.get("userSettings.nametags.colors.player.text") .. ":"
+    W.labels.nametags.colorsPlayerBg = BJI.Managers.Lang.get("userSettings.nametags.colors.player.bg") .. ":"
+    W.labels.nametags.colorsIdleText = BJI.Managers.Lang.get("userSettings.nametags.colors.idle.text") .. ":"
+    W.labels.nametags.colorsIdleBg = BJI.Managers.Lang.get("userSettings.nametags.colors.idle.bg") .. ":"
+    W.labels.nametags.colorsSpecText = BJI.Managers.Lang.get("userSettings.nametags.colors.spec.text") .. ":"
+    W.labels.nametags.colorsSpecBg = BJI.Managers.Lang.get("userSettings.nametags.colors.spec.bg") .. ":"
 
-    W.labels.freecam.smooth = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.freecam.smoothed") })
-    W.labels.freecam.fov = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.freecam.fov") })
+    W.labels.freecam.smooth = BJI.Managers.Lang.get("userSettings.freecam.smoothed") .. ":"
+    W.labels.freecam.fov = BJI.Managers.Lang.get("userSettings.freecam.fov") .. ":"
+    W.labels.freecam.speed = BJI.Managers.Lang.get("userSettings.freecam.speed") .. ":"
 
-    W.labels.stats.delivery = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.stats.delivery") })
-    W.labels.stats.race = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.stats.race") })
-    W.labels.stats.bus = string.var("{1}:", { BJI.Managers.Lang.get("userSettings.stats.bus") })
+    W.labels.stats.delivery = BJI.Managers.Lang.get("userSettings.stats.delivery") .. ":"
+    W.labels.stats.race = BJI.Managers.Lang.get("userSettings.stats.race") .. ":"
+    W.labels.stats.bus = BJI.Managers.Lang.get("userSettings.stats.bus") .. ":"
 end
 
 local function updateWidths()
@@ -114,16 +106,16 @@ local function updateWidths()
     end)
 
     W.widths.freecamLabels = 0
-    table.forEach({ "smooth", "fov" }, function(k)
-        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.freecam[k])
+    table.forEach(W.labels.freecam, function(label)
+        local w = BJI.Utils.UI.GetColumnTextWidth(label)
         if w > W.widths.freecamLabels then
             W.widths.freecamLabels = w
         end
     end)
 
     W.widths.statsLabels = 0
-    table.forEach({ "delivery", "race", "bus" }, function(k)
-        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.stats[k])
+    table.forEach(W.labels.stats, function(label)
+        local w = BJI.Utils.UI.GetColumnTextWidth(label)
         if w > W.widths.statsLabels then
             W.widths.statsLabels = w
         end
@@ -566,18 +558,62 @@ local function drawFreecamSettings(ctxt)
                                 end
                             end
                         })
-                        :inputNumeric({
+                        :slider({
                             id = "freecamFov",
                             type = "float",
                             value = fov,
                             min = 10,
                             max = 120,
-                            step = 1,
-                            stepFast = 5,
+                            precision = 1,
+                            renderFormat = "%.1f°",
                             onUpdate = function(val)
                                 BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, val)
                                 if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
                                     BJI.Managers.Cam.setFOV(val)
+                                    ui_message({ txt = "ui.camera.fov", context = { degrees = val } }, 2, "cameramode")
+                                end
+                            end,
+                        })
+                        :build()
+                end
+            }
+        })
+        :addRow({
+            cells = {
+                function()
+                    LineBuilder()
+                        :text(W.labels.freecam.speed)
+                        :build()
+                end,
+                function()
+                    local speed = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED)
+                    LineBuilder()
+                        :btnIcon({
+                            id = "speedReset",
+                            icon = BJI.Utils.Icon.ICONS.refresh,
+                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            disabled = speed == BJI.Managers.Cam.DEFAULT_FREECAM_SPEED,
+                            onClick = function()
+                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED,
+                                    BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
+                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                    BJI.Managers.Cam.setSpeed(BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
+                                end
+                            end
+                        })
+                        :slider({
+                            id = "freecamSpeed",
+                            type = "float",
+                            value = speed,
+                            min = 2,
+                            max = 100,
+                            precision = 1,
+                            onUpdate = function(val)
+                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, val)
+                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                    BJI.Managers.Cam.setSpeed(val)
+                                    ui_message({ txt = "ui.camera.speed", context = { speed = val } }, 1,
+                                        "cameraspeed")
                                 end
                             end,
                         })

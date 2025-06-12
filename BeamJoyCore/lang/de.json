@@ -720,7 +720,8 @@
       },
       "freecam": {
         "smoothed": "Geglättete Kamera",
-        "fov": "Sichtfeld"
+        "fov": "Sichtfeld",
+        "speed": "Kamerageschwindigkeit"
       },
       "stats": {
         "delivery": "Lieferungen erledigt",

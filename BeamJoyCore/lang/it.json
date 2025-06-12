@@ -720,7 +720,8 @@
       },
       "freecam": {
         "smoothed": "Fotocamera levigata",
-        "fov": "Campo visivo"
+        "fov": "Campo visivo",
+        "speed": "Velocità della telecamera"
       },
       "stats": {
         "delivery": "Consegne effettuate",

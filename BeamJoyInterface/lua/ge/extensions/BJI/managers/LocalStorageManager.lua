@@ -26,6 +26,10 @@ local M = {
             key = "beamjoy.freecam.fov",
             default = 65,
         },
+        FREECAM_SPEED = {
+            key = "beamjoy.freecam.speed",
+            default = 30,
+        },
 
         NAMETAGS_COLOR_PLAYER_TEXT = {
             key = "beamjoy.nametags.colors.player.text",

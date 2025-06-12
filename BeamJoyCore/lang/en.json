@@ -721,7 +721,8 @@
       },
       "freecam": {
         "smoothed": "Smoothed Camera",
-        "fov": "Field of View"
+        "fov": "Field of View",
+        "speed": "Camera Speed"
       },
       "stats": {
         "delivery": "Deliveries done",
