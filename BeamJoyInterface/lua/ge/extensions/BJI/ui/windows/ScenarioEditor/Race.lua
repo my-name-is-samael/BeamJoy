@@ -282,6 +282,7 @@ local function validateRace()
                 W.cache.validTry = false
             end
 
+            local seenParents = Table()
             W.cache.invalid.steps[iStep][iWp].parents = {}
             if iStep > 1 then -- validate parents
                 wp.parents:forEach(function(parentName, iParent)
@@ -290,6 +291,14 @@ local function validateRace()
                         W.cache.invalid.steps[iStep][iWp].parents[iParent] = true
                         W.cache.validSave = false
                         W.cache.validTry = false
+                    else
+                        if seenParents:includes(parentName) then
+                            W.cache.invalid.steps[iStep][iWp].parents[iParent] = true
+                            W.cache.validSave = false
+                            W.cache.validTry = false
+                        else
+                            seenParents:insert(parentName)
+                        end
                     end
                 end)
             end

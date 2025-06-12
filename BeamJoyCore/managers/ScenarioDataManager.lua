@@ -244,7 +244,9 @@ end
 ---@return integer raceID
 local function saveRace(race)
     local function checkParents(raceData, wpData, wpStep)
-        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or table.includes(wpData.parents, wpData.name) then
+        if type(wpData.parents) ~= "table" or #wpData.parents == 0 or
+            table.includes(wpData.parents, wpData.name) or
+            #Table(wpData.parents):values():duplicates() > 0 then
             return false
         end
         if wpStep == 1 then
