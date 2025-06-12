@@ -27,13 +27,22 @@ function ctrl.teleportToPlayer(data)
 end
 
 function ctrl.teleportToPos(data)
-    local pos = data[1]
+    local pos = vec3(data[1])
     BJI.Managers.Veh.setPositionRotation(pos)
 end
 
 function ctrl.explodeVehicle(data)
     local gameVehID = data[1]
     BJI.Managers.Veh.explodeVehicle(gameVehID)
+end
+
+function ctrl.syncPaint(data)
+    ---@type integer, integer, NGPaint
+    local vid, paintIndex, paintData = data[1], data[2], data[3]
+    local veh = BJI.Managers.Veh.getVehicleObject(vid)
+    if veh and not BJI.Managers.Veh.isVehicleOwn(vid) then
+        BJI.Managers.Veh.paintVehicle(veh, paintIndex, paintData)
+    end
 end
 
 return ctrl

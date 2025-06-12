@@ -247,10 +247,11 @@ local function tryReplaceOrSpawn(model, config)
     end
 end
 
-local function tryPaint(paint, paintNumber)
-    if BJI.Managers.Veh.isCurrentVehicleOwn() then
+local function tryPaint(paintIndex, paint)
+    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    if veh then
         S.exemptNextReset()
-        BJI.Managers.Veh.paintVehicle(paint, paintNumber)
+        BJI.Managers.Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 
@@ -300,8 +301,8 @@ local function getPlayerListActions(player, ctxt)
         if player.self then
             disabled = ctxt.isOwner and table.length(ctxt.user.vehicles) == 1
         else
-            local finalGameVehID = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
-            finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
+            local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
+            local finalGameVehID = veh and veh:getID() or nil
             disabled = finalGameVehID and ctxt.veh and ctxt.veh:getID() == finalGameVehID or false
         end
         table.insert(actions, {
@@ -373,8 +374,8 @@ local function getPlayerListActions(player, ctxt)
             end
 
             if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.TELEPORT_FROM) then
-                local finalGameVehID = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
-                finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
+                local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
+                local finalGameVehID = veh and veh:getID() or nil
                 if finalGameVehID and BJI.Managers.Veh.getVehOwnerID(finalGameVehID) == player.playerID then
                     table.insert(actions, {
                         id = string.var("teleportFrom{1}", { player.playerID }),

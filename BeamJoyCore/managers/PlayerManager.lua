@@ -5,6 +5,7 @@
 ---@field name string
 ---@field freeze boolean
 ---@field engine boolean
+---@field paints tablelib<integer, NGPaint[]>? 1-3 indices
 
 ---@class BJCAuthPlayer
 ---@field playerName string
@@ -246,6 +247,15 @@ local function onPlayerConnect(playerID)
         MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
         M.Players[playerID] = nil
     end
+
+    -- sync vehicles paints
+    Table(M.Players):forEach(function(p)
+        Table(p.vehicles):filter(function(v) return v.paints end):forEach(function(v)
+            v.paints:forEach(function(paint, i)
+                BJCTx.player.syncPaint(playerID, v.vid, i, paint)
+            end)
+        end)
+    end)
 end
 
 ---@param playerID integer
@@ -260,7 +270,7 @@ local function onPlayerDisconnect(playerID)
 end
 
 ---@param playerID integer
----@param gameVehID integer
+---@param gameVehID integer?
 local function onVehicleSwitched(playerID, gameVehID)
     local player = M.Players[playerID]
     player.currentVehicle = gameVehID

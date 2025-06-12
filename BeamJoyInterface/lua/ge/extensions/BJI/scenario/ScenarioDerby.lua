@@ -170,12 +170,11 @@ local function onVehicleSpawned(gameVehID)
     end
 end
 
-local function tryPaint(paint, paintNumber)
+local function tryPaint(paintIndex, paint)
     local participant = S.getParticipant()
-    if BJI.Managers.Veh.isCurrentVehicleOwn() and
-        S.state == S.STATES.PREPARATION and participant and not participant.ready then
-        BJI.Managers.Veh.paintVehicle(paint, paintNumber)
-        BJI.Managers.Veh.freeze(true)
+    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    if veh and S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        BJI.Managers.Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 

@@ -439,6 +439,7 @@ local function deleteOtherPlayerVehicle()
 end
 
 BJI_VEHICLE_EXPLODE_HINGES_DELAY = 200
+---@param gameVehID integer
 local function explodeVehicle(gameVehID)
     local veh = M.getVehicleObject(gameVehID)
     if veh then
@@ -1272,7 +1273,7 @@ local function getAllConfigsForModel(model)
     return (data or {}).configs or {}
 end
 
--- return all paints labels and data for model (or current vehicle)
+---@return table<string, NGPaint>
 local function getAllPaintsForModel(model)
     if not model then
         if not M.isCurrentVehicleOwn() then
@@ -1340,24 +1341,31 @@ local function spawnNewVehicle(model, config, posrot)
     end
 end
 
--- See M.getAllPaintsForModel for paint data
-local function paintVehicle(paint, paintNumber)
-    local veh = M.getCurrentVehicleOwn()
+-- flags to prevent sound spamming
+local paintSoundProcess
+
+---@param veh NGVehicle
+---@param paintIndex integer 1-3
+---@param paint NGPaint
+local function paintVehicle(veh, paintIndex, paint)
+    veh = veh or M.getCurrentVehicleOwn()
     if not veh or type(paint) ~= "table" then
         return
     end
 
-    paintNumber = paintNumber == math.clamp(paintNumber or 0, 1, 3) and paintNumber or 1
-    local config = M.getFullConfig(veh.partConfig)
-    if not config then
-        return
-    end
+    paintIndex = paintIndex == math.clamp(paintIndex or 0, 1, 3) and paintIndex or 1
+    extensions.core_vehicle_manager.liveUpdateVehicleColors(veh:getID(), veh, paintIndex, paint)
 
-    if not config.paints then
-        config.paints = {}
+    local currentVehicle = M.getCurrentVehicle()
+    if not paintSoundProcess and currentVehicle and
+        currentVehicle:getID() == veh:getID() and
+        BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PAINT)
+        paintSoundProcess = true
+        BJI.Managers.Async.delayTask(function()
+            paintSoundProcess = nil
+        end, 3000, string.var("paintSoundProcess-{1}", { veh:getID() }))
     end
-    config.paints[paintNumber] = paint
-    core_vehicles.replaceVehicle(config.model, { config = config, paint = paint })
 end
 
 local factorMJToReadable = {
@@ -1622,15 +1630,19 @@ end
 local function onUnload()
     extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
     extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
+    extensions.core_vehicle_manager.liveUpdateVehicleColors = M.baseFunctions.liveUpdateVehicleColors
 end
 
 M.onLoad = function()
     -- update configs cache when saving/overwriting/deleting a config
     BJI.Managers.Async.task(function()
-        return not not extensions.core_vehicle_partmgmt and not not extensions.util_screenshotCreator
+        return not not extensions.core_vehicle_partmgmt and
+            not not extensions.util_screenshotCreator and
+            not not extensions.core_vehicle_manager
     end, function()
         M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
         M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
+        M.baseFunctions.liveUpdateVehicleColors = extensions.core_vehicle_manager.liveUpdateVehicleColors
 
         extensions.util_screenshotCreator.startWork = function(...)
             M.baseFunctions.saveConfigBaseFunction(...)
@@ -1645,6 +1657,24 @@ M.onLoad = function()
                 M.getAllVehicleConfigs(false, false, true)
                 BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
             end, 1000, "BJIVehPostRemoveConfig")
+        end
+        ---@param vehID integer
+        ---@param veh NGVehicle?
+        ---@param paintIndex integer
+        ---@param paint NGPaint
+        extensions.core_vehicle_manager.liveUpdateVehicleColors = function(vehID, veh, paintIndex, paint)
+            if M.isVehicleOwn(vehID) then
+                -- send live update to all players
+                local taskKey = string.var("syncPaint-{1}-{2}", { vehID, paintIndex })
+                BJI.Managers.Async.removeTask(taskKey)
+                BJI.Managers.Async.delayTask(function()
+                    local v = veh or M.getVehicleObject(vehID)
+                    if v then
+                        BJI.Tx.player.syncPaint(vehID, paintIndex, paint)
+                    end
+                end, 1000, taskKey)
+            end
+            M.baseFunctions.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
         end
     end, "BJIVehSaveRemoveConfigOverride")
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)

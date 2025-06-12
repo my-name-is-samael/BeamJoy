@@ -58,9 +58,9 @@ local S = {
     },
 
     proximityProcess = {
-        ---@type userdata?
+        ---@type NGVehicle?
         huntedVeh = nil,
-        ---@type userdata[]
+        ---@type NGVehicle[]
         huntersVehs = Table(),
     },
 }
@@ -223,13 +223,14 @@ local function onVehicleSpawned(gameVehID)
     end
 end
 
-local function tryPaint(paint, paintNumber)
+---@param paintIndex integer
+---@param paint NGPaint
+local function tryPaint(paintIndex, paint)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
     if veh and S.state == S.STATES.PREPARATION and
         participant and not participant.ready then
-        BJI.Managers.Veh.paintVehicle(paint, paintNumber)
-        BJI.Managers.Veh.freeze(true, veh:getID())
+        BJI.Managers.Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 
@@ -484,7 +485,7 @@ local function switchToRandomParticipant()
 
     local part = table.random(S.participants)
     if part then
-        BJI.Managers.Veh.focus(Table(S.participants):indexOf(part))
+        BJI.Managers.Veh.focus(S.participants:indexOf(part) or 0)
     end
 end
 

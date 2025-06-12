@@ -33,6 +33,7 @@ C.EVENTS = {
             TELEPORT_TO_PLAYER = "teleportToPlayer",
             TELEPORT_TO_POS = "teleportToPos",
             EXPLODE_VEHICLE = "explodeVehicle",
+            SYNC_PAINT = "syncPaint",
         },
         TX = {
             CONNECTED = "connected",
@@ -43,6 +44,7 @@ C.EVENTS = {
             EXPLODE_VEHICLE = "explodeVehicle",
             UPDATE_AI = "UpdateAI",
             MARK_INVALID_VEHS = "markInvalidVehs",
+            SYNC_PAINT = "syncPaint",
         }
     },
     MODERATION = {

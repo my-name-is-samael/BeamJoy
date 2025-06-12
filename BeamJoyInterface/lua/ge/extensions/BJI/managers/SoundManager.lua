@@ -8,6 +8,7 @@ local M = {
 
     SOUNDS = {
         LEVEL_UP = _baseSoundsPath("levelup"),
+        PAINT = _baseSoundsPath("paint"),
         RACE_COUNTDOWN = "event:UI_Countdown1",
         RACE_START = "event:UI_CountdownGo",
         RACE_WAYPOINT = "event:UI_Checkpoint",          -- same as "event:>UI>Missions>Checkpoint"

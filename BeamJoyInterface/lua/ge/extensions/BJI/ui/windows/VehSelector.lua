@@ -631,7 +631,7 @@ local function drawPaints(paints)
                 style = style,
                 tooltip = W.labels.applyPaint:var({ position = j }),
                 onClick = function()
-                    BJI.Managers.Scenario.tryPaint(paintData.paint, j)
+                    BJI.Managers.Scenario.tryPaint(j, paintData.paint)
                 end
             })
         end

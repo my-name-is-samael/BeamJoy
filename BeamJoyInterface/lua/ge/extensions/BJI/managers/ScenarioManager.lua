@@ -185,11 +185,11 @@ local function tryReplaceOrSpawn(model, config)
     end
 end
 
----@param paint table
----@param paintNumber integer
-local function tryPaint(paint, paintNumber)
+---@param paintIndex integer
+---@param paint NGPaint
+local function tryPaint(paintIndex, paint)
     if _curr().tryPaint then
-        _curr().tryPaint(paint, paintNumber)
+        _curr().tryPaint(paintIndex, paint)
     end
 end
 

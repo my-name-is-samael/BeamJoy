@@ -23,7 +23,7 @@
 ---@field tryFocus (fun(targetID: integer))?
 ---@field trySpawnNew (fun(model: string, config: table|string?))?
 ---@field tryReplaceOrSpawn (fun(model: string, config: table|string?))?
----@field tryPaint (fun(paint: table, paintNumber: integer))?
+---@field tryPaint (fun(paintIndex: integer, paint: NGPaint))?
 ---@field saveHome (fun(ctxt: TickContext): boolean?)?
 ---@field loadHome (fun(ctxt: TickContext): boolean?)?
 ---@field canRefuelAtStation (fun(): boolean)? default false
@@ -117,3 +117,10 @@
 ---@field getInitialNodePosition fun(self: NGVehicle, nodeId: integer): vec3
 ---@field resetBrokenFlexMesh fun(self: NGVehicle)
 ---@field getMeshAlpha fun(self: NGVehicle, meshID: integer): number
+
+---@class NGPaint
+---@field baseColor number[] 4 indices
+---@field metallic number 0-1
+---@field roughness number 0-1
+---@field clearCoat number 0-1
+---@field clearCoatRoughness number 0-1
