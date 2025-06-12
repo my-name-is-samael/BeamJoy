@@ -70,14 +70,14 @@ local function areBaseCachesFirstLoaded()
         return true
     end
 
-    local loaded = true
-    for _, cacheType in pairs(M.BASE_CACHES) do
-        if not M.isCacheReady(cacheType) then
-            loaded = false
-        end
-    end
+    local loaded = Table(M.BASE_CACHES):every(function(bc)
+        return M.isCacheReady(bc)
+    end)
+
     if loaded then
-        M._firstInit = true
+        BJI.Managers.UI.applyLoading(false, function()
+            M._firstInit = true
+        end)
     end
     return loaded
 end

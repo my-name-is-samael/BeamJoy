@@ -70,7 +70,7 @@ local function onChat(event, data)
 end
 
 local function fastTick(ctxt)
-    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.LANG) and M.queue[1] then
+    if BJI.Managers.Cache._firstInit and M.queue[1] then
         local event, data = M.queue[1].event, M.queue[1].data
         data.color = parseColor(data.color)
         if event == M.EVENTS.PLAYER_CHAT then

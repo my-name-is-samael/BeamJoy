@@ -112,6 +112,7 @@ M.onPreRender = function() end
 M.onUpdate = function(...)
     if not BJI.CLIENT_READY and BJI.Managers.Context.WorldReadyState == 2 and
         ui_imgui.GetIO().Framerate > 5 then
+        BJI.Managers.UI.applyLoading(true) -- loading stops when base caches are loaded (CacheManager)
         BJI.CLIENT_READY = true
         BJI.Tx.player.connected()
     end
