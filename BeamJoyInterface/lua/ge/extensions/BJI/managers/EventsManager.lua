@@ -45,6 +45,8 @@ local M = {
         NG_VEHICLE_DESTROYED = "ngVehicleDestroyed",
         NG_DRIFT_COMPLETED_SCORED = "ngDriftCompletedScored",
         NG_AI_MODE_CHANGE = "ngAiModeChange",
+        NG_PURSUIT_ACTION = "ngPursuitAction",
+        NG_PURSUIT_MODE_UPDATE = "ngPursuitModeUpdate",
 
         -- tech events
 

@@ -356,7 +356,11 @@ local function getPlayerListActions(player, ctxt)
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                 onClick = function()
-                    BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, 20, nil, player.playerName)
+                    BJI.Managers.GPS.prependWaypoint({
+                        key = BJI.Managers.GPS.KEYS.PLAYER,
+                        radius = 20,
+                        playerName = player.playerName,
+                    })
                 end
             })
 

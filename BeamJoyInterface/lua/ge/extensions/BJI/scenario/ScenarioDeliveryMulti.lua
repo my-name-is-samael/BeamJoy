@@ -171,8 +171,12 @@ local function slowTick(ctxt)
                 S.checkTargetTime = nil
             end
             if #BJI.Managers.GPS.targets == 0 then
-                BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
-                    S.target.radius * getRadiusMultiplier(), nil, nil, false)
+                BJI.Managers.GPS.prependWaypoint({
+                    key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+                    pos = S.target.pos,
+                    radius = S.target.radius * getRadiusMultiplier(),
+                    clearable = false
+                })
             end
         end
     end
@@ -281,8 +285,12 @@ local function onUnload(ctxt)
 end
 
 local function onTargetChange()
-    BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
-        S.target.radius * getRadiusMultiplier(), nil, nil, false)
+    BJI.Managers.GPS.appendWaypoint({
+        key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+        pos = S.target.pos,
+        radius = S.target.radius * getRadiusMultiplier(),
+        clearable = false
+    })
     BJI.Managers.Message.flash("BJIDeliveryMultiNextTarget", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3,
         false)
     BJI.Managers.RaceWaypoint.resetAll()
@@ -316,8 +324,12 @@ local function rxData(data)
     if previousRadius ~= getRadiusMultiplier() then
         if BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET) then
             BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
-            BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.target.pos,
-                S.target.radius * getRadiusMultiplier(), nil, nil, false)
+            BJI.Managers.GPS.appendWaypoint({
+                key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                clearable = false
+            })
         end
         if #BJI.Managers.RaceWaypoint._targets > 0 then
             BJI.Managers.RaceWaypoint.resetAll()

@@ -137,8 +137,12 @@ local function initDelivery()
         end, 100, "BJIVehDeliveryCamera")
     end
 
-    BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.targetPosition.pos,
-        S.targetPosition.radius, nil, nil, false)
+    BJI.Managers.GPS.prependWaypoint({
+        key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+        pos = S.targetPosition.pos,
+        radius = S.targetPosition.radius,
+        clearable = false
+    })
     S.baseDistance = BJI.Managers.GPS.getCurrentRouteLength()
     BJI.Managers.RaceWaypoint.addWaypoint({
         name = "BJIVehicleDelivery",
@@ -329,8 +333,12 @@ local function slowTick(ctxt)
             S.checkTargetTime = nil
         end
         if #BJI.Managers.GPS.targets == 0 then
-            BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.DELIVERY_TARGET, S.targetPosition.pos,
-                S.targetPosition.radius, nil, nil, false)
+            BJI.Managers.GPS.prependWaypoint({
+                key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+                pos = S.targetPosition.pos,
+                radius = S.targetPosition.radius,
+                clearable = false
+            })
         end
     end
 end

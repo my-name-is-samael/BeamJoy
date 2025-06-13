@@ -63,8 +63,11 @@ local function draw(ctxt)
                     table.sort(garages, function(a, b)
                         return a.distance < b.distance
                     end)
-                    BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.STATION, garages[1].garage.pos,
-                        garages[1].garage.radius)
+                    BJI.Managers.GPS.prependWaypoint({
+                        key = BJI.Managers.GPS.KEYS.STATION,
+                        pos = garages[1].garage.pos,
+                        radius = garages[1].garage.radius
+                    })
                 end
             end,
             sound = BTN_NO_SOUND,

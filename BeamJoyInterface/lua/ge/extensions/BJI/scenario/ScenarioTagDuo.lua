@@ -273,8 +273,12 @@ local function onDataUpdate(ctxt, newLobby)
         if newLobby.players[ctxt.user.playerID].tagger then
             Table(newLobby.players):find(function(_, pid) return pid ~= ctxt.user.playerID end, function(_, pid)
                 if ctxt.players[pid] then
-                    BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, 0, nil,
-                        ctxt.players[pid].playerName, false)
+                    BJI.Managers.GPS.prependWaypoint({
+                        key = BJI.Managers.GPS.KEYS.PLAYER,
+                        radius = 0,
+                        playerName = ctxt.players[pid].playerName,
+                        clearable = false
+                    })
                 end
             end)
         end

@@ -124,7 +124,12 @@ local function updateTarget(ctxt)
     BJI.Managers.BusUI.requestStop(true)
 
     BJI.Managers.GPS.reset()
-    BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.BUS_STOP, next.pos, next.radius, nil, nil, false)
+    BJI.Managers.GPS.prependWaypoint({
+        key = BJI.Managers.GPS.KEYS.BUS_STOP,
+        pos = next.pos,
+        radius = next.radius,
+        clearable = false,
+    })
 end
 
 local function onLoad(ctxt)
@@ -293,8 +298,12 @@ local function slowTick(ctxt)
             updateCornerMarkersColor(false)
         end
         if #BJI.Managers.GPS.targets == 0 then
-            BJI.Managers.GPS.prependWaypoint(BJI.Managers.GPS.KEYS.BUS_STOP, target.pos, target.radius, nil, nil,
-                false)
+            BJI.Managers.GPS.prependWaypoint({
+                key = BJI.Managers.GPS.KEYS.BUS_STOP,
+                pos = target.pos,
+                radius = target.radius,
+                clearable = false,
+            })
         end
     end
 end

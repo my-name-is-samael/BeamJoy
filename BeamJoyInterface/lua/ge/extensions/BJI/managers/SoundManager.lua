@@ -20,6 +20,9 @@ local M = {
         FUEL_LOW = "event:>UI>Career>Fuel_Low",         -- 4x tings sound
         MAIN_CANCEL = "event:>UI>Main>Cancel",          -- boop sound
         INFO_OPEN = "event:>UI>Missions>Info_Open",     -- ting sound
+        PURSUIT_START = _baseSoundsPath("pursuit_start"),
+        PURSUIT_SUCCESS = _baseSoundsPath("pursuit_success"),
+        PURSUIT_FAIL = _baseSoundsPath("pursuit_fail"),
     }
 }
 

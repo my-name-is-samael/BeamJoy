@@ -1,8 +1,18 @@
+---@class BJIGPSWp
+---@field key string
+---@field clearable boolean? default true
+---@field radius number?
+---@field callback function?
+---@field pos vec3?
+---@field playerName string?
+---@field gameVehID integer?
+
 ---@class BJIManagerGPS : BJIManager
 local M = {
     _name = "GPS",
 
     baseFunctions = {},
+    ---@type tablelib<integer, BJIGPSWp> index 1-N
     targets = Table(),
     defaultRadius = 5,
 
@@ -13,6 +23,7 @@ local M = {
         BUS_STOP = "busStop",
         HUNTER = "hunter",
         MANUAL = "manual",
+        VEHICLE = "vehicle",
     },
 
     COLORS = {
@@ -20,6 +31,7 @@ local M = {
         STATION = { 1, .4, 0 },
         BUS = { 1, 1, 0 },
         PLAYER = { 1, .5, .5 },
+        VEHICLE = { 1, .5, .5 },
     },
 
     routePlanner = require('/lua/ge/extensions/gameplay/route/route')(),
@@ -53,7 +65,7 @@ local function navigateToMission(poiID)
     end
 
     if pos then
-        M.prependWaypoint(type, pos, M.defaultRadius)
+        M.prependWaypoint({ key = type, pos = pos })
         extensions.hook("onNavigateToMission", poiID)
     end
 end
@@ -82,6 +94,8 @@ local function getColor(t)
         return M.COLORS.BUS
     elseif t.key == M.KEYS.PLAYER then
         return M.COLORS.PLAYER
+    elseif t.key == M.KEYS.VEHICLE then
+        return M.COLORS.VEHICLE
     end
     return M.COLORS.DEFAULT
 end
@@ -135,38 +149,96 @@ local function _insertWaypoint(index, previousIndex, target)
     BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
 end
 
-local function _commonCreateWaypoint(key, pos, radius, callback, playerName, prepend)
+local function createPlayerWaypoint(playerName, radius, callback, prepend)
+    radius = radius or M.defaultRadius
+    if not playerName then
+        LogError("Invalid waypoint player name")
+        return
+    end
+
+    local targetPlayer = BJI.Managers.Context.Players:find(function(p)
+        return p.playerName == playerName
+    end)
+    if not targetPlayer or not targetPlayer.currentVehicle then
+        LogError("Invalid waypoint player")
+        return
+    end
+
+    local veh = BJI.Managers.Veh.getVehicleObject(targetPlayer.currentVehicle)
+    local posrot = BJI.Managers.Veh.getPositionRotation(veh)
+    local pos
+    if posrot then
+        pos = posrot.pos
+    else
+        LogError("Invalid waypoint player vehicle")
+        return
+    end
+
+    if callback and type(callback) ~= "function" then
+        LogError("Invalid waypoint callback")
+        return
+    end
+
+    if #M.targets > 0 then
+        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, pos) < M.defaultRadius then
+            LogError("waypoint already exists")
+            return
+        end
+    end
+
+    local existingIndex
+    M.targets:find(function(t) return t.key == M.KEYS.PLAYER end, function(_, i)
+        existingIndex = i
+    end)
+
+    return pos, radius, existingIndex
+end
+
+local function createVehicleWaypoint(gameVehID, radius, callback, prepend)
+    radius = radius or M.defaultRadius
+    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+    if not veh then
+        LogError("Invalid waypoint vehicle")
+        return
+    end
+
+    if callback and type(callback) ~= "function" then
+        LogError("Invalid waypoint callback")
+        return
+    end
+
+    local posrot = BJI.Managers.Veh.getPositionRotation(veh)
+    local pos
+    if posrot then
+        pos = posrot.pos
+    else
+        LogError("Invalid waypoint player vehicle")
+        return
+    end
+
+    if #M.targets > 0 then
+        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, pos) < M.defaultRadius then
+            LogError("waypoint already exists")
+            return
+        end
+    end
+
+    local existingIndex
+    M.targets:find(function(t) return t.key == M.KEYS.VEHICLE end, function(_, i)
+        existingIndex = i
+    end)
+
+    return pos, radius, existingIndex
+end
+
+local function commonCreateWaypoint(key, pos, radius, callback, prepend)
     radius = radius or M.defaultRadius
 
-    if key == M.KEYS.PLAYER then
-        if not playerName then
-            LogError("Invalid waypoint player name")
-            return
-        end
-
-        local targetPlayer = BJI.Managers.Context.Players:find(function(p)
-            return p.playerName == playerName
-        end)
-        if not targetPlayer or not targetPlayer.currentVehicle then
-            LogError("Invalid waypoint player")
-            return
-        end
-
-        local veh = BJI.Managers.Veh.getVehicleObject(targetPlayer.currentVehicle)
-        local posrot = BJI.Managers.Veh.getPositionRotation(veh)
-        if posrot then
-            pos = posrot.pos
-        else
-            LogError("Invalid waypoint player vehicle")
-            return
-        end
-    else
-        local status
-        status, pos = pcall(vec3, pos)
-        if not status then
-            LogError("Invalid waypoint position")
-            return
-        end
+    local status
+    status, pos = pcall(vec3, pos)
+    if not status then
+        LogError("Invalid waypoint position")
+        return
     end
 
     if callback and type(callback) ~= "function" then
@@ -183,50 +255,74 @@ local function _commonCreateWaypoint(key, pos, radius, callback, playerName, pre
 
     local existingIndex
     if key then
-        for i, t in ipairs(M.targets) do
-            if t.key == key then
-                -- existing by key, so replace its data
-                existingIndex = i
-                break
-            end
-        end
+        M.targets:find(function(t) return t.key == key end, function(_, i)
+            existingIndex = i
+        end)
     end
 
     return pos, radius, existingIndex
 end
 
-local function prependWaypoint(key, pos, radius, callback, playerName, clearable)
-    if clearable == nil then clearable = true end
-    local existingIndex
-    pos, radius, existingIndex = _commonCreateWaypoint(key, pos, radius, callback, playerName, true)
+---@param wp BJIGPSWp
+local function prependWaypoint(wp)
+    if wp.key == M.KEYS.PLAYER then
+        if not wp.playerName then
+            error("Invalid waypoint player name")
+        end
+    elseif wp.key == M.KEYS.VEHICLE then
+        if not wp.gameVehID then
+            error("Invalid waypoint vehicle")
+        end
+    elseif not wp.pos then
+        error("Invalid waypoint")
+    end
 
-    if pos then
+    if wp.clearable == nil then wp.clearable = true end
+    local existingIndex
+    if wp.key == M.KEYS.PLAYER then
+        wp.pos, wp.radius, existingIndex = createPlayerWaypoint(wp.playerName, wp.radius, wp.callback, true)
+    elseif wp.key == M.KEYS.VEHICLE then
+        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(wp.gameVehID, wp.radius, wp.callback, true)
+    else
+        wp.pos, wp.radius, existingIndex = commonCreateWaypoint(wp.key, wp.pos, wp.radius, wp.callback, true)
+    end
+
+    if wp.pos then
         local target = {
-            key = key,
-            playerName = playerName,
-            pos = pos,
-            radius = radius,
-            callback = callback or function() end,
-            clearable = clearable
+            key = wp.key,
+            radius = wp.radius,
+            callback = wp.callback or function() end,
+            clearable = wp.clearable,
+            pos = wp.pos,
+            playerName = wp.playerName,
+            gameVehID = wp.gameVehID,
         }
 
         _insertWaypoint(1, existingIndex, target)
     end
 end
 
-local function appendWaypoint(key, pos, radius, callback, playerName, clearable)
-    if clearable == nil then clearable = true end
+---@param wp BJIGPSWp
+local function appendWaypoint(wp)
+    if wp.clearable == nil then wp.clearable = true end
     local existingIndex
-    pos, radius, existingIndex = _commonCreateWaypoint(key, pos, radius, callback, playerName, false)
+    if wp.key == M.KEYS.PLAYER then
+        wp.pos, wp.radius, existingIndex = createPlayerWaypoint(wp.playerName, wp.radius, wp.callback, false)
+    elseif wp.key == M.KEYS.VEHICLE then
+        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(nil, wp.radius, wp.callback, false)
+    else
+        wp.pos, wp.radius, existingIndex = commonCreateWaypoint(wp.key, wp.pos, wp.radius, wp.callback, false)
+    end
 
-    if pos then
+    if wp.pos then
         local target = {
-            key = key,
-            playerName = playerName,
-            pos = pos,
-            radius = radius,
-            callback = callback or function() end,
-            clearable = clearable
+            key = wp.key,
+            radius = wp.radius,
+            callback = wp.callback or function() end,
+            clearable = wp.clearable,
+            pos = wp.pos,
+            playerName = wp.playerName,
+            gameVehID = wp.gameVehID,
         }
 
         local targetIndex = #M.targets
@@ -272,7 +368,7 @@ local function getRouteLength(points)
     return length
 end
 
-local function fastTick(ctxt)
+local function checkTargetReached()
     local wp = #M.targets > 0 and M.targets[1] or nil
     if ctxt.vehPosRot and wp then
         local distance = ctxt.vehPosRot.pos:distance(wp.pos)
@@ -288,7 +384,10 @@ local function fastTick(ctxt)
             M.targets:remove(1)
             renderTargets()
             BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
-            pcall(wp.callback, ctxt)
+            local ok, err = pcall(wp.callback, ctxt)
+            if not ok then
+                LogError(string.var("Error executing GPS callback: {1}", { err }))
+            end
         end
     end
 end
@@ -298,37 +397,66 @@ local function _onLastTargetReached()
     BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
 end
 
-local function slowTick()
+local updateIndex = 0
+local function updateTargets()
     local function deleteAndCheckLast(i)
         M.targets:remove(i)
         if #M.targets == 0 then
             _onLastTargetReached()
         end
     end
-    M.targets:find(function(t) return t.key == M.KEYS.PLAYER end,
-        function(t, i)
-            if not t.playerName then
-                return deleteAndCheckLast(i)
-            end
 
-            local player = BJI.Managers.Context.Players:find(function(p)
-                return p.playerName == t.playerName
+    updateIndex = (updateIndex + 1) % 2
+    -- update around twice/sec
+    if updateIndex == 0 then
+        -- update player
+        M.targets:find(function(t) return t.key == M.KEYS.PLAYER end,
+            function(t, i)
+                if not t.playerName then
+                    return deleteAndCheckLast(i)
+                end
+
+                local player = BJI.Managers.Context.Players:find(function(p)
+                    return p.playerName == t.playerName
+                end)
+                if not player or not player.currentVehicle then
+                    -- player left or no target vehicle
+                    return deleteAndCheckLast(i)
+                end
+
+                local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
+                local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+                if veh and posrot then
+                    t.pos = posrot.pos
+                    renderTargets()
+                else
+                    -- player have invalid vehicle
+                    return deleteAndCheckLast(i)
+                end
             end)
-            if not player  or not player.currentVehicle then
-                -- player left or no target vehicle
-                return deleteAndCheckLast(i)
-            end
+        -- update vehicle
+        M.targets:find(function(t) return t.key == M.KEYS.VEHICLE end,
+            function(t, i)
+                if not t.gameVehID then
+                    return deleteAndCheckLast(i)
+                end
 
-            local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
-            local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-            if veh and posrot then
-                t.pos = posrot.pos
-                renderTargets()
-            else
-                -- player have invalid vehicle
-                return deleteAndCheckLast(i)
-            end
-        end)
+                local veh = BJI.Managers.Veh.getVehicleObject(t.gameVehID)
+                local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+                if veh and posrot then
+                    t.pos = posrot.pos
+                    renderTargets()
+                else
+                    -- invalid vehicle
+                    return deleteAndCheckLast(i)
+                end
+            end)
+    end
+end
+
+local function fastTick(ctxt)
+    checkTargetReached()
+    updateTargets()
 end
 
 local function onLoad()
@@ -339,7 +467,6 @@ local function onLoad()
     end
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 

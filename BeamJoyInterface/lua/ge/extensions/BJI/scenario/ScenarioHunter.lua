@@ -506,14 +506,20 @@ local function initGameHunted(participant)
             })
         end
 
-        BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.HUNTER, wp.pos, wp.radius, function()
-            BJI.Managers.RaceWaypoint.resetAll()
-            BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.CHECKPOINT_REACHED)
-            S.waypoint = S.waypoint + 1
-            if S.waypoint <= #S.waypoints then
-                updateWP()
-            end
-        end, nil, false)
+        BJI.Managers.GPS.appendWaypoint({
+            key = BJI.Managers.GPS.KEYS.HUNTER,
+            pos = wp.pos,
+            radius = wp.radius,
+            clearable = false,
+            callback = function()
+                BJI.Managers.RaceWaypoint.resetAll()
+                BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.CHECKPOINT_REACHED)
+                S.waypoint = S.waypoint + 1
+                if S.waypoint <= #S.waypoints then
+                    updateWP()
+                end
+            end,
+        })
     end
 
     local function resetCamAndInitWP()
@@ -749,8 +755,12 @@ local function fastTick(ctxt)
             local reveal = S.revealHuntedProximity or S.revealHuntedLastWaypoint or S.revealHuntedReset
             if reveal and not BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
                 Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
-                    BJI.Managers.GPS.appendWaypoint(BJI.Managers.GPS.KEYS.PLAYER, nil, .1, nil,
-                        ctxt.players[huntedID].playerName, false)
+                    BJI.Managers.GPS.appendWaypoint({
+                        key = BJI.Managers.GPS.KEYS.PLAYER,
+                        radius = .1,
+                        playerName = ctxt.players[huntedID].playerName,
+                        clearable = false
+                    })
                 end)
             elseif not reveal and BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.PLAYER) then
                 BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
