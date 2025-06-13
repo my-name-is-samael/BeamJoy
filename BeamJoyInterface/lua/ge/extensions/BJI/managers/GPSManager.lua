@@ -368,7 +368,8 @@ local function getRouteLength(points)
     return length
 end
 
-local function checkTargetReached()
+---@param ctxt TickContext
+local function checkTargetReached(ctxt)
     local wp = #M.targets > 0 and M.targets[1] or nil
     if ctxt.vehPosRot and wp then
         local distance = ctxt.vehPosRot.pos:distance(wp.pos)
@@ -454,8 +455,9 @@ local function updateTargets()
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
-    checkTargetReached()
+    checkTargetReached(ctxt)
     updateTargets()
 end
 
