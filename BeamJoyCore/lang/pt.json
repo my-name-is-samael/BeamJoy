@@ -1472,7 +1472,8 @@
         "notReadyMark": "NÃO ESTÁ PRONTO",
         "hunted": "Fugitivo",
         "hunters": "Caçadores",
-        "waypoints": "pontos de referência"
+        "waypoints": "pontos de referência",
+        "setAsFugitive": "Definir como fugitivo"
       }
     },
     "derby": {

@@ -1473,7 +1473,8 @@
         "notReadyMark": "NOT READY",
         "hunted": "Fugitive",
         "hunters": "Hunters",
-        "waypoints": "waypoints"
+        "waypoints": "waypoints",
+        "setAsFugitive": "Set as fugitive"
       }
     },
     "derby": {

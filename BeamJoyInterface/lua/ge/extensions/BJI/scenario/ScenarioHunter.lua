@@ -178,10 +178,6 @@ local function postSpawn(ctxt)
                 state = BJI.Managers.Restrictions.STATE.RESTRICTED
             },
         })
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-            BJI.Managers.Cam.toggleFreeCam()
-        end
-        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
         BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
         if not BJI.Windows.VehSelector.show then
             BJI.Windows.VehSelector.open(false)
@@ -201,7 +197,9 @@ local function tryReplaceOrSpawn(model, config)
         local startPos = participant.hunted and
             BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
             BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        BJI.Managers.Cam.resetForceCamera()
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, startPos)
+        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
         BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
     end
 end
@@ -318,22 +316,6 @@ local function doShowNametag(vehData)
 end
 
 ---@param gameVehID integer
-local function onVehicleDestroyed(gameVehID)
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if BJI.Managers.Veh.isVehicleOwn(gameVehID) and participant then
-        if S.state == S.STATES.PREPARATION then
-            if (participant.hunted and S.settings.huntedConfig) or
-                (not participant.hunted and #S.settings.hunterConfigs == 1) then
-                -- leave when forced preset
-                BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.JOIN)
-            end
-        else
-            BJI.Tx.scenario.HunterUpdate(S.CLIENT_EVENTS.LEAVE)
-        end
-    end
-end
-
----@param gameVehID integer
 local function onVehicleResetted(gameVehID)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if S.state == S.STATES.GAME and -- self hunter during game
@@ -386,7 +368,7 @@ end
 
 ---@param participant BJIHunterParticipant
 local function onJoinParticipants(participant)
-    local model, config
+    local ownVeh = BJI.Managers.Veh.isCurrentVehicleOwn()
     if participant.hunted then
         -- generate waypoints to reach
         ---@param pos vec3
@@ -419,38 +401,53 @@ local function onJoinParticipants(participant)
             end
             table.insert(S.waypoints, findNextWaypoint(vec3(lastPos)))
         end
-
-        if S.settings.huntedConfig then
-            -- forced config
-            model, config = S.settings.huntedConfig.model, S.settings.huntedConfig
-        else
-            BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
-                3, false)
-            BJI.Windows.VehSelector.open(false)
-        end
-    else
-        -- hunter
-        if #S.settings.hunterConfigs == 1 then
-            -- forced config
-            model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1]
-        elseif #S.settings.hunterConfigs == 0 then
-            BJI.Managers.Message.flash("BJIHunterChooseVehicle", BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
-                3, false)
-            BJI.Windows.VehSelector.open(false)
-        end
     end
 
     -- when forced config
-    if config then
-        BJI.Managers.Async.task(function(ctxt)
-            return BJI.Managers.VehSelectorUI.stateSelector
-        end, function(ctxt)
-            S.trySpawnNew(model, config)
-        end, "BJIHunterForcedConfigSpawn")
+    if ownVeh then
+        -- moving actual vehicle
+        local startPos = participant.hunted and
+            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+    else
+        local model, config
+        -- generate start position
+        if participant.hunted then
+            if S.settings.huntedConfig then
+                -- forced config
+                model, config = S.settings.huntedConfig.model, S.settings.huntedConfig
+            else
+                BJI.Managers.Message.flash("BJIHunterChooseVehicle",
+                    BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
+                    3, false)
+                BJI.Windows.VehSelector.open(false)
+            end
+        else
+            -- hunter
+            if #S.settings.hunterConfigs == 1 then
+                -- forced config
+                model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1]
+            elseif #S.settings.hunterConfigs == 0 then
+                BJI.Managers.Message.flash("BJIHunterChooseVehicle",
+                    BJI.Managers.Lang.get("hunter.play.flashChooseVehicle"),
+                    3, false)
+                BJI.Windows.VehSelector.open(false)
+            end
+        end
+        -- forced config spawn
+        if config then
+            BJI.Managers.Async.task(function()
+                return BJI.Managers.VehSelectorUI.stateSelector
+            end, function()
+                S.trySpawnNew(model, config)
+            end, "BJIHunterForcedConfigSpawn")
+        end
     end
 end
 
-local function onLeaveParticipants()
+---@param skipVehDeletion boolean?
+local function onLeaveParticipants(skipVehDeletion)
     if S.state == S.STATES.PREPARATION then
         -- prevents from switching to another participant (spoil)
         BJI.Managers.Cam.forceFreecamPos()
@@ -472,8 +469,7 @@ local function updatePreparation(data)
         S.waypoints = {}
     elseif wasParticipant and participant and
         wasHunted ~= participant.hunted then
-        -- role changed > reset vehicles then reload
-        onLeaveParticipants()
+        -- role changed > update position
         onJoinParticipants(participant)
     end
 end
@@ -764,8 +760,15 @@ local function fastTick(ctxt)
 end
 
 -- check for DNF process activation
+---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if ctxt.isOwner and participant and ctxt.vehData and ctxt.vehData.damageState and
+        ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+        -- vehicle swap repair
+        BJI.Managers.Veh.recoverInPlace()
+    end
+
     if ctxt.isOwner and S.state == S.STATES.GAME and participant then
         if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
             -- DNF check
@@ -809,7 +812,6 @@ S.doShowNametag = doShowNametag
 S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end
 
 S.onVehicleSpawned = onVehicleSpawned
-S.onVehicleDestroyed = onVehicleDestroyed
 S.onVehicleResetted = onVehicleResetted
 
 S.rxData = rxData

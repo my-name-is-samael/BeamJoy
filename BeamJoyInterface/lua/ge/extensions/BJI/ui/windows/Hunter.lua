@@ -33,6 +33,7 @@ local W = {
             spawn = "",
             replace = "",
             manualReset = "",
+            setAsFugitive = "",
         },
     },
     cache = {
@@ -51,6 +52,7 @@ local W = {
         isReady = false,
         showPreparationActions = false,
         showConfigs = false,
+        showFugitiveAssignBtn = false,
 
         -- game
         huntedID = 0,
@@ -90,6 +92,7 @@ local function updateLabels()
     W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
     W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
     W.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
+    W.labels.buttons.setAsFugitive = BJI.Managers.Lang.get("hunter.play.setAsFugitive")
 end
 
 ---@param ctxt? TickContext
@@ -114,6 +117,9 @@ local function updateCache(ctxt)
         )
         W.cache.showConfigs = W.cache.isParticipant and not W.cache.isReady and
             not W.cache.isHunted and #W.scenario.settings.hunterConfigs > 1
+        W.cache.showFugitiveAssignBtn = not W.cache.isReady and
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS
+            .START_SERVER_SCENARIO)
     end
 
     W.cache.huntedID = nil
@@ -168,6 +174,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
@@ -364,11 +371,24 @@ local function drawBodyPreparation(ctxt)
             LineLabel(i == 1 and W.labels.hunted or W.labels.hunters)
             Indent(1)
         end
-        LineBuilder():text(p.playerName, p.self and
-            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-            BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-            :text(p.readyLabel, p.color):build()
-        if i < 3 then
+        local line = LineBuilder():text(p.playerName, p.self and
+                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+            :text(p.readyLabel, p.color)
+        if i > 1 and W.cache.showFugitiveAssignBtn then
+            line:btn({
+                id = "forceFugitive" .. p.playerName,
+                label = W.labels.buttons.setAsFugitive,
+                style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                disabled = W.cache.disabledButtons,
+                onClick = function()
+                    W.cache.disabledButtons = true
+                    BJI.Tx.scenario.HunterForceFugitive(p.playerName)
+                end
+            })
+        end
+        line:build()
+        if i == 1 or i == #W.cache.playersList then
             Indent(-1)
         end
     end)

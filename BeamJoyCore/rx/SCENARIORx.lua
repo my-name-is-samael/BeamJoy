@@ -348,6 +348,15 @@ function ctrl.HunterUpdate(ctxt)
     BJCScenario.HunterManager.clientUpdate(ctxt.senderID, event, data)
 end
 
+function ctrl.HunterForceFugitive(ctxt)
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    local playerName = ctxt.data[1]
+    BJCScenario.HunterManager.forceFugitive(playerName)
+end
+
 ---@param ctxt BJCContext
 function ctrl.HunterStop(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then

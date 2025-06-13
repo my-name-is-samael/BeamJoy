@@ -1472,7 +1472,8 @@
         "notReadyMark": "NON PRONTO",
         "hunted": "Fuggitivo",
         "hunters": "Cacciatori",
-        "waypoints": "punti di passaggio"
+        "waypoints": "punti di passaggio",
+        "setAsFugitive": "Imposta come fuggitivo"
       }
     },
     "derby": {

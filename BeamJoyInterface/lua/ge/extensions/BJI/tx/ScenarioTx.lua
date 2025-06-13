@@ -150,12 +150,20 @@ return function(TX)
         TX._send(event.EVENT, event.TX.HUNTER_SAVE, { hunterData })
     end
 
+    ---@param settings table
     function scenario.HunterStart(settings)
         TX._send(event.EVENT, event.TX.HUNTER_START, { settings })
     end
 
+    ---@param clientEvent string
+    ---@param data any
     function scenario.HunterUpdate(clientEvent, data)
         TX._send(event.EVENT, event.TX.HUNTER_UPDATE, { clientEvent, data })
+    end
+
+    ---@param playerName string
+    function scenario.HunterForceFugitive(playerName)
+        TX._send(event.EVENT, event.TX.HUNTER_FORCE_FUGITIVE, { playerName })
     end
 
     function scenario.HunterStop()

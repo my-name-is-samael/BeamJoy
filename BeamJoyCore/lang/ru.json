@@ -1345,7 +1345,8 @@
         "notReadyMark": "НЕ ГОТОВО",
         "hunted": "Беглец",
         "hunters": "Охотники",
-        "waypoints": "путевые точки"
+        "waypoints": "путевые точки",
+        "setAsFugitive": "Назначить преследуемым"
       }
     },
     "derby": {

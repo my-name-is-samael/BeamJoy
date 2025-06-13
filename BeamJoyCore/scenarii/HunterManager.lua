@@ -31,6 +31,7 @@ local M = {
 
     state = nil,
     -- keep track of players joined participant to have valid hunted everytime
+    ---@type tablelib<integer, integer> index 1-N, value playerID
     joinOrder = Table(),
     ---@type tablelib<integer, BJIHunterParticipant> index playerID
     participants = Table(),
@@ -212,18 +213,6 @@ local function start(settings)
     })
 end
 
-local function sanitizePreparationHunted()
-    M.joinOrder = M.joinOrder:filter(function(playerID)
-        return not not M.participants[playerID]
-    end)
-    if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
-        M.participants[M.joinOrder[1]].hunted = true
-        M.participants[M.joinOrder[1]].waypoint = 0
-        M.participants[M.joinOrder[1]].ready = false
-        M.participants[M.joinOrder[1]].eliminated = false
-    end
-end
-
 ---@param hunted boolean
 ---@return integer
 local function findFreeStartPosition(hunted)
@@ -236,6 +225,22 @@ local function findFreeStartPosition(hunted)
                     return not p.hunted and p.startPosition == i
                 end)
             end):random()
+    end
+end
+
+local function sanitizePreparationHunted()
+    M.joinOrder = M.joinOrder:filter(function(playerID)
+        return not not M.participants[playerID]
+    end)
+    if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
+        local wasHunted = M.participants[M.joinOrder[1]].hunted
+        M.participants[M.joinOrder[1]].hunted = true
+        M.participants[M.joinOrder[1]].waypoint = 0
+        M.participants[M.joinOrder[1]].ready = false
+        M.participants[M.joinOrder[1]].eliminated = false
+        if not wasHunted then
+            M.participants[M.joinOrder[1]].startPosition = findFreeStartPosition(true)
+        end
     end
 end
 
@@ -360,6 +365,43 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
+local function forceFugitive(playerName)
+    if M.state ~= M.STATES.PREPARATION then
+        error({ key = "rx.errors.invalidData" })
+    end
+
+    local target = Table(BJCPlayers.Players):find(function(p)
+        return p.playerName == playerName
+    end)
+    local pos = target and M.joinOrder:indexOf(target.playerID) or nil
+    if not target or not pos or pos == 1 then
+        error({ key = "rx.errors.invalidPlayer", data = { playerName = playerName } })
+    end
+
+    local previousHunterPosition = M.participants[target.playerID].startPosition
+    M.participants[target.playerID].hunted = true
+    M.participants[target.playerID].waypoint = 0
+    M.participants[target.playerID].ready = false
+    M.participants[target.playerID].startPosition = nil -- clear start position to generate a clean one
+    while not M.participants[target.playerID].startPosition or
+        M.participants[target.playerID].startPosition == M.participants[M.joinOrder[1]].startPosition do
+        -- only choose a new start pos to avoid swapped hunter getting spoiled
+        M.participants[target.playerID].startPosition = findFreeStartPosition(true)
+    end
+
+    M.participants[M.joinOrder[1]].hunted = false
+    M.participants[M.joinOrder[1]].waypoint = nil
+    M.participants[M.joinOrder[1]].ready = false
+    M.participants[M.joinOrder[1]].startPosition = nil -- clear start position to generate a clean one
+    M.participants[M.joinOrder[1]].startPosition = findFreeStartPosition(false)
+
+    M.joinOrder:remove(pos)
+    M.joinOrder:insert(1, target.playerID)
+
+    dump({ M.participants, M.joinOrder })
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+end
+
 ---@param player BJCPlayer
 local function onPlayerDisconnect(player)
     if M.state and M.participants[player.playerID] then
@@ -388,10 +430,11 @@ local function onPlayerDisconnect(player)
 end
 
 local function onVehicleDeleted(playerID, vehID)
-    if M.state and M.participants[playerID] then
-        local needStop = M.state == M.STATES.GAME and M.participants[playerID].hunted
+    if M.state == M.STATES.GAME and M.participants[playerID] then
+        local needStop = M.participants[playerID].hunted or
+            table.length(M.participants) - 1 < M.MINIMUM_PARTICIPANTS()
         M.participants[playerID] = nil
-        if needStop or table.length(M.participants) < M.MINIMUM_PARTICIPANTS() then
+        if needStop then
             BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
                 gamemode = "chat.events.gamemodes.hunter",
                 reason = "chat.events.gamemodeStopReasons.notEnoughParticipants",
@@ -453,6 +496,7 @@ M.getCacheHash = getCacheHash
 
 M.start = start
 M.clientUpdate = onClientUpdate
+M.forceFugitive = forceFugitive
 M.stop = onStop
 M.forceStop = onStop
 

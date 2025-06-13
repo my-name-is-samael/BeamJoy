@@ -167,6 +167,7 @@ C.EVENTS = {
             HUNTER_SAVE = "HunterSave",
             HUNTER_START = "HunterStart",
             HUNTER_UPDATE = "HunterUpdate",
+            HUNTER_FORCE_FUGITIVE = "HunterForceFugitive",
             HUNTER_STOP = "HunterStop",
             DERBY_SAVE = "DerbySave",
             DERBY_START = "DerbyStart",

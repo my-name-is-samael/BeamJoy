@@ -1472,7 +1472,8 @@
         "notReadyMark": "NICHT BEREIT",
         "hunted": "Flüchtling",
         "hunters": "Jäger",
-        "waypoints": "Wegpunkte"
+        "waypoints": "Wegpunkte",
+        "setAsFugitive": "Als Flüchtigen festlegen"
       }
     },
     "derby": {
