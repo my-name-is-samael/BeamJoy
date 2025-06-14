@@ -1,6 +1,6 @@
 ---@class BJIManagerPoliceDuty: BJIManager
 local M = {
-    _name = "PoliceDuty",
+    _name = "Pursuit",
 
     selfPursuit = {
         active = false,
@@ -69,6 +69,8 @@ local function onFail()
     end
 end
 
+---@param gameVehID integer
+---@param aiState string
 local function onAIChanged(gameVehID, aiState)
     local ctxt = BJI.Managers.Tick.getContext()
     if ctxt.veh and ctxt.veh:getID() == gameVehID then
@@ -76,10 +78,24 @@ local function onAIChanged(gameVehID, aiState)
     end
 end
 
+---@param gameVehID integer
 local function onVehicleResetted(gameVehID)
     if M.selfPursuit.active and gameVehID == M.selfPursuit.targetID then
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
         reset()
+    end
+end
+
+---@param ctxt TickContext
+local function renderTick(ctxt)
+    if M.selfPursuit.active and not M.selfPursuit.isFugitive then
+        local targetVeh = BJI.Managers.Veh.getVehicleObject(M.selfPursuit.targetID)
+        local targetVehPos = targetVeh and BJI.Managers.Veh.getPositionRotation(targetVeh).pos or nil
+        if targetVeh and targetVehPos then
+            local finalPos = vec3(targetVehPos) + vec3(0, 0, targetVeh:getInitialHeight())
+            BJI.Utils.ShapeDrawer.Text("Fugitive", finalPos, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1),
+                BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5), false)
+        end
     end
 end
 
@@ -93,5 +109,7 @@ M.onLoad = function()
         BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED,
     }, onFail, M._name)
 end
+
+M.renderTick = renderTick
 
 return M
