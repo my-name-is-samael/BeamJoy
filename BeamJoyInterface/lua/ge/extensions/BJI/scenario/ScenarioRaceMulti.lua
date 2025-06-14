@@ -1026,26 +1026,36 @@ local function rxData(data)
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
 end
 
+---@param playerID integer?
+---@return boolean
 local function isParticipant(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
     return table.includes(S.grid.participants, playerID)
 end
 
+---@param playerID integer?
+---@return boolean
 local function isFinished(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
     return table.includes(S.race.finished, playerID)
 end
 
+---@param playerID integer?
+---@return boolean
 local function isEliminated(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
     return table.includes(S.race.eliminated, playerID)
 end
 
+---@param playerID integer?
+---@return boolean
 local function isReady(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
     return S.isParticipant(playerID) and table.includes(S.grid.ready, playerID)
 end
 
+---@param playerID integer?
+---@return boolean
 local function isSpec(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
     return isStateRaceOrFinished() and (
@@ -1053,6 +1063,7 @@ local function isSpec(playerID)
     )
 end
 
+---@param ctxt TickContext
 ---@return boolean
 local function isRaceStarted(ctxt)
     local now = ctxt and ctxt.now or GetCurrentTimeMillis()
@@ -1060,10 +1071,12 @@ local function isRaceStarted(ctxt)
         now >= S.race.startTime
 end
 
+---@return boolean
 local function isRaceOrCountdownStarted()
     return isStateRaceOrFinished()
 end
 
+---@return boolean
 local function isRaceFinished()
     return S.state and (S.state == S.STATES.FINISHED or
         #S.grid.participants == #S.race.finished + #S.race.eliminated)
@@ -1226,7 +1239,7 @@ end
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if newGameVehID ~= -1 and S.state == S.STATES.RACE and S.isSpec() then
         local ownerID = BJI.Managers.Veh.getVehOwnerID(newGameVehID)
-        if S.isEliminated(ownerID) or S.isFinished(ownerID) then
+        if ownerID and S.isEliminated(ownerID) or S.isFinished(ownerID) then
             BJI.Managers.Veh.focusNextVehicle()
         end
     end
