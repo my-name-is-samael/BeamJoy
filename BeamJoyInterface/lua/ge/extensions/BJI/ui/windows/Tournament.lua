@@ -343,6 +343,8 @@ local function updateData()
         end
     end
 
+    W.cache.showStartActivitySec = false
+    W.cache.showStartActivityDuration = false
     W.cache.showStartActivity = W.manager.state and staff and inFreeroam and
         not isRaceSoloInProgress()
     if W.cache.showStartActivity then
@@ -364,8 +366,6 @@ local function updateData()
     end
 
     if W.cache.showStartActivity then
-        W.cache.showStartActivitySec = false
-        W.cache.showStartActivityDuration = false
         if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.DERBY then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.arena end
