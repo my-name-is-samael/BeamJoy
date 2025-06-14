@@ -26,7 +26,8 @@ local W = {
                 .MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.DERBY] = function()
-            return table.length(BJI.Managers.Context.Scenario.Data.Derby) > 0 and
+            return table.filter(BJI.Managers.Context.Scenario.Data.Derby,
+                    function(a) return a.enabled end):length() > 0 and
                 BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         end,
@@ -368,7 +369,9 @@ local function updateData()
         if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.DERBY then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.arena end
-            W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Derby):map(function(arena, i)
+            W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Derby):filter(function(a)
+                return a.enabled
+            end):map(function(arena, i)
                 return {
                     value = i,
                     label = arena.name,
