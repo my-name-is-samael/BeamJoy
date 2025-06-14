@@ -394,10 +394,9 @@ local function slowTick(ctxt)
                 function()
                     participant = S.getParticipant()
                     if participant then
+                        BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
                         if participant.lives > 0 then
                             BJI.Managers.Veh.loadHome()
-                        else
-                            BJI.Tx.scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
                         end
                         S.destroy.process = false
                         S.destroy.targetTime = nil
@@ -412,7 +411,7 @@ local function slowTick(ctxt)
                                 (type(updated) == "table" and updated.lives == participant.lives - 1)
                         end, function()
                             S.destroy.lock = false
-                            S.resetLock = false
+                            S.resetLock = participant.lives < 2 -- do not release if no more life or eliminated
                             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
                         end, "BJIDerbyDestroyLockSafe")
                     end
@@ -520,9 +519,7 @@ local function initGame(data)
         local participant = S.getParticipant()
         if participant then
             BJI.Managers.Veh.freeze(false)
-            if participant.lives > 0 then
-                S.resetLock = false
-            end
+            S.resetLock = participant.lives == 0
         end
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
@@ -541,7 +538,7 @@ local function initGame(data)
                 end
             end
         end, S.startTime - 3000, "BJIDerbyPreStart")
-        BJI.Managers.Message.flashCountdown("BJIDerbyStart", S.startTime, true, "", nil, onStart, true)
+        BJI.Managers.Message.flashCountdown("BJIDerbyStart", S.startTime, true, nil, 5, onStart, true)
     else
         BJI.Managers.Cam.setCamera(S.preDerbyCam)
         onStart()
@@ -635,7 +632,7 @@ end
 ---@return boolean
 local function isEliminated(playerID)
     local participant = S.getParticipant(playerID)
-    return participant and participant.eliminationTime ~= nil or false
+    return participant ~= nil and participant.eliminationTime ~= nil
 end
 
 ---@param playerID? integer
