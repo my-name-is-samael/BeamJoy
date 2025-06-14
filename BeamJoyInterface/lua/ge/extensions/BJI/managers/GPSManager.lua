@@ -165,11 +165,8 @@ local function createPlayerWaypoint(playerName, radius, callback, prepend)
     end
 
     local veh = BJI.Managers.Veh.getVehicleObject(targetPlayer.currentVehicle)
-    local posrot = BJI.Managers.Veh.getPositionRotation(veh)
-    local pos
-    if posrot then
-        pos = posrot.pos
-    else
+    local pos = BJI.Managers.Veh.getPositionRotation(veh)
+    if not pos then
         LogError("Invalid waypoint player vehicle")
         return
     end
@@ -207,11 +204,8 @@ local function createVehicleWaypoint(gameVehID, radius, callback, prepend)
         return
     end
 
-    local posrot = BJI.Managers.Veh.getPositionRotation(veh)
-    local pos
-    if posrot then
-        pos = posrot.pos
-    else
+    local pos = BJI.Managers.Veh.getPositionRotation(veh)
+    if not pos then
         LogError("Invalid waypoint player vehicle")
         return
     end
@@ -426,9 +420,9 @@ local function updateTargets()
                 end
 
                 local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
-                local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-                if veh and posrot then
-                    t.pos = posrot.pos
+                local pos = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+                if pos then
+                    t.pos = pos
                     renderTargets()
                 else
                     -- player have invalid vehicle
@@ -443,9 +437,9 @@ local function updateTargets()
                 end
 
                 local veh = BJI.Managers.Veh.getVehicleObject(t.gameVehID)
-                local posrot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-                if veh and posrot then
-                    t.pos = posrot.pos
+                local pos = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+                if pos then
+                    t.pos = pos
                     renderTargets()
                 else
                     -- invalid vehicle

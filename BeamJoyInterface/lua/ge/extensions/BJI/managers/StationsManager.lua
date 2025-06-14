@@ -263,10 +263,12 @@ local function tryRepair(ctxt)
         BJI.Managers.Lang.get("garages.flashVehicleRepaired"))
     BJI.Managers.Async.delayTask(function(ctxt2)
         if ctxt2.veh then
-            BJI.Managers.Veh.setPositionRotation(BJI.Managers.Veh.getPositionRotation().pos, nil, {
-                safe = false
-            })
-            BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh:getID())
+            BJI.Managers.Veh.getPositionRotation(ctxt2.veh, function(pos)
+                BJI.Managers.Veh.setPositionRotation(pos, nil, {
+                    safe = false
+                })
+                BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh:getID())
+            end)
             ctxt2.vehData.freezeStation = false
             if not ctxt2.vehData.freeze then
                 BJI.Managers.Veh.freeze(false, ctxt2.veh:getID())

@@ -345,8 +345,10 @@ local function onStandStop(delayMs, wp, lastWp, callback)
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     BJI.Managers.Veh.stopCurrentVehicle()
     BJI.Managers.Veh.freeze(true)
-    S.race.lastStand = { step = lastWp.wp, pos = BJI.Managers.Veh.getPositionRotation().pos, rot = wp.rot }
-    BJI.Managers.Veh.saveHome(S.race.lastStand)
+    BJI.Managers.Veh.getPositionRotation(nil, function(pos)
+        S.race.lastStand = { step = lastWp.wp, pos = pos, rot = wp.rot }
+        BJI.Managers.Veh.saveHome(S.race.lastStand)
+    end)
 
     BJI.Managers.Async.delayTask(function()
         S.exemptNextReset = true
@@ -587,25 +589,29 @@ local function isRaceFinished()
 end
 
 local function findFreeStartPosition(startPositions)
-    local vehs = BJI.Managers.Veh.getMPVehicles()
-    for _, sp in ipairs(startPositions) do
-        local positionFree = true
-        for _, v in pairs(vehs) do
-            local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehicleID)
-            if veh and v.gameVehicleID ~= BJI.Managers.Context.User.currentVehicle then
-                local posRot = BJI.Managers.Veh.getPositionRotation(veh)
-                if posRot and
-                    posRot.pos:distance(vec3(sp.pos)) <= veh:getInitialWidth() / 2 then
-                    positionFree = false
-                    break
-                end
-            end
-        end
-        if positionFree then
-            return math.tryParsePosRot(table.clone(sp))
-        end
+    local currVeh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    if not currVeh then
+        error("Current vehicle not found")
     end
-    return math.tryParsePosRot(table.clone(startPositions[1]))
+    local currMargin = currVeh:getInitialWidth() / 2
+
+    local vehs = BJI.Managers.Veh.getMPVehicles():filter(function(v)
+        return v.gameVehicleID ~= currVeh:getID()
+    end):map(function(v)
+        return BJI.Managers.Veh.getPositionRotation(BJI.Managers.Veh.getVehicleObject(v.gameVehicleID))
+    end)
+
+    local found = table.find(startPositions, function(sp)
+        return vehs:every(function(vpos)
+            return vpos:distance(vec3(sp.pos)) > vpos:getInitialWidth() / 2 + currMargin
+        end)
+    end)
+
+    if found then
+        return math.tryParsePosRot(table.clone(found))
+    else
+        return math.tryParsePosRot(table.clone(startPositions[1]))
+    end
 end
 
 local function initRace(ctxt, settings, raceData, testingCallback)

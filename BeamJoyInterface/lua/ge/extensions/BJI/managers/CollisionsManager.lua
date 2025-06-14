@@ -224,20 +224,23 @@ end
 ---@param ctxt TickContext
 local function fastTick(ctxt)
     if M.type == M.TYPES.GHOSTS then
-        local currentVeh, targetVeh
+        local currVeh, targetVeh
         M.ghosts:filter(function(targetTime)
             return targetTime <= ctxt.now
         end):forEach(function(_, gameVehID)
-            currentVeh = M.vehsCaches[gameVehID].veh
-            local currentVehPos = BJI.Managers.Veh.getPositionRotation(currentVeh).pos
-            if not M.vehsCaches:any(function(vehData, vid)
-                    targetVeh = vehData.veh
-                    return not M.ghosts[vid] and not M.permaGhosts[vid] and
-                        currentVehPos:distance(BJI.Managers.Veh.getPositionRotation(targetVeh).pos) <
-                        getGhostDistance(currentVeh, targetVeh)
-                end) then
-                removeGhost(ctxt, gameVehID, currentVeh)
-            end
+            currVeh = M.vehsCaches[gameVehID].veh
+            BJI.Managers.Veh.getPositionRotation(currVeh, function(currVehPos)
+                if not M.vehsCaches:filter(function(_, vid)
+                        return not M.ghosts[vid] and not M.permaGhosts[vid]
+                    end):any(function(vehData)
+                        targetVeh = vehData.veh
+                        local targetVehPos = BJI.Managers.Veh.getPositionRotation(targetVeh)
+                        return targetVehPos ~= nil and currVehPos:distance(targetVehPos) <
+                            getGhostDistance(currVeh, targetVeh)
+                    end) then
+                    removeGhost(ctxt, gameVehID, currVeh)
+                end
+            end)
         end)
     end
 end

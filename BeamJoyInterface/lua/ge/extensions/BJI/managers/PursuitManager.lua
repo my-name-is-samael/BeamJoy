@@ -41,10 +41,12 @@ local function onPursuitActionUpdate(targetID, event, pursuitData)
                 BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
             else
                 local targetVeh = BJI.Managers.Veh.getVehicleObject(targetID)
-                if ctxt.vehPosRot.pos:distance(BJI.Managers.Veh.getPositionRotation(targetVeh).pos) < 10 then
-                    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
-                    -- TODO reward
-                end
+                BJI.Managers.Veh.getPositionRotation(targetVeh, function(pos)
+                    if ctxt.vehPosRot.pos:distance(pos) < 10 then
+                        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
+                        -- TODO reward
+                    end
+                end)
             end
             reset()
         elseif event == "evade" then
@@ -90,11 +92,12 @@ end
 local function renderTick(ctxt)
     if M.selfPursuit.active and not M.selfPursuit.isFugitive then
         local targetVeh = BJI.Managers.Veh.getVehicleObject(M.selfPursuit.targetID)
-        local targetVehPos = targetVeh and BJI.Managers.Veh.getPositionRotation(targetVeh).pos or nil
-        if targetVeh and targetVehPos then
-            local finalPos = vec3(targetVehPos) + vec3(0, 0, targetVeh:getInitialHeight())
-            BJI.Utils.ShapeDrawer.Text("Fugitive", finalPos, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1),
-                BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5), false)
+        if targetVeh then
+            BJI.Managers.Veh.getPositionRotation(targetVeh, function(targetVehPos)
+                local finalPos = vec3(targetVehPos) + vec3(0, 0, targetVeh:getInitialHeight())
+                BJI.Utils.ShapeDrawer.Text("Fugitive", finalPos, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1),
+                    BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5), false)
+            end)
         end
     end
 end

@@ -206,18 +206,21 @@ end
 
 local function onVehicleSpawned(gameVehID)
     local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
-        S.state == S.STATES.PREPARATION and participant and not participant.ready then
-        local startPos = participant.hunted and
-            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
-            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
-        if vehPosRot.pos:distance(startPos.pos) > 1 then
-            -- spawned via basegame vehicle selector
-            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
-        end
+    if veh then
+        BJI.Managers.Veh.getPositionRotation(veh, function(vehPos)
+            local participant = S.participants[BJI.Managers.Context.User.playerID]
+            if BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+                S.state == S.STATES.PREPARATION and participant and not participant.ready then
+                local startPos = participant.hunted and
+                    BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+                    BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+                if vehPos:distance(startPos.pos) > 1 then
+                    -- spawned via basegame vehicle selector
+                    BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+                    BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+                end
+            end
+        end)
     end
 end
 
@@ -708,7 +711,7 @@ local function fastTick(ctxt)
                 :filter(function(_, playerID) return playerID ~= ctxt.user.playerID end)
                 :map(function(p) return BJI.Managers.Veh.getVehicleObject(p.gameVehID) end)
                 :map(function(veh) return BJI.Managers.Veh.getPositionRotation(veh) end)
-                :map(function(posRot) return ctxt.vehPosRot.pos:distance(posRot.pos) end)
+                :map(function(pos) return ctxt.vehPosRot.pos:distance(pos) end)
                 :any(function(d) return d < S.huntedResetDistanceThreshold end)
             if closeHunter and not S.resetLock then
                 S.resetLock = true
@@ -738,9 +741,10 @@ local function fastTick(ctxt)
                     function(hunted)
                         if not S.settings.lastWaypointGPS or hunted.waypoint < S.settings.waypoints - 1 then
                             local minDistance = S.proximityProcess.huntersVehs:map(function(hunter)
-                                return BJI.Managers.Veh.getPositionRotation(hunter).pos:distance(
-                                    BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh).pos
-                                )
+                                local hunterPos = BJI.Managers.Veh.getPositionRotation(hunter)
+                                local huntedPos = hunterPos and
+                                    BJI.Managers.Veh.getPositionRotation(S.proximityProcess.huntedVeh)
+                                return (hunterPos and huntedPos) and hunterPos:distance(huntedPos) or nil
                             end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
                             if S.revealHuntedProximity and minDistance > S.huntedRevealProximityDistance then
                                 S.revealHuntedProximity = false

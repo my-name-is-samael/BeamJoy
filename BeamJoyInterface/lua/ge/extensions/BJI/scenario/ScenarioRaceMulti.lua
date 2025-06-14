@@ -269,12 +269,12 @@ end
 
 local function onVehicleSpawned(gameVehID)
     local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+    local vehPos = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
+    if vehPos and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
         S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
         local startPos = S.grid.startPositions
             [table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)]
-        if startPos and vehPosRot.pos:distance(startPos.pos) > 1 then
+        if startPos and vehPos:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
             BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
@@ -435,8 +435,10 @@ local function onStandStop(delayMs, wp, lastWp, callback)
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     BJI.Managers.Veh.stopCurrentVehicle()
     BJI.Managers.Veh.freeze(true)
-    S.race.lastStand = { step = lastWp.wp, pos = BJI.Managers.Veh.getPositionRotation().pos, rot = wp.rot }
-    BJI.Managers.Veh.saveHome(S.race.lastStand)
+    BJI.Managers.Veh.getPositionRotation(nil, function(pos)
+        S.race.lastStand = { step = lastWp.wp, pos = pos, rot = wp.rot }
+        BJI.Managers.Veh.saveHome(S.race.lastStand)
+    end)
 
     BJI.Managers.Async.delayTask(function()
         S.exemptNextReset = true

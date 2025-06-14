@@ -39,13 +39,20 @@ local function getContext(slow)
             end
         end
     end
+    local pos, rot
+    if veh then
+        pos, rot = BJI.Managers.Veh.getPositionRotation(veh)
+    end
     local ctxt = {
         now = GetCurrentTimeMillis(),
         user = BJI.Managers.Context.User,
         group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
         players = BJI.Managers.Context.Players,
         veh = veh,
-        vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil,
+        vehPosRot = pos and {
+            pos = pos,
+            rot = rot,
+        } or nil,
         isOwner = isOwner,
         vehData = vehData,
         camera = BJI.Managers.Cam.getCamera(),

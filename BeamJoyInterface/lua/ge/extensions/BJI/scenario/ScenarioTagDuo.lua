@@ -184,15 +184,13 @@ local function getVehsDistance()
     if S.waitForPlayers or #S.playerVehs < 2 then
         return -1
     end
-    return S.playerVehs:map(function(v)
-        return BJI.Managers.Veh.getPositionRotation(v).pos
-    end):reduce(function(res, pos)
-        if not res then
-            return pos
-        else
-            return math.horizontalDistance(res, pos)
-        end
-    end)
+    local vehsPos = S.playerVehs:map(function(v)
+        return BJI.Managers.Veh.getPositionRotation(v)
+    end):values()
+    if #vehsPos < 2 then
+        error("Invalid vehicles")
+    end
+    return math.horizontalDistance(vehsPos[1], vehsPos[2])
 end
 
 local function renderTick(ctxt)

@@ -78,12 +78,14 @@ end
 local function getMPVehicles()
     return Table(MPVehicleGE.getVehicles()):map(function(v)
         -- BeamMP vehicle positions are inconsistent
-        local pos, rot, vehicleHeight = vec3(), quat(), 0
+        local vehicleHeight = 0
+        local pos, rot; pos, rot = vec3(), quat()
         if v.isSpawned and not v.isDeleted then
             local veh = M.getVehicleObject(v.gameVehicleID)
-            local posRot = veh and M.getPositionRotation(veh) or nil
-            if veh and posRot then
-                pos, rot = posRot.pos, posRot.rot
+            if veh then
+                pos, rot = M.getPositionRotation(veh)
+            end
+            if veh and pos and rot then
                 vehicleHeight = veh:getInitialHeight()
             end
         end
@@ -373,9 +375,12 @@ local function teleportToPlayer(targetID)
     -- old
     -- MPVehicleGE.teleportVehToPlayer(target.playerName)
 
-    local posRot = destVeh and M.getPositionRotation(destVeh)
-    if posRot then
-        M.setPositionRotation(posRot.pos, posRot.rot)
+    local pos, rot
+    if destVeh then
+        pos, rot = M.getPositionRotation(destVeh)
+    end
+    if pos and rot then
+        M.setPositionRotation(pos, rot)
     else
         LogError("Invalid destination position")
     end
@@ -461,7 +466,7 @@ local function saveHome(posRot)
                 rot = quat(posRot.rot),
             }
         else
-            finalPoint = M.getPositionRotation(veh)
+            finalPoint.pos, finalPoint.rot = M.getPositionRotation(veh)
         end
         M.homes[veh:getID()] = finalPoint
         if BJI.Managers.Scenario.isFreeroam() and finalPoint then
@@ -499,8 +504,9 @@ local function recoverInPlace(callback)
 end
 
 ---@param veh NGVehicle?
----@return BJIPositionRotation?
-local function getPositionRotation(veh)
+---@param callback fun(pos: vec3, rot: quat)?
+---@return vec3?, quat?
+local function getPositionRotation(veh, callback)
     if not veh then
         veh = M.getCurrentVehicle()
     end
@@ -511,7 +517,11 @@ local function getPositionRotation(veh)
             vec3(0, 0, veh:getInitialHeight() / 2) -- center at ground
         local rot = quat(veh:getClusterRotationSlow(nodeId))
 
-        return math.roundPositionRotation({ pos = pos, rot = rot })
+        local res = math.roundPositionRotation({ pos = pos, rot = rot })
+        if type(callback) == "function" then
+            callback(res.pos, res.rot)
+        end
+        return res.pos, res.rot
     end
     return nil
 end
@@ -523,8 +533,9 @@ local function getPosRotVel(veh, callback)
         veh = M.getCurrentVehicle()
     end
     if veh then
+        local pos, rot = M.getPositionRotation(veh)
         ---@type table
-        local res = math.roundPositionRotation(M.getPositionRotation(veh) or {})
+        local res = math.roundPositionRotation({pos = pos or vec3(), rot = rot})
         local vel = vec3(veh:getVelocity())
         ---@type table
         table.assign(res, {
@@ -560,9 +571,11 @@ local function setPositionRotation(pos, rot, options)
     if not pos then
         return
     end
+    local _
     pos = vec3(pos)
     if not rot then
-        rot = M.getPositionRotation().rot or quat(0, 0, 0, 0)
+        _, rot = M.getPositionRotation()
+        rot = rot or quat(0, 0, 0, 0)
     else
         rot = quat(rot)
     end
@@ -1307,10 +1320,10 @@ local function replaceOrSpawnVehicle(model, config, posrot)
             M.setPositionRotation(opts.pos, opts.rot)
         end
     elseif not newVehicle and BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
-        local vehPos = M.getPositionRotation()
-        if vehPos then
-            opts.pos = vehPos.pos
-            opts.rot = vehPos.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
+        local pos, rot = M.getPositionRotation()
+        if pos and rot then
+            opts.pos = pos
+            opts.rot = rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
         end
     end
     if newVehicle then

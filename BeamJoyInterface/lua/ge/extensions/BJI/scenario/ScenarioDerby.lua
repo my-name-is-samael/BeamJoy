@@ -154,19 +154,22 @@ end
 
 local function onVehicleSpawned(gameVehID)
     local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    local vehPosRot = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-    local participant = S.getParticipant()
-    if vehPosRot and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
-        S.state == S.STATES.PREPARATION and participant and not participant.ready then
-        local startPos = S.baseArena.startPositions[participant.startPosition]
-        if startPos and vehPosRot.pos:distance(startPos.pos) > 1 then
-            -- spawned via basegame vehicle selector
-            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
-                BJI.Managers.Veh.saveHome(startPos)
-                postSpawn(ctxt)
-            end)
-        end
+    if veh then
+        BJI.Managers.Veh.getPositionRotation(veh, function(vehPos)
+            local participant = S.getParticipant()
+            if BJI.Managers.Veh.isVehicleOwn(gameVehID) and
+                S.state == S.STATES.PREPARATION and participant and not participant.ready then
+                local startPos = S.baseArena.startPositions[participant.startPosition]
+                if startPos and vehPos:distance(startPos.pos) > 1 then
+                    -- spawned via basegame vehicle selector
+                    BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+                    BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+                        BJI.Managers.Veh.saveHome(startPos)
+                        postSpawn(ctxt)
+                    end)
+                end
+            end
+        end)
     end
 end
 
