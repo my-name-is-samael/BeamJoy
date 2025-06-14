@@ -773,7 +773,8 @@ end
 ---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
-    if ctxt.isOwner and participant and ctxt.vehData and ctxt.vehData.damageState and
+    if S.state == S.STATES.PREPARATION and ctxt.isOwner and participant and
+        ctxt.vehData and ctxt.vehData.damageState and
         ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
         -- vehicle swap repair
         BJI.Managers.Veh.recoverInPlace()
