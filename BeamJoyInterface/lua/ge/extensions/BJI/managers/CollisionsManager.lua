@@ -150,8 +150,13 @@ local function onVehReset(gameVehID)
         elseif M.ghosts[gameVehID] then
             removeGhost(ctxt, gameVehID, vehData.veh)
         end
-    elseif M.type == M.TYPES.DISABLED or M.permaGhosts[gameVehID] then
-        setAlpha(ctxt, M.vehsCaches[gameVehID].veh, M.ghostAlpha)
+    else
+        if M.type == M.TYPES.FORCED then
+            M.vehsCaches[gameVehID].veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        elseif M.type == M.TYPES.DISABLED or M.permaGhosts[gameVehID] then
+            setAlpha(ctxt, M.vehsCaches[gameVehID].veh, M.ghostAlpha)
+            M.vehsCaches[gameVehID].veh:queueLuaCommand("obj:setGhostEnabled(true)")
+        end
     end
 end
 
