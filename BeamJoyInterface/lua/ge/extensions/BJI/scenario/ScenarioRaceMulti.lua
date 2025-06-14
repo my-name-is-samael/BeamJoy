@@ -1139,17 +1139,6 @@ local function fastTick(ctxt)
             end
         end
     end
-
-    -- auto switch to racer
-    if S.isSpec() and S.isRaceStarted(ctxt) and not S.isRaceFinished() then
-        if ctxt.veh then
-            local ownerID = BJI.Managers.Veh.getVehOwnerID(ctxt.veh:getID())
-            if table.includes(S.race.finished, ownerID) or
-                table.includes(S.race.eliminated, ownerID) then
-                BJI.Managers.Veh.focusNextVehicle()
-            end
-        end
-    end
 end
 
 -- each second tick hook
@@ -1239,7 +1228,7 @@ end
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
     if newGameVehID ~= -1 and S.state == S.STATES.RACE and S.isSpec() then
         local ownerID = BJI.Managers.Veh.getVehOwnerID(newGameVehID)
-        if ownerID and S.isEliminated(ownerID) or S.isFinished(ownerID) then
+        if S.isEliminated(ownerID) or S.isFinished(ownerID) then
             BJI.Managers.Veh.focusNextVehicle()
         end
     end
