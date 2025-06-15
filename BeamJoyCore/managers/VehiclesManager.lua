@@ -53,7 +53,7 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
                     BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
                     return 1
                 end
-            elseif group.vehicleCap ~= 1 then
+            elseif group.vehicleCap ~= -1 then
                 BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
                 return 1
             end

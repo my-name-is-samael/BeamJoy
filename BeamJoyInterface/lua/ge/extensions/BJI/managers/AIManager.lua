@@ -29,15 +29,12 @@ local function isTrafficSpawned()
 end
 
 local function stopTraffic()
-    if gameplay_parking.getState() then
-        gameplay_parking.deleteVehicles()
-        gameplay_parking.setState(false)
-    end
-    if gameplay_traffic.getState() == "on" then
-        gameplay_traffic.onTrafficStopped()
-    end
+    getSelfTrafficVehiclesIDs():forEach(function(vid)
+        BJI.Managers.Veh.deleteVehicle(vid)
+    end)
 
-    BJI.Tx.player.UpdateAI(getSelfTrafficVehiclesIDs())
+    gameplay_parking.setState(false)
+    gameplay_traffic.onTrafficStopped()
 end
 
 local function toggle(state)
@@ -149,15 +146,7 @@ end
 
 local function onUpdate()
     local function _update()
-        local canSpawnAI = BJI.Managers.Scenario.canSpawnAI()
-        if canSpawnAI then
-            if BJI.Managers.Context.Players:length() == 1 then
-                -- if alone on the server and can spawn veh, then can spawn traffic too
-                canSpawnAI = BJI.Managers.Perm.canSpawnVehicle()
-            else
-                canSpawnAI = BJI.Managers.Perm.canSpawnAI()
-            end
-        end
+        local canSpawnAI = BJI.Managers.Perm.canSpawnAI() and BJI.Managers.Scenario.canSpawnAI()
         toggle(canSpawnAI)
         BJI.Managers.Restrictions.update({
             {

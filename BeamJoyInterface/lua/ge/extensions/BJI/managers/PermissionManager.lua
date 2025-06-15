@@ -199,6 +199,10 @@ local function canSpawnAI(playerID)
         return false
     end
 
+    if BJI.Managers.Context.Players:length() == 1 then
+        return M.canSpawnVehicle(playerID)
+    end
+
     local groupName = playerID and BJI.Managers.Context.Players[playerID].group or BJI.Managers.Context.User.group
 
     local group = M.Groups[groupName]
