@@ -195,13 +195,13 @@ local function updateAllVehiclesAndAI()
     end)
 
     -- update AI vehicles (to hide their nametags)
-    BJI.Managers.AI.updateAllAIVehicles(M.Players
+    BJI.Managers.AI.updateRemoteAIVehicles(M.Players
         :filter(function(player) return #player.ai > 0 end)
         :map(function(player) return player.ai end)
         :reduce(function(acc, aiVehs) return acc:addAll(aiVehs, true) end, Table())
         :filter(function(vid)
             return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
-        end))
+        end):values():sort())
 
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
 end

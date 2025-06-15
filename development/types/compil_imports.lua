@@ -76,6 +76,10 @@ BJI.Managers.Windows = require("ge/extensions/BJI/managers/WindowsManager")
 BJI.Managers.GameState = require("ge/extensions/BJI/managers/GameStateManager")
 ---@type BJIManagerTournament
 BJI.Managers.Tournament = require("ge/extensions/BJI/managers/TournamentManager")
+---@type BJIManagerPursuit
+BJI.Managers.Pursuit = require("ge/extensions/BJI/managers/PursuitManager")
+---@type BJIManagerMinimap
+BJI.Managers.Minimap = require("ge/extensions/BJI/managers/MinimapManager")
 
 BJI.Tx.cache = require("ge/extensions/BJI/tx/CacheTx")(BJI.Tx)
 BJI.Tx.config = require("ge/extensions/BJI/tx/ConfigTx")(BJI.Tx)

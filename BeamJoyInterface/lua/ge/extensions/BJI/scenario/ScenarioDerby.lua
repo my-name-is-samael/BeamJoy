@@ -96,20 +96,18 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJI.Windows.VehSelector.tryClose(true)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     BJI.Managers.Message.cancelFlash("BJIDerbyDestroy")
     BJI.Managers.Async.removeTask("BJIDerbyResetLockSafe")
     BJI.Managers.Async.removeTask("BJIDerbyPostResetRestrictionsResetsUpdate")
     BJI.Managers.Async.removeTask("BJIDerbyPostEliminationSwitch")
+
+    BJI.Managers.Veh.getMPVehicles():filter(function(v)
+        return not BJI.Managers.AI.isAIVehicle(v.gameVehicleID)
+    end):forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    end)
+
     BJI.Managers.Cam.resetRestrictedCameras()
     BJI.Managers.Cam.resetForceCamera(true)
     if ctxt.isOwner then
@@ -119,6 +117,17 @@ local function onUnload(ctxt)
             BJI.Managers.Cam.setCamera(ctxt.camera)
         end
     end
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.BIG_MAP,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    BJI.Windows.VehSelector.tryClose(true)
+
     Table(ctxt.user.vehicles):find(TrueFn, function(v)
         BJI.Managers.Veh.focusVehicle(v.gameVehID)
     end)
@@ -307,18 +316,6 @@ local function tryRespawn(ctxt)
         end
         BJI.Managers.Message.flash("BJIDerbyRemainingLives", msg, 3, false)
         return true
-    end
-end
-
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if newGameVehID ~= -1 and S.state == S.STATES.GAME and S.isSpec() then
-        Table(S.participants)
-        ---@param p BJIDerbyParticipant
-            :find(function(p) return p.gameVehID == newGameVehID end, function(p)
-                if S.isEliminated(p.playerID) then
-                    BJI.Managers.Veh.focusNextVehicle()
-                end
-            end)
     end
 end
 
@@ -586,6 +583,14 @@ local function updateGame(data)
     if not wasEliminated and S.isEliminated() then
         onElimination()
     end
+
+    ---@param v BJIMPVehicle
+    BJI.Managers.Veh.getMPVehicles():forEach(function(v)
+        if S.isEliminated(v.ownerID) then
+            BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = false })
+            BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = false })
+        end
+    end)
 end
 
 local function rxData(data)
@@ -664,7 +669,6 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleSpawned = onVehicleSpawned
-S.onVehicleSwitched = onVehicleSwitched
 S.saveHome = tryRespawn
 S.loadHome = tryRespawn
 S.renderTick = renderTick

@@ -142,6 +142,14 @@ end
 
 ---@param gameVehID integer
 local function onVehReset(gameVehID)
+    if BJI.Managers.AI.isAIVehicle(gameVehID) then
+        local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+        if veh then
+            veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        end
+        return
+    end
+
     local ctxt = BJI.Managers.Tick.getContext()
     if M.type == M.TYPES.GHOSTS and not M.permaGhosts[gameVehID] then
         local vehData = M.vehsCaches[gameVehID]
@@ -279,11 +287,11 @@ local function updatePermaghostsAndAI(ctxt)
         if not vehData.ai and BJI.Managers.AI.isAIVehicle(gameVehID) then
             -- wasn't an AI and is now
             vehData.ai = true
+            vehData.veh:queueLuaCommand("obj:setGhostEnabled(false)")
             if M.ghosts[gameVehID] then
                 removeGhost(ctxt, gameVehID, vehData.veh)
             elseif M.permaGhosts[gameVehID] then
                 M.permaGhosts[gameVehID] = nil
-                vehData.veh:queueLuaCommand("obj:setGhostEnabled(false)")
                 setAlpha(ctxt, vehData.veh, M.playerAlpha)
             end
         elseif vehData.ai and not (vehData.ownerID == BJI.Managers.Context.User.playerID and

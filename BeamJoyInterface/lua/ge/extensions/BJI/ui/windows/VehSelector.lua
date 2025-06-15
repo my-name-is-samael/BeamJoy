@@ -169,12 +169,14 @@ local function updateButtonsStates(ctxt)
     ctxt = type(ctxt) == "table" and ctxt or BJI.Managers.Tick.getContext()
 
     local canSpawnOrReplace = BJI.Managers.Perm.canSpawnVehicle() and
-        (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and table.length(ctxt.user.vehicles) < ctxt.group.vehicleCap)) and
+        (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and
+            BJI.Managers.Veh.getSelfVehiclesCount() < ctxt.group.vehicleCap)) and
         (ctxt.isOwner and BJI.Managers.Scenario.canReplaceVehicle() or BJI.Managers.Scenario.canSpawnNewVehicle())
     local currentVehTypeAllowed = ctxt.veh and isVehTypeAllowed(BJI.Managers.Veh.getType(ctxt.veh.jbeam))
     local currentVehBlacklisted = ctxt.veh and BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
         not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
-    local vehCapNotReached = ctxt.group.vehicleCap == -1 or ctxt.group.vehicleCap > table.length(ctxt.user.vehicles)
+    local vehCapNotReached = ctxt.group.vehicleCap == -1 or
+        ctxt.group.vehicleCap > BJI.Managers.Veh.getSelfVehiclesCount()
     local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and
         currentVehTypeAllowed and not currentVehBlacklisted
 
@@ -643,7 +645,7 @@ end
 ---@param ctxt TickContext
 local function drawBody(ctxt)
     ownVeh = ctxt.isOwner
-    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= table.length(ctxt.user.vehicles)
+    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount()
 
     local vehsDrew = false
 
@@ -853,6 +855,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
+        BJI.Managers.Events.EVENTS.VEHICLES_UPDATED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,

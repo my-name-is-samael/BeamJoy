@@ -47,12 +47,12 @@ local M = {
     _SCENARIO_DRIVEN = {
         VEHICLE_SELECTOR = { "vehicle_selector" },
         VEHICLE_PARTS_SELECTOR = { "parts_selector", "vehicledebugMenu" },
-        AI_CONTROL = { "toggleTraffic", "toggleAITraffic" },
+        AI_CONTROL = { "toggleTraffic" },
         WALKING = { "toggleWalkingMode" },
     },
 
     _tag = "BeamjoyRestrictions",
-    _restrictions = Table({ "pause", "toggleTrackBuilder" }),
+    _restrictions = Table({ "pause", "toggleTrackBuilder", "toggleAITraffic" }),
 }
 
 --- Applies reset restrictions and removes not specified

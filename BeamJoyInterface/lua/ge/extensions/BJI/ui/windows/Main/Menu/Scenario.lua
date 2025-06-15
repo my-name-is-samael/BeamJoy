@@ -517,6 +517,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
         BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI.Managers.Events.EVENTS.VEHICLES_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,

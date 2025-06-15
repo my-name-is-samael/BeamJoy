@@ -45,9 +45,25 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
         end
     else
         -- spawning vehicle
-        if group.vehicleCap > -1 and group.vehicleCap <= table.length(player.vehicles) then
-            BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
-            return 1
+        if vehData.vcf.model and vehData.vcf.model:find("traffic") then
+            -- traffic
+            if MP.GetPlayerCount() == 1 then
+                -- alone on server with permission to spawn a veh, allow traffic
+                if not BJCPerm.canSpawnVehicle(playerID) then
+                    BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
+                    return 1
+                end
+            elseif group.vehicleCap ~= 1 then
+                BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
+                return 1
+            end
+        else
+            -- non-traffic vehicle
+            if group.vehicleCap > -1 and group.vehicleCap <= table.filter(player.vehicles, function(v)
+                    return not table.includes(player.ai, v.vid)
+                end):length() then
+                return 1
+            end
         end
 
         local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName

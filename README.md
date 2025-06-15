@@ -40,6 +40,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
     - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
     - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
+  - [Compatible Mods](#compatible-mods)
   - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
   - [Bucket list](#bucket-list)
@@ -312,6 +313,11 @@ If you want to calibrate this setting correctly on your server, I recommend the 
 - Switch to the driver’s first-person camera.
 - Increase your field of view to the maximum (holding `Num 3` by default).
 - Check whether the shadow distance value works well under these conditions.
+
+## Compatible Mods
+- Pretty much all modded vehicles with correct data
+- [Enhanced Interior Camera](https://www.beamng.com/resources/enhanced-interior-camera.24952/)
+- [Agent's Simplified Realistic Traffic Mod (EU + Yakuza)](https://www.beamng.com/threads/agents-simplified-realistic-traffic-mod-eu-yakuza.102034/)
 
 ## Video tutorials
 

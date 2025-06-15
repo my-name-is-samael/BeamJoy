@@ -141,6 +141,13 @@ local function onUnload()
     BJI.Managers.Async.removeTask("BJIHunterStartCam")
     BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
 
+    BJI.Managers.Veh.getMPVehicles():filter(function(v)
+        return not BJI.Managers.AI.isAIVehicle(v.gameVehicleID)
+    end):forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    end)
+
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
     for _, veh in pairs(BJI.Managers.Context.User.vehicles) do
@@ -207,10 +214,14 @@ end
 local function onVehicleSpawned(gameVehID)
     local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
     if veh then
+        local isOwn = BJI.Managers.Veh.isVehicleOwn(gameVehID)
+        if not isOwn then
+            BJI.Managers.Minimap.toggleVehicle({ veh = veh, state = false })
+            BJI.Managers.Veh.toggleVehicleFocusable({ veh = veh, state = false })
+        end
         BJI.Managers.Veh.getPositionRotation(veh, function(vehPos)
             local participant = S.participants[BJI.Managers.Context.User.playerID]
-            if BJI.Managers.Veh.isVehicleOwn(gameVehID) and
-                S.state == S.STATES.PREPARATION and participant and not participant.ready then
+            if isOwn and S.state == S.STATES.PREPARATION and participant and not participant.ready then
                 local startPos = participant.hunted and
                     BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
                     BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
@@ -588,6 +599,30 @@ local function initGameHunter(participant)
 
     -- init proximity detector vehs
     updateProximityVehs()
+
+    ---@param v NGVehicle
+    S.proximityProcess.huntersVehs:forEach(function(v)
+        -- enable only hunters on minimap
+        BJI.Managers.Minimap.toggleVehicle({ veh = v, state = true })
+    end)
+end
+
+local function initGameSpec()
+    BJI.Managers.Restrictions.update({ {
+        restrictions = Table({
+            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+            BJI.Managers.Restrictions.OTHER.FREE_CAM,
+            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
+        }):flat(),
+        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+    } })
+    switchToRandomParticipant()
+
+    ---@param v BJIMPVehicle
+    BJI.Managers.Veh.getMPVehicles():forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    end)
 end
 
 local function initGame(data)
@@ -612,15 +647,7 @@ local function initGame(data)
             initGameHunter(participant)
         end
     else -- spec
-        BJI.Managers.Restrictions.update({ {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        } })
-        switchToRandomParticipant()
+        initGameSpec()
     end
 
     if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then

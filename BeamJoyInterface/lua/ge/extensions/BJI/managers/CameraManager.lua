@@ -289,6 +289,14 @@ local function switchToNextCam()
     core_camera.setVehicleCameraByIndexOffset(0, 1)
 end
 
+---@param camera string
+---@return boolean
+local function isDriverCamera(camera)
+    -- modded driver cameras
+    return table.includes({ M.CAMERAS.DRIVER, "enhanceddriver" }, camera)
+end
+
+---@param newCamera string
 local function onCameraChange(newCamera)
     if #M.restricted > 0 then
         if table.includes(M.restricted, newCamera) then
@@ -297,7 +305,7 @@ local function onCameraChange(newCamera)
         end
     end
 
-    if newCamera == M.CAMERAS.DRIVER and not BJI.Managers.Veh.isCurrentVehicleOwn() then
+    if isDriverCamera(newCamera) and not BJI.Managers.Veh.isCurrentVehicleOwn() then
         switchToNextCam()
         return
     elseif newCamera == M.CAMERAS.PASSENGER and BJI.Managers.Veh.isCurrentVehicleOwn() then

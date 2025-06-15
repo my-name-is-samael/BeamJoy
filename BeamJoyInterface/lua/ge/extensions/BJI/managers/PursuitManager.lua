@@ -1,4 +1,4 @@
----@class BJIManagerPoliceDuty: BJIManager
+---@class BJIManagerPursuit: BJIManager
 local M = {
     _name = "Pursuit",
 
@@ -72,15 +72,6 @@ local function onFail()
 end
 
 ---@param gameVehID integer
----@param aiState string
-local function onAIChanged(gameVehID, aiState)
-    local ctxt = BJI.Managers.Tick.getContext()
-    if ctxt.veh and ctxt.veh:getID() == gameVehID then
-        onFail()
-    end
-end
-
----@param gameVehID integer
 local function onVehicleResetted(gameVehID)
     if M.selfPursuit.active and gameVehID == M.selfPursuit.targetID then
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
@@ -105,7 +96,6 @@ end
 M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_PURSUIT_ACTION, onPursuitActionUpdate, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_PURSUIT_MODE_UPDATE, function() end, M._name) -- not in use for now
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE, onAIChanged, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,

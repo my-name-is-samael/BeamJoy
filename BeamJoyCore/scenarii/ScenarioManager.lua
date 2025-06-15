@@ -73,7 +73,7 @@ local function canSpawnVehicle(playerID, vehID, vehData)
     end
 
     if M.CurrentScenario then
-        if M.canSpawnVehicle then
+        if M.CurrentScenario.canSpawnVehicle then
             return M.CurrentScenario.canSpawnVehicle(playerID, vehID, vehData)
         end
         return true

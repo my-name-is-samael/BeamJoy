@@ -117,6 +117,8 @@
 ---@field getInitialNodePosition fun(self: NGVehicle, nodeId: integer): vec3
 ---@field resetBrokenFlexMesh fun(self: NGVehicle)
 ---@field getMeshAlpha fun(self: NGVehicle, meshID: integer): number
+---@field uiState (0|1)? 0 to hide on minimap
+---@field playerUsable boolean? false to prevent vehicle switch
 
 ---@class NGPaint
 ---@field baseColor number[] 4 indices

@@ -127,10 +127,6 @@ end
 
 local function postSpawnActions(ctxt)
     if ctxt.veh then
-        if BJI.Managers.AI.selfVehs:includes(ctxt.veh:getID()) then
-            -- was manually toggled, resume state
-            ctxt.veh:queueLuaCommand("ai.toggleTrafficMode()")
-        end
         if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
             BJI.Managers.Cam.toggleFreeCam()
             ctxt.camera = BJI.Managers.Cam.getCamera()
@@ -166,7 +162,7 @@ local function cloneCurrent(...)
         local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount() then
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end
@@ -232,7 +228,7 @@ local function spawnNewVehicle(model, opts)
         local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
         if group and
             group.vehicleCap > -1 and
-            group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles) then
+            group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount() then
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotSpawnAnyMoreVeh"))
             return
         end

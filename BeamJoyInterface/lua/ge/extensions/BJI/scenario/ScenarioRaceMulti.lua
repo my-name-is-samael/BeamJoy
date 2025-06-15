@@ -176,6 +176,13 @@ local function onUnload(ctxt)
     BJI.Managers.Async.removeTask("BJIRaceMultiWaitForServerWp")
     BJI.Managers.Async.removeTask("BJIRacePostFinish")
 
+    BJI.Managers.Veh.getMPVehicles():filter(function(v)
+        return not BJI.Managers.AI.isAIVehicle(v.gameVehicleID)
+    end):forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    end)
+
     BJI.Managers.RaceWaypoint.resetAll()
     for _, veh in pairs(BJI.Managers.Context.User.vehicles) do
         BJI.Managers.Veh.focusVehicle(veh.gameVehID)
@@ -952,6 +959,14 @@ local function updateRace(data)
             showSpecWaypoints()
         end
     end
+
+    ---@param v BJIMPVehicle
+    BJI.Managers.Veh.getMPVehicles():forEach(function(v)
+        if S.isFinished(v.ownerID) or S.isEliminated(v.ownerID) then
+            BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = false })
+            BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = false })
+        end
+    end)
 end
 
 local function initRaceFinish()
@@ -1227,15 +1242,6 @@ local function doShowNametag(vehData)
     return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, .33)
 end
 
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if newGameVehID ~= -1 and S.state == S.STATES.RACE and S.isSpec() then
-        local ownerID = BJI.Managers.Veh.getVehOwnerID(newGameVehID)
-        if S.isEliminated(ownerID) or S.isFinished(ownerID) then
-            BJI.Managers.Veh.focusNextVehicle()
-        end
-    end
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
@@ -1278,6 +1284,5 @@ S.canDeleteOtherVehicles = FalseFn
 
 S.doShowNametag = doShowNametag
 S.onVehicleSpawned = onVehicleSpawned
-S.onVehicleSwitched = onVehicleSwitched
 
 return S

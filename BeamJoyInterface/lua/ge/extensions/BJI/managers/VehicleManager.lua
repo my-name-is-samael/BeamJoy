@@ -255,6 +255,15 @@ local function isVehProtected(gameVehID)
         end)
 end
 
+local function getSelfVehiclesCount()
+    return Table(M.getMPOwnVehicles())
+        ---@param v BJIMPOwnVehicle
+        :filter(function(v)
+            return v.jbeam ~= "unicycle" and
+                not table.includes(BJI.Managers.Context.Players[v.ownerID].ai, v.gameVehicleID)
+        end):length()
+end
+
 ---@param gameVehID integer
 ---@return boolean
 local function isVehicleOwn(gameVehID)
@@ -359,6 +368,32 @@ local function focusNextVehicle()
     be:enterNextVehicle(0, 1)
 end
 
+---@param data {veh: NGVehicle?, gameVehID: integer?, state: boolean?}
+local function toggleVehicleFocusable(data)
+    if not data.veh and not data.gameVehID then
+        error("Invalid vehicle")
+        return
+    end
+
+    local veh = M.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
+    if not veh or BJI.Managers.AI.isAIVehicle(veh:getID()) then
+        error("Invalid vehicle")
+        return
+    end
+
+    if data.state == nil then
+        data.state = not veh.playerUsable
+    end
+    veh.playerUsable = data.state
+
+    if not data.state then
+        local currVeh = M.getCurrentVehicle()
+        if currVeh and currVeh:getID() == veh:getID() then
+            focusNextVehicle()
+        end
+    end
+end
+
 ---@param targetID integer
 local function teleportToPlayer(targetID)
     if not M.isCurrentVehicleOwn() then
@@ -404,7 +439,7 @@ local function deleteOtherOwnVehicles()
             end
         end
     end
-    BJI.Managers.AI.removeVehicles()
+    BJI.Managers.AI.stopTraffic()
 end
 
 local function deleteAllOwnVehicles()
@@ -418,7 +453,7 @@ local function deleteAllOwnVehicles()
             end
         end
     end
-    BJI.Managers.AI.removeVehicles()
+    BJI.Managers.AI.stopTraffic()
 end
 
 local function deleteCurrentVehicle()
@@ -459,7 +494,7 @@ end
 local function saveHome(posRot)
     local veh = M.getCurrentVehicleOwn()
     if veh then
-        local finalPoint
+        local finalPoint = {}
         if posRot then
             finalPoint = {
                 pos = vec3(posRot.pos),
@@ -535,7 +570,7 @@ local function getPosRotVel(veh, callback)
     if veh then
         local pos, rot = M.getPositionRotation(veh)
         ---@type table
-        local res = math.roundPositionRotation({pos = pos or vec3(), rot = rot})
+        local res = math.roundPositionRotation({ pos = pos or vec3(), rot = rot })
         local vel = vec3(veh:getVelocity())
         ---@type table
         table.assign(res, {
@@ -1131,7 +1166,8 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 isVeh = false
             end
 
-            if table.includes(INVALID_VEHICLES, veh.model.key) then
+            if table.includes(INVALID_VEHICLES, veh.model.key) or
+                veh.model.key:find("traffic") then
                 -- do not use
                 goto skipVeh
             end
@@ -1185,8 +1221,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             for key, config in pairs(veh.configs) do
                 if config.key then
                     local label = (config.Configuration or config.key):gsub("_", " ")
-                    if not config.key:lower():endswith("_parked") and
-                        not label:lower():find("simple traffic") then
+                    if not config.key:lower():endswith("_parked") then
                         configs[key] = table.clone(config)
                         table.assign(configs[key], {
                             label = label,
@@ -1721,6 +1756,7 @@ M.getVehOwnerID = getVehOwnerID
 M.getVehIDByGameVehID = getVehIDByGameVehID
 M.getGameVehicleID = getGameVehicleID
 M.isVehProtected = isVehProtected
+M.getSelfVehiclesCount = getSelfVehiclesCount
 
 M.isVehicleOwn = isVehicleOwn
 M.isCurrentVehicleOwn = isCurrentVehicleOwn
@@ -1733,6 +1769,7 @@ M.waitForVehicleSpawn = waitForVehicleSpawn
 M.focus = focus
 M.focusVehicle = focusVehicle
 M.focusNextVehicle = focusNextVehicle
+M.toggleVehicleFocusable = toggleVehicleFocusable
 M.teleportToPlayer = teleportToPlayer
 M.teleportToLastRoad = teleportToLastRoad
 M.deleteOtherOwnVehicles = deleteOtherOwnVehicles

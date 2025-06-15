@@ -230,7 +230,7 @@ end
 
 local function trySpawnNew(model, config)
     local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount()
     if BJI.Managers.Perm.canSpawnVehicle() and not limitReached then
         S.exemptNextReset()
         BJI.Managers.Veh.spawnNewVehicle(model, config)
@@ -240,7 +240,7 @@ end
 local function tryReplaceOrSpawn(model, config)
     local replacing = BJI.Managers.Veh.isCurrentVehicleOwn()
     local group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= table.length(BJI.Managers.Context.User.vehicles)
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount()
     if BJI.Managers.Perm.canSpawnVehicle() and (replacing or not limitReached) then
         S.exemptNextReset()
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config)
@@ -293,6 +293,8 @@ local function exemptNextReset()
     S.reset.nextExempt = true
 end
 
+---@param player table
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
@@ -313,14 +315,13 @@ local function getPlayerListActions(player, ctxt)
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
                 if player.self then
-                    local selfVehs = {}
-                    local currentOwnIndex
-                    for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-                        table.insert(selfVehs, v.gameVehID)
-                        if v.gameVehID == BJI.Managers.Context.User.currentVehicle then
-                            currentOwnIndex = #selfVehs
-                        end
-                    end
+                    local selfVehs = Table(ctxt.user.vehicles)
+                        :map(function(v)
+                            return v.gameVehID
+                        end):values():filter(function(vid)
+                            return not table.includes(ctxt.players[ctxt.user.playerID].ai, vid)
+                        end)
+                    local currentOwnIndex = selfVehs:indexOf(BJI.Managers.Context.User.currentVehicle)
                     local nextIndex
                     if currentOwnIndex then
                         -- if current veh is own, cycle to next index

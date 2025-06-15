@@ -499,23 +499,39 @@ local function setGroup(ctxt, targetName, groupName)
 
     if connected then
         if previousGroup.vehicleCap == -1 and groupToAssign.vehicleCap ~= -1 then
-            -- remove AI vehicles
-            Table(target.ai):forEach(function(vid)
-                Log("remove ai veh " .. tostring(vid))
-                M.deleteVehicle(ctxt, target.playerID, vid)
-                Table(target.vehicles):find(function(v)
-                    return v.gameVehID == vid
-                end, function(_, k)
-                    target.vehicles[k] = nil
+            if table.length(M.Players) > 1 then
+                -- remove AI vehicles
+                Table(target.ai):forEach(function(vid)
+                    M.deleteVehicle(ctxt, target.playerID, vid)
+                    Table(target.vehicles):find(function(v)
+                        return v.gameVehID == vid
+                    end, function(_, k)
+                        target.vehicles[k] = nil
+                    end)
                 end)
+                target.ai = {}
+            end
+            -- remove vehicles over cap
+            local i = 1
+            Table(target.vehicles):forEach(function(v, vid)
+                if i > groupToAssign.vehicleCap then
+                    M.deleteVehicle(ctxt, target.playerID, vid)
+                    target.vehicles[vid] = nil
+                end
+                i = i + 1
             end)
-            target.ai = {}
         end
         if previousGroup.vehicleCap ~= 0 and groupToAssign.vehicleCap == 0 then
+            -- remove AI vehicles
+            Table(target.ai):forEach(function(vid)
+                M.deleteVehicle(ctxt, target.playerID, vid)
+            end)
+            target.ai = {}
             -- remove actual vehicles
             Table(target.vehicles):forEach(function(v)
                 M.deleteVehicle(ctxt, target.playerID, v.vid)
             end)
+            target.vehicles = {}
         end
     end
 

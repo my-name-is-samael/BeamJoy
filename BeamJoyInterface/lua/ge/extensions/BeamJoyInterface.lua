@@ -128,11 +128,15 @@ local function bindNGHooks()
         { M,        "onVehicleSwitched",         BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED },
         { M,        "onVehicleResetted",         BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED },
         { M,        "onVehicleReplaced",         BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED },
-        { M,        "onAiModeChange",            BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE },
         { M,        "onVehicleDestroyed",        BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED },
         { M,        "onDriftCompletedScored",    BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
         { M,        "onPursuitAction",           BJI.Managers.Events.EVENTS.NG_PURSUIT_ACTION },
         { M,        "onPursuitModeUpdate",       BJI.Managers.Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
+        { M,        "onAiModeChange",            BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE },
+        { M,        "onTrafficStarted",          BJI.Managers.Events.EVENTS.NG_TRAFFIC_STARTED },
+        { M,        "onTrafficStopped",          BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED },
+        { M,        "onVehicleGroupSpawned",     BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
+        { M,        "trackAIAllVeh",             BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
             BJI.Managers.Events.trigger(hook[3], ...)
@@ -166,3 +170,12 @@ return M
 --- core_repository.requestMyMods (on open mods menu > tab my mods)
 --- core_vehicle_partmgmt.savedefault (on save default config)
 --- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
+
+
+--[[
+    if im.IsItemHovered() then
+      im.BeginTooltip()
+      im.Text("my tooltip content")
+      im.EndTooltip()
+    end
+]]
