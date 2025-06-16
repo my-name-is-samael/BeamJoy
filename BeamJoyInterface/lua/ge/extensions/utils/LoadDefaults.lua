@@ -69,6 +69,7 @@ GetMapName = function()
     return #map > 0 and map or nil
 end
 ui_message = ui_message or function(msg, ttl, category, icon) end
+translateLanguage = translateLanguage or function(key, default) return "" end
 
 nop = nop or {}
 be = be or {}
@@ -78,6 +79,7 @@ core_modmanager = core_modmanager or {}
 core_repository = core_repository or {}
 core_vehicle_partmgmt = core_vehicle_partmgmt or {}
 gameplay_traffic = gameplay_traffic or {}
+gameplay_police = gameplay_police or {}
 extensions.core_multiSpawn = extensions.core_multiSpawn or {}
 gameplay_parking = gameplay_parking or {}
 extensions.gameplay_rawPois = extensions.gameplay_rawPois or {}

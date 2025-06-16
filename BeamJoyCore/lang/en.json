@@ -360,7 +360,8 @@
       "reputationTag": "RP",
       "self": "You",
       "trailer": "{playerName}'s trailer",
-      "selfTrailer": "Your trailer"
+      "selfTrailer": "Your trailer",
+      "fugitive": "Suspect"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -893,6 +894,10 @@
           "tag": "TagDuo & Infected"
         },
         "KmDriveReward": "Drive Reward /km",
+        "ArrestReward": "Arrest Reward",
+        "ArrestRewardTooltip": "Applicable when arresting a player or an AI during a pursuit",
+        "EvadeReward": "Evasion Reward",
+        "EvadeRewardTooltip": "Applicable when evading the police with success",
         "DeliveryVehicleReward": "Vehicle Delivery Reward",
         "DeliveryVehiclePristineReward": "Intact vehicle bonus",
         "DeliveryVehiclePristineRewardTooltip": "Applied only to vehicle delivery",

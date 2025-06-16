@@ -56,6 +56,13 @@ local function isServerScenarioInProgress()
     return false
 end
 
+---@param player BJCPlayer
+local function isPlayerCollisionless(player)
+    return table.includes({
+        M.PLAYER_SCENARII.RACE_SOLO
+    }, player.scenario)
+end
+
 --- force every multiplayer scenarii to stop now<br>
 --- (to allow another one to start)
 local function stopServerScenarii()
@@ -237,6 +244,7 @@ local function onPlayerDisconnect(player)
 end
 
 M.isServerScenarioInProgress = isServerScenarioInProgress
+M.isPlayerCollisionless = isPlayerCollisionless
 M.stopServerScenarii = stopServerScenarii
 M.canSpawnVehicle = canSpawnVehicle
 M.canEditVehicle = canEditVehicle

@@ -359,7 +359,8 @@
       "reputationTag": "RP",
       "self": "Toi",
       "trailer": "Remorque de {playerName}",
-      "selfTrailer": "Ta remorque"
+      "selfTrailer": "Ta remorque",
+      "fugitive": "Suspect"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -892,6 +893,10 @@
           "tag": "Jeu du Loup & Infecté"
         },
         "KmDriveReward": "Récompense par Km conduit",
+        "ArrestReward": "Récompense d'arrestation",
+        "ArrestRewardTooltip": "Applicable lors de l'arrestation d'un joueur ou d'une IA durant une poursuite",
+        "EvadeReward": "Récompense d'évasion",
+        "EvadeRewardTooltip": "Applicable lors d'une évasion réussie face à la police",
         "DeliveryVehicleReward": "Récompense de Livraison de Véhicule",
         "DeliveryVehiclePristineReward": "Bonus véhicule intact",
         "DeliveryVehiclePristineRewardTooltip": "Appliqué uniquement lors d'une livraison de véhicule",
@@ -948,11 +953,11 @@
         "MaxPlayers": "Nombre Max de Joueurs",
         "MaxPlayersTooltip": "Nombre maximum de joueurs autorisés sur le serveur",
         "Private": "Privé",
-        "PrivateTooltip": "Si activé, votre serveur n’apparaît pas dans le navigateur",
+        "PrivateTooltip": "Si activé, votre serveur n'apparaît pas dans le navigateur",
         "Debug": "Debug",
         "DebugTooltip": "Active le mode debug et permet de voir et faire beaucoup de choses",
         "InformationPacket": "Paquet d'informations",
-        "InformationPacketTooltip": "Permet aux clients non connectés d’obtenir les informations publiques du serveur sans y entrer",
+        "InformationPacketTooltip": "Permet aux clients non connectés d'obtenir les informations publiques du serveur sans y entrer",
         "previewTooltip": "L'aperçu affiche uniquement les couleurs",
         "formattingHints": {
           "title": "Conseils de mise en forme (appliqués uniquement au Nom et à la Description)",

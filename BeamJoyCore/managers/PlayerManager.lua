@@ -354,9 +354,7 @@ local function getCachePlayers(playerID)
                 currentVehicle = p.currentVehicle,
                 ai = table.deepcopy(p.ai),
                 scenario = p.scenario,
-                isGhost = table.includes({
-                    BJCScenario.PLAYER_SCENARII.RACE_SOLO
-                }, p.scenario),
+                isGhost = BJCScenario.isPlayerCollisionless(p),
                 vehicles = Table(p.vehicles):map(function(v, vid)
                     return {
                         vehID = vid,
@@ -1049,6 +1047,12 @@ local function onBusMissionReward(playerID, idBusLine)
     M.reward(playerID, reward)
 end
 
+---@param isArrest boolean
+local function onPursuitReward(playerID, isArrest)
+    M.reward(playerID, isArrest and BJCConfig.Data.Reputation.ArrestReward or
+        BJCConfig.Data.Reputation.EvadeReward)
+end
+
 ---@param playerID integer
 ---@param amount integer
 local function reward(playerID, amount)
@@ -1503,6 +1507,7 @@ M.onDeliveryVehicleSuccess = onDeliveryVehicleSuccess
 M.onDeliveryPackageSuccess = onDeliveryPackageSuccess
 M.onDeliveryPackageFail = onDeliveryPackageFail
 M.onBusMissionReward = onBusMissionReward
+M.onPursuitReward = onPursuitReward
 M.reward = reward
 
 M.explodeSelfVehicle = explodeVehicle

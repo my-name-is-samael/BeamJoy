@@ -842,9 +842,13 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCachePaints, W.name .. "Paints"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI.Managers.Events.addListener({
+            BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+            BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
+        },
         function()
-            if not BJI.Managers.Perm.canSpawnVehicle() then
+            if not BJI.Managers.Perm.canSpawnVehicle() or
+                BJI.Managers.Pursuit.getState() then
                 tryClose(true)
             end
         end, W.name .. "AutoClose"))

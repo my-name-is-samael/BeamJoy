@@ -436,4 +436,31 @@ function ctrl.TagDuoLeave(ctxt)
     BJCScenario.Hybrids.TagDuoManager.onClientLeave(ctxt.senderID)
 end
 
+---@param ctxt BJCContext
+function ctrl.PursuitData(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    Table(BJCPlayers.Players):filter(function(p)
+        return p.playerID ~= ctxt.senderID and BJCPerm.canSpawnVehicle(p.playerID) and
+            not BJCScenario.isPlayerCollisionless(p)
+    end):forEach(function(p)
+        BJCTx.scenario.PursuitData(p.playerID, ctxt.data)
+    end)
+end
+
+---@param ctxt BJCContext
+function ctrl.PursuitReward(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    elseif BJCScenario.isServerScenarioInProgress() or
+        BJCScenario.isPlayerCollisionless(ctxt.sender) then
+        error({ key = "rx.errors.invalidData" })
+    end
+
+    local isArrest = ctxt.data[1] == true
+    BJCPlayers.onPursuitReward(ctxt.senderID, isArrest)
+end
+
 return ctrl

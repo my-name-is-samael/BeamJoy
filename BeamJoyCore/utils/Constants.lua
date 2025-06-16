@@ -123,6 +123,7 @@ BJC_EVENTS = {
             SPEED_STOP = "SpeedStop",
             HUNTER_SAVE = "HunterSave",
             DERBY_SAVE = "DerbySave",
+            PURSUIT_DATA = "PursuitData",
         },
         RX = {
             RACE_DETAILS = "RaceDetails",
@@ -169,6 +170,8 @@ BJC_EVENTS = {
             TAG_SERVER_START = "TagServerStart",
             TAG_SERVER_UPDATE = "TagServerUpdate",
             TAG_SERVER_STOP = "TagServerStop",
+            PURSUIT_DATA = "PursuitData",
+            PURSUIT_REWARD = "PursuitReward",
         }
     },
     TOURNAMENT = {

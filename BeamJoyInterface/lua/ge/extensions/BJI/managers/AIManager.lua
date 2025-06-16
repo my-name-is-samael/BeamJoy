@@ -21,7 +21,11 @@ local function getSelfTrafficVehiclesIDs()
     local pool = gameplay_traffic.getTrafficPool()
     return Table(pool and pool.allVehs or {}):keys():addAll(
         gameplay_parking.getParkedCarsList(), true
-    ):sort()
+    ):filter(function(vid)
+        return table.any(BJI.Managers.Context.User.vehicles, function(v)
+            return v.gameVehID == vid
+        end)
+    end):sort()
 end
 
 local function isTrafficSpawned()
@@ -146,8 +150,12 @@ end
 
 local function onUpdate()
     local function _update()
-        local canSpawnAI = BJI.Managers.Perm.canSpawnAI() and BJI.Managers.Scenario.canSpawnAI()
-        toggle(canSpawnAI)
+        local canSpawnAI = BJI.Managers.Perm.canSpawnAI() and
+            BJI.Managers.Scenario.canSpawnAI() and
+            not BJI.Managers.Pursuit.getState()
+        if not BJI.Managers.Pursuit.getState() then
+            toggle(canSpawnAI)
+        end
         BJI.Managers.Restrictions.update({
             {
                 -- update AI restriction
@@ -200,8 +208,12 @@ local function iniNGFunctionsWrappers()
     M.baseFunctions.spawnGroup = extensions.core_multiSpawn.spawnGroup
     extensions.core_multiSpawn.spawnGroup = function(...)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            BJI.Managers.UI.applyLoading(true)
-            return M.baseFunctions.spawnGroup(...)
+            local data = { ... }
+            BJI.Managers.UI.applyLoading(true, function()
+                BJI.Managers.Veh.deleteOtherOwnVehicles()
+                M.baseFunctions.spawnGroup(table.unpack(data))
+            end)
+            return
         else
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
             return nil
@@ -236,6 +248,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
+        BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
         BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
     }, onUpdate, M._name)
 end

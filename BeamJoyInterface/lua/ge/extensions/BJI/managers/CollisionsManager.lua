@@ -236,19 +236,22 @@ local function fastTick(ctxt)
         M.ghosts:filter(function(targetTime)
             return targetTime <= ctxt.now
         end):forEach(function(_, gameVehID)
+            M.vehsCaches[gameVehID].veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
             currVeh = M.vehsCaches[gameVehID].veh
-            BJI.Managers.Veh.getPositionRotation(currVeh, function(currVehPos)
-                if not M.vehsCaches:filter(function(_, vid)
-                        return not M.ghosts[vid] and not M.permaGhosts[vid]
-                    end):any(function(vehData)
-                        targetVeh = vehData.veh
-                        local targetVehPos = BJI.Managers.Veh.getPositionRotation(targetVeh)
-                        return targetVehPos ~= nil and currVehPos:distance(targetVehPos) <
-                            getGhostDistance(currVeh, targetVeh)
-                    end) then
-                    removeGhost(ctxt, gameVehID, currVeh)
-                end
-            end)
+            if currVeh then
+                BJI.Managers.Veh.getPositionRotation(currVeh, function(currVehPos)
+                    if not M.vehsCaches:filter(function(_, vid)
+                            return not M.ghosts[vid] and not M.permaGhosts[vid]
+                        end):any(function(vehData)
+                            targetVeh = vehData.veh
+                            local targetVehPos = BJI.Managers.Veh.getPositionRotation(targetVeh)
+                            return targetVehPos ~= nil and currVehPos:distance(targetVehPos) <
+                                getGhostDistance(currVeh, targetVeh)
+                        end) then
+                        removeGhost(ctxt, gameVehID, currVeh)
+                    end
+                end)
+            end
         end)
     end
 end

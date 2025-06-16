@@ -87,6 +87,8 @@ local function config()
         },
         Reputation = {
             KmDriveReward = 3,
+            ArrestReward = 10,
+            EvadeReward = 15,
             DeliveryVehicleReward = 20,
             DeliveryVehiclePristineReward = 50,
             DeliveryPackageReward = 5,

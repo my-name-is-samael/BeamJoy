@@ -452,14 +452,15 @@ local function updateCache(ctxt)
     }
 
     if not BJI.Windows.ScenarioEditor.getState() and
-        not BJI.Managers.Tournament.state then
+        not BJI.Managers.Tournament.state and
+        not BJI.Managers.Pursuit.getState() then
         menuSoloRace(ctxt)
         menuBusMission(ctxt)
         menuVehicleDelivery(ctxt)
         menuPackageDelivery(ctxt)
         menuDeliveryMulti(ctxt)
         menuTagDuo(ctxt)
-        table.insert(M.cache.elems, {separator = true})
+        table.insert(M.cache.elems, { separator = true })
         menuSpeedGame(ctxt)
         menuHunter(ctxt)
         menuDerby(ctxt)
@@ -525,6 +526,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
         BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, "MainMenuScenario"))
 

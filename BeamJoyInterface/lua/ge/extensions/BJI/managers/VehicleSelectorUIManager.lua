@@ -330,11 +330,12 @@ local function onUpdateRestrictions()
         M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and (
             BJI.Managers.Scenario.canSpawnNewVehicle() or (
                 BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn()
-            )
+            ) and not BJI.Managers.Pursuit.getState()
         )
-        M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam()
+        M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam() and
+            not BJI.Managers.Pursuit.getState()
         M.statePaint = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn() and
-            BJI.Managers.Scenario.canPaintVehicle()
+            BJI.Managers.Scenario.canPaintVehicle() and not BJI.Managers.Pursuit.getState()
         BJI.Managers.Restrictions.update({
             {
                 -- update selector restriction
@@ -408,6 +409,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+        BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
     }, onUpdateRestrictions, M._name)
 end

@@ -131,4 +131,9 @@ function ctrl.DerbySave(data)
     derbySaveCallbackFn = nil
 end
 
+---@param data BJPursuitPayload
+function ctrl.PursuitData(data)
+    BJI.Managers.Pursuit.rxData(data)
+end
+
 return ctrl

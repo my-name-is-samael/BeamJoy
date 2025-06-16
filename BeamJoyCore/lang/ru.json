@@ -232,7 +232,8 @@
       "reputationTag": "РП",
       "self": "Ты",
       "trailer": "Трейлер {playerName}",
-      "selfTrailer": "Ваш трейлер"
+      "selfTrailer": "Ваш трейлер",
+      "fugitive": "Подозреваемый"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -765,6 +766,10 @@
           "tag": "Салки и Инфицированный"
         },
         "KmDriveReward": "Награда за проезд/км",
+        "ArrestReward": "Награда за арест",
+        "ArrestRewardTooltip": "Применяется при аресте игрока или ИИ во время погони",
+        "EvadeReward": "Награда за побег",
+        "EvadeRewardTooltip": "Применяется при успешном уходе от полиции",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
         "DeliveryVehiclePristineReward": "Бонус за целый автомобиль",
         "DeliveryVehiclePristineRewardTooltip": "Применяется только при доставке автомобилей",

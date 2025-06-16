@@ -359,7 +359,8 @@
       "reputationTag": "PR",
       "self": "Você",
       "trailer": "Trailer de {playerName}",
-      "selfTrailer": "Seu trailer"
+      "selfTrailer": "Seu trailer",
+      "fugitive": "Suspeito"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -892,6 +893,10 @@
           "tag": "Apanhada/Pega-pega & Infectado"
         },
         "KmDriveReward": "Recompensa de condução/km",
+        "ArrestReward": "Recompensa por prisão",
+        "ArrestRewardTooltip": "Aplicável ao prender um jogador ou IA durante uma perseguição",
+        "EvadeReward": "Recompensa por fuga",
+        "EvadeRewardTooltip": "Aplicável ao escapar com sucesso da polícia",
         "DeliveryVehicleReward": "Recompensa de entrega de veículo",
         "DeliveryVehiclePristineReward": "Bônus por veículo intacto",
         "DeliveryVehiclePristineRewardTooltip": "Aplicado apenas na entrega de veículos",

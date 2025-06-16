@@ -359,7 +359,8 @@
       "reputationTag": "RP",
       "self": "Voi",
       "trailer": "Il trailer di {playerName}",
-      "selfTrailer": "La tua roulotte"
+      "selfTrailer": "La tua roulotte",
+      "fugitive": "Sospetto"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -892,6 +893,10 @@
           "tag": "Acchiapparella & Infetto"
         },
         "KmDriveReward": "Guida ricompensa/km",
+        "ArrestReward": "Ricompensa per arresto",
+        "ArrestRewardTooltip": "Applicabile quando si arresta un giocatore o un'IA durante un inseguimento",
+        "EvadeReward": "Ricompensa per fuga",
+        "EvadeRewardTooltip": "Applicabile quando si sfugge con successo alla polizia",
         "DeliveryVehicleReward": "Premio per la consegna del veicolo",
         "DeliveryVehiclePristineReward": "Bonus veicolo intatto",
         "DeliveryVehiclePristineRewardTooltip": "Applicato solo alla consegna di veicoli",

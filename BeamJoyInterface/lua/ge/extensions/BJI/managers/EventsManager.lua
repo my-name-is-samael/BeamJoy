@@ -33,6 +33,7 @@ local M = {
         STATION_PROXIMITY_CHANGED = "station_proximity_changed",
         STATION_PROCESS_CHANGED = "station_process_changed",
         TOURNAMENT_UPDATED = "tournament_updated",
+        PURSUIT_UPDATE = "pursuit_update",
 
         -- base game events
 

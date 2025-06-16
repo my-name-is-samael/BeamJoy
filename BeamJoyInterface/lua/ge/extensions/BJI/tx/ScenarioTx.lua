@@ -205,5 +205,15 @@ return function(TX)
         TX._send(event.EVENT, event.TX.TAG_DUO_LEAVE)
     end
 
+    ---@param data BJPursuitPayload
+    function scenario.PursuitData(data)
+        TX._send(event.EVENT, event.TX.PURSUIT_DATA, data)
+    end
+
+    ---@param isArrest boolean
+    function scenario.PursuitReward(isArrest)
+        TX._send(event.EVENT, event.TX.PURSUIT_REWARD, { isArrest })
+    end
+
     return scenario
 end

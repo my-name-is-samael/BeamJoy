@@ -1,5 +1,5 @@
 local categories = Table({
-    { category = "freeroam", keys = Table({ "KmDriveReward", "DriftGoodReward", "DriftBigReward" }) },
+    { category = "freeroam", keys = Table({ "KmDriveReward", "ArrestReward", "EvadeReward", "DriftGoodReward", "DriftBigReward" }) },
     { category = "delivery", keys = Table({ "DeliveryVehicleReward", "DeliveryVehiclePristineReward", "DeliveryPackageReward", "DeliveryPackageStreakReward" }) },
     { category = "bus",      keys = Table({ "BusMissionReward" }) },
     { category = "race",     keys = Table({ "RaceParticipationReward", "RaceWinnerReward", "RaceSoloReward", "RaceRecordReward" }) },

@@ -10,7 +10,9 @@ local M = {
         self = "",
         selfTrailer = "",
         trailer = "",
+        fugitive = "",
     },
+    labelsInit = false,
 
     cache = {
         vehTypes = {},
@@ -272,6 +274,50 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
     end
 end
 
+---@param ctxt TickContext
+---@param veh BJIMPVehicle
+---@param ownPos vec3
+local function renderFugitive(ctxt, veh, ownPos)
+    local tagPos = vec3(veh.position)
+    local distance = ownPos:distance(tagPos)
+
+    local showTag = not settings.getValue("shortenNametags", false)
+    local showDist = settings.getValue("nameTagShowDistance", true) and
+        distance > M._minDistanceShow
+
+    local isAI = BJI.Managers.AI.isAIVehicle(veh.gameVehicleID)
+    local label
+    if isAI then
+        label = M.labels.fugitive
+    else
+        local owner = BJI.Managers.Context.Players[veh.ownerID]
+        label = owner.tagName
+        if showTag then
+            local tag = ""
+            if BJI.Managers.Perm.isStaff(veh.ownerID) then
+                tag = M.labels.staffTag
+            else
+                local reputationTag = string.var("{1}{2}",
+                    { M.labels.reputationTag, BJI.Managers.Reputation.getReputationLevel(owner.reputation) })
+                tag = reputationTag
+            end
+            label = string.var("[{1}]{2}", { tag, label })
+        end
+    end
+    if showDist then
+        label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+    end
+
+    local zOffset = 0
+    tagPos.z = tagPos.z + zOffset
+
+    local textColor, bgColor = BJI.Managers.Pursuit.getFugitiveNametagColors()
+    BJI.Utils.ShapeDrawer.Text(label, tagPos, textColor, bgColor, false)
+    if not isAI then
+        BJI.Utils.ShapeDrawer.Text(M.labels.fugitive, tagPos + vec3(0, 0, -.2), textColor, bgColor, false)
+    end
+end
+
 local lastHideNametags = nil
 local function detectVisibilityEvent()
     local val = settings.getValue("hideNameTags", false)
@@ -295,6 +341,8 @@ local function renderTick(ctxt)
         not BJI.Managers.Context.BJC.Freeroam.Nametags and
         not BJI.Managers.Perm.isStaff() then
         return
+    elseif not M.labelsInit then
+        return
     end
 
     if M.state then
@@ -307,7 +355,8 @@ local function renderTick(ctxt)
                 if veh.isDeleted or not veh.isSpawned then
                     return false -- invalid veh (not ready/deleted)
                 end
-                if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
+                if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) and
+                    not BJI.Managers.Pursuit.policeTargets[veh.gameVehicleID] then
                     return false
                 end
                 if not M.cache.vehTypes[veh.jbeam] then
@@ -324,7 +373,9 @@ local function renderTick(ctxt)
                 if scenarioShow then
                     if M.cache.vehTypes[veh.jbeam] == BJI.Managers.Veh.TYPES.TRAILER then
                         renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
-                    else
+                    elseif BJI.Managers.Pursuit.policeTargets[veh.gameVehicleID] then
+                        renderFugitive(ctxt, veh, ownPos)
+                    elseif not BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
                         renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                     end
                 end
@@ -338,6 +389,8 @@ local function updateLabels()
     M.labels.self = BJI.Managers.Lang.get("nametags.self")
     M.labels.selfTrailer = BJI.Managers.Lang.get("nametags.selfTrailer")
     M.labels.trailer = BJI.Managers.Lang.get("nametags.trailer")
+    M.labels.fugitive = BJI.Managers.Lang.get("nametags.fugitive")
+    M.labelsInit = true
 end
 
 local lastShorten, lastShortenLength = false, 0

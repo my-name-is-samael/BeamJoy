@@ -125,6 +125,7 @@ local function clear()
     end
 end
 
+---@return BJIGPSWp?
 local function getByKey(key)
     for _, t in ipairs(M.targets) do
         if t.key == key then

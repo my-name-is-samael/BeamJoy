@@ -359,7 +359,8 @@
       "reputationTag": "PR",
       "self": "Tú",
       "trailer": "Tráiler de {playerName}",
-      "selfTrailer": "tu tráiler"
+      "selfTrailer": "tu tráiler",
+      "fugitive": "Sospechoso"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -892,6 +893,10 @@
           "tag": "Pilla-Pilla Dúo & Infectado"
         },
         "KmDriveReward": "Recompensa de conducción /km",
+        "ArrestReward": "Recompensa por arresto",
+        "ArrestRewardTooltip": "Aplicable al arrestar a un jugador o IA durante una persecución",
+        "EvadeReward": "Recompensa por evasión",
+        "EvadeRewardTooltip": "Aplicable al escapar con éxito de la policía",
         "DeliveryVehicleReward": "Recompensa por entrega de vehículo",
         "DeliveryVehiclePristineReward": "Bono por vehículo intacto",
         "DeliveryVehiclePristineRewardTooltip": "Aplicado solo al entregar vehículos",

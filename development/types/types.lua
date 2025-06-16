@@ -126,3 +126,10 @@
 ---@field roughness number 0-1
 ---@field clearCoat number 0-1
 ---@field clearCoatRoughness number 0-1
+
+---@class BJPursuitPayload
+---@field event "start"|"arrest"|"evade"|"reset"
+---@field originPlayerID integer
+---@field gameVehID integer
+---@field ticket boolean?
+---@field offenses string[]?

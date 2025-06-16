@@ -359,7 +359,8 @@
       "reputationTag": "RP",
       "self": "Du",
       "trailer": "Trailer von {playerName}",
-      "selfTrailer": "Ihr Anhänger"
+      "selfTrailer": "Ihr Anhänger",
+      "fugitive": "Verdächtiger"
     },
     "windows": {
       "Main": "BeamJoyInterface",
@@ -892,6 +893,10 @@
           "tag": "Fangen & Infiziert"
         },
         "KmDriveReward": "Fahrtprämie/km",
+        "ArrestReward": "Festnahme-Belohnung",
+        "ArrestRewardTooltip": "Gilt bei der Festnahme eines Spielers oder einer KI während einer Verfolgung",
+        "EvadeReward": "Flucht-Belohnung",
+        "EvadeRewardTooltip": "Gilt bei erfolgreicher Flucht vor der Polizei",
         "DeliveryVehicleReward": "Belohnung für Fahrzeuglieferung",
         "DeliveryVehiclePristineReward": "Bonus für unbeschädigtes Fahrzeug",
         "DeliveryVehiclePristineRewardTooltip": "Nur bei Fahrzeuglieferungen anwendbar",

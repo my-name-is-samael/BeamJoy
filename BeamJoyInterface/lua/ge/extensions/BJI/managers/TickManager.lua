@@ -3,7 +3,7 @@
 ---@field user BJIUser
 ---@field group BJIGroup
 ---@field players tablelib<integer, BJIPlayer> index playerID
----@field veh? userdata|any
+---@field veh? NGVehicle
 ---@field vehPosRot? BJIPositionRotation
 ---@field isOwner boolean
 ---@field vehData? BJIVehicleData
