@@ -500,6 +500,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Gravidade alterada para {gravity}",
         "zero": "Zero",
         "pluto": "Plutão",
         "moon": "Lua",
@@ -513,6 +514,7 @@
         "sun": "Sol"
       },
       "speed": {
+        "toastChanged": "Velocidade da simulação alterada para {speed}",
         "slowextreme": "Planeta crescendo",
         "slowest": "Cinematográfico",
         "slower": "Mais devagar",

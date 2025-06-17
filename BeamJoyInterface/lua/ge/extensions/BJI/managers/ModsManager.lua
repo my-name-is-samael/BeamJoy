@@ -58,7 +58,7 @@ local function initNGFunctionsWrappers()
 end
 
 local function onUnload()
-    table.assign(extensions, M.baseFunctions)
+    RollBackNGFunctionsWrappers(M.baseFunctions)
 end
 
 local function onLoad()

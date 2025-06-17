@@ -373,6 +373,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Гравитация изменена на {gravity}",
         "zero": "Ноль",
         "pluto": "Плутон",
         "moon": "Луна",
@@ -386,6 +387,7 @@
         "sun": "Солнце"
       },
       "speed": {
+        "toastChanged": "Скорость симуляции изменена на {speed}",
         "slowextreme": "Планета растет",
         "slowest": "Кинематографический",
         "slower": "Помедленнее",

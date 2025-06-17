@@ -500,6 +500,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Schwerkraft geändert zu {gravity}",
         "zero": "Null",
         "pluto": "Pluto",
         "moon": "Mond",
@@ -513,6 +514,7 @@
         "sun": "Sonne"
       },
       "speed": {
+        "toastChanged": "Simulationsgeschwindigkeit geändert zu {speed}",
         "slowextreme": "Der Planet wächst",
         "slowest": "Filmisch",
         "slower": "Langsamer",

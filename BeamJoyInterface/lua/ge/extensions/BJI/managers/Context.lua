@@ -290,7 +290,8 @@ local function loadUI()
             end
             if previousUI.gravityRate ~= cacheData.gravityRate and M.UI.gravity.key then
                 local label = BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { M.UI.gravity.key }))
-                BJI.Managers.Toast.info(string.var("Gravity changed to {1}", { label }))
+                BJI.Managers.Toast.info(string.var(BJI.Managers.Lang.get("presets.gravity.toastChanged"),
+                    { gravity = label }))
             end
         end
 
@@ -305,7 +306,8 @@ local function loadUI()
         end
         if previousUI.simSpeed ~= cacheData.simSpeed and M.UI.speed.key then
             local label = BJI.Managers.Lang.get(string.var("presets.speed.{1}", { M.UI.speed.key }))
-            BJI.Managers.Toast.info(string.var("Speed changed to {1}", { label }))
+            BJI.Managers.Toast.info(string.var(BJI.Managers.Lang.get("presets.speed.toastChanged"),
+                { speed = label }))
         end
 
         previousUI.gravityRate = cacheData.gravityRate

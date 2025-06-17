@@ -75,7 +75,11 @@ initManagers()
 
 
 local M = {
-    dependencies = { "ui_imgui" },
+    dependencies = { "ui_imgui", "core_camera", "core_vehicles", "core_vehicle_partmgmt",
+        "simTimeAuthority", "gameplay_traffic", "gameplay_police", "core_modmanager", "core_repository",
+        "core_groundMarkers", "core_vehicle_manager", "map", "spawn", "core_vehicleBridge",
+        "core_environment", "gameplay_parking", "gameplay_drift_scoring", "scenetree", "core_multiSpawn",
+        "ui_missionInfo", "freeroam_bigMapMode", "gameplay_walk" },
 }
 
 local function _initGUI()

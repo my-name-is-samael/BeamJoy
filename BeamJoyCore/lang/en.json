@@ -501,6 +501,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Gravity changed to {gravity}",
         "zero": "Zero",
         "pluto": "Pluto",
         "moon": "Moon",
@@ -514,6 +515,7 @@
         "sun": "Sun"
       },
       "speed": {
+        "toastChanged": "Simulation speed changed to {speed}",
         "slowextreme": "Planet growing",
         "slowest": "Cinematic",
         "slower": "Slower",

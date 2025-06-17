@@ -113,3 +113,18 @@ MPVehicleGE = MPVehicleGE or {}
 MPGameNetwork = MPGameNetwork or {}
 MPHelpers = MPHelpers or {}
 MPCoreNetwork = MPCoreNetwork or {}
+
+-- BEAMJOY
+
+function RollBackNGFunctionsWrappers(baseFunctions)
+    for parentName, fns in pairs(baseFunctions) do
+        if extensions[parentName] then
+            for fnName, fn in pairs(fns) do
+                if type(extensions[parentName][fnName]) == "function" and
+                    type(fn) == "function" then
+                    extensions[parentName][fnName] = fn
+                end
+            end
+        end
+    end
+end
