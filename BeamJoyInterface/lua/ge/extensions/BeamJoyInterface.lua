@@ -115,6 +115,11 @@ M.onUpdate = function(...)
         BJI.Managers.UI.applyLoading(true) -- loading stops when base caches are loaded (CacheManager)
         BJI.CLIENT_READY = true
         BJI.Tx.player.connected()
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded()
+        end, function()
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ON_POST_LOAD)
+        end)
     end
 
     BJI.Managers.Tick.client()
@@ -137,6 +142,7 @@ local function bindNGHooks()
         { M,        "onTrafficStopped",          BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED },
         { M,        "onVehicleGroupSpawned",     BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
         { M,        "trackAIAllVeh",             BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
+        { M,        "onTrafficVehicleAdded",     BJI.Managers.Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
             BJI.Managers.Events.trigger(hook[3], ...)

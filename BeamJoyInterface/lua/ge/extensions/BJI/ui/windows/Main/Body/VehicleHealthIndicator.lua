@@ -4,7 +4,6 @@ local function newCache()
         canShowDeliveryDamagedWarning = false,
         showGPSButton = false,
         labels = {
-            deliveryDamageWarning = "",
             damageWarning = "",
         },
     }
@@ -17,20 +16,20 @@ local function updateCache(ctxt)
     cache = newCache()
 
     cache.damageThreshold = BJI.Managers.Context.VehiclePristineThreshold
-    cache.showGPSButton = ctxt.vehData ~= nil and ctxt.vehData.damageState ~= nil and
-        BJI.Managers.Scenario.canRepairAtGarage() and BJI.Managers.Context.Scenario.Data.Garages and
+    cache.showGPSButton = ctxt.isOwner and
+        BJI.Managers.Scenario.canRepairAtGarage() and
+        BJI.Managers.Context.Scenario.Data.Garages and
         #BJI.Managers.Context.Scenario.Data.Garages > 0 and
         (not BJI.Managers.Stations.station or BJI.Managers.Stations.station.isEnergy)
 
-    cache.labels.deliveryDamageWarning = BJI.Managers.Lang.get("vehicleDelivery.damagedWarning")
     cache.labels.damageWarning = BJI.Managers.Lang.get("garages.damagedWarning")
 end
 
 ---@param ctxt TickContext
 ---@return boolean
 local function isVisible(ctxt)
-    return ctxt.vehData ~= nil and ctxt.vehData.damageState ~= nil and
-        ctxt.vehData.damageState > cache.damageThreshold
+    local damages = ctxt.isOwner and tonumber(ctxt.veh.damageState) or nil
+    return damages ~= nil and damages > cache.damageThreshold
 end
 
 ---@param ctxt TickContext

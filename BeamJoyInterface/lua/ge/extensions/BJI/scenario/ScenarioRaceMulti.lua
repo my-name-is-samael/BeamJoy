@@ -71,7 +71,6 @@ local function initManagerData()
         eliminated = {},
     }
 
-    S.currentSpeed = 0
     ---@type MapRacePBWP[]
     S.lapData = {}
     S.lastLaunchedCheckpoint = nil
@@ -514,9 +513,10 @@ local function onCheckpointReached(wp, remainingSteps)
             S.race.waypoint = S.race.raceData.wpPerLap
         end
 
+        local veh = BJI.Managers.Veh.getVehicleObject()
         S.lapData[lastWp.wp] = {
             time = lapTime,
-            speed = math.round(S.currentSpeed * 3.6, 2),
+            speed = math.round((veh and tonumber(veh.speed) or 0) * 3.6, 2),
         }
 
         if S.settings.laps and S.settings.laps > 1 then
@@ -1101,12 +1101,6 @@ end
 
 -- each frame tick hook
 local function renderTick(ctxt)
-    if ctxt.isOwner and S.isRaceStarted(ctxt) and not S.isFinished() and not S.isEliminated() then
-        ctxt.veh:queueLuaCommand([[
-            obj:queueGameEngineLua("BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI).currentSpeed = " .. obj:getAirflowSpeed())
-        ]])
-    end
-
     -- lap realtimeDisplay
     if S.isRaceOrCountdownStarted() then
         if S.isSpec() and not S.isRaceFinished() then
@@ -1143,9 +1137,10 @@ local function fastTick(ctxt)
             ) > 1
             local damaged = false
             for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-                if v.gameVehID == BJI.Managers.Context.User.currentVehicle and
-                    v.damageState and
-                    v.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+                local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
+                if veh and v.gameVehID == BJI.Managers.Context.User.currentVehicle and
+                    tonumber(veh.damageState) and
+                    tonumber(veh.damageState) > BJI.Managers.Context.VehiclePristineThreshold then
                     damaged = true
                     break
                 end

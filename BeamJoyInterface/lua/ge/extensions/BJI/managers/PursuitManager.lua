@@ -1,3 +1,5 @@
+if true then return { _name = "Pursuit", policeTargets = {}, getState = function() return false end } end
+
 ---@class BJIManagerPursuit: BJIManager
 local M = {
     _name = "Pursuit",
@@ -342,7 +344,7 @@ local function rxStart(ctxt, data, targetVeh)
             })
             return
         end
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message(string.var("{1} {2}", {
                 translateLanguage('ui.traffic.suspectFlee', 'A suspect is fleeing from you! Vehicle:'),
                 BJI.Managers.Veh.getModelLabel(targetVeh.jbeam) or targetVeh.jbeam or "?"
@@ -359,7 +361,7 @@ local function rxStart(ctxt, data, targetVeh)
         })
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
     elseif ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message('ui.traffic.policePursuit', 5, 'traffic', 'traffic')
         end
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
@@ -385,7 +387,7 @@ end
 ---@param targetVeh NGVehicle
 local function rxArrest(ctxt, data, targetVeh)
     if M.isPatrol and M.policeTargets[targetVeh:getID()] then -- patrol
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message('ui.traffic.suspectArrest', 5, 'traffic', 'traffic')
         end
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
@@ -404,7 +406,7 @@ local function rxArrest(ctxt, data, targetVeh)
         })
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
     elseif M.fugitivePursuit and ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message(data.ticket and 'ui.traffic.policeTicket' or 'ui.traffic.policeArrest', 5, 'traffic',
                 'traffic')
             ui_message(string.var("{1} {2}", {
@@ -439,7 +441,7 @@ end
 ---@param targetVeh NGVehicle
 local function rxEvade(ctxt, data, targetVeh)
     if M.isPatrol and M.policeTargets[targetVeh:getID()] then -- patrol
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message('ui.traffic.suspectEvade', 5, 'traffic', 'traffic')
         end
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
@@ -453,7 +455,7 @@ local function rxEvade(ctxt, data, targetVeh)
         })
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
     elseif M.fugitivePursuit and ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if gameplay_traffic.showMessages then
+        if extensions.gameplay_traffic.showMessages then
             ui_message('ui.traffic.policeEvade', 5, 'traffic', 'traffic')
         end
         BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)

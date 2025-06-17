@@ -3,7 +3,6 @@
 ---@field gameVehID integer
 ---@field finalGameVehID integer
 ---@field model string
----@field damageState? number
 ---@field engine? boolean
 ---@field engineStation? boolean
 ---@field freeze? boolean
@@ -311,14 +310,27 @@ local function waitForVehicleSpawn(callback)
             if M.isUnicycle(ctxt.veh:getID()) then
                 return true
             end
-            if ctxt.vehData == nil or ctxt.vehData.damageState == nil or
-                ctxt.vehData.damageState >= BJI.Managers.Context.VehiclePristineThreshold then
+            local damages = ctxt.veh and tonumber(ctxt.veh.damageState) or nil
+            if damages == nil or damages >= BJI.Managers.Context.VehiclePristineThreshold then
+                return false
+            end
+            local speed = ctxt.veh and tonumber(ctxt.veh.speed) or nil
+            if speed == nil or speed > .5 then
                 return false
             end
             return isVehReady(ctxt.veh:getID())
         end
         return false
     end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
+end
+
+---@param config string|table
+local function isVehPolice(config)
+    local conf = BJI.Managers.Veh.getFullConfig(config) or { parts = {} }
+    return Table(conf.parts):any(function(v, k)
+        return (tostring(k):lower():find("police") ~= nil and #v > 0) or
+            tostring(v):lower():find("police") ~= nil
+    end)
 end
 
 ---@param gameVehID integer
@@ -331,6 +343,21 @@ local function onVehicleSpawned(gameVehID)
                 "recovery.saveHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.saveHome('..tostring(obj:getID())..')') end")
             vehicle:queueLuaCommand(
                 "recovery.loadHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.loadHome('..tostring(obj:getID())..')') end")
+        end
+        if isVehPolice(vehicle.partConfig) then
+            vehicle:setDynDataFieldbyName("isPatrol", 0, "true")
+        end
+    end
+end
+
+local function onVehicleReplaced(gameVehID)
+    local vehicle = M.getVehicleObject(gameVehID)
+    if vehicle then
+        local isPolice = isVehPolice(vehicle.partConfig)
+        if not vehicle.isPatrol and isPolice then
+            vehicle:setDynDataFieldbyName("isPatrol", 0, "true")
+        elseif vehicle.isPatrol and not isPolice then
+            vehicle:setDynDataFieldbyName("isPatrol", 0, "")
         end
     end
 end
@@ -1505,12 +1532,6 @@ local function updateVehFuelState(ctxt, data)
     end
 end
 
-local function updateVehDamages(vehID, damageState)
-    if BJI.Managers.Context.User.vehicles[vehID] then
-        BJI.Managers.Context.User.vehicles[vehID].damageState = damageState
-    end
-end
-
 local lastConfigProtectionState = settings.getValue("protectConfigFromClone", false)
 local function slowTick(ctxt)
     if not ctxt.vehData then
@@ -1525,17 +1546,6 @@ local function slowTick(ctxt)
         core_vehicleBridge.requestValue(ctxt.veh, function(data)
             updateVehFuelState(ctxt, data)
         end, 'energyStorage')
-    end
-
-    -- get current damages
-    if ctxt.veh then
-        ctxt.veh:queueLuaCommand(string.var([[
-                obj:queueGameEngineLua(
-                    "BJI.Managers.Veh.updateVehDamages({1}, " ..
-                        serialize(beamstate.damage) ..
-                    ")"
-                )
-        ]], { vehID }))
     end
 
     -- delete corrupted vehs
@@ -1676,6 +1686,16 @@ local function forceVehsSync(ctxt)
     end)
 end
 
+---@param attr string
+---@param gameVehID integer
+---@param value number
+local function updateVehCustomAttribute(attr, gameVehID, value)
+    local veh = M.getVehicleObject(gameVehID)
+    if veh and value then
+        veh:setDynDataFieldbyName(attr, 0, tostring(value))
+    end
+end
+
 local function onUnload()
     extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
     extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
@@ -1728,10 +1748,26 @@ M.onLoad = function()
     end, "BJIVehSaveRemoveConfigOverride")
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED, onVehicleReplaced, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, function(ctxt)
+        ---@param v BJIMPVehicle
+        M.getMPVehicles():forEach(function(v)
+            local veh = M.getVehicleObject(v.gameVehicleID)
+            if veh then
+                veh:queueLuaCommand(string.var([[
+                    local speed = tostring(obj:getAirflowSpeed())
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('speed', {1}, "..speed..")")
+
+                    local damaged = serialize(beamstate.damage)
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('damageState', {1}, "..damaged..")")
+                ]], { veh:getID() }))
+            end
+        end)
+    end, M._name)
 
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -1822,7 +1858,7 @@ M.paintVehicle = paintVehicle
 M.jouleToReadableUnit = jouleToReadableUnit
 M.setFuel = setFuel
 
-M.updateVehDamages = updateVehDamages
+M.updateVehCustomAttribute = updateVehCustomAttribute
 
 M.postResetPreserveEnergy = postResetPreserveEnergy
 M.compareConfigs = compareConfigs

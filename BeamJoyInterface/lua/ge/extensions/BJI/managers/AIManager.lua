@@ -13,12 +13,12 @@ local M = {
 
 ---@return boolean
 local function getState()
-    return gameplay_traffic.getState() == "on" or gameplay_parking.getState() == true
+    return extensions.gameplay_traffic.getState() == "on" or gameplay_parking.getState() == true
 end
 
 ---@return tablelib<integer, integer> index 1-N, value gameVehID
 local function getSelfTrafficVehiclesIDs()
-    local pool = gameplay_traffic.getTrafficPool()
+    local pool = extensions.gameplay_traffic.getTrafficPool()
     return Table(pool and pool.allVehs or {}):keys():addAll(
         gameplay_parking.getParkedCarsList(), true
     ):filter(function(vid)
@@ -38,7 +38,7 @@ local function stopTraffic()
     end)
 
     gameplay_parking.setState(false)
-    gameplay_traffic.onTrafficStopped()
+    extensions.gameplay_traffic.onTrafficStopped()
 end
 
 local function toggle(state)
@@ -66,7 +66,7 @@ local function slowTick(ctxt)
         settingsChanged = true
     end
     if settingsChanged then
-        gameplay_traffic.onSettingsChanged()
+        extensions.gameplay_traffic.onSettingsChanged()
     end
 
     -- on traffic spawn settings
@@ -80,9 +80,14 @@ local function slowTick(ctxt)
     if math.clamp(trafficAmount, 2, 10) ~= trafficAmount then
         settings.setValue('trafficAmount', math.clamp(trafficAmount, 2, 10))
     end
-    local parkedAmount = tonumber(settings.getValue('trafficParkedAmount')) or 0
-    if math.clamp(parkedAmount, 1, 5) ~= parkedAmount then
-        settings.setValue('trafficParkedAmount', math.clamp(parkedAmount, 1, 5))
+    local parkedAmount = tonumber(settings.getValue('trafficParkedAmount')) or -1
+    if math.clamp(parkedAmount, 0, 5) ~= parkedAmount then
+        settings.setValue('trafficParkedAmount', math.clamp(parkedAmount, 0, 5))
+    end
+    local usePooling = settings.getValue('trafficExtraVehicles') or false
+    local usePoolingNumber = tonumber(settings.getValue('trafficExtraAmount')) or 0
+    if usePooling and math.clamp(usePoolingNumber, 1, 5) ~= usePoolingNumber then
+        settings.setValue('trafficExtraAmount', math.clamp(usePoolingNumber, 1, 5))
     end
 end
 
@@ -175,71 +180,113 @@ local function onUpdate()
 end
 
 local function onUnload()
-    gameplay_traffic.setupTrafficWaitForUi = M.baseFunctions.setupTrafficWaitForUi
-    gameplay_traffic.createTrafficGroup = M.baseFunctions.createTrafficGroup
-    extensions.core_multiSpawn.spawnGroup = M.baseFunctions.spawnGroup
+    table.assign(extensions, M.baseFunctions)
 end
 
-local function iniNGFunctionsWrappers()
-    M.baseFunctions.setupTrafficWaitForUi = gameplay_traffic.setupTrafficWaitForUi
-    gameplay_traffic.setupTrafficWaitForUi = function(...)
+local function initNGFunctionsWrappers()
+    M.baseFunctions = {
+        gameplay_traffic = {
+            setupTrafficWaitForUi = extensions.gameplay_traffic.setupTrafficWaitForUi,
+            deactivate = extensions.gameplay_traffic.deactivate,
+        },
+        gameplay_traffic_trafficUtils = {
+            createPoliceGroup = extensions.gameplay_traffic_trafficUtils.createPoliceGroup,
+        },
+        core_multiSpawn = {
+            spawnGroup = extensions.core_multiSpawn.spawnGroup,
+        },
+    }
+
+    extensions.gameplay_traffic.setupTrafficWaitForUi = function(withPolice)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            return M.baseFunctions.setupTrafficWaitForUi(...)
+            if withPolice then
+                -- toast Police AI is disabled
+                -- TODO i18n
+                BJI.Managers.Toast.warning("Police AI is disabled, spawning standard traffic vehicles...")
+            end
+            return M.baseFunctions.gameplay_traffic.setupTrafficWaitForUi(false) -- prevent AI police in traffic
         else
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
         end
     end
 
-    M.baseFunctions.createTrafficGroup = gameplay_traffic.createTrafficGroup
-    gameplay_traffic.createTrafficGroup = function(...)
-        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            return M.baseFunctions.createTrafficGroup(...)
-        else
-            -- BJIToast.error(BJILang.get("ai.toastCantSpawn"))
-            return nil
-        end
-    end
+    extensions.gameplay_traffic.deactivate = function() end                               -- disable traffic pausing
+    extensions.gameplay_traffic_trafficUtils.createPoliceGroup = function() return {} end -- disable AI police in traffic
 
-    M.baseFunctions.deactivate = gameplay_traffic.deactivate
-    gameplay_traffic.deactivate = function(...)
-        -- disable traffic stopping
-    end
-
-    M.baseFunctions.spawnGroup = extensions.core_multiSpawn.spawnGroup
-    extensions.core_multiSpawn.spawnGroup = function(...)
+    extensions.core_multiSpawn.spawnGroup = function(group, amount, options)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            local data = { ... }
-            BJI.Managers.UI.applyLoading(true, function()
-                BJI.Managers.Veh.deleteOtherOwnVehicles()
-                M.baseFunctions.spawnGroup(table.unpack(data))
-            end)
+            getSelfTrafficVehiclesIDs():forEach(function(v) BJI.Managers.Veh.deleteVehicle(v) end)
+
+            local max = (tonumber(settings.getValue('trafficAmount')) or 2) +
+                (tonumber(settings.getValue('trafficParkedAmount')) or 0)
+            if settings.getValue('trafficExtraVehicles') then
+                max = max + (tonumber(settings.getValue('trafficExtraAmount')) or 1)
+            end
+
+            amount = math.clamp(amount, 0, max)
+            if amount > 0 then
+                BJI.Managers.UI.applyLoading(true, function()
+                    BJI.Managers.Veh.deleteOtherOwnVehicles()
+                    M.baseFunctions.core_multiSpawn.spawnGroup(group, amount, options)
+                end)
+            end
             return
         else
             BJI.Managers.Toast.error(BJI.Managers.Lang.get("ai.toastCantSpawn"))
-            return nil
+            return
         end
+    end
+end
+
+-- force traffic play after creation (modded generation)
+local function onVehGroupSpawned()
+    extensions.gameplay_traffic.activate()
+    local poolAmount = tonumber(settings.getValue('trafficExtraAmount')) or 0
+    if poolAmount > 0 then
+        extensions.gameplay_traffic.setActiveAmount(poolAmount)
+    end
+    extensions.gameplay_traffic.scatterTraffic()
+end
+
+local function onTrafficVehAdded(gameVehID)
+    local markDelete, removeFromAI = false, false
+    local total = (tonumber(settings.getValue('trafficAmount')) or 2) +
+        (tonumber(settings.getValue('trafficParkedAmount')) or 0)
+    if settings.getValue('trafficExtraVehicles') then
+        total = total + (tonumber(settings.getValue('trafficExtraAmount')) or 1)
+    end
+    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) or
+        getSelfTrafficVehiclesIDs():length() > total then
+        markDelete = true -- not allowed
+    elseif BJI.Managers.Context.Players
+        :filter(function(p) return p.playerID ~= BJI.Managers.Context.User.playerID end)
+        :any(function(p)
+            return p.vehicles:any(function(v) return v.finalGameVehID == gameVehID end)
+        end) then
+        removeFromAI = true -- not own veh
+    end
+    if markDelete then
+        BJI.Managers.Veh.deleteVehicle(gameVehID)
+    elseif removeFromAI then
+        extensions.gameplay_traffic.removeTraffic(gameVehID)
+        BJI.Managers.Collisions.forceUpdateVeh(gameVehID)
+    else
+        local veh = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+        veh.autoRole = "standard"
+        veh.role.name = "standard"
     end
 end
 
 local function onLoad()
-    iniNGFunctionsWrappers()
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STARTED, onTrafficStarted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED, function()
-        -- force traffic start after spawn
-        extensions.gameplay_traffic.activate()
-        local poolAmount = tonumber(settings.getValue('trafficExtraAmount')) or 0
-        if poolAmount > 0 then
-            extensions.gameplay_traffic.setActiveAmount(poolAmount)
-        end
-        extensions.gameplay_traffic.scatterTraffic()
-    end, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED, function()
-        -- force regular traffic mode
-        gameplay_traffic.activate()
-    end)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED, onVehGroupSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED,
+        extensions.gameplay_traffic.activate, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED, onTrafficVehAdded, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, onVehicleRemoved, M._name)

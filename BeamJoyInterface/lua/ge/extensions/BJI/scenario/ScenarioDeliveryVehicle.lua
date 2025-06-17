@@ -268,7 +268,8 @@ local function drawUI(ctxt)
     string.var(" {1}", { S.configLabel }) or "",
     }))
 
-    if ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+    local damages = tonumber(ctxt.veh.damageState)
+    if damages and damages > BJI.Managers.Context.VehiclePristineThreshold then
         LineLabel(BJI.Managers.Lang.get("vehicleDelivery.damagedWarning"), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
     end
 
@@ -291,8 +292,9 @@ local function onTargetReached(ctxt)
         return
     end
 
-    local pristine = ctxt.vehData.damageState and
-        ctxt.vehData.damageState <= BJI.Managers.Context.VehiclePristineThreshold
+    local damages = tonumber(ctxt.veh.damageState)
+    local pristine = damages and
+        damages <= BJI.Managers.Context.VehiclePristineThreshold
     BJI.Tx.scenario.DeliveryVehicleSuccess(pristine)
 
     if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then

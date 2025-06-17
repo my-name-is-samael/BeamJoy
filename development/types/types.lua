@@ -117,8 +117,12 @@
 ---@field getInitialNodePosition fun(self: NGVehicle, nodeId: integer): vec3
 ---@field resetBrokenFlexMesh fun(self: NGVehicle)
 ---@field getMeshAlpha fun(self: NGVehicle, meshID: integer): number
+---@field setDynDataFieldbyName fun(self: NGVehicle, fieldName: string, playerID: integer, value: string)
 ---@field uiState (0|1)? 0 to hide on minimap
 ---@field playerUsable boolean? false to prevent vehicle switch
+---@field speed string? BeamJoy injected value, number
+---@field damageState string? BeamJoy injected value, number
+---@field isPatrol "true"? BeamJoy injected value
 
 ---@class NGPaint
 ---@field baseColor number[] 4 indices

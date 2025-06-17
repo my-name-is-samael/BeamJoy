@@ -156,7 +156,8 @@ local function drawGarage(ctxt, garage)
             })
             :text(W.labels.noRepairScenario)
             :build()
-    elseif ctxt.vehData.damageState >= 1 then
+    elseif tonumber(ctxt.veh.damageState) and
+        tonumber(ctxt.veh.damageState) >= 1 then
         LineBuilder()
             :text(W.labels.damagedWarning)
             :btnIcon({

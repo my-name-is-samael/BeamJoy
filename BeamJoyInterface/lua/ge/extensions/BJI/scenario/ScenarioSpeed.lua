@@ -14,7 +14,6 @@ local S = {
     eliminationDelay = 5,
 
     -- self data
-    speed = 0,
     processCheck = nil,
 }
 
@@ -127,17 +126,13 @@ local function renderTick(ctxt)
     if S.isParticipant() and not S.isEliminated() then
         if not ctxt.isOwner then
             BJI.Tx.scenario.SpeedFail(ctxt.now - S.startTime)
-        else
-            ctxt.veh:queueLuaCommand([[
-                obj:queueGameEngineLua("BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).speed =" .. obj:getAirflowSpeed())
-            ]])
         end
     end
 end
 
 local function fastTick(ctxt)
-    if ctxt.isOwner and S.isParticipant() and not S.isEliminated() and S.speed then
-        local kmh = S.speed * 3.6
+    if ctxt.isOwner and S.isParticipant() and not S.isEliminated() and tonumber(ctxt.veh.speed) then
+        local kmh = tonumber(ctxt.veh.speed) * 3.6
         if S.processCheck then
             if kmh >= S.minSpeed then
                 S.processCheck = nil

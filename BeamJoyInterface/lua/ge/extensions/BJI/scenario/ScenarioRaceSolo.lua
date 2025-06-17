@@ -65,7 +65,6 @@ local function initManagerData()
         },
     }
 
-    S.currentSpeed = 0
     ---@type MapRacePBWP[]
     S.lapData = {}
     ---@type BJIPositionRotationVelocity?
@@ -461,9 +460,10 @@ local function onCheckpointReached(wp, remainingSteps)
 
         local lapWaypoint = currentWaypoint % S.race.raceData.wpPerLap
         lapWaypoint = lapWaypoint > 0 and lapWaypoint or S.race.raceData.wpPerLap
+        local veh = BJI.Managers.Veh.getVehicleObject()
         S.lapData[lapWaypoint] = {
             time = lapTime,
-            speed = math.round(S.currentSpeed * 3.6, 2),
+            speed = math.round((veh and tonumber(veh.speed) or 0) * 3.6, 2),
         }
         updateLeaderBoard(remainingSteps, raceTime, lapTime)
 
@@ -754,10 +754,6 @@ local function renderTick(ctxt)
         return
     end
 
-    ctxt.veh:queueLuaCommand([[
-        obj:queueGameEngineLua("BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).currentSpeed = " .. obj:getAirflowSpeed())
-    ]])
-
     -- lap realtimeDisplay
     local time = 0
     if S.race.timers.finalTime then
@@ -775,8 +771,9 @@ end
 
 -- each second tick hook
 local function slowTick(ctxt)
-    if not S.isRaceStarted(ctxt) and S.startPosition and ctxt.vehData and
-        ctxt.vehData.damageState > BJI.Managers.Context.VehiclePristineThreshold then
+    local damages = ctxt.isOwner and tonumber(ctxt.veh.damageState) or nil
+    if not S.isRaceStarted(ctxt) and S.startPosition and damages and
+        damages > BJI.Managers.Context.VehiclePristineThreshold then
         BJI.Managers.Veh.loadHome(function(ctxt2)
             BJI.Managers.Veh.freeze(true, ctxt2.veh:getID())
         end)

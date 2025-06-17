@@ -48,12 +48,14 @@ local M = {
         NG_AI_MODE_CHANGE = "ngAiModeChange",
         NG_TRAFFIC_STARTED = "ngTrafficStarted",
         NG_TRAFFIC_STOPPED = "ngTrafficStopped",
+        NG_TRAFFIC_VEHICLE_ADDED = "ngTrafficVehicleAdded",
         NG_VEHICLE_GROUP_SPAWNED = "ngVehicleGroupSpawned",
         NG_PURSUIT_ACTION = "ngPursuitAction",
         NG_PURSUIT_MODE_UPDATE = "ngPursuitModeUpdate",
 
         -- tech events
 
+        ON_POST_LOAD = "on_post_load",
         ON_UNLOAD = "on_unload",
         SLOW_TICK = "slow_tick",
         FAST_TICK = "fast_tick",
@@ -61,7 +63,7 @@ local M = {
         UI_UPDATE_REQUEST = "ui_update_request",
     },
 
-    ---@type table<string, table<string, fun(ctxt: any, data: any)>>
+    ---@type table<string, tablelib<string, fun(...: any)|fun(ctxt: any, data: any)>>
     listeners = {},
     ---@type tablelib<integer, {event: string, target: string, callback: fun(...), data: table?}>
     queued = Table(),
@@ -74,7 +76,7 @@ M.LOG_BLACKLIST_EVENTS = Table({
 })
 
 ---@param events string[]|string
----@param callback fun(ctxt: TickContext, data: table)
+---@param callback fun(...: any)|fun(ctxt: TickContext, data: table)
 ---@param id? string
 ---@return string|nil
 local function addListener(events, callback, id)

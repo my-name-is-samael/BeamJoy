@@ -6,122 +6,65 @@ local M = {
     state = true,
 }
 
-local function _updateVehicles()
+local function updateVehicles()
     BJI.Managers.Veh.getAllVehicleConfigs(false, false, true)
 end
 
-local function onUnload()
-    if table.length(M.baseFunctions) > 0 then
-        extensions.core_modmanager.activateModId = M.baseFunctions.activateModId
-        extensions.core_modmanager.deactivateModId = M.baseFunctions.deactivateModId
-        extensions.core_modmanager.activateAllMods = M.baseFunctions.activateAll
-        extensions.core_modmanager.deactivateAllMods = M.baseFunctions.deactivateAllMods
-        extensions.core_modmanager.deleteAllMods = M.baseFunctions.deleteAllMods
-        extensions.core_repository.modSubscribe = M.baseFunctions.modSubscribe
-        extensions.core_repository.modUnsubscribe = M.baseFunctions.modUnsubscribe
+local function initNGFunctionsWrappers()
+    -- cannot be wrapped:
+    -- extensions.core_repository.requestMyMods
+    M.baseFunctions = {
+        core_modmanager = {
+            activateModId = extensions.core_modmanager.activateModId,
+            deactivateModId = extensions.core_modmanager.deactivateModId,
+            activateAllMods = extensions.core_modmanager.activateAllMods,
+            deactivateAllMods = extensions.core_modmanager.deactivateAllMods,
+            deleteAllMods = extensions.core_modmanager.deleteAllMods,
+        },
+        core_repository = {
+            modSubscribe = extensions.core_repository.modSubscribe,
+            modUnsubscribe = extensions.core_repository.modUnsubscribe,
+            requestMods = extensions.core_repository.requestMods,
+        },
+    }
 
-        extensions.core_repository.requestMods = M.baseFunctions.requestMods
+    local function stopProcess()
+        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.modManagementDisabled"))
+        guihooks.trigger("app:waiting", false)
+        BJI.Managers.UI.hideGameMenu()
     end
+
+    Table({
+        { parent = "core_modmanager", fnName = "activateModId",     updateVeh = true },
+        { parent = "core_modmanager", fnName = "deactivateModId",   updateVeh = true },
+        { parent = "core_modmanager", fnName = "activateAllMods",   updateVeh = true },
+        { parent = "core_modmanager", fnName = "deactivateAllMods", updateVeh = true },
+        { parent = "core_modmanager", fnName = "deleteAllMods",     updateVeh = true },
+        { parent = "core_repository", fnName = "modSubscribe",      updateVeh = true },
+        { parent = "core_repository", fnName = "modUnsubscribe",    updateVeh = true },
+        { parent = "core_repository", fnName = "requestMods" },
+    }):forEach(function(el)
+        M.baseFunctions[el.parent][el.fnName] = extensions[el.parent][el.fnName]
+        extensions[el.parent][el.fnName] = function(...)
+            if M.state then
+                local res = M.baseFunctions[el.parent][el.fnName](...)
+                if el.updateVeh then updateVehicles() end
+                return res
+            else
+                stopProcess()
+            end
+        end
+    end)
+end
+
+local function onUnload()
+    table.assign(extensions, M.baseFunctions)
 end
 
 local function onLoad()
-    BJI.Managers.Async.task(function()
-        return not not extensions.core_modmanager and not not extensions.core_repository
-    end, function()
-        -- already blocked by BeamMP
-        -- M.baseFunctions.deleteMod = core_modmanager.deleteMod
-        -- M.baseFunctions.activateMod = core_modmanager.activateMod
-        -- M.baseFunctions.deactivateMod = core_modmanager.deactivateMod
-        M.baseFunctions.activateModId = extensions.core_modmanager.activateModId
-        M.baseFunctions.deactivateModId = extensions.core_modmanager.deactivateModId
-        M.baseFunctions.activateAll = extensions.core_modmanager.activateAllMods
-        M.baseFunctions.deactivateAllMods = extensions.core_modmanager.deactivateAllMods
-        M.baseFunctions.deleteAllMods = extensions.core_modmanager.deleteAllMods
-        M.baseFunctions.modSubscribe = extensions.core_repository.modSubscribe
-        M.baseFunctions.modUnsubscribe = extensions.core_repository.modUnsubscribe
-        M.baseFunctions.requestMods = extensions.core_repository.requestMods
-
-        local function stopProcess()
-            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.modManagementDisabled"))
-            guihooks.trigger("app:waiting", false)
-            BJI.Managers.UI.hideGameMenu()
-        end
-
-        extensions.core_modmanager.activateModId = function(...)
-            if M.state then
-                local res = M.baseFunctions.activateModId(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_modmanager.deactivateModId = function(...)
-            if M.state then
-                local res = M.baseFunctions.deactivateModId(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_modmanager.activateAllMods = function(...)
-            if M.state then
-                local res = M.baseFunctions.activateAll(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_modmanager.deactivateAllMods = function(...)
-            if M.state then
-                local res = M.baseFunctions.deactivateAllMods(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_modmanager.deleteAllMods = function(...)
-            if M.state then
-                local res = M.baseFunctions.deleteAllMods(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_repository.modSubscribe = function(...)
-            if M.state then
-                local res = M.baseFunctions.modSubscribe(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-        extensions.core_repository.modUnsubscribe = function(...)
-            if M.state then
-                local res = M.baseFunctions.modUnsubscribe(...)
-                _updateVehicles()
-                return res
-            else
-                stopProcess()
-            end
-        end
-
-        extensions.core_repository.requestMods = function(...)
-            LogWarn("Requesting mods")
-            if not M.state then
-                stopProcess()
-            end
-            return M.baseFunctions.requestMods(...)
-        end
-    end, "BJIModsInit")
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
-
 
 local function update(state)
     if table.length(M.baseFunctions) == 0 then
@@ -153,7 +96,7 @@ local function update(state)
                 end
             end
             if table.length(mods) > 0 then
-                _updateVehicles()
+                updateVehicles()
             end
             if previousCam then
                 BJI.Managers.Async.delayTask(function()
@@ -168,8 +111,7 @@ local function update(state)
     M.state = state
 end
 
-M.update = update
-
 M.onLoad = onLoad
+M.update = update
 
 return M

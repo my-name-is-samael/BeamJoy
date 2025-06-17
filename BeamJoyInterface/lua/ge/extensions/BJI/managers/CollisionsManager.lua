@@ -65,6 +65,23 @@ local function setAlpha(ctxt, veh, alpha)
     end
 end
 
+---@param gameVehID integer
+local function forceUpdateVeh(gameVehID)
+    local ctxt = BJI.Managers.Tick.getContext()
+    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+    if veh then
+        local isGhost = M.type == M.TYPES.DISABLED or
+            M.ghosts[gameVehID] ~= nil or
+            M.permaGhosts[gameVehID] ~= nil
+        veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(isGhost) .. ")")
+        if isGhost and (not ctxt.veh or ctxt.veh:getID() ~= veh:getID()) then
+            setAlpha(ctxt, veh, M.ghostAlpha)
+        else
+            setAlpha(ctxt, veh, M.playerAlpha)
+        end
+    end
+end
+
 ---@param selfVeh NGVehicle
 ---@param targetVeh NGVehicle
 ---@return number
@@ -340,5 +357,6 @@ end
 
 M.onLoad = onLoad
 M.getState = getState
+M.forceUpdateVeh = forceUpdateVeh
 
 return M
