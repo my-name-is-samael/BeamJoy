@@ -2,6 +2,8 @@
 local M = {
     _name = "Env",
 
+    baseFunctions = {},
+
     Data = {
         controlSun = false,
         ToD = .78,
@@ -412,6 +414,24 @@ local function renderTick(ctxt)
     end
 end
 
+local function initNGFunctionsWrappers()
+    M.baseFunctions = {
+        simTimeAuthority = {
+            set = extensions.simTimeAuthority.set
+        },
+    }
+
+    extensions.simTimeAuthority.set = function(val)
+        if not M.Data.controlSimSpeed then
+            M.baseFunctions.simTimeAuthority.set(val)
+        end
+    end
+end
+
+local function onUnload()
+    table.assign(extensions, M.baseFunctions)
+end
+
 local function onLoad()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.ENVIRONMENT, function(cacheData)
         local previous = table.clone(M.Data)
@@ -449,6 +469,9 @@ local function onLoad()
     BJI.Managers.Async.task(function()
         return BJI.Managers.Context.WorldReadyState == 2
     end, cacheWorldObjects)
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
