@@ -23,8 +23,8 @@ BJCVERSION = "1.2.0"
 BJCPluginPath = debug.getinfo(1).source:gsub("\\", "/")
 BJCPluginPath = BJCPluginPath:sub(1, (BJCPluginPath:find("BeamJoyCore.lua")) - 2)
 
-require("utils/Lua") ---@diagnostic disable-line
-require("utils/Math")
+require("utils/LUA") ---@diagnostic disable-line
+require("utils/MATH")
 require("utils/String")
 require("utils/Table")
 SHA = require("utils/SHA")

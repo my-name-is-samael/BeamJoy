@@ -21,8 +21,8 @@ Contact : https://github.com/my-name-is-samael
 require("ge/extensions/utils/LoadDefaults")
 
 require("log")
-require("ge/extensions/utils/Lua") ---@diagnostic disable-line
-require("ge/extensions/utils/Math")
+require("ge/extensions/utils/LUA") ---@diagnostic disable-line
+require("ge/extensions/utils/MATH")
 require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
 
