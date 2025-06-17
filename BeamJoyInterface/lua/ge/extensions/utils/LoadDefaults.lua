@@ -117,12 +117,12 @@ MPCoreNetwork = MPCoreNetwork or {}
 -- BEAMJOY
 
 function RollBackNGFunctionsWrappers(baseFunctions)
-    for parentName, fns in pairs(baseFunctions) do
-        if extensions[parentName] then
+    for extName, fns in pairs(baseFunctions) do
+        if extensions.isExtensionLoaded(extName) then
             for fnName, fn in pairs(fns) do
-                if type(extensions[parentName][fnName]) == "function" and
+                if type(extensions[extName][fnName]) == "function" and
                     type(fn) == "function" then
-                    extensions[parentName][fnName] = fn
+                    extensions[extName][fnName] = fn
                 end
             end
         end
