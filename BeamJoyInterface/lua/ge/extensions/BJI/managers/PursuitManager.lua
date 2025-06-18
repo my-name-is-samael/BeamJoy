@@ -1,10 +1,6 @@
-if true then return { _name = "Pursuit", policeTargets = {}, getState = function() return false end } end
-
 ---@class BJIManagerPursuit: BJIManager
 local M = {
     _name = "Pursuit",
-
-    isPatrol = false,
 
     ---@type tablelib<integer, integer> index gameVehID, value originPlayerID
     policeTargets = Table(),
@@ -14,7 +10,7 @@ local M = {
 
 ---@return boolean
 local function getState()
-    return (M.isPatrol and M.policeTargets:length() > 0) or M.fugitivePursuit ~= nil
+    return M.policeTargets:length() > 0 or M.fugitivePursuit ~= nil
 end
 
 ---@return BJIColor, BJIColor
@@ -24,61 +20,44 @@ local function getFugitiveNametagColors()
 end
 
 local function resetAll()
-    M.isPatrol = false
-    M.policeTargets:clear()
-    M.fugitivePursuit = nil
+    M.policeTargets:filter(function(originPlayerID)
+        return originPlayerID == BJI.Managers.Context.User.playerID
+    end):forEach(function(originPlayerID, targetVehID)
+        BJI.Tx.scenario.PursuitData({
+            event = "reset",
+            originPlayerID = originPlayerID,
+            gameVehID = targetVehID,
+        })
+        M.policeTargets[targetVehID] = nil
+        gameplay_police.setPursuitMode(0, targetVehID)
+    end)
     BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.VEHICLE)
 end
 
----@param ctxt TickContext
----@param veh NGVehicle
-local function isVehPolice(ctxt, veh)
-    local conf = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig) or { parts = {} }
-    return Table(conf.parts):any(function(v, k)
-        return (tostring(k):lower():find("police") ~= nil and #v > 0) or
-            tostring(v):lower():find("police") ~= nil
-    end)
-end
-
----@param ctxt TickContext
-local function updateIsPatrol(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
-    if BJI.Managers.Scenario.isServerScenarioInProgress() or
-        ctxt.players[ctxt.user.playerID].isGhost then
-        M.isPatrol = false
-        return
-    end
-
-    if not ctxt.isOwner then
-        M.isPatrol = false
-        return
-    end
-
-    M.isPatrol = isVehPolice(ctxt, ctxt.veh)
-end
-
 local function gpsToNextTarget()
-    if not M.isPatrol then
-        return
-    end
-
     if M.policeTargets:length() == 0 then
         BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.VEHICLE)
     else
+        local selfVeh = BJI.Managers.Veh.getMPVehicle(BJI.Managers.Context.User.currentVehicle, true) or {}
         local closest = M.policeTargets:map(function(_, k)
+            local targetVeh = BJI.Managers.Veh.getMPVehicle(k) or {}
             return {
                 vid = k,
-                pos = BJI.Managers.Veh.getPositionRotation(BJI.Managers.Veh.getVehicleObject(k))
+                dist = math.horizontalDistance(selfVeh.position, targetVeh.position),
             }
-        end):values():sort()[1] or {}
-        local currTarget = BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.VEHICLE)
-        if not currTarget or currTarget.gameVehID ~= closest.vid then
-            BJI.Managers.GPS.prependWaypoint({
-                key = BJI.Managers.GPS.KEYS.VEHICLE,
-                radius = 0,
-                gameVehID = closest.vid,
-                clearable = false,
-            })
+        end):values():sort(function(a, b)
+            return a.dist < b.dist
+        end)[1]
+        if closest then
+            local currTarget = BJI.Managers.GPS.getByKey(BJI.Managers.GPS.KEYS.VEHICLE)
+            if not currTarget or currTarget.gameVehID ~= closest.vid then
+                BJI.Managers.GPS.prependWaypoint({
+                    key = BJI.Managers.GPS.KEYS.VEHICLE,
+                    radius = 0,
+                    gameVehID = closest.vid,
+                    clearable = false,
+                })
+            end
         end
     end
 end
@@ -87,480 +66,369 @@ end
 ---@param targetGameVehID integer
 ---@return boolean
 local function canStartPursuit(ctxt, targetGameVehID)
-    if BJI.Managers.AI.isSelfAIVehicle(targetGameVehID) then
-        return true -- self AI or me targetting self AI
-    end
-    if BJI.Managers.AI.isRemoteAIVehicle(targetGameVehID) then
-        return false -- self AI or me targetting other player AI
-    end
-
     ctxt = ctxt or BJI.Managers.Tick.getContext()
-    if ctxt.isOwner and ctxt.veh:getID() == targetGameVehID then
-        return true -- self IA targetting my owned vehicle
+
+    local mpVeh = BJI.Managers.Veh.getMPVehicle(targetGameVehID)
+    if not mpVeh then
+        return false -- invalid target
+    elseif mpVeh.isAi then
+        -- accept pursuit only if AI is mine
+        return mpVeh.ownerID == ctxt.user.playerID
     end
 
-    local ownerID = BJI.Managers.Veh.getVehOwnerID(targetGameVehID)
-    if ownerID then
-        if not M.isPatrol then
-            return false -- self is not a police
+    if BJI.Managers.Scenario.isServerScenarioInProgress() or
+        ctxt.players[mpVeh.ownerID].isGhost then
+        return false -- target is a permaghost or server scenario in progress
+    end
+    if mpVeh.veh.isPatrol then
+        return false -- target veh is a police
+    end
+    if mpVeh.ownerID == ctxt.user.playerID then
+        if ctxt.user.currentVehicle ~= mpVeh.gameVehicleID then
+            return false -- target veh is mine and idle
         end
-        if ctxt.players[ownerID].isGhost then
-            return false -- target is a permaghost
-        end
-        local remoteGameVehID = BJI.Managers.Veh.getRemoteVehID(targetGameVehID)
-        if ctxt.players[ownerID].currentVehicle ~= remoteGameVehID then
-            return false -- target veh is idle
-        end
-        local veh = BJI.Managers.Veh.getVehicleObject(targetGameVehID)
-        if veh and isVehPolice(ctxt, veh) then
-            LogWarn("target is a veh police, cancelling")
-            return false -- target veh is a police
-        end
-
-        return true
+    elseif ctxt.players[mpVeh.ownerID].currentVehicle ~= mpVeh.remoteVehID then
+        return false -- target veh is others and idle
     end
 
-    return false
+    ---@param v BJIMPVehicle
+    if not BJI.Managers.Veh.getMPVehicles({ isAi = false }):any(function(v)
+            return v.veh.isPatrol ~= nil and not ctxt.players[v.ownerID].isGhost
+        end) then
+        -- no valid police veh avail
+        return false
+    end
+
+    return true
 end
 
 ---@param ctxt TickContext
----@param targetGameVehID integer
-local function localPursuitStart(ctxt, targetGameVehID)
-    local allowed = canStartPursuit(ctxt, targetGameVehID)
-    if not allowed then
-        return gameplay_police.setPursuitMode(0, targetGameVehID)
+---@param targetVeh BJIMPVehicle
+---@param isLocal boolean
+---@param originPlayerID integer?
+local function pursuitStart(ctxt, targetVeh, isLocal, originPlayerID)
+    originPlayerID = originPlayerID or ctxt.user.playerID
+    if isLocal and not canStartPursuit(ctxt, targetVeh.gameVehicleID) then
+        return gameplay_police.setPursuitMode(0, targetVeh.gameVehicleID)
     end
 
-    if M.isPatrol then
-        -- start pursuit
-        M.policeTargets[targetGameVehID] = ctxt.user.playerID
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
-        BJI.Managers.GPS.prependWaypoint({
-            key = BJI.Managers.GPS.KEYS.VEHICLE,
-            radius = 0,
-            gameVehID = targetGameVehID,
-            clearable = false,
-        })
-        local remoteGameVehID = BJI.Managers.Veh.getRemoteVehID(targetGameVehID)
+    if isLocal and ctxt.players:length() > 1 then
+        local finalVehID = targetVeh.remoteVehID ~= -1 and targetVeh.remoteVehID or targetVeh.gameVehicleID
         BJI.Tx.scenario.PursuitData({
             event = "start",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = remoteGameVehID or targetGameVehID,
+            originPlayerID = originPlayerID,
+            gameVehID = finalVehID,
         })
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+    end
+
+    if ctxt.isOwner then
+        if ctxt.veh.isPatrol then -- police
+            if not isLocal and ctxt.veh:getID() == targetVeh.gameVehicleID then
+                -- invalid target : police vehicle
+                BJI.Tx.scenario.PursuitData({
+                    event = "reset",
+                    originPlayerID = originPlayerID,
+                    gameVehID = targetVeh.remoteVehID,
+                })
+                return
+            end
+            M.policeTargets[targetVeh.gameVehicleID] = originPlayerID
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
+            gpsToNextTarget()
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, -- TODO block walking too
+                    state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+                }
+            })
+            if not isLocal and extensions.gameplay_traffic.showMessages then
+                ui_message(string.var("{1} {2}", {
+                    translateLanguage('ui.traffic.suspectFlee', 'A suspect is fleeing from you! Vehicle:'),
+                    BJI.Managers.Veh.getModelLabel(targetVeh.jbeam) or targetVeh.jbeam or "Unknown"
+                }), 5, 'traffic', 'traffic')
+            end
+            if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(2)')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        elseif ctxt.veh:getID() == targetVeh.gameVehicleID then -- fugitive
+            if not isLocal and (BJI.Managers.Scenario.isServerScenarioInProgress() or
+                    BJI.Managers.Collisions.type == BJI.Managers.Collisions.TYPES.DISABLED) then
+                -- invalid target : already in scenario
+                BJI.Tx.scenario.PursuitData({
+                    event = "reset",
+                    originPlayerID = originPlayerID or -1,
+                    gameVehID = targetVeh.gameVehicleID,
+                })
+                return
+            end
+            M.fugitivePursuit = {
+                originPlayerID = originPlayerID or -1,
+                targetGameVehID = targetVeh.gameVehicleID,
             }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif ctxt.veh and ctxt.veh:getID() == targetGameVehID then
-        -- self fugitive
-        M.fugitivePursuit = {
-            originPlayerID = ctxt.user.playerID,
-            targetGameVehID = targetGameVehID,
-        }
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
-        BJI.Tx.scenario.PursuitData({
-            event = "start",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = targetGameVehID,
-        })
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = Table({
+                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                        BJI.Managers.Restrictions.RESETS.ALL, -- TODO block walking too
+                    }):flat(),
+                    state = BJI.Managers.Restrictions.STATE.RESTRICTED,
+                }
+            })
+            if extensions.gameplay_traffic.showMessages then
+                ui_message('ui.traffic.policePursuit', 5, 'traffic', 'traffic')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        end
     end
 end
 
 ---@param ctxt TickContext
----@param targetGameVehID integer
+---@param targetVeh BJIMPVehicle
+---@param isLocal boolean
 ---@param ticket boolean
 ---@param offenses string[]
-local function localPursuitArrest(ctxt, targetGameVehID, ticket, offenses)
-    if M.isPatrol and M.policeTargets[targetGameVehID] then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
-        local remoteGameVehID = BJI.Managers.Veh.getRemoteVehID(targetGameVehID)
+---@param originPlayerID integer?
+local function pursuitArrest(ctxt, targetVeh, isLocal, ticket, offenses, originPlayerID)
+    originPlayerID = originPlayerID or ctxt.user.playerID
+    if isLocal and ctxt.players:length() > 1 then
+        local finalVehID = targetVeh.remoteVehID ~= -1 and targetVeh.remoteVehID or targetVeh.gameVehicleID
         BJI.Tx.scenario.PursuitData({
             event = "arrest",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = remoteGameVehID or targetGameVehID,
+            originPlayerID = originPlayerID,
+            gameVehID = finalVehID,
             ticket = ticket,
             offenses = offenses,
         })
-        local targetVeh = BJI.Managers.Veh.getVehicleObject(targetGameVehID)
-        BJI.Managers.Veh.getPositionRotation(targetVeh, function(pos)
-            if ctxt.vehPosRot.pos:distance(pos) < 10 then
+    end
+
+    if ctxt.isOwner then
+        if ctxt.veh.isPatrol and M.policeTargets[targetVeh.gameVehicleID] == originPlayerID then -- police
+            if ctxt.vehPosRot.pos:distance(targetVeh.position) < 10 then
                 BJI.Tx.scenario.PursuitReward(true)
             end
-        end)
-        M.policeTargets[targetGameVehID] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh and ctxt.veh:getID() == targetGameVehID then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        BJI.Tx.scenario.PursuitData({
-            event = "arrest",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = targetGameVehID,
-        })
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.VEHICLE)
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param ctxt TickContext
----@param targetGameVehID integer
-local function localPursuitEvade(ctxt, targetGameVehID)
-    local remoteGameVehID = BJI.Managers.Veh.getRemoteVehID(targetGameVehID)
-    if M.isPatrol and M.policeTargets[targetGameVehID] then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        BJI.Tx.scenario.PursuitData({
-            event = "evade",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = remoteGameVehID or targetGameVehID,
-        })
-        M.policeTargets[targetGameVehID] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh and ctxt.veh:getID() == targetGameVehID then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
-        BJI.Tx.scenario.PursuitData({
-            event = "evade",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = targetGameVehID,
-        })
-        BJI.Tx.scenario.PursuitReward(false)
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param ctxt TickContext
----@param targetGameVehID integer
-local function localPursuitReset(ctxt, targetGameVehID)
-    local remoteGameVehID = BJI.Managers.Veh.getRemoteVehID(targetGameVehID)
-    if M.isPatrol and M.policeTargets[targetGameVehID] then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        BJI.Tx.scenario.PursuitData({
-            event = "reset",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = remoteGameVehID or targetGameVehID,
-        })
-        M.policeTargets[targetGameVehID] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh and ctxt.veh:getID() == targetGameVehID then
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        BJI.Tx.scenario.PursuitData({
-            event = "reset",
-            originPlayerID = ctxt.user.playerID,
-            gameVehID = targetGameVehID,
-        })
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
-
-local function onPursuitActionUpdate(targetGameVehID, event, pursuitData)
-    local ctxt = BJI.Managers.Tick.getContext()
-
-    if event == "start" then
-        localPursuitStart(ctxt, targetGameVehID)
-    elseif event == "arrest" then
-        localPursuitArrest(ctxt, targetGameVehID, pursuitData.mode == 1, pursuitData.offensesList)
-    elseif event == "evade" then
-        localPursuitEvade(ctxt, targetGameVehID)
-    elseif event == "reset" then
-        localPursuitReset(ctxt, targetGameVehID)
-    end
-end
-
----@param ctxt TickContext
----@param data BJPursuitPayload
----@param targetVeh NGVehicle
-local function rxStart(ctxt, data, targetVeh)
-    if M.isPatrol then -- patrol
-        if targetVeh:getID() == ctxt.veh:getID() then
-            -- invalid self target
-            BJI.Tx.scenario.PursuitData({
-                event = "reset",
-                originPlayerID = data.originPlayerID,
-                gameVehID = data.gameVehID,
-            })
-            return
-        end
-        if extensions.gameplay_traffic.showMessages then
-            ui_message(string.var("{1} {2}", {
-                translateLanguage('ui.traffic.suspectFlee', 'A suspect is fleeing from you! Vehicle:'),
-                BJI.Managers.Veh.getModelLabel(targetVeh.jbeam) or targetVeh.jbeam or "?"
-            }), 5, 'traffic', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
-        M.policeTargets[targetVeh:getID()] = data.originPlayerID
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if extensions.gameplay_traffic.showMessages then
-            ui_message('ui.traffic.policePursuit', 5, 'traffic', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_START)
-        M.fugitivePursuit = {
-            originPlayerID = data.originPlayerID,
-            targetGameVehID = targetVeh:getID(),
-        }
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param ctxt TickContext
----@param data BJPursuitPayload
----@param targetVeh NGVehicle
-local function rxArrest(ctxt, data, targetVeh)
-    if M.isPatrol and M.policeTargets[targetVeh:getID()] then -- patrol
-        if extensions.gameplay_traffic.showMessages then
-            ui_message('ui.traffic.suspectArrest', 5, 'traffic', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
-        BJI.Managers.Veh.getPositionRotation(targetVeh, function(pos)
-            if ctxt.vehPosRot.pos:distance(pos) < 10 then
-                BJI.Tx.scenario.PursuitReward(true)
-            end
-        end)
-        M.policeTargets[targetVeh:getID()] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if extensions.gameplay_traffic.showMessages then
-            ui_message(data.ticket and 'ui.traffic.policeTicket' or 'ui.traffic.policeArrest', 5, 'traffic',
-                'traffic')
-            ui_message(string.var("{1} {2}", {
-                translateLanguage('ui.traffic.infractions.title', 'Offenses:'),
-                Table(data.offenses):map(function(v)
-                    return translateLanguage('ui.traffic.infractions.' .. v, v)
-                end):join(", ")
-            }), 10, 'trafficInfractions', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
-        BJI.Managers.Async.delayTask(function() -- freeze for 5 seconds
-            BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
-            ui_message('ui.traffic.driveAway', 5, 'traffic', 'traffic')
-        end, 5000)
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param ctxt TickContext
----@param data BJPursuitPayload
----@param targetVeh NGVehicle
-local function rxEvade(ctxt, data, targetVeh)
-    if M.isPatrol and M.policeTargets[targetVeh:getID()] then -- patrol
-        if extensions.gameplay_traffic.showMessages then
-            ui_message('ui.traffic.suspectEvade', 5, 'traffic', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        M.policeTargets[targetVeh:getID()] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        if extensions.gameplay_traffic.showMessages then
-            ui_message('ui.traffic.policeEvade', 5, 'traffic', 'traffic')
-        end
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
-        BJI.Tx.scenario.PursuitReward(false)
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param ctxt TickContext
----@param data BJPursuitPayload
----@param targetVeh NGVehicle
-local function rxReset(ctxt, data, targetVeh)
-    if M.isPatrol and M.policeTargets[targetVeh:getID()] then -- patrol
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        M.policeTargets[targetVeh:getID()] = nil
-        gpsToNextTarget()
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    elseif M.fugitivePursuit and ctxt.veh:getID() == targetVeh:getID() then -- fugitive
-        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
-        M.fugitivePursuit = nil
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.RESETS.ALL,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
-    end
-end
-
----@param data BJPursuitPayload
-local function rxData(data)
-    if BJI.Managers.Collisions.type == BJI.Managers.Collisions.TYPES.DISABLED or
-        BJI.Managers.Scenario.isServerScenarioInProgress() then
-        return nil
-    end
-
-    local targetVeh = BJI.Managers.Veh.getVehicleObject(data.gameVehID)
-    if not targetVeh then
-        if M.policeTargets[data.gameVehID] then
-            M.policeTargets[data.gameVehID] = nil
+            M.policeTargets[targetVeh.gameVehicleID] = nil
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
+            gpsToNextTarget()
             BJI.Managers.Restrictions.update({
                 {
                     restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
                     state = BJI.Managers.Restrictions.STATE.ALLOWED,
                 }
             })
+            if not isLocal and extensions.gameplay_traffic.showMessages then
+                ui_message('ui.traffic.suspectArrest', 5, 'traffic', 'traffic')
+            end
+            if M.policeTargets:length() == 0 then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(0)')
+            elseif BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(2)')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        elseif ctxt.veh:getID() == targetVeh.gameVehicleID and M.fugitivePursuit then -- fugitive
+            M.fugitivePursuit = nil
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
+            if isLocal then
+                BJI.Managers.Restrictions.update({
+                    {
+                        restrictions = Table({
+                            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                            BJI.Managers.Restrictions.RESETS.ALL,
+                        }):flat(),
+                        state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                    }
+                })
+            else
+                BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+                BJI.Managers.Async.delayTask(function() -- freeze for 5 seconds
+                    BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
+                    BJI.Managers.Restrictions.update({
+                        {
+                            restrictions = Table({
+                                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                                BJI.Managers.Restrictions.RESETS.ALL,
+                            }):flat(),
+                            state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                        }
+                    })
+                    ui_message('ui.traffic.driveAway', 5, 'traffic', 'traffic')
+                end, 5000)
+                if extensions.gameplay_traffic.showMessages then
+                    ui_message(ticket and 'ui.traffic.policeTicket' or 'ui.traffic.policeArrest', 5, 'traffic',
+                        'traffic')
+                    ui_message(string.var("{1} {2}", {
+                        translateLanguage('ui.traffic.infractions.title', 'Offenses:'),
+                        Table(offenses):map(function(v)
+                            return translateLanguage('ui.traffic.infractions.' .. v, v)
+                        end):join(", ")
+                    }), 10, 'trafficInfractions', 'traffic')
+                end
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
         end
-        return
-    end
-
-    local ctxt = BJI.Managers.Tick.getContext()
-    if not ctxt.veh then
-        return
-    elseif not M.isPatrol and ctxt.veh:getID() ~= targetVeh:getID() then
-        return
-    end
-
-    if data.event == "start" then
-        rxStart(ctxt, data, targetVeh)
-    elseif data.event == "arrest" then
-        rxArrest(ctxt, data, targetVeh)
-    elseif data.event == "evade" then
-        rxEvade(ctxt, data, targetVeh)
-    elseif data.event == "reset" then
-        rxReset(ctxt, data, targetVeh)
     end
 end
 
 ---@param ctxt TickContext
-local function renderTick(ctxt)
-    if M.isPatrol then
-        M.policeTargets:filter(function(_, gameVehID)
-            return not ctxt.veh or ctxt.veh:getID() ~= gameVehID
-        end):forEach(function(_, gameVehID)
-            -- render AI fugitive nametag (player fugitive is handled in nametags manager)
-            local targetVeh = BJI.Managers.Veh.getVehicleObject(gameVehID)
-            if targetVeh and not BJI.Managers.Veh.getVehOwnerID(gameVehID) then
-                BJI.Managers.Veh.getPositionRotation(targetVeh, function(targetVehPos)
-                    local finalPos = vec3(targetVehPos) +
-                        vec3(0, 0, targetVeh:getInitialHeight())
-                    BJI.Utils.ShapeDrawer.Text("Fugitive", finalPos, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1),
-                        BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5), false)
-                end)
+---@param targetVeh BJIMPVehicle
+---@param isLocal boolean
+---@param originPlayerID integer?
+---@param isAiReset boolean?
+local function pursuitEvade(ctxt, targetVeh, isLocal, originPlayerID, isAiReset)
+    originPlayerID = originPlayerID or ctxt.user.playerID
+    if isLocal and ctxt.players:length() > 1 then
+        local finalVehID = targetVeh.remoteVehID ~= -1 and targetVeh.remoteVehID or targetVeh.gameVehicleID
+        BJI.Tx.scenario.PursuitData({
+            event = "evade",
+            originPlayerID = originPlayerID,
+            gameVehID = finalVehID,
+        })
+    end
+
+    if ctxt.isOwner then
+        if ctxt.veh.isPatrol and M.policeTargets[targetVeh.gameVehicleID] == originPlayerID then -- police
+            M.policeTargets[targetVeh.gameVehicleID] = nil
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_FAIL)
+            gpsToNextTarget()
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                }
+            })
+            if isAiReset then
+                -- ai reset not always trigger evade, override it here
+                gameplay_police.setPursuitMode(0, targetVeh.gameVehicleID)
             end
-        end)
+            if (not isLocal or isAiReset) and extensions.gameplay_traffic.showMessages then
+                ui_message('ui.traffic.suspectEvade', 5, 'traffic', 'traffic')
+            end
+            if M.policeTargets:length() == 0 then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(0)')
+            elseif BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(2)')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        elseif ctxt.veh:getID() == targetVeh.gameVehicleID and M.fugitivePursuit then -- fugitive
+            M.fugitivePursuit = nil
+            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PURSUIT_SUCCESS)
+            BJI.Tx.scenario.PursuitReward(false)
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = Table({
+                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                        BJI.Managers.Restrictions.RESETS.ALL,
+                    }):flat(),
+                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                }
+            })
+            if not isLocal and extensions.gameplay_traffic.showMessages then
+                ui_message('ui.traffic.policeEvade', 5, 'traffic', 'traffic')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        end
+    end
+end
+
+---@param ctxt TickContext
+---@param targetVeh BJIMPVehicle
+---@param isLocal boolean
+---@param originPlayerID integer?
+local function pursuitReset(ctxt, targetVeh, isLocal, originPlayerID)
+    originPlayerID = originPlayerID or ctxt.user.playerID
+    if isLocal and ctxt.players:length() > 1 then
+        local finalVehID = targetVeh.remoteVehID ~= -1 and targetVeh.remoteVehID or targetVeh.gameVehicleID
+        BJI.Tx.scenario.PursuitData({
+            event = "reset",
+            originPlayerID = originPlayerID,
+            gameVehID = finalVehID,
+        })
+    end
+
+    if ctxt.isOwner then
+        if ctxt.veh.isPatrol and M.policeTargets[targetVeh.gameVehicleID] == originPlayerID then -- police
+            M.policeTargets[targetVeh.gameVehicleID] = nil
+            gpsToNextTarget()
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                }
+            })
+            if M.policeTargets:length() == 0 then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(0)')
+            elseif BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS) then
+                ctxt.veh:queueLuaCommand('electrics.set_lightbar_signal(2)')
+            end
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        elseif ctxt.veh:getID() == targetVeh.gameVehicleID and M.fugitivePursuit then -- fugitive
+            M.fugitivePursuit = nil
+            BJI.Managers.Restrictions.update({
+                {
+                    restrictions = Table({
+                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
+                        BJI.Managers.Restrictions.RESETS.ALL,
+                    }):flat(),
+                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
+                }
+            })
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PURSUIT_UPDATE)
+        end
+    end
+end
+
+
+local function onPursuitActionUpdate(targetGameVehID, event, pursuitData)
+    local ctxt = BJI.Managers.Tick.getContext()
+    local targetVeh = BJI.Managers.Veh.getMPVehicle(targetGameVehID)
+    if not targetVeh then return end
+
+    if event == "start" then
+        pursuitStart(ctxt, targetVeh, true)
+    elseif event == "arrest" then
+        pursuitArrest(ctxt, targetVeh, true, pursuitData.mode == 1, pursuitData.offensesList)
+    elseif event == "evade" then
+        pursuitEvade(ctxt, targetVeh, true)
+    elseif event == "reset" then
+        pursuitReset(ctxt, targetVeh, true)
+    end
+end
+
+---@param data BJPursuitPayload
+local function rxData(data)
+    local ctxt = BJI.Managers.Tick.getContext()
+    if not ctxt.isOwner or BJI.Managers.Scenario.isServerScenarioInProgress() or
+        BJI.Managers.Collisions.type == BJI.Managers.Collisions.TYPES.DISABLED then
+        return
+    end
+
+    ---@param v BJIMPVehicle
+    local targetVeh = BJI.Managers.Veh.getMPVehicles({ isAi = false }):find(function(v)
+        return v.gameVehicleID == data.gameVehID or v.remoteVehID == data.gameVehID
+    end)
+    if not targetVeh then
+        return
+    elseif not ctxt.veh.isPatrol and ctxt.veh:getID() ~= targetVeh.gameVehicleID then
+        return -- not patrol nor target
+    end
+
+    if data.event ~= "start" then
+        if ctxt.veh.isPatrol and not M.policeTargets[targetVeh.gameVehicleID] then
+            return -- invalid data
+        elseif ctxt.veh:getID() == targetVeh.gameVehicleID and not M.fugitivePursuit then
+            return -- invalid data
+        end
+    end
+
+    if data.event == "start" then
+        pursuitStart(ctxt, targetVeh, false, data.originPlayerID)
+    elseif data.event == "arrest" then
+        pursuitArrest(ctxt, targetVeh, false, data.ticket, data.offenses, data.originPlayerID)
+    elseif data.event == "evade" then
+        pursuitEvade(ctxt, targetVeh, false, data.originPlayerID)
+    elseif data.event == "reset" then
+        pursuitReset(ctxt, targetVeh, false, data.originPlayerID)
     end
 end
 
@@ -572,62 +440,69 @@ local function onScenarioChanged(ctxt)
     end
 end
 
-local function onVehSwitch()
-    updateIsPatrol(BJI.Managers.Tick.getContext())
-end
-
 ---@param gameVehID integer
 local function onVehReset(gameVehID)
-    if M.policeTargets[gameVehID] == BJI.Managers.Context.User.playerID and
-        BJI.Managers.AI.isAIVehicle(gameVehID) then
-        localPursuitReset(BJI.Managers.Tick.getContext(), gameVehID)
+    local targetVeh = BJI.Managers.Veh.getMPVehicle(gameVehID)
+    if targetVeh and M.policeTargets[gameVehID] == BJI.Managers.Context.User.playerID and targetVeh.isAi then
+        pursuitEvade(BJI.Managers.Tick.getContext(), targetVeh, true, nil, true)
     end
 end
 
 ---@param gameVehID integer
 local function onVehDelete(gameVehID)
-    if M.policeTargets[gameVehID] and
-        M.policeTargets[gameVehID] == BJI.Managers.Context.User.playerID then
-        local remoteVehID = BJI.Managers.Veh.getRemoteVehID(gameVehID)
-        BJI.Tx.scenario.PursuitData({
-            event = "reset",
-            originPlayerID = BJI.Managers.Context.User.playerID,
-            gameVehID = remoteVehID or gameVehID,
-        })
-        M.policeTargets[gameVehID] = nil
+    if M.policeTargets[gameVehID] then
+        ---@diagnostic disable-next-line vehicle not exists anymore, fake it
+        pursuitReset(BJI.Managers.Tick.getContext(), { gameVehicleID = gameVehID }, false, M.policeTargets[gameVehID])
     end
 end
 
 local function onTrafficStopped()
-    if M.isPatrol then -- remove all self pursuits
-        M.policeTargets:filter(function(originPlayerID) return originPlayerID == BJI.Managers.Context.User.playerID end)
-            :forEach(function(_, gameVehID)
-                localPursuitReset(BJI.Managers.Tick.getContext(), gameVehID)
+    local ctxt = BJI.Managers.Tick.getContext()
+    if ctxt.isOwner then
+        if ctxt.players:length() == 1 then -- alone (then no more pursuit process)
+            -- remove all pursuits
+            M.policeTargets:forEach(function(originPlayerID, gameVehID)
+                pursuitReset(ctxt, BJI.Managers.Veh.getMPVehicle(gameVehID) or { gameVehicleID = gameVehID }, true,
+                    originPlayerID)
             end)
-    elseif M.fugitivePursuit and -- remove self fugitive pursuit
-        M.fugitivePursuit.originPlayerID == BJI.Managers.Context.User.playerID then
-        local ctxt = BJI.Managers.Tick.getContext()
-        if ctxt.isOwner then
-            localPursuitReset(BJI.Managers.Tick.getContext(), ctxt.veh:getID())
+            if M.fugitivePursuit then
+                pursuitReset(ctxt,
+                    BJI.Managers.Veh.getMPVehicle(ctxt.veh:getID()) or { gameVehicleID = ctxt.veh:getID() }, true,
+                    M.fugitivePursuit.originPlayerID)
+            end
+        elseif not BJI.Managers.Veh.getMPVehicles({ isAi = true }):any(function(v)
+                return v.ownerID ~= ctxt.user.playerID
+            end) then -- no pursuit engine by other player
+            M.policeTargets:filter(function(originPlayerID)
+                return originPlayerID == ctxt.user.playerID
+            end):forEach(function(originPlayerID, gameVehID)
+                pursuitReset(ctxt, BJI.Managers.Veh.getMPVehicle(gameVehID) or { gameVehicleID = gameVehID }, true,
+                    originPlayerID)
+            end)
+            if M.fugitivePursuit and M.fugitivePursuit.originPlayerID == ctxt.user.playerID then
+                pursuitReset(ctxt,
+                    BJI.Managers.Veh.getMPVehicle(ctxt.veh:getID()) or { gameVehicleID = ctxt.veh:getID() }, true,
+                    M.fugitivePursuit.originPlayerID)
+            end
         end
     end
 end
 
 local function onPlayerDisconnect(ctxt, data)
     M.policeTargets:filter(function(originPlayerID) return originPlayerID == data.playerID end)
-        :forEach(function(_, gameVehID)
-            M.rxData({
-                event = "reset",
-                originPlayerID = data.playerID,
-                gameVehID = gameVehID
-            })
+        :forEach(function(originPlayerID, gameVehID)
+            pursuitReset(ctxt, BJI.Managers.Veh.getMPVehicle(gameVehID) or { gameVehicleID = gameVehID }, false,
+                originPlayerID)
         end)
+    if M.fugitivePursuit and M.fugitivePursuit.originPlayerID == data.playerID then
+        pursuitReset(ctxt, BJI.Managers.Veh.getMPVehicle(ctxt.veh:getID()) or { gameVehicleID = ctxt.veh:getID() }, false,
+            M.fugitivePursuit.originPlayerID)
+    end
 end
 
 M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_PURSUIT_ACTION, onPursuitActionUpdate, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, onScenarioChanged, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitch, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDelete, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
@@ -637,7 +512,5 @@ end
 M.rxData = rxData
 M.getState = getState
 M.getFugitiveNametagColors = getFugitiveNametagColors
-
-M.renderTick = renderTick
 
 return M
