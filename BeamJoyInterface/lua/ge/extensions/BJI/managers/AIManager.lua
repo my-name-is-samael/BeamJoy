@@ -4,11 +4,6 @@ local M = {
 
     state = true,
     baseFunctions = {},
-
-    -- caches
-
-    ---@type tablelib<integer, integer> index 1-N, value gameVehID
-    remoteAIVehs = Table(), -- remote ai cars on the server to prevent nametags
 }
 
 ---@return boolean
@@ -76,30 +71,6 @@ local function slowTick(ctxt)
     local usePoolingNumber = tonumber(settings.getValue('trafficExtraAmount')) or 0
     if usePooling and math.clamp(usePoolingNumber, 1, 5) ~= usePoolingNumber then
         settings.setValue('trafficExtraAmount', math.clamp(usePoolingNumber, 1, 5))
-    end
-end
-
----@param remoteAiIDs tablelib<integer, integer> index 1-N, value gameVehID
-local function updateRemoteAIVehicles(remoteAiIDs)
-    local ctxt = BJI.Managers.Tick.getContext()
-    local diff = not M.remoteAIVehs:compare(remoteAiIDs)
-    M.remoteAIVehs = remoteAiIDs
-    if diff then
-        local needSwitch = false
-        remoteAiIDs:forEach(function(vid)
-            local veh = BJI.Managers.Veh.getVehicleObject(vid)
-            -- remove AIs from minimap
-            if veh then
-                veh.uiState = 0
-                veh.playerUsable = false
-                if ctxt.veh and ctxt.veh:getID() == veh:getID() then
-                    needSwitch = true
-                end
-            end
-        end)
-        if needSwitch then
-            BJI.Managers.Veh.focusNextVehicle()
-        end
     end
 end
 
@@ -319,7 +290,6 @@ M.getState = getState
 M.stopTraffic = stopTraffic
 M.toggle = toggle
 
-M.updateRemoteAIVehicles = updateRemoteAIVehicles
 M.isSelfAIVehicle = isSelfAIVehicle
 M.isRemoteAIVehicle = isRemoteAIVehicle
 M.isAIVehicle = isAIVehicle
