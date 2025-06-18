@@ -362,6 +362,11 @@ local function onVehicleSpawned(gameVehID)
         if veh.jbeam == "unicycle" and veh.ownerID ~= BJI.Managers.Context.User.playerID then
             M.toggleVehicleFocusable({ veh = veh.veh, state = false })
         end
+
+        if veh.isAi then
+            veh.veh.uiState = 0
+            veh.veh.playerUsable = false
+        end
     end
 end
 
