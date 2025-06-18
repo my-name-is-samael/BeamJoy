@@ -8,7 +8,7 @@ local M = {
     -- caches
 
     ---@type tablelib<integer, integer> index 1-N, value gameVehID
-    remoteAIVehs = Table(), -- all ai cars on the server to prevent nametags
+    remoteAIVehs = Table(), -- remote ai cars on the server to prevent nametags
 }
 
 ---@return boolean
@@ -18,27 +18,14 @@ end
 
 ---@return tablelib<integer, integer> index 1-N, value gameVehID
 local function getSelfTrafficVehiclesIDs()
-    local pool = extensions.gameplay_traffic.getTrafficPool()
-    return Table(pool and pool.allVehs or {}):keys():addAll(
-        gameplay_parking.getParkedCarsList(), true
-    ):filter(function(vid)
-        return table.any(BJI.Managers.Context.User.vehicles, function(v)
-            return v.gameVehID == vid
-        end)
-    end):sort()
-end
-
-local function isTrafficSpawned()
-    return getState()
+    return Table(extensions.gameplay_traffic.getTrafficAiVehIds())
+        :addAll(extensions.gameplay_parking.getParkedCarsList())
+        :sort()
 end
 
 local function stopTraffic()
-    getSelfTrafficVehiclesIDs():forEach(function(vid)
-        BJI.Managers.Veh.deleteVehicle(vid)
-    end)
-
-    gameplay_parking.setState(false)
-    extensions.gameplay_traffic.onTrafficStopped()
+    getSelfTrafficVehiclesIDs()
+        :forEach(function(vid) BJI.Managers.Veh.deleteVehicle(vid) end)
 end
 
 local function toggle(state)
@@ -47,11 +34,12 @@ local function toggle(state)
     else
         M.state = not M.state
     end
-    if not M.state and M.isTrafficSpawned() then
+    if not M.state and M.getState() then
         M.stopTraffic()
     end
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     -- CHECK CLIENT SETTINGS
 
@@ -118,39 +106,26 @@ end
 ---@param gameVehID integer
 ---@return boolean
 local function isSelfAIVehicle(gameVehID)
-    return getSelfTrafficVehiclesIDs():includes(gameVehID)
+    local veh = BJI.Managers.Veh.getMPVehicle(gameVehID, true)
+    return veh ~= nil and veh.isAi
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isRemoteAIVehicle(gameVehID)
-    return M.remoteAIVehs:includes(gameVehID)
+    local veh = BJI.Managers.Veh.getMPVehicle(gameVehID, false)
+    return veh ~= nil and veh.isAi
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isAIVehicle(gameVehID)
-    return isSelfAIVehicle(gameVehID) or isRemoteAIVehicle(gameVehID)
+    local veh = BJI.Managers.Veh.getMPVehicle(gameVehID)
+    return veh ~= nil and veh.isAi
 end
 
 local function onTrafficStarted()
     BJI.Managers.UI.applyLoading(false)
-    local ais = getSelfTrafficVehiclesIDs()
-    BJI.Tx.player.UpdateAI(ais)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
-end
-
-local function onTrafficStopped()
-    BJI.Tx.player.UpdateAI({})
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
-end
-
-local function onVehicleRemoved()
-    local aiList = getSelfTrafficVehiclesIDs()
-    local ctxt = BJI.Managers.Tick.getContext()
-    if not table.compare(aiList, ctxt.players[ctxt.user.playerID].ai) then
-        BJI.Tx.player.UpdateAI(aiList)
-    end
 end
 
 local function onUpdate()
@@ -168,6 +143,15 @@ local function onUpdate()
                 state = not M.state and BJI.Managers.Restrictions.STATE.RESTRICTED,
             }
         })
+
+        if getState() then
+            local finalRole = BJI.Managers.Context.Players:length() > 1 and "empty" or "standard"
+            Table(extensions.gameplay_traffic.getTrafficAiVehIds())
+                :forEach(function(vid)
+                    local vehTraffic = extensions.gameplay_traffic.getTrafficData()[vid]
+                    vehTraffic:setRole(finalRole)
+                end)
+        end
     end
 
     if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
@@ -179,14 +163,11 @@ local function onUpdate()
     end
 end
 
-local function onUnload()
-    table.assign(extensions, M.baseFunctions)
-end
-
 local function initNGFunctionsWrappers()
     M.baseFunctions = {
         gameplay_traffic = {
             setupTrafficWaitForUi = extensions.gameplay_traffic.setupTrafficWaitForUi,
+            activate = extensions.gameplay_traffic.activate,
             deactivate = extensions.gameplay_traffic.deactivate,
         },
         gameplay_traffic_trafficUtils = {
@@ -210,12 +191,27 @@ local function initNGFunctionsWrappers()
         end
     end
 
-    extensions.gameplay_traffic.deactivate = function() end                               -- disable traffic pausing
+    extensions.gameplay_traffic.activate = function(vehList, ignoreFilter)
+        if not vehList then
+            local ownVehs = BJI.Managers.Veh.getMPOwnVehicles()
+            vehList = Table(getAllVehiclesByType()):filter(function(veh)
+                return not veh.isParked and ownVehs:any(function(v)
+                    return v.gameVehicleID == veh:getID() and v.isAi
+                end)
+            end)
+        end
+        M.baseFunctions.gameplay_traffic.activate(vehList, ignoreFilter)
+    end
+
+    extensions.gameplay_traffic.deactivate = function() end
+
+    -- disable traffic pausing
     extensions.gameplay_traffic_trafficUtils.createPoliceGroup = function() return {} end -- disable AI police in traffic
 
     extensions.core_multiSpawn.spawnGroup = function(group, amount, options)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            getSelfTrafficVehiclesIDs():forEach(function(v) BJI.Managers.Veh.deleteVehicle(v) end)
+            getSelfTrafficVehiclesIDs()
+                :forEach(function(v) BJI.Managers.Veh.deleteVehicle(v) end)
 
             local max = (tonumber(settings.getValue('trafficAmount')) or 2) +
                 (tonumber(settings.getValue('trafficParkedAmount')) or 0)
@@ -238,6 +234,10 @@ local function initNGFunctionsWrappers()
     end
 end
 
+local function onUnload()
+    RollBackNGFunctionsWrappers(M.baseFunctions)
+end
+
 -- force traffic play after creation (modded generation)
 local function onVehGroupSpawned()
     extensions.gameplay_traffic.activate()
@@ -249,31 +249,44 @@ local function onVehGroupSpawned()
 end
 
 local function onTrafficVehAdded(gameVehID)
-    local markDelete, removeFromAI = false, false
+    local vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+    ---@type BJIMPVehicle?
+    local mpVeh = BJI.Managers.Veh.getMPVehicle(gameVehID)
+    if not vehTraffic or not mpVeh then
+        error("Invalid traffic vehicles added")
+    end
+
+    local ownerID = BJI.Managers.Veh.getVehOwnerID(gameVehID)
+    local ctxt = BJI.Managers.Tick.getContext()
+
     local total = (tonumber(settings.getValue('trafficAmount')) or 2) +
         (tonumber(settings.getValue('trafficParkedAmount')) or 0)
     if settings.getValue('trafficExtraVehicles') then
         total = total + (tonumber(settings.getValue('trafficExtraAmount')) or 1)
     end
+
     if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) or
-        getSelfTrafficVehiclesIDs():length() > total then
-        markDelete = true -- not allowed
-    elseif BJI.Managers.Context.Players
-        :filter(function(p) return p.playerID ~= BJI.Managers.Context.User.playerID end)
-        :any(function(p)
-            return p.vehicles:any(function(v) return v.finalGameVehID == gameVehID end)
-        end) then
-        removeFromAI = true -- not own veh
-    end
-    if markDelete then
+        getSelfTrafficVehiclesIDs():length() > total then -- not allowed
         BJI.Managers.Veh.deleteVehicle(gameVehID)
-    elseif removeFromAI then
-        extensions.gameplay_traffic.removeTraffic(gameVehID)
-        BJI.Managers.Collisions.forceUpdateVeh(gameVehID)
-    else
-        local veh = extensions.gameplay_traffic.getTrafficData()[gameVehID]
-        veh.autoRole = "standard"
-        veh.role.name = "standard"
+    elseif mpVeh.ownerID ~= ctxt.user.playerID then             -- not own veh
+        if vehTraffic.isAi then
+            extensions.gameplay_traffic.removeTraffic(gameVehID)
+            extensions.gameplay_traffic.insertTraffic(gameVehID, true, true)
+            BJI.Managers.Collisions.forceUpdateVeh(gameVehID)
+            mpVeh.veh.playerUsable = true
+            mpVeh.veh.uiState = 1
+            vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+            if mpVeh.isAi then -- other player AI
+                vehTraffic:setRole("empty")
+            else
+                vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
+            end
+        end
+    elseif vehTraffic.isAi then -- self AI
+        -- AI veh, set role to empty if multiple players to prevent pursuits
+        vehTraffic:setRole(ctxt.players:length() > 1 and "empty" or "standard")
+    else -- self veh
+        vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
     end
 end
 
@@ -282,25 +295,27 @@ local function onLoad()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STARTED, onTrafficStarted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED, onVehGroupSpawned, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED,
         extensions.gameplay_traffic.activate, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED, onTrafficVehAdded, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, onVehicleRemoved, M._name)
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
         BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
+        BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
         BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
     }, onUpdate, M._name)
+
+    --BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
+    --BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehiclesSpawned, M._name)
 end
 
-M.isTrafficSpawned = isTrafficSpawned
+M.getState = getState
 M.stopTraffic = stopTraffic
 M.toggle = toggle
 

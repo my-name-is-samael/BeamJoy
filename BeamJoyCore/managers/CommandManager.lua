@@ -69,6 +69,7 @@ local function List()
             table.insert(vehicles, { id = v.vehicleID, name = v.name, current = p.currentVehicle == v.vid })
         end
         table.sort(vehicles, function(a, b) return a.id < b.id end)
+        local trafficCount = table.filter(p.vehicles, function(v) return v.isAi end):length()
         local out = string.var("{id} - [{group}|{level}] {name} ({lang} | {muted} | {traffic}) -", {
             id = p.playerID,
             group = p.group,
@@ -79,7 +80,7 @@ local function List()
                 string.var("Muted because : {1}", {
                     (p.muteReason and #p.muteReason > 0) and p.muteReason or "No reason"
                 }) or "Not muted",
-            traffic = #p.ai > 0 and string.var("{1} traffics", { #p.ai }) or "No traffic",
+            traffic = trafficCount > 0 and string.var("{1} traffics", { trafficCount }) or "No traffic",
         })
         if #vehicles == 0 then
             out = string.var("{1} No vehicle", { out })

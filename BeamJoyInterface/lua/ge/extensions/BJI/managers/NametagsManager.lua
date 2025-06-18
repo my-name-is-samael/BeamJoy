@@ -87,14 +87,12 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
     local scenarioShow, forcedColor, forcedBgColor = BJI.Managers.Scenario.doShowNametagsSpecs(veh)
     if not scenarioShow then return end
 
-    local tagPos = vec3(veh.position)
-    local alpha = getAlphaByDistance(ownPos:distance(tagPos))
+    local alpha = getAlphaByDistance(ownPos:distance(vec3(veh.position)))
 
-    local zOffset = 0
+    local zOffset = veh.vehicleHeight
     if ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID then
         zOffset = veh.vehicleHeight / 2
     end
-    tagPos.z = tagPos.z + zOffset - .5 -- half a meter offset downward for specs
 
     Table(veh.spectators):keys()
         :filter(function(pid) return pid ~= veh.ownerID and (showMyself or pid ~= ctxt.user.playerID) end)
@@ -102,11 +100,52 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
     ---@param spec BJIPlayer
         :forEach(function(spec)
             local label = spec.playerID == ctxt.user.playerID and M.labels.self or spec.tagName or spec.playerName
-            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset - .5),
                 forcedColor or getNametagColor(alpha, true),
                 forcedBgColor or getNametagBgColor(alpha, true),
                 false)
         end)
+end
+
+local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgColor)
+    local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
+    if unicycle.ownerID == ctxt.user.playerID and not isFreecaming then
+        return -- do not render myself
+    end
+
+    local distance = ownPos:distance(vec3(unicycle.position))
+    local alpha = getAlphaByDistance(distance)
+
+    local showTag = not settings.getValue("shortenNametags", false)
+    local showDist = settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow
+
+    local label
+    if unicycle.ownerID == ctxt.user.playerID then
+        label = M.labels.self
+    else
+        local owner = BJI.Managers.Context.Players[unicycle.ownerID]
+        label = owner.tagName
+
+        if showTag then
+            local tag = ""
+            if BJI.Managers.Perm.isStaff(unicycle.ownerID) then
+                tag = M.labels.staffTag
+            else
+                local reputationTag = string.var("{1}{2}",
+                    { M.labels.reputationTag, BJI.Managers.Reputation.getReputationLevel(owner.reputation) })
+                tag = reputationTag
+            end
+            label = string.var("[{1}]{2}", { tag, label })
+        end
+    end
+
+    if showDist then
+        label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+    end
+
+    BJI.Utils.ShapeDrawer.Text(label, vec3(unicycle.position) + vec3(0, 0, unicycle.vehicleHeight),
+        forcedTextColor or getNametagColor(alpha),
+        forcedBgColor or getNametagBgColor(alpha))
 end
 
 ---@param ctxt TickContext
@@ -137,8 +176,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
     if isMyOwnVeh then
         if not ownerIsTracting then
-            local tagPos = vec3(veh.position)
-            local distance = ownPos:distance(tagPos)
+            local distance = ownPos:distance(vec3(veh.position))
             local alpha = getAlphaByDistance(distance)
 
             local label = M.labels.selfTrailer
@@ -154,17 +192,15 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             if isMyCurrentVeh then
                 zOffset = veh.vehicleHeight / 2
             end
-            tagPos.z = tagPos.z + zOffset
 
-            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
                 forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrentVeh),
                 false)
         end
     elseif BJI.Managers.Context.Players[veh.ownerID] then
         if not ownerIsTracting or ownerIsSpectating then
-            local tagPos = vec3(veh.position)
-            local distance = ownPos:distance(tagPos)
+            local distance = ownPos:distance(vec3(veh.position))
             local alpha = getAlphaByDistance(distance)
 
             local name = BJI.Managers.Context.Players[veh.ownerID].tagName
@@ -181,9 +217,8 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             if isMyCurrentVeh then
                 zOffset = zOffset / 2
             end
-            tagPos.z = tagPos.z + zOffset
 
-            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, ownerIsSpectating, not ownerIsSpectating),
                 forcedBgColor or getNametagBgColor(alpha, ownerIsSpectating, not ownerIsSpectating),
                 false)
@@ -208,8 +243,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
     if isMyOwnVeh then
         if not isMyCurrentVeh or isFreecaming then
-            local tagPos = vec3(veh.position)
-            local distance = ownPos:distance(tagPos)
+            local distance = ownPos:distance(vec3(veh.position))
             local alpha = getAlphaByDistance(distance)
 
             local label = M.labels.self
@@ -217,21 +251,19 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
-            local zOffset = 0
+            local zOffset = veh.vehicleHeight
             if isMyCurrentVeh then
                 zOffset = veh.vehicleHeight / 2
             end
-            tagPos.z = tagPos.z + zOffset
 
-            BJI.Utils.ShapeDrawer.Text(label, tagPos,
+            BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrentVeh),
                 forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrentVeh),
                 false)
             showSpecs = true
         end
     elseif BJI.Managers.Context.Players[veh.ownerID] then
-        local tagPos = vec3(veh.position)
-        local distance = ownPos:distance(tagPos)
+        local distance = ownPos:distance(vec3(veh.position))
         local alpha = getAlphaByDistance(distance)
 
         local showTag = not settings.getValue("shortenNametags", false) and ownerIsDriving
@@ -260,9 +292,8 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
         if isMyCurrentVeh then
             zOffset = zOffset / 2
         end
-        tagPos.z = tagPos.z + zOffset
 
-        BJI.Utils.ShapeDrawer.Text(label, tagPos,
+        BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
             forcedTextColor or getNametagColor(alpha, false, not ownerIsDriving),
             forcedBgColor or getNametagBgColor(alpha, false, not ownerIsDriving),
             false)
@@ -278,16 +309,14 @@ end
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
 local function renderFugitive(ctxt, veh, ownPos)
-    local tagPos = vec3(veh.position)
-    local distance = ownPos:distance(tagPos)
+    local distance = ownPos:distance(vec3(veh.position))
 
     local showTag = not settings.getValue("shortenNametags", false)
     local showDist = settings.getValue("nameTagShowDistance", true) and
         distance > M._minDistanceShow
 
-    local isAI = BJI.Managers.AI.isAIVehicle(veh.gameVehicleID)
     local label
-    if isAI then
+    if veh.isAi then
         label = M.labels.fugitive
     else
         local owner = BJI.Managers.Context.Players[veh.ownerID]
@@ -308,13 +337,12 @@ local function renderFugitive(ctxt, veh, ownPos)
         label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
     end
 
-    local zOffset = 0
-    tagPos.z = tagPos.z + zOffset
+    local tagPos = vec3(veh.position) + vec3(0, 0, veh.vehicleHeight)
 
     local textColor, bgColor = BJI.Managers.Pursuit.getFugitiveNametagColors()
     BJI.Utils.ShapeDrawer.Text(label, tagPos, textColor, bgColor, false)
-    if not isAI then
-        BJI.Utils.ShapeDrawer.Text(M.labels.fugitive, tagPos + vec3(0, 0, -.2), textColor, bgColor, false)
+    if not veh.isAi then
+        BJI.Utils.ShapeDrawer.Text(M.labels.fugitive, tagPos + vec3(0, 0, .2), textColor, bgColor, false)
     end
 end
 
@@ -352,10 +380,7 @@ local function renderTick(ctxt)
         Table(BJI.Managers.Veh.getMPVehicles())
         ---@param veh BJIMPVehicle
             :filter(function(veh)
-                if veh.isDeleted or not veh.isSpawned then
-                    return false -- invalid veh (not ready/deleted)
-                end
-                if BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) and
+                if veh.isAi and
                     not BJI.Managers.Pursuit.policeTargets[veh.gameVehicleID] then
                     return false
                 end
@@ -371,11 +396,13 @@ local function renderTick(ctxt)
             :forEach(function(veh)
                 local scenarioShow, forcedTextColor, forcedBgColor = BJI.Managers.Scenario.doShowNametag(veh)
                 if scenarioShow then
-                    if M.cache.vehTypes[veh.jbeam] == BJI.Managers.Veh.TYPES.TRAILER then
+                    if veh.jbeam == "unicycle" then
+                        renderWalking(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+                    elseif M.cache.vehTypes[veh.jbeam] == BJI.Managers.Veh.TYPES.TRAILER then
                         renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                     elseif BJI.Managers.Pursuit.policeTargets[veh.gameVehicleID] then
                         renderFugitive(ctxt, veh, ownPos)
-                    elseif not BJI.Managers.AI.isAIVehicle(veh.gameVehicleID) then
+                    elseif not veh.isAi then
                         renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                     end
                 end

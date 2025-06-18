@@ -111,7 +111,7 @@ local function drawVehicles(player, ctxt, cache)
                     cells = {
                         function()
                             local line = LineBuilder()
-                            if vehicle.isAI then
+                            if vehicle.isAi then
                                 line:icon({
                                     icon = BJI.Utils.Icon.ICONS.AIMicrochip,
                                     style = { isCurrentVehicle and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT },

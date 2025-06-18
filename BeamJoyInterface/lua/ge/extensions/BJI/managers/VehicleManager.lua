@@ -54,90 +54,116 @@ local function isGEInit()
     return MPVehicleGE ~= nil
 end
 
----@class BJIMPOwnVehicle
+---@class BJIMPVehicle
 ---@field gameVehicleID integer
+---@field veh NGVehicle
 ---@field isDeleted boolean
 ---@field isLocal boolean
 ---@field isSpawned boolean
 ---@field jbeam string
 ---@field ownerID integer
 ---@field ownerName string
+---@field isAi boolean
 ---@field remoteVehID integer
 ---@field serverVehicleID integer
 ---@field serverVehicleString string format "<ownerID>-<serverVehicleID>"
 ---@field spectators table<integer, true>
-
----@class BJIMPVehicle : BJIMPOwnVehicle
 ---@field position vec3
 ---@field rotation quat
 ---@field vehicleHeight number
 ---@field protected boolean
 
----@return tablelib<integer, BJIMPVehicle> index 1-N
-local function getMPVehicles()
-    return Table(MPVehicleGE.getVehicles()):map(function(v)
-        -- BeamMP vehicle positions are inconsistent
-        local vehicleHeight = 0
-        local pos, rot; pos, rot = vec3(), quat()
-        if v.isSpawned and not v.isDeleted then
-            local veh = M.getVehicleObject(v.gameVehicleID)
-            if veh then
-                pos, rot = M.getPositionRotation(veh)
-            end
-            if veh and pos and rot then
-                vehicleHeight = veh:getInitialHeight()
-            end
+---@param mpVehRaw table
+---@return BJIMPVehicle
+local function convertVehicle(mpVehRaw)
+    local veh = M.getVehicleObject(mpVehRaw.gameVehicleID)
+    -- BeamMP vehicle positions are inconsistent
+    local vehicleHeight = 0
+    local pos, rot; pos, rot = vec3(), quat()
+    if mpVehRaw.isSpawned and not mpVehRaw.isDeleted then
+        if veh then
+            pos, rot = M.getPositionRotation(veh)
         end
-        return {
-            gameVehicleID = v.gameVehicleID,
-            isDeleted = v.isDeleted,
-            isLocal = v.isLocal,
-            isSpawned = v.isSpawned,
-            jbeam = v.jbeam,
-            ownerID = v.ownerID,
-            ownerName = v.ownerName,
-            remoteVehID = v.remoteVehID,
-            serverVehicleID = v.serverVehicleID,
-            serverVehicleString = v.serverVehicleString,
-            spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
-                -- specs system remake because a lot of desyncs with default one
-                if p.currentVehicle == (BJI.Managers.Context.isSelf(v.ownerID) and
-                        v.gameVehicleID or v.remoteVehID) then
-                    res[pid] = true
-                end
-                return res
-            end, {}),
-            protected = v.protected == "1",
-            position = pos,
-            rotation = rot,
-            vehicleHeight = vehicleHeight
-        }
-    end):values()
+        if veh and pos and rot then
+            vehicleHeight = veh:getInitialHeight()
+        end
+    end
+    return {
+        gameVehicleID = mpVehRaw.gameVehicleID,
+        veh = veh,
+        isDeleted = mpVehRaw.isDeleted,
+        isLocal = mpVehRaw.isLocal,
+        isSpawned = mpVehRaw.isSpawned,
+        jbeam = mpVehRaw.jbeam,
+        ownerID = mpVehRaw.ownerID,
+        ownerName = mpVehRaw.ownerName,
+        isAi = mpVehRaw.jbeam:lower():find("traffic") ~= nil,
+        remoteVehID = mpVehRaw.remoteVehID,
+        serverVehicleID = mpVehRaw.serverVehicleID,
+        serverVehicleString = mpVehRaw.serverVehicleString,
+        spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
+            -- specs system remake because a lot of desyncs with default one
+            if p.currentVehicle == (BJI.Managers.Context.isSelf(mpVehRaw.ownerID) and
+                    mpVehRaw.gameVehicleID or mpVehRaw.remoteVehID) then
+                res[pid] = true
+            end
+            return res
+        end, {}),
+        protected = mpVehRaw.protected == "1",
+        position = pos,
+        rotation = rot,
+        vehicleHeight = vehicleHeight
+    }
 end
 
----@return BJIMPOwnVehicle[]
+---@param filters {ownerID: integer?, isAi: boolean?, model: string?}?
+---@return tablelib<integer, BJIMPVehicle> index 1-N
+local function getMPVehicles(filters)
+    filters = filters or {}
+    return Table(MPVehicleGE.getVehicles())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :filter(function(v)
+            if filters.ownerID and v.ownerID ~= filters.ownerID then
+                return false
+            end
+            if filters.isAi ~= nil and filters.isAi ~= v.isAi then
+                return false
+            end
+            if filters.model and v.jbeam ~= filters.model then
+                return false
+            end
+            return true
+        end)
+        :map(convertVehicle):values()
+end
+
+---@return tablelib<integer, BJIMPVehicle>
 local function getMPOwnVehicles()
-    return Table(MPVehicleGE.getOwnMap()):map(function(v)
-        return {
-            gameVehicleID = v.gameVehicleID,
-            isDeleted = v.isDeleted,
-            isLocal = v.isLocal,
-            isSpawned = v.isSpawned,
-            jbeam = v.jbeam,
-            ownerID = v.ownerID,
-            ownerName = v.ownerName,
-            remoteVehID = v.remoteVehID,
-            serverVehicleID = v.serverVehicleID,
-            serverVehicleString = v.serverVehicleString,
-            spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
-                -- specs system remake because a lot of desyncs with default one
-                if p.currentVehicle == v.gameVehicleID then
-                    res[pid] = true
+    return Table(MPVehicleGE.getOwnMap())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :map(convertVehicle):values()
+end
+
+---@param gameVehID integer
+---@param own boolean?
+---@return BJIMPVehicle?
+local function getMPVehicle(gameVehID, own)
+    local selfID = BJI.Managers.Context.User.playerID
+    local res = Table(MPVehicleGE.getVehicles())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :find(function(v)
+            if own ~= nil then
+                if own and v.ownerID ~= selfID then
+                    return false
+                elseif not own and v.ownerID == selfID then
+                    return false
                 end
-                return res
-            end, {}),
-        }
-    end):values()
+            end
+            return v.gameVehicleID == gameVehID
+        end)
+    if res then
+        return convertVehicle(res)
+    end
 end
 
 local function dropPlayerAtCamera(withReset)
@@ -174,63 +200,51 @@ local function getVehicleObject(gameVehID)
     end
     local veh = be:getObjectByID(gameVehID)
     if not veh then
-        local remote = Table(M.getMPVehicles()):find(function(v)
+        ---@type BJIMPVehicle?
+        local remote = M.getMPVehicles():find(function(v)
             return v.remoteVehID == gameVehID
         end)
-        return remote and be:getObjectByID(remote.gameVehicleID) or nil
+        return remote and remote.veh or nil
     end
-    return veh or nil
+    return veh
 end
 
 ---@param gameVehID integer
 ---@return integer?
 local function getRemoteVehID(gameVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.gameVehicleID == gameVehID and v.remoteVehID ~= -1 then
-            return tonumber(v.remoteVehID)
-        end
+    local veh = M.getMPVehicle(gameVehID)
+    if veh and veh.remoteVehID ~= -1 then
+        return veh.remoteVehID
     end
-    return nil
 end
 
 ---@param remoteVehID integer
 ---@return integer?
 local function getGameVehIDByRemoteVehID(remoteVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.remoteVehID == remoteVehID then
-            return v.gameVehicleID
-        end
+    local veh = M.getMPVehicles():find(function(v)
+        return v.remoteVehID == remoteVehID
+    end)
+    if veh then
+        return veh.gameVehicleID
     end
-    return nil
 end
 
 ---@param gameVehID integer
 ---@return integer?
 local function getVehOwnerID(gameVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.gameVehicleID == gameVehID or v.remoteVehID == gameVehID then
-            return tonumber(v.ownerID)
-        end
+    local veh = M.getMPVehicle(gameVehID)
+    if veh then
+        return veh.ownerID
     end
-    return nil
 end
 
 ---@param gameVehID integer
 ---@return integer?
 local function getVehIDByGameVehID(gameVehID)
-    if not M.isGEInit() or
-        gameVehID == -1 or
-        not M.getVehicleObject(gameVehID) then
-        return nil
+    local veh = M.getMPVehicle(gameVehID)
+    if veh then
+        return veh.serverVehicleID
     end
-    local _, veh, err = pcall(MPVehicleGE.getVehicleByGameID, gameVehID)
-    if not veh or err then
-        return nil
-    end
-    return tonumber(veh.serverVehicleID)
 end
 
 ---@param playerID integer
@@ -238,35 +252,28 @@ end
 ---@return integer?
 local function getGameVehicleID(playerID, vehID)
     local srvVehID = string.var("{1}-{2}", { playerID, vehID or 0 })
-    if not M.getMPVehicles()[srvVehID] then
-        return nil
-    end
     return MPVehicleGE.getGameVehicleID(srvVehID)
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isVehProtected(gameVehID)
-    return Table(M.getMPVehicles())
-        ---@param v BJIMPVehicle
-        :any(function(v)
-            return v.gameVehicleID == gameVehID and v.protected
-        end)
+    local veh = M.getMPVehicle(gameVehID)
+    return veh and veh.protected or false
 end
 
 local function getSelfVehiclesCount()
     return Table(M.getMPOwnVehicles())
-        ---@param v BJIMPOwnVehicle
+        ---@param v BJIMPVehicle
         :filter(function(v)
-            return v.jbeam ~= "unicycle" and
-                not table.includes(BJI.Managers.Context.Players[v.ownerID].ai, v.gameVehicleID)
+            return v.jbeam ~= "unicycle" and not v.isAi
         end):length()
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isVehicleOwn(gameVehID)
-    return M.isGEInit() and MPVehicleGE.isOwn(gameVehID)
+    return MPVehicleGE.isOwn(gameVehID)
 end
 
 ---@return boolean
@@ -335,29 +342,25 @@ end
 
 ---@param gameVehID integer
 local function onVehicleSpawned(gameVehID)
-    local vehicle = M.getVehicleObject(gameVehID)
-    if vehicle then
-        vehicle:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
+    local veh = M.getMPVehicle(gameVehID)
+    if veh then
+        veh.veh:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
         if M.isVehicleOwn(gameVehID) then
-            vehicle:queueLuaCommand(
+            veh.veh:queueLuaCommand(
                 "recovery.saveHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.saveHome('..tostring(obj:getID())..')') end")
-            vehicle:queueLuaCommand(
+            veh.veh:queueLuaCommand(
                 "recovery.loadHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.loadHome('..tostring(obj:getID())..')') end")
         end
-        if isVehPolice(vehicle.partConfig) then
-            vehicle:setDynDataFieldbyName("isPatrol", 0, "true")
-        end
-    end
-end
 
-local function onVehicleReplaced(gameVehID)
-    local vehicle = M.getVehicleObject(gameVehID)
-    if vehicle then
-        local isPolice = isVehPolice(vehicle.partConfig)
-        if not vehicle.isPatrol and isPolice then
-            vehicle:setDynDataFieldbyName("isPatrol", 0, "true")
-        elseif vehicle.isPatrol and not isPolice then
-            vehicle:setDynDataFieldbyName("isPatrol", 0, "")
+        -- also works for vehicle replacement
+        if isVehPolice(veh.veh.partConfig) then
+            veh.veh:setDynDataFieldbyName("isPatrol", 0, "true")
+        else
+            veh.veh:setDynDataFieldbyName("isPatrol", 0, "")
+        end
+
+        if veh.jbeam == "unicycle" and veh.ownerID ~= BJI.Managers.Context.User.playerID then
+            M.toggleVehicleFocusable({ veh = veh.veh, state = false })
         end
     end
 end
@@ -1564,6 +1567,22 @@ local function slowTick(ctxt)
     end
 end
 
+local function fastTick(ctxt)
+    ---@param v BJIMPVehicle
+    M.getMPVehicles({ isAi = false }):forEach(function(v)
+        local veh = M.getVehicleObject(v.gameVehicleID)
+        if veh then
+            veh:queueLuaCommand(string.var([[
+                    local speed = tostring(obj:getAirflowSpeed())
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('speed', {1}, "..speed..")")
+
+                    local damaged = serialize(beamstate.damage)
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('damageState', {1}, "..damaged..")")
+                ]], { veh:getID() }))
+        end
+    end)
+end
+
 local function setFuel(tankName, targetEnergy)
     if not M.isCurrentVehicleOwn() then
         return
@@ -1748,26 +1767,11 @@ M.onLoad = function()
     end, "BJIVehSaveRemoveConfigOverride")
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED, onVehicleReplaced, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, function(ctxt)
-        ---@param v BJIMPVehicle
-        M.getMPVehicles():forEach(function(v)
-            local veh = M.getVehicleObject(v.gameVehicleID)
-            if veh then
-                veh:queueLuaCommand(string.var([[
-                    local speed = tostring(obj:getAirflowSpeed())
-                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('speed', {1}, "..speed..")")
-
-                    local damaged = serialize(beamstate.damage)
-                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('damageState', {1}, "..damaged..")")
-                ]], { veh:getID() }))
-            end
-        end)
-    end, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 
     BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -1781,6 +1785,7 @@ end
 M.isGEInit = isGEInit
 M.getMPVehicles = getMPVehicles
 M.getMPOwnVehicles = getMPOwnVehicles
+M.getMPVehicle = getMPVehicle
 
 M.dropPlayerAtCamera = dropPlayerAtCamera
 

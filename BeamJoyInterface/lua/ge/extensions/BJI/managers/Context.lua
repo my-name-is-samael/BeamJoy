@@ -15,6 +15,7 @@
 ---@field gameVehID integer
 ---@field finalGameVehID? integer (auto injected)
 ---@field model string
+---@field isAi boolean (auto injected)
 ---@field freeze? boolean (only when self is staff)
 ---@field engine? boolean (only when self is staff)
 ---@field muted? boolean (only when self is staff)
@@ -174,35 +175,16 @@ local function loadUser()
     end)
 end
 
-local function updateAllVehiclesAndAI()
-    M.Players:forEach(function(player)
-        if M.isSelf(player.playerID) then
-            -- parse vehicles finalGameVehID
-            table.forEach(player.vehicles or {}, function(veh)
-                veh.finalGameVehID = veh.gameVehID
+local function updateAllVehicles(ctxt)
+    ---@param veh BJIMPVehicle
+    BJI.Managers.Veh.getMPVehicles():forEach(function(veh)
+        M.Players:find(function(p) return p.playerID == veh.ownerID end, function(p)
+            p.vehicles:find(function(v) return v.gameVehID == veh.gameVehicleID end, function(v)
+                v.finalGameVehID = ctxt.user.playerID == veh.ownerID and veh.gameVehicleID or veh.remoteVehID
+                v.isAi = veh.isAi
             end)
-        else
-            -- parse vehicles finalGameVehID
-            table.forEach(player.vehicles or {}, function(veh)
-                veh.finalGameVehID = BJI.Managers.Veh.getGameVehIDByRemoteVehID(veh.gameVehID)
-            end)
-
-            -- parse ai final IDs
-            player.ai = Table(player.ai):map(function(remoteVid)
-                return BJI.Managers.Veh.getGameVehIDByRemoteVehID(remoteVid)
-            end)
-        end
+        end)
     end)
-
-    -- update AI vehicles (to hide their nametags)
-    BJI.Managers.AI.updateRemoteAIVehicles(M.Players
-        :filter(function(player) return #player.ai > 0 end)
-        :map(function(player) return player.ai end)
-        :reduce(function(acc, aiVehs) return acc:addAll(aiVehs, true) end, Table())
-        :filter(function(vid)
-            return BJI.Managers.Veh.getVehicleObject(vid) ~= nil
-        end):values():sort())
-
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
 end
 
@@ -223,7 +205,6 @@ local function loadPlayers()
             else
                 table.assign(M.Players[p.playerID], p)
                 M.Players[p.playerID].vehicles = Table(p.vehicles or {})
-                M.Players[p.playerID].ai = Table(p.ai or {})
             end
         end)
 
@@ -236,10 +217,10 @@ local function loadPlayers()
 
         BJI.Managers.Async.removeTask("BJILoadPlayersUpdateVehicles")
         BJI.Managers.Async.task(function()
-            return Table(BJI.Managers.Veh.getMPVehicles()):every(function(v)
+            return Table(MPVehicleGE.getVehicles()):every(function(v)
                 return v.gameVehicleID ~= -1 and v.isSpawned
             end)
-        end, updateAllVehiclesAndAI, "BJILoadPlayersUpdateVehicles")
+        end, updateAllVehicles, "BJILoadPlayersUpdateVehicles")
 
         -- events detection
         local previousPlayersCount = previousPlayers:length()

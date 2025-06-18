@@ -42,7 +42,6 @@ C.EVENTS = {
             DRIFT = "drift",
             KM_REWARD = "KmReward",
             EXPLODE_VEHICLE = "explodeVehicle",
-            UPDATE_AI = "UpdateAI",
             MARK_INVALID_VEHS = "markInvalidVehs",
             SYNC_PAINT = "syncPaint",
         }

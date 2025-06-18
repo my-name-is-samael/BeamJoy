@@ -3,6 +3,7 @@
 ---@field vid integer
 ---@field pid integer
 ---@field name string
+---@field isAi boolean
 ---@field freeze boolean
 ---@field engine boolean
 ---@field paints tablelib<integer, NGPaint[]>? 1-3 indices
@@ -144,7 +145,6 @@ local function instantiatePlayer(playerID)
     player.freeze = false
     player.engine = true
     player.vehicles = {}
-    player.ai = {}
     player.messages = {}
 
     M.savePlayer(player)
@@ -352,7 +352,6 @@ local function getCachePlayers(playerID)
                 reputation = p.reputation,
                 staff = BJCPerm.isStaff(pid),
                 currentVehicle = p.currentVehicle,
-                ai = table.deepcopy(p.ai),
                 scenario = p.scenario,
                 isGhost = BJCScenario.isPlayerCollisionless(p),
                 vehicles = Table(p.vehicles):map(function(v, vid)
@@ -497,21 +496,24 @@ local function setGroup(ctxt, targetName, groupName)
 
     if connected then
         if previousGroup.vehicleCap == -1 and groupToAssign.vehicleCap ~= -1 then
-            if table.length(M.Players) > 1 then
+            local vehs, ais = Table(), Table()
+            Table(target.vehicles):forEach(function(v, k)
+                if v.isAi then
+                    ais:insert(k)
+                else
+                    vehs:insert(k)
+                end
+            end)
+            if MP.GetPlayerCount() > 1 then
                 -- remove AI vehicles
-                Table(target.ai):forEach(function(vid)
+                ais:forEach(function(vid)
                     M.deleteVehicle(ctxt, target.playerID, vid)
-                    Table(target.vehicles):find(function(v)
-                        return v.gameVehID == vid
-                    end, function(_, k)
-                        target.vehicles[k] = nil
-                    end)
+                    target.vehicles[vid] = nil
                 end)
-                target.ai = {}
             end
             -- remove vehicles over cap
             local i = 1
-            Table(target.vehicles):forEach(function(v, vid)
+            vehs:forEach(function(vid)
                 if i > groupToAssign.vehicleCap then
                     M.deleteVehicle(ctxt, target.playerID, vid)
                     target.vehicles[vid] = nil
@@ -520,16 +522,11 @@ local function setGroup(ctxt, targetName, groupName)
             end)
         end
         if previousGroup.vehicleCap ~= 0 and groupToAssign.vehicleCap == 0 then
-            -- remove AI vehicles
-            Table(target.ai):forEach(function(vid)
-                M.deleteVehicle(ctxt, target.playerID, vid)
-            end)
-            target.ai = {}
-            -- remove actual vehicles
-            Table(target.vehicles):forEach(function(v)
+            -- remove all vehicles
+            Table(target.vehicles):forEach(function(v, k)
                 M.deleteVehicle(ctxt, target.playerID, v.vid)
+                target.vehicles[k] = nil
             end)
-            target.vehicles = {}
         end
     end
 
@@ -785,10 +782,11 @@ local function markInvalidVehs(playerID, listVehIDs)
         end, function(_, vehID)
             player.vehicles[vehID] = nil
         end)
-        local pos = table.indexOf(player.ai, vid)
-        if pos then
-            table.remove(player.ai, pos)
-        end
+        table.find(player.vehicles, function(v)
+            return v.isAi and v.vid == vid
+        end, function(_, k)
+            player.vehicles[k] = nil
+        end)
     end)
 
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
@@ -955,22 +953,6 @@ local function changeLang(playerID, lang)
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.LANG)
     BJCTx.database.playersUpdated()
-end
-
----@param playerID integer
----@param listVehIDs? integer[]
-local function updateAI(playerID, listVehIDs)
-    local player = M.Players[playerID]
-    if not player then
-        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
-    end
-
-    local previous = table.clone(player.ai)
-    player.ai = listVehIDs or {}
-    table.sort(player.ai)
-    if not table.compare(previous, player.ai) then
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-    end
 end
 
 ---@param playerID integer
@@ -1499,7 +1481,6 @@ M.deleteVehicle = deleteVehicle
 M.markInvalidVehs = markInvalidVehs
 
 M.changeLang = changeLang
-M.updateAI = updateAI
 
 M.setPlayerScenario = setPlayerScenario
 M.onRaceSoloEnd = onRaceSoloEnd

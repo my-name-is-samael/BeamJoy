@@ -316,11 +316,8 @@ local function getPlayerListActions(player, ctxt)
             onClick = function()
                 if player.self then
                     local selfVehs = Table(ctxt.user.vehicles)
-                        :map(function(v)
-                            return v.gameVehID
-                        end):values():filter(function(vid)
-                            return not table.includes(ctxt.players[ctxt.user.playerID].ai, vid)
-                        end)
+                        :filter(function(v) return not v.isAi end)
+                        :map(function(v) return v.gameVehID end):values()
                     local currentOwnIndex = selfVehs:indexOf(BJI.Managers.Context.User.currentVehicle)
                     local nextIndex
                     if currentOwnIndex then

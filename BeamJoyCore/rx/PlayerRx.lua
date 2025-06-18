@@ -36,12 +36,6 @@ function ctrl.explodeVehicle(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.UpdateAI(ctxt)
-    local listVehIDs = ctxt.data[1]
-    BJCPlayers.updateAI(ctxt.senderID, listVehIDs)
-end
-
----@param ctxt BJCContext
 function ctrl.markInvalidVehs(ctxt)
     local listVehIDs = ctxt.data[1]
     BJCPlayers.markInvalidVehs(ctxt.senderID, listVehIDs)

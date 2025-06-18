@@ -141,11 +141,9 @@ local function onUnload()
     BJI.Managers.Async.removeTask("BJIHunterStartCam")
     BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
 
-    BJI.Managers.Veh.getMPVehicles():filter(function(v)
-        return not BJI.Managers.AI.isAIVehicle(v.gameVehicleID)
-    end):forEach(function(v)
-        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
-        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    BJI.Managers.Veh.getMPVehicles({ isAi = false }):forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
 
     BJI.Managers.RaceWaypoint.resetAll()
@@ -620,8 +618,8 @@ local function initGameSpec()
 
     ---@param v BJIMPVehicle
     BJI.Managers.Veh.getMPVehicles():forEach(function(v)
-        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
-        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+        BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
 end
 

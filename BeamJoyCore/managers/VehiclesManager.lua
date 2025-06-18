@@ -44,8 +44,10 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
             return 1
         end
     else
+        local model = tostring(vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName)
+        local isAi = model:lower():find("traffic") ~= nil
         -- spawning vehicle
-        if vehData.vcf.model and vehData.vcf.model:find("traffic") then
+        if vehData.vcf.model and isAi then
             -- traffic
             if MP.GetPlayerCount() == 1 then
                 -- alone on server with permission to spawn a veh, allow traffic
@@ -60,13 +62,11 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
         else
             -- non-traffic vehicle
             if group.vehicleCap > -1 and group.vehicleCap <= table.filter(player.vehicles, function(v)
-                    return not table.includes(player.ai, v.vid)
+                    return not v.isAi
                 end):length() then
                 return 1
             end
         end
-
-        local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
 
         if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
             if BJCPerm.isStaff(playerID) then
@@ -81,7 +81,8 @@ local function onVehicleSpawn(playerID, vehID, vehDataStr)
             vehicleID = vehID,
             vid = vehData.vid,
             pid = vehData.pid,
-            name = tostring(model),
+            name = model,
+            isAi = isAi,
             freeze = false,
             engine = true,
         }

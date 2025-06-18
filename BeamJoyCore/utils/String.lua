@@ -66,6 +66,7 @@ string.split = string.split or function(str, sep)
     end
     return res
 end
+string.split2 = string.split
 
 ---@param str string
 ---@param seq string
@@ -109,7 +110,7 @@ end
 ---@return string
 string.capitalize = string.capitalize or function(str)
     if type(str) ~= "string" then return "" end
-    return str:sentenceCase()
+    return (str:gsub("^%l", string.upper))
 end
 
 ---@param str string
@@ -119,7 +120,7 @@ string.capitalizeWords = string.capitalizeWords or function(str)
     return Table({ " ", "-", ".", ",", ":", ";", "'", '"', "(", ")", "_", "+" })
         :reduce(function(res, d)
             return Table(res:split2(d)):map(function(w)
-                return w:gsub("^%l", string.upper)
+                return w:capitalize()
             end):join(d)
         end, str:lower())
 end

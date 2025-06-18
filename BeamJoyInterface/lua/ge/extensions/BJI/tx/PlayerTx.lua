@@ -33,11 +33,6 @@ return function(TX)
         TX._send(event.EVENT, event.TX.EXPLODE_VEHICLE, { gameVehID })
     end
 
-    ---@param listGameVehIDs integer[]
-    function player.UpdateAI(listGameVehIDs)
-        TX._send(event.EVENT, event.TX.UPDATE_AI, { listGameVehIDs })
-    end
-
     ---@param listVehIDs integer[]
     function player.markInvalidVehs(listVehIDs)
         TX._send(event.EVENT, event.TX.MARK_INVALID_VEHS, { listVehIDs })

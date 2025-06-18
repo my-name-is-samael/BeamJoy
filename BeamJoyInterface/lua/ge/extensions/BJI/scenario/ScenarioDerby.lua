@@ -101,11 +101,9 @@ local function onUnload(ctxt)
     BJI.Managers.Async.removeTask("BJIDerbyPostResetRestrictionsResetsUpdate")
     BJI.Managers.Async.removeTask("BJIDerbyPostEliminationSwitch")
 
-    BJI.Managers.Veh.getMPVehicles():filter(function(v)
-        return not BJI.Managers.AI.isAIVehicle(v.gameVehicleID)
-    end):forEach(function(v)
-        BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = true })
-        BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = true })
+    BJI.Managers.Veh.getMPVehicles({ isAi = false }):forEach(function(v)
+        BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
+        BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
 
     BJI.Managers.Cam.resetRestrictedCameras()
@@ -587,8 +585,8 @@ local function updateGame(data)
     ---@param v BJIMPVehicle
     BJI.Managers.Veh.getMPVehicles():forEach(function(v)
         if S.isEliminated(v.ownerID) then
-            BJI.Managers.Minimap.toggleVehicle({ gameVehID = v.gameVehicleID, state = false })
-            BJI.Managers.Veh.toggleVehicleFocusable({ gameVehID = v.gameVehicleID, state = false })
+            BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = false })
+            BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = false })
         end
     end)
 end

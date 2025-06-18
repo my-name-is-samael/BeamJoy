@@ -38,6 +38,11 @@ BJI = {
     Physics = {
         physmult = 1,
     },
+    dt = {
+        real = 0,
+        sim = 0,
+        raw = 0,
+    },
 
     ---@type fun(ctxt: TickContext)|table|string|number|boolean|nil
     DEBUG = nil,
@@ -83,8 +88,7 @@ local M = {
 }
 
 local function _initGUI()
-    require("ge/extensions/editor/api/gui")
-        .initialize(BJI.Managers.Context.GUI)
+    require("ge/extensions/editor/api/gui").initialize(BJI.Managers.Context.GUI)
 end
 
 function M.onExtensionLoaded()
@@ -113,7 +117,7 @@ M.onWorldReadyState = function(state)
 end
 
 M.onPreRender = function() end
-M.onUpdate = function(...)
+M.onUpdate = function(dtReal, dtSim, dtRaw)
     if not BJI.CLIENT_READY and BJI.Managers.Context.WorldReadyState == 2 and
         ui_imgui.GetIO().Framerate > 5 then
         BJI.Managers.UI.applyLoading(true) -- loading stops when base caches are loaded (CacheManager)
@@ -126,6 +130,9 @@ M.onUpdate = function(...)
         end)
     end
 
+    BJI.dt.real = dtReal
+    BJI.dt.sim = dtSim
+    BJI.dt.raw = dtRaw
     BJI.Managers.Tick.client()
 end
 

@@ -56,6 +56,7 @@ jsonReadFile = jsonReadFile or function(path) return {} end
 jsonDecode = jsonDecode or function(str) return {} end
 jsonEncode = jsonEncode or function(obj) return "" end
 getAllVehicles = getAllVehicles or function() return {} end
+getAllVehiclesByType = getAllVehiclesByType or function(types) return {} end
 getCurrentLevelIdentifier = getCurrentLevelIdentifier or function() return "" end
 LuaProfiler = LuaProfiler or function(msg) return {} end
 createObject = createObject or function(name) return {} end

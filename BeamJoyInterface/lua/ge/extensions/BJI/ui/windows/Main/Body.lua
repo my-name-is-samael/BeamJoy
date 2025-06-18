@@ -230,11 +230,6 @@ local function updateCachePlayers(ctxt)
             end)
         end
 
-        local vehicles = table.clone(p.vehicles or {}):map(function(v)
-            v.isAI = Table(p.ai):includes(v.finalGameVehID)
-            return v
-        end)
-
         table.insert(cache.data.players.list, {
             playerID = playerID,
             self = isSelf,
@@ -247,7 +242,7 @@ local function updateCachePlayers(ctxt)
             showVehicles = (isSelf or isGroupLower) and vehiclesCount > 0,
             vehiclesCount = vehiclesCount,
             currentVehicle = p.currentVehicle,
-            vehicles = vehicles,
+            vehicles = table.clone(p.vehicles or {}),
             vehicleCursor = vehicleCursor,
             vehiclesLabelWidth = vehiclesLabelWidth,
             demoteGroup = demoteGroup,
