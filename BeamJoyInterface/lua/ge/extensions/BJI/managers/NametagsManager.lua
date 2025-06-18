@@ -159,7 +159,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsSpectating = veh.spectators[veh.ownerID]
     local ownerIsTracting = not ownerIsSpectating and
-        Table(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID))
+        Table(extensions.core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID))
         :map(function(vid)
             return BJI.Managers.Veh.getVehicleObject(vid)
         end)
