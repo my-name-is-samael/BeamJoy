@@ -28,15 +28,17 @@ local function reset()
     S.checkTargetTime = nil
 end
 
+---@param ctxt TickContext
 local function canChangeTo(ctxt)
     return BJI.Managers.Scenario.isFreeroam() and
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.DELIVERIES) and
         BJI.Managers.Context.Scenario.Data.Deliveries and
         #BJI.Managers.Context.Scenario.Data.Deliveries > 1 and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID())
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
 
+---@param ctxt TickContext
 local function initPositions(ctxt)
     if not ctxt.isOwner then
         return
@@ -44,8 +46,8 @@ local function initPositions(ctxt)
 
     local targets = {}
     for _, position in ipairs(BJI.Managers.Context.Scenario.Data.Deliveries) do
-        -- local distance = BJIGPS.getRouteLength({ ctxt.vehPosRot.pos, position.pos }) -- costs a lot
-        local distance = ctxt.vehPosRot.pos:distance(position.pos)
+        -- local distance = BJIGPS.getRouteLength({ ctxt.veh.position, position.pos }) -- costs a lot
+        local distance = ctxt.veh.position:distance(position.pos)
         if distance > 0 then
             table.insert(targets, {
                 pos = position.pos,
@@ -215,6 +217,7 @@ local function rxStreak(streak)
     S.streak = streak
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.isOwner or not S.targetPosition then
         S.onStopDelivery()
@@ -226,7 +229,7 @@ local function slowTick(ctxt)
         S.baseDistance = S.distance
     end
 
-    local distance = ctxt.vehPosRot.pos:distance(S.targetPosition.pos)
+    local distance = ctxt.veh.position:distance(S.targetPosition.pos)
     if distance < S.targetPosition.radius then
         if not S.checkTargetTime then
             local streak = S.streak + 1

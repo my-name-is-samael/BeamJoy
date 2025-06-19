@@ -182,15 +182,14 @@ local function updateCache(ctxt)
     end
 
     if W.settings.multi then
-        W.cache.data.currentVehicleProtected = ctxt.veh and not ctxt.isOwner and
-            BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+        W.cache.data.currentVehicleProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
         W.cache.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
         -- vehicle combo
         table.insert(W.cache.data.comboVehicle, {
             value = W.VEHICLE_MODES.ALL,
             label = W.cache.labels.vehicle.all,
         })
-        if ctxt.veh and not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+        if ctxt.veh and ctxt.veh.jbeam ~= "unicycle" and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
             table.insert(W.cache.data.comboVehicle, {
                 value = W.VEHICLE_MODES.MODEL,
                 label = W.cache.labels.vehicle.currentModel,
@@ -226,7 +225,7 @@ local function updateCache(ctxt)
         W.cache.data.currentVeh.modelLabel = BJI.Managers.Veh.getModelLabel(W.cache.data.currentVeh.model) or
             W.cache.labels.unknown
 
-        W.cache.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig)
+        W.cache.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
         local configLabel = BJI.Managers.Veh.getCurrentConfigLabel()
         W.cache.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
             { W.cache.data.currentVeh.modelLabel, configLabel }) or W.cache.labels.unknown

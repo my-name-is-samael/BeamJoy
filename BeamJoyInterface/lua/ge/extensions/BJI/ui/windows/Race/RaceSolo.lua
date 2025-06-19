@@ -457,7 +457,7 @@ local function header(ctxt)
                             extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()
                         }),
                         onClick = function()
-                            BJI.Managers.Scenario.saveHome(ctxt.veh:getID())
+                            BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
                         end,
                     })
                 end
@@ -472,7 +472,7 @@ local function header(ctxt)
                         extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
                     }),
                     onClick = function()
-                        BJI.Managers.Scenario.loadHome(ctxt.veh:getID())
+                        BJI.Managers.Scenario.loadHome(ctxt.veh.gameVehicleID)
                     end,
                 }):build()
             end or nil,

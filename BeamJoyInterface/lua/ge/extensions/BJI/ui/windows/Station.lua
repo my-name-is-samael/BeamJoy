@@ -131,6 +131,8 @@ local function commonDrawEnergyLines(ctxt, energyStation)
     end
 end
 
+---@param ctxt TickContext
+---@param garage BJIStation
 local function drawGarage(ctxt, garage)
     if not garage or not ctxt.vehData.tanks then
         return
@@ -156,8 +158,8 @@ local function drawGarage(ctxt, garage)
             })
             :text(W.labels.noRepairScenario)
             :build()
-    elseif tonumber(ctxt.veh.damageState) and
-        tonumber(ctxt.veh.damageState) >= 1 then
+    elseif tonumber(ctxt.veh.veh.damageState) and
+        tonumber(ctxt.veh.veh.damageState) >= 1 then
         LineBuilder()
             :text(W.labels.damagedWarning)
             :btnIcon({
@@ -174,6 +176,8 @@ local function drawGarage(ctxt, garage)
     end
 end
 
+---@param ctxt TickContext
+---@param station BJIStation
 local function drawEnergyStation(ctxt, station)
     if not station or not ctxt.vehData.tanks then
         return

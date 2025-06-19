@@ -246,6 +246,7 @@ local function getDiffTime(targetTime, now)
     return math.ceil((targetTime - now) / 1000)
 end
 
+---@param ctxt TickContext
 local function drawHeaderPreparation(ctxt)
     if W.cache.preparationTimeout then
         local remainingTime = getDiffTime(W.cache.preparationTimeout, ctxt.now)
@@ -279,7 +280,7 @@ local function drawHeaderPreparation(ctxt)
                 tooltip = W.labels.buttons.markReady,
                 onClick = function()
                     W.cache.disableButtons = true -- api request protection
-                    BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh:getID())
+                    BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
                 end
             })
         end

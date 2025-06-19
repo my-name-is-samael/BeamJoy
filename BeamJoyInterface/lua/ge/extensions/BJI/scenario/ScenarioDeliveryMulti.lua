@@ -44,15 +44,17 @@ local function getRadiusMultiplier()
 end
 
 -- can switch to scenario hook
+---@param ctxt TickContext
 local function canChangeTo(ctxt)
     return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) and
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID) and
         BJI.Managers.Context.Scenario.Data.Deliveries and
         #BJI.Managers.Context.Scenario.Data.Deliveries > 1
 end
 
 -- load hook
+---@param ctxt TickContext
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.Restrictions.update({
@@ -126,6 +128,7 @@ local function onTargetReached(ctxt)
 end
 
 -- each second tick hook
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.isOwner or not S.participants[BJI.Managers.Context.User.playerID] then
         BJI.Tx.scenario.DeliveryMultiLeave()
@@ -155,7 +158,7 @@ local function slowTick(ctxt)
             })
         end
 
-        local distance = ctxt.vehPosRot.pos:distance(S.target.pos)
+        local distance = ctxt.veh.position:distance(S.target.pos)
         if distance < S.target.radius * getRadiusMultiplier() then
             if not S.checkTargetProcess then
                 S.checkTargetTime = ctxt.now + 3100

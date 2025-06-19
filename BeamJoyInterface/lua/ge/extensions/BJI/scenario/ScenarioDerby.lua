@@ -135,7 +135,7 @@ end
 local function postSpawn(ctxt)
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
         BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
         if not BJI.Windows.VehSelector.show then
             BJI.Windows.VehSelector.open(false)
         end
@@ -159,24 +159,19 @@ local function tryReplaceOrSpawn(model, config)
     end
 end
 
-local function onVehicleSpawned(gameVehID)
-    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    if veh then
-        BJI.Managers.Veh.getPositionRotation(veh, function(vehPos)
-            local participant = S.getParticipant()
-            if BJI.Managers.Veh.isVehicleOwn(gameVehID) and
-                S.state == S.STATES.PREPARATION and participant and not participant.ready then
-                local startPos = S.baseArena.startPositions[participant.startPosition]
-                if startPos and vehPos:distance(startPos.pos) > 1 then
-                    -- spawned via basegame vehicle selector
-                    BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-                    BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
-                        BJI.Managers.Veh.saveHome(startPos)
-                        postSpawn(ctxt)
-                    end)
-                end
-            end
-        end)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
+    local participant = S.getParticipant()
+    if mpVeh.isLocal and S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        local startPos = S.baseArena.startPositions[participant.startPosition]
+        if startPos and mpVeh.position:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+                BJI.Managers.Veh.saveHome(startPos)
+                postSpawn(ctxt)
+            end)
+        end
     end
 end
 
@@ -270,7 +265,7 @@ local function getPlayerListActions(player, ctxt)
             icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
-                (ctxt.veh and ctxt.veh:getID() == finalGameVehID),
+                (ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID),
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
                 BJI.Managers.Veh.focusVehicle(finalGameVehID)
@@ -336,9 +331,10 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function isVehInZone(ctxt)
-    return math.horizontalDistance(ctxt.vehPosRot.pos, S.baseArena.centerPosition) <= getZoneRadius(ctxt) and
-        ctxt.vehPosRot.pos.z >= S.baseArena.centerPosition.z - S.baseArena.radius / 2
+    return math.horizontalDistance(ctxt.veh.position, S.baseArena.centerPosition) <= getZoneRadius(ctxt) and
+        ctxt.veh.position.z >= S.baseArena.centerPosition.z - S.baseArena.radius / 2
 end
 
 ---@param ctxt TickContext
@@ -354,7 +350,7 @@ local function fastTick(ctxt)
                 -- when self eliminated
                 cancelProcess = true
             else
-                local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
+                local dist = S.destroy.lastPos and ctxt.veh.position:distance(S.destroy.lastPos) or nil
                 local moved = dist ~= nil and dist > S.destroy.distanceThreshold * 10
                 local inZone = isVehInZone(ctxt)
                 if moved and inZone then
@@ -381,7 +377,7 @@ local function slowTick(ctxt)
     local gameNotOver = not S.participants[2] or not S.participants[2].eliminationTime
     if S.state == S.STATES.GAME and ctxt.isOwner and isDNFProcessAvail and
         gameStarted and validParticipant and gameNotOver then
-        local dist = S.destroy.lastPos and ctxt.vehPosRot.pos:distance(S.destroy.lastPos) or nil
+        local dist = S.destroy.lastPos and ctxt.veh.position:distance(S.destroy.lastPos) or nil
         local notMoved = dist and dist < S.destroy.distanceThreshold * 10
         local outOfZone = not isVehInZone(ctxt)
         if notMoved or outOfZone then
@@ -416,7 +412,7 @@ local function slowTick(ctxt)
                 end)
         end
         if not S.destroy.lastPos or not S.destroy.process then
-            S.destroy.lastPos = ctxt.vehPosRot.pos
+            S.destroy.lastPos = ctxt.veh.position
         end
     end
 end

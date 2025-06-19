@@ -29,12 +29,12 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
     if not gameplay_drift_scoring then
         return
     end
-    local veh = ctxt.veh
-    if not veh or BJI.Managers.Veh.isUnicycle(veh:getID()) then
+    if not ctxt.veh or ctxt.veh.jbeam == "unicycle" then
         -- no vehicle or walking
         return
     end

@@ -366,8 +366,8 @@ end
 ---@param ctxt TickContext
 local function checkTargetReached(ctxt)
     local wp = #M.targets > 0 and M.targets[1] or nil
-    if ctxt.vehPosRot and wp then
-        local distance = ctxt.vehPosRot.pos:distance(wp.pos)
+    if ctxt.veh and wp then
+        local distance = ctxt.veh.position:distance(wp.pos)
         if type(distance) ~= "number" then
             LogError("invalid next target distance")
             return

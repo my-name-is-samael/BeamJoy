@@ -309,7 +309,8 @@ local function drawArena(ctxt, iArena, arena)
             function()
                 local line = LineBuilder():btnIcon({
                     id = string.var("setArenaPreviewPos{1}", { iArena }),
-                    icon = arena.previewPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
+                    icon = arena.previewPosition and BJI.Utils.Icon.ICONS.edit_location or
+                        BJI.Utils.Icon.ICONS.add_location,
                     style = arena.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableButtons,
@@ -348,7 +349,8 @@ local function drawArena(ctxt, iArena, arena)
             function()
                 local line = LineBuilder():btnIcon({
                     id = string.var("setArenaCenterPos{1}", { iArena }),
-                    icon = arena.centerPosition and BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
+                    icon = arena.centerPosition and BJI.Utils.Icon.ICONS.edit_location or
+                        BJI.Utils.Icon.ICONS.add_location,
                     style = arena.centerPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableButtons or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
@@ -417,7 +419,10 @@ local function drawArena(ctxt, iArena, arena)
                         (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""
                     }),
                     onClick = function()
-                        arena.startPositions:insert(math.roundPositionRotation(ctxt.vehPosRot))
+                        arena.startPositions:insert(math.roundPositionRotation({
+                            pos = ctxt.veh.position,
+                            rot = ctxt.veh.rotation,
+                        }))
                         W.changed = true
                         reloadMarkers(iArena)
                         validateArenas()
@@ -500,7 +505,10 @@ local function drawArena(ctxt, iArena, arena)
                             " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
                         }),
                         onClick = function()
-                            arena.startPositions[i] = math.roundPositionRotation(ctxt.vehPosRot)
+                            arena.startPositions[i] = math.roundPositionRotation({
+                                pos = ctxt.veh.position,
+                                rot = ctxt.veh.rotation,
+                            })
                             W.changed = true
                             reloadMarkers(iArena)
                             validateArenas()

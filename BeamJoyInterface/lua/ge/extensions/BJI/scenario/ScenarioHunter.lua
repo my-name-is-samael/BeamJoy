@@ -183,7 +183,7 @@ local function postSpawn(ctxt)
                 state = BJI.Managers.Restrictions.STATE.RESTRICTED
             },
         })
-        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
         if not BJI.Windows.VehSelector.show then
             BJI.Windows.VehSelector.open(false)
         end
@@ -209,27 +209,23 @@ local function tryReplaceOrSpawn(model, config)
     end
 end
 
-local function onVehicleSpawned(gameVehID)
-    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    if veh then
-        local isOwn = BJI.Managers.Veh.isVehicleOwn(gameVehID)
-        if not isOwn then
-            BJI.Managers.Minimap.toggleVehicle({ veh = veh, state = false })
-            BJI.Managers.Veh.toggleVehicleFocusable({ veh = veh, state = false })
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
+    if not mpVeh.isLocal then
+        BJI.Managers.Minimap.toggleVehicle({ veh = mpVeh.veh, state = false })
+        BJI.Managers.Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = false })
+    end
+
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    if mpVeh.isLocal and S.state == S.STATES.PREPARATION and participant and not participant.ready then
+        local startPos = participant.hunted and
+            BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
+            BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
+        if mpVeh.position:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
         end
-        BJI.Managers.Veh.getPositionRotation(veh, function(vehPos)
-            local participant = S.participants[BJI.Managers.Context.User.playerID]
-            if isOwn and S.state == S.STATES.PREPARATION and participant and not participant.ready then
-                local startPos = participant.hunted and
-                    BJI.Managers.Context.Scenario.Data.Hunter.huntedPositions[participant.startPosition] or
-                    BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
-                if vehPos:distance(startPos.pos) > 1 then
-                    -- spawned via basegame vehicle selector
-                    BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-                    BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
-                end
-            end
-        end)
     end
 end
 
@@ -726,6 +722,7 @@ end
 -- check for close hunters to prevent hunted from respawning<br/>
 -- check for movement when DNF process is active<br/>
 -- check for revealing hunted position to hunters
+---@param ctxt TickContext
 local function fastTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
     if ctxt.isOwner and S.state == S.STATES.GAME and participant then
@@ -736,7 +733,7 @@ local function fastTick(ctxt)
                 :filter(function(_, playerID) return playerID ~= ctxt.user.playerID end)
                 :map(function(p) return BJI.Managers.Veh.getVehicleObject(p.gameVehID) end)
                 :map(function(veh) return BJI.Managers.Veh.getPositionRotation(veh) end)
-                :map(function(pos) return ctxt.vehPosRot.pos:distance(pos) end)
+                :map(function(pos) return ctxt.veh.position:distance(pos) end)
                 :any(function(d) return d < S.huntedResetDistanceThreshold end)
             if closeHunter and not S.resetLock then
                 S.resetLock = true
@@ -748,7 +745,7 @@ local function fastTick(ctxt)
 
             -- DNF disabling update
             if S.dnf.lastpos and S.dnf.process then
-                if S.finished or math.horizontalDistance(S.dnf.lastpos, ctxt.vehPosRot.pos) > S.dnf.minDistance then
+                if S.finished or math.horizontalDistance(S.dnf.lastpos, ctxt.veh.position) > S.dnf.minDistance then
                     BJI.Managers.Message.cancelFlash("BJIHuntedDNF")
                     S.dnf.process = false
                     S.dnf.targetTime = nil
@@ -802,7 +799,7 @@ end
 ---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.participants[BJI.Managers.Context.User.playerID]
-    local damages = ctxt.isOwner and tonumber(ctxt.veh.damageState) or nil
+    local damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
     if S.state == S.STATES.PREPARATION and participant and
         damages and damages > BJI.Managers.Context.VehiclePristineThreshold then
         -- vehicle swap repair
@@ -813,7 +810,7 @@ local function slowTick(ctxt)
         if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then
             -- DNF check
             if not S.finished and S.dnf.lastpos and not S.dnf.process then
-                local distance = math.horizontalDistance(S.dnf.lastpos, ctxt.vehPosRot.pos)
+                local distance = math.horizontalDistance(S.dnf.lastpos, ctxt.veh.position)
                 if distance < S.dnf.minDistance then
                     -- start countdown process
                     if not S.dnf.process then
@@ -829,7 +826,7 @@ local function slowTick(ctxt)
                     end
                 end
             end
-            S.dnf.lastpos = ctxt.vehPosRot.pos
+            S.dnf.lastpos = ctxt.veh.position
         end
     end
 end

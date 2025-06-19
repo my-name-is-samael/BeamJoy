@@ -10,7 +10,7 @@
 ---@field canChangeTo (fun(ctxt: TickContext): boolean)
 ---@field onLoad (fun(ctxt: TickContext))?
 ---@field onUnload (fun(ctxt: TickContext))?
----@field onVehicleSpawned (fun(gameVehID: integer))?
+---@field onVehicleSpawned (fun(mpVeh: BJIMPVehicle))?
 ---@field onVehicleResetted (fun(gameVehID: integer))?
 ---@field onVehicleSwitched (fun(oldGameVehID: integer, newGameVehID: integer))?
 ---@field onVehicleDestroyed (fun(gameVehID: integer))?

@@ -201,6 +201,7 @@ function M.Speed.canStartVote()
         )
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if M.Speed.started() then
         -- autojoin on event
@@ -210,7 +211,7 @@ local function slowTick(ctxt)
             if BJI.Managers.Tournament.state and BJI.Managers.Tournament.whitelist and not BJI.Managers.Tournament.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
                 BJI.Managers.Veh.deleteAllOwnVehicles()
             else
-                BJI.Tx.scenario.SpeedJoin(ctxt.veh:getID())
+                BJI.Tx.scenario.SpeedJoin(ctxt.veh.gameVehicleID)
             end
         end
 
@@ -218,8 +219,8 @@ local function slowTick(ctxt)
         if M.Speed.participants[BJI.Managers.Context.User.playerID] then
             if not ctxt.isOwner then
                 BJI.Tx.scenario.SpeedJoin()
-            elseif ctxt.veh:getID() ~= M.Speed.participants[BJI.Managers.Context.User.playerID] then
-                BJI.Tx.scenario.SpeedJoin(ctxt.veh:getID())
+            elseif ctxt.veh.gameVehicleID ~= M.Speed.participants[BJI.Managers.Context.User.playerID] then
+                BJI.Tx.scenario.SpeedJoin(ctxt.veh.gameVehicleID)
             end
         end
     end

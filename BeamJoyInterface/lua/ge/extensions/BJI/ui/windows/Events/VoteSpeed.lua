@@ -22,7 +22,7 @@ return function(ctxt, cache)
                 onClick = function()
                     cache.disableButtons = true
                     BJI.Tx.scenario.SpeedJoin(not vs.participants[BJI.Managers.Context.User.playerID] and
-                        ctxt.veh:getID() or nil)
+                        ctxt.veh.gameVehicleID or nil)
                 end,
             })
             :build()

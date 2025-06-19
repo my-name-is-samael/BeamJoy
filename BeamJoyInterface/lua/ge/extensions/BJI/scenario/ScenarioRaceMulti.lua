@@ -105,6 +105,7 @@ local function canChangeTo(ctxt)
 end
 
 -- load hook
+---@param ctxt TickContext
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose(true)
     if ctxt.veh then
@@ -145,7 +146,7 @@ local function getPlayerListActions(player, ctxt)
             icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
-                (ctxt.veh and ctxt.veh:getID() == finalGameVehID) or
+                (ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID) or
                 S.isSpec(player.playerID),
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
@@ -254,7 +255,7 @@ local function postSpawn(ctxt)
             BJI.Managers.Cam.toggleFreeCam()
         end
         BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
     end
 end
 
@@ -271,14 +272,12 @@ local function tryReplaceOrSpawn(model, config)
     end
 end
 
-local function onVehicleSpawned(gameVehID)
-    local veh = gameVehID ~= 1 and BJI.Managers.Veh.getVehicleObject(gameVehID) or nil
-    local vehPos = veh and BJI.Managers.Veh.getPositionRotation(veh) or nil
-    if vehPos and BJI.Managers.Veh.isVehicleOwn(gameVehID) and
-        S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
+    if mpVeh.isLocal and  S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
         local startPos = S.grid.startPositions
             [table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)]
-        if startPos and vehPos:distance(startPos.pos) > 1 then
+        if startPos and mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
             BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
@@ -1123,6 +1122,7 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
     if ctxt.isOwner and isStateGridOrRace() and not S.isRaceStarted(ctxt) and S.isParticipant() then
         -- fix vehicle position / damages on grid
@@ -1131,7 +1131,7 @@ local function fastTick(ctxt)
                 [table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)]
             local moved = math.horizontalDistance(
                 startPos.pos,
-                ctxt.vehPosRot.pos
+                ctxt.veh.position
             ) > 1
             local damaged = false
             for _, v in pairs(BJI.Managers.Context.User.vehicles) do
@@ -1145,13 +1145,14 @@ local function fastTick(ctxt)
             end
             if moved or damaged then
                 BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-                BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+                BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
             end
         end
     end
 end
 
 -- each second tick hook
+---@param ctxt TickContext
 local function slowTick(ctxt)
     -- DNF PROCESS
     if ctxt.isOwner and S.isRaceStarted(ctxt) and not S.isRaceFinished() and S.isParticipant() and
@@ -1159,13 +1160,13 @@ local function slowTick(ctxt)
         not S.dnf.standExempt then
         if not S.dnf.lastPos then
             -- first check
-            S.dnf.lastPos = ctxt.vehPosRot.pos
+            S.dnf.lastPos = ctxt.veh.position
         else
             if S.isEliminated() or S.isFinished() then
                 S.dnf.targetTime = nil
                 S.dnf.process = false
             else
-                if math.horizontalDistance(ctxt.vehPosRot.pos, S.dnf.lastPos) < S.dnf.minDistance then
+                if math.horizontalDistance(ctxt.veh.position, S.dnf.lastPos) < S.dnf.minDistance then
                     -- distance isn't enough
                     if not S.dnf.process then
                         S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
@@ -1187,7 +1188,7 @@ local function slowTick(ctxt)
                         S.dnf.process = false
                         S.dnf.targetTime = nil
                     end
-                    S.dnf.lastPos = ctxt.vehPosRot.pos
+                    S.dnf.lastPos = ctxt.veh.position
                 end
             end
         end

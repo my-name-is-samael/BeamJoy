@@ -148,6 +148,7 @@ local function save()
     end)
 end
 
+---@param ctxt TickContext
 local function header(ctxt)
     LineBuilder():text(W.labels.title)
         :btnIcon({
@@ -167,8 +168,8 @@ local function header(ctxt)
         }),
         onClick = function()
             W.cache.positions:insert({
-                pos = vec3(ctxt.vehPosRot.pos),
-                rot = quat(ctxt.vehPosRot.rot),
+                pos = ctxt.veh.position,
+                rot = ctxt.veh.rotation,
                 radius = 2.5,
             })
             W.changed = true
@@ -179,6 +180,7 @@ local function header(ctxt)
     }):build()
 end
 
+---@param ctxt TickContext
 local function body(ctxt)
     W.cache.positions:reduce(function(cols, position, i)
         return cols:addRow({
@@ -214,16 +216,16 @@ local function body(ctxt)
                                 id = string.var("movePos{1}", { i }),
                                 icon = BJI.Utils.Icon.ICONS.edit_location,
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                disabled = W.cache.disableInputs or not ctxt.vehPosRot or
+                                disabled = W.cache.disableInputs or not ctxt.veh or
                                     ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
                                 tooltip = string.var("{1}{2}", {
                                     W.labels.buttons.setPosition,
-                                    (not ctxt.vehPosRot or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                                    (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
                                     " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
                                 }),
                                 onClick = function()
-                                    W.cache.positions[i].pos = ctxt.vehPosRot.pos
-                                    W.cache.positions[i].rot = ctxt.vehPosRot.rot
+                                    W.cache.positions[i].pos = ctxt.veh.position
+                                    W.cache.positions[i].rot = ctxt.veh.rotation
                                     W.changed = true
                                     reloadMarkers()
                                     validatePositions()
@@ -276,7 +278,8 @@ local function body(ctxt)
     end, ColumnsBuilder("BJIScenarioEditorDeliveries", { W.cache.iconWidth, W.cache.labelsWidth, -1 })):build()
 end
 
-local function footer()
+---@param ctxt TickContext
+local function footer(ctxt)
     local line = LineBuilder()
         :btnIcon({
             id = "cancel",

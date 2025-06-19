@@ -66,6 +66,8 @@ local function switchToRandomParticipant()
 end
 
 -- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
@@ -77,7 +79,7 @@ local function getPlayerListActions(player, ctxt)
             icon = BJI.Utils.Icon.ICONS.visibility,
             style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = not finalGameVehID or
-                (ctxt.veh and ctxt.veh:getID() == finalGameVehID) or
+                (ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID) or
                 not S.isSpec(player.playerID),
             tooltip = BJI.Managers.Lang.get("common.buttons.show"),
             onClick = function()
@@ -121,7 +123,7 @@ local function onElimination()
     } })
 end
 
--- each frame tick hook
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if S.isParticipant() and not S.isEliminated() then
         if not ctxt.isOwner then
@@ -130,9 +132,10 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
-    if ctxt.isOwner and S.isParticipant() and not S.isEliminated() and tonumber(ctxt.veh.speed) then
-        local kmh = tonumber(ctxt.veh.speed) * 3.6
+    if ctxt.isOwner and S.isParticipant() and not S.isEliminated() and tonumber(ctxt.veh.veh.speed) then
+        local kmh = tonumber(ctxt.veh.veh.speed) * 3.6
         if S.processCheck then
             if kmh >= S.minSpeed then
                 S.processCheck = nil

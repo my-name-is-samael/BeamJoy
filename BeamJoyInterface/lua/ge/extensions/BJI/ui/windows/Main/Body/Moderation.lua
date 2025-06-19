@@ -18,9 +18,6 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = cache.labels.players.moderation.buttons.deleteAllVehicles,
             onClick = function()
-                if player.self then
-                    BJI.Managers.Context.User.currentVehicle = nil
-                end
                 BJI.Tx.moderation.deleteVehicle(player.playerID, -1)
             end,
         })
@@ -106,7 +103,7 @@ local function drawVehicles(player, ctxt, cache)
             local cols = ColumnsBuilder(string.var("BJIPlayerVehicles-{1}", { player.playerID }),
                 { player.vehiclesLabelWidth, -1 })
             for vehID, vehicle in pairs(player.vehicles) do
-                local isCurrentVehicle = ctxt.veh and ctxt.veh:getID() == vehicle.finalGameVehID
+                local isCurrentVehicle = ctxt.veh and ctxt.veh.gameVehicleID == vehicle.finalGameVehID
                 cols:addRow({
                     cells = {
                         function()

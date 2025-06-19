@@ -26,6 +26,7 @@ local M = {
     detectionLimit = 20, -- amount of detection by frame
 }
 
+---@param ctxt TickContext
 local function getVehEnergyTypes(ctxt)
     if not ctxt.vehData or not ctxt.vehData.tanks then
         return {}
@@ -40,8 +41,9 @@ local function getVehEnergyTypes(ctxt)
     return energyTypes
 end
 
+---@param ctxt TickContext
 local function detectChunk(ctxt)
-    if not ctxt.vehPosRot then
+    if not ctxt.veh then
         return
     end
 
@@ -58,7 +60,7 @@ local function detectChunk(ctxt)
 
     for i = M.detectionProcess, target do
         local s = M.detectionStations[i]
-        if s and ctxt.vehPosRot.pos:distance(s.pos) <= s.radius then
+        if s and ctxt.veh.position:distance(s.pos) <= s.radius then
             if not s.isEnergy then
                 M.station = s
                 M.detectionProcess = nil
@@ -83,13 +85,14 @@ local function detectChunk(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if ctxt.camera == BJI.Managers.Cam.CAMERAS.BIG_MAP then
         return
     end
     local ownPos = (ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE or not ctxt.veh) and
         BJI.Managers.Cam.getPositionRotation().pos or
-        ctxt.vehPosRot.pos
+        ctxt.veh.position
 
 
     if BJI.Managers.Scenario.canRepairAtGarage() and
@@ -101,7 +104,7 @@ local function renderTick(ctxt)
                 local textPos = vec3(g.pos)
                 local zOffset = g.radius
                 if ctxt.veh then
-                    zOffset = ctxt.veh:getInitialHeight() * 1.5
+                    zOffset = ctxt.veh.veh:getInitialHeight() * 1.5
                 end
                 textPos.z = textPos.z + zOffset
                 BJI.Utils.ShapeDrawer.Text(g.name, textPos, M.COLORS.TEXT, M.COLORS.BG)
@@ -126,7 +129,7 @@ local function renderTick(ctxt)
                     if compatible then
                         BJI.Utils.ShapeDrawer.Sphere(s.pos, s.radius, M.COLORS.ENERGY)
                         local textPos = vec3(s.pos)
-                        textPos.z = textPos.z + ctxt.veh:getInitialHeight() * 1.5
+                        textPos.z = textPos.z + ctxt.veh.veh:getInitialHeight() * 1.5
                         BJI.Utils.ShapeDrawer.Text(s.name, textPos, M.COLORS.TEXT, M.COLORS.BG)
                     end
                 end
@@ -135,16 +138,16 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
-    local veh = ctxt.isOwner and ctxt.veh or nil
     if M.station then
-        if not veh or not BJI.Managers.Perm.canSpawnVehicle() or
+        if not ctxt.isOwner or not BJI.Managers.Perm.canSpawnVehicle() or
             (not BJI.Managers.Scenario.canRefuelAtStation() and
                 not BJI.Managers.Scenario.canRepairAtGarage()) or
-            BJI.Managers.Veh.isUnicycle(veh:getID()) then
+            BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID) then
             M.station = nil
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
-        elseif ctxt.vehPosRot.pos:distance(M.station.pos) > M.station.radius then
+        elseif ctxt.veh.position:distance(M.station.pos) > M.station.radius then
             M.station = nil
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROXIMITY_CHANGED)
         end
@@ -157,13 +160,13 @@ local function fastTick(ctxt)
         #BJI.Managers.Context.Scenario.Data.EnergyStations or 0
     if not BJI.Managers.Perm.canSpawnVehicle() or
         (not BJI.Managers.Scenario.canRefuelAtStation() and not BJI.Managers.Scenario.canRepairAtGarage()) or
-        not veh or BJI.Managers.Veh.isUnicycle(veh:getID()) or
+        not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID) or
         (garagesCount == 0 and energyStationsCount == 0) then
         M.detectionProcess = nil
         return
     end
 
-    if veh then
+    if ctxt.isOwner then
         if #M.detectionStations ~= garagesCount + energyStationsCount then
             table.clear(M.detectionStations)
             for _, g in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
@@ -253,9 +256,9 @@ local function tryRepair(ctxt)
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     ctxt.vehData.freezeStation = true
-    BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+    BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
     ctxt.vehData.engineStation = false
-    BJI.Managers.Veh.engine(false, ctxt.veh:getID())
+    BJI.Managers.Veh.engine(false, ctxt.veh.gameVehicleID)
     BJI.Managers.Reputation.onGarageRepair()
     BJI.Managers.Scenario.onGarageRepair()
 
@@ -263,19 +266,17 @@ local function tryRepair(ctxt)
         BJI.Managers.Lang.get("garages.flashVehicleRepaired"))
     BJI.Managers.Async.delayTask(function(ctxt2)
         if ctxt2.veh then
-            BJI.Managers.Veh.getPositionRotation(ctxt2.veh, function(pos)
-                BJI.Managers.Veh.setPositionRotation(pos, nil, {
-                    safe = false
-                })
-                BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh:getID())
-            end)
+            BJI.Managers.Veh.setPositionRotation(ctxt2.veh.position, nil, {
+                safe = false
+            })
+            BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh.gameVehicleID)
             ctxt2.vehData.freezeStation = false
             if not ctxt2.vehData.freeze then
-                BJI.Managers.Veh.freeze(false, ctxt2.veh:getID())
+                BJI.Managers.Veh.freeze(false, ctxt2.veh.gameVehicleID)
             end
             ctxt2.vehData.engineStation = true
             if ctxt2.vehData.engine then
-                BJI.Managers.Veh.engine(true, ctxt2.veh:getID())
+                BJI.Managers.Veh.engine(true, ctxt2.veh.gameVehicleID)
             end
             BJI.Managers.Cam.resetForceCamera(true)
             BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.REPAIR)

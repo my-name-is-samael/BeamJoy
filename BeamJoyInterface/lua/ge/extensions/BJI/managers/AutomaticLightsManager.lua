@@ -55,9 +55,10 @@ local function updateCurrentVeh(gameVehID)
     end
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if ctxt.isOwner then
-        updateCurrentVeh(ctxt.veh:getID())
+        updateCurrentVeh(ctxt.veh.gameVehicleID)
     end
 end
 

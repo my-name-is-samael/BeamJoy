@@ -166,7 +166,7 @@ local function updateCache(ctxt)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
     W.cache.data.pbWidth = W.cache.data.showPb and BJI.Utils.UI.GetColumnTextWidth(string.var("{1} {2}",
         { W.cache.labels.pb, W.cache.data.pbTime })) or 0
-    W.cache.data.showForfeitBtn = W.scenario.isRaceStarted() and not W.scenario.isRaceFinished() and
+    W.cache.data.showForfeitBtn = W.scenario.isRaceStarted(ctxt) and not W.scenario.isRaceFinished() and
         not W.scenario.isSpec()
     W.cache.data.startTime = W.scenario.race.startTime
     W.cache.data.hasStartTime = not not W.cache.data.startTime
@@ -280,7 +280,7 @@ local function updateCache(ctxt)
                     if not disabled then
                         local veh = BJI.Managers.Veh.getVehicleObject(target.currentVehicle)
                         local finalGameVehID = veh and veh:getID() or nil
-                        disabled = finalGameVehID and ctxt2.veh and ctxt2.veh:getID() == finalGameVehID or false
+                        disabled = finalGameVehID and ctxt2.veh and ctxt2.veh.gameVehicleID == finalGameVehID or false
                     end
                     LineBuilder():btnIcon({
                         id = string.var("watchPlayer{1}", { i }),
@@ -465,7 +465,7 @@ local function header(ctxt)
                                 extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()
                             }),
                             onClick = function()
-                                BJI.Managers.Scenario.saveHome(ctxt.veh:getID())
+                                BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
                             end,
                         })
                     end

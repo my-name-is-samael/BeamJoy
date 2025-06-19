@@ -239,7 +239,7 @@ local function drawHeaderPreparation(ctxt)
                 tooltip = W.labels.buttons.markReady,
                 onClick = function()
                     W.cache.disabledButtons = true -- api request protection
-                    BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh:getID())
+                    BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
                 end,
                 big = true,
             })

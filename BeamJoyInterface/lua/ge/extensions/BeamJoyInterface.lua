@@ -44,7 +44,7 @@ BJI = {
         raw = 0,
     },
 
-    ---@type fun(ctxt: TickContext)|table|string|number|boolean|nil
+    ---@type (fun(ctxt: TickContext):any)|table|string|number|boolean|nil
     DEBUG = nil,
 }
 BJI.Utils.ShapeDrawer = require("ge/extensions/utils/ShapeDrawer")

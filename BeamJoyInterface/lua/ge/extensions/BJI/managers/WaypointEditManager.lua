@@ -162,6 +162,7 @@ local function setWaypointsWithSegments(waypoints, loopable)
     end
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     for _, segment in ipairs(M.segments) do
         BJI.Utils.ShapeDrawer.SquarePrism(
@@ -188,7 +189,7 @@ local function renderTick(ctxt)
                 wp.textBg or M._textBgColor, true)
         end
         if wp.rot then
-            local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
+            local radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
             BJI.Utils.ShapeDrawer.Arrow(wp.pos, wp.rot, radius,
                 BJI.Utils.ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, 1))
         end
@@ -207,19 +208,19 @@ local function renderTick(ctxt)
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
                 wp.textBg or M._textBgColor, true)
         end
-        local arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh:getInitialHeight() or wp.radius / 2)
-        local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
+        local arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh.veh:getInitialHeight() or wp.radius / 2)
+        local radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
         BJI.Utils.ShapeDrawer.Arrow(arrowPos, wp.rot, radius,
             BJI.Utils.ShapeDrawer.Color(wp.color.r, wp.color.g, wp.color.b, 1))
     end
 
     for _, wp in ipairs(M.arrows) do
         local angle = math.angleFromQuatRotation(wp.rot)
-        local len = math.rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
+        local len = math.rotate2DVec(vec3(0, ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius, 0), angle)
         local tip = vec3(wp.pos) + len
         local base = vec3(wp.pos) + math.rotate2DVec(len, math.pi)
         BJI.Utils.ShapeDrawer.SquarePrism(
-            base, ctxt.veh and ctxt.veh:getInitialWidth() or wp.radius * 1.2,
+            base, ctxt.veh and ctxt.veh.veh:getInitialWidth() or wp.radius * 1.2,
             tip, 0,
             wp.color
         )

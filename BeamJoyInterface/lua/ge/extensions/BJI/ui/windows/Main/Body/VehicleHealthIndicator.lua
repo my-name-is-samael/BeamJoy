@@ -28,7 +28,7 @@ end
 ---@param ctxt TickContext
 ---@return boolean
 local function isVisible(ctxt)
-    local damages = ctxt.isOwner and tonumber(ctxt.veh.damageState) or nil
+    local damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
     return damages ~= nil and damages > cache.damageThreshold
 end
 
@@ -50,7 +50,7 @@ local function draw(ctxt)
                 local garages = {}
                 for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
                     local distance = BJI.Managers.GPS.getRouteLength({
-                        ctxt.vehPosRot.pos,
+                        ctxt.veh.position,
                         garage.pos
                     })
                     table.insert(garages, {

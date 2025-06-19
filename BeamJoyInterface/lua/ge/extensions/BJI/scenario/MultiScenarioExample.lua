@@ -30,7 +30,8 @@ local function onLoad(ctxt)
 end
 
 -- player vehicle spawn hook
-local function onVehicleSpawned(gameVehID)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
 end
 
 -- player vehicle drop at camera hook

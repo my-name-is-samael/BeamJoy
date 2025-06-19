@@ -91,8 +91,7 @@ local function updateCache(ctxt)
         return w > acc and w or acc
     end, 0)
 
-    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and
-        BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
 end
 
@@ -161,7 +160,7 @@ local function getConfig(ctxt)
     if not ctxt.veh then
         return
     end
-    return BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig)
+    return BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
 end
 
 ---@param ctxt TickContext

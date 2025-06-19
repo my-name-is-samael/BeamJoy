@@ -264,12 +264,13 @@ local function onRaceFinishReached()
 end
 
 -- Retrieve vehicle corners positions
+---@param ctxt TickContext
 local function getVehCorners(ctxt)
     if not ctxt.veh then return end
 
-    local origin = vec3(ctxt.vehPosRot.pos);
-    local len = vec3(ctxt.veh:getInitialLength() / 2, 0, 0);
-    local vdata = map.objects[ctxt.veh:getID()];
+    local origin = vec3(ctxt.veh.position);
+    local len = vec3(ctxt.veh.veh:getInitialLength() / 2, 0, 0);
+    local vdata = map.objects[ctxt.veh.gameVehicleID];
     if not vdata then
         error("Invalid vehicle")
     end
@@ -278,8 +279,8 @@ local function getVehCorners(ctxt)
     angle = math.scale(angle, -math.pi, math.pi, 0, math.pi * 2);
     angle = (angle + math.pi / 2) % (math.pi * 2);
 
-    local w = vec3(0, ctxt.veh:getInitialWidth() / 2, 0);
-    local off = vec3(0, 0, ctxt.veh:getInitialHeight() / 2)
+    local w = vec3(0, ctxt.veh.veh:getInitialWidth() / 2, 0);
+    local off = vec3(0, 0, ctxt.veh.veh:getInitialHeight() / 2)
     return {
         fl = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle) + off,
         fr = origin + math.rotate2DVec(len, angle) + math.rotate2DVec(w, angle + math.pi) + off,
@@ -288,19 +289,23 @@ local function getVehCorners(ctxt)
     }
 end
 
+---@param ctxt TickContext
+---@param wp table
 local function checkMatchingHeight(ctxt, wp)
     if not ctxt.veh then return end
 
     local wpBottom = wp.pos.z - (wp.zOffset or 1) -- 1 meter under the waypoint by default
     local wpTop = wp.pos.z + (wp.radius * 2)      -- the diameter high over the waypoint
-    local currentTop = ctxt.vehPosRot.pos.z + ctxt.veh:getInitialHeight()
-    return currentTop >= wpBottom and ctxt.vehPosRot.pos.z <= wpTop
+    local currentTop = ctxt.veh.position.z + ctxt.veh.veh:getInitialHeight()
+    return currentTop >= wpBottom and ctxt.veh.position.z <= wpTop
 end
 
 -- check collision for radius checkpoint
+---@param ctxt TickContext
+---@param wp table
 local function checkVehInRadius(ctxt, wp)
-    local vehRadius = ctxt.veh:getInitialWidth() / 2
-    return vec3(ctxt.vehPosRot.pos):distance(vec3(wp.pos)) <= (vehRadius + wp.radius)
+    local vehRadius = ctxt.veh.veh:getInitialWidth() / 2
+    return vec3(ctxt.veh.position):distance(vec3(wp.pos)) <= (vehRadius + wp.radius)
 end
 
 local function ccw_intersect(a, b, c)
@@ -308,6 +313,9 @@ local function ccw_intersect(a, b, c)
 end
 
 -- check collision for gate checkpoint
+---@param ctxt TickContext
+---@param wp table
+---@param vehCorners table
 local function checkSegmentCrossed(ctxt, wp, vehCorners)
     if not ctxt.veh then return end
 

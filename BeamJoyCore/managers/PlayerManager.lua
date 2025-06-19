@@ -314,7 +314,6 @@ local function getCacheUser(playerID)
             reputation = player.reputation,
             freeze = player.freeze,
             engine = player.engine,
-            currentVehicle = player.currentVehicle,
             vehicles = Table(player.vehicles)
                 :map(function(vehicle, vehID)
                     return {

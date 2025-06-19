@@ -113,7 +113,6 @@ local function loadUser()
         M.User.engine = cacheData.engine == true
 
         -- vehicles
-        M.User.currentVehicle = cacheData.currentVehicle
         for vehID, vehicle in pairs(cacheData.vehicles) do
             if not M.User.vehicles[vehID] then
                 M.User.vehicles[vehID] = table.assign(vehicle, {

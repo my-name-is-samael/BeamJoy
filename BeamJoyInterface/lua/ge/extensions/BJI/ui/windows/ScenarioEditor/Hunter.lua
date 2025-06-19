@@ -254,7 +254,10 @@ local function drawHunters(ctxt)
                 " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
             }),
             onClick = function()
-                W.cache.hunterPositions[i] = ctxt.vehPosRot
+                W.cache.hunterPositions[i] = math.roundPositionRotation({
+                    pos = ctxt.veh.position,
+                    rot = ctxt.veh.rotation,
+                })
                 W.changed = true
                 reloadMarkers()
                 validateData()
@@ -312,7 +315,10 @@ local function drawHunted(ctxt)
                 " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
             }),
             onClick = function()
-                W.cache.huntedPositions[i] = ctxt.vehPosRot
+                W.cache.huntedPositions[i] = math.roundPositionRotation({
+                    pos = ctxt.veh.position,
+                    rot = ctxt.veh.rotation,
+                })
                 W.changed = true
                 reloadMarkers()
                 validateData()
@@ -346,7 +352,7 @@ local function drawWaypoints(ctxt)
                     if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
                         BJI.Managers.Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(waypoint.pos, ctxt.vehPosRot.rot, { safe = false })
+                    BJI.Managers.Veh.setPositionRotation(waypoint.pos, ctxt.veh.rotation, { safe = false })
                 else
                     if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
                         BJI.Managers.Cam.toggleFreeCam()
@@ -370,7 +376,7 @@ local function drawWaypoints(ctxt)
                 " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
             }),
             onClick = function()
-                waypoint.pos = ctxt.vehPosRot.pos
+                waypoint.pos = ctxt.veh.position
                 W.changed = true
                 reloadMarkers()
                 validateData()
@@ -427,7 +433,10 @@ local function body(ctxt)
                     " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
                 }),
                 onClick = function()
-                    W.cache.hunterPositions:insert(ctxt.vehPosRot)
+                    W.cache.hunterPositions:insert(math.roundPositionRotation({
+                        pos = ctxt.veh.position,
+                        rot = ctxt.veh.rotation,
+                    }))
                     W.changed = true
                     reloadMarkers()
                     validateData()
@@ -457,7 +466,10 @@ local function body(ctxt)
                     " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
                 }),
                 onClick = function()
-                    W.cache.huntedPositions:insert(ctxt.vehPosRot)
+                    W.cache.huntedPositions:insert(math.roundPositionRotation({
+                        pos = ctxt.veh.position,
+                        rot = ctxt.veh.rotation,
+                    }))
                     W.changed = true
                     reloadMarkers()
                     validateData()
@@ -488,7 +500,7 @@ local function body(ctxt)
                 }),
                 onClick = function()
                     W.cache.targets:insert({
-                        pos = ctxt.vehPosRot.pos,
+                        pos = ctxt.veh.position,
                         radius = 2,
                     })
                     W.changed = true

@@ -97,6 +97,17 @@ end
 
 local function onTrafficStarted()
     BJI.Managers.UI.applyLoading(false)
+    BJI.Managers.Veh.getMPVehicles({ isAi = false })
+        :filter(function(v)
+            return not v.isLocal and not extensions.gameplay_traffic.getTrafficData()[v.gameVehicleID]
+        end)
+        :forEach(function(mpVeh)
+            extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true, true)
+            mpVeh.veh.playerUsable = true
+            mpVeh.veh.uiState = 1
+            local vehTraffic = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+            vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
+        end)
 end
 
 local function onUpdate()
@@ -120,7 +131,12 @@ local function onUpdate()
             Table(extensions.gameplay_traffic.getTrafficAiVehIds())
                 :forEach(function(vid)
                     local vehTraffic = extensions.gameplay_traffic.getTrafficData()[vid]
-                    vehTraffic:setRole(finalRole)
+                    if vehTraffic.roleName ~= finalRole then
+                        if vehTraffic.roleName ~= "suspect" or
+                            BJI.Managers.Context.Players:length() > 1 then
+                            vehTraffic:setRole(finalRole)
+                        end
+                    end
                 end)
         end
     end
@@ -239,24 +255,35 @@ local function onTrafficVehAdded(gameVehID)
     if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) or
         getSelfTrafficVehiclesIDs():length() > total then -- not allowed
         BJI.Managers.Veh.deleteVehicle(gameVehID)
-    elseif mpVeh.ownerID ~= ctxt.user.playerID then             -- not own veh
+    elseif mpVeh.ownerID ~= ctxt.user.playerID then       -- not own veh
         if vehTraffic.isAi then
             extensions.gameplay_traffic.removeTraffic(gameVehID)
             extensions.gameplay_traffic.insertTraffic(gameVehID, true, true)
             BJI.Managers.Collisions.forceUpdateVeh(gameVehID)
+        end
+        vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+        if mpVeh.isAi then -- other player AI
+            mpVeh.veh.playerUsable = false
+            mpVeh.veh.uiState = 0
+            vehTraffic:setRole("empty")
+        else
             mpVeh.veh.playerUsable = true
             mpVeh.veh.uiState = 1
-            vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
-            if mpVeh.isAi then -- other player AI
-                vehTraffic:setRole("empty")
-            else
-                vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
-            end
+            vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
         end
     elseif vehTraffic.isAi then -- self AI
         -- AI veh, set role to empty if multiple players to prevent pursuits
         vehTraffic:setRole(ctxt.players:length() > 1 and "empty" or "standard")
     else -- self veh
+        vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
+    end
+end
+
+---@param mpVeh BJIMPVehicle
+local function onVehSpawned(mpVeh)
+    if not mpVeh.isAi and BJI.Managers.AI.getState() then
+        extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true, true)
+        local vehTraffic = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
         vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
     end
 end
@@ -283,7 +310,8 @@ local function onLoad()
     }, onUpdate, M._name)
 
     --BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
-    --BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehiclesSpawned, M._name)
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_INITIALIZED, onVehSpawned, M._name)
 end
 
 M.getState = getState

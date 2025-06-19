@@ -17,9 +17,9 @@ local function menuSoloRace(ctxt)
         local errorMessage = nil
         if #rawRaces == 0 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.soloRace.noRace")
-        elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
-        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+        elseif ctxt.veh.isAi then
             errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
@@ -144,9 +144,9 @@ local function menuPackageDelivery(ctxt)
         if not BJI.Managers.Context.Scenario.Data.Deliveries or
             #BJI.Managers.Context.Scenario.Data.Deliveries < 2 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.packageDelivery.noDelivery")
-        elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
-        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+        elseif ctxt.veh.isAi then
             errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
@@ -184,9 +184,9 @@ local function menuDeliveryMulti(ctxt)
         if not BJI.Managers.Context.Scenario.Data.Deliveries or
             #BJI.Managers.Context.Scenario.Data.Deliveries < 2 then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.noDelivery")
-        elseif not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
-        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+        elseif ctxt.veh.isAi then
             errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
@@ -201,7 +201,7 @@ local function menuDeliveryMulti(ctxt)
             table.insert(M.cache.elems, {
                 label = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
                 onClick = function()
-                    BJI.Tx.scenario.DeliveryMultiJoin(ctxt.veh:getID(), ctxt.vehPosRot.pos)
+                    BJI.Tx.scenario.DeliveryMultiJoin(ctxt.veh.gameVehicleID, ctxt.veh.position)
                 end,
             })
         end
@@ -222,9 +222,9 @@ local function menuTagDuo(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI.Managers.Scenario.isFreeroam() then
         local errorMessage
-        if not ctxt.isOwner or BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        if not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI.Managers.Lang.get("errors.missingOwnVehicle")
-        elseif BJI.Managers.AI.isAIVehicle(ctxt.veh:getID()) then
+        elseif ctxt.veh.isAi then
             errorMessage = BJI.Managers.Lang.get("error.cannotStartWodeWithAI")
         end
 
@@ -240,7 +240,7 @@ local function menuTagDuo(ctxt)
             table.insert(lobbyEntries, {
                 label = BJI.Managers.Lang.get("menu.scenario.tagduo.createLobby"),
                 onClick = function()
-                    BJI.Tx.scenario.TagDuoJoin(-1, ctxt.veh:getID())
+                    BJI.Tx.scenario.TagDuoJoin(-1, ctxt.veh.gameVehicleID)
                 end,
             })
             for i, l in ipairs(BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO).lobbies) do
@@ -249,7 +249,7 @@ local function menuTagDuo(ctxt)
                         label = string.var(BJI.Managers.Lang.get("menu.scenario.tagduo.joinLobby"),
                             { playerName = ctxt.players[l.host].playerName }),
                         onClick = function()
-                            BJI.Tx.scenario.TagDuoJoin(i, ctxt.veh:getID())
+                            BJI.Tx.scenario.TagDuoJoin(i, ctxt.veh.gameVehicleID)
                         end,
                     })
                 end

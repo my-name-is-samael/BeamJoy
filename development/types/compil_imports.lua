@@ -179,3 +179,16 @@ BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DERBY] = require(
     "ge/extensions/BJI/scenario/ScenarioDerby")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.TAG_DUO] = require(
     "ge/extensions/BJI/scenario/ScenarioTagDuo")
+
+BJI.DEBUG = function(ctxt)
+    return BJI.Managers.Veh.getMPVehicles({isAi = false}):map(function(v)
+        local trafficVeh = gameplay_traffic.getTrafficData()[v.gameVehicleID];
+        local trafficRole = trafficVeh and trafficVeh.roleName or nil
+        return {
+            owner = ctxt.players[v.ownerID].playerName,
+            gameVehID = v.gameVehicleID,
+            patrol = v.veh.isPatrol,
+            trafficRole = trafficRole
+        }
+    end)
+end

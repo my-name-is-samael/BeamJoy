@@ -3,8 +3,7 @@
 ---@field user BJIUser
 ---@field group BJIGroup
 ---@field players tablelib<integer, BJIPlayer> index playerID
----@field veh? NGVehicle
----@field vehPosRot? BJIPositionRotation
+---@field veh? BJIMPVehicle
 ---@field isOwner boolean
 ---@field vehData? BJIVehicleData
 ---@field camera string
@@ -28,20 +27,16 @@ local lastServerData = nil
 ---@param slow? boolean
 ---@return TickContext
 local function getContext(slow)
-    local veh = BJI.Managers.Veh.getCurrentVehicle()
-    local isOwner = veh and BJI.Managers.Veh.isVehicleOwn(veh:getID())
+    local veh = BJI.Managers.Context.User.currentVehicle and
+        BJI.Managers.Veh.getMPVehicle(BJI.Managers.Context.User.currentVehicle) or nil
     local vehData
-    if isOwner then
+    if veh and veh.isLocal then
         for _, v in pairs(BJI.Managers.Context.User.vehicles) do
-            if veh and v.gameVehID == veh:getID() then
+            if veh and v.gameVehID == veh.gameVehicleID then
                 vehData = v
                 break
             end
         end
-    end
-    local pos, rot
-    if veh then
-        pos, rot = BJI.Managers.Veh.getPositionRotation(veh)
     end
     local ctxt = {
         now = GetCurrentTimeMillis(),
@@ -49,11 +44,7 @@ local function getContext(slow)
         group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
         players = BJI.Managers.Context.Players,
         veh = veh,
-        vehPosRot = pos and {
-            pos = pos,
-            rot = rot,
-        } or nil,
-        isOwner = isOwner,
+        isOwner = veh and veh.isLocal,
         vehData = vehData,
         camera = BJI.Managers.Cam.getCamera(),
     }

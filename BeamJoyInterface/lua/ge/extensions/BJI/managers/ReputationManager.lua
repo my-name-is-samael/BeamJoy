@@ -59,6 +59,7 @@ local function getReputationLevel(reputation)
     return level
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.isOwner then
         if M.kmReward.lastPos then
@@ -69,14 +70,14 @@ local function slowTick(ctxt)
         if not M.kmReward.lastPos then
             M.kmReward.distance = 0
         else
-            local drove = math.horizontalDistance(M.kmReward.lastPos, ctxt.vehPosRot.pos)
+            local drove = math.horizontalDistance(M.kmReward.lastPos, ctxt.veh.position)
             M.kmReward.distance = M.kmReward.distance + drove
             if M.kmReward.distance >= 1000 then
                 M.kmReward.distance = M.kmReward.distance - 1000
                 BJI.Tx.player.KmReward()
             end
         end
-        M.kmReward.lastPos = ctxt.vehPosRot.pos
+        M.kmReward.lastPos = ctxt.veh.position
     end
 end
 

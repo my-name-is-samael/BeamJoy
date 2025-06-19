@@ -242,6 +242,7 @@ local function renderTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function fastTick(ctxt)
     -- Update forced camera
     if M.isForcedCamera() then

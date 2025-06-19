@@ -90,7 +90,7 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
     local alpha = getAlphaByDistance(ownPos:distance(vec3(veh.position)))
 
     local zOffset = veh.vehicleHeight
-    if ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID then
+    if ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID then
         zOffset = veh.vehicleHeight / 2
     end
 
@@ -155,7 +155,7 @@ end
 ---@param forcedBgColor? BJIColor
 local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
     local isMyOwnVeh = veh.ownerID == ctxt.user.playerID
-    local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
+    local isMyCurrentVeh = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsSpectating = veh.spectators[veh.ownerID]
     local ownerIsTracting = not ownerIsSpectating and
@@ -236,7 +236,7 @@ end
 ---@param forcedBgColor? BJIColor
 local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
     local isMyOwnVeh = veh.ownerID == ctxt.user.playerID
-    local isMyCurrentVeh = ctxt.veh and ctxt.veh:getID() == veh.gameVehicleID
+    local isMyCurrentVeh = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID
     local isFreecaming = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE
     local ownerIsDriving = veh.spectators[veh.ownerID]
     local showSpecs = false
@@ -375,7 +375,7 @@ local function renderTick(ctxt)
 
     if M.state then
         -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
-        local ownPos = ctxt.vehPosRot and ctxt.vehPosRot.pos or
+        local ownPos = ctxt.veh and ctxt.veh.position or
             BJI.Managers.Cam.getPositionRotation().pos
         Table(BJI.Managers.Veh.getMPVehicles())
         ---@param veh BJIMPVehicle

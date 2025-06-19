@@ -3,7 +3,7 @@ local M = {
     _name = "Events",
 
     EVENTS = {
-        -- functional and communication events
+        -- functional and communication events (async)
 
         PLAYER_CONNECT = "player_connect",
         PLAYER_DISCONNECT = "player_disconnect",
@@ -35,7 +35,10 @@ local M = {
         TOURNAMENT_UPDATED = "tournament_updated",
         PURSUIT_UPDATE = "pursuit_update",
 
-        -- base game events
+        -- functional and communication events (sync)
+        NG_VEHICLE_INITIALIZED = "ngVehicleInitialized",
+
+        -- base game events (sync)
 
         NG_DROP_PLAYER_AT_CAMERA = "ngDropPlayerAtCamera",
         NG_DROP_PLAYER_AT_CAMERA_NO_RESET = "ngDropPlayerAtCameraNoReset",
@@ -53,7 +56,7 @@ local M = {
         NG_PURSUIT_ACTION = "ngPursuitAction",
         NG_PURSUIT_MODE_UPDATE = "ngPursuitModeUpdate",
 
-        -- tech events
+        -- tech events (async)
 
         ON_POST_LOAD = "on_post_load",
         ON_UNLOAD = "on_unload",
@@ -70,10 +73,33 @@ local M = {
     ---@type tablelib<integer, {target: string, callback: fun(ctxt: TickContext)}>
     fastTickQueued = Table(),
 }
+M.SYNC_EVENTS = Table({
+    M.EVENTS.NG_DROP_PLAYER_AT_CAMERA,
+    M.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
+    M.EVENTS.NG_VEHICLE_SWITCHED,
+    M.EVENTS.NG_VEHICLE_SPAWNED,
+    M.EVENTS.NG_VEHICLE_RESETTED,
+    M.EVENTS.NG_VEHICLE_REPLACED,
+    M.EVENTS.NG_VEHICLE_DESTROYED,
+    M.EVENTS.NG_DRIFT_COMPLETED_SCORED,
+    M.EVENTS.NG_AI_MODE_CHANGE,
+    M.EVENTS.NG_TRAFFIC_STARTED,
+    M.EVENTS.NG_TRAFFIC_STOPPED,
+    M.EVENTS.NG_TRAFFIC_VEHICLE_ADDED,
+    M.EVENTS.NG_VEHICLE_GROUP_SPAWNED,
+    M.EVENTS.NG_PURSUIT_ACTION,
+    M.EVENTS.NG_PURSUIT_MODE_UPDATE,
+
+    M.EVENTS.NG_VEHICLE_INITIALIZED,
+})
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
     M.EVENTS.FAST_TICK,
 })
+
+-- gc vars
+local ctxtTmp, ok, err, found, asyncEventName, el, data
+local start, bench
 
 ---@param events string[]|string
 ---@param callback fun(...: any)|fun(ctxt: TickContext, data: table)
@@ -107,7 +133,7 @@ end
 ---@param id string
 ---@return boolean
 local function removeListener(id)
-    local found = false
+    found = false
     table.forEach(M.listeners, function(event)
         if event[id] then
             event[id] = nil
@@ -123,14 +149,14 @@ local function processSlowTick()
             callback = fn,
             id = k
         }
-    end):values():forEach(function(el, i, tab)
-        local asyncEventName = string.var("SlowTick-{1}", { el.id })
+    end):values():forEach(function(el2, i, tab)
+        asyncEventName = string.var("SlowTick-{1}", { el2.id })
         BJI.Managers.Async.removeTask(asyncEventName)
         BJI.Managers.Async.delayTask(function()
-            local ctxt = BJI.Managers.Tick.getContext(true)
-            el.callback(ctxt)
+            ctxtTmp = BJI.Managers.Tick.getContext(true)
+            el2.callback(ctxtTmp)
             if BJI.Bench.STATE then
-                BJI.Bench.add(tostring(el.id), "slow_tick", GetCurrentTimeMillis() - ctxt.now)
+                BJI.Bench.add(tostring(el2.id), "slow_tick", GetCurrentTimeMillis() - ctxtTmp.now)
             end
         end, i / tab:length() * 1000, asyncEventName)
     end)
@@ -161,10 +187,20 @@ local function trigger(events, ...)
                 M.fastTickQueued:insert({ target = k, callback = callback })
             end)
         elseif M.listeners[event] then
-            local data = { ... }
-            M.listeners[event]:forEach(function(callback, k)
-                M.queued:insert({ event = event, target = k, callback = callback, data = data })
-            end)
+            data = { ... }
+            if M.SYNC_EVENTS:includes(event) then -- sync events
+                M.listeners[event]:forEach(function(callback, k)
+                    ok, err = pcall(callback, table.unpack(data))
+                    if not ok then
+                        LogError(string.var("Error firing event {1}.{2} :", { event, k }))
+                        dump(err)
+                    end
+                end)
+            else -- async events call
+                M.listeners[event]:forEach(function(callback, k)
+                    M.queued:insert({ event = event, target = k, callback = callback, data = data })
+                end)
+            end
         end
     end
 end
@@ -172,10 +208,10 @@ end
 local renderTimeout = 2
 local function renderTick(ctxt)
     if #M.fastTickQueued > 0 then
-        local el = M.fastTickQueued:remove(1)
-        local start = GetCurrentTimeMillis()
-        local ok, err = pcall(el.callback, ctxt, { _event = M.EVENTS.FAST_TICK })
-        local bench = GetCurrentTimeMillis() - start
+        el = M.fastTickQueued:remove(1)
+        start = GetCurrentTimeMillis()
+        ok, err = pcall(el.callback, ctxt, { _event = M.EVENTS.FAST_TICK })
+        bench = GetCurrentTimeMillis() - start
         if BJI.Bench.STATE then
             BJI.Bench.add(tostring(el.target), el.event, bench)
         end
@@ -190,7 +226,7 @@ local function renderTick(ctxt)
 
     if #M.queued > 0 then
         ---@type {event: string, target: string, callback: fun(...), data: table?}
-        local el = M.queued:remove(1)
+        el = M.queued:remove(1)
         if not M.LOG_BLACKLIST_EVENTS:includes(el.event) then
             LogDebug(string.var("Event triggered : {1}{2}", {
                 el.event,
@@ -198,18 +234,12 @@ local function renderTick(ctxt)
                 string.var(" ({1})", { el.data[1].cache }) or ""
             }), M._name)
         end
-        local start = GetCurrentTimeMillis()
-        local isNg = el.event:startswith("ng")
-        local data = table.clone(el.data) or {}
-        local ok, err
-        if isNg then
-            ok, err = pcall(el.callback, table.unpack(data))
-        else
-            data[1] = data[1] or {}
-            data[1]._event = el.event
-            ok, err = pcall(el.callback, ctxt, data[1])
-        end
-        local bench = GetCurrentTimeMillis() - start
+        data = table.clone(el.data) or {}
+        data[1] = data[1] or {}
+        data[1]._event = el.event
+        start = GetCurrentTimeMillis()
+        ok, err = pcall(el.callback, ctxt, data[1])
+        bench = GetCurrentTimeMillis() - start
         if BJI.Bench.STATE then
             BJI.Bench.add(tostring(el.target), el.event, bench)
         end

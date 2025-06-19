@@ -23,16 +23,17 @@ local M = {
     permaGhosts = Table(),
 }
 
+---@param ctxt TickContext
 local function getState(ctxt)
     if not ctxt.veh then
         return M.type ~= M.TYPES.DISABLED
     elseif M.type ~= M.TYPES.GHOSTS then
         return M.type == M.TYPES.FORCED or
-            not M.vehsCaches[ctxt.veh:getID()].ghostType or
-            M.vehsCaches[ctxt.veh:getID()].veh.isAi
+            not M.vehsCaches[ctxt.veh.gameVehicleID].ghostType or
+            M.vehsCaches[ctxt.veh.gameVehicleID].veh.isAi
     else
-        return not M.permaGhosts[ctxt.veh:getID()] and
-            not M.ghosts[ctxt.veh:getID()]
+        return not M.permaGhosts[ctxt.veh.gameVehicleID] and
+            not M.ghosts[ctxt.veh.gameVehicleID]
     end
 end
 
@@ -60,7 +61,7 @@ end
 ---@param veh NGVehicle?
 ---@param alpha number
 local function setAlpha(ctxt, veh, alpha)
-    if veh and (alpha == M.playerAlpha or not ctxt.veh or ctxt.veh:getID() ~= veh:getID()) then
+    if veh and (alpha == M.playerAlpha or not ctxt.veh or ctxt.veh.gameVehicleID ~= veh:getID()) then
         core_vehicle_partmgmt.setHighlightedPartsVisiblity(alpha, veh:getID())
     end
 end
@@ -74,7 +75,7 @@ local function forceUpdateVeh(gameVehID)
             M.ghosts[gameVehID] ~= nil or
             M.permaGhosts[gameVehID] ~= nil
         veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(isGhost) .. ")")
-        if isGhost and (not ctxt.veh or ctxt.veh:getID() ~= veh:getID()) then
+        if isGhost and (not ctxt.veh or ctxt.veh.gameVehicleID ~= veh:getID()) then
             setAlpha(ctxt, veh, M.ghostAlpha)
         else
             setAlpha(ctxt, veh, M.playerAlpha)
@@ -141,18 +142,15 @@ local function onTypeChange(ctxt, previousType)
     end
 end
 
----@param gameVehID integer
-local function onVehSpawned(gameVehID)
-    local veh = BJI.Managers.Veh.getMPVehicle(gameVehID)
-    if veh then
-        removeGhost(nil, gameVehID)
-        M.vehsCaches[gameVehID] = {
-            ghostType = veh.jbeam ~= "unicycle" and
-                not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
-                    BJI.Managers.Veh.getType(veh.jbeam)),
-            veh = veh,
-        }
-    end
+---@param mpVeh BJIMPVehicle
+local function onVehSpawned(mpVeh)
+    removeGhost(nil, mpVeh.gameVehicleID)
+    M.vehsCaches[mpVeh.gameVehicleID] = {
+        ghostType = mpVeh.jbeam ~= "unicycle" and
+            not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
+                BJI.Managers.Veh.getType(mpVeh.jbeam)),
+        veh = mpVeh,
+    }
 end
 
 ---@param gameVehID integer
@@ -288,7 +286,7 @@ local function onLoad()
         end
     end, M._name)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_INITIALIZED, onVehSpawned, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDestroyed, M._name)

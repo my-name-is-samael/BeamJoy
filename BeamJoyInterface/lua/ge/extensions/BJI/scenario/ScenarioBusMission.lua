@@ -85,6 +85,8 @@ local function initCornerMarkers()
     end
 end
 
+---@param ctxt TickContext
+---@param stop BJIPositionRotation
 local function updateCornerMarkers(ctxt, stop)
     if not ctxt.veh or not stop then return end
 
@@ -94,8 +96,8 @@ local function updateCornerMarkers(ctxt, stop)
     local tr = stop.rot * quatFromEuler(0, 0, math.rad(90))
     local r
     local yVec, xVec = tr * vec3(0, 1, 0), tr * vec3(1, 0, 0)
-    local d = ctxt.veh:getInitialLength() / 2 + wpRadius / 2
-    local w = ctxt.veh:getInitialWidth() / 2 + wpRadius / 2
+    local d = ctxt.veh.veh:getInitialLength() / 2 + wpRadius / 2
+    local w = ctxt.veh.veh:getInitialWidth() / 2 + wpRadius / 2
     for k, marker in ipairs(S.cornerMarkers) do
         if k == 1 then
             pos = (tpos - xVec * d + yVec * w)
@@ -146,6 +148,10 @@ local function onLoad(ctxt)
     BJI.Tx.scenario.BusMissionStart()
 end
 
+---@param ctxt TickContext
+---@param lineData table
+---@param model string
+---@param config table
 local function start(ctxt, lineData, model, config)
     reset()
     table.assign(S.line, lineData)
@@ -166,7 +172,7 @@ local function start(ctxt, lineData, model, config)
         BJI.Managers.Veh.waitForVehicleSpawn(function()
             BJI.Managers.Async.task(function(ctxt2)
                 return ctxt2.isOwner and ctxt2.veh.jbeam == model and
-                    ctxt2.veh.partConfig:find(string.var("/{1}.", { S.config }))
+                    ctxt2.veh.veh.partConfig:find(string.var("/{1}.", { S.config })) ~= nil
             end, function(ctxt2)
                 initCornerMarkers()
                 updateTarget(ctxt2)
@@ -270,7 +276,7 @@ local function slowTick(ctxt)
         return
     end
 
-    local points = { vec3(ctxt.vehPosRot.pos) }
+    local points = { vec3(ctxt.veh.position) }
     for i = S.nextStop, #S.line.stops do
         table.insert(points, vec3(S.line.stops[i].pos))
     end
@@ -278,7 +284,7 @@ local function slowTick(ctxt)
     S.progression = 1 - (remainingDistance / S.line.totalDistance)
 
     local target = S.line.stops[S.nextStop]
-    local distance = math.horizontalDistance(ctxt.vehPosRot.pos, target.pos)
+    local distance = math.horizontalDistance(ctxt.veh.position, target.pos)
 
     if distance < target.radius then
         -- core_vehicleBridge.registerValueChangeNotification(veh, "kneel")

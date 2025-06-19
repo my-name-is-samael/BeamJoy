@@ -180,7 +180,7 @@ local function updateButtonsStates(ctxt)
     local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and
         currentVehTypeAllowed and not currentVehBlacklisted
 
-    local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+    local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
 
     W.headerBtns.loadPreviousDisabled = not canSpawnOrReplace or not ctxt.user.previousVehConfig or
         not isVehicleInCache(ctxt.user.previousVehConfig.model)
@@ -317,7 +317,7 @@ local function drawHeader(ctxt)
         disabled = W.headerBtns.cloneCurrentDisabled,
         tooltip = W.headerBtns.cloneCurrentTooltip,
         onClick = function()
-            BJI.Managers.Scenario.trySpawnNew(ctxt.veh.jbeam, ctxt.veh.partConfig)
+            BJI.Managers.Scenario.trySpawnNew(ctxt.veh.jbeam, ctxt.veh.veh.partConfig)
             extensions.hook("trackNewVeh")
         end,
     }):build()

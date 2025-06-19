@@ -179,6 +179,7 @@ local function save()
     end)
 end
 
+---@param ctxt TickContext
 local function header(ctxt)
     local line = LineBuilder():text(W.labels.title)
     if not ctxt.veh or ctxt.veh.jbeam ~= "citybus" then
@@ -215,8 +216,8 @@ local function header(ctxt)
                 stops = Table({
                     {
                         name = "",
-                        pos = ctxt.vehPosRot.pos,
-                        rot = ctxt.vehPosRot.rot,
+                        pos = ctxt.veh.position,
+                        rot = ctxt.veh.rotation,
                         radius = 2,
                     }
                 })
@@ -300,8 +301,8 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
                 " (" .. W.labels.buttons.errorNeedABus .. ")" or ""
             }),
             onClick = function()
-                stop.pos = ctxt.vehPosRot.pos
-                stop.rot = ctxt.vehPosRot.rot
+                stop.pos = ctxt.veh.position
+                stop.rot = ctxt.veh.rotation
                 W.changed = true
                 reloadMarkers(iLine)
                 validateBuslines()
@@ -418,8 +419,8 @@ local function drawLine(ctxt, iLine, bline)
             onClick = function()
                 table.insert(bline.stops, {
                     name = "",
-                    pos = ctxt.vehPosRot.pos,
-                    rot = ctxt.vehPosRot.rot,
+                    pos = ctxt.veh.position,
+                    rot = ctxt.veh.rotation,
                     radius = 2,
                 })
                 W.changed = true
@@ -483,6 +484,7 @@ local function body(ctxt)
     end)
 end
 
+---@param ctxt TickContext
 local function footer(ctxt)
     local line = LineBuilder()
         :btnIcon({

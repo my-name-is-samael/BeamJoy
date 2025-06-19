@@ -592,7 +592,10 @@ end
 
 ---@param ctxt TickContext
 local function drawTools(ctxt)
-    local vehpos = ctxt.isOwner and ctxt.vehPosRot or nil
+    local vehpos = ctxt.isOwner and math.roundPositionRotation({
+        pos = ctxt.veh.position,
+        rot = ctxt.veh.rotation,
+    }) or nil
     if vehpos then
         LineBuilder():icon({
             icon = BJI.Utils.Icon.ICONS.build,
@@ -752,7 +755,10 @@ local function drawStartPositions(ctxt)
                         disabled and (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""
                     }),
                     onClick = function()
-                        W.raceData.startPositions:insert(ctxt.vehPosRot)
+                        W.raceData.startPositions:insert(math.roundPositionRotation({
+                            pos = ctxt.veh.position,
+                            rot = ctxt.veh.rotation,
+                        }))
                         W.raceData.changed = true
                         W.raceData.keepRecord = false
                         updateMarkers()
@@ -833,7 +839,10 @@ local function drawStartPositions(ctxt)
                                     (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""
                                 }),
                                 onClick = function()
-                                    table.assign(sp, ctxt.vehPosRot)
+                                    table.assign(sp, math.roundPositionRotation({
+                                        pos = ctxt.veh.position,
+                                        rot = ctxt.veh.rotation,
+                                    }))
                                     W.raceData.changed = true
                                     W.raceData.keepRecord = false
                                     updateMarkers()
@@ -900,7 +909,10 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
             (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""
         }),
         onClick = function()
-            table.assign(wp, ctxt.vehPosRot)
+            table.assign(wp, math.roundPositionRotation({
+                pos = ctxt.veh.position,
+                rot = ctxt.veh.rotation,
+            }))
             W.raceData.changed = true
             W.raceData.keepRecord = false
             updateMarkers()
@@ -1089,13 +1101,19 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
     Indent(-2)
 end
 
+---@param ctxt TickContext
+---@param iStep integer
+---@param step table
 local function addStepBranch(ctxt, iStep, step)
     step:insert(table.assign({
         name = getNewWPName(),
         parents = Table(iStep == 1 and { "start" } or
             W.raceData.steps[iStep - 1]:map(function(wp) return wp.name end)),
         radius = getNewWaypointRadius(iStep, #step + 1),
-    }, ctxt.vehPosRot))
+    }, math.roundPositionRotation({
+        pos = ctxt.veh.position,
+        rot = ctxt.veh.rotation
+    })))
     W.raceData.changed = true
     W.raceData.keepRecord = false
     updateMarkers()
@@ -1204,6 +1222,7 @@ local function drawStep(ctxt, iStep, step)
     Indent(-2)
 end
 
+---@param ctxt TickContext
 local function addNewStep(ctxt)
     local parents = #W.raceData.steps == 0 and Table({ "start" }) or
         W.raceData.steps[#W.raceData.steps]:map(function(wp) return wp.name end)
@@ -1212,7 +1231,10 @@ local function addNewStep(ctxt)
             name = getNewWPName(),
             parents = parents,
             radius = getNewWaypointRadius(#W.raceData.steps + 1, 1),
-        }, ctxt.vehPosRot)
+        }, math.roundPositionRotation({
+            pos = ctxt.veh.position,
+            rot = ctxt.veh.rotation,
+        }))
     }))
     W.raceData.changed = true
     W.raceData.keepRecord = false

@@ -127,7 +127,6 @@ local function onVehicleEdited(playerID, vehID, vehDataStr)
             -- NO vid ON THIS EVENT
             if vehicle.name ~= vehData.jbm then
                 vehicle.name = model
-                player.currentVehicle = vehicle.vid
 
                 BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
@@ -151,9 +150,6 @@ local function onVehicleDeleted(playerID, vehID)
     local isCurrent = player.vehicles[vehID] and
         player.vehicles[vehID].vid == player.currentVehicle
     player.vehicles[vehID] = nil
-    if isCurrent then
-        player.currentVehicle = nil
-    end
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end

@@ -24,12 +24,15 @@ local S = {
     minDistance = 4,
 }
 
+---@param ctxt TickContext
+---@return boolean
 local function canChangeTo(ctxt)
     return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID())
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
 
+---@param ctxt TickContext
 local function onLoad(ctxt)
     S.resetLock = false
     BJI.Windows.VehSelector.tryClose()
@@ -49,6 +52,7 @@ local function onLoad(ctxt)
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
 end
 
+---@param ctxt TickContext
 local function onUnload(ctxt)
     BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
     BJI.Managers.Message.stopRealtimeDisplay()

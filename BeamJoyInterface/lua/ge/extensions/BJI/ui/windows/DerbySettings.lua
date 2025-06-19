@@ -85,8 +85,7 @@ local function updateCache(ctxt)
         return w > acc and w or acc
     end, 0)
 
-    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and
-        BJI.Managers.Veh.isVehProtected(ctxt.veh:getID())
+    W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
 end
 
@@ -186,7 +185,7 @@ end
 
 ---@param ctxt TickContext
 local function addCurrentConfig(ctxt)
-    local config = BJI.Managers.Veh.getFullConfig(ctxt.veh.partConfig) or {}
+    local config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig) or {}
     ---@param c ClientVehicleConfig
     if W.data.configs:any(function(c)
             return table.compare(config.parts, c.parts)

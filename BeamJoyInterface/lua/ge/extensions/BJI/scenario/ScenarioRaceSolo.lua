@@ -89,10 +89,11 @@ local function stopRace()
 end
 
 -- can switch to scenario hook
+---@param ctxt TickContext
 local function canChangeTo(ctxt)
     return BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh:getID())
+        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
 
 -- load hook
@@ -117,6 +118,7 @@ local function onLoad(ctxt)
 end
 
 -- unload hook (before switch to another scenario)
+---@param ctxt TickContext
 local function onUnload(ctxt)
     BJI.Managers.Async.removeTask("BJIRaceStandReset")
     BJI.Managers.Async.removeTask("BJIRaceStandEndRestrictionReset")
@@ -131,7 +133,7 @@ local function onUnload(ctxt)
     BJI.Managers.Message.cancelFlash("BJIRaceDNF")
     BJI.Managers.Message.cancelFlash("BJIRaceEndSelf")
     if ctxt.isOwner then
-        BJI.Managers.Veh.freeze(false, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(false, ctxt.veh.gameVehicleID)
     end
 
     BJI.Managers.RaceUI.clear()
@@ -614,6 +616,10 @@ local function findFreeStartPosition(startPositions)
     end
 end
 
+---@param ctxt TickContext
+---@param settings table
+---@param raceData table
+---@param testingCallback function?
 local function initRace(ctxt, settings, raceData, testingCallback)
     S.baseSettings = table.clone(settings)
     S.baseRaceData = table.clone(raceData)
@@ -624,7 +630,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     end
 
     BJI.Managers.Veh.deleteOtherOwnVehicles()
-    S.raceVeh = ctxt.veh:getID()
+    S.raceVeh = ctxt.veh.gameVehicleID
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.RACE_SOLO, ctxt)
     S.settings.model = BJI.Managers.Veh.getCurrentModel()
     S.settings.laps = settings.laps
@@ -647,7 +653,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     S.preRaceCam = ctxt.camera
     BJI.Managers.Veh.saveHome({ pos = S.startPosition.pos, rot = S.startPosition.rot })
     BJI.Managers.Veh.loadHome(function()
-        BJI.Managers.Veh.freeze(true, ctxt.veh:getID())
+        BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
         if table.includes({
                 BJI.Managers.Cam.CAMERAS.FREE,
                 BJI.Managers.Cam.CAMERAS.BIG_MAP,
@@ -748,6 +754,7 @@ local function isSprint()
 end
 
 -- each frame tick hook
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if not ctxt.isOwner then
         BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
@@ -765,17 +772,18 @@ local function renderTick(ctxt)
 
     -- prevent jato usage before start
     if not S.race.startTime or ctxt.now < S.race.startTime then
-        ctxt.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
+        ctxt.veh.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
     end
 end
 
 -- each second tick hook
+---@param ctxt TickContext
 local function slowTick(ctxt)
-    local damages = ctxt.isOwner and tonumber(ctxt.veh.damageState) or nil
+    local damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
     if not S.isRaceStarted(ctxt) and S.startPosition and damages and
         damages > BJI.Managers.Context.VehiclePristineThreshold then
         BJI.Managers.Veh.loadHome(function(ctxt2)
-            BJI.Managers.Veh.freeze(true, ctxt2.veh:getID())
+            BJI.Managers.Veh.freeze(true, ctxt2.veh.gameVehicleID)
         end)
     end
 
@@ -785,9 +793,9 @@ local function slowTick(ctxt)
         not S.dnf.standExempt then
         if not S.dnf.lastPos then
             -- first check
-            S.dnf.lastPos = ctxt.vehPosRot.pos
+            S.dnf.lastPos = ctxt.veh.position
         else
-            if math.horizontalDistance(ctxt.vehPosRot.pos, S.dnf.lastPos) < S.dnf.minDistance then
+            if math.horizontalDistance(ctxt.veh.position, S.dnf.lastPos) < S.dnf.minDistance then
                 -- distance isn't enough
                 if not S.dnf.process then
                     -- start countdown process
@@ -808,7 +816,7 @@ local function slowTick(ctxt)
                     S.dnf.process = false
                     S.dnf.targetTime = nil
                 end
-                S.dnf.lastPos = ctxt.vehPosRot.pos
+                S.dnf.lastPos = ctxt.veh.position
             end
         end
     end

@@ -62,10 +62,11 @@ local function initScenarii()
     end
 end
 
-local function onVehicleSpawned(gameVehID)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
     BJI.Managers.Reputation.vehicleResetted()
     if _curr().onVehicleSpawned then
-        _curr().onVehicleSpawned(gameVehID)
+        _curr().onVehicleSpawned(mpVeh)
     end
 end
 
@@ -83,30 +84,6 @@ local function onVehicleResetted(gameVehID)
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    -- assign the real gameVehID
-    local finalGameVehID
-    if newGameVehID ~= -1 then
-        local veh = BJI.Managers.Veh.getVehicleObject(newGameVehID)
-        if veh then
-            local remoteID = BJI.Managers.Veh.getRemoteVehID(newGameVehID)
-            if remoteID then
-                finalGameVehID = remoteID
-            else
-                finalGameVehID = newGameVehID
-            end
-        end
-    end
-    BJI.Tx.player.switchVehicle(finalGameVehID)
-    BJI.Managers.Context.User.currentVehicle = finalGameVehID
-
-    -- anti unicycle-spam
-    BJI.Managers.Async.delayTask(function()
-        local veh = oldGameVehID ~= -1 and BJI.Managers.Veh.getVehicleObject(oldGameVehID) or nil
-        if veh and BJI.Managers.Veh.isVehicleOwn(veh:getID())
-            and BJI.Managers.Veh.isUnicycle(veh:getID()) then
-            BJI.Managers.Veh.deleteVehicle(veh:getID())
-        end
-    end, 10, "BJIAntiUnicycleSpam")
     if _curr().onVehicleSwitched then
         _curr().onVehicleSwitched(oldGameVehID, newGameVehID)
     end
@@ -196,7 +173,7 @@ end
 ---@param gameVehID integer
 local function saveHome(gameVehID)
     local ctxt = BJI.Managers.Tick.getContext()
-    if ctxt.isOwner and ctxt.veh:getID() == gameVehID then
+    if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
         if not _curr().saveHome or not _curr().saveHome(ctxt) then
             local canReset = _curr().canReset and _curr().canReset()
             local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
@@ -210,7 +187,7 @@ end
 ---@param gameVehID integer
 local function loadHome(gameVehID)
     local ctxt = BJI.Managers.Tick.getContext()
-    if ctxt.isOwner and ctxt.veh:getID() == gameVehID then
+    if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
         if not _curr().loadHome or not _curr().loadHome(ctxt) then
             local canReset = _curr().canReset and _curr().canReset()
             local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
@@ -547,7 +524,7 @@ local function onLoad()
         end)
     end)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_INITIALIZED, onVehicleSpawned, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)

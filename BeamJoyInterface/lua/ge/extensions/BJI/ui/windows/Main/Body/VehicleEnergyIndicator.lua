@@ -16,6 +16,7 @@ end
 
 local cache = newCache()
 
+---@param ctxt TickContext
 local function updateCache(ctxt)
     cache = newCache()
 
@@ -116,7 +117,7 @@ local function draw(ctxt)
                 id = string.var("setRouteStation{1}", { i }),
                 icon = BJI.Utils.Icon.ICONS.add_location,
                 style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation"),
+                disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation") ~= nil,
                 tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
                 onClick = function()
                     if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
@@ -124,7 +125,7 @@ local function draw(ctxt)
                         local stations = {}
                         for _, station in ipairs(BJI.Managers.Context.Scenario.Data.EnergyStations) do
                             if table.includes(station.types, energyType) then
-                                local distance = BJI.Managers.GPS.getRouteLength({ ctxt.vehPosRot.pos, station
+                                local distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, station
                                     .pos })
                                 table.insert(stations, { station = station, distance = distance })
                             end
@@ -141,7 +142,7 @@ local function draw(ctxt)
                         -- Garage energy types
                         local garages = {}
                         for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
-                            local distance = BJI.Managers.GPS.getRouteLength({ ctxt.vehPosRot.pos, garage.pos })
+                            local distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, garage.pos })
                             table.insert(garages, { garage = garage, distance = distance })
                         end
                         table.sort(garages, function(a, b)

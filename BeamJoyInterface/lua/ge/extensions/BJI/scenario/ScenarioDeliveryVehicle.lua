@@ -152,6 +152,7 @@ local function initDelivery()
     })
 end
 
+---@param ctxt TickContext
 local function onLoad(ctxt)
     BJI.Managers.Restrictions.update({
         {
@@ -165,7 +166,7 @@ local function onLoad(ctxt)
     })
 
     BJI.Tx.scenario.DeliveryVehicleStart()
-    S.gameVehID = ctxt.veh:getID()
+    S.gameVehID = ctxt.veh.gameVehicleID
     BJI.Managers.Message.flash("BJIDeliveryVehicleStart",
         BJI.Managers.Lang.get("vehicleDelivery.flashStart"), 5, false)
 end
@@ -196,6 +197,7 @@ local function start()
     end)
 end
 
+---@param ctxt TickContext
 local function onUnload(ctxt)
     BJI.Managers.Restrictions.update({ {
         restrictions = Table({
@@ -235,6 +237,7 @@ local function onStopDelivery()
     onDeliveryFailed()
 end
 
+---@param ctxt TickContext
 local function drawUI(ctxt)
     local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     local line = LineBuilder():btnIcon({
@@ -268,7 +271,7 @@ local function drawUI(ctxt)
     string.var(" {1}", { S.configLabel }) or "",
     }))
 
-    local damages = tonumber(ctxt.veh.damageState)
+    local damages = ctxt.veh and tonumber(ctxt.veh.veh.damageState)
     if damages and damages > BJI.Managers.Context.VehiclePristineThreshold then
         LineLabel(BJI.Managers.Lang.get("vehicleDelivery.damagedWarning"), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
     end
@@ -286,13 +289,14 @@ local function drawUI(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function onTargetReached(ctxt)
     if not ctxt.vehData then
         S.onStopDelivery()
         return
     end
 
-    local damages = tonumber(ctxt.veh.damageState)
+    local damages = ctxt.veh and tonumber(ctxt.veh.veh.damageState)
     local pristine = damages and
         damages <= BJI.Managers.Context.VehiclePristineThreshold
     BJI.Tx.scenario.DeliveryVehicleSuccess(pristine)
@@ -309,6 +313,7 @@ local function onTargetReached(ctxt)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
 end
 
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.isOwner then
         S.onStopDelivery()
@@ -320,7 +325,7 @@ local function slowTick(ctxt)
         S.baseDistance = S.distance
     end
 
-    local distance = ctxt.vehPosRot.pos:distance(S.targetPosition.pos)
+    local distance = ctxt.veh.position:distance(S.targetPosition.pos)
     if distance < S.targetPosition.radius then
         if not S.checkTargetTime then
             S.checkTargetTime = ctxt.now + 3100

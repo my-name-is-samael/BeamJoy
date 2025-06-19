@@ -93,15 +93,16 @@ local function slowTick(ctxt)
     end
 end
 
-local function onVehicleSpawned(gameVehID)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
     if BJI.Managers.Context.BJC.Freeroam and
         BJI.Managers.Context.BJC.Freeroam.PreserveEnergy then
         S.exemptPreserveEnergy = true
     end
 
     if not BJI.Windows.ScenarioEditor.getState() then
-        tryApplyFreeze(gameVehID)
-        tryApplyEngineState(gameVehID)
+        tryApplyFreeze(mpVeh.gameVehicleID)
+        tryApplyEngineState(mpVeh.gameVehicleID)
     end
 end
 
@@ -305,7 +306,7 @@ local function getPlayerListActions(player, ctxt)
         else
             local veh = BJI.Managers.Veh.getVehicleObject(player.currentVehicle)
             local finalGameVehID = veh and veh:getID() or nil
-            disabled = finalGameVehID and ctxt.veh and ctxt.veh:getID() == finalGameVehID or false
+            disabled = finalGameVehID and ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID or false
         end
         table.insert(actions, {
             id = string.var("focus{1}", { player.playerID }),
@@ -337,7 +338,7 @@ local function getPlayerListActions(player, ctxt)
     end
 
     if ctxt.isOwner then
-        if player.self and BJI.Managers.Veh.isUnicycle(ctxt.veh:getID()) then
+        if player.self and BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID) then
             table.insert(actions, {
                 id = "stopWalking",
                 icon = BJI.Utils.Icon.ICONS.directions_run,
@@ -385,7 +386,7 @@ local function getPlayerListActions(player, ctxt)
                         style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
                             not ctxt.isOwner or
-                            finalGameVehID == ctxt.veh:getID(),
+                            finalGameVehID == ctxt.veh.gameVehicleID,
                         tooltip = BJI.Managers.Lang.get("playersBlock.buttons.teleportFrom"),
                         onClick = function()
                             BJI.Tx.moderation.teleportFrom(player.playerID)
