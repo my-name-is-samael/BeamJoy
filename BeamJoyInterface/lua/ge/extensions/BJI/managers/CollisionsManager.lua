@@ -125,19 +125,19 @@ local function onTypeChange(ctxt, previousType)
     if M.type ~= M.TYPES.GHOSTS then
         M.vehsCaches:filter(function(vehData, gameVehID)
             return vehData.ghostType and not vehData.veh.isAi and not M.permaGhosts[gameVehID]
-        end):forEach(function(el, gameVehID)
-            el.veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(M.type == M.TYPES.DISABLED) .. ")")
+        end):forEach(function(vehData, gameVehID)
+            vehData.veh.veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(M.type == M.TYPES.DISABLED) .. ")")
             if M.type == M.TYPES.DISABLED then
-                setAlpha(ctxt, el.veh, M.ghostAlpha)
+                setAlpha(ctxt, vehData.veh.veh, M.ghostAlpha)
             else -- forced
-                setAlpha(ctxt, el.veh, M.playerAlpha)
+                setAlpha(ctxt, vehData.veh.veh, M.playerAlpha)
             end
         end)
     elseif previousType == M.TYPES.DISABLED then
         M.vehsCaches:filter(function(vehData, gameVehID)
             return vehData.ghostType and not vehData.veh.isAi and not M.permaGhosts[gameVehID]
         end):forEach(function(vehData, gameVehID)
-            addGhost(ctxt, gameVehID, vehData.veh)
+            addGhost(ctxt, gameVehID, vehData.veh.veh)
         end)
     end
 end
