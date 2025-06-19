@@ -54,6 +54,8 @@ local W = {
         statsLabels = 0,
     },
 }
+-- gc prevention
+local w, state, nameColor, bgColor, alpha, name, nameLength, short, cols, disabled, line, color, value
 
 local function updateLabels()
     W.labels.vehicle.automaticLights = BJI.Managers.Lang.get("userSettings.vehicles.automaticLights") .. ":"
@@ -99,7 +101,7 @@ local function updateWidths()
         "dontFullyHide", "shorten", "nametagLength", "showSpecs",
         "colorsPlayerText", "colorsPlayerBg", "colorsIdleText",
         "colorsIdleBg", "colorsSpecText", "colorsSpecBg" }, function(k)
-        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.nametags[k])
+        w = BJI.Utils.UI.GetColumnTextWidth(W.labels.nametags[k])
         if w > W.widths.nametagsLabels then
             W.widths.nametagsLabels = w
         end
@@ -107,7 +109,7 @@ local function updateWidths()
 
     W.widths.freecamLabels = 0
     table.forEach(W.labels.freecam, function(label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label)
+        w = BJI.Utils.UI.GetColumnTextWidth(label)
         if w > W.widths.freecamLabels then
             W.widths.freecamLabels = w
         end
@@ -115,7 +117,7 @@ local function updateWidths()
 
     W.widths.statsLabels = 0
     table.forEach(W.labels.stats, function(label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label)
+        w = BJI.Utils.UI.GetColumnTextWidth(label)
         if w > W.widths.statsLabels then
             W.widths.statsLabels = w
         end
@@ -144,12 +146,10 @@ local function onUnload()
 end
 
 local function drawVehicleSettings(ctxt)
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.directions_car,
-            big = true,
-        })
-        :build()
+    LineBuilder():icon({
+        icon = BJI.Utils.Icon.ICONS.directions_car,
+        big = true,
+    }):build()
     Indent(2)
 
     ColumnsBuilder("UserSettingsVehicle", { W.widths.vehicleLabels, -1 })
@@ -159,7 +159,7 @@ local function drawVehicleSettings(ctxt)
                     LineLabel(W.labels.vehicle.automaticLights, nil, false, W.labels.vehicle.automaticLightsTooltip)
                 end,
                 function()
-                    local state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
+                    state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
                     LineBuilder()
                         :btnIconToggle({
                             id = "automaticLightsToggle",
@@ -188,8 +188,8 @@ local nametagsFields = {
             if settings.getValue("hideNameTags", false) then
                 return
             end
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsBasePreview", " Joel123", nameColor, bgColor)
@@ -250,9 +250,9 @@ local nametagsFields = {
             if not settings.getValue("nameTagDontFullyHide", false) then
                 return
             end
-            local alpha = .3
-            local nameColor = BJI.Managers.Nametags.getNametagColor(alpha)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(alpha)
+            nameColor = BJI.Managers.Nametags.getNametagColor(alpha)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(alpha)
+            alpha = .3
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsDontFullyHidePreview", " Joel123", nameColor, bgColor)
@@ -268,10 +268,10 @@ local nametagsFields = {
         end,
         type = "boolean",
         preview = function()
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
 
-            local name = settings.getValue("shortenNametags", true) and "StarryNeb..." or "StarryNebulaSkyx0"
+            name = settings.getValue("shortenNametags", true) and "StarryNeb..." or "StarryNebulaSkyx0"
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsShortenBasePreview", string.var(" {1}", { name }), nameColor, bgColor)
@@ -292,12 +292,12 @@ local nametagsFields = {
         step = 1,
         stepFast = 5,
         preview = function()
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
 
-            local name = "StarryNebulaSkyx0"
-            local nameLength = settings.getValue("nametagCharLimit", 50)
-            local short = name:sub(1, nameLength)
+            name = "StarryNebulaSkyx0"
+            nameLength = settings.getValue("nametagCharLimit", 50)
+            short = name:sub(1, nameLength)
             if #short ~= #name then short = string.var("{1}...", { short }) end
             name = short
             LineBuilder()
@@ -325,8 +325,8 @@ local nametagsBeamjoyFields = {
         end,
         type = "color",
         preview = function()
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1)
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsPlayerColors", " Joel123", nameColor, bgColor)
@@ -349,8 +349,8 @@ local nametagsBeamjoyFields = {
         end,
         type = "color",
         preview = function()
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1, false, true)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1, false, true)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1, false, true)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1, false, true)
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsIdleColors", " Joel123", nameColor, bgColor)
@@ -374,8 +374,8 @@ local nametagsBeamjoyFields = {
         end,
         type = "color",
         preview = function()
-            local nameColor = BJI.Managers.Nametags.getNametagColor(1, true)
-            local bgColor = BJI.Managers.Nametags.getNametagBgColor(1, true)
+            nameColor = BJI.Managers.Nametags.getNametagColor(1, true)
+            bgColor = BJI.Managers.Nametags.getNametagBgColor(1, true)
             LineBuilder()
                 :text(W.labels.nametags.preview)
                 :bgText("UserSettingsNametagsSpecColors", " Joel123", nameColor, bgColor)
@@ -401,9 +401,9 @@ local function drawNametagsSettings(ctxt)
         :build()
     Indent(2)
     -- BeamMP configs
-    local cols = ColumnsBuilder("UserSettingsNametags", { W.widths.nametagsLabels, -1, -1 })
+    cols = ColumnsBuilder("UserSettingsNametags", { W.widths.nametagsLabels, -1, -1 })
     for _, sc in ipairs(nametagsFields) do
-        local disabled = sc.condition and not sc.condition()
+        disabled = sc.condition and not sc.condition()
         cols:addRow({
             cells = {
                 function()
@@ -413,7 +413,7 @@ local function drawNametagsSettings(ctxt)
                         W.labels.nametags[sc.tooltip])
                 end,
                 function()
-                    local line = LineBuilder()
+                    line = LineBuilder()
                     if sc.type == "boolean" then
                         line:btnIconToggle({
                             id = sc.setting,
@@ -455,7 +455,7 @@ local function drawNametagsSettings(ctxt)
 
     -- BeamJoy configs
     for _, bjf in ipairs(nametagsBeamjoyFields) do
-        local disabled = bjf.condition and not bjf.condition()
+        disabled = bjf.condition and not bjf.condition()
         cols:addRow({
             cells = {
                 function()
@@ -475,9 +475,9 @@ local function drawNametagsSettings(ctxt)
                                 value = bjf.value,
                                 disabled = disabled,
                                 onChange = function(newColor)
-                                    local col = BJI.Utils.ShapeDrawer.Color(newColor[1], newColor[2], newColor[3])
-                                    BJI.Managers.LocalStorage.set(bjf.key, col)
-                                    bjf.value = col
+                                    color = BJI.Utils.ShapeDrawer.Color(newColor[1], newColor[2], newColor[3])
+                                    BJI.Managers.LocalStorage.set(bjf.key, color)
+                                    bjf.value = color
                                 end
                             })
                             :btnIcon({
@@ -486,9 +486,9 @@ local function drawNametagsSettings(ctxt)
                                 style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                                 disabled = disabled or table.compare(bjf.value, bjf.key.default),
                                 onClick = function()
-                                    local col = table.clone(bjf.key.default)
-                                    BJI.Managers.LocalStorage.set(bjf.key, col)
-                                    bjf.value = col
+                                    color = table.clone(bjf.key.default)
+                                    BJI.Managers.LocalStorage.set(bjf.key, color)
+                                    bjf.value = color
                                 end
                             })
                             :build()
@@ -503,121 +503,99 @@ local function drawNametagsSettings(ctxt)
 end
 
 local function drawFreecamSettings(ctxt)
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.simobject_camera,
-            big = true,
-        })
-        :build()
+    LineBuilder():icon({
+        icon = BJI.Utils.Icon.ICONS.simobject_camera,
+        big = true,
+    }):build()
     Indent(2)
 
     ColumnsBuilder("UserSettingsFreecam", { W.widths.freecamLabels, -1 })
         :addRow({
             cells = {
+                function() LineLabel(W.labels.freecam.smooth) end,
                 function()
-                    LineBuilder()
-                        :text(W.labels.freecam.smooth)
-                        :build()
-                end,
-                function()
-                    local state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
-                    LineBuilder()
-                        :btnIconToggle({
-                            id = "toggleSmooth",
-                            state = state,
-                            coloredIcon = true,
-                            onClick = function()
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH,
-                                    not state)
-                            end
-                        })
-                        :build()
+                    state = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
+                    LineBuilder():btnIconToggle({
+                        id = "toggleSmooth",
+                        state = state,
+                        coloredIcon = true,
+                        onClick = function()
+                            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH,
+                                not state)
+                        end
+                    }):build()
                 end
             }
         })
         :addRow({
             cells = {
+                function() LineLabel(W.labels.freecam.fov) end,
                 function()
-                    LineBuilder()
-                        :text(W.labels.freecam.fov)
-                        :build()
-                end,
-                function()
-                    local fov = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV)
-                    LineBuilder()
-                        :btnIcon({
-                            id = "fovReset",
-                            icon = BJI.Utils.Icon.ICONS.refresh,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = fov == BJI.Managers.Cam.DEFAULT_FREECAM_FOV,
-                            onClick = function()
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV,
-                                    BJI.Managers.Cam.DEFAULT_FREECAM_FOV)
-                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                                    BJI.Managers.Cam.setFOV(BJI.Managers.Cam.DEFAULT_FREECAM_FOV)
-                                end
+                    value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV)
+                    LineBuilder():btnIcon({
+                        id = "fovReset",
+                        icon = BJI.Utils.Icon.ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = value == BJI.Managers.Cam.DEFAULT_FREECAM_FOV,
+                        onClick = function()
+                            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV,
+                                BJI.Managers.Cam.DEFAULT_FREECAM_FOV)
+                            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                BJI.Managers.Cam.setFOV(BJI.Managers.Cam.DEFAULT_FREECAM_FOV)
                             end
-                        })
-                        :slider({
-                            id = "freecamFov",
-                            type = "float",
-                            value = fov,
-                            min = 10,
-                            max = 120,
-                            precision = 1,
-                            renderFormat = "%.1f°",
-                            onUpdate = function(val)
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, val)
-                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                                    BJI.Managers.Cam.setFOV(val)
-                                    ui_message({ txt = "ui.camera.fov", context = { degrees = val } }, 2, "cameramode")
-                                end
-                            end,
-                        })
-                        :build()
+                        end
+                    }):slider({
+                        id = "freecamFov",
+                        type = "float",
+                        value = value,
+                        min = 10,
+                        max = 120,
+                        precision = 1,
+                        renderFormat = "%.1f°",
+                        onUpdate = function(val)
+                            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, val)
+                            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                BJI.Managers.Cam.setFOV(val)
+                                ui_message({ txt = "ui.camera.fov", context = { degrees = val } }, 2, "cameramode")
+                            end
+                        end,
+                    }):build()
                 end
             }
         })
         :addRow({
             cells = {
+                function() LineLabel(W.labels.freecam.speed) end,
                 function()
-                    LineBuilder()
-                        :text(W.labels.freecam.speed)
-                        :build()
-                end,
-                function()
-                    local speed = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED)
-                    LineBuilder()
-                        :btnIcon({
-                            id = "speedReset",
-                            icon = BJI.Utils.Icon.ICONS.refresh,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = speed == BJI.Managers.Cam.DEFAULT_FREECAM_SPEED,
-                            onClick = function()
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED,
-                                    BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
-                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                                    BJI.Managers.Cam.setSpeed(BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
-                                end
+                    value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED)
+                    LineBuilder():btnIcon({
+                        id = "speedReset",
+                        icon = BJI.Utils.Icon.ICONS.refresh,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = value == BJI.Managers.Cam.DEFAULT_FREECAM_SPEED,
+                        onClick = function()
+                            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED,
+                                BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
+                            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                BJI.Managers.Cam.setSpeed(BJI.Managers.Cam.DEFAULT_FREECAM_SPEED)
                             end
-                        })
-                        :slider({
-                            id = "freecamSpeed",
-                            type = "float",
-                            value = speed,
-                            min = 2,
-                            max = 100,
-                            precision = 1,
-                            onUpdate = function(val)
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, val)
-                                if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                                    BJI.Managers.Cam.setSpeed(val)
-                                    ui_message({ txt = "ui.camera.speed", context = { speed = val } }, 1,
-                                        "cameraspeed")
-                                end
-                            end,
-                        })
-                        :build()
+                        end
+                    }):slider({
+                        id = "freecamSpeed",
+                        type = "float",
+                        value = value,
+                        min = 2,
+                        max = 100,
+                        precision = 1,
+                        onUpdate = function(val)
+                            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, val)
+                            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
+                                BJI.Managers.Cam.setSpeed(val)
+                                ui_message({ txt = "ui.camera.speed", context = { speed = val } }, 1,
+                                    "cameraspeed")
+                            end
+                        end,
+                    }):build()
                 end
             }
         })
@@ -635,19 +613,13 @@ local function drawUserStats(ctxt)
         :build()
     Indent(2)
 
-    local cols = ColumnsBuilder("UserSettingsStats", { W.widths.statsLabels, -1 })
+    cols = ColumnsBuilder("UserSettingsStats", { W.widths.statsLabels, -1 })
     table.forEach({ "delivery", "race", "bus" }, function(k)
         cols:addRow({
             cells = {
+                function() LineLabel(W.labels.stats[k]) end,
                 function()
-                    LineBuilder()
-                        :text(W.labels.stats[k])
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :text(BJI.Managers.Context.UserStats[k] or 0)
-                        :build()
+                    LineLabel(tostring(BJI.Managers.Context.UserStats[k] or 0))
                 end
             }
         })
@@ -655,6 +627,7 @@ local function drawUserStats(ctxt)
     cols:build()
     Indent(-2)
 end
+
 
 local function drawBody(ctxt)
     drawVehicleSettings(ctxt)

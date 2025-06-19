@@ -97,9 +97,8 @@ M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.FAST_TICK,
 })
 
--- gc vars
-local ctxtTmp, ok, err, found, asyncEventName, el, data
-local start, bench
+-- gc prevention
+local ctxtTmp, ok, err, found, asyncEventName, el, data, start, bench
 
 ---@param events string[]|string
 ---@param callback fun(...: any)|fun(ctxt: TickContext, data: table)
@@ -155,7 +154,7 @@ local function processSlowTick()
         BJI.Managers.Async.delayTask(function()
             ctxtTmp = BJI.Managers.Tick.getContext(true)
             el2.callback(ctxtTmp)
-            if BJI.Bench.STATE then
+            if BJI.Bench.STATE == 1 then
                 BJI.Bench.add(tostring(el2.id), "slow_tick", GetCurrentTimeMillis() - ctxtTmp.now)
             end
         end, i / tab:length() * 1000, asyncEventName)
@@ -212,7 +211,7 @@ local function renderTick(ctxt)
         start = GetCurrentTimeMillis()
         ok, err = pcall(el.callback, ctxt, { _event = M.EVENTS.FAST_TICK })
         bench = GetCurrentTimeMillis() - start
-        if BJI.Bench.STATE then
+        if BJI.Bench.STATE == 1 then
             BJI.Bench.add(tostring(el.target), el.event, bench)
         end
         if not ok then
@@ -240,7 +239,7 @@ local function renderTick(ctxt)
         start = GetCurrentTimeMillis()
         ok, err = pcall(el.callback, ctxt, data[1])
         bench = GetCurrentTimeMillis() - start
-        if BJI.Bench.STATE then
+        if BJI.Bench.STATE == 1 then
             BJI.Bench.add(tostring(el.target), el.event, bench)
         end
         if not ok then

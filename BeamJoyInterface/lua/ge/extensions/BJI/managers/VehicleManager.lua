@@ -194,7 +194,7 @@ end
 
 ---@return NGVehicle?
 local function getCurrentVehicle()
-    return be:getPlayerVehicle(0)
+    return getPlayerVehicle(0)
 end
 
 ---@param gameVehID integer?
@@ -713,7 +713,7 @@ local function setPosRotVel(posRotVel)
             local previousForce = ffb.forceCoef
             ffb.smoothing = ffb.smoothing * 2
             ffb.forceCoef = ffb.forceCoef / 2
-            be:getPlayerVehicle(0):queueLuaCommand([[
+            getPlayerVehicle(0):queueLuaCommand([[
                 hydros.setFFBConfig({
                     forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
                     gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
@@ -742,7 +742,7 @@ local function setPosRotVel(posRotVel)
             BJI.Managers.Async.delayTask(function()
                 ffb.smoothing = previousSmoothing
                 ffb.forceCoef = previousForce
-                be:getPlayerVehicle(0):queueLuaCommand([[
+                getPlayerVehicle(0):queueLuaCommand([[
                 hydros.setFFBConfig({
                     forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
                     gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
@@ -765,7 +765,7 @@ local function setPosRotVel(posRotVel)
             'smoothing2automatic="..tostring(ffb.smoothing2automatic).."',
             'softlockForce="..tostring(ffb.softlockForce).."',
         }):join(",")
-        be:getPlayerVehicle(0):queueLuaCommand([[
+        getPlayerVehicle(0):queueLuaCommand([[
             local ffb = hydros.getFFBConfig()
             obj:queueGameEngineLua("BJI.Managers.Veh.TMP_GET_FFB({]] .. params .. [[})")
         ]]);

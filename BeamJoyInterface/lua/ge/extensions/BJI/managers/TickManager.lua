@@ -71,7 +71,7 @@ local function client()
             if m.renderTick then
                 local start = GetCurrentTimeMillis()
                 m.renderTick(ctxt)
-                if BJI.Bench.STATE then
+                if BJI.Bench.STATE == 1 then
                     BJI.Bench.add(m._name, "renderTick", GetCurrentTimeMillis() - start)
                 end
             end

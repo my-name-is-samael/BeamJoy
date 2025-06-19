@@ -16,22 +16,8 @@ local M = {
     ---@type tablelib<string, boolean>
     showStates = Table(),
 }
-
---[[local function initWindows()
-    -- TAG
-    M.register({
-        name = "BJITag",
-        showConditionFn = function()
-            return (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO) and
-                    BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_DUO)) or
-                (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_SERVER) and
-                    BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_SERVER))
-        end,
-        draw = require("ge/extensions/BJI/ui/WindowTag/DrawWindowTag"),
-        w = 300,
-        h = 250,
-    })
-end]]
+-- gc prevention
+local size, scale, ok, err, title, flagsToApply, alpha, window, lines
 
 ---@param w BJIWindow
 ---@return BJIWindow
@@ -52,37 +38,41 @@ local function register(w)
 end
 
 ---@param ctxt TickContext
+---@param w BJIWindow
+---@param fnName string
+local function windowSubFnCall(ctxt, w, fnName)
+    if M.showStates[w.name] then
+        -- apply min height (fixes moved out collapsed size issue)
+        size = im.GetWindowSize()
+        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        if w.h and size.y < w.h * scale then
+            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
+        end
+    end
+    if type(w[fnName]) == "function" then
+        ok, err = pcall(w[fnName], ctxt)
+        if not ok then
+            LogError(string.var("Error executing \"{1}\" on window \"{2}\" : {3}",
+                { fnName, w.name, err }), M._name)
+        end
+    end
+end
+
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if not BJI.CLIENT_READY or not BJI.Managers.Cache.areBaseCachesFirstLoaded() or not BJI.Utils.Style.BJIThemeLoaded then
         return
     end
 
-    ---@param w BJIWindow
-    ---@param fnName string
-    local function windowSubFnCall(w, fnName)
-        if M.showStates[w.name] then
-            -- apply min height (fixes moved out collapsed size issue)
-            local size = im.GetWindowSize()
-            local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-            if w.h and size.y < w.h * scale then
-                im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
-            end
-        end
-        if type(w[fnName]) == "function" then
-            local _, err = pcall(w[fnName], ctxt)
-            if err then
-                LogError(string.var("Error executing \"{1}\" on window \"{2}\" : {3}",
-                    { fnName, w.name, err }), M._name)
-            end
-        end
-    end
-
     BJI.Utils.Style.InitDefaultStyles()
     for _, w in pairs(M.windows) do
+        if BJI.Bench.STATE == 2 then
+            BJI.Bench.startGC()
+        end
         if (M.showStates[w.name] and not w.getState()) or
             --not M.loaded or
             not MPGameNetwork.launcherConnected() then
-            windowSubFnCall(w, "onUnload")
+            windowSubFnCall(ctxt, w, "onUnload")
             M.showStates[w.name] = false
             BJI.Managers.Context.GUI.hideWindow(w.name)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
@@ -90,7 +80,7 @@ local function renderTick(ctxt)
                 state = false,
             })
         elseif not M.showStates[w.name] and w.getState() then
-            windowSubFnCall(w, "onLoad")
+            windowSubFnCall(ctxt, w, "onLoad")
             M.showStates[w.name] = true
             BJI.Managers.Context.GUI.showWindow(w.name)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
@@ -99,12 +89,12 @@ local function renderTick(ctxt)
             })
         end
 
-        local title = w.name and
+        title = w.name and
             BJI.Managers.Lang.get(string.var("windows.{1}", { w.name }), w.name) or
             nil
         if M.showStates[w.name] then
             if w.w and w.h then
-                local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+                scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
                 im.SetNextWindowSize(im.ImVec2(
                     math.floor(w.w * scale),
                     math.floor(w.h * scale)
@@ -114,42 +104,32 @@ local function renderTick(ctxt)
                 im.SetNextWindowPos(im.ImVec2(w.x, w.y))
             end
 
-            local flagsToApply = Table(M.BASE_FLAGS):clone()
+            flagsToApply = Table(M.BASE_FLAGS):clone()
                 :addAll(w.flags or {}, true)
                 :addAll(type(w.menu) == "function" and { BJI.Utils.Style.WINDOW_FLAGS.MENU_BAR } or {}, true)
 
             BJI.Managers.Context.GUI.setupWindow(w.name)
-            local alpha = BJI.Utils.Style.BJIStyles[BJI.Utils.Style.STYLE_COLS.WINDOW_BG] and
+            alpha = BJI.Utils.Style.BJIStyles[BJI.Utils.Style.STYLE_COLS.WINDOW_BG] and
                 BJI.Utils.Style.BJIStyles[BJI.Utils.Style.STYLE_COLS.WINDOW_BG].w or .5
-            local window = WindowBuilder(w.name, im.flags(table.unpack(flagsToApply)))
+            window = WindowBuilder(w.name, im.flags(table.unpack(flagsToApply)))
                 :title(title)
                 :opacity(alpha)
 
-            if w.menu then
-                window = window:menu(function()
-                    windowSubFnCall(w, "menu")
-                end)
-            end
-
-            if w.header then
-                window:header(function()
-                    windowSubFnCall(w, "header")
-                end)
-            end
-
-            if w.body then
-                window:body(function()
-                    windowSubFnCall(w, "body")
-                end)
-            end
+            Table({ "menu", "header", "body" }):forEach(function(part)
+                if w[part] then
+                    window[part](window, function()
+                        windowSubFnCall(ctxt, w, part)
+                    end)
+                end
+            end)
 
             if w.footer then
-                local lines = 1
+                lines = 1
                 if w.footerLines then
                     lines = w.footerLines(ctxt)
                 end
                 window:footer(function()
-                    windowSubFnCall(w, "footer")
+                    windowSubFnCall(ctxt, w, "footer")
                 end, lines)
             end
 
@@ -162,6 +142,9 @@ local function renderTick(ctxt)
             window:build()
         elseif not title then
             LogError(string.var("Invalid name for window {1}", { w.name }))
+        end
+        if BJI.Bench.STATE == 2 then
+            BJI.Bench.saveGC(w.name)
         end
     end
     BJI.Utils.Style.ResetStyles()

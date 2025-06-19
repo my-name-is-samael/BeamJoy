@@ -2,6 +2,12 @@ local im = ui_imgui
 local ffi = require('ffi')
 BTN_NO_SOUND = "no_sound"
 
+-- gc prevention
+local _, value, closeable, open, scale, size, footerHeight, bodyHeight, entry, subElems,
+enabled, color, drawMenu, ok, label, input, drawFn, valid, w, h, lines, count, stringValues,
+initRequired, valuePos, parsedValues, newString, newValue, icon, border, iconColor, bgColor,
+hoveredColor, activeColor, flags, countWidths, countEmpties, res, avail
+
 ---@param color {r: number, g: number, b: number, a: number?}|number[]
 ---@return vec4
 local function convertColorToVec4(color)
@@ -21,12 +27,12 @@ function InputInt(val)
     return ({
         _value = nil,
         get = function(self) return math.round(self._value[0]) end,
-        set = function(self, value)
-            self._value = im.IntPtr(value)
+        set = function(self, v)
+            self._value = im.IntPtr(v)
             return self
         end,
         clamp = function(self, min, max)
-            local value = self:get()
+            value = self:get()
             if min ~= nil and value < min then
                 value = min
             elseif max ~= nil and value > max then
@@ -42,12 +48,12 @@ function InputFloat(val, precision)
     return ({
         _value = nil,
         get = function(self) return math.round(self._value[0], precision) end,
-        set = function(self, value)
-            self._value = im.FloatPtr(value)
+        set = function(self, v)
+            self._value = im.FloatPtr(v)
             return self
         end,
         clamp = function(self, min, max)
-            local value = self:get()
+            value = self:get()
             if min ~= nil and value < min then
                 value = min
             elseif max ~= nil and value > max then
@@ -63,11 +69,11 @@ function InputString(size, defaultValue)
         _size = tonumber(size) or 128,
         _value = nil,
         get = function(self) return ffi.string(self._value) end,
-        set = function(self, value)
-            if type(value) == "string" then
-                self._value = im.ArrayChar(self._size, value)
-            elseif table.includes({ "number", "boolean" }, type(value)) then
-                self._value = im.ArrayChar(self._size, tostring(value))
+        set = function(self, v)
+            if type(v) == "string" then
+                self._value = im.ArrayChar(self._size, v)
+            elseif table.includes({ "number", "boolean" }, type(v)) then
+                self._value = im.ArrayChar(self._size, tostring(v))
             else
                 self._value = im.ArrayChar(self._size)
             end
@@ -168,9 +174,9 @@ WindowBuilder = function(name, flags)
         end
 
         im.SetNextWindowBgAlpha(self._opacity)
-        local closeable = type(self._onClose) == "function"
-        local open = closeable and im.BoolPtr(true) or nil
-        local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        closeable = type(self._onClose) == "function"
+        open = closeable and im.BoolPtr(true) or nil
+        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
         if im.Begin(self._title, open, self._flags) then
             im.SetWindowFontScale(scale)
 
@@ -182,9 +188,9 @@ WindowBuilder = function(name, flags)
                 self._headerBehavior()
             end
 
-            local footerHeight = self._footerLines == 0 and 0 or
+            footerHeight = self._footerLines == 0 and 0 or
                 (self._footerLines * (lineHeight + 5)) * scale
-            local bodyHeight = im.GetContentRegionAvail().y - math.ceil(footerHeight)
+            bodyHeight = im.GetContentRegionAvail().y - math.ceil(footerHeight)
             im.BeginChild1(string.var("##{1}Body", { self._name }), im.ImVec2(-1, bodyHeight))
             im.SetWindowFontScale(1) -- must scale to 1 in children
             self._bodyBehavior()
@@ -231,7 +237,7 @@ MenuBarBuilder = function()
             LogError("Menu entry is missing label", logTag)
             return self
         end
-        local entry = {
+        entry = {
             label = label,
             elems = {}
         }
@@ -250,7 +256,7 @@ MenuBarBuilder = function()
                     render = elem.render,
                 })
             else
-                local subElems
+                subElems = nil
                 if type(elem.elems) == "table" then
                     subElems = {}
                     for _, subElem in ipairs(elem.elems) do
@@ -307,8 +313,8 @@ MenuBarBuilder = function()
 
     builder.build = function(self)
         if #self._entries > 0 then
-            local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-            local function drawMenu(label, elems, level)
+            scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+            drawMenu = function(label, elems, level)
                 level = level or 0
                 if im.BeginMenu(label) then
                     im.SetWindowFontScale(level == 0 and 1 or scale)
@@ -324,7 +330,7 @@ MenuBarBuilder = function()
                                 BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.TEXT_COLOR,
                                     BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
                             end
-                            local enabled = elem.disabled and im.BoolFalse() or im.BoolTrue()
+                            enabled = elem.disabled and im.BoolFalse() or im.BoolTrue()
                             if im.MenuItem1(elem.label, nil, im.BoolFalse(), enabled) then
                                 if elem.sound then
                                     BJI.Managers.Sound.play(elem.sound)
@@ -335,7 +341,7 @@ MenuBarBuilder = function()
                                 BJI.Utils.Style.PopStyleColor(1)
                             end
                         else
-                            local color = elem.color
+                            color = elem.color
                             if not color then
                                 if elem.disabled then
                                     color = BJI.Utils.Style.TEXT_COLORS.DISABLED
@@ -343,9 +349,7 @@ MenuBarBuilder = function()
                                     color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
                                 end
                             end
-                            LineBuilder()
-                                :text(elem.label, color)
-                                :build()
+                            LineLabel(elem.label, color)
                         end
                     end
                     im.EndMenu()
@@ -353,8 +357,8 @@ MenuBarBuilder = function()
             end
 
             im.BeginMenuBar()
-            for _, entry in ipairs(self._entries) do
-                drawMenu(entry.label, entry.elems)
+            for _, e in ipairs(self._entries) do
+                drawMenu(e.label, e.elems)
             end
             im.EndMenuBar()
             im.SetWindowFontScale(scale)
@@ -535,6 +539,29 @@ end
 ---@field slider fun(self, data: {id: string, type: "int"|"float", value: number, min: number, max: number, onUpdate: fun(value: number), precision: integer?, width: number?, disabled: boolean?, style: number[][]?, renderFormat: string?}): LineBuilder
 ---@field build fun(self)
 
+-- LineBuilder utils functions
+local function btnStylePreset(preset)
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON, preset[1])
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_HOVERED, preset[2])
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_ACTIVE, preset[3])
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.TEXT_COLOR, preset[4])
+end
+local function resetBtnStyle()
+    im.PopStyleColor(4)
+end
+local function inputStylePreset(preset, numeric)
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.FRAME_BG, preset[1])
+    BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.TEXT_COLOR, preset[2])
+    if numeric then
+        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON, preset[1])
+        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_HOVERED, preset[1])
+        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_ACTIVE, preset[1])
+    end
+end
+local function resetInputStyle(numeric)
+    im.PopStyleColor(numeric and 5 or 2)
+end
+
 ---@param startSameLine? boolean
 ---@return LineBuilder
 LineBuilder = function(startSameLine)
@@ -572,8 +599,8 @@ LineBuilder = function(startSameLine)
         self:_commonStartElem()
         bgColor = bgColor and convertColorToVec4(bgColor)
         color = color and convertColorToVec4(color)
-        local size = im.CalcTextSize(tostring(text))
-        local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        size = im.CalcTextSize(tostring(text))
+        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
         size.x = size.x + 4 * scale
         size.y = size.y + 4 * scale
 
@@ -587,16 +614,6 @@ LineBuilder = function(startSameLine)
         self._elemCount = self._elemCount + 1
         return self
     end
-
-    local function btnStylePreset(preset)
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON, preset[1])
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_HOVERED, preset[2])
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_ACTIVE, preset[3])
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.TEXT_COLOR, preset[4])
-    end
-    local function resetBtnStyle()
-        im.PopStyleColor(4)
-    end
     builder.btn = function(self, data)
         if not data or not data.id or not data.label or
             not data.onClick then
@@ -605,8 +622,8 @@ LineBuilder = function(startSameLine)
         end
 
         if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
-            local status = pcall(function() return data.style[1] end)
-            if not status then
+            ok = pcall(function() return data.style[1] end)
+            if not ok then
                 LogError(string.var("({1}) btn.style has invalid type", { data.id }))
                 return self
             end
@@ -665,7 +682,7 @@ LineBuilder = function(startSameLine)
             LogError("btnToggle requires id, state and onClick", logTag)
             return self
         end
-        local label = BJI.Managers.Lang.get("common.buttons.toggle")
+        label = BJI.Managers.Lang.get("common.buttons.toggle")
         -- invert state to print in Red when active
         return self:btnSwitch(table.assign(data, {
             labelOn = label,
@@ -716,18 +733,6 @@ LineBuilder = function(startSameLine)
         }))
     end
 
-    local function inputStylePreset(preset, numeric)
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.FRAME_BG, preset[1])
-        BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.TEXT_COLOR, preset[2])
-        if numeric then
-            BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON, preset[1])
-            BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_HOVERED, preset[1])
-            BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.BUTTON_ACTIVE, preset[1])
-        end
-    end
-    local function resetInputStyle(numeric)
-        im.PopStyleColor(numeric and 5 or 2)
-    end
     builder.inputNumeric = function(self, data)
         if not data or not data.id or not data.type or type(data.value) ~= "number" then
             LogError("inputNumeric requires id, type and value", logTag)
@@ -768,8 +773,8 @@ LineBuilder = function(startSameLine)
         end
         inputStylePreset(data.style, true)
 
-        local input = InputInt(math.round(data.value))
-        local drawFn = im.InputInt
+        input = InputInt(math.round(data.value))
+        drawFn = im.InputInt
         if data.type == "float" then
             input = InputFloat(data.value, data.precision)
             drawFn = im.InputFloat
@@ -777,7 +782,7 @@ LineBuilder = function(startSameLine)
 
         if drawFn(string.var("##{1}", { data.id }), input._value, data.step, data.stepFast) and
             not data.disabled then
-            local valid = true
+            valid = true
             if data.min or data.max then
                 if data.min and input:get() < data.min then
                     valid = false
@@ -812,7 +817,7 @@ LineBuilder = function(startSameLine)
         end
         self:_commonStartElem()
 
-        local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
 
         -- WIDTH
         if data.width then
@@ -840,7 +845,7 @@ LineBuilder = function(startSameLine)
         inputStylePreset(data.style)
 
         -- DRAW
-        local input = InputString(data.size or 100, data.value)
+        input = InputString(data.size or 100, data.value)
         if not data.multiline then
             --[[im.InputTextWithHint(
                 string.var("##{1}", { data.id }),
@@ -858,19 +863,19 @@ LineBuilder = function(startSameLine)
                 data.onUpdate(input:get())
             end
         else
-            local w = -1
+            w = -1
             if data.width then
                 w = data.width * scale
             end
 
-            local lines = 3
+            lines = 3
             if data.autoheight then
-                local _, count = input:get():gsub("\n", "")
+                _, count = input:get():gsub("\n", "")
                 lines = count + 1
             elseif data.lines then
                 lines = data.lines
             end
-            local h = (lineHeight * scale * lines) + 2
+            h = (lineHeight * scale * lines) + 2
             if h < 0 then
                 h = -1
             end
@@ -903,7 +908,7 @@ LineBuilder = function(startSameLine)
             return self
         end
         data.items = #data.items > 0 and data.items or { "" }
-        local stringValues = type(data.items[1]) == "string"
+        stringValues = type(data.items[1]) == "string"
         if not stringValues and type(data.items[1]) ~= "table" then
             LogError("combo requires items to be strings or tables", logTag)
             return self
@@ -914,10 +919,10 @@ LineBuilder = function(startSameLine)
 
         self:_commonStartElem()
         data.label = data.label or ""
-        local initRequired = data.value == nil
+        initRequired = data.value == nil
         data.value = data.value or data.items[1]
 
-        local valuePos = 1
+        valuePos = 1
         if stringValues then
             valuePos = table.indexOf(data.items, data.value) or valuePos
         else
@@ -928,9 +933,9 @@ LineBuilder = function(startSameLine)
                 end
             end
         end
-        local input = InputInt(valuePos - 1)
+        input = InputInt(valuePos - 1)
 
-        local parsedValues = table.clone(data.items)
+        parsedValues = table.clone(data.items)
         if not stringValues then
             for i, v in ipairs(parsedValues) do
                 parsedValues[i] = data.getLabelFn(v)
@@ -946,8 +951,8 @@ LineBuilder = function(startSameLine)
 
         if im.Combo1(string.var("{1}##{2}", { data.label, data.id }), input._value, im.ArrayCharPtrByTbl(parsedValues)) and
             type(data.onChange) == "function" then
-            local newString = parsedValues[input:get() + 1]
-            local newValue
+            newString = parsedValues[input:get() + 1]
+            newValue = nil
             if stringValues then
                 newValue = newString
             else
@@ -988,24 +993,23 @@ LineBuilder = function(startSameLine)
         end
 
         if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
-            local status = pcall(function() return data.style[1] end)
-            if not status then
+            ok = pcall(function() return data.style[1] end)
+            if not ok then
                 LogError("icon.style has invalid type")
                 return self
             end
         end
 
-        local icon = BJI.Utils.Icon.GetIcon(data.icon)
+        icon = BJI.Utils.Icon.GetIcon(data.icon)
         if not icon then
             return self
         end
 
-        local size = BJI.Utils.UI.GetIconSize(data.big)
-        local border = data.border or nil
+        size = BJI.Utils.UI.GetIconSize(data.big)
+        border = data.border or nil
 
         data.style = data.style and table.clone(data.style) or
             table.clone(BJI.Utils.Style.BTN_PRESETS.TRANSPARENT)
-        local iconColor
         if data.coloredIcon then
             iconColor = data.style[1]
         else
@@ -1035,14 +1039,14 @@ LineBuilder = function(startSameLine)
         end
 
         if table.includes({ "table", "userdata", "cdata" }, type(data.style)) then
-            local status = pcall(function() return data.style[1] end)
-            if not status then
+            ok = pcall(function() return data.style[1] end)
+            if not ok then
                 LogError(string.var("({1}) btnIcon.style has invalid type", { data.id }))
                 return self
             end
         end
 
-        local icon = BJI.Utils.Icon.GetIcon(data.icon)
+        icon = BJI.Utils.Icon.GetIcon(data.icon)
         if not icon then
             -- error already logged inside GetIcon(str)
             return self
@@ -1050,20 +1054,19 @@ LineBuilder = function(startSameLine)
         self:_commonStartElem()
         data.style = data.style and table.clone(data.style) or nil
 
-        local size = BJI.Utils.UI.GetIconSize(data.big)
+        size = BJI.Utils.UI.GetIconSize(data.big)
         if data.disabled then
             data.style = table.clone(BJI.Utils.Style.BTN_PRESETS.DISABLED)
         end
         data.style = data.style or table.clone(BJI.Utils.Style.BTN_PRESETS.INFO)
-        local iconColor
         if data.active then
             iconColor = table.clone(BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
         else
             iconColor = data.style[4] and table.clone(data.style[4]) or table.clone(BJI.Utils.Style.TEXT_COLORS.DEFAULT)
         end
-        local bgColor = table.clone(data.style[1])
-        local hoveredColor = table.clone(data.style[2])
-        local activeColor = table.clone(data.style[3])
+        bgColor = table.clone(data.style[1])
+        hoveredColor = table.clone(data.style[2])
+        activeColor = table.clone(data.style[3])
         if data.coloredIcon then
             iconColor = bgColor
             bgColor = BJI.Utils.Style.BTN_PRESETS.TRANSPARENT[1]
@@ -1123,13 +1126,13 @@ LineBuilder = function(startSameLine)
         end
         self:_commonStartElem()
 
-        local flags = {
+        flags = {
             im.ColorEditFlags_NoInputs
         }
         if data.disabled then
             table.insert(flags, im.ColorEditFlags_NoPicker)
         end
-        local color = im.ArrayFloat(4)
+        color = im.ArrayFloat(4)
         if data.value.r then
             color[0] = data.value.r
             color[1] = data.value.g
@@ -1143,11 +1146,11 @@ LineBuilder = function(startSameLine)
         elseif data.value[0] then
             color[3] = color[3] or 1
         end
-        local fn = im.ColorEdit3
+        drawFn = im.ColorEdit3
         if data.alpha then
-            fn = im.ColorEdit4
+            drawFn = im.ColorEdit4
         end
-        if fn(string.var("##{1}", { data.id }), color, im.flags(table.unpack(flags))) and not data.disabled then
+        if drawFn(string.var("##{1}", { data.id }), color, im.flags(table.unpack(flags))) and not data.disabled then
             data.onChange({
                 math.round(color[0], BJI.Utils.Style.RGBA_PRECISION),
                 math.round(color[1], BJI.Utils.Style.RGBA_PRECISION),
@@ -1178,8 +1181,8 @@ LineBuilder = function(startSameLine)
 
         self:_commonStartElem()
 
-        local flags = { im.SliderFlags_AlwaysClamp }
-        local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        flags = { im.SliderFlags_AlwaysClamp }
+        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
         -- WIDTH
         if data.width then
             im.PushItemWidth(data.width * scale)
@@ -1206,16 +1209,16 @@ LineBuilder = function(startSameLine)
         inputStylePreset(data.style, true)
 
         data.value = math.round(data.value, data.precision or 0)
-        local drawFn, val = im.SliderInt, im.IntPtr(data.value)
+        drawFn, value = im.SliderInt, im.IntPtr(data.value)
         if data.type == "float" then
             drawFn = im.SliderFloat
-            val = im.FloatPtr(data.value)
+            value = im.FloatPtr(data.value)
         end
-        if drawFn("##" .. tostring(data.id), val, data.min, data.max, data.renderFormat, im.flags(table.unpack(flags))) and
+        if drawFn("##" .. tostring(data.id), value, data.min, data.max, data.renderFormat, im.flags(table.unpack(flags))) and
             not data.disabled then
-            local parsed = math.round(val[0], data.precision)
+            newValue = math.round(value[0], data.precision)
             if data.parsed ~= data.value then
-                data.onUpdate(parsed)
+                data.onUpdate(newValue)
             end
         end
 
@@ -1240,12 +1243,12 @@ EmptyLine = function()
     LineBuilder():text(" "):build()
 end
 
----@param label string
----@param color? table
+---@param l string label
+---@param c? table color
 ---@param startSameLine? boolean
 ---@param tooltip? string
-LineLabel = function(label, color, startSameLine, tooltip)
-    LineBuilder(startSameLine):text(label, color, tooltip):build()
+LineLabel = function(l, c, startSameLine, tooltip)
+    LineBuilder(startSameLine):text(l, c, tooltip):build()
 end
 
 ---@param data {floatPercent: number, width: number|string?, text: string?, tooltip: string?, style: number[]|table<string, number>?}
@@ -1259,15 +1262,15 @@ ProgressBar = function(data)
     else
         data.width = -1
     end
-    local text = data.text or ""
-    local height = #text == 0 and 5 or (im.CalcTextSize(text).y + 2)
+    value = data.text or ""
+    h = #value == 0 and 5 or (im.CalcTextSize(value).y + 2)
 
-    local size = im.ImVec2(data.width, height)
+    size = im.ImVec2(data.width, h)
 
     data.style = convertColorToVec4(data.style or BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
 
     BJI.Utils.Style.SetStyleColor(BJI.Utils.Style.STYLE_COLS.PROGRESSBAR, data.style)
-    im.ProgressBar(data.floatPercent, size, text)
+    im.ProgressBar(data.floatPercent, size, value)
     BJI.Utils.Style.PopStyleColor(1)
     if data.tooltip then
         im.tooltip(data.tooltip)
@@ -1280,6 +1283,37 @@ end
 ---@field build fun(self)
 
 local COLUMNS_SEPARATOR = "column_separator"
+---@param widths integer[]
+---@param withBorders? boolean
+---@return tablelib<integer, integer>
+local function calculateTableWidths(widths, withBorders)
+    countWidths, countEmpties = 0, 0
+    for _, width in ipairs(widths) do
+        if width > -1 then
+            countWidths = countWidths + (width)
+        else
+            countEmpties = countEmpties + 1
+        end
+    end
+
+    if countEmpties == 0 then
+        return widths
+    end
+
+    res = Table()
+    avail = im.GetContentRegionAvail().x - countWidths
+    for i, width in ipairs(widths) do
+        if width > -1 then
+            res[i] = width
+        elseif not withBorders then
+            res[i] = math.floor(avail / countEmpties)
+        end
+    end
+    return res
+end
+local function resetCols()
+    im.Columns(1)
+end
 
 ---@param name string unique name
 ---@param colsWidths integer[]
@@ -1308,47 +1342,15 @@ ColumnsBuilder = function(name, colsWidths, borders)
         return self
     end
 
-    ---@param widths integer[]
-    ---@param withBorders? boolean
-    ---@return tablelib<integer, integer>
-    local function calculateTableWidths(widths, withBorders)
-        local countWidths, countEmpties = 0, 0
-        for _, w in ipairs(widths) do
-            if w > -1 then
-                countWidths = countWidths + (w)
-            else
-                countEmpties = countEmpties + 1
-            end
-        end
-
-        if countEmpties == 0 then
-            return widths
-        end
-
-        local res = Table()
-        local regionW = im.GetContentRegionAvail().x
-        local avail = regionW - countWidths
-        for i, w in ipairs(widths) do
-            if w > -1 then
-                res[i] = w
-            elseif not withBorders then
-                res[i] = math.floor(avail / countEmpties)
-            end
-        end
-        return res
-    end
 
     builder.build = function(self)
-        local widths = calculateTableWidths(self._widths, self._borders)
+        w = calculateTableWidths(self._widths, self._borders)
 
         local function initCols()
             im.Columns(self._cols, self._name, self._borders)
-            widths:forEach(function(w, i)
-                im.SetColumnWidth(i - 1, w)
+            w:forEach(function(width, i)
+                im.SetColumnWidth(i - 1, width)
             end)
-        end
-        local function resetCols()
-            im.Columns(1)
         end
 
         initCols()

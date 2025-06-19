@@ -1,21 +1,9 @@
 local M = {
-    STATE = false,
+    STATE = 0,
 
     data = Table(),
     _threshold = 100,
 }
-
---[[
--- USAGE
-local start
-if BJI.BENCH.STATE then
-    start = GetCurrentTimeMillis()
-end
--- BENCHMARKED CODE EXEC HERE
-if BJI.BENCH.STATE then
-    BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
-end
-]]
 
 ---@param wrapperName string
 ---@param eventName string
@@ -33,6 +21,7 @@ function M.add(wrapperName, eventName, time)
     end
 end
 
+local sum, min, max
 ---@param amount? integer
 ---@param recurrent? boolean
 ---@return string
@@ -40,7 +29,7 @@ function M.get(amount, recurrent)
     return M.data:reduce(function(res, events, wrapperName)
             events:forEach(function(times, event)
                 if #times > 0 then
-                    local sum, min, max = 0, times[1], times[1]
+                    sum, min, max = 0, times[1], times[1]
                     for _, t in ipairs(times) do
                         sum = sum + t
                         if t < min then
@@ -77,21 +66,63 @@ function M.get(amount, recurrent)
         end, "")
 end
 
-function M.reset()
-    M.data = Table()
-end
-
 ---@param amount? integer
 ---@param recurrent? boolean
 function M.startWindow(amount, recurrent)
-    M.STATE = true
+    M.STATE = 1
     M.reset()
     BJI.DEBUG = function() return M.get(amount or 10, recurrent ~= false) end
 end
 
-function M.stop()
-    M.STATE = false
+local gcdata, init = Table(), false
+function M.startGC()
+    gcprobe(false, true)
+    timeprobe(true)
+    init = true
+    if not gcdata then
+        gcdata = Table()
+    end
+end
+
+---@param name string
+function M.saveGC(name)
+    if init then
+        gcdata[name] = { t = tonumber(timeprobe(true)), gc = tonumber(gcprobe(false, true)) }
+    end
+    init = false
+end
+
+function M.showGC()
+    M.STATE = 2
     M.reset()
+    BJI.DEBUG = function()
+        return gcdata:map(function(v, k)
+            return {
+                name = k,
+                t = v.t,
+                gc = v.gc,
+            }
+        end):sort(function(a, b)
+            if a.gc ~= b.gc then
+                return a.gc > b.gc
+            end
+            return a.t > b.t
+        end):reduce(function(res, v)
+            res = res .. v.name .. " = " .. tostring(v.gc) .. " - " .. tostring(math.round(v.t, 6)) .. "\n"
+            return res
+        end, "\n")
+    end
+end
+
+function M.reset()
+    M.data = M.data:clear()
+    gcdata = gcdata:clear()
+end
+
+function M.stop()
+    M.STATE = 0
+    M.reset()
+    BJI.DEBUG = nil
 end
 
 return M
