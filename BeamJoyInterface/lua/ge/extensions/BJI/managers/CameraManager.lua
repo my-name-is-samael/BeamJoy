@@ -217,19 +217,15 @@ end
 
 local initKey
 --- Called when self player is connected and every vehicle is ready
-local function onConnection()
-    local vehs = BJI.Managers.Context.Players:reduce(function(vehs, p)
-        return vehs:addAll(Table(p.vehicles)
-            :map(function(v)
-                return v.finalGameVehID
-            end)
-            :filter(function(vid)
-                return not BJI.Managers.AI.isAIVehicle(vid)
-            end))
-    end, Table())
+---@param ctxt TickContext
+local function onConnection(ctxt)
+    local vehs = BJI.Managers.Veh.getMPVehicles({ isAi = false })
+        :filter(function(v) ---@param v BJIMPVehicle
+            local owner = ctxt.players[v.ownerID] ---@type BJIPlayer
+            return owner and owner.currentVehicle == v.remoteVehID
+        end)
     if #vehs > 0 then
-        local vid = vehs:random()
-        BJI.Managers.Veh.focusVehicle(vid)
+        BJI.Managers.Veh.focusVehicle(vehs:random().gameVehicleID)
     end
     BJI.Managers.Events.removeListener(tostring(initKey))
 end
