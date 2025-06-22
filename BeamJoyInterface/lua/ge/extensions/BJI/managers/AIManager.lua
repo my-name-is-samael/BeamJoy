@@ -131,7 +131,7 @@ local function onUpdate()
             Table(extensions.gameplay_traffic.getTrafficAiVehIds())
                 :forEach(function(vid)
                     local vehTraffic = extensions.gameplay_traffic.getTrafficData()[vid]
-                    if vehTraffic.roleName ~= finalRole then
+                    if vehTraffic and vehTraffic.roleName ~= finalRole then
                         if vehTraffic.roleName ~= "suspect" or
                             BJI.Managers.Context.Players:length() > 1 then
                             vehTraffic:setRole(finalRole)
