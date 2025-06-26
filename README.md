@@ -12,15 +12,40 @@ The purpose of this mod is to provide easy access to moderation tools and activi
 In addition, it includes a built-in framework to make it modular, allowing developers to easily add new features.
 
 ## Summary
-1. [Features](#features)
-2. [How to Install](#how-to-install)
-3. [How to Add a Modded Map](#how-to-add-a-modded-map-to-your-server)
-4. [How to Install Basegame Data (Gas Stations, Garages, Delivery points, Races, ...)](#how-to-install-basegame-maps-data)
-5. [How to Set Or Add a Language](#how-to-set-or-add-a-language-to-your-server)
-6. [Video Tutorials](#video-tutorials)
-7. [Participating](#participating)
-8. [Roadmap](#roadmap)
-9. [Credits](#credits)
+- [BeamJoy](#beamjoy)
+  - [Summary](#summary)
+  - [Features](#features)
+    - [Global and Sync](#global-and-sync)
+    - [QoL](#qol)
+    - [Facilities](#facilities)
+    - [Moderation](#moderation)
+    - [Scenarios](#scenarios)
+      - [Races](#races)
+      - [Hunter / CarHunt](#hunter--carhunt)
+      - [Deliveries](#deliveries)
+      - [Bus Mission](#bus-mission)
+      - [Speed Game](#speed-game)
+      - [Destruction Derby](#destruction-derby)
+    - [Tech (for developers)](#tech-for-developers)
+  - [How To](#how-to)
+    - [How to install](#how-to-install)
+    - [How to add a modded map to your server](#how-to-add-a-modded-map-to-your-server)
+    - [How to install basegame maps data](#how-to-install-basegame-maps-data)
+    - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
+  - [FAQ](#faq)
+    - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
+    - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
+    - [Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?](#why-some-players-can-spawn-traffic-and-some-dont--how-can-i-spawn-traffic-during-a-scenario-)
+    - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
+    - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
+    - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
+    - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
+  - [Compatible Mods](#compatible-mods)
+  - [Video tutorials](#video-tutorials)
+  - [Participating](#participating)
+  - [Bucket list](#bucket-list)
+  - [Known issues](#known-issues)
+  - [Credits](#credits)
 
 ## Features
 
@@ -51,29 +76,28 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Reworked in-game chat with Rank or Reputation level indicators.
 - Toggleable automatic headlights based on the day-night cycle.
 - Toggleable smooth free camera.
-- Precise FoV selector.
+- Precise free camera FoV selector.
 - Ghost mode to prevent speeding players from crashing into newly spawned players.
-- Toggleable on-screen drift indicator.
 - Toggleable broadcast for big drifts.
 - Reputation rewards based on drift length.
-- Almost all base game UI applications work for each scenario.
+- Almost all base game UI-Apps work for each scenario.
 - BigMap missions are removed since they are unavailable on BeamMP.
 - Traffic spawning is managed with a per-group VehicleCap permission to prevent game softlock when permission is missing.
 - Prevent users from activating their own mods and disrupting the server experience.
-- A secondary, highly responsive vehicle selector with all the base functionalities with preview images (works with modded vehicles).
-- Complete theme editor for windows for admins and selected players.
+- A secondary, highly responsive vehicle selector with all the base functionalities and a nema filter (works with modded vehicles).
+- Complete theme editor for windows for staff.
 - Vehicle model blacklist to prevent their usage on your server (only staff can see and spawn them).
 - Specific permissions for spawning trailers and props. Vehicles in categories for which you lack permissions will be hidden in both vehicle selectors.
 - Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
 - Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
-- Customizable emergency refuel system when players vehicles are running out of gas.
+- Highly customizable emergency refuel system when players vehicles are running out of gas.
 
 ### Facilities
 
 - Gas Stations and Charging Stations, with independent fuel types.
-- Complete station editor for admins and selected players.
+- Complete station editor for staff.
 - Garages to repair vehicles and refill NOS.
-- Complete garage editor for admins and selected players.
+- Complete garage editor for staff.
 - Working GPS to find gas stations, garages, and players (and more within scenarios).
 
 ### Moderation
@@ -107,6 +131,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Players can use any vehicle, a specific model, or a specified configuration set at race launch.
 - Dynamic branching race mapping allows shortcuts or reroutes.
 - Persistent race records.
+- Best personal times stored on the game cache and kept between game restarts.
 - Reputation rewards for participation, winning races, and breaking records, highly customizable.
 - Real-time race time counter with flashing time when reaching a checkpoint (UI applications).
 - Toggleable broadcasting solo race times.
@@ -153,7 +178,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Complete arena and starting positions editor for admins and selected players.
 - Reputation rewards for participation and winning, highly customizable.
 
-### Tech
+### Tech (for developers)
 
 - Built-in developer-friendly framework for scenarios and events.
 - Improved communication limits between server and clients.
@@ -162,10 +187,14 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Per-model cache system with auto-requesting on changes.
 - Internationalization system for clients, server, and server-client communications.
 - File-system DAO layer easily replaceable to migrate to (No)SQL database systems.
+- Global beamjoy settings cache & per-server cookies-like systems
+- On events triggering system
 
 </details>
 
-## How to install
+## How To
+
+### How to install
 
 - Install your BeamMP server ([BeamMP Server Download](https://beammp.com)) and configure it (at least your *AuthKey*).
 - Launch your server once to initialize files.
@@ -176,7 +205,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 (*your_playername* is not case-sensitive and can be a subpart of your actual playername).
 
-## How to add a modded map to your server
+### How to add a modded map to your server
 
 - Ensure to have the permission *SetMaps*.
 - Place the map archive in your server's *Resources* folder (not in *Client* or *Server* folders).
@@ -189,14 +218,14 @@ The optimized map switcher only sends the current modded map to joining players,
 
 **Caution** : When switching to or from a modded map, the server will restart. Ensure you have an active reboot system for your server.
 
-## How to install basegame maps data
+### How to install basegame maps data
 
 - Download the data archive ([available here](https://github.com/my-name-is-samael/BeamJoy/releases/tag/datapack-2024-12-20)).
 - Extract it to the *Resources/Server/BeamJoyData/db/scenarii/* folder.
 - Restart the server.
 - All basegame maps, scenarios, and facilities will now be available for players.
 
-## How to set or add a language to your server
+### How to set or add a language to your server
 
 The mod is packed with EN, FR, DE, IT, ES, PT and RU languages.
 
@@ -220,9 +249,79 @@ To update labels:
 - Find your language file in *Resources/Server/BeamJoyCore/lang*.
 - As mentioned earlier, do not change keys or variables between braces (**{** and **}**) in values.
 
+## FAQ
+
+### I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?
+You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server root folder), the value cannot be set to `-1` (I recommand you to set it between 50 and 500).
+
+### I cannot respawn my vehicle, it this broken ?
+Scenarios have their own rules, here is the complete respawns guide by scenario :
+  - `Freeroam` : All respawn are allowed by default. If staff member(s) configured respawn delay and/or teleport delay, you will have a countdown (visible in the header of the main beamjoy window) before you can do it again.
+  - `Races (solo/multi)` : the allowed respawns mode is defined by the player who launched the race. There are multiple mode:
+    - All respawns : __RecoverVehicle__ and __RecoverVehicleAlt__ are the only respawns allowed because they are fast and in-place. Other respawns are teleporting or reloading game physic (provokes a stutter).
+    - No respawns : self explanatory
+    - Last checkpoint / Stand : only the __LoadHome__ respawn wil be enabled and will bring you back to the last checkpoint/stand (the home is automatically defined by the scenario).
+  - `Delivery (solo, package/vehicle)` : only the __RecoverVehicle__ respawn is enabled, but will bring you to Freeroam if you use it.
+  - `DeliveryTogether` : As the other delivery modes, the __RecoverVehicle__ respawn is allowed, but this time it does not bring you back to Freeroam mode, instead it will cancel your next delivery reward (you should get to a garage or driving more carefully to keep it).
+  - `Hunter` : The hunted player cannot respawn (its skills are valued in this mode). Hunters can use the __RecoverVehicle__ respawn but will then have a freeze countdown before they can drive again.
+  - `Destruction Derby` : Participants have lives, and until they have, thay can use the __LoadHome__ respawn (note that if they still have live(s) and the takedown countdown reached 0, they will automatically get respawned).
+  - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to become the last player alive.
+
+For reference, here is the BeamJoy handled respawns list with default bindings:
+- __RecoverVehicle__ : Keyboard `Insert` by default | Controller `Dpad left` by default
+- __RecoverVehicleAlt__ : Keyboard `Ctrl + Insert` by default | not assigned by default on Controller
+- __LoadHome__ : Keyboard `Home` by default | not assigned by default on Controller
+
+If you are mainly `playing with a controller`, I suggest you to remove all respawn bindings and then to assign:
+- __Recover Vehicle__ : `DPad left`
+- __Save Home__ : `DPad left`
+- __Load Home__ : `DPad Right`
+
+### Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?
+
+Traffic spawning is dependant on group permissions. Players in groups having a `VehicleCap` attribute set to `-1` (_Infinite_) will automatically have access to traffic toggling, but not anytime.
+
+Here the scenarii list players can toggle traffic in:
+- Freeroam
+- Vehicle Delivery
+- Package Delivery
+- Delivery Together
+- Bus Mission
+
+### My game crashes during the join process or randomly with the following error
+
+![Image](https://github.com/user-attachments/assets/fc667d0e-45e4-4ee4-ac9e-ec9c7d364c84)
+
+Unfortunately, I have done all I can to address and fix all potential causes of this issue. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/100).
+
+### Can I enable GPS path in races ?
+
+The GPS route system is fully integrated into the base game, but unfortunately, it fails in one-way roads, prohibited directions, and off-road sections. This often makes the route guidance useless in many parts of a race.
+
+If your race layout isn't intuitive, the best approach is to improve your level design. Keep in mind that at each checkpoint, racers should be able to see the next one (checkpoints are visible high in the sky when there are no buildings obstructing the view). Also, avoid placing checkpoints too far apart in classic races.
+
+### Can I completely disable the "ghost mode" when somebody respawns ?
+
+This is a respawn protection system, and it is a key component of the mod. You can implement it yourself by following the instructions in [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/58), but please note that I cannot be held responsible if other parts of the mod no longer function as intended.
+
+### Shadows are disappearing when I drive fast. What's going on ?
+
+Strangely, this behavior is linked to the shadow distance setting (`Config` > `Environment` > `Sun` tab > `Shadow Distance` slider).<br/>
+If you want to calibrate this setting correctly on your server, I recommend the following steps:
+- Choose a fast vehicle configuration (e.g., the vanilla `Civetta Bolide Top Speed`).
+- Find a location where you can reach maximum speed.
+- Switch to the driver’s first-person camera.
+- Increase your field of view to the maximum (holding `Num 3` by default).
+- Check whether the shadow distance value works well under these conditions.
+
+## Compatible Mods
+- Pretty much all modded vehicles with correct data
+- [Enhanced Interior Camera](https://www.beamng.com/resources/enhanced-interior-camera.24952/)
+- [Agent's Simplified Realistic Traffic Mod (EU + Yakuza)](https://www.beamng.com/threads/agents-simplified-realistic-traffic-mod-eu-yakuza.102034/)
+
 ## Video tutorials
 
-Coming soon ..
+Coming soon (maybe) ...
 
 ## Participating
 
@@ -252,15 +351,18 @@ You can also fix translations if they are wrong :
     </li>
 </ul>
 
-## Roadmap
+## Bucket list
 
-- [ ] Fork with only race features
-- [ ] Toggleable automatic random weather presets (maybe with smooth transitions, waiting for base game changes for temperature and weather)
-- [ ] Client-side cache system (cookie-like; useful for personal records in races, for example).
+- Race fork (only when the mod will be done and polished)
+- Toggleable automatic random weather presets (maybe with smooth transitions, waiting for BeamNG changes about temperature and weather)
+- Implementing BeamMP v3.5+ features when it will come out:
+  - Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
+  - Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
 
-Implementing BeamMP v3.5+ features when it will come out:
-- Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
-- Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
+## Known issues
+
+- Windows system costs performances, this is a fact. Unfortunately, this is the only way BeamJoy have to not be intrusive (we do not want to force players by adding UI-Apps, but still give them mandatory scenario and server informations).
+- Having vehicle config with modded parts (which belong to a mod that is not present on the server) is causing impossibility to spawn a vehicle in a scenario with imposed config. We do not have a way to detect this particular case for now.
 
 ## Credits
 

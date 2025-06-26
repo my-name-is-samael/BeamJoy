@@ -3,19 +3,20 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/bjc.json", { dbPath })
+    M._dbPath = string.var("{1}/bjc.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.config())
     end
 end
 
+---@return table
 local function findAll()
     local file, error = io.open(M._dbPath, "r")
     if file and not error then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        return #data > 0 and JSON.parse(data) or {}
     end
     return {}
 end

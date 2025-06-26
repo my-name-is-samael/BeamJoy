@@ -65,7 +65,7 @@
       "raceTime": "{playerName} завершил {raceName} за {time}"
     },
     "hunter": {
-      "invalidHunted": "Беглеца нет или у беглеца нет транспортного средства",
+      "invalidHunted": "Нет беглеца",
       "huntedWinner": "Беглец победил!",
       "huntersWinners": "Охотники победили!",
       "draw": "Рисовать"
@@ -116,6 +116,8 @@
         "cancel": "Отмена",
         "close": "Закрывать",
         "vote": "Голосование",
+        "unvote": "Отозвать голос",
+        "stopVote": "Остановить голосование",
         "set": "Набор",
         "create": "Создавать",
         "edit": "Редактировать",
@@ -123,7 +125,22 @@
         "confirm": "Подтверждать",
         "start": "Начинать",
         "explode": "Взорваться",
-        "leave": "Оставлять"
+        "leave": "Оставлять",
+        "toggle": "Переключать",
+        "show": "Показать",
+        "spawn": "Создать",
+        "replace": "Заменить",
+        "loop": "Зациклить",
+        "join": "Присоединиться",
+        "spectate": "Наблюдать",
+        "markReady": "Отметить как готового",
+        "forfeit": "Сдаться",
+        "refresh": "Обновить",
+        "restart": "Перезапустить",
+        "moveUp": "Переместить вверх",
+        "moveDown": "Переместить вниз",
+        "setGPS": "Установить GPS",
+        "manualReset": "Сброс"
       },
       "durationModifiers": {
         "minute": "м",
@@ -142,8 +159,8 @@
       "no": "Нет",
       "state": "Состояние",
       "unknown": "Неизвестный",
-      "tooBigData": "Данные слишком велики, чтобы их можно было сохранить!",
-      "and": "&"
+      "and": "&",
+      "random": "Случайный"
     },
     "errors": {
       "invalid": "Неверный",
@@ -152,46 +169,95 @@
       "modManagementDisabled": "Управление модами отключено на этом сервере!",
       "cannotSpawnVeh": "Вы не можете создать транспортное средство",
       "cannotSpawnAnyMoreVeh": "Вы не можете больше создавать транспортные средства",
+      "cannotResetNow": "Сброс сейчас невозможен",
       "unavailableDuringScenario": "Недоступно во время сценария",
       "scenarioUnavailable": "Сценарий недоступен",
-      "toastModelBlacklisted": "Этот автомобиль занесен в черный список"
+      "toastModelBlacklisted": "Этот автомобиль занесен в черный список",
+      "missingOwnVehicle": "Отсутствует принадлежащий транспорт",
+      "cannotStartWodeWithAI": "Вы не можете запустить этот режим с ИИ-транспортом",
+      "missingPlayers": "Не хватает ещё {amount} игрок(ов)",
+      "mustBeFreecaming": "Необходимо находиться в режиме свободной камеры",
+      "mustHaveVehicle": "Нужно транспортное средство",
+      "someDataAreInvalid": "Некоторые данные недействительны"
     },
     "chat": {
       "staffTag": "ПЕРСОНАЛ",
       "reputationTag": "РП",
-      "playerJoined": "{playerName} присоединился",
-      "playerLeft": "{playerName} остался",
       "directMessage": "от {playerName}",
-      "directMessageSent": "к {playerName}"
+      "directMessageSent": "к {playerName}",
+      "events": {
+        "playerJoined": "{playerName} присоединился",
+        "playerLeft": "{playerName} остался",
+        "voteEvents": {
+          "mapSwitch": "смена карты ",
+          "playerKick": "исключение игрока ",
+          "raceStart": "запуск гонки ",
+          "speedStart": "запуск скоростной игры"
+        },
+        "vote": "{playerName} начал голосование за {voteEvent}{suffix}",
+        "voteAccepted": "Голосование за {voteEvent}{suffix} принято",
+        "voteDenied": "Голосование за {voteEvent}{suffix} отклонено: недостаточно голосов",
+        "voteCancelled": "Голосование за {voteEvent}{suffix} отменено модерацией",
+        "gamemodes": {
+          "race": "Гонка",
+          "speed": "Скоростная игра",
+          "hunter": "Охота",
+          "derby": "Дестракшн дерби",
+          "delivery": "Совместная доставка",
+          "tagduo": "Салки Дуо"
+        },
+        "gamemodeStopReasons": {
+          "manual": "модерация",
+          "notEnoughParticipants": "недостаточно участников",
+          "timedout": "вышло время",
+          "invalidVehConfig": "Недопустимая конфигурация транспорта"
+        },
+        "gamemodeTeams": {
+          "hunters": "Охотники",
+          "hunted": "Беглец"
+        },
+        "gamemodeStarted": "{gamemode} начат",
+        "gamemodeEnded": "{gamemode} завершён",
+        "gamemodeStopped": "{gamemode} остановлен: {reason}",
+        "gamemodeJoin": "{playerName} присоединился к {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} создал лобби режима {gamemode}",
+        "gamemodeLeave": "{playerName} покинул {gamemode}",
+        "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} победила в {gamemode}",
+        "tournamentResult": "{playerName} завершил турнир на месте #{position} ({score} очков)"
+      }
     },
     "nametags": {
       "staffTag": "ПЕРСОНАЛ",
       "reputationTag": "РП",
       "self": "Ты",
       "trailer": "Трейлер {playerName}",
-      "selfTrailer": "Ваш трейлер"
+      "selfTrailer": "Ваш трейлер",
+      "fugitive": "Подозреваемый"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Мои настройки",
-      "BJIEvents": "События",
-      "BJIRaceSettings": "Настройки гонки",
-      "BJIRace": "Раса",
-      "BJIDeliveryMulti": "Доставка вместе",
-      "BJIVehicleSelector": "Выбор автомобиля",
-      "BJIStation": "Станция",
-      "BJIBusMissionPreparation": "Подготовка автобусной миссии",
-      "BJIScenarioEditor": "Редактор сценариев",
-      "BJIFreeroamSettings": "Настройки свободного роуминга",
-      "BJIEnvironment": "Редактор среды",
-      "BJIServer": "Настройки сервера",
-      "BJISpeed": "Скорость игры",
-      "BJIDatabase": "База данных",
-      "BJIHunterSettings": "Настройки игры Охотник",
-      "BJIHunter": "Охотничья игра",
-      "BJITheme": "Редактор тем",
-      "BJIDerby": "Дерби Разрушения",
-      "BJIVehicleSelectorPreview": "Предпросмотр транспорта"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Мои настройки",
+      "Events": "События",
+      "RacesLeaderboard": "Таблица лидеров гонок",
+      "RaceSettings": "Настройки гонки",
+      "Race": "Раса",
+      "DeliveryMulti": "Доставка вместе",
+      "VehicleSelector": "Выбор автомобиля",
+      "Station": "Станция",
+      "BusMissionPreparation": "Подготовка автобусной миссии",
+      "ScenarioEditor": "Редактор сценариев",
+      "FreeroamSettings": "Настройки свободного роуминга",
+      "Environment": "Редактор среды",
+      "Server": "Настройки сервера",
+      "Speed": "Скорость игры",
+      "Database": "База данных",
+      "HunterSettings": "Настройки игры Охотник",
+      "Hunter": "Охотничья игра",
+      "Theme": "Редактор тем",
+      "Derby": "Дерби Разрушения",
+      "VehicleSelectorPreview": "Предпросмотр транспорта",
+      "Selection": "Выбор"
     },
     "menu": {
       "me": {
@@ -202,16 +268,16 @@
       },
       "vote": {
         "title": "Голосование",
-        "map": "Карта",
-        "mapCustom": "обычай",
+        "map": {
+          "title": "Карта",
+          "custom": "обычай"
+        },
         "race": {
           "title": "Раса",
-          "noRace": "Нет доступных гонок",
-          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
+          "noRace": "Нет доступных гонок"
         },
         "speed": {
-          "title": "Скорость игры",
-          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
+          "title": "Скорость игры"
         }
       },
       "scenario": {
@@ -219,8 +285,7 @@
         "soloRace": {
           "start": "Начать одиночную гонку",
           "stop": "Остановить гонку",
-          "noRace": "Нет доступных гонок",
-          "missingOwnVehicle": "Отсутствует принадлежащий транспорт"
+          "noRace": "Нет доступных гонок"
         },
         "vehicleDelivery": {
           "start": "Начать доставку автомобиля",
@@ -230,14 +295,12 @@
         "packageDelivery": {
           "start": "Начать доставку посылки",
           "stop": "Остановить доставку",
-          "noDelivery": "Доставка недоступна",
-          "missingOwnVehicle": "Отсутствует принадлежащий транспорт"
+          "noDelivery": "Доставка недоступна"
         },
         "deliveryMulti": {
           "join": "Присоединяйтесь к доставке вместе",
           "leave": "Оставьте доставку вместе",
-          "noDelivery": "Доставка недоступна",
-          "missingOwnVehicle": "Отсутствует принадлежащий транспорт"
+          "noDelivery": "Доставка недоступна"
         },
         "busMission": {
           "start": "Начать автобусную миссию",
@@ -246,35 +309,41 @@
         },
         "speed": {
           "start": "Начать игру на скорость",
-          "stop": "Игра «Остановить скорость»",
-          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
+          "stop": "Игра «Остановить скорость»"
         },
         "raceStop": "Остановить гонку",
         "hunter": {
           "start": "Начать Охотник",
           "stop": "Остановить Хантера",
-          "modeDisabled": "отключено",
-          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
+          "modeDisabled": "отключено"
         },
         "derby": {
           "start": "Начать Дерби Разрушения",
           "stop": "Остановить дерби разрушения",
-          "noArena": "Арена недоступна",
-          "missingPlayers": "Не хватает ещё {amount} игрок(ов)"
-        }
+          "noArena": "Арена недоступна"
+        },
+        "tagduo": {
+          "join": "Присоединиться к Салки",
+          "leave": "Выйти из Салки",
+          "createLobby": "Создать лобби",
+          "joinLobby": "Присоединиться к лобби {playerName}"
+        },
+        "tournament": "Турнир"
       },
       "edit": {
         "title": "Редактировать",
         "freeroamSettings": "Настройки свободного роуминга",
         "time": "Время суток",
         "weather": "Погода",
+        "gravity": "Гравитация",
+        "speed": "Скорость сим.",
         "map": "Переключить карту",
         "mapCustom": "обычай",
         "energyStations": "Энергостанции ({amount})",
         "garages": "Гаражи ({amount})",
         "deliveries": "Поставки ({amount})",
         "buslines": "Автобусные маршруты ({amount})",
-        "races": "Гонки ({amount})",
+        "races": "Гонки",
         "raceCreate": "Создать гонку",
         "raceDeleteModal": "Вы уверены, что хотите удалить гонку \"{raceName}\"?",
         "hunter": "Охотник ({visibility}, {amount} путевых точек)",
@@ -304,6 +373,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Гравитация изменена на {gravity}",
         "zero": "Ноль",
         "pluto": "Плутон",
         "moon": "Луна",
@@ -317,6 +387,7 @@
         "sun": "Солнце"
       },
       "speed": {
+        "toastChanged": "Скорость симуляции изменена на {speed}",
         "slowextreme": "Планета растет",
         "slowest": "Кинематографический",
         "slower": "Помедленнее",
@@ -356,12 +427,14 @@
       "ToD": "Время суток",
       "realtime": "В реальном времени",
       "dayLength": "Продолжительность дня",
+      "day": "День",
+      "night": "Ночь",
       "dayScale": "Дневная шкала",
       "nightScale": "Ночная шкала",
       "sunAzimuthOverride": "Азимут Солнца",
       "sunSize": "Размер Солнца",
       "skyBrightness": "Яркость неба",
-      "sunLightBrightness": "Яркость солнечного света",
+      "brightness": "Яркость",
       "rayleighScattering": "Рэлеевское рассеяние",
       "flareScale": "Масштаб вспышки",
       "occlusionScale": "Шкала окклюзии",
@@ -378,6 +451,7 @@
       "weather": "Погода",
       "controlWeather": "Синхронизировать погоду",
       "fogDensity": "Плотность тумана",
+      "fogColor": "Цвет тумана",
       "fogDensityOffset": "Расстояние тумана",
       "fogAtmosphereHeight": "Высота тумана",
       "cloudHeight": "Высота облака 1",
@@ -390,7 +464,6 @@
       "cloudExposureOne": "Облако 2 Экспозиция",
       "rainDrops": "Капли дождя",
       "dropSize": "Размер капли",
-      "dropSizeRatio": "Коэффициент DropSize карты",
       "dropMinSpeed": "Падение минимальной скорости",
       "dropMaxSpeed": "Снижение максимальной скорости",
       "precipType": "Тип осадков",
@@ -481,14 +554,22 @@
     },
     "header": {
       "gamemode": "Режим игры",
-      "reputation": "Уровень репутации",
       "gravity": "Гравитация",
       "speed": "Скорость",
       "resetDisabled": "Сброс отключен",
       "nextReset": "Следующий сброс",
       "resetAvailable": "Сброс доступен",
       "nextTeleport": "Следующая телепортация",
-      "teleportAvailable": "Доступна телепортация"
+      "teleportAvailable": "Доступна телепортация",
+      "collisions": "Коллизии",
+      "reputation": "Уровень репутации",
+      "buttons": {
+        "toggleNametagsVisibility": "Показать/скрыть имена",
+        "zoomOut": "Уменьшить",
+        "zoomIn": "Увеличить",
+        "debug": "Обновить окна / Убрать бесконечную загрузку",
+        "serverVisibility": "Переключить видимость сервера"
+      }
     },
     "userSettings": {
       "uiScale": "Масштаб пользовательского интерфейса",
@@ -515,7 +596,8 @@
       },
       "freecam": {
         "smoothed": "Сглаженная камера",
-        "fov": "Поле зрения"
+        "fov": "Поле зрения",
+        "speed": "Скорость камеры"
       },
       "stats": {
         "delivery": "Доставки осуществлены",
@@ -527,7 +609,10 @@
       "waitingPlayers": "Ожидающие игроки",
       "players": "Игроки",
       "buttons": {
-        "voteKick": "Голосование Кик"
+        "voteKick": "Голосование Кик",
+        "stopWalking": "Остановить движение",
+        "teleportTo": "Телепортироваться к",
+        "teleportFrom": "Телепортироваться от"
       }
     },
     "moderationBlock": {
@@ -539,13 +624,17 @@
         "kick": "Кик",
         "tempBan": "Временный запрет",
         "ban": "Запретить",
-        "demoteTo": "Понизить уровень до {groupName}",
-        "promoteTo": "Продвигать в {groupName}",
-        "promote": "Продвигать"
+        "freeze": "Переключить заморозку",
+        "engine": "Переключить двигатель",
+        "mute": "Переключить беззвучный режим",
+        "deleteAllVehicles": "Удалить все транспортные средства",
+        "promoteTo": "Повысить до {group}",
+        "demoteTo": "Понизить до {group}"
       },
       "muteReason": "Немая причина",
       "kickReason": "Причина удара",
       "banReason": "Причина бана",
+      "savedReason": "Сохранённая причина",
       "kickModal": "Вы уверены, что хотите выгнать \"{playerName}\"?",
       "tempBanModal": "Вы уверены, что хотите временно забанить \"{playerName}\"?",
       "banModal": "Вы уверены, что хотите забанить игрока \"{playerName}\"?"
@@ -558,7 +647,7 @@
           "players": "Игроки",
           "offlinePlayers": "Оффлайн игроки",
           "addOfflinePlayer": "Добавить офлайн-плеер",
-          "addOfflinePlayerPlaceholder": "Имя игрока"
+          "addOfflinePlayerPlaceholder": "Точное имя игрока"
         },
         "voteKick": {
           "title": "Настройки голосования за исключение",
@@ -583,7 +672,7 @@
           "VoteTimeout": "Продолжительность голосования",
           "VoteTimeoutTooltip": "Продолжительность голосования в секундах",
           "VoteThresholdRatio": "Порог голосования за расу",
-          "VoteThresholdRatioTooltip": "От 0,01 до 1 — соотношение голосов всех игроков сервера, необходимое для начала гонки.",
+          "VoteThresholdRatioTooltip": "Необходимое соотношение голосов среди всех игроков сервера для начала гонки",
           "GridReadyTimeout": "Задержка готовности",
           "GridReadyTimeoutTooltip": "Время в секундах, прежде чем игроки смогут отметить готовность в пределах шага сетки (чтобы игроки не могли начать гонку до того, как смогут присоединиться соперники, должно быть меньше, чем «Продолжительность этапа сетки»)",
           "GridTimeout": "Продолжительность этапа сетки",
@@ -599,6 +688,7 @@
         "server": {
           "title": "Настройки сервера",
           "lang": "Язык консоли сервера",
+          "allowMods": "Разрешить модификации игроков",
           "driftBigBroadcast": "Бродкаст «Большие заносы»",
           "broadcasts": {
             "title": "Трансляции",
@@ -619,9 +709,12 @@
           "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут переключиться на свой автомобиль до начала режима.",
           "VoteTimeout": "Продолжительность голосования",
           "VoteTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться и выйти до начала режима.",
-          "BaseSpeed": "Начальная минимальная скорость (км/ч)",
-          "StepSpeed": "Увеличение шага скорости (км/ч)",
-          "StepDelay": "Задержка между шагами (сек)",
+          "BaseSpeed": "Начальная скорость",
+          "BaseSpeedTooltip": "Начальная скорость в км/ч",
+          "StepSpeed": "Скорость шага",
+          "StepSpeedTooltip": "Увеличение скорости в км/ч за шаг",
+          "StepDelay": "Задержка между шагами",
+          "StepDelayTooltip": "Время в секундах между шагами",
           "EndTimeout": "Конечная продолжительность",
           "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
         },
@@ -636,7 +729,26 @@
           "HuntedStuckTimeout": "Время, которое беглец должен застрять для победы охотников",
           "HuntedStuckTimeoutTooltip": "Время в секундах, которое беглец должен быть застрявшим, чтобы охотники выиграли",
           "HuntersRespawnDelay": "Задержка респауна охотников",
-          "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне"
+          "HuntersRespawnDelayTooltip": "Время в секундах, которое охотники застревают при респауне",
+          "HuntedResetRevealDuration": "Длительность раскрытия после сброса",
+          "HuntedResetRevealDurationTooltip": "Время в секундах, в течение которого беглец виден всем охотникам после сброса (Отключено при значении 0)",
+          "HuntedRevealProximityDistance": "Дистанция раскрытия беглеца",
+          "HuntedRevealProximityDistanceTooltip": "Максимальное расстояние в метрах, на котором охотник должен находиться от беглеца, чтобы раскрыть его положение для всех (Отключено при 0)",
+          "HuntedResetDistanceThreshold": "Минимальная дистанция для сброса беглеца",
+          "HuntedResetDistanceThresholdTooltip": "Минимальное расстояние в метрах между беглецом и охотником для возможности сброса (Отключено при 0)",
+          "EndTimeout": "Конечная продолжительность",
+          "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
+        },
+        "derby": {
+          "title": "Настройки Destruction Derby",
+          "PreparationTimeout": "Время подготовки",
+          "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться к дерби",
+          "StartCountdown": "Обратный отсчет старта",
+          "StartCountdownTooltip": "Время в секундах до начала дерби",
+          "DestroyedTimeout": "Обратный отсчет до выбытия",
+          "DestroyedTimeoutTooltip": "Время в секундах до устранения застрявшего/разрушенного игрока",
+          "EndTimeout": "Конечная продолжительность",
+          "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
         },
         "vehicleDelivery": {
           "title": "Настройки доставки автомобиля",
@@ -645,9 +757,24 @@
       },
       "reputation": {
         "title": "Репутация",
+        "categories": {
+          "freeroam": "Свободная езда",
+          "delivery": "Доставка",
+          "bus": "Миссия автобуса",
+          "race": "Гонка",
+          "speed": "Скорость",
+          "hunter": "Охотник",
+          "derby": "Дерби",
+          "tag": "Салки и Инфицированный"
+        },
         "KmDriveReward": "Награда за проезд/км",
+        "ArrestReward": "Награда за арест",
+        "ArrestRewardTooltip": "Применяется при аресте игрока или ИИ во время погони",
+        "EvadeReward": "Награда за побег",
+        "EvadeRewardTooltip": "Применяется при успешном уходе от полиции",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
-        "DeliveryVehiclePristineReward": "Вознаграждение за доставку автомобиля в целости и сохранности",
+        "DeliveryVehiclePristineReward": "Бонус за целый автомобиль",
+        "DeliveryVehiclePristineRewardTooltip": "Применяется только при доставке автомобилей",
         "DeliveryPackageReward": "Вознаграждение за доставку посылки",
         "DeliveryPackageStreakReward": "Награда за доставку посылок",
         "DeliveryPackageStreakRewardTooltip": "Будет умножено на текущую серию и добавлено к базовой награде.",
@@ -666,7 +793,10 @@
         "HunterWinnerReward": "Награда победителю-охотнику",
         "HunterWinnerRewardTooltip": "Применяется ко всем игрокам победившей команды (охотникам или беглецам).",
         "DerbyParticipationReward": "Награда за участие в дерби",
-        "DerbyWinnerReward": "Награда победителю дерби"
+        "DerbyWinnerReward": "Награда победителю дерби",
+        "DerbyWinnerRewardTooltip": "Будет разделено в зависимости от позиции игрока в таблице лидеров",
+        "TagDuoReward": "Награда за Салки",
+        "TagDuoRewardTooltip": "Присуждается за поимку соперника в дуо-лобби"
       },
       "permissions": {
         "title": "Группы и разрешения",
@@ -692,12 +822,17 @@
       "core": {
         "title": "Основной",
         "Name": "Имя",
+        "NameTooltip": "Как игроки увидят ваш сервер в браузере",
         "Description": "Описание",
-        "Tags": "Теги",
-        "MaxCars": "Макс Тачки",
+        "DescriptionTooltip": "Что игроки увидят, когда нажмут на ваш сервер в браузере",
         "MaxPlayers": "Максимальное количество игроков",
+        "MaxPlayersTooltip": "Максимальное количество игроков, разрешённое на сервере",
         "Private": "Частный",
+        "PrivateTooltip": "Если включено, ваш сервер не отображается в браузере",
         "Debug": "Отлаживать",
+        "DebugTooltip": "Включает режим отладки и позволяет видеть и делать многое",
+        "InformationPacket": "Информационный пакет",
+        "InformationPacketTooltip": "Позволяет незарегистрированным клиентам получать публичную информацию о сервере без подключения",
         "previewTooltip": "Предпросмотр отображает только цвета",
         "formattingHints": {
           "title": "Подсказки по форматированию (Применяется только к Названию и Описанию)",
@@ -760,7 +895,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Сбросить время восстановления",
+      "resetDelayTooltip": "Время в секундах до возможности сброса игроком",
       "teleportDelay": "Время восстановления телепортации",
+      "teleportDelayTooltip": "Время в секундах до возможности телепортации к другому игроку",
       "vehicleSpawning": "Глобальное появление транспортных средств",
       "quickTravel": "Быстрое путешествие",
       "nametags": "Бейджи с именами игроков",
@@ -771,14 +908,16 @@
       "emergencyRefuelPercentTooltip": "Процент бака, заправленного после процесса",
       "driftGood": "Минимальный балл за хорошие заносы",
       "driftBig": "Минимальный балл за большие заносы",
-      "allowUnicycle": "Разрешить ходьбу"
+      "allowUnicycle": "Разрешить ходьбу",
+      "cancelModal": "Вы потеряете несохраненные изменения. Вы уверены, что хотите закрыть окно?"
     },
     "races": {
       "races": "Гонки",
       "names": {},
       "tools": {
         "title": "Инструменты",
-        "rotation": "Вращение"
+        "rotation": "Вращение",
+        "reverse": "Обратить шаги"
       },
       "edit": {
         "title": "Редактор гонок",
@@ -810,12 +949,38 @@
         "addBranch": "Добавить филиал сюда",
         "addStep": "Добавьте сюда шаг",
         "errors": {
-          "invalidName": "Неверное имя",
           "noChild": "Нет ребенка"
         },
         "hasRecordConfirm": "В этом забеге установлен рекорд, и при сохранении он будет удален. ",
         "saveErrorToast": "Не удалось сохранить гонку. Повторите попытку или обратитесь к администратору.",
-        "reverseConfirm": "Изменение направления удалит информацию, созданную в гонке, и вам потребуется снова проверить каждый чекпоинт. Вы уверены, что хотите продолжить?"
+        "reverseConfirm": "Изменение направления удалит информацию, созданную в гонке, и вам потребуется снова проверить каждый чекпоинт. Вы уверены, что хотите продолжить?",
+        "buttons": {
+          "refreshMarkers": "Обновить маркеры",
+          "rotateLeft": "Повернуть влево",
+          "rotateRight": "Повернуть вправо",
+          "rotate180": "Повернуть на 180°",
+          "reverseAllSteps": "Обратить все этапы",
+          "toggleRaceVisibility": "Переключить видимость гонки",
+          "showPreviewPosition": "Показать позицию предпросмотра",
+          "setPreviewPositionHere": "Установить позицию предпросмотра здесь",
+          "toggleLoopable": "Переключить между круговой и точечной гонкой",
+          "addStartPositionHere": "Добавить стартовую позицию здесь",
+          "moveUp": "Переместить вверх",
+          "moveDown": "Переместить вниз",
+          "showStartPosition": "Показать стартовую позицию",
+          "setStartPositionHere": "Установить старт здесь",
+          "deleteStartPosition": "Удалить стартовую позицию",
+          "addRaceStepHere": "Добавить этап гонки здесь",
+          "deleteStep": "Удалить этап",
+          "addBranchHere": "Добавить ветку здесь",
+          "showWaypoint": "Показать точку маршрута",
+          "setWaypointHere": "Установить точку маршрута здесь",
+          "toggleStandWaypoint": "Переключить пит-стоп",
+          "deleteWaypoint": "Удалить точку маршрута",
+          "removeParent": "Удалить родителя",
+          "addParent": "Добавить родителя",
+          "tryRace": "Попробовать гонку"
+        }
       },
       "settings": {
         "title": "Настройки гонки",
@@ -833,6 +998,7 @@
           "standpenalty": "Последний бой с пенальти",
           "delay": "Задерживать"
         },
+        "collisions": "Коллизии",
         "vehicles": {
           "playerVehicle": "Транспортное средство игрока",
           "all": "Все транспортные средства разрешены",
@@ -840,8 +1006,8 @@
           "currentConfig": "Текущая конфигурация",
           "specific": "Конкретная {model}"
         },
-        "time": "Время суток",
-        "weather": "Погода"
+        "startVote": "Начать голосование",
+        "startRace": "Начать гонку"
       },
       "preparation": {
         "singleplayer": "Одиночная гонка",
@@ -861,8 +1027,9 @@
       "play": {
         "race": "Раса",
         "by": "автор: {author}",
-        "record": "Запись пользователя {playerName} с {model}: {time}",
+        "record": "Рекорд",
         "timeout": "Тайм-аут гонки истечет через {delay}",
+        "aboutToTimeout": "Гонка вот-вот завершится по таймеру",
         "join": "Присоединяйтесь к гонке",
         "joinFlash": "Выберите свой автомобиль",
         "placesRemaining": "Осталось мест: {places}",
@@ -874,6 +1041,7 @@
         "waitingForOtherPlayers": "Ждем других игроков...",
         "flashCountdownZero": "ИДТИ !!!",
         "eliminatedIn": "Вы будете исключены через {delay}",
+        "showAllData": "Показать все",
         "WP": "КП {wp}",
         "Lap": "Круг {laps}",
         "wpDifference": "+{wpDifference}CP",
@@ -882,10 +1050,16 @@
         "finishFlashMulti": "Вы закончили #{place} !",
         "eliminatedTime": "УДАЛЕНО",
         "flashWinner": "{playerName} выиграл гонку!",
-        "flashDnfOut": "УДАЛЕНО"
+        "flashDnfOut": "УДАЛЕНО",
+        "launchedRespawn": "Возрождение запущено"
       },
       "leaderboard": {
-        "title": "Таблица лидеров гонок"
+        "title": "Таблица лидеров гонок",
+        "amountPBs": "Всего лучших результатов",
+        "removeAllPBsButton": "Удалить все лучшие результаты",
+        "removeAllPBsModal": "Вы уверены, что хотите удалить все свои лучшие результаты на сервере?",
+        "pb": "ЛР",
+        "removePBModal": "Вы уверены, что хотите удалить свой лучший результат на {raceName}?"
       }
     },
     "energy": {
@@ -930,7 +1104,14 @@
         "name": "Название станции",
         "types": "Тип(ы)",
         "radius": "Радиус",
-        "saveErrorToast": "Не удалось сохранить электростанции, попробуйте еще раз или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить электростанции, попробуйте еще раз или обратитесь к администратору.",
+        "buttons": {
+          "refreshMarkers": "Обновить метки",
+          "addStationHere": "Добавить станцию здесь",
+          "showStation": "Показать станцию",
+          "setStationHere": "Установить станцию здесь",
+          "deleteStation": "Удалить станцию"
+        }
       }
     },
     "garages": {
@@ -944,11 +1125,17 @@
         "title": "Редактор гаражей",
         "name": "Название гаража",
         "radius": "Радиус",
-        "saveErrorToast": "Не удалось сохранить гаражи, попробуйте еще раз или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить гаражи, попробуйте еще раз или обратитесь к администратору.",
+        "buttons": {
+          "refreshMarkers": "Обновить метки",
+          "addGarageHere": "Добавить гараж здесь",
+          "showGarage": "Показать гараж",
+          "setGarageHere": "Установить гараж здесь",
+          "deleteGarage": "Удалить гараж"
+        }
       }
     },
     "delivery": {
-      "title": "Доставка автомобиля",
       "leaderboard": {
         "title": "Таблица лидеров доставки",
         "delivered": "доставленные транспортные средства и посылки"
@@ -959,33 +1146,45 @@
         "title": "Редактор доставки",
         "position": "Позиция {index}",
         "radius": "Радиус",
-        "saveErrorToast": "Не удалось сохранить доставку. Повторите попытку или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить доставку. Повторите попытку или обратитесь к администратору.",
+        "buttons": {
+          "refreshMarkers": "Обновить метки",
+          "addPosition": "Добавить позицию здесь",
+          "showPosition": "Показать позицию",
+          "setPosition": "Установить позицию здесь",
+          "deletePosition": "Удалить позицию"
+        }
       }
     },
     "vehicleDelivery": {
+      "title": "Доставка транспорта",
       "vehicle": "Транспортное средство",
       "damagedWarning": "Транспортное средство повреждено, ваша награда будет уменьшена.",
       "flashStart": "Доставить автомобиль",
       "flashFail": "Доставка не удалась",
-      "flashSuccess": "Отличная работа !"
+      "flashSuccess": "Отличная работа !",
+      "deliveredIn": "Доставлено через {delay}"
     },
     "packageDelivery": {
+      "title": "Доставка посылки",
       "currentStreak": "Посылки доставлены: {streak}",
       "streakTooltip": "Продолжайте доставлять посылки подряд, тогда вы получите дополнительные награды.",
       "flashStart": "Доставить посылку",
       "flashFirstPackage": "Посылка доставлена!",
       "flashPackageStreak": "Посылки {streak} доставлены!",
-      "flashEnd": "Доставка завершена"
+      "flashEnd": "Доставка завершена",
+      "depositIn": "Передано через {delay}"
     },
     "deliveryTogether": {
-      "streak": "Полоса",
-      "distance": "Расстояние",
-      "resetted": "Сброшен",
-      "arrived": "Приехал",
-      "onTheWay": "В пути",
+      "title": "Совместная доставка",
+      "reachDestination": "Доберитесь до точки назначения",
+      "streak": "Серия",
+      "resetted": "Сброшено",
+      "distance": "Дистанция",
       "flashPackage": "Посылка доставлена!",
-      "waitingForOtherPlayers": "Ждем других игроков...",
-      "waitingForTarget": "Ожидание цели..."
+      "waitingForOtherPlayers": "Ожидание ещё {amount} игрок(ов)...",
+      "waitingForTarget": "Ожидание следующей цели...",
+      "depositIn": "Передано через {delay}"
     },
     "buslines": {
       "edit": {
@@ -1001,7 +1200,19 @@
         "moveHere": "Переместить сюда",
         "addStopHere": "Добавить остановку здесь",
         "createLineHere": "Создать линию здесь",
-        "saveErrorToast": "Не удалось сохранить маршруты автобусов. Повторите попытку или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить маршруты автобусов. Повторите попытку или обратитесь к администратору.",
+        "buttons": {
+          "showLine": "Показать метки автобусного маршрута",
+          "deleteLine": "Удалить автобусный маршрут",
+          "spawnBus": "Создать автобус здесь",
+          "addBusLine": "Добавить автобусный маршрут здесь",
+          "showStop": "Показать автобусную остановку",
+          "setStopHere": "Установить автобусную остановку здесь",
+          "deleteStop": "Удалить автобусную остановку",
+          "toggleLoopable": "Переключить между кольцевым и пунктирным маршрутом",
+          "addStopHere": "Добавить автобусную остановку здесь",
+          "errorNeedABus": "Необходим автобус"
+        }
       },
       "preparation": {
         "title": "Подготовка автобусной миссии",
@@ -1029,9 +1240,7 @@
         "voteTimeout": "Голосование завершится через {delay}",
         "voteAboutToEnd": "Голосование подходит к концу",
         "hasStartedVote": "Пользователь {creatorName} начал голосование за игру на скорость.",
-        "participants": "Участники",
-        "join": "Присоединиться",
-        "leave": "Оставлять"
+        "participants": "Участники"
       },
       "title": "Скорость игры",
       "startsIn": "Игра начнется через {time}",
@@ -1047,14 +1256,26 @@
       "flashWinner": "{playerName} выиграл игру на скорость!"
     },
     "vehicleSelector": {
-      "deleteCurrent": "Удалить автомобиль",
-      "deleteOtherPlayerVehicle": "Удалить этого игрока",
-      "deleteOthers": "Удалить другие транспортные средства",
-      "previousVeh": "Мой предыдущий автомобиль",
-      "defaultVeh": "Мой автомобиль по умолчанию",
-      "noVeh": "Транспортное средство не найдено",
+      "deleteCurrent": "Удалить текущее",
+      "deleteOtherPlayerVehicleModal": "Это не ваш транспорт, и он не станет активным, пока игрок его не удалит и не заспавнит снова. Вы уверены, что хотите его удалить?",
+      "deleteOthers": "Удалить другие",
+      "previousVeh": "Загрузить предыдущее",
+      "setAsDefault": "Сделать по умолчанию",
+      "defaultVeh": "Загрузить по умолчанию",
+      "cloneCurrent": "Клонировать текущее",
+      "resetAll": "Сбросить все",
+      "noVeh": "Транспорт не найден",
+      "notAllowed": "Сейчас недоступно",
+      "protectedVehicle": "Транспорт защищен",
+      "selfProtected": "Защита от клонирования конфигурации включена. Отключите её, если хотите использовать свой конкретный транспорт.",
+      "invalidVeh": "Неверный транспорт",
+      "openVehSelector": "Открыть выбор транспортного средства",
       "paints": "Краски",
-      "applyPaint": "Краска {position}"
+      "applyPaint": "Краска {position}",
+      "cars": "Машины",
+      "trucks": "Грузовики",
+      "trailers": "Прицепы",
+      "props": "Объекты"
     },
     "database": {
       "players": {
@@ -1084,7 +1305,23 @@
         "enabled": "Режим голосования",
         "radius": "Радиус",
         "missingPoints": "Отсутствует балл(ы): {amount}",
-        "saveErrorToast": "Не удалось сохранить данные охотника, попробуйте еще раз или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить данные охотника, попробуйте еще раз или обратитесь к администратору.",
+        "buttons": {
+          "refreshMarkers": "Обновить метки",
+          "toggleModeVisibility": "Переключить видимость режима",
+          "showHunterStartPosition": "Показать стартовую позицию охотника",
+          "setHunterStartPositionHere": "Установить стартовую позицию охотника здесь",
+          "deleteHunterStartPosition": "Удалить стартовую позицию охотника",
+          "addHunterStartPositionHere": "Добавить стартовую позицию охотника здесь",
+          "showHuntedStartPosition": "Показать стартовую позицию преследуемого",
+          "setHuntedStartPositionHere": "Установить стартовую позицию преследуемого здесь",
+          "deleteHuntedStartPosition": "Удалить стартовую позицию преследуемого",
+          "addHuntedStartPositionHere": "Добавить стартовую позицию преследуемого здесь",
+          "addWaypointHere": "Добавить точку пути здесь",
+          "showWaypoint": "Показать точку пути",
+          "setWaypointHere": "Установить точку пути здесь",
+          "deleteWaypoint": "Удалить точку пути"
+        }
       },
       "settings": {
         "title": "Настройки охотника",
@@ -1096,6 +1333,8 @@
         "hunterConfigsTooltip": "Конфигурации транспортных средств, которые могут выбирать охотники (если их нет, можно выбрать любую игровую конфигурацию)",
         "toastConfigAlreadySaved": "Конфигурация уже сохранена",
         "specificConfig": "Конкретная {model}",
+        "lastWaypointGPS": "Показать последний путь",
+        "lastWaypointGPSTooltip": "Когда остается только одна точка маршрута, охотники могут видеть, где находится беглец (Имя и GPS)",
         "notEnoughPlayers": "Недостаточно игроков для запуска режима охотника"
       },
       "play": {
@@ -1105,15 +1344,16 @@
         "preparationTimeoutIn": "Тайм-аут подготовки через {delay}",
         "preparationTimeoutAboutToEnd": "Тайм-аут подготовки подходит к концу",
         "startIn": "Вы начнете через {delay}",
-        "aboutToStart": "Вы собираетесь начать",
         "huntedLooseIn": "Вы проиграете через {delay}",
         "huntedAboutToLoose": "Вы собираетесь потерять",
+        "hunterResumeIn": "Вы продолжите через {delay}",
         "configChoose": "Выберите свой автомобиль",
         "readyMark": "ГОТОВЫЙ",
         "notReadyMark": "НЕ ГОТОВО",
         "hunted": "Беглец",
         "hunters": "Охотники",
-        "waypoints": "путевые точки"
+        "waypoints": "путевые точки",
+        "setAsFugitive": "Назначить преследуемым"
       }
     },
     "derby": {
@@ -1125,14 +1365,31 @@
         "enabledTooltip": "Можно ли запустить эту арену?",
         "previewPosition": "Позиция предварительного просмотра",
         "previewPositionTooltip": "Положение свободной камеры в начале дерби",
+        "centerPosition": "Центральная позиция",
+        "radius": "Начальный радиус",
         "startPositions": "Стартовые позиции",
         "startPositionName": "Начать {index}",
         "amountStartPositionsNeeded": "Не хватает еще {amount} баллов",
-        "saveErrorToast": "Не удалось сохранить данные Derby. Повторите попытку или обратитесь к администратору."
+        "saveErrorToast": "Не удалось сохранить данные Derby. Повторите попытку или обратитесь к администратору.",
+        "buttons": {
+          "addArena": "Добавить арену",
+          "showArena": "Показать метки арены",
+          "deleteArena": "Удалить арену",
+          "toggleArenaVisibility": "Переключить видимость арены",
+          "setPreviewPositionHere": "Установить позицию предварительного просмотра здесь",
+          "showPreviewPosition": "Показать позицию предварительного просмотра",
+          "setCenterPositionHere": "Установить центр арены здесь",
+          "showCenterPosition": "Показать центр арены",
+          "addStartPositionHere": "Добавить стартовую позицию здесь",
+          "showStartPosition": "Показать стартовую позицию",
+          "setStartPositionHere": "Установить стартовую позицию здесь",
+          "deleteStartPosition": "Удалить стартовую позицию"
+        }
       },
       "settings": {
         "title": "Настройки Дерби Разрушения",
         "places": "{places} мест",
+        "presets": "Пресеты",
         "lives": "Жизни",
         "configs": "Конфигурации автомобиля",
         "configsTooltip": "Конфигурации транспортных средств, которые могут выбирать игроки (если их нет, можно выбрать любую игровую конфигурацию)",
@@ -1157,6 +1414,42 @@
         "amountLife": "{amount} жизни",
         "amountLives": "{amount} жизней"
       }
+    },
+    "tournament": {
+      "title": "Турнир",
+      "state": "Включено",
+      "whitelist": "Белый список",
+      "activityTimeoutIn": "Активность завершится через {delay}",
+      "activityAboutToTimeout": "Активность скоро завершится",
+      "total": "Всего",
+      "startActivity": "Начать активность",
+      "track": "Трасса",
+      "arena": "Арена",
+      "duration": "Продолжительность",
+      "noParticipant": "Пока нет участников",
+      "buttons": {
+        "endSoloRace": "Завершить заезд на время",
+        "endTournament": "Завершить турнир",
+        "endTournamentTooltip": "Отобразит позиции участников в чате",
+        "errorMustHaveVehicle": "Вам нужно транспортное средство"
+      },
+      "activities": {
+        "raceSolo": "Заезд на время",
+        "race": "Гонка",
+        "speed": "Скорость",
+        "hunter": "Охотник",
+        "derby": "Дерби",
+        "tag": "Заражённый"
+      }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Ожидание игрока...",
+      "flashWaitForSpread": "Разойдитесь, чтобы продолжить",
+      "flashChase": "Лови его!",
+      "flashFlee": "Беги!",
+      "flashTag": "Пойман!",
+      "title": "Салки - Лобби {playerName}",
+      "taggerMark": "Водящий"
     }
   }
 }

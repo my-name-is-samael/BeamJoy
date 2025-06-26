@@ -1,6 +1,6 @@
 local M = {
-    tasks = {},
-    delayedTasks = {},
+    tasks = Table(),
+    delayedTasks = Table(),
 }
 
 local function exists(key)
@@ -15,16 +15,15 @@ local function getRemainingDelay(key)
     return nil
 end
 
+---@param conditionFn fun(time: integer): boolean
+---@param taskFn fun(time: integer)
+---@param key? string
 local function task(conditionFn, taskFn, key)
-    if conditionFn == nil or taskFn == nil or
-        type(conditionFn) ~= "function" or type(conditionFn) ~= type(taskFn) then
+    if type(conditionFn) ~= "function" or type(taskFn) ~= "function" then
         error("Tasks need conditionFn and taskFn")
     end
-    if key == nil then
-        key = tostring(GetCurrentTime()) + tostring(math.random(100))
-    end
-    local existingTask = M.tasks[key]
-    if not existingTask then
+    key = key or UUID()
+    if not M.tasks[key] then
         M.tasks[key] = {
             conditionFn = conditionFn,
             taskFn = taskFn,
@@ -32,28 +31,31 @@ local function task(conditionFn, taskFn, key)
     end
 end
 
+---@param taskFn fun(time: integer)
+---@param delaySec integer 0-N
+---@param key? string
 local function delayTask(taskFn, delaySec, key)
-    delaySec = tonumber(delaySec)
-    if taskFn == nil or delaySec == nil or type(taskFn) ~= "function" then
+    if type(taskFn) ~= "function" or type(delaySec) ~= "number" then
         error("Delayed tasks need taskFn and delay")
     end
+    delaySec = math.round(delaySec)
     key = key or (tostring(GetCurrentTime()) + tostring(math.random(100)))
-    local existingTask = M.delayedTasks[key]
-    if existingTask then
-        existingTask.time = GetCurrentTime() + delaySec
-    else
-        M.delayedTasks[key] = {
+    M.delayedTasks[key] = table.assign(
+        M.delayedTasks[key] or {}, {
             taskFn = taskFn,
             time = GetCurrentTime() + delaySec,
         }
-    end
+    )
 end
 
+---@param taskFn fun(time: integer)
+---@param targetSec integer
+---@param key? string
 local function programTask(taskFn, targetSec, key)
-    targetSec = tonumber(targetSec)
-    if taskFn == nil or targetSec == nil or type(taskFn) ~= "function" then
+    if type(taskFn) ~= "function" or type(targetSec) ~= "number" then
         error("Programmed tasks need taskFn and target time")
     end
+    targetSec = math.round(targetSec)
     key = key or (tostring(GetCurrentTime()) + tostring(math.random(100)))
     local existingTask = M.delayedTasks[key]
     if existingTask then
@@ -71,21 +73,40 @@ local function removeTask(key)
     M.delayedTasks[key] = nil
 end
 
-local function renderTick()
-    local time = GetCurrentTime()
-    for key, ctask in pairs(M.delayedTasks) do
-        if ctask.time <= time then
-            pcall(ctask.taskFn)
-            M.delayedTasks[key] = nil
+local function fastTick(time)
+    M.delayedTasks:filter(function(el)
+        return el.time < time
+    end):forEach(function(el, key)
+        if type(el.taskFn) == "number" then
+            LogError(string.var("Async delayed callback \"{1}\" became a number ???", { key }))
+            return
         end
-    end
+        local ok, err = pcall(el.taskFn, time)
+        if not ok then
+            LogError(string.var("Error executing delayed task {1} :", { key }))
+            dump(err)
+        end
+        M.delayedTasks[key] = nil
+    end)
 
-    for key, ctask in pairs(M.tasks) do
-        if ctask.conditionFn() then
-            pcall(ctask.taskFn)
-            M.tasks[key] = nil
-        end
+    if type(M.tasks) == "number" then
+        LogError("Async tasks became a number ???")
+        return
     end
+    M.tasks:filter(function(el)
+        return el.conditionFn()
+    end):forEach(function(el, key)
+        if type(el.taskFn) == "number" then
+            LogError(string.var("Async callback \"{1}\" became a number ???", { key }))
+            return
+        end
+        local ok, err = pcall(el.taskFn, time)
+        if not ok then
+            LogError(string.var("Error executing async task {1} :", { key }))
+            dump(err)
+        end
+        M.tasks[key] = nil
+    end)
 end
 
 M.exists = exists
@@ -96,5 +117,6 @@ M.delayTask = delayTask
 M.programTask = programTask
 M.removeTask = removeTask
 
-M.renderTick = renderTick
+BJCEvents.addListener(BJCEvents.EVENTS.FAST_TICK, fastTick, "AsyncManager")
+
 return M

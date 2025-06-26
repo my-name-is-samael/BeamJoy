@@ -1,159 +1,204 @@
+---@class BJIVehicleData
+---@field vehID integer
+---@field gameVehID integer
+---@field finalGameVehID integer
+---@field model string
+---@field engine? boolean
+---@field engineStation? boolean
+---@field freeze? boolean
+---@field freezeStation? boolean
+---@field tanks? table<string, {energyType: string, storageType: string, maxEnergy: number, currentEnergy: number}>
+
+---@class BJIPositionRotation
+---@field pos vec3
+---@field rot? quat
+
+---@class BJIPositionRotationVelocity: BJIPositionRotation
+---@field vel vec3
+---@field gearbox {grb_bhv: string, grb_mde: string?, grb_idx: integer?}
+
+---@class BJIManagerVeh : BJIManager
 local M = {
-    _name = "BJIVeh",
+    _name = "Veh",
+
+    TYPES = {
+        CAR = "Car",
+        TRUCK = "Truck",
+        TRAILER = "Trailer",
+        PROP = "Prop",
+    },
+
+    FUEL_TYPES = {
+        GASOLINE = "gasoline",
+        DIESEL = "diesel",
+        ELECTRIC = "electricEnergy",
+        KEROSIN = "kerosine",
+        N2O = "n2o",
+    },
+
     baseFunctions = {},
+
+    tankEmergencyRefuelThreshold = .02, -- threshold for when emergency refuel button appears
+    tankLowThreshold = .05,             -- threshold for when fuel amount becomes critical + warning sound
+    tankMedThreshold = .15,             -- threshold for when fuel amount becomes warning
+
+    ---@type table<integer, BJIPositionRotation> index gameVehID
+    homes = {},
+
+    DEBUG_FFB_TIMEOUT = 1500,
 }
 
 --gameplay_walk.toggleWalkingMode()
-
-local function onLoad()
-    -- update configs cache when saving/overwriting/deleting a config
-    BJIAsync.task(function()
-        return extensions.core_vehicle_partmgmt and extensions.util_screenshotCreator
-    end, function()
-        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
-        M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
-
-        extensions.util_screenshotCreator.startWork = function(...)
-            M.baseFunctions.saveConfigBaseFunction(...)
-            BJIAsync.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-            end, 3000, "BJIVehPostSaveConfig")
-        end
-        extensions.core_vehicle_partmgmt.removeLocal = function(...)
-            M.baseFunctions.removeConfigBaseFunction(...)
-            BJIAsync.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-            end, 1000, "BJIVehPostRemoveConfig")
-        end
-    end, "BJIVehSaveRemoveConfigOverride")
-end
-
-local function onUnload()
-    if extensions.core_vehicle_partmgmt then
-        if M.baseFunctions.saveConfigBaseFunction then
-            extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
-            extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
-        end
-    end
-end
 
 local function isGEInit()
     return MPVehicleGE ~= nil
 end
 
-local function getMPVehicles()
-    local vehs = {}
-    local mpVehs = MPVehicleGE.getVehicles()
-    for _, v in pairs(mpVehs) do
-        table.insert(vehs, {
-            gameVehicleID = v.gameVehicleID,
-            isDeleted = v.isDeleted,
-            isLocal = v.isLocal,
-            isSpawned = v.isSpawned,
-            jbeam = v.jbeam,
-            ownerID = v.ownerID,
-            ownerName = v.ownerName,
-            remoteVehID = v.remoteVehID,
-            serverVehicleID = v.serverVehicleID,
-            serverVehicleString = v.serverVehicleString,
-            spectators = v.spectators,
-        })
-    end
-    return vehs
+---@param model string
+---@return boolean
+local function isAi(model)
+    return type(model) == "string" and model:lower():find("traffic") ~= nil
 end
 
+---@class BJIMPVehicle
+---@field gameVehicleID integer
+---@field veh NGVehicle
+---@field isDeleted boolean
+---@field isLocal boolean
+---@field isSpawned boolean
+---@field jbeam string
+---@field ownerID integer
+---@field ownerName string
+---@field isAi boolean
+---@field remoteVehID integer
+---@field serverVehicleID integer
+---@field serverVehicleString string format "<ownerID>-<serverVehicleID>"
+---@field spectators table<integer, true>
+---@field position vec3
+---@field rotation quat
+---@field vehicleHeight number
+---@field protected boolean
+
+---@param mpVehRaw table
+---@return BJIMPVehicle
+local function convertVehicle(mpVehRaw)
+    local veh = M.getVehicleObject(mpVehRaw.gameVehicleID)
+    -- BeamMP vehicle positions are inconsistent
+    local vehicleHeight = 0
+    local pos, rot; pos, rot = vec3(), quat()
+    if mpVehRaw.isSpawned and not mpVehRaw.isDeleted then
+        if veh then
+            pos, rot = M.getPositionRotation(veh)
+        end
+        if veh and pos and rot then
+            vehicleHeight = veh:getInitialHeight()
+        end
+    end
+    return {
+        gameVehicleID = mpVehRaw.gameVehicleID,
+        veh = veh,
+        isDeleted = mpVehRaw.isDeleted,
+        isLocal = mpVehRaw.isLocal,
+        isSpawned = mpVehRaw.isSpawned,
+        jbeam = mpVehRaw.jbeam,
+        ownerID = mpVehRaw.ownerID,
+        ownerName = mpVehRaw.ownerName,
+        isAi = isAi(mpVehRaw.jbeam),
+        remoteVehID = mpVehRaw.remoteVehID,
+        serverVehicleID = mpVehRaw.serverVehicleID,
+        serverVehicleString = mpVehRaw.serverVehicleString,
+        spectators = BJI.Managers.Context.Players:reduce(function(res, p, pid)
+            -- specs system remake because a lot of desyncs with default one
+            if p.currentVehicle == (BJI.Managers.Context.isSelf(mpVehRaw.ownerID) and
+                    mpVehRaw.gameVehicleID or mpVehRaw.remoteVehID) then
+                res[pid] = true
+            end
+            return res
+        end, {}),
+        protected = mpVehRaw.protected == "1",
+        position = pos,
+        rotation = rot,
+        vehicleHeight = vehicleHeight
+    }
+end
+
+---@param filters {ownerID: integer?, isAi: boolean?, model: string?}?
+---@return tablelib<integer, BJIMPVehicle> index 1-N
+local function getMPVehicles(filters)
+    filters = filters or {}
+    return Table(MPVehicleGE.getVehicles())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :filter(function(v)
+            if filters.ownerID and v.ownerID ~= filters.ownerID then
+                return false
+            end
+            if filters.isAi ~= nil and filters.isAi ~= isAi(v.jbeam) then
+                return false
+            end
+            if filters.model and v.jbeam ~= filters.model then
+                return false
+            end
+            return true
+        end)
+        :map(convertVehicle):values()
+end
+
+---@return tablelib<integer, BJIMPVehicle>
 local function getMPOwnVehicles()
-    local vehs = {}
-    local mpVehs = MPVehicleGE.getOwnMap()
-    for _, v in pairs(mpVehs) do
-        table.insert(vehs, {
-            gameVehicleID = v.gameVehicleID,
-            isDeleted = v.isDeleted,
-            isLocal = v.isLocal,
-            isSpawned = v.isSpawned,
-            jbeam = v.jbeam,
-            ownerID = v.ownerID,
-            ownerName = v.ownerName,
-            remoteVehID = v.remoteVehID,
-            serverVehicleID = v.serverVehicleID,
-            serverVehicleString = v.serverVehicleString,
-            spectators = v.spectators,
-        })
+    return Table(MPVehicleGE.getOwnMap())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :map(convertVehicle):values()
+end
+
+---@param gameVehID integer
+---@param own boolean?
+---@return BJIMPVehicle?
+local function getMPVehicle(gameVehID, own)
+    local selfID = BJI.Managers.Context.User.playerID
+    local res = Table(MPVehicleGE.getVehicles())
+        :filter(function(v) return v.isSpawned and not v.isDeleted end)
+        :find(function(v)
+            if own ~= nil then
+                if own and v.ownerID ~= selfID then
+                    return false
+                elseif not own and v.ownerID == selfID then
+                    return false
+                end
+            end
+            return v.gameVehicleID == gameVehID
+        end)
+    if res then
+        return convertVehicle(res)
     end
-    return vehs
-end
-
-local function isVehReady(gameVehID)
-    local veh = MPVehicleGE.getOwnMap()[gameVehID]
-    return veh and veh.isSpawned and not veh.isDeleted
-end
-
-local function _getPlayerVehicleAndPosAndRotation(thenFn)
-    local playerVehicle = M.getCurrentVehicle()
-    if not playerVehicle then return end
-    local pos = core_camera.getPosition()
-    local camDir = core_camera.getForward()
-    camDir.z = 0
-    local camRot = quatFromDir(camDir, vec3(0, 0, 1))
-    camRot = quat(0, 0, 1, 0) * camRot -- vehicles' forward is inverted
-    thenFn(playerVehicle, pos, camRot)
 end
 
 local function dropPlayerAtCamera(withReset)
     if M.isCurrentVehicleOwn() and
-        BJICam.getCamera() ~= BJICam.CAMERAS.BIG_MAP then
-        local previousCam = BJICam.getCamera()
-        local camPosRot = BJICam.getPositionRotation(false)
+        BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.BIG_MAP then
+        local previousCam = BJI.Managers.Cam.getCamera()
+        local camPosRot = BJI.Managers.Cam.getPositionRotation(false)
         camPosRot.rot = camPosRot.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
 
-        BJIVeh.setPositionRotation(camPosRot.pos, camPosRot.rot, {
+        M.setPositionRotation(camPosRot.pos, camPosRot.rot, {
             safe = false,
             saveHome = true,
             noReset = not withReset,
         })
 
-        if previousCam == BJICam.CAMERAS.FREE then
-            BJICam.setCamera(BJICam.CAMERAS.ORBIT)
+        if previousCam == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
             core_camera.resetCamera(0)
         end
     end
-
-    --[[    _getPlayerVehicleAndPosAndRotation(
-        function(vehicle, pos, camRot)
-            vehicle:setPositionRotation(pos.x, pos.y, pos.z, camRot.x, camRot.y, camRot.z, camRot.w)
-            setGameCamera()
-
-            if BJICam.getCamera() == BJICam.CAMERAS.BIG_MAP then
-                BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-            end
-            core_camera.resetCamera(0)
-        end
-    )]]
 end
 
-local function dropPlayerAtCameraNoReset()
-    _getPlayerVehicleAndPosAndRotation(
-        function(vehicle, pos, camRot)
-            local vehRot = quat(vehicle:getClusterRotationSlow(vehicle:getRefNodeId()))
-            local diffRot = vehRot:inversed() * camRot
-            vehicle:setClusterPosRelRot(vehicle:getRefNodeId(), pos.x, pos.y, pos.z, diffRot.x, diffRot.y, diffRot.z,
-                diffRot.w)
-            vehicle:applyClusterVelocityScaleAdd(vehicle:getRefNodeId(), 0, 0, 0, 0)
-            core_camera.setGlobalCameraByName(nil)
-
-            if core_camera.getActiveCamName(0) == "bigMap" then
-                core_camera.setByName(0, "orbit", false)
-            end
-            core_camera.resetCamera(0)
-            vehicle:setOriginalTransform(pos.x, pos.y, pos.z, camRot.x, camRot.y, camRot.z, camRot.w)
-        end
-    )
-end
-
+---@return NGVehicle?
 local function getCurrentVehicle()
-    return be:getPlayerVehicle(0)
+    return getPlayerVehicle(0)
 end
 
+---@param gameVehID integer?
+---@return NGVehicle?
 local function getVehicleObject(gameVehID)
     gameVehID = tonumber(gameVehID)
     if not gameVehID then
@@ -161,81 +206,94 @@ local function getVehicleObject(gameVehID)
     end
     local veh = be:getObjectByID(gameVehID)
     if not veh then
-        local vehs = M.getMPVehicles()
-        for _, v in pairs(vehs) do
-            if v.remoteVehID == gameVehID then
-                return be:getObjectByID(v.gameVehicleID)
-            end
-        end
+        ---@type BJIMPVehicle?
+        local remote = M.getMPVehicles():find(function(v)
+            return v.remoteVehID == gameVehID
+        end)
+        return remote and remote.veh or nil
     end
-    return veh or nil
+    return veh
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getRemoteVehID(gameVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.gameVehicleID == gameVehID and v.remoteVehID ~= -1 then
-            return v.remoteVehID
-        end
+    local veh = M.getMPVehicle(gameVehID)
+    if veh and veh.remoteVehID ~= -1 then
+        return veh.remoteVehID
     end
-    return nil
 end
 
+---@param remoteVehID integer
+---@return integer?
 local function getGameVehIDByRemoteVehID(remoteVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.remoteVehID == remoteVehID then
-            return v.gameVehicleID
-        end
+    local veh = M.getMPVehicles():find(function(v)
+        return v.remoteVehID == remoteVehID
+    end)
+    if veh then
+        return veh.gameVehicleID
     end
-    return nil
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getVehOwnerID(gameVehID)
-    local vehs = M.getMPVehicles()
-    for _, v in pairs(vehs) do
-        if v.gameVehicleID == gameVehID or v.remoteVehID == gameVehID then
-            return tonumber(v.ownerID)
-        end
+    local veh = M.getMPVehicle(gameVehID)
+    if veh then
+        return veh.ownerID
     end
-    return nil
 end
 
+---@param gameVehID integer
+---@return integer?
 local function getVehIDByGameVehID(gameVehID)
-    if not M.isGEInit() or
-        gameVehID == -1 or
-        not M.getVehicleObject(gameVehID) then
-        return nil
+    local veh = M.getMPVehicle(gameVehID)
+    if veh then
+        return veh.serverVehicleID
     end
-    local _, veh, err = pcall(MPVehicleGE.getVehicleByGameID, gameVehID)
-    if not veh or err then
-        return nil
-    end
-    return tonumber(veh.serverVehicleID)
 end
 
+---@param playerID integer
+---@param vehID integer?
+---@return integer?
 local function getGameVehicleID(playerID, vehID)
-    local srvVehID = svar("{1}-{2}", { playerID, vehID or 0 })
-    if not M.getMPVehicles()[srvVehID] then
-        return nil
-    end
+    local srvVehID = string.var("{1}-{2}", { playerID, vehID or 0 })
     return MPVehicleGE.getGameVehicleID(srvVehID)
 end
 
-local function isVehicleOwn(gameVehID)
-    return M.isGEInit() and MPVehicleGE.isOwn(gameVehID)
+---@param gameVehID integer
+---@return boolean
+local function isVehProtected(gameVehID)
+    local veh = M.getMPVehicle(gameVehID)
+    return veh and veh.protected or false
 end
 
+local function getSelfVehiclesCount()
+    return Table(M.getMPOwnVehicles())
+        ---@param v BJIMPVehicle
+        :filter(function(v)
+            return v.jbeam ~= "unicycle" and not v.isAi
+        end):length()
+end
+
+---@param gameVehID integer
+---@return boolean
+local function isVehicleOwn(gameVehID)
+    return MPVehicleGE.isOwn(gameVehID)
+end
+
+---@return boolean
 local function isCurrentVehicleOwn()
     local vehicle = M.getCurrentVehicle()
     if vehicle then
         return M.isVehicleOwn(vehicle:getID())
-    elseif BJIContext.User.currentVehicle then
-        return M.isVehicleOwn(BJIContext.User.currentVehicle)
+    elseif BJI.Managers.Context.User.currentVehicle then
+        return M.isVehicleOwn(BJI.Managers.Context.User.currentVehicle)
     end
     return false
 end
 
+---@return NGVehicle?
 local function getCurrentVehicleOwn()
     local veh = M.getCurrentVehicle()
     if veh and M.isVehicleOwn(veh:getID()) and M.isGEInit() then
@@ -244,34 +302,115 @@ local function getCurrentVehicleOwn()
 end
 
 local function hasVehicle()
-    return tlength(MPVehicleGE.getOwnMap()) > 0
+    return table.length(MPVehicleGE.getOwnMap()) > 0
 end
 
+local function isVehReady(gameVehID)
+    local veh = MPVehicleGE.getOwnMap()[gameVehID]
+    return veh and veh.isSpawned and not veh.isDeleted
+end
+
+---@param callback fun(ctxt: TickContext)
+local function waitForVehicleSpawn(callback)
+    local delay = GetCurrentTimeMillis() + 200
+    local timeout = delay + 20000
+    BJI.Managers.Async.task(function(ctxt)
+        if ctxt.now >= timeout then
+            LogError("Vehicle spawn wait timeout")
+            return true
+        end
+        if ctxt.now > delay and ui_imgui.GetIO().Framerate > 5 and ctxt.veh ~= nil then
+            if M.isUnicycle(ctxt.veh.gameVehicleID) then
+                return true
+            end
+            local damages = ctxt.veh and tonumber(ctxt.veh.veh.damageState) or nil
+            if damages == nil or damages >= BJI.Managers.Context.VehiclePristineThreshold then
+                return false
+            end
+            local speed = ctxt.veh and tonumber(ctxt.veh.veh.speed) or nil
+            if speed == nil or speed > .5 then
+                return false
+            end
+            return isVehReady(ctxt.veh.gameVehicleID)
+        end
+        return false
+    end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
+end
+
+---@param config string|table
+local function isVehPolice(config)
+    local policeMarkers = Table({ "police", "polizei" })
+    local conf = BJI.Managers.Veh.getFullConfig(config) or { parts = {} }
+    return policeMarkers:any(function(str) return conf.model:lower():find(str) ~= nil end) or
+        Table(conf.parts):any(function(v, k)
+            return policeMarkers:any(function(str)
+                return (tostring(k):lower():find(str) ~= nil and #v > 0) or
+                    tostring(v):lower():find(str) ~= nil
+            end)
+        end)
+end
+
+---@param gameVehID integer
 local function onVehicleSpawned(gameVehID)
-    local vehicle = M.getVehicleObject(gameVehID)
-    if vehicle then
-        vehicle:queueLuaCommand('extensions.BJI_BJIPhysics.update()')
-    end
+    local timeout = GetCurrentTimeMillis() + 1000
+    BJI.Managers.Async.task(function(ctxt)
+        return ctxt.now > timeout or
+            Table(MPVehicleGE.getVehicles()):any(function(v) return v.gameVehicleID == gameVehID end)
+    end, function()
+        local mpVeh = M.getMPVehicle(gameVehID)
+        if not mpVeh then
+            error("Invalid vehicle spawned " .. tostring(gameVehID))
+        end
+        mpVeh.veh:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
+        if mpVeh.isLocal then
+            mpVeh.veh:queueLuaCommand(
+                "recovery.saveHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.saveHome('..tostring(obj:getID())..')') end")
+            mpVeh.veh:queueLuaCommand(
+                "recovery.loadHome = function() obj:queueGameEngineLua('BJI.Managers.Scenario.loadHome('..tostring(obj:getID())..')') end")
+        end
+
+        -- also works for vehicle replacement
+        if isVehPolice(mpVeh.veh.partConfig) then
+            mpVeh.veh:setDynDataFieldbyName("isPatrol", 0, "true")
+        else
+            mpVeh.veh:setDynDataFieldbyName("isPatrol", 0, "")
+        end
+
+        if mpVeh.jbeam == "unicycle" and not mpVeh.isLocal then
+            mpVeh.veh.playerUsable = false
+        elseif mpVeh.isAi then
+            mpVeh.veh.uiState = 0
+            mpVeh.veh.playerUsable = false
+        end
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.NG_VEHICLE_INITIALIZED, mpVeh)
+    end)
 end
 
+---@param gameVehID integer
+local function onVehicleDestroyed(gameVehID)
+    M.homes[gameVehID] = nil
+end
+
+---@param playerID integer
 local function focus(playerID)
-    local player = BJIContext.Players[playerID]
+    local player = BJI.Managers.Context.Players[playerID]
     local veh = (player and player.currentVehicle) and M.getVehicleObject(player.currentVehicle) or nil
     if veh then
         be:enterVehicle(0, veh)
         -- _vehGE.focusCameraOnPlayer(playerName)
-        if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-            BJICam.setCamera(BJICam.CAMERAS.ORBIT, true)
+        if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT, true)
         end
     end
 end
 
+---@param gameVehID integer
 local function focusVehicle(gameVehID)
     local veh = M.getVehicleObject(gameVehID)
     if veh then
         be:enterVehicle(0, veh)
-        if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-            BJICam.setCamera(BJICam.CAMERAS.ORBIT, true)
+        if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT, true)
         end
     end
 end
@@ -280,12 +419,39 @@ local function focusNextVehicle()
     be:enterNextVehicle(0, 1)
 end
 
+---@param data {veh: NGVehicle?, gameVehID: integer?, state: boolean?}
+local function toggleVehicleFocusable(data)
+    if not data.veh and not data.gameVehID then
+        error("Invalid vehicle")
+        return
+    end
+
+    local veh = M.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
+    if not veh or BJI.Managers.AI.isAIVehicle(veh:getID()) then
+        error("Invalid vehicle")
+        return
+    end
+
+    if data.state == nil then
+        data.state = not veh.playerUsable
+    end
+    veh.playerUsable = data.state
+
+    if not data.state then
+        local currVeh = M.getCurrentVehicle()
+        if currVeh and currVeh:getID() == veh:getID() then
+            focusNextVehicle()
+        end
+    end
+end
+
+---@param targetID integer
 local function teleportToPlayer(targetID)
     if not M.isCurrentVehicleOwn() then
         return
     end
 
-    local target = BJIContext.Players[targetID]
+    local target = BJI.Managers.Context.Players[targetID]
     local destVeh = target and M.getVehicleObject(target.currentVehicle) or nil
     if not target or not destVeh then
         LogError("Invalid target player or vehicle")
@@ -293,12 +459,14 @@ local function teleportToPlayer(targetID)
     end
 
     -- old
-    -- playerName = target.playerName
-    -- MPVehicleGE.teleportVehToPlayer(playerName)
+    -- MPVehicleGE.teleportVehToPlayer(target.playerName)
 
-    local posRot = destVeh and M.getPositionRotation(destVeh)
-    if posRot then
-        M.setPositionRotation(posRot.pos, posRot.rot)
+    local pos, rot
+    if destVeh then
+        pos, rot = M.getPositionRotation(destVeh)
+    end
+    if pos and rot then
+        M.setPositionRotation(pos, rot)
     else
         LogError("Invalid destination position")
     end
@@ -311,7 +479,7 @@ local function teleportToLastRoad()
 end
 
 local function deleteOtherOwnVehicles()
-    local vehs = BJIContext.User.vehicles
+    local vehs = BJI.Managers.Context.User.vehicles
     local selfVeh = M.getCurrentVehicleOwn()
     local currentGameVehID = selfVeh and selfVeh:getID() or nil
     for _, veh in pairs(vehs) do
@@ -322,12 +490,13 @@ local function deleteOtherOwnVehicles()
             end
         end
     end
+    BJI.Managers.AI.stopTraffic()
 end
 
 local function deleteAllOwnVehicles()
     M.saveCurrentVehicle()
-    local vehs = BJIContext.User.vehicles
-    if tlength(vehs) > 0 then
+    local vehs = BJI.Managers.Context.User.vehicles
+    if table.length(vehs) > 0 then
         for _, veh in pairs(vehs) do
             local v = M.getVehicleObject(veh.gameVehID)
             if v then
@@ -335,6 +504,7 @@ local function deleteAllOwnVehicles()
             end
         end
     end
+    BJI.Managers.AI.stopTraffic()
 end
 
 local function deleteCurrentVehicle()
@@ -360,52 +530,138 @@ local function deleteOtherPlayerVehicle()
 end
 
 BJI_VEHICLE_EXPLODE_HINGES_DELAY = 200
+---@param gameVehID integer
 local function explodeVehicle(gameVehID)
     local veh = M.getVehicleObject(gameVehID)
     if veh then
         veh:queueLuaCommand("fire.explodeVehicle()")
-        BJIAsync.delayTask(function()
+        BJI.Managers.Async.delayTask(function()
             veh:queueLuaCommand("beamstate.breakAllBreakgroups()")
-        end, BJI_VEHICLE_EXPLODE_HINGES_DELAY, svar("ExplodeVehicle{1}", { gameVehID }))
+        end, BJI_VEHICLE_EXPLODE_HINGES_DELAY, string.var("ExplodeVehicle{1}", { gameVehID }))
     end
 end
 
-local function getPositionRotation(veh)
+---@param posRot? BJIPositionRotation
+local function saveHome(posRot)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        local finalPoint = {}
+        if posRot then
+            finalPoint = {
+                pos = vec3(posRot.pos),
+                rot = quat(posRot.rot),
+            }
+        else
+            finalPoint.pos, finalPoint.rot = M.getPositionRotation(veh)
+        end
+        M.homes[veh:getID()] = finalPoint
+        if BJI.Managers.Scenario.isFreeroam() and finalPoint then
+            guihooks.message("vehicle.recovery.saveHome", 5, "recovery")
+        end
+    end
+end
+
+---@param callback? fun(ctxt: TickContext)
+local function loadHome(callback)
+    local veh = M.getCurrentVehicleOwn()
+    if veh and M.homes[veh:getID()] then
+        local home = M.homes[veh:getID()]
+        veh:requestReset(RESET_PHYSICS)
+        local pos, rot = vec3(home.pos) + vec3(0, 0, veh:getInitialHeight() / 2), quat(home.rot)
+        M.setPositionRotation(pos, rot)
+        if BJI.Managers.Scenario.isFreeroam() then
+            guihooks.message("vehicle.recovery.loadHome", 5, "recovery")
+        end
+        if type(callback) == "function" then
+            waitForVehicleSpawn(callback)
+        end
+    end
+end
+
+---@param callback? fun(ctxt: TickContext)
+local function recoverInPlace(callback)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        veh:queueLuaCommand("recovery.recoverInPlace()")
+        if type(callback) == "function" then
+            waitForVehicleSpawn(callback)
+        end
+    end
+end
+
+---@param veh NGVehicle?
+---@param callback fun(pos: vec3, rot: quat)?
+---@return vec3?, quat?
+local function getPositionRotation(veh, callback)
     if not veh then
         veh = M.getCurrentVehicle()
     end
 
     if veh then
         local nodeId = veh:getRefNodeId()
-        --local pos = veh:getSpawnWorldOOBB():getCenter()
-        local pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID()))
-        pos.z = pos.z - veh:getInitialHeight() * .5 -- center at ground
+        local pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID())) -
+            vec3(0, 0, veh:getInitialHeight() / 2) -- center at ground
         local rot = quat(veh:getClusterRotationSlow(nodeId))
 
-        return RoundPositionRotation({ pos = pos, rot = rot })
+        local res = math.roundPositionRotation({ pos = pos, rot = rot })
+        if type(callback) == "function" then
+            callback(res.pos, res.rot)
+        end
+        return res.pos, res.rot
     end
     return nil
 end
 
---[[
-<ul>
-    <li>pos: vec3</li>
-    <li>rot: quat DEFAULT veh:rot</li>
-    <li>options = NULLABLE</li>
-    <ul>
-        <li>safe: boolean DEFAULT true</li>
-        <li>saveHome: boolean NULLABLE</li>
-        <li>noReset: boolean DEFAULT false</li>
-    </ul>
-</ul>
-]]
+---@param veh NGVehicle?
+---@param callback fun(posRotVel: BJIPositionRotationVelocity)
+local function getPosRotVel(veh, callback)
+    if not veh then
+        veh = M.getCurrentVehicle()
+    end
+    if veh then
+        local pos, rot = M.getPositionRotation(veh)
+        ---@type table
+        local res = math.roundPositionRotation({ pos = pos or vec3(), rot = rot })
+        local vel = vec3(veh:getVelocity())
+        ---@type table
+        table.assign(res, {
+            vel = vec3(
+                math.round(vel.x, 2),
+                math.round(vel.y, 2),
+                math.round(vel.z, 2)
+            )
+        })
+        ---@param bhv string
+        ---@param mde string
+        ---@param idx string
+        M.TMP_SET_GEARBOX = function(bhv, mde, idx)
+            res.gearbox = {
+                grb_bhv = bhv,
+                grb_mde = #mde > 0 and mde or nil,
+                grb_idx = #idx > 0 and tonumber(idx) or nil,
+            }
+            M.TMP_SET_GEARBOX = nil
+            callback(res)
+        end
+        veh:queueLuaCommand([[
+            local state = controller.mainController.getState()
+            obj:queueGameEngineLua("BJI.Managers.Veh.TMP_SET_GEARBOX('"..state.grb_bhv.."', '"..(state.grb_mde or "").."', '"..(tostring(state.grb_idx) or "").."')")
+        ]])
+    end
+end
+
+---@param pos vec3
+---@param rot? quat DEFAULT to currentVeh:rot
+---@param options? { safe?: boolean, saveHome?: boolean, noReset?: boolean } safe default true, noReset default false
 local function setPositionRotation(pos, rot, options)
     if not pos then
         return
     end
+    local _
     pos = vec3(pos)
     if not rot then
-        rot = M.getPositionRotation().rot
+        _, rot = M.getPositionRotation()
+        rot = rot or quat(0, 0, 0, 0)
     else
         rot = quat(rot)
     end
@@ -413,8 +669,8 @@ local function setPositionRotation(pos, rot, options)
     if not options then options = { safe = true } end
     if options.safe == nil then options.safe = true end
 
-    local veh = M.getCurrentVehicle()
-    if veh and M.isVehicleOwn(veh:getID()) then
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
         pos.z = pos.z + veh:getInitialHeight() * .5 -- add half the height of vehicle
 
         if options.noReset then
@@ -442,11 +698,80 @@ local function setPositionRotation(pos, rot, options)
         end
 
         if options.saveHome then
-            veh:setOriginalTransform(pos.x, pos.y, pos.z, rot.x,
-                rot.y, rot.z, rot.w)
+            M.saveHome()
         end
     end
 end
+
+-- TO REWORK : BREAKS GEARBOX with some modes
+---@param posRotVel BJIPositionRotationVelocity
+local function setPosRotVel(posRotVel)
+    local veh = M.getCurrentVehicleOwn()
+    if veh then
+        M.TMP_GET_FFB = function(ffb)
+            local previousSmoothing = ffb.smoothing
+            local previousForce = ffb.forceCoef
+            ffb.smoothing = ffb.smoothing * 2
+            ffb.forceCoef = ffb.forceCoef / 2
+            getPlayerVehicle(0):queueLuaCommand([[
+                hydros.setFFBConfig({
+                    forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
+                    gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
+                    smoothing=]] .. tostring(ffb.smoothing) .. [[,
+                    smoothing2=]] .. tostring(ffb.smoothing2) .. [[,
+                    smoothing2automatic=]] .. tostring(ffb.smoothing2automatic) .. [[,
+                    softlockForce=]] .. tostring(ffb.softlockForce) .. [[
+                })
+            ]]);
+
+            M.setPositionRotation(posRotVel.pos, posRotVel.rot, { safe = false })
+            veh:resetBrokenFlexMesh()
+            veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
+            veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, posRotVel.vel.x, posRotVel.vel.y, posRotVel.vel.z)
+            local cmd = [[controller.mainController.setState({]] ..
+                Table(posRotVel.gearbox):map(function(v, k)
+                    if type(v) == "string" then
+                        return string.var('{1}="{2}"', { k, v })
+                    else
+                        return string.var("{1}={2}", { k, v })
+                    end
+                end):join(",") ..
+                "})"
+            veh:queueLuaCommand(cmd)
+
+            BJI.Managers.Async.delayTask(function()
+                ffb.smoothing = previousSmoothing
+                ffb.forceCoef = previousForce
+                getPlayerVehicle(0):queueLuaCommand([[
+                hydros.setFFBConfig({
+                    forceCoef=]] .. tostring(ffb.forceCoef) .. [[,
+                    gforceCoef=]] .. tostring(ffb.gforceCoef) .. [[,
+                    smoothing=]] .. tostring(ffb.smoothing) .. [[,
+                    smoothing2=]] .. tostring(ffb.smoothing2) .. [[,
+                    smoothing2automatic=]] .. tostring(ffb.smoothing2automatic) .. [[,
+                    softlockForce=]] .. tostring(ffb.softlockForce) .. [[
+                })
+            ]]);
+            end, 1500)
+
+            M.TMP_GET_FFB = nil
+        end
+
+        local params = Table({
+            'forceCoef="..tostring(ffb.forceCoef).."',
+            'gforceCoef="..tostring(ffb.gforceCoef).."',
+            'smoothing="..tostring(ffb.smoothing).."',
+            'smoothing2="..tostring(ffb.smoothing2).."',
+            'smoothing2automatic="..tostring(ffb.smoothing2automatic).."',
+            'softlockForce="..tostring(ffb.softlockForce).."',
+        }):join(",")
+        getPlayerVehicle(0):queueLuaCommand([[
+            local ffb = hydros.getFFBConfig()
+            obj:queueGameEngineLua("BJI.Managers.Veh.TMP_GET_FFB({]] .. params .. [[})")
+        ]]);
+    end
+end
+
 
 local function stopCurrentVehicle()
     local veh = M.getCurrentVehicleOwn()
@@ -471,7 +796,7 @@ local function freeze(state, gameVehID)
         vehicle = M.getCurrentVehicleOwn()
     end
     if vehicle then
-        vehicle:queueLuaCommand(svar("controller.setFreeze({1})", { state }))
+        vehicle:queueLuaCommand(string.var("controller.setFreeze({1})", { state }))
     end
 end
 
@@ -495,16 +820,16 @@ local function engine(state, gameVehID)
         if state then
             vehicle:queueLuaCommand('controller.mainController.setStarter(true)')
         end
-        vehicle:queueLuaCommand(svar(
+        vehicle:queueLuaCommand(string.var(
             "if controller.mainController.setEngineIgnition then controller.mainController.setEngineIgnition({1}) end",
             { state }
         ))
         if state then
-            BJIAsync.delayTask(function()
+            BJI.Managers.Async.delayTask(function()
                 vehicle:queueLuaCommand('controller.mainController.setStarter(false)')
             end, 1000, "BJIEngineStartDelayStarter")
         end
-        -- vehicle:queueLuaCommand(svar("electrics.horn({1})", { state }))
+        -- vehicle:queueLuaCommand(string.var("electrics.horn({1})", { state }))
     end
 end
 
@@ -532,30 +857,29 @@ local function lights(state, gameVehID, allLights)
         else
             vehicle:queueLuaCommand("electrics.setLightsState(0)")
             if allLights then
-                vehicle:queueLuaCommand(svar("electrics.set_warn_signal({1})", { state }))
-                vehicle:queueLuaCommand(svar("electrics.set_lightbar_signal({1})", { state }))
-                vehicle:queueLuaCommand(svar("electrics.set_fog_lights({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_warn_signal({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_lightbar_signal({1})", { state }))
+                vehicle:queueLuaCommand(string.var("electrics.set_fog_lights({1})", { state }))
             end
         end
     end
 end
 
 --[[
+gearIndex:
 <ul>
-    <li>vehID: number</li>
-    <li>gearIndex: number</li>
-    <ul>
-        <li>-1 : R</li>
-        <li>0 : N</li>
-        <li>1 : 1 or D</li>
-        <li>...</li>
-    </ul>
+    <li>-1 : R</li>
+    <li>0 : N</li>
+    <li>1 : 1 or D</li>
+    <li>...</li>
 </ul>
 ]]
+---@param vehID? integer DEFAULT to currentVeh:getID()
+---@param gearIndex integer
 local function setGear(vehID, gearIndex)
     local vehicle
     if vehID then
-        local gameVehID = M.getGameVehicleID(BJIContext.User.playerID, vehID)
+        local gameVehID = M.getGameVehicleID(BJI.Managers.Context.User.playerID, vehID)
         vehicle = M.getVehicleObject(gameVehID)
     else
         -- fallback to current owned vehicle
@@ -565,14 +889,14 @@ local function setGear(vehID, gearIndex)
         vehicle = M.getCurrentVehicleOwn()
     end
     if vehicle then
-        vehicle:queueLuaCommand(svar("controller.mainController.shiftToGearIndex({1})", { gearIndex }))
+        vehicle:queueLuaCommand(string.var("controller.mainController.shiftToGearIndex({1})", { gearIndex }))
     end
 end
 
 local function shiftUp(vehID)
     local vehicle
     if vehID then
-        local gameVehID = M.getGameVehicleID(BJIContext.User.playerID, vehID)
+        local gameVehID = M.getGameVehicleID(BJI.Managers.Context.User.playerID, vehID)
         vehicle = M.getVehicleObject(gameVehID)
     else
         -- fallback to current owned vehicle
@@ -591,7 +915,7 @@ end
 local function shiftDown(vehID)
     local vehicle
     if vehID then
-        local gameVehID = M.getGameVehicleID(BJIContext.User.playerID, vehID)
+        local gameVehID = M.getGameVehicleID(BJI.Managers.Context.User.playerID, vehID)
         vehicle = M.getVehicleObject(gameVehID)
     else
         -- fallback to current owned vehicle
@@ -608,15 +932,17 @@ local function shiftDown(vehID)
 end
 
 -- return the current vehicle model key
+---@return string?
 local function getCurrentModel()
     local veh = M.getCurrentVehicle()
     if not veh then
         return nil
     end
 
-    return veh.JBeam
+    return veh.jbeam
 end
 
+---@return {model: string, config: ClientVehicleConfig}?
 local function getDefaultModelAndConfig()
     local config = jsonReadFile("settings/default.pc")
     if config then
@@ -628,6 +954,7 @@ local function getDefaultModelAndConfig()
     return nil
 end
 
+---@return boolean
 local function isDefaultModelVehicle()
     local default = M.getDefaultModelAndConfig()
     return default and M.getAllVehicleConfigs(true, true)[default.model] ~= nil or false
@@ -635,11 +962,11 @@ end
 
 local function saveCurrentVehicle()
     local veh = M.getCurrentVehicleOwn() or nil
-    if veh or tlength(BJIContext.User.vehicles) > 0 then
+    if veh or table.length(BJI.Managers.Context.User.vehicles) > 0 then
         if not veh then
             local gameVehID
-            for _, v in pairs(BJIContext.User.vehicles) do
-                if not tincludes({ "Trailer", "Prop" }, M.getType(v.model)) then
+            for _, v in pairs(BJI.Managers.Context.User.vehicles) do
+                if not table.includes({ M.TYPES.TRAILER, M.TYPES.PROP }, M.getType(v.model)) then
                     gameVehID = v.gameVehID
                     break
                 end
@@ -647,12 +974,19 @@ local function saveCurrentVehicle()
             veh = gameVehID and M.getVehicleObject(gameVehID) or nil
         end
         if veh then
-            BJIContext.User.previousVehConfig = M.getFullConfig(veh.partConfig)
+            BJI.Managers.Context.User.previousVehConfig = M.getFullConfig(veh.partConfig)
+            if BJI.Managers.Context.User.previousVehConfig and
+                not BJI.Managers.Context.User.previousVehConfig.model then
+                -- a very low amount of configs have no model, don't know why
+                LogWarn("Last vehicle doesn't have model in its config, safe adding it")
+                BJI.Managers.Context.User.previousVehConfig.model = veh.jbeam
+            end
         end
     end
 end
 
--- model is optionnal
+---@param model? string
+---@param withTechName? boolean
 local function getModelLabel(model, withTechName)
     model = model or M.getCurrentModel()
     if type(model) ~= "string" then
@@ -676,48 +1010,102 @@ local function getModelLabel(model, withTechName)
     elseif not withTechName then
         return label
     else
-        return svar("{1} - {2}", { model, label })
+        return string.var("{1} - {2}", { model, label })
     end
 end
 
+---@param model string
+---@param configKey string
+local function getConfigLabel(model, configKey)
+    if type(model) ~= "string" or type(configKey) ~= "string" then
+        return "?"
+    end
+
+    local modelData = M.getAllVehicleConfigs(true, true)[model] or {}
+    return (modelData.configs and modelData.configs[configKey]) and modelData.configs[configKey].label or "?"
+end
+
 -- config is optionnal
+---@param config string?
+---@return boolean
 local function isConfigCustom(config)
     local veh = M.getCurrentVehicle()
     if not config and not veh then
         return false
     end
 
-    config = config or veh.partConfig
-    return not config:find("%.pc$")
+    config = config or (veh and veh.partConfig or "")
+    return not config:endswith(".pc")
 end
 
+---@param model string
+---@return boolean
 local function isModelBlacklisted(model)
-    return #BJIContext.Database.Vehicles.ModelBlacklist > 0 and
-        tincludes(BJIContext.Database.Vehicles.ModelBlacklist, model)
+    return #BJI.Managers.Context.Database.Vehicles.ModelBlacklist > 0 and
+        table.includes(BJI.Managers.Context.Database.Vehicles.ModelBlacklist, model)
 end
 
---[[
-config is optionnal<br>
-return the full config raw data
-]]
+---@param tree table
+---@return table<string, string>
+local function convertPartsTree(tree)
+    local parts = {}
+    local function recursParts(data)
+        for k, v in pairs(data) do
+            if v.chosenPartName then
+                parts[k] = v.chosenPartName
+            end
+            if v.children then
+                recursParts(v.children)
+            end
+        end
+    end
+    local start = GetCurrentTimeMillis()
+    recursParts(tree.children)
+    LogWarn(string.var("Converted manually modified veh config to standard parts in {1}ms",
+        { GetCurrentTimeMillis() - start }))
+    return parts
+end
+
+--- return the full config raw data
+---@param config? string|table
+---@return ClientVehicleConfig?
 local function getFullConfig(config)
     local veh = M.getCurrentVehicle()
     if not config and not veh then
         return nil
     end
 
-    config = config or veh.partConfig
-    if isConfigCustom(config) then
-        local fn = load(svar("return {1}", { config:gsub("'", "") }))
+    config = config or (veh and veh.partConfig or "")
+    local res, status
+    if isConfigCustom(tostring(config)) then
+        local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
         if type(fn) == "function" then
-            local status, data = pcall(fn)
-            return status and data or nil
+            status, res = pcall(fn)
+            if not status then
+                return nil
+            end
+            if res.partsTree then -- vehicle has been manually modified = > simplify parts
+                res.parts = convertPartsTree(res.partsTree)
+                res.partsTree = nil
+            end
+            res.label = M.getModelLabel(res.model)
         end
     else
-        return jsonReadFile(config)
+        res = jsonReadFile(config)
+        res.key = tostring(config):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
+        if not res.model then
+            -- some configs are malformed and do not have model value (eg barstow-awful)
+            res.model = tostring(config):gsub("^vehicles/", ""):gsub("/.+%.pc$", "")
+        end
+        res.label = string.var("{1} {2}", { M.getModelLabel(res.model),
+            M.getConfigLabel(res.model, res.key) })
     end
+
+    return res
 end
 
+---@param model string
+---@return string?
 local function getType(model)
     if not M.allVehicleConfigs then
         M.getAllVehicleConfigs()
@@ -733,6 +1121,8 @@ local function getType(model)
     return nil
 end
 
+---@param gameVehID integer?
+---@return boolean
 local function isUnicycle(gameVehID)
     local veh = gameVehID and M.getVehicleObject(gameVehID) or M.getCurrentVehicle()
     if not veh then
@@ -742,19 +1132,25 @@ local function isUnicycle(gameVehID)
     return veh.partConfig:find("unicycle") ~= nil
 end
 
+---@param model string
+---@param configKey string
+---@return string
 local function getConfigByModelAndKey(model, configKey)
-    return svar("vehicles/{1}/{2}.pc", { model, configKey })
+    return string.var("vehicles/{1}/{2}.pc", { model, configKey })
 end
 
+---@return string?
 local function getCurrentConfigKey()
     local veh = M.getCurrentVehicle()
     if not veh or isConfigCustom() then
         return nil
     end
 
-    return veh.partConfig:gsub("^vehicles/.*/", ""):gsub(".pc", "")
+    local res = veh.partConfig:gsub("^vehicles/.*/", ""):gsub(".pc", "")
+    return res
 end
 
+---@return string?
 local function getCurrentConfigLabel()
     local veh = M.getCurrentVehicle()
     if not veh then
@@ -779,67 +1175,93 @@ local INVALID_VEHICLES = {
     "roof_crush_tester"
 }
 -- cache spawnable data
+---@param withTrailers boolean?
+---@param withProps boolean?
+---@param forced boolean?
 local function getAllVehicleConfigs(withTrailers, withProps, forced)
     if not forced and M.allVehicleConfigs then
         -- cached data
-        local configs = tdeepcopy(M.allVehicleConfigs)
+        local configs = table.clone(M.allVehicleConfigs)
         if withTrailers then
-            for k, v in pairs(M.allTrailerConfigs) do
-                configs[k] = tdeepcopy(v)
-            end
+            table.assign(configs, Table(M.allTrailerConfigs):clone())
         end
         if withProps then
-            for k, v in pairs(M.allPropConfigs) do
-                configs[k] = tdeepcopy(v)
-            end
+            table.assign(configs, Table(M.allPropConfigs):clone())
         end
         return configs
     end
 
     if not forced then
         -- first loading
-        BJIMessage.message("Caching all vehicles...")
+        BJI.Managers.Message.message("Caching all vehicles...")
     end
     -- data gathering
     local vehicles = {}
     local trailers = {}
     local props = {}
+    local bench = {
+        all = 0,
+        gather = 0,
+        checkModded = 0,
+        parse = 0,
+        labels = 0,
+    }
+    local start = GetCurrentTimeMillis()
+    bench.all = start
     local vehs = core_vehicles.getVehicleList().vehicles
+    bench.gather = GetCurrentTimeMillis() - start
     for _, veh in ipairs(vehs) do
         if veh.model then
             local isVeh = true -- Truck | Car
-            if tincludes({ "Trailer", "Prop" }, veh.model.Type, true) then
+            if table.includes({ M.TYPES.TRAILER, M.TYPES.PROP }, veh.model.Type) then
                 isVeh = false
             end
 
-            if isVeh and veh.model.preview == "/ui/images/appDefault.png" then
-                -- not loaded vehicle
-                goto skipVeh
-            elseif tincludes(INVALID_VEHICLES, veh.model.key) then
+            if table.includes(INVALID_VEHICLES, veh.model.key) or
+                veh.model.key:find("traffic") then
                 -- do not use
                 goto skipVeh
             end
 
+            start = GetCurrentTimeMillis()
+            if veh.model.aggregates.Source.Mod then
+                local jbeamIO = require('jbeam/io')
+                local function tryLoadVeh()
+                    if not jbeamIO.getMainPartName(jbeamIO.startLoading({
+                            string.var("/vehicles/{1}/", { veh.model.key }),
+                            "/vehicles/common/"
+                        })) then
+                        error()
+                    end
+                end
+                if not pcall(tryLoadVeh) then
+                    -- vehicle lot loaded
+                    goto skipVeh
+                end
+            end
+            bench.checkModded = bench.checkModded + (GetCurrentTimeMillis() - start)
+
+            start = GetCurrentTimeMillis()
             local target
             if isVeh then
                 target = vehicles
-            elseif veh.model.Type == "Trailer" then
+            elseif veh.model.Type == M.TYPES.TRAILER then
                 target = trailers
-            elseif veh.model.Type == "Prop" then
+            elseif veh.model.Type == M.TYPES.PROP then
                 target = props
             end
             local brandPrefix = ""
             if veh.model.Brand then
-                brandPrefix = svar("{1} ", { veh.model.Brand })
+                brandPrefix = string.var("{1} ", { veh.model.Brand })
             end
             local yearsPrefix = ""
             if veh.model.Years and veh.model.Years.min then
-                yearsPrefix = svar(" ({1})", { veh.model.Years.min })
+                yearsPrefix = string.var(" ({1})", { veh.model.Years.min })
             end
 
-            target[veh.model.key] = tdeepcopy(veh.model)
-            tdeepassign(target[veh.model.key], {
-                label = svar("{1}{2}{3}", { brandPrefix, veh.model.Name, yearsPrefix }),
+            target[veh.model.key] = table.clone(veh.model)
+            table.assign(target[veh.model.key], {
+                label = string.var("{1}{2}{3}", { brandPrefix, veh.model.Name, yearsPrefix }),
                 custom = veh.model.aggregates.Source.Mod,
                 paints = target[veh.model.key].paints or {},
                 configs = {},
@@ -850,9 +1272,9 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
             for key, config in pairs(veh.configs) do
                 if config.key then
                     local label = (config.Configuration or config.key):gsub("_", " ")
-                    if not label:lower():find("simple traffic") then
-                        configs[key] = tdeepcopy(config)
-                        tdeepassign(configs[key], {
+                    if not config.key:lower():endswith("_parked") then
+                        configs[key] = table.clone(config)
+                        table.assign(configs[key], {
                             label = label,
                             custom = not target[veh.model.key].custom and
                                 config.Source ~= "BeamNG - Official",
@@ -860,6 +1282,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                     end
                 end
             end
+            bench.parse = bench.parse + (GetCurrentTimeMillis() - start)
         end
         ::skipVeh::
     end
@@ -868,6 +1291,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     M.allPropConfigs = props
 
     -- LABELS
+    start = GetCurrentTimeMillis()
     M.allVehicleLabels = {}
     for model, d in pairs(vehicles) do
         M.allVehicleLabels[model] = d.label or model
@@ -880,20 +1304,37 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     for model, d in pairs(props) do
         M.allPropLabels[model] = d.label or model
     end
+    bench.labels = GetCurrentTimeMillis() - start
+    bench.all = GetCurrentTimeMillis() - bench.all
+
+    BJI.Managers.Async.delayTask(function()
+        LogInfo("BJI Vehicles Configurations Bechmark :")
+        LogInfo(string.var("    Vehicles gathered in {1}ms", { bench.gather }))
+        LogInfo(string.var("    Modded vehicles checked in {1}ms", { bench.checkModded }))
+        LogInfo(string.var("    Data parsed in {1}ms", { bench.parse }))
+        LogInfo(string.var("    Complete process done in {1}ms", { bench.all }))
+    end, 0, "VehConfigsCacheBench")
 
     if not forced then
         -- first loading
-        BJIMessage.message("All vehicles cached !")
+        BJI.Managers.Message.message("All vehicles cached !")
+    else
+        -- update potentially already opened veh selector
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
     end
     -- return cached data
     return M.getAllVehicleConfigs(withTrailers, withProps)
 end
 
+---@param withTrailers? boolean
+---@param withProps? boolean
+---@param forced? boolean
+---@return table<string, string>
 local function getAllVehicleLabels(withTrailers, withProps, forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    local labels = tdeepcopy(M.allVehicleLabels)
+    local labels = table.clone(M.allVehicleLabels)
     if withTrailers then
         for k, v in pairs(M.allTrailerLabels) do
             labels[k] = v
@@ -911,14 +1352,14 @@ local function getAllTrailerConfigs(forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    return tdeepcopy(M.allTrailerConfigs)
+    return table.clone(M.allTrailerConfigs)
 end
 
 local function getAllPropConfigs(forced)
     if forced or not M.allVehicleConfigs then
         M.getAllVehicleConfigs(false, false, true)
     end
-    return tdeepcopy(M.allPropConfigs)
+    return table.clone(M.allPropConfigs)
 end
 
 -- return all configs keys and labels for current vehicle
@@ -932,7 +1373,7 @@ local function getAllConfigsForModel(model)
     return (data or {}).configs or {}
 end
 
--- return all paints labels and data for model (or current vehicle)
+---@return table<string, NGPaint>
 local function getAllPaintsForModel(model)
     if not model then
         if not M.isCurrentVehicleOwn() then
@@ -945,7 +1386,9 @@ local function getAllPaintsForModel(model)
     return (data or {}).paints or {}
 end
 
--- optionnal config and posrot
+---@param model string
+---@param config? string|table
+---@param posrot? BJIPositionRotation
 local function replaceOrSpawnVehicle(model, config, posrot)
     local newVehicle = not M.isCurrentVehicleOwn()
 
@@ -962,11 +1405,11 @@ local function replaceOrSpawnVehicle(model, config, posrot)
         if not newVehicle then
             M.setPositionRotation(opts.pos, opts.rot)
         end
-    elseif not newVehicle and BJICam.getCamera() == BJICam.CAMERAS.FREE then
-        local vehPos = M.getPositionRotation()
-        if vehPos then
-            opts.pos = vehPos.pos
-            opts.rot = vehPos.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
+    elseif not newVehicle and BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+        local pos, rot = M.getPositionRotation()
+        if pos and rot then
+            opts.pos = pos
+            opts.rot = rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
         end
     end
     if newVehicle then
@@ -974,8 +1417,8 @@ local function replaceOrSpawnVehicle(model, config, posrot)
     else
         core_vehicles.replaceVehicle(model, opts)
     end
-    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-        BJICam.toggleFreeCam()
+    if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Cam.toggleFreeCam()
     end
 end
 
@@ -993,33 +1436,36 @@ local function spawnNewVehicle(model, config, posrot)
         opts.rot = posrot.rot * quat(0, 0, 1, 0) -- vehicles' forward is inverted
     end
     core_vehicles.spawnNewVehicle(model, opts)
-    if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-        BJICam.toggleFreeCam()
+    if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Cam.toggleFreeCam()
     end
 end
 
--- See M.getAllPaintsForModel for paint data
-local function paintVehicle(paint, paintNumber)
-    local veh = M.getCurrentVehicleOwn()
+-- flags to prevent sound spamming
+local paintSoundProcess
+
+---@param veh NGVehicle
+---@param paintIndex integer 1-3
+---@param paint NGPaint
+local function paintVehicle(veh, paintIndex, paint)
+    veh = veh or M.getCurrentVehicleOwn()
     if not veh or type(paint) ~= "table" then
         return
     end
 
-    local config = M.getFullConfig(veh.partConfig)
-    config = config or {}
+    paintIndex = paintIndex == math.clamp(paintIndex or 0, 1, 3) and paintIndex or 1
+    extensions.core_vehicle_manager.liveUpdateVehicleColors(veh:getID(), veh, paintIndex, paint)
 
-    if not config.paints then
-        config.paints = {}
+    local currentVehicle = M.getCurrentVehicle()
+    if not paintSoundProcess and currentVehicle and
+        currentVehicle:getID() == veh:getID() and
+        BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.FREE then
+        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.PAINT)
+        paintSoundProcess = true
+        BJI.Managers.Async.delayTask(function()
+            paintSoundProcess = nil
+        end, 3000, string.var("paintSoundProcess-{1}", { veh:getID() }))
     end
-    if paintNumber == 2 then
-        config.paints[2] = paint
-    elseif paintNumber == 3 then
-        config.paints[3] = paint
-    else
-        config.paints[1] = paint
-    end
-
-    core_vehicles.replaceVehicle(M.getCurrentModel(), { config = config, paint = paint })
 end
 
 local factorMJToReadable = {
@@ -1029,21 +1475,26 @@ local factorMJToReadable = {
     n2o = 8.3,
     electricEnergy = 3.6,
 }
+---@param value number
+---@param energyType string
+---@return number
 local function jouleToReadableUnit(value, energyType)
     if not energyType then
-        LogError("jouleToReadableUnit requires energyType")
-        return
+        error("jouleToReadableUnit requires energyType")
+    elseif not factorMJToReadable[energyType] then
+        error("jouleToReadableUnit unknown energyType " .. energyType)
     end
     return value / 1000000 / factorMJToReadable[energyType]
 end
 
 local lastConfig
 local function onVehicleResetted(gameVehID)
-    if M.isVehicleOwn(gameVehID) then
-        local config = M.getFullConfig()
-        if not tdeepcompare(config, lastConfig) then
+    local veh = M.getCurrentVehicleOwn()
+    if veh and veh:getID() == gameVehID then
+        local config = M.getFullConfig() or {}
+        if not table.compare(config, lastConfig or {}, true) then
             -- detects veh edition
-            for _, v in pairs(BJIContext.User.vehicles) do
+            for _, v in pairs(BJI.Managers.Context.User.vehicles) do
                 if v.gameVehID == gameVehID then
                     v.tanks = {}
                 end
@@ -1053,75 +1504,140 @@ local function onVehicleResetted(gameVehID)
     end
 end
 
+local function onVehicleSwitched(oldGameVehID, newGameVehID)
+    -- anti unicycle-spam
+    if oldGameVehID ~= -1 then
+        local mpVeh = M.getMPVehicle(oldGameVehID, true)
+        if mpVeh and mpVeh.isLocal and mpVeh.jbeam == "unicycle" then
+            M.deleteVehicle(mpVeh.gameVehicleID)
+        end
+    end
+
+    -- current vehicle update
+    if newGameVehID ~= -1 then
+        local mpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
+
+        local function process()
+            local finalID
+            if not mpVeh or mpVeh.isLocal then
+                finalID = newGameVehID
+            else
+                finalID = mpVeh.remoteVehID
+            end
+            BJI.Tx.player.switchVehicle(finalID)
+        end
+
+        if not mpVeh then
+            BJI.Managers.Async.task(function()
+                mpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
+                return mpVeh ~= nil
+            end, process)
+        else
+            process()
+        end
+        BJI.Managers.Context.User.currentVehicle = newGameVehID
+    else
+        BJI.Tx.player.switchVehicle(nil)
+        BJI.Managers.Context.User.currentVehicle = nil
+    end
+
+    -- event
+    if oldGameVehID ~= -1 or newGameVehID ~= -1 then
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED, {
+            self = true,
+            playerID = BJI.Managers.Context.User.playerID,
+            previousGameVehID = oldGameVehID,
+            previousOwner = M.getVehOwnerID(oldGameVehID),
+            currentGameVehID = newGameVehID,
+            currentOwner = M.getVehOwnerID(newGameVehID),
+        })
+    end
+end
+
 local function updateVehFuelState(ctxt, data)
     local tanks = {}
     for _, tank in ipairs(data[1]) do
         if tank.energyType ~= "air" then
-            if BJIScenario.isFreeroam() and
-                BJIContext.BJC.Freeroam.PreserveEnergy and
-                ctxt.vehData.tanks and
-                ctxt.vehData.tanks[tank.name] and
-                ctxt.vehData.tanks[tank.name].storageType == tank.storageType and
-                ctxt.vehData.tanks[tank.name].maxEnergy == tank.maxEnergy and
-                ctxt.vehData.tanks[tank.name].currentEnergy < tank.currentEnergy and
-                not BJIContext.User.stationProcess then
-                -- fix freeroam preservefuel desync when resetting vehicle
-                M.setFuel(tank.name, ctxt.vehData.tanks[tank.name].currentEnergy)
-            else
-                tanks[tank.name] = {
-                    energyType = tank.energyType,
-                    storageType = tank.storageType,
-                    currentEnergy = tank.currentEnergy,
-                    maxEnergy = tank.maxEnergy,
-                }
+            if ctxt.vehData.tanks and
+                ctxt.vehData.tanks[tank.name] then
+                if BJI.Managers.Scenario.isFreeroam() and
+                    BJI.Managers.Context.BJC.Freeroam.PreserveEnergy and
+                    ctxt.vehData.tanks[tank.name].currentEnergy < tank.currentEnergy and
+                    not BJI.Managers.Context.User.stationProcess then
+                    -- keep fuel amount after reset
+                    M.setFuel(tank.name, ctxt.vehData.tanks[tank.name].currentEnergy)
+                else
+                    -- critical fuel amount trigger
+                    if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, ctxt.vehData.tanks[tank.name].energyType) and
+                        ctxt.vehData.tanks[tank.name].currentEnergy and
+                        ctxt.vehData.tanks[tank.name].currentEnergy > tank.maxEnergy * M.tankLowThreshold and
+                        tank.currentEnergy < tank.maxEnergy * M.tankLowThreshold then
+                        BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.FUEL_LOW)
+                    end
+
+                    ctxt.vehData.tanks[tank.name].currentEnergy = tank.currentEnergy
+                end
             end
+            tanks[tank.name] = {
+                energyType = tank.energyType,
+                storageType = tank.storageType,
+                currentEnergy = tank.currentEnergy,
+                maxEnergy = tank.maxEnergy,
+            }
         end
     end
     if not ctxt.vehData.tanks or
-        tlength(tanks) >= tlength(ctxt.vehData.tanks) then
+        not table.compare(table.keys(tanks), table.keys(ctxt.vehData.tanks)) then
         ctxt.vehData.tanks = tanks
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHDATA_UPDATED, ctxt.vehData)
     end
 end
 
-local function updateVehDamages(vehID, damageState)
-    if BJIContext.User.vehicles[vehID] then
-        BJIContext.User.vehicles[vehID].damageState = damageState
-    end
-end
-
+local lastConfigProtectionState = settings.getValue("protectConfigFromClone", false)
+---@param ctxt TickContext
 local function slowTick(ctxt)
     if not ctxt.vehData then
         return
     end
 
-    local vehID = ctxt.vehData and ctxt.vehData.vehID or nil
-
     -- get current fuel
-    if core_vehicleBridge then
+    if core_vehicleBridge and ctxt.veh then
         -- update fuel
-        core_vehicleBridge.requestValue(ctxt.veh, function(data)
+        core_vehicleBridge.requestValue(ctxt.veh.veh, function(data)
             updateVehFuelState(ctxt, data)
         end, 'energyStorage')
     end
 
-    -- get current damages
-    if ctxt.veh then
-        ctxt.veh:queueLuaCommand(svar([[
-                obj:queueGameEngineLua(
-                    "BJIVeh.updateVehDamages({1}, " ..
-                        serialize(beamstate.damage) ..
-                    ")"
-                )
-        ]], { vehID }))
-    end
-
     -- delete corrupted vehs
-    for _, vehData in pairs(BJIContext.User.vehicles) do
+    for _, vehData in pairs(BJI.Managers.Context.User.vehicles) do
         local v = M.getVehicleObject(vehData.gameVehID)
         if not v then
-            BJITx.moderation.deleteVehicle(BJIContext.User.playerID, vehData.gameVehID)
+            BJI.Tx.moderation.deleteVehicle(BJI.Managers.Context.User.playerID, vehData.gameVehID)
         end
     end
+
+    -- check for config protection changed
+    local configProtection = settings.getValue("protectConfigFromClone", false)
+    if configProtection ~= lastConfigProtectionState then
+        lastConfigProtectionState = configProtection
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED)
+    end
+end
+
+local function fastTick(ctxt)
+    ---@param v BJIMPVehicle
+    M.getMPVehicles({ isAi = false }):forEach(function(v)
+        local veh = M.getVehicleObject(v.gameVehicleID)
+        if veh then
+            veh:queueLuaCommand(string.var([[
+                    local speed = tostring(obj:getAirflowSpeed())
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('speed', {1}, "..speed..")")
+
+                    local damaged = serialize(beamstate.damage)
+                    obj:queueGameEngineLua("BJI.Managers.Veh.updateVehCustomAttribute('damageState', {1}, "..damaged..")")
+                ]], { veh:getID() }))
+        end
+    end)
 end
 
 local function setFuel(tankName, targetEnergy)
@@ -1129,8 +1645,9 @@ local function setFuel(tankName, targetEnergy)
         return
     end
 
-    local vehs = BJIContext.User.vehicles
-    local vehID = BJIContext.User.currentVehicle and M.getVehIDByGameVehID(BJIContext.User.currentVehicle) or nil
+    local vehs = BJI.Managers.Context.User.vehicles
+    local vehID = BJI.Managers.Context.User.currentVehicle and
+        M.getVehIDByGameVehID(BJI.Managers.Context.User.currentVehicle) or nil
     local vehData = (vehs and vehID) and vehs[vehID] or nil
     if vehData and vehData.tanks then
         local veh = M.getCurrentVehicle()
@@ -1148,7 +1665,7 @@ local function postResetPreserveEnergy(gameVehID)
     end
 
     local veh
-    for _, v in pairs(BJIContext.User.vehicles) do
+    for _, v in pairs(BJI.Managers.Context.User.vehicles) do
         if v.gameVehID ~= gameVehID then
             veh = v
             break
@@ -1162,37 +1679,172 @@ local function postResetPreserveEnergy(gameVehID)
         local tanks = veh.tanks
         for tankName, tank in pairs(tanks) do
             local fuel = tank.currentEnergy
-            BJIVeh.setFuel(tankName, fuel)
+            M.setFuel(tankName, fuel)
         end
     end
 end
 
-local function findAttachedVehicles(gameVehID)
-    local res = {}
-    local function parse(vehData)
-        if not tincludes(res, vehData.vehId) and vehData.vehId ~= gameVehID then
-            table.insert(res, vehData.vehId)
+--- Vehicle comparison approximation (>= 90% match)
+---@param conf1 { model: string, parts: table<string, string>}
+---@param conf2 any
+local function compareConfigs(conf1, conf2)
+    if conf1.model == conf2.model then
+        local larger, smaller
+        if table.length(conf1.parts) > table.length(conf2.parts) then
+            larger = conf1.parts
+            smaller = conf2.parts
+        else
+            larger = conf2.parts
+            smaller = conf1.parts
         end
-        if vehData.children and #vehData.children > 0 then
-            for _, c in ipairs(vehData.children) do
-                parse(c)
+
+        local matches = Table(larger):reduce(function(acc, v, k)
+            if smaller[k] then
+                acc = acc + .5
+                if v == smaller[k] then
+                    acc = acc + .5
+                end
             end
-        end
+            return acc
+        end, 0)
+        local ratio = matches / table.length(larger)
+        local logFn = ratio > .9 and LogInfo or LogWarn
+        logFn(string.var("Vehicle configs match up to {1}%%", { math.round(ratio * 100, 1) }))
+        return ratio > .9
     end
-    parse(core_vehicles.generateAttachedVehiclesTree(gameVehID))
-    return res
+    return false
 end
 
-M.onLoad = onLoad
-M.onUnload = onUnload
+---@param ctxt TickContext
+local function onUpdateRestrictions(ctxt)
+    ---@param ctxt2 TickContext
+    local function _update(ctxt2)
+        local stateWalking = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Context.BJC.Freeroam.AllowUnicycle
+        if not stateWalking and ctxt2.isOwner and ctxt2.veh.jbeam == "unicycle" then
+            M.deleteCurrentOwnVehicle()
+        end
+        BJI.Managers.Restrictions.update({
+            {
+                -- update selector restriction
+                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.WALKING,
+                state = not stateWalking and BJI.Managers.Restrictions.STATE.RESTRICTED,
+            }
+        })
+    end
+
+    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+        _update(ctxt)
+    else
+        BJI.Managers.Async.task(function()
+            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        end, _update)
+    end
+end
+
+---@param ctxt TickContext
+local function forceVehsSync(ctxt)
+    BJI.Managers.Async.task(function()
+        return BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.PLAYERS)
+    end, function()
+        local listIDs = Table(ctxt.user.vehicles)
+            :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
+            :map(function(v) return v.gameVehID end)
+            :values()
+            :addAll(
+                ctxt.players[ctxt.user.playerID].vehicles
+                :filter(function(v) return M.getVehicleObject(v.gameVehID) == nil end)
+                :map(function(v) return v.gameVehID end)
+                :values(),
+                true)
+        if #listIDs > 0 then
+            BJI.Tx.player.markInvalidVehs(listIDs)
+        end
+    end)
+end
+
+---@param attr string
+---@param gameVehID integer
+---@param value number
+local function updateVehCustomAttribute(attr, gameVehID, value)
+    local veh = M.getVehicleObject(gameVehID)
+    if veh and value then
+        veh:setDynDataFieldbyName(attr, 0, tostring(value))
+    end
+end
+
+local function onUnload()
+    extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
+    extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
+    extensions.core_vehicle_manager.liveUpdateVehicleColors = M.baseFunctions.liveUpdateVehicleColors
+end
+
+M.onLoad = function()
+    -- update configs cache when saving/overwriting/deleting a config
+    BJI.Managers.Async.task(function()
+        return not not extensions.core_vehicle_partmgmt and
+            not not extensions.util_screenshotCreator and
+            not not extensions.core_vehicle_manager
+    end, function()
+        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
+        M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
+        M.baseFunctions.liveUpdateVehicleColors = extensions.core_vehicle_manager.liveUpdateVehicleColors
+
+        extensions.util_screenshotCreator.startWork = function(...)
+            M.baseFunctions.saveConfigBaseFunction(...)
+            BJI.Managers.Async.delayTask(function()
+                M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
+            end, 3000, "BJIVehPostSaveConfig")
+        end
+        extensions.core_vehicle_partmgmt.removeLocal = function(...)
+            M.baseFunctions.removeConfigBaseFunction(...)
+            BJI.Managers.Async.delayTask(function()
+                M.getAllVehicleConfigs(false, false, true)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
+            end, 1000, "BJIVehPostRemoveConfig")
+        end
+        ---@param vehID integer
+        ---@param veh NGVehicle?
+        ---@param paintIndex integer
+        ---@param paint NGPaint
+        extensions.core_vehicle_manager.liveUpdateVehicleColors = function(vehID, veh, paintIndex, paint)
+            if M.isVehicleOwn(vehID) then
+                -- send live update to all players
+                local taskKey = string.var("syncPaint-{1}-{2}", { vehID, paintIndex })
+                BJI.Managers.Async.removeTask(taskKey)
+                BJI.Managers.Async.delayTask(function()
+                    local v = veh or M.getVehicleObject(vehID)
+                    if v then
+                        BJI.Tx.player.syncPaint(vehID, paintIndex, paint)
+                    end
+                end, 1000, taskKey)
+            end
+            M.baseFunctions.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
+        end
+    end, "BJIVehSaveRemoveConfigOverride")
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+
+    BJI.Managers.Events.addListener({
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    }, onUpdateRestrictions, M._name)
+
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, forceVehsSync, M._name)
+end
 
 M.isGEInit = isGEInit
 M.getMPVehicles = getMPVehicles
 M.getMPOwnVehicles = getMPOwnVehicles
-M.isVehReady = isVehReady
+M.getMPVehicle = getMPVehicle
 
 M.dropPlayerAtCamera = dropPlayerAtCamera
-M.dropPlayerAtCameraNoReset = dropPlayerAtCameraNoReset
 
 M.getCurrentVehicle = getCurrentVehicle
 M.getVehicleObject = getVehicleObject
@@ -1201,17 +1853,21 @@ M.getGameVehIDByRemoteVehID = getGameVehIDByRemoteVehID
 M.getVehOwnerID = getVehOwnerID
 M.getVehIDByGameVehID = getVehIDByGameVehID
 M.getGameVehicleID = getGameVehicleID
+M.isVehProtected = isVehProtected
+M.getSelfVehiclesCount = getSelfVehiclesCount
 
 M.isVehicleOwn = isVehicleOwn
 M.isCurrentVehicleOwn = isCurrentVehicleOwn
 M.getCurrentVehicleOwn = getCurrentVehicleOwn
 M.hasVehicle = hasVehicle
 
-M.onVehicleSpawned = onVehicleSpawned
+M.isVehReady = isVehReady
+M.waitForVehicleSpawn = waitForVehicleSpawn
 
 M.focus = focus
 M.focusVehicle = focusVehicle
 M.focusNextVehicle = focusNextVehicle
+M.toggleVehicleFocusable = toggleVehicleFocusable
 M.teleportToPlayer = teleportToPlayer
 M.teleportToLastRoad = teleportToLastRoad
 M.deleteOtherOwnVehicles = deleteOtherOwnVehicles
@@ -1220,9 +1876,14 @@ M.deleteCurrentOwnVehicle = deleteCurrentVehicle
 M.deleteVehicle = deleteVehicle
 M.deleteOtherPlayerVehicle = deleteOtherPlayerVehicle
 M.explodeVehicle = explodeVehicle
+M.saveHome = saveHome
+M.loadHome = loadHome
+M.recoverInPlace = recoverInPlace
 
 M.getPositionRotation = getPositionRotation
+M.getPosRotVel = getPosRotVel
 M.setPositionRotation = setPositionRotation
+M.setPosRotVel = setPosRotVel
 M.stopCurrentVehicle = stopCurrentVehicle
 
 M.freeze = freeze
@@ -1237,6 +1898,7 @@ M.getDefaultModelAndConfig = getDefaultModelAndConfig
 M.isDefaultModelVehicle = isDefaultModelVehicle
 M.saveCurrentVehicle = saveCurrentVehicle
 M.getModelLabel = getModelLabel
+M.getConfigLabel = getConfigLabel
 M.isConfigCustom = isConfigCustom
 M.isModelBlacklisted = isModelBlacklisted
 M.getFullConfig = getFullConfig
@@ -1258,13 +1920,9 @@ M.paintVehicle = paintVehicle
 M.jouleToReadableUnit = jouleToReadableUnit
 M.setFuel = setFuel
 
-M.onVehicleResetted = onVehicleResetted
-M.slowTick = slowTick
-M.updateVehDamages = updateVehDamages
+M.updateVehCustomAttribute = updateVehCustomAttribute
 
 M.postResetPreserveEnergy = postResetPreserveEnergy
+M.compareConfigs = compareConfigs
 
-M.findAttachedVehicles = findAttachedVehicles
-
-RegisterBJIManager(M)
 return M

@@ -17,7 +17,8 @@
       "enabled": "Active",
       "disabled": "Desactive",
       "allPlayers": "SERVEUR",
-      "empty": "Vide"
+      "empty": "Vide",
+      "startMessage": "Tapez \"help\" pour afficher la liste des commandes"
     },
     "messages": {
       "missing": "Erreur lors de la recherche du message {key}",
@@ -191,7 +192,7 @@
       "raceTime": "{playerName} a terminé {raceName} en {time}"
     },
     "hunter": {
-      "invalidHunted": "Pas de fugitif ou le fugitif n'a pas de véhicule",
+      "invalidHunted": "Aucun fugitif",
       "huntedWinner": "Le fugitif a gagné !",
       "huntersWinners": "Les chasseurs ont gagné !",
       "draw": "Égalité"
@@ -242,6 +243,8 @@
         "cancel": "Annuler",
         "close": "Fermer",
         "vote": "Voter",
+        "unvote": "Retirer le vote",
+        "stopVote": "Arrêter le vote",
         "set": "Définir",
         "create": "Créer",
         "edit": "Modifier",
@@ -249,7 +252,22 @@
         "confirm": "Confirmer",
         "start": "Commencer",
         "explode": "Exploser",
-        "leave": "Quitter"
+        "leave": "Quitter",
+        "toggle": "Basculer",
+        "show": "Afficher",
+        "spawn": "Apparaître",
+        "replace": "Remplacer",
+        "loop": "Boucle",
+        "join": "Rejoindre",
+        "spectate": "Observer",
+        "markReady": "Marquer comme prêt",
+        "forfeit": "Abandonner",
+        "refresh": "Rafraîchir",
+        "restart": "Redémarrer",
+        "moveUp": "Monter",
+        "moveDown": "Descendre",
+        "setGPS": "Définir le GPS",
+        "manualReset": "Réinitialiser"
       },
       "durationModifiers": {
         "minute": "m",
@@ -268,8 +286,8 @@
       "no": "Non",
       "state": "État",
       "unknown": "Inconnu",
-      "tooBigData": "Les données sont trop volumineuses pour être sauvegardées !",
-      "and": "&"
+      "and": "&",
+      "random": "Aléatoire"
     },
     "errors": {
       "invalid": "Invalide",
@@ -278,46 +296,95 @@
       "modManagementDisabled": "La gestion des mods est désactivée sur ce serveur !",
       "cannotSpawnVeh": "Tu ne peux pas faire apparaître de véhicule",
       "cannotSpawnAnyMoreVeh": "Tu ne peux plus faire apparaître de véhicule",
+      "cannotResetNow": "Vous ne pouvez pas réinitialiser maintenant",
       "unavailableDuringScenario": "Indisponible pendant le scénario",
       "scenarioUnavailable": "Scénario indisponible",
-      "toastModelBlacklisted": "Ce véhicule est blacklisté"
+      "toastModelBlacklisted": "Ce véhicule est blacklisté",
+      "missingOwnVehicle": "Véhicule possédé manquant",
+      "cannotStartWodeWithAI": "Vous ne pouvez pas démarrer ce mode avec un véhicule IA",
+      "missingPlayers": "Il manque encore {amount} joueur(s)",
+      "mustBeFreecaming": "Vous devez être en caméra libre",
+      "mustHaveVehicle": "Vous devez avoir un véhicule",
+      "someDataAreInvalid": "Certaines données sont invalides"
     },
     "chat": {
       "staffTag": "STAFF",
       "reputationTag": "RP",
-      "playerJoined": "{playerName} a rejoint",
-      "playerLeft": "{playerName} a quitté",
       "directMessage": "de {playerName}",
-      "directMessageSent": "à {playerName}"
+      "directMessageSent": "à {playerName}",
+      "events": {
+        "playerJoined": "{playerName} a rejoint",
+        "playerLeft": "{playerName} a quitté",
+        "voteEvents": {
+          "mapSwitch": "passage à la carte ",
+          "playerKick": "exclusion de ",
+          "raceStart": "lancement de la course ",
+          "speedStart": "lancement d'un jeu de Speed"
+        },
+        "vote": "{playerName} a lancé un vote pour {voteEvent}{suffix}",
+        "voteAccepted": "Vote pour {voteEvent}{suffix} accepté",
+        "voteDenied": "Vote pour {voteEvent}{suffix} refusé : pas assez de votants",
+        "voteCancelled": "Vote pour {voteEvent}{suffix} annulé par la modération",
+        "gamemodes": {
+          "race": "Course",
+          "speed": "Jeu de Speed",
+          "hunter": "Mode Hunter",
+          "derby": "Destruction Derby",
+          "delivery": "Livraison en équipe",
+          "tagduo": "Jeu du Loup"
+        },
+        "gamemodeStopReasons": {
+          "manual": "modération",
+          "notEnoughParticipants": "pas assez de participants",
+          "timedout": "temps écoulé",
+          "invalidVehConfig": "Une configuration de véhicule est invalide"
+        },
+        "gamemodeTeams": {
+          "hunters": "Les chasseurs",
+          "hunted": "Le fugitif"
+        },
+        "gamemodeStarted": "{gamemode} démarré(e)",
+        "gamemodeEnded": "{gamemode} terminé(e)",
+        "gamemodeStopped": "{gamemode} arrêté(e) : {reason}",
+        "gamemodeJoin": "{playerName} a rejoint {gamemode}",
+        "gamemodeCreatedLobby": "{playerName} a créé un lobby de {gamemode}",
+        "gamemodeLeave": "{playerName} a quitté {gamemode}",
+        "gamemodeFinished": "{playerName} a terminé {gamemode} en position #{gamemodePosition}",
+        "gamemodeTeamWon": "{teamName} gagne(nt) {gamemode}",
+        "tournamentResult": "{playerName} a terminé le tournoi à la position n°{position} ({score} pts)"
+      }
     },
     "nametags": {
       "staffTag": "STAFF",
       "reputationTag": "RP",
       "self": "Toi",
       "trailer": "Remorque de {playerName}",
-      "selfTrailer": "Ta remorque"
+      "selfTrailer": "Ta remorque",
+      "fugitive": "Suspect"
     },
     "windows": {
-      "BJI": "BeamJoyInterface",
-      "BJIUserSettings": "Mes Paramètres",
-      "BJIEvents": "Événements",
-      "BJIRaceSettings": "Paramètres de Course",
-      "BJIRace": "Course",
-      "BJIDeliveryMulti": "Livraison en Groupe",
-      "BJIVehicleSelector": "Sélecteur de Véhicule",
-      "BJIStation": "Station",
-      "BJIBusMissionPreparation": "Préparation d'Itinéraire Bus",
-      "BJIScenarioEditor": "Éditeur de Scénario",
-      "BJIFreeroamSettings": "Paramètres du Freeroam",
-      "BJIEnvironment": "Éditeur d'Environnement",
-      "BJIServer": "Paramètres du Serveur",
-      "BJISpeed": "Jeu de Speed",
-      "BJIDatabase": "Base de Données",
-      "BJIHunterSettings": "Paramètres du Hunter",
-      "BJIHunter": "Jeu du Hunter",
-      "BJITheme": "Éditeur de Thème",
-      "BJIDerby": "Destruction Derby",
-      "BJIVehicleSelectorPreview": "Aperçu du véhicule"
+      "Main": "BeamJoyInterface",
+      "UserSettings": "Mes Paramètres",
+      "Events": "Événements",
+      "RacesLeaderboard": "Classement des courses",
+      "RaceSettings": "Paramètres de Course",
+      "Race": "Course",
+      "DeliveryMulti": "Livraison en Groupe",
+      "VehicleSelector": "Sélecteur de Véhicule",
+      "Station": "Station",
+      "BusMissionPreparation": "Préparation d'Itinéraire Bus",
+      "ScenarioEditor": "Éditeur de Scénario",
+      "FreeroamSettings": "Paramètres du Freeroam",
+      "Environment": "Éditeur d'Environnement",
+      "Server": "Paramètres du Serveur",
+      "Speed": "Jeu de Speed",
+      "Database": "Base de Données",
+      "HunterSettings": "Paramètres du Hunter",
+      "Hunter": "Jeu du Hunter",
+      "Theme": "Éditeur de Thème",
+      "Derby": "Destruction Derby",
+      "VehicleSelectorPreview": "Aperçu du véhicule",
+      "Selection": "Sélection"
     },
     "menu": {
       "me": {
@@ -328,16 +395,16 @@
       },
       "vote": {
         "title": "Vote",
-        "map": "Carte",
-        "mapCustom": "custom",
+        "map": {
+          "title": "Carte",
+          "custom": "custom"
+        },
         "race": {
           "title": "Course",
-          "noRace": "Aucune course disponible",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "noRace": "Aucune course disponible"
         },
         "speed": {
-          "title": "Speed",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "title": "Speed"
         }
       },
       "scenario": {
@@ -345,8 +412,7 @@
         "soloRace": {
           "start": "Commencer une Course Solo",
           "stop": "Arrêter la Course",
-          "noRace": "Aucune course disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noRace": "Aucune course disponible"
         },
         "vehicleDelivery": {
           "start": "Commencer une Livraison de Véhicule",
@@ -356,14 +422,12 @@
         "packageDelivery": {
           "start": "Commencer une Livraison de Colis",
           "stop": "Arrêter la Livraison",
-          "noDelivery": "Aucune livraison disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noDelivery": "Aucune livraison disponible"
         },
         "deliveryMulti": {
           "join": "Rejoindre la Livraison en Groupe",
           "leave": "Quitter la Livraison en Groupe",
-          "noDelivery": "Aucune livraison disponible",
-          "missingOwnVehicle": "Véhicule possédé manquant"
+          "noDelivery": "Aucune livraison disponible"
         },
         "busMission": {
           "start": "Commencer un Itinéraire de Bus",
@@ -372,35 +436,41 @@
         },
         "speed": {
           "start": "Commencer un Speed",
-          "stop": "Arrêter le Speed",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "stop": "Arrêter le Speed"
         },
         "raceStop": "Arrêter la Course",
         "hunter": {
           "start": "Commencer un Hunter",
           "stop": "Arrêter le Hunter",
-          "modeDisabled": "désactivé",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
+          "modeDisabled": "désactivé"
         },
         "derby": {
           "start": "Commencer un Destruction Derby",
           "stop": "Arrêter le Destruction Derby",
-          "noArena": "Aucune arène disponible",
-          "missingPlayers": "Il manque encore {amount} joueur(s)"
-        }
+          "noArena": "Aucune arène disponible"
+        },
+        "tagduo": {
+          "join": "Jeu du Loup",
+          "leave": "Quitter le jeu du Loup",
+          "createLobby": "Créer un lobby",
+          "joinLobby": "Rejoindre le lobby de {playerName}"
+        },
+        "tournament": "Tournoi"
       },
       "edit": {
         "title": "Editer",
         "freeroamSettings": "Paramètres du Freeroam",
         "time": "Heure",
         "weather": "Météo",
+        "gravity": "Gravité",
+        "speed": "Vitesse de sim.",
         "map": "Changer de Carte",
         "mapCustom": "custom",
         "energyStations": "Stations-Services ({amount})",
         "garages": "Garages ({amount})",
         "deliveries": "Livraisons ({amount})",
         "buslines": "Lignes de Bus ({amount})",
-        "races": "Courses ({amount})",
+        "races": "Courses",
         "raceCreate": "Créer une Course",
         "raceDeleteModal": "Es-tu sûr de vouloir supprimer la course \"{raceName}\"",
         "hunter": "Hunter ({visibility}, {amount} points de passage)",
@@ -430,6 +500,7 @@
     },
     "presets": {
       "gravity": {
+        "toastChanged": "Gravité changée en {gravity}",
         "zero": "Zéro",
         "pluto": "Pluton",
         "moon": "Lune",
@@ -443,6 +514,7 @@
         "sun": "Soleil"
       },
       "speed": {
+        "toastChanged": "Vitesse de simulation changée en {speed}",
         "slowextreme": "Séchage de Peinture",
         "slowest": "Cinématique",
         "slower": "Plus lent",
@@ -482,12 +554,14 @@
       "ToD": "Heure de la Journée",
       "realtime": "Temps Réel",
       "dayLength": "Durée d'une journée",
+      "day": "Jour",
+      "night": "Nuit",
       "dayScale": "Échelle du Jour",
       "nightScale": "Échelle de la Nuit",
       "sunAzimuthOverride": "Azimut du Soleil",
       "sunSize": "Taille du Soleil",
       "skyBrightness": "Luminosité du Ciel",
-      "sunLightBrightness": "Luminosité du Soleil",
+      "brightness": "Luminosité",
       "rayleighScattering": "Diffusion Rayleigh",
       "flareScale": "Échelle de l'Éblouissement",
       "occlusionScale": "Échelle de l'Occlusion",
@@ -504,6 +578,7 @@
       "weather": "Météo",
       "controlWeather": "Synchroniser la Météo",
       "fogDensity": "Densité du Brouillard",
+      "fogColor": "Couleur du Brouillard",
       "fogDensityOffset": "Distance du Brouillard",
       "fogAtmosphereHeight": "Hauteur du Brouillard",
       "cloudHeight": "Hauteur des Nuages 1",
@@ -516,7 +591,6 @@
       "cloudExposureOne": "Exposition des Nuages 2",
       "rainDrops": "Gouttes de Pluie",
       "dropSize": "Taille des Gouttes",
-      "dropSizeRatio": "Rapport de Taille des Gouttes",
       "dropMinSpeed": "Vitesse Min des Gouttes",
       "dropMaxSpeed": "Vitesse Max des Gouttes",
       "precipType": "Type de Précipitation",
@@ -607,14 +681,22 @@
     },
     "header": {
       "gamemode": "Mode de Jeu",
-      "reputation": "Niveau de Réputation",
       "gravity": "Gravité",
       "speed": "Vitesse",
       "resetDisabled": "Reset désactivée",
       "nextReset": "Prochaine reset",
       "resetAvailable": "Reset disponible",
       "nextTeleport": "Prochaine téléportation",
-      "teleportAvailable": "Téléportation disponible"
+      "teleportAvailable": "Téléportation disponible",
+      "collisions": "Collisions",
+      "reputation": "Niveau de Réputation",
+      "buttons": {
+        "toggleNametagsVisibility": "Afficher/Masquer les pseudos",
+        "zoomOut": "Dézoomer",
+        "zoomIn": "Zoomer",
+        "debug": "Rafraîchir les fenêtres / Supprimer le chargement infini",
+        "serverVisibility": "Afficher/Masquer le serveur"
+      }
     },
     "userSettings": {
       "uiScale": "Échelle de l'Interface",
@@ -641,7 +723,8 @@
       },
       "freecam": {
         "smoothed": "Caméra Adoucie",
-        "fov": "Champ de Vision"
+        "fov": "Champ de Vision",
+        "speed": "Vitesse de la caméra"
       },
       "stats": {
         "delivery": "Livraisons effectuées",
@@ -653,7 +736,10 @@
       "waitingPlayers": "Joueurs en attente",
       "players": "Joueurs",
       "buttons": {
-        "voteKick": "Voter Kick"
+        "voteKick": "Voter Kick",
+        "stopWalking": "Arrêter de marcher",
+        "teleportTo": "Téléporter vers",
+        "teleportFrom": "Téléporter depuis"
       }
     },
     "moderationBlock": {
@@ -665,13 +751,17 @@
         "kick": "Kick",
         "tempBan": "Ban Temporaire",
         "ban": "Ban",
-        "demoteTo": "Rétrograder à {groupName}",
-        "promoteTo": "Promouvoir à {groupName}",
-        "promote": "Promouvoir"
+        "freeze": "Activer/désactiver le gel",
+        "engine": "Activer/désactiver le moteur",
+        "mute": "Activer/désactiver le son",
+        "deleteAllVehicles": "Supprimer tous les véhicules",
+        "promoteTo": "Promouvoir en {group}",
+        "demoteTo": "Rétrograder en {group}"
       },
       "muteReason": "Raison du Mute",
       "kickReason": "Raison du Kick",
       "banReason": "Raison du Ban",
+      "savedReason": "Raison enregistrée",
       "kickModal": "Es-tu sûr de vouloir kicker \"{playerName}\" ?",
       "tempBanModal": "Es-tu sûr de vouloir bannir temporairement \"{playerName}\" ?",
       "banModal": "Es-tu sûr de vouloir bannir \"{playerName}\" ?"
@@ -684,7 +774,7 @@
           "players": "Joueurs",
           "offlinePlayers": "Joueurs Hors Ligne",
           "addOfflinePlayer": "Ajouter un Joueur Hors Ligne",
-          "addOfflinePlayerPlaceholder": "Nom du Joueur"
+          "addOfflinePlayerPlaceholder": "Pseudo exact du joueur"
         },
         "voteKick": {
           "title": "Paramètres de Vote de Kick",
@@ -709,7 +799,7 @@
           "VoteTimeout": "Durée de Vote",
           "VoteTimeoutTooltip": "Durée du vote en secondes",
           "VoteThresholdRatio": "Seuil de Vote pour la Course",
-          "VoteThresholdRatioTooltip": "Entre 0.01 et 1, seuil des votants sur l'ensemble des joueurs du serveur requis pour démarrer la course",
+          "VoteThresholdRatioTooltip": "Le ratio requis de votants parmi tous les joueurs du serveur pour lancer la course.",
           "GridReadyTimeout": "Délai Prêt sur la Grille",
           "GridReadyTimeoutTooltip": "Temps en secondes avant que les joueurs puissent se marquer comme prêt dans l'étape de la grille (pour empêcher les joueurs de commencer avant l'arrivée des adversaires, doit être inférieur à la \"Durée de l'Étape Grille\")",
           "GridTimeout": "Durée de l'Étape Grille",
@@ -725,6 +815,7 @@
         "server": {
           "title": "Paramètres du Serveur",
           "lang": "Langue de la Console du Serveur",
+          "allowMods": "Autoriser les mods des joueurs",
           "driftBigBroadcast": "Annonce des gros drifts",
           "broadcasts": {
             "title": "Annonces",
@@ -745,9 +836,12 @@
           "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent changer de véhicule avant le début du mode",
           "VoteTimeout": "Durée de Vote",
           "VoteTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre ou quitter avant le début du mode",
-          "BaseSpeed": "Vitesse de Départ (km/h)",
-          "StepSpeed": "Incrément de Vitesse (km/h)",
-          "StepDelay": "Délai entre les Incréments (sec)",
+          "BaseSpeed": "Vitesse de départ",
+          "BaseSpeedTooltip": "Vitesse de départ en km/h",
+          "StepSpeed": "Vitesse par étape",
+          "StepSpeedTooltip": "Augmentation de la vitesse en km/h par étape",
+          "StepDelay": "Délai entre les étapes",
+          "StepDelayTooltip": "Temps en secondes entre chaque étape",
           "EndTimeout": "Durée de Fin",
           "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
         },
@@ -762,7 +856,26 @@
           "HuntedStuckTimeout": "Délai de blocage pour les fugitifs",
           "HuntedStuckTimeoutTooltip": "Temps en secondes pendant lequel le fugitif doit être coincé pour que les chasseurs gagnent",
           "HuntersRespawnDelay": "Délai de réapparition des chasseurs",
-          "HuntersRespawnDelayTooltip": "Temps en secondes pendant lequel les chasseurs sont bloqués lorsqu'ils resettent"
+          "HuntersRespawnDelayTooltip": "Temps en secondes pendant lequel les chasseurs sont bloqués lorsqu'ils resettent",
+          "HuntedResetRevealDuration": "Durée de révélation après réinitialisation",
+          "HuntedResetRevealDurationTooltip": "Durée en secondes pendant laquelle le fugitif est révélé à tous les chasseurs après une réinitialisation (Désactivé si 0)",
+          "HuntedRevealProximityDistance": "Distance de révélation du fugitif",
+          "HuntedRevealProximityDistanceTooltip": "Distance maximale en mètres à laquelle un chasseur doit être du fugitif pour révéler sa position à tous (Désactivé si 0)",
+          "HuntedResetDistanceThreshold": "Distance minimale pour réinitialisation du fugitif",
+          "HuntedResetDistanceThresholdTooltip": "Distance minimale en mètres entre le fugitif et un chasseur pour pouvoir réinitialiser (Désactivé si 0)",
+          "EndTimeout": "Durée de Fin",
+          "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
+        },
+        "derby": {
+          "title": "Paramètres du Destruction Derby",
+          "PreparationTimeout": "Durée de préparation",
+          "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre le derby",
+          "StartCountdown": "Décompte de départ",
+          "StartCountdownTooltip": "Temps en secondes avant le début du derby",
+          "DestroyedTimeout": "Décompte d'élimination",
+          "DestroyedTimeoutTooltip": "Durée en secondes avant qu'un joueur bloqué/détruit ne soit éliminé",
+          "EndTimeout": "Durée de Fin",
+          "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
         },
         "vehicleDelivery": {
           "title": "Paramètres de Livraison de Véhicule",
@@ -771,9 +884,24 @@
       },
       "reputation": {
         "title": "Réputation",
+        "categories": {
+          "freeroam": "Libre",
+          "delivery": "Livraison",
+          "bus": "Mission Bus",
+          "race": "Course",
+          "speed": "Vitesse",
+          "hunter": "Chasseur",
+          "derby": "Derby",
+          "tag": "Jeu du Loup & Infecté"
+        },
         "KmDriveReward": "Récompense par Km conduit",
+        "ArrestReward": "Récompense d'arrestation",
+        "ArrestRewardTooltip": "Applicable lors de l'arrestation d'un joueur ou d'une IA durant une poursuite",
+        "EvadeReward": "Récompense d'évasion",
+        "EvadeRewardTooltip": "Applicable lors d'une évasion réussie face à la police",
         "DeliveryVehicleReward": "Récompense de Livraison de Véhicule",
-        "DeliveryVehiclePristineReward": "Récompense pour Véhicule Livré Intact",
+        "DeliveryVehiclePristineReward": "Bonus véhicule intact",
+        "DeliveryVehiclePristineRewardTooltip": "Appliqué uniquement lors d'une livraison de véhicule",
         "DeliveryPackageReward": "Récompense de Livraison de Colis",
         "DeliveryPackageStreakReward": "Récompense de Livraison de Colis à la suite",
         "DeliveryPackageStreakRewardTooltip": "Multiplié par la série en cours et ajouté à la récompense de base",
@@ -792,7 +920,10 @@
         "HunterWinnerReward": "Récompense de Victoire du Hunter",
         "HunterWinnerRewardTooltip": "S'applique à tous les joueurs de l'équipe gagnante (chasseurs ou fugitif)",
         "DerbyParticipationReward": "Récompense de Participation au Derby",
-        "DerbyWinnerReward": "Récompense de Victoire du Derby"
+        "DerbyWinnerReward": "Récompense de Victoire du Derby",
+        "DerbyWinnerRewardTooltip": "Sera répartie selon la position du joueur dans le classement",
+        "TagDuoReward": "Récompense Jeu du Loup",
+        "TagDuoRewardTooltip": "Appliquée en touchant l'adversaire dans un lobby duo"
       },
       "permissions": {
         "title": "Groupes & Permissions",
@@ -818,12 +949,17 @@
       "core": {
         "title": "Paramètres Noyau",
         "Name": "Nom",
+        "NameTooltip": "Comment les joueurs verront votre serveur dans le navigateur",
         "Description": "Description",
-        "Tags": "Tags",
-        "MaxCars": "Nombre Max de Voitures",
+        "DescriptionTooltip": "Ce que les joueurs verront en cliquant sur votre serveur dans le navigateur",
         "MaxPlayers": "Nombre Max de Joueurs",
+        "MaxPlayersTooltip": "Nombre maximum de joueurs autorisés sur le serveur",
         "Private": "Privé",
+        "PrivateTooltip": "Si activé, votre serveur n'apparaît pas dans le navigateur",
         "Debug": "Debug",
+        "DebugTooltip": "Active le mode debug et permet de voir et faire beaucoup de choses",
+        "InformationPacket": "Paquet d'informations",
+        "InformationPacketTooltip": "Permet aux clients non connectés d'obtenir les informations publiques du serveur sans y entrer",
         "previewTooltip": "L'aperçu affiche uniquement les couleurs",
         "formattingHints": {
           "title": "Conseils de mise en forme (appliqués uniquement au Nom et à la Description)",
@@ -886,7 +1022,9 @@
     },
     "freeroamSettings": {
       "resetDelay": "Temps de recharge du reset",
+      "resetDelayTooltip": "Durée en secondes avant qu'un joueur puisse réinitialiser",
       "teleportDelay": "Temps de recharge de la téléportation",
+      "teleportDelayTooltip": "Durée en secondes avant qu'un joueur puisse se téléporter à un autre",
       "vehicleSpawning": "Spawn de véhicules",
       "quickTravel": "Voyage rapide",
       "nametags": "Nametags des joueurs",
@@ -897,14 +1035,16 @@
       "emergencyRefuelPercentTooltip": "Pourcentage du réservoir ravitaillé après le processus",
       "driftGood": "Score minimum pour de bons dérapages",
       "driftBig": "Score minimum pour des gros dérapages",
-      "allowUnicycle": "Autoriser la marche à pied (monocycle)"
+      "allowUnicycle": "Autoriser les piétons (monocycle)",
+      "cancelModal": "Vous perdrez vos modifications non enregistrées. Êtes-vous sûr de vouloir fermer la fenêtre ?"
     },
     "races": {
       "races": "Courses",
       "names": {},
       "tools": {
         "title": "Outils",
-        "rotation": "Rotation"
+        "rotation": "Rotation",
+        "reverse": "Inverser les étapes"
       },
       "edit": {
         "title": "Éditeur de course",
@@ -936,12 +1076,38 @@
         "addBranch": "Ajouter une branche ici",
         "addStep": "Ajouter une étape ici",
         "errors": {
-          "invalidName": "Nom invalide",
           "noChild": "Aucun enfant"
         },
         "hasRecordConfirm": "Un record a été établi sur cette course et l'enregistrement le supprimera. Es-tu sûr ?",
         "saveErrorToast": "Échec de l'enregistrement de la course, veuillez réessayer ou contacter l'administrateur",
-        "reverseConfirm": "L'inversion de la direction supprimera l'intelligence créée dans la course, et vous devrez vérifier chaque checkpoint à nouveau. Êtes-vous sûr de vouloir continuer?"
+        "reverseConfirm": "L'inversion de la direction supprimera l'intelligence créée dans la course, et vous devrez vérifier chaque checkpoint à nouveau. Êtes-vous sûr de vouloir continuer?",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "rotateLeft": "Pivoter à gauche",
+          "rotateRight": "Pivoter à droite",
+          "rotate180": "Pivoter de 180°",
+          "reverseAllSteps": "Inverser tous les points",
+          "toggleRaceVisibility": "Afficher/masquer la course",
+          "showPreviewPosition": "Afficher la position d'aperçu",
+          "setPreviewPositionHere": "Définir la position d'aperçu ici",
+          "toggleLoopable": "Basculer entre circuit et course point à point",
+          "addStartPositionHere": "Ajouter un départ ici",
+          "moveUp": "Monter",
+          "moveDown": "Descendre",
+          "showStartPosition": "Afficher le point de départ",
+          "setStartPositionHere": "Définir le départ ici",
+          "deleteStartPosition": "Supprimer le point de départ",
+          "addRaceStepHere": "Ajouter une étape ici",
+          "deleteStep": "Supprimer l'étape",
+          "addBranchHere": "Ajouter une branche ici",
+          "showWaypoint": "Afficher le point",
+          "setWaypointHere": "Définir un point ici",
+          "toggleStandWaypoint": "Activer/désactiver point d'arrêt",
+          "deleteWaypoint": "Supprimer le point",
+          "removeParent": "Retirer le parent",
+          "addParent": "Ajouter un parent",
+          "tryRace": "Tester la course"
+        }
       },
       "settings": {
         "title": "Paramètres de course",
@@ -959,6 +1125,7 @@
           "standpenalty": "Dernier stand avec pénalité",
           "delay": "Délai"
         },
+        "collisions": "Collisions",
         "vehicles": {
           "playerVehicle": "Véhicule du joueur",
           "all": "Tous les véhicules autorisés",
@@ -966,8 +1133,8 @@
           "currentConfig": "Configuration actuelle",
           "specific": "{model} spécifique"
         },
-        "time": "Heure",
-        "weather": "Météo"
+        "startVote": "Lancer un vote",
+        "startRace": "Démarrer la course"
       },
       "preparation": {
         "singleplayer": "Course Solo",
@@ -987,8 +1154,9 @@
       "play": {
         "race": "Course",
         "by": "par {author}",
-        "record": "Record établi par {playerName} avec {model} : {time}",
+        "record": "Record",
         "timeout": "La course expirera dans {delay}",
+        "aboutToTimeout": "La course est sur le point d'expirer",
         "join": "Rejoindre la course",
         "joinFlash": "Choisissez votre véhicule",
         "placesRemaining": "{places} places restantes",
@@ -1000,6 +1168,7 @@
         "waitingForOtherPlayers": "En attente des autres joueurs...",
         "flashCountdownZero": "GO !!!",
         "eliminatedIn": "Tu seras éliminé dans {delay}",
+        "showAllData": "Afficher tout",
         "WP": "CP {wp}",
         "Lap": "Tour {lap}",
         "wpDifference": "+{wpDifference}CP",
@@ -1008,10 +1177,16 @@
         "finishFlashMulti": "Tu as terminé #{place} !",
         "eliminatedTime": "ÉLIMINÉ",
         "flashWinner": "{playerName} a gagné la course !",
-        "flashDnfOut": "ÉLIMINÉ"
+        "flashDnfOut": "ÉLIMINÉ",
+        "launchedRespawn": "Réapparition lancée"
       },
       "leaderboard": {
-        "title": "Classement des courses"
+        "title": "Classement des courses",
+        "amountPBs": "Total de PBs",
+        "removeAllPBsButton": "Supprimer tous les PBs",
+        "removeAllPBsModal": "Es-tu sûr de vouloir supprimer tous tes PBs sur le serveur ?",
+        "pb": "PB",
+        "removePBModal": "Es-tu sûr de vouloir supprimer ton PB sur {raceName} ?"
       }
     },
     "energy": {
@@ -1056,7 +1231,14 @@
         "name": "Nom de la station",
         "types": "Type(s)",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des stations-services, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des stations-services, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addStationHere": "Ajouter une station ici",
+          "showStation": "Afficher la station",
+          "setStationHere": "Définir la station ici",
+          "deleteStation": "Supprimer la station"
+        }
       }
     },
     "garages": {
@@ -1070,11 +1252,17 @@
         "title": "Éditeur de garages",
         "name": "Nom du garage",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des garages, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des garages, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addGarageHere": "Ajouter un garage ici",
+          "showGarage": "Afficher le garage",
+          "setGarageHere": "Définir le garage ici",
+          "deleteGarage": "Supprimer le garage"
+        }
       }
     },
     "delivery": {
-      "title": "Livraison de véhicules",
       "leaderboard": {
         "title": "Classement des livreurs",
         "delivered": "véhicules et colis livrés"
@@ -1085,33 +1273,45 @@
         "title": "Éditeur des livraisons",
         "position": "Position {index}",
         "radius": "Rayon",
-        "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "addPosition": "Ajouter une position ici",
+          "showPosition": "Afficher la position",
+          "setPosition": "Définir la position ici",
+          "deletePosition": "Supprimer la position"
+        }
       }
     },
     "vehicleDelivery": {
+      "title": "Livraison de véhicule",
       "vehicle": "Véhicule",
       "damagedWarning": "Le véhicule est endommagé, votre récompense sera réduite.",
       "flashStart": "Livre le véhicule",
       "flashFail": "Échec de la livraison",
-      "flashSuccess": "Bien joué !"
+      "flashSuccess": "Bien joué !",
+      "deliveredIn": "Livré dans {delay}"
     },
     "packageDelivery": {
+      "title": "Livraison de colis",
       "currentStreak": "Colis livrés : {streak}",
       "streakTooltip": "Continue à livrer des colis à la suite, tu obtiendras des points supplémentaires",
       "flashStart": "Livre le colis",
       "flashFirstPackage": "Colis livré !",
       "flashPackageStreak": "{streak} colis livrés !",
-      "flashEnd": "Livraison terminée"
+      "flashEnd": "Livraison terminée",
+      "depositIn": "Déposé dans {delay}"
     },
     "deliveryTogether": {
+      "title": "Livraison Ensemble",
+      "reachDestination": "Atteindre la destination",
       "streak": "Série",
+      "resetted": "Réinitialisé",
       "distance": "Distance",
-      "resetted": "Reset",
-      "arrived": "Arrivé",
-      "onTheWay": "En chemin",
       "flashPackage": "Colis livré !",
-      "waitingForOtherPlayers": "En attente des autres joueurs...",
-      "waitingForTarget": "En attente de la destination..."
+      "waitingForOtherPlayers": "En attente de {amount} joueur(s)...",
+      "waitingForTarget": "En attente de la prochaine destination...",
+      "depositIn": "Déposé dans {delay}"
     },
     "buslines": {
       "edit": {
@@ -1127,7 +1327,19 @@
         "moveHere": "Déplacer ici",
         "addStopHere": "Ajouter un arrêt ici",
         "createLineHere": "Créer une ligne ici",
-        "saveErrorToast": "Échec de l'enregistrement des lignes de bus, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des lignes de bus, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "showLine": "Afficher les marqueurs de la ligne de bus",
+          "deleteLine": "Supprimer la ligne de bus",
+          "spawnBus": "Faire apparaître un bus ici",
+          "addBusLine": "Ajouter une ligne de bus ici",
+          "showStop": "Afficher l'arrêt de bus",
+          "setStopHere": "Définir l'arrêt ici",
+          "deleteStop": "Supprimer l'arrêt de bus",
+          "toggleLoopable": "Basculer entre circuit et ligne point à point",
+          "addStopHere": "Ajouter un arrêt ici",
+          "errorNeedABus": "Vous avez besoin d'un bus"
+        }
       },
       "preparation": {
         "title": "Préparation de mission de bus",
@@ -1155,9 +1367,7 @@
         "voteTimeout": "Le vote se terminera dans {delay}",
         "voteAboutToEnd": "Le vote est sur le point de se terminer",
         "hasStartedVote": "{creatorName} a lancé un vote pour commencer un Speed",
-        "participants": "Participants",
-        "join": "Rejoindre",
-        "leave": "Quitter"
+        "participants": "Participants"
       },
       "title": "Jeu de Vitesse",
       "startsIn": "La partie commence dans {time}",
@@ -1173,14 +1383,26 @@
       "flashWinner": "{playerName} a gagné le Speed !"
     },
     "vehicleSelector": {
-      "deleteCurrent": "Supprimer mon véhicule",
-      "deleteOtherPlayerVehicle": "Enlever ce véhicule",
-      "deleteOthers": "Supprimer mes autres véhicules",
-      "previousVeh": "Mon véhicule précédent",
-      "defaultVeh": "Mon véhicule par défaut",
-      "noVeh": "Aucun véhicule correspondant",
+      "deleteCurrent": "Supprimer l'actuel",
+      "deleteOtherPlayerVehicleModal": "Ce n'est pas ton véhicule et il ne sera pas réactivé tant que le joueur ne l'aura pas supprimé et réapparu. Es-tu sûr de vouloir le supprimer ?",
+      "deleteOthers": "Supprimer les autres",
+      "previousVeh": "Charger précédent",
+      "setAsDefault": "Définir comme défaut",
+      "defaultVeh": "Charger par défaut",
+      "cloneCurrent": "Cloner l'actuel",
+      "resetAll": "Réinitialiser tout",
+      "noVeh": "Véhicule introuvable",
+      "notAllowed": "Non autorisé pour le moment",
+      "protectedVehicle": "Le véhicule est protégé",
+      "selfProtected": "La protection contre la copie de configuration est activée. Désactive-la si tu veux utiliser ton véhicule spécifique.",
+      "invalidVeh": "Véhicule invalide",
+      "openVehSelector": "Ouvrir le sélecteur de véhicule",
       "paints": "Peintures",
-      "applyPaint": "Peindre {position}"
+      "applyPaint": "Peindre {position}",
+      "cars": "Voitures",
+      "trucks": "Camions",
+      "trailers": "Remorques",
+      "props": "Objets"
     },
     "database": {
       "players": {
@@ -1203,14 +1425,30 @@
         "title": "Éditeur du Hunter",
         "targetName": "Cible {index}",
         "hunterPositionName": "Chasseur {index}",
-        "huntedPositionName": "Chassé {index}",
+        "huntedPositionName": "Fugitif {index}",
         "waypoints": "Points de passage",
         "hunters": "Chasseurs",
-        "hunted": "Chassé",
+        "hunted": "Fugitif",
         "enabled": "Activé",
         "radius": "Rayon",
         "missingPoints": "{amount} points manquant",
-        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "refreshMarkers": "Rafraîchir les marqueurs",
+          "toggleModeVisibility": "Basculer la visibilité du mode",
+          "showHunterStartPosition": "Afficher la position de départ du chasseur",
+          "setHunterStartPositionHere": "Définir la position de départ du chasseur ici",
+          "deleteHunterStartPosition": "Supprimer la position de départ du chasseur",
+          "addHunterStartPositionHere": "Ajouter une position de départ du chasseur ici",
+          "showHuntedStartPosition": "Afficher la position de départ du fugitif",
+          "setHuntedStartPositionHere": "Définir la position de départ du fugitif ici",
+          "deleteHuntedStartPosition": "Supprimer la position de départ du fugitif",
+          "addHuntedStartPositionHere": "Ajouter une position de départ du fugitif ici",
+          "addWaypointHere": "Ajouter un point de passage ici",
+          "showWaypoint": "Afficher le point de passage",
+          "setWaypointHere": "Définir le point de passage ici",
+          "deleteWaypoint": "Supprimer le point de passage"
+        }
       },
       "settings": {
         "title": "Paramètres du Hunter",
@@ -1222,6 +1460,8 @@
         "hunterConfigsTooltip": "Configurations de véhicule que les chasseurs peuvent choisir (si aucune, n'importe quelle configuration du jeu peut être choisie)",
         "toastConfigAlreadySaved": "Configuration déjà enregistrée",
         "specificConfig": "{model} spécifique",
+        "lastWaypointGPS": "Révélation du dernier point de passage",
+        "lastWaypointGPSTooltip": "Lorsqu'il ne reste qu'un point de passage, les chasseurs peuvent voir où se trouve le fugitif (Nom et GPS)",
         "notEnoughPlayers": "Il n'y a pas assez de joueurs pour lancer un Hunter"
       },
       "play": {
@@ -1231,15 +1471,16 @@
         "preparationTimeoutIn": "Fin de la préparation dans {delay}",
         "preparationTimeoutAboutToEnd": "La préparation est sur le point de se terminer",
         "startIn": "Tu commenceras dans {delay}",
-        "aboutToStart": "Tu es sur le point de commencer",
         "huntedLooseIn": "Tu perdras dans {delay}",
         "huntedAboutToLoose": "Tu es sur le point de perdre",
+        "hunterResumeIn": "Vous reprendrez dans {delay}",
         "configChoose": "Choisissez votre véhicule",
         "readyMark": "PRÊT",
         "notReadyMark": "PAS PRÊT",
         "hunted": "Fugitif",
         "hunters": "Chasseurs",
-        "waypoints": "points de passage"
+        "waypoints": "points de passage",
+        "setAsFugitive": "Définir comme fugitif"
       }
     },
     "derby": {
@@ -1251,14 +1492,31 @@
         "enabledTooltip": "Cette arène peut-elle être utilisée ?",
         "previewPosition": "Position de prévisualisation",
         "previewPositionTooltip": "Position de la caméra libre lorsque le derby commence",
+        "centerPosition": "Position centrale",
+        "radius": "Rayon de départ",
         "startPositions": "Positions de départ",
         "startPositionName": "Départ {index}",
         "amountStartPositionsNeeded": "{amount} points de départ manquant",
-        "saveErrorToast": "Échec de l'enregistrement des données de derby, veuillez réessayer ou contacter l'administrateur"
+        "saveErrorToast": "Échec de l'enregistrement des données de derby, veuillez réessayer ou contacter l'administrateur",
+        "buttons": {
+          "addArena": "Ajouter une arène",
+          "showArena": "Afficher les marqueurs de l'arène",
+          "deleteArena": "Supprimer l'arène",
+          "toggleArenaVisibility": "Basculer la visibilité de l'arène",
+          "setPreviewPositionHere": "Définir la position de prévisualisation ici",
+          "showPreviewPosition": "Afficher la position de prévisualisation",
+          "setCenterPositionHere": "Définir le centre de l'arène ici",
+          "showCenterPosition": "Afficher le centre de l'arène",
+          "addStartPositionHere": "Ajouter une position de départ ici",
+          "showStartPosition": "Afficher la position de départ",
+          "setStartPositionHere": "Définir la position de départ ici",
+          "deleteStartPosition": "Supprimer la position de départ"
+        }
       },
       "settings": {
         "title": "Paramètres de Destruction Derby",
         "places": "{places} places",
+        "presets": "Préréglages",
         "lives": "Vies",
         "configs": "Configurations de véhicule",
         "configsTooltip": "Configurations de véhicule que les joueurs peuvent choisir (si aucune, n'importe quelle configuration de jeu peut être choisie)",
@@ -1283,6 +1541,42 @@
         "amountLife": "{amount} vie",
         "amountLives": "{amount} vies"
       }
+    },
+    "tournament": {
+      "title": "Tournoi",
+      "state": "Activé",
+      "whitelist": "Whitelist",
+      "activityTimeoutIn": "Fin de l'activité dans {delay}",
+      "activityAboutToTimeout": "L'activité est sur le point de se terminer",
+      "total": "Totaux",
+      "startActivity": "Démarrer une activité",
+      "track": "Circuit",
+      "arena": "Arène",
+      "duration": "Durée",
+      "noParticipant": "Aucun participant pour le moment",
+      "buttons": {
+        "endSoloRace": "Terminer le time attack",
+        "endTournament": "Terminer le tournoi",
+        "endTournamentTooltip": "Affichera la position des participants dans le chat",
+        "errorMustHaveVehicle": "Vous devez avoir un véhicule"
+      },
+      "activities": {
+        "raceSolo": "Time Attack",
+        "race": "Course",
+        "speed": "Vitesse",
+        "hunter": "Chasseur",
+        "derby": "Derby",
+        "tag": "Infecté"
+      }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "En attente d'un joueur...",
+      "flashWaitForSpread": "Écartez-vous pour continuer",
+      "flashChase": "Attrape !",
+      "flashFlee": "Fuis !",
+      "flashTag": "Touché !",
+      "title": "Jeu du Loup - Lobby de {playerName}",
+      "taggerMark": "Loup"
     }
   }
 }
