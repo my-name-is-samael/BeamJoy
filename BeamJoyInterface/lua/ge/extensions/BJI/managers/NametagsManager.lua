@@ -180,7 +180,7 @@ local function renderTrailer(ctxt, veh)
     local freecaming = ctxt.camera == BJICam.CAMERAS.FREE
     local ownerSpectating = veh.spectators[veh.ownerID]
     local ownerTracting = false
-    for _, vid in ipairs(core_vehicle_partmgmt.findAttachedVehicles(veh.gameVehicleID)) do
+    for _, vid in ipairs(BJIVeh.findAttachedVehicles(veh.gameVehicleID)) do
         local v2 = BJIVeh.getVehicleObject(vid)
         if v2 and BJIVeh.getType(v2.jbeam) ~= "Trailer" and
             veh.ownerID and BJIVeh.getVehOwnerID(vid) == veh.ownerID then
@@ -332,6 +332,7 @@ local function renderVehicle(ctxt, veh)
 end
 
 local function renderTick(ctxt)
+    if true then return end
     MPVehicleGE.hideNicknames(true)
 
     if settings.getValue("hideNameTags", false) then

@@ -1167,6 +1167,22 @@ local function postResetPreserveEnergy(gameVehID)
     end
 end
 
+local function findAttachedVehicles(gameVehID)
+    local res = {}
+    local function parse(vehData)
+        if not tincludes(res, vehData.vehId) and vehData.vehId ~= gameVehID then
+            table.insert(res, vehData.vehId)
+        end
+        if vehData.children and #vehData.children > 0 then
+            for _, c in ipairs(vehData.children) do
+                parse(c)
+            end
+        end
+    end
+    parse(core_vehicles.generateAttachedVehiclesTree(gameVehID))
+    return res
+end
+
 M.onLoad = onLoad
 M.onUnload = onUnload
 
@@ -1247,6 +1263,8 @@ M.slowTick = slowTick
 M.updateVehDamages = updateVehDamages
 
 M.postResetPreserveEnergy = postResetPreserveEnergy
+
+M.findAttachedVehicles = findAttachedVehicles
 
 RegisterBJIManager(M)
 return M

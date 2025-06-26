@@ -69,9 +69,8 @@ local function areCloseVehicles(selfVehID)
         return false
     end
 
-    local attachedVehs = core_vehicle_partmgmt.findAttachedVehicles(veh:getID())
     for _, v in pairs(BJIVeh.getMPVehicles()) do
-        if not tincludes(attachedVehs, v.gameVehicleID, true) and
+        if not tincludes(BJIVeh.findAttachedVehicles(veh:getID()), v.gameVehicleID, true) and
             v.gameVehicleID ~= veh:getID() then
             local target = BJIVeh.getVehicleObject(v.gameVehicleID)
             if target then
