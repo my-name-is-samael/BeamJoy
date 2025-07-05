@@ -26,6 +26,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
       - [Bus Mission](#bus-mission)
       - [Speed Game](#speed-game)
       - [Destruction Derby](#destruction-derby)
+      - [Tag Duo](#tag-duo)
     - [Tech (for developers)](#tech-for-developers)
   - [How To](#how-to)
     - [How to install](#how-to-install)
@@ -91,6 +92,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
 - Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
 - Highly customizable emergency refuel system when players vehicles are running out of gas.
+- Vehicles no longer keep pressed inputs when players switch to another
 
 ### Facilities
 
@@ -159,7 +161,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 - Bus routes (as in the single-player game).
 - Working UI applications.
-- Dynamic bus information.
+- Dynamic bus routes informations.
 - Bus route editor for admins and selected players.
 - Reputation rewards per kilometer driven, highly customizable.
 
@@ -178,12 +180,17 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Complete arena and starting positions editor for admins and selected players.
 - Reputation rewards for participation and winning, highly customizable.
 
+#### Tag Duo
+
+- Duo gamemode with public visible lobbies
+- Reputation rewards for tagging your opponent, highly customizable.
+
 ### Tech (for developers)
 
 - Built-in developer-friendly framework for scenarios and events.
 - Improved communication limits between server and clients.
 - Per-feature managers.
-- Built-in developer-friendly window drawing system (builders).
+- Reworked developer-friendly IMGUI drawing system.
 - Per-model cache system with auto-requesting on changes.
 - Internationalization system for clients, server, and server-client communications.
 - File-system DAO layer easily replaceable to migrate to (No)SQL database systems.

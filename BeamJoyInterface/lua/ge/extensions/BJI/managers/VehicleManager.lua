@@ -1553,8 +1553,11 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     -- anti unicycle-spam
     if oldGameVehID ~= -1 then
         local mpVeh = M.getMPVehicle(oldGameVehID, true)
-        if mpVeh and mpVeh.isLocal and mpVeh.jbeam == "unicycle" then
-            M.deleteVehicle(mpVeh.gameVehicleID)
+        if mpVeh and mpVeh.isLocal then
+            if mpVeh.jbeam == "unicycle" then
+                M.deleteVehicle(mpVeh.gameVehicleID)
+            end
+            mpVeh.veh:queueLuaCommand("input.init()") -- resets currently pressed inputs
         end
     end
 
