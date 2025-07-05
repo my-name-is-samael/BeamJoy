@@ -3,8 +3,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 480,
-    h = 250,
+    minSize = ImVec2(480, 250),
 
     kick = {
         hasStarted = "",
@@ -19,6 +18,7 @@ local W = {
         creator = "",
         target = "",
         votes = "",
+        showCancelBtn = false,
         disableButtons = false,
     },
     map = {
@@ -34,6 +34,7 @@ local W = {
         creator = "",
         mapCustom = "",
         votes = "",
+        showCancelBtn = false,
         disableButtons = false,
     },
     race = {
@@ -51,6 +52,7 @@ local W = {
         },
 
         showVoteBtn = false,
+        showCancelBtn = false,
         disableButtons = false,
     },
     speed = {
@@ -61,9 +63,11 @@ local W = {
         buttons = {
             join = "",
             spectate = "",
+            stop = "",
         },
 
         showVoteBtn = false,
+        showCancelBtn = false,
         disableButtons = false,
         participants = "",
     },
@@ -113,6 +117,8 @@ local function updateCaches(ctxt)
             BJI.Managers.Lang.get("races.preparation.defaultPlayerName")
         W.kick.votes = string.var("{1}/{2}", { BJI.Managers.Votes.Kick.amountVotes, BJI.Managers.Votes.Kick.threshold })
         W.kick.voteDisabled = BJI.Managers.Votes.Kick.targetID == ctxt.user.playerID
+        W.kick.showCancelBtn = BJI.Managers.Perm.isStaff() or
+            BJI.Managers.Votes.Kick.creatorID == ctxt.user.playerID
         W.kick.disableButtons = false
     end
 
@@ -130,6 +136,8 @@ local function updateCaches(ctxt)
         W.map.mapCustom = BJI.Managers.Votes.Map.mapCustom and string.var("({1})",
             { BJI.Managers.Lang.get("votemap.targetMapCustom") }) or ""
         W.map.votes = string.var("{1}/{2}", { BJI.Managers.Votes.Map.amountVotes, BJI.Managers.Votes.Map.threshold })
+        W.map.showCancelBtn = BJI.Managers.Perm.isStaff() or
+            BJI.Managers.Votes.Map.creatorID == ctxt.user.playerID
         W.map.disableButtons = false
     end
 
@@ -189,15 +197,18 @@ local function updateCaches(ctxt)
         W.race.votes = nil
         if BJI.Managers.Votes.Race.isVote then
             W.race.votes = string.var("{1}: {2}/{3}",
-                { BJI.Managers.Lang.get("races.preparation.currentVotes"), BJI.Managers.Votes.Race.amountVotes, BJI
-                    .Managers.Votes.Race.threshold })
+                { BJI.Managers.Lang.get("races.preparation.currentVotes"),
+                    BJI.Managers.Votes.Race.amountVotes,
+                    BJI.Managers.Votes.Race.threshold })
         end
         W.race.timeAboutEnd = BJI.Managers.Lang.get(BJI.Managers.Votes.Race.isVote and
             "races.preparation.voteAboutToEnd" or "races.preparation.raceAboutToStart")
         W.race.timeout = BJI.Managers.Lang.get(BJI.Managers.Votes.Race.isVote and
             "races.preparation.voteTimeout" or "races.preparation.startTimeout")
 
-        W.race.showVoteBtn = BJI.Managers.Votes.Race.isVote or BJI.Managers.Votes.Race.creatorID == ctxt.user.playerID
+        W.race.showVoteBtn = BJI.Managers.Votes.Race.isVote
+        W.race.showCancelBtn = BJI.Managers.Perm.isStaff() or
+            BJI.Managers.Votes.Race.creatorID == ctxt.user.playerID
         W.race.disableButtons = false
 
         W.race.buttons.vote = BJI.Managers.Lang.get("common.buttons.vote")
@@ -217,6 +228,8 @@ local function updateCaches(ctxt)
         W.speed.timeout = BJI.Managers.Lang.get(BJI.Managers.Votes.Speed.isEvent and
             "speed.vote.voteTimeout" or "speed.vote.voteTimeout")
         W.speed.showVoteBtn = not BJI.Managers.Votes.Speed.isEvent
+        W.speed.showCancelBtn = BJI.Managers.Perm.isStaff() or
+            BJI.Managers.Votes.Speed.creatorID == ctxt.user.playerID
         W.speed.disableButtons = false
         W.speed.participants = string.var("{1}: {2}", {
             BJI.Managers.Lang.get("speed.vote.participants"),
@@ -227,6 +240,7 @@ local function updateCaches(ctxt)
 
         W.speed.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
         W.speed.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
+        W.speed.buttons.stop = BJI.Managers.Lang.get("common.buttons.cancel")
     end
 end
 
@@ -236,6 +250,7 @@ local function onLoad()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.VOTE_UPDATED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCaches, W.name))
 end
@@ -245,12 +260,7 @@ local function onUnload()
 end
 
 local function body(ctxt)
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.event_note,
-            big = true,
-        })
-        :build()
+    Icon(BJI.Utils.Icon.ICONS.event_note, { big = true })
 
     Table(votes):filter(function(v)
         return v.show()

@@ -20,6 +20,8 @@ local S = {
 
     disableBtns = false,
 }
+--- gc prevention
+local actions, participant, remainingSec, remainingPlayers
 
 local function stop()
     -- server data
@@ -57,14 +59,22 @@ end
 ---@param ctxt TickContext
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-        },
-    })
     BJI.Managers.GPS.reset()
     BJI.Managers.RaceWaypoint.resetAll()
+end
+
+---@param ctxt TickContext
+local function onUnload(ctxt)
+    BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
+    BJI.Managers.Message.stopRealtimeDisplay()
+    BJI.Managers.RaceWaypoint.resetAll()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 -- player vehicle reset hook
@@ -197,18 +207,10 @@ end
 ---@param player BJIPlayer
 ---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -216,75 +218,59 @@ end
 
 ---@param ctxt TickContext
 local function drawUI(ctxt)
-    local participant = S.participants[ctxt.user.playerID]
+    participant = S.participants[ctxt.user.playerID]
     if not participant then
         return
     end
 
-    local line = LineBuilder():btnIcon({
-        id = "deliveryMultiLeave",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        disabled = S.disableBtns,
-        tooltip = BJI.Managers.Lang.get("common.buttons.leave"),
-        onClick = function()
-            S.disableBtns = true
-            BJI.Tx.scenario.DeliveryMultiLeave()
-        end,
-    }):text(BJI.Managers.Lang.get("deliveryTogether.title"))
+    if IconButton("deliveryMultiLeave", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = S.disableBtns }) then
+        S.disableBtns = true
+        BJI.Tx.scenario.DeliveryMultiLeave()
+    end
+    TooltipText(BJI.Managers.Lang.get("common.buttons.leave"))
+    SameLine()
+    Text(BJI.Managers.Lang.get("deliveryTogether.title"))
     if S.checkTargetTime then
-        local remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
         if remainingSec > 0 then
-            line:text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.depositIn"):var({
+            SameLine()
+            Text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.depositIn"):var({
                 delay = remainingSec
-            }) }), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+            }) }), { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
         end
     end
-    line:build()
 
-    line = LineBuilder()
+
     if participant.reached then
-        local remainingPlayers = Table(S.participants):filter(function(p) return not p.reached end):length()
+        remainingPlayers = Table(S.participants):filter(function(p) return not p.reached end):length()
         if remainingPlayers == 0 then
-            line:text(BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
+            Text(BJI.Managers.Lang.get("deliveryTogether.waitingForTarget"))
         else
-            line:text(string.var(BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"),
+            Text(string.var(BJI.Managers.Lang.get("deliveryTogether.waitingForOtherPlayers"),
                 { amount = remainingPlayers }))
         end
     else
-        line:text(BJI.Managers.Lang.get("deliveryTogether.reachDestination"),
-            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        Text(BJI.Managers.Lang.get("deliveryTogether.reachDestination"),
+            { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
     end
+    SameLine()
     if participant.nextTargetReward then
-        line:text(string.var("({1}: {2})", { BJI.Managers.Lang.get("deliveryTogether.streak"),
+        Text(string.var("({1}: {2})", { BJI.Managers.Lang.get("deliveryTogether.streak"),
             participant.streak }))
     else
-        line:text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.resetted") }),
-            BJI.Utils.Style.TEXT_COLORS.ERROR)
+        Text(string.var("({1})", { BJI.Managers.Lang.get("deliveryTogether.resetted") }),
+            { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
     end
-    line:build()
 
     if not participant.reached and S.distance then
-        ProgressBar({
-            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
-            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
-            tooltip = string.var("{1}: {2}", {
-                BJI.Managers.Lang.get("deliveryTogether.distance"),
-                BJI.Utils.UI.PrettyDistance(S.distance)
-            }),
-        })
+        ProgressBar(1 - math.max(S.distance / S.baseDistance, 0),
+            { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
+        TooltipText(string.var("{1}: {2}", {
+            BJI.Managers.Lang.get("deliveryTogether.distance"),
+            BJI.Utils.UI.PrettyDistance(S.distance)
+        }))
     end
-end
-
----@param ctxt TickContext
-local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.DELIVERY_TARGET)
-    BJI.Managers.Message.stopRealtimeDisplay()
-    BJI.Managers.RaceWaypoint.resetAll()
 end
 
 local function onTargetChange()
@@ -349,6 +335,9 @@ end
 
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleDestroyed = onVehicleDestroyed
@@ -370,8 +359,6 @@ S.getPlayerListActions = getPlayerListActions
 S.drawUI = drawUI
 
 S.slowTick = slowTick
-
-S.onUnload = onUnload
 
 S.rxData = rxData
 

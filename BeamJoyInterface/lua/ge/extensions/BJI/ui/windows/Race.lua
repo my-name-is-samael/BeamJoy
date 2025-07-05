@@ -7,14 +7,15 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 300,
-    h = 280,
+    minSize = ImVec2(250, 300),
+    maxSize = ImVec2(400, 800),
 
     ---@type table?
     type = nil,
 }
 
 local function onLoad()
+    W.maxSize = ImVec2(350, 800)
     W.type = BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) and
         raceSolo or raceMulti
     W.type.onLoad()
@@ -39,19 +40,11 @@ local function body(ctxt)
     end
 end
 
----@param ctxt TickContext
-local function footer(ctxt)
-    if W.type and W.type.footer then
-        return W.type.footer()
-    end
-end
-
 
 W.onLoad = onLoad
 W.onUnload = onUnload
 W.header = header
 W.body = body
-W.footer = footer
 W.getState = function()
     return BJI.Managers.Cache.areBaseCachesFirstLoaded() and (
         BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) or

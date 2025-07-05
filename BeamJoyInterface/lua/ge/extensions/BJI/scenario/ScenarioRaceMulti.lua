@@ -23,6 +23,8 @@ local S = {
         timeout = 10,
     },
 }
+--- gc prevention
+local actions, veh
 
 local function initManagerData()
     S.state = nil
@@ -114,52 +116,11 @@ local function onLoad(ctxt)
     if table.length(ctxt.user.vehicles) > 0 then
         BJI.Managers.Veh.deleteAllOwnVehicles()
     end
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.BIG_MAP,
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.WaypointEdit.reset()
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
     BJI.Managers.RaceUI.clearRaceTime()
-end
-
--- player list contextual actions getter
----@param player BJIPlayer
----@param ctxt TickContext
-local function getPlayerListActions(player, ctxt)
-    local actions = {}
-
-
-    if S.isSpec() and not S.isParticipant(player.playerID) then
-        local finalGameVehID = ctxt.players[player.playerID].vehicles
-            :reduce(function(acc, v)
-                if not acc then
-                    local veh = BJI.Managers.Veh.getVehicleObject(v.gameVehID)
-                    return veh and veh:getID()
-                end
-                return acc
-            end, nil)
-        table.insert(actions, {
-            id = string.var("focus{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.visibility,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            disabled = not finalGameVehID or
-                (ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID) or
-                S.isSpec(player.playerID),
-            tooltip = BJI.Managers.Lang.get("common.buttons.show"),
-            onClick = function()
-                BJI.Managers.Veh.focusVehicle(finalGameVehID)
-            end
-        })
-    end
-
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
-    end
-
-    return actions
 end
 
 -- unload hook (before switch to another scenario)
@@ -176,7 +137,7 @@ local function onUnload(ctxt)
     BJI.Managers.Async.removeTask("BJIRaceMultiWaitForServerWp")
     BJI.Managers.Async.removeTask("BJIRacePostFinish")
 
-    BJI.Managers.Veh.getMPVehicles({ isAi = false }):forEach(function(v)
+    BJI.Managers.Veh.getMPVehicles({ isAi = false }, true):forEach(function(v)
         BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
         BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
@@ -192,18 +153,60 @@ local function onUnload(ctxt)
         end
         break
     end
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
+    BJI.Managers.Cam.resetRestrictedCameras()
     BJI.Windows.VehSelector.tryClose(true)
     BJI.Managers.RaceUI.clear()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local res = Table():addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    if S.state == S.STATES.GRID then
+        res:addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+    elseif S.state == S.STATES.RACE then
+        res:addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+        if not S.isSpec() then
+            res:addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+                :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+                :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+        end
+    end
+    return res
+end
+
+-- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
+local function getPlayerListActions(player, ctxt)
+    actions = {}
+
+    if S.state > S.STATES.GRID and S.isSpec() and not S.isSpec(player.playerID) then
+        ---@type BJIMPVehicle?
+        veh = BJI.Managers.Veh.getMPVehicles({ ownerID = player.playerID }, true):find(TrueFn)
+        if veh then
+            table.insert(actions, {
+                id = string.var("focus{1}", { player.playerID }),
+                icon = BJI.Utils.Icon.ICONS.visibility,
+                style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                disabled = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID,
+                tooltip = BJI.Managers.Lang.get("common.buttons.show"),
+                onClick = function()
+                    BJI.Managers.Veh.focusVehicle(veh.gameVehicleID)
+                end
+            })
+        end
+    end
+
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
+    end
+
+    return actions
 end
 
 local function initGrid(data)
@@ -250,12 +253,9 @@ end
 
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) and ctxt.veh then
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-            BJI.Managers.Cam.toggleFreeCam()
-        end
-        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) and ctxt.isOwner then
         BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
     end
 end
 
@@ -274,7 +274,7 @@ end
 
 ---@param mpVeh BJIMPVehicle
 local function onVehicleSpawned(mpVeh)
-    if mpVeh.isLocal and  S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+    if mpVeh.isLocal and S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
         local startPos = S.grid.startPositions
             [table.indexOf(S.grid.participants, BJI.Managers.Context.User.playerID)]
         if startPos and mpVeh.position:distance(startPos.pos) > 1 then
@@ -357,19 +357,6 @@ local function loadHome(ctxt)
 end
 
 local function onJoinGridParticipants()
-    -- join participants
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-        }
-    })
-
     if S.settings.config then
         BJI.Managers.Async.task(function()
             return BJI.Managers.VehSelectorUI.stateSelector
@@ -389,20 +376,9 @@ local function onJoinGridParticipants()
 end
 
 local function onLeaveGridParticipants()
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        }
-    })
     BJI.Managers.UI.hideGameMenu()
-    BJI.Managers.Cam.resetForceCamera()
-    --BJI.Managers.Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
+    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+    BJI.Managers.Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
     BJI.Managers.Veh.deleteAllOwnVehicles()
     BJI.Windows.VehSelector.tryClose(true)
 end
@@ -848,12 +824,6 @@ local function initRace(data)
         S.race.timers.raceOffset = math.round(ctxt.now - S.race.startTime)
         return
     end
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        }
-    })
 
     BJI.Windows.VehSelector.tryClose(true)
     if S.isParticipant() then
@@ -933,15 +903,6 @@ local function updateRace(data)
     if not S.isRaceFinished() and BJI.Managers.Veh.isCurrentVehicleOwn() then
         if S.isFinished() or S.isEliminated() then
             S.resetLock = true
-            BJI.Managers.Restrictions.update({
-                {
-                    restrictions = Table({
-                        BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                        BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                    }):flat(),
-                    state = BJI.Managers.Restrictions.STATE.ALLOWED,
-                }
-            })
             if S.isEliminated() then
                 -- onEliminated
                 BJI.Managers.Veh.deleteAllOwnVehicles()
@@ -958,7 +919,7 @@ local function updateRace(data)
     end
 
     ---@param v BJIMPVehicle
-    BJI.Managers.Veh.getMPVehicles():forEach(function(v)
+    BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(v)
         if S.isFinished(v.ownerID) or S.isEliminated(v.ownerID) then
             BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = false })
             BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = false })
@@ -1034,6 +995,7 @@ local function rxData(data)
             initRaceFinish()
         end
         S.state = data.state
+        BJI.Managers.Restrictions.update()
     elseif S.state then
         S.stopRace()
     end
@@ -1172,8 +1134,9 @@ local function slowTick(ctxt)
                         S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
                         -- start countdown process
                         BJI.Managers.Message.flashCountdown("BJIRaceDNF", S.dnf.targetTime, true,
-                            BJI.Managers.Lang.get("races.play.flashDnfOut"), nil,
-                            function()
+                            nil, nil, function()
+                                BJI.Managers.Message.flash("BJIRaceDNFReached",
+                                    BJI.Managers.Lang.get("races.play.flashDnfOut"), 3)
                                 BJI.Tx.scenario.RaceMultiUpdate(S.CLIENT_EVENTS.LEAVE)
                                 BJI.Managers.Veh.deleteCurrentOwnVehicle()
                                 BJI.Managers.RaceWaypoint.resetAll()
@@ -1239,6 +1202,8 @@ end
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn

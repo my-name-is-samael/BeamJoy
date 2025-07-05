@@ -194,3 +194,21 @@ math.timer = math.timer or function()
         end
     })
 end
+
+---@param a vec4?
+---@param b vec4?
+math.compareVec4 = math.compareVec4 or function(a, b)
+    if not a or not b then return a == b end
+    return a.x == b.x and a.y == b.y and a.z == b.z and a.w == b.w
+end
+
+---@param color vec4
+---@return {[0]: number, [1]: number, [2]: number, [3]: number}
+math.vec4ColorToStorage = math.vec4ColorToStorage or function(color)
+    return {
+        math.round(color.x, BJI.Utils.Style.RGBA_PRECISION),
+        math.round(color.y, BJI.Utils.Style.RGBA_PRECISION),
+        math.round(color.z, BJI.Utils.Style.RGBA_PRECISION),
+        math.round(color.w, BJI.Utils.Style.RGBA_PRECISION)
+    }
+end

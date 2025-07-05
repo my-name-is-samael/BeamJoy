@@ -31,23 +31,27 @@ local function findAll()
     if file and not error then
         local data = file:read("*a")
         file:close()
-        local res = JSON.parse(data) or {}
-
-        -- sanitizing
-        BJC_CORE_CONFIG:forEach(function(v, k)
-            if v.type == "boolean" then
-                res[k] = res[k] == true
-            elseif v.type == "number" then
-                res[k] = math.clamp(tonumber(res[k]) or 0, v.min, v.max)
-            else -- string
-                res[k] = tostring(res[k])
-                if v.maxLength and #res > v.maxLength then
-                    res[k] = res[k]:sub(1, v.maxLength)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file core.json: Invalid content data")
+            data = getDefaultConfig()
+        else
+            -- sanitizing
+            BJC_CORE_CONFIG:forEach(function(v, k)
+                if v.type == "boolean" then
+                    data[k] = data[k] == true
+                elseif v.type == "number" then
+                    data[k] = math.clamp(tonumber(data[k]) or 0, v.min, v.max)
+                else -- string
+                    data[k] = tostring(data[k])
+                    if v.maxLength and #data > v.maxLength then
+                        data[k] = data[k]:sub(1, v.maxLength)
+                    end
                 end
-            end
-        end)
+            end)
+        end
 
-        return res
+        return data
     end
     return getDefaultConfig()
 end

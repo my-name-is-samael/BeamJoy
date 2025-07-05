@@ -4,8 +4,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 430,
-    h = 150,
+    size = ImVec2(430, 150),
 
     show = false,
 
@@ -17,15 +16,16 @@ local W = {
         start = "",
     },
     data = {
-        labelsWidth = 0,
         linesCombo = Table(),
-        lineSelected = {},
+        lineSelected = nil,
         configsCombo = Table(),
-        configSelected = {},
+        configSelected = nil,
     },
     ---@type BJIScenarioBusMission
     scenario = nil,
 }
+--- gc prevention
+local nextValue
 
 local function onClose()
     W.show = false
@@ -43,21 +43,11 @@ end
 local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
-    W.data.labelsWidth = Table({
-        W.labels.line,
-        W.labels.config,
-    }):reduce(function(acc, label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label)
-        return w > acc and w or acc
-    end, 0)
-
     W.data.linesCombo = Table(BJI.Managers.Context.Scenario.Data.BusLines)
         :map(function(line, i)
             return {
-                id = i,
+                value = i,
                 label = string.var("{1} ({2})", { line.name, BJI.Utils.UI.PrettyDistance(line.distance) }),
-                loopable = line.loopable,
-                stops = table.clone(line.stops),
             }
         end):sort(function(a, b)
             return a.label < b.label
@@ -65,39 +55,34 @@ local function updateCache(ctxt)
     W.data.linesCombo:insert(1, {
         label = "",
     })
-    W.data.lineSelected = W.data.lineSelected and
-        W.data.linesCombo:find(function(line) return line.label == W.data.lineSelected.label end) or
-        W.data.linesCombo[1]
+    W.data.lineSelected = W.data.linesCombo:find(function(line) return line.value == W.data.lineSelected end) and
+        W.data.lineSelected or W.data.linesCombo[1].value
 
-    W.data.configsCombo = Table()
-    Table({
-        W.scenario.BASE_MODEL
-    }):addAll({}) -- add custom buses in the future
-        :forEach(function(model)
-            local modelLabel = BJI.Managers.Veh.getModelLabel(model)
-            local configs = BJI.Managers.Veh.getAllConfigsForModel(model)
-            W.data.configsCombo:addAll(Table(configs)
+    W.data.configsCombo = Table({
+            W.scenario.BASE_MODEL
+        }):addAll({}) -- add custom buses in the future
+        :reduce(function(res, model)
+            res:addAll(Table(BJI.Managers.Veh.getAllConfigsForModel(model))
                 :map(function(conf)
-                    local label = string.var("{1} {2}", { modelLabel, conf.label })
+                    local label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(model), conf.label })
                     if conf.custom then
                         label = string.var("{1} ({2})",
                             { label, BJI.Managers.Lang.get("buslines.preparation.customConfig") })
                     end
                     return {
-                        config = conf.key,
-                        model = model,
+                        value = model .. ";" .. conf.key,
                         label = label,
                     }
-                end):sort(function(a, b)
-                    return a.label < b.label
-                end) or {})
+                end):values())
+            return res
+        end, Table()):sort(function(a, b)
+            return a.label < b.label
         end)
     W.data.configsCombo:insert(1, {
         label = "",
     })
-    W.data.configSelected = W.data.configSelected and
-        W.data.configsCombo:find(function(conf) return conf.config == W.data.configSelected.config end) or
-        W.data.configsCombo[1]
+    W.data.configSelected = W.data.configsCombo:any(function(conf) return conf.value == W.data.configSelected end) and
+        W.data.configSelected or W.data.configsCombo[1].value
 end
 
 local listeners = Table()
@@ -113,7 +98,6 @@ local function onLoad()
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt, data)
         if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
@@ -141,93 +125,66 @@ end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    LineLabel(W.labels.title)
-    ColumnsBuilder("BJIBusMissionPreparation", { W.data.labelsWidth, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.line)
-                end,
-                function()
-                    LineBuilder():inputCombo({
-                        id = "busMissionLine",
-                        items = W.data.linesCombo,
-                        value = W.data.lineSelected,
-                        getLabelFn = function(item)
-                            return item.label
-                        end,
-                        onChange = function(item)
-                            W.data.lineSelected = item
-                            if item.id and not W.data.linesCombo[1].id then
-                                -- auto remove on switch
-                                W.data.linesCombo:remove(1)
-                            end
-                        end
-                    }):build()
-                end,
-            }
-        })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.config)
-                end,
-                function()
-                    LineBuilder()
-                        :inputCombo({
-                            id = "busMissionVehicleConfig",
-                            items = W.data.configsCombo,
-                            value = W.data.configSelected,
-                            getLabelFn = function(item)
-                                return item.label
-                            end,
-                            onChange = function(item)
-                                W.data.configSelected = item
-                                if item.config and not W.data.configsCombo[1].config then
-                                    -- auto remove on switch
-                                    W.data.configsCombo:remove(1)
-                                end
-                            end
-                        })
-                        :build()
-                end,
-            }
-        })
-        :build()
+    Text(W.labels.title)
+    if BeginTable("BJIBusMissionPreparation", {
+            { label = "##bus-preparation-labels" },
+            { label = "##bus-preparation-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(W.labels.line)
+        TableNextColumn()
+        nextValue = Combo("busMissionLine", W.data.lineSelected, W.data.linesCombo, { width = -1 })
+        if nextValue then
+            W.data.lineSelected = nextValue
+            if not W.data.linesCombo[1].value then
+                -- auto remove empty option on switch
+                W.data.linesCombo:remove(1)
+            end
+        end
+
+        TableNewRow()
+        Text(W.labels.config)
+        TableNextColumn()
+        nextValue = Combo("busMissionVehicleConfig", W.data.configSelected, W.data.configsCombo, { width = -1 })
+        if nextValue then
+            W.data.configSelected = nextValue
+            if not W.data.configsCombo[1].value then
+                -- auto remove empty option on switch
+                W.data.configsCombo:remove(1)
+            end
+        end
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function startMission(ctxt)
+    local line = BJI.Managers.Context.Scenario.Data.BusLines[W.data.lineSelected]
+    local model, config = table.unpack(tostring(W.data.configSelected):split2(";"))
     W.scenario.start(ctxt, {
-        id = W.data.lineSelected.id,
-        name = W.data.lineSelected.label,
-        loopable = W.data.lineSelected.loopable,
-        stops = W.data.lineSelected.stops,
-    }, W.data.configSelected.model, W.data.configSelected.config)
+        id = W.data.lineSelected,
+        name = line.name,
+        loopable = line.loopable,
+        stops = line.stops,
+    }, model, config)
     onClose()
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "cancelBusMission",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = W.labels.cancel,
-            onClick = onClose,
-        })
-        :btnIcon({
-            id = "startBusMission",
-            icon = BJI.Utils.Icon.ICONS.videogame_asset,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = not W.data.lineSelected.id or not W.data.configSelected.config,
-            tooltip = W.labels.start,
-            onClick = function()
-                startMission(ctxt)
-            end,
-        })
-        :build()
+    if IconButton("cancelBusMission", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.cancel)
+    SameLine()
+    if IconButton("startBusMission", BJI.Utils.Icon.ICONS.videogame_asset,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                disabled = not W.data.lineSelected or not W.data.configSelected }) then
+        startMission(ctxt)
+    end
+    TooltipText(W.labels.start)
 end
 
 W.onLoad = onLoad

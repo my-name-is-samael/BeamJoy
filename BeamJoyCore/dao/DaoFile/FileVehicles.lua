@@ -15,9 +15,14 @@ local function findAll()
     if file and not error then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file vehicles.json: Invalid content data")
+            data = BJCDefaults.vehicles()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.vehicles()
 end
 
 local function save(data)

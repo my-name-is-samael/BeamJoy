@@ -366,6 +366,15 @@ local function getUIRenderFn()
     end
 end
 
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    if _curr().getRestrictions then
+        return _curr().getRestrictions(ctxt)
+    end
+    return {}
+end
+
 local tickErrorProcess = { countRender = 0, countFast = 0, countSlow = 0 }
 
 ---@param ctxt TickContext
@@ -472,6 +481,7 @@ local function switchScenario(newType, ctxt)
         newScenario = newType,
         type = M.solo[newType] and "solo" or M.multi[newType] and "multi" or "other",
     })
+    BJI.Managers.Restrictions.update()
 end
 
 local function isFreeroam()
@@ -512,7 +522,7 @@ local function onLoad()
         [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
         [BJI.Managers.Cache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
     }, function(scenarioType, cacheName)
-        BJI.Managers.Cache.addRxHandler(cacheName, function(cacheData)
+        BJI.Managers.Cache.addRxHandler(tostring(cacheName), function(cacheData)
             local sc = M.get(scenarioType)
             if type(sc.rxData) == "function" then
                 local ok, err = pcall(sc.rxData, cacheData)
@@ -524,7 +534,7 @@ local function onLoad()
         end)
     end)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_INITIALIZED, onVehicleSpawned, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehicleSpawned, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
@@ -568,6 +578,7 @@ M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs
 M.getCollisionsType = getCollisionsType
 M.getUIRenderFn = getUIRenderFn
+M.getRestrictions = getRestrictions
 
 M.getAvailableScenarii = getAvailableScenarii
 M.switchScenario = switchScenario

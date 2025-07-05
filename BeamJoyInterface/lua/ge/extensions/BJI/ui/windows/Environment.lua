@@ -4,8 +4,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 440,
-    h = 640,
+    minSize = ImVec2(600, 660),
+    maxSize = ImVec2(1000, 700),
 
     TABS = Table({
         {
@@ -29,6 +29,7 @@ local W = {
             subWindow = require("ge/extensions/BJI/ui/windows/Environment/Speed"),
         }
     }),
+    ---@type integer?
     tab = nil,
 
     show = false,
@@ -85,10 +86,7 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
@@ -139,13 +137,18 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    local t = TabBarBuilder("BJIEnvironmentTabs")
-    W.TABS:forEach(function(tab, i)
-        t:addTab(W.labels[tab.labelKey], function()
-            updateTab(i)
+    if BeginTabBar("BJIEnvironmentTabs") then
+        W.TABS:forEach(function(tab, i)
+            if BeginTabItem(W.labels[tab.labelKey]) then
+                updateTab(i)
+                if W.TABS[W.tab] and W.TABS[W.tab].subWindow.header then
+                    W.TABS[W.tab].subWindow.header(ctxt)
+                end
+                EndTabItem()
+            end
         end)
-    end)
-    t:build()
+        EndTabBar()
+    end
 end
 
 ---@param ctxt TickContext
@@ -157,13 +160,15 @@ end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder():btnIcon({
-        id = "closeEnvironment",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.close,
-        onClick = onClose
-    }):build()
+    if IconButton("closeEnvironment", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.close)
+    if W.TABS[W.tab] and W.TABS[W.tab].subWindow.footer then
+        SameLine()
+        W.TABS[W.tab].subWindow.footer(ctxt)
+    end
 end
 
 W.onLoad = onLoad

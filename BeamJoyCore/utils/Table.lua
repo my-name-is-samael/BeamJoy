@@ -466,7 +466,7 @@ table.contains = table.contains or table.includes
 ---@return boolean
 table.compare = table.compare or function(tab1, tab2, deep)
     if type(tab1) ~= "table" or type(tab2) ~= "table" then return tab1 == tab2 end
-    if #tab1 ~= #tab2 then return false end
+    if table.length(tab1) ~= table.length(tab2) then return false end
     local saw = Table()
     for k, v in pairs(tab1) do
         if type(v) == "table" and type(tab2[k]) == "table" then
@@ -529,4 +529,25 @@ table.shuffle = table.shuffle or function(tab)
         tab[i], tab[j] = tab[j], tab[i]
     end
     return tab
+end
+
+table.stringify = table.stringify or function(tab)
+    local function quote(val) return '"' .. val .. '"' end
+    local function recurse(tbl)
+        local parts = Table()
+        for k, v in pairs(tbl) do
+            local key = type(k) == "string" and quote(k) or tostring(k)
+            local value
+            if type(v) == "table" then
+                value = table.stringify(v)
+            elseif type(v) == "string" then
+                value = quote(v)
+            else
+                value = tostring(v)
+            end
+            parts:insert(key .. "=" .. value)
+        end
+        return parts:join(",")
+    end
+    return "{" .. recurse(tab) .. "}"
 end

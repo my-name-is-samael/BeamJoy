@@ -1,87 +1,48 @@
 local W = {}
+--- gc prevention
+local nextValue, opened, maxIconsPerRow
 
 local filter = ""
-local filtered = table.clone(BJI.Utils.Icon.ICONS_FLAT)
+---@type tablelib<integer, string> index 1-N
+local filtered
 local function updateFilter()
-    local query = filter:lower()
+    local query = filter:lower():trim()
     if #query == 0 then
-        filtered = table.clone(BJI.Utils.Icon.ICONS_FLAT)
+        filtered = Table(BJI.Utils.Icon.ICONS_FLAT):clone()
     else
-        filtered = {}
-        for _, icon in ipairs(BJI.Utils.Icon.ICONS_FLAT) do
-            if icon:lower():find(query) then
-                table.insert(filtered, icon)
-            end
-        end
+        filtered = Table(BJI.Utils.Icon.ICONS_FLAT)
+            :filter(function(i) return i:lower():find(query) end)
     end
-    table.sort(filtered, function(a, b) return a:lower() < b:lower() end)
+    if filtered then
+        filtered:sort(function(a, b) return a:lower() < b:lower() end)
+    end
+end
+updateFilter()
+
+---@param ctxt TickContext
+local function header(ctxt)
+    Icon(BJI.Utils.Icon.ICONS.ab_filter_default)
+    SameLine()
+    nextValue = InputText("iconsFilter", filter)
+    if nextValue then
+        filter = nextValue
+        updateFilter()
+    end
 end
 
-local function drawFilter()
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.ab_filter_default,
-        })
-        :inputString({
-            id = "iconsFilter",
-            value = filter,
-            onUpdate = function(val)
-                filter = val
-                updateFilter()
-            end
-        })
-end
-
+---@param ctxt TickContext
 local function body(ctxt)
-    drawFilter()
-    AccordionBuilder()
-        :label("DEBUG ICONS")
-        :commonStart(function()
-            LineBuilder(true)
-                :icon({
-                    icon = BJI.Utils.Icon.ICONS.warning,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    coloredIcon = true,
-                })
-                :text("Performances")
-                :build()
-        end)
-        :openedBehavior(function()
-            local w = ui_imgui.GetContentRegionAvail().x
-            local iconSize = BJI.Utils.UI.GetBtnIconSize(true)
-            local colsAmount = math.floor(w / iconSize)
-            local widths = {}
-            for _ = 1, colsAmount do
-                table.insert(widths, iconSize)
-            end
-            local cols = ColumnsBuilder("debugIcons", widths, true)
-            for i = 1, #filtered, colsAmount do
-                local cells = {}
-                for j = i, i + colsAmount - 1 do
-                    if j <= #filtered then
-                        table.insert(cells, function()
-                            LineBuilder()
-                                :icon({
-                                    icon = filtered[j],
-                                    big = true,
-                                    tooltip = filtered[j],
-                                })
-                                :build()
-                        end)
-                    end
-                end
-                cols:addRow({
-                    cells = cells
-                })
-            end
-            cols:build()
-        end)
-        :build()
+    maxIconsPerRow = math.floor(GetContentRegionAvail().x / BJI.Utils.UI.GetBtnIconSize(true))
+    filtered:forEach(function(icon, i)
+        if i % maxIconsPerRow ~= 1 then SameLine() end
+        Icon(icon, { big = true })
+        TooltipText(icon)
+    end)
 end
 
 W.onLoad = TrueFn
 W.onUnload = TrueFn
+W.header = header
 W.body = body
 
 return W
-

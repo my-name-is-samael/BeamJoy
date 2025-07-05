@@ -11,13 +11,18 @@ local function init(dbPath)
 end
 
 local function findAll()
-    local file, error = io.open(M._dbPath, "r")
-    if file and not error then
+    local file, err = io.open(M._dbPath, "r")
+    if file and not err then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file groups.json: Invalid content data")
+            data = BJCDefaults.groups()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.groups()
 end
 
 local function save(data)

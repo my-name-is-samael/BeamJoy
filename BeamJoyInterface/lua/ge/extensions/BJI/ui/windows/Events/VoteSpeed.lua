@@ -1,32 +1,41 @@
+--- gc prevention
+local vs, remainingTime
+
 return function(ctxt, cache)
-    local vs = BJI.Managers.Votes.Speed
-    LineBuilder():text(cache.hasStarted):build()
-
-    local remainingTime = vs.endsAt - ctxt.now
-    LineBuilder()
-        :text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
-            :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
-        :build()
-
-    if cache.showVoteBtn then
-        LineBuilder()
-            :btnIconToggle({
-                id = "joinSpeed",
-                icon = vs.participants[BJI.Managers.Context.User.playerID] and
-                    BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
-                state = not vs.participants[BJI.Managers.Context.User.playerID],
-                tooltip = vs.participants[BJI.Managers.Context.User.playerID] and
-                    cache.buttons.spectate or cache.buttons.join,
-                disabled = not ctxt.isOwner or cache.disableButtons,
-                big = true,
-                onClick = function()
-                    cache.disableButtons = true
-                    BJI.Tx.scenario.SpeedJoin(not vs.participants[BJI.Managers.Context.User.playerID] and
-                        ctxt.veh.gameVehicleID or nil)
-                end,
-            })
-            :build()
+    if not vs then
+        vs = BJI.Managers.Votes.Speed
     end
 
-    LineBuilder():text(cache.participants):build()
+    Text(cache.hasStarted)
+
+    remainingTime = vs.endsAt - ctxt.now
+    Text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
+        :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
+
+    if cache.showVoteBtn then
+        if IconButton("joinSpeed", vs.participants[BJI.Managers.Context.User.playerID] and
+                BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
+                { disabled = not ctxt.isOwner or cache.disableButtons, big = true,
+                    btnStyle = vs.participants[BJI.Managers.Context.User.playerID] and
+                        BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            cache.disableButtons = true
+            BJI.Tx.vote.SpeedVote(not vs.participants[BJI.Managers.Context.User.playerID] and
+                ctxt.veh.gameVehicleID or nil)
+        end
+        TooltipText(vs.participants[BJI.Managers.Context.User.playerID] and
+            cache.buttons.spectate or cache.buttons.join)
+    end
+    if cache.showCancelBtn then
+        if cache.showVoteBtn then
+            SameLine()
+        end
+        if IconButton("stopSpeed", BJI.Utils.Icon.ICONS.cancel, { disabled = cache.disableButtons,
+                big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            cache.disableButtons = true
+            BJI.Tx.vote.SpeedStop()
+        end
+        TooltipText(cache.buttons.stop)
+    end
+
+    Text(cache.participants)
 end

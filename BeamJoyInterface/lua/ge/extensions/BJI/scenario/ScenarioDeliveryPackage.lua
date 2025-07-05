@@ -16,6 +16,8 @@ local S = {
     ---@type integer?
     checkTargetTime = nil, -- process to check player reached target and stayed in its radius
 }
+--- gc prevention
+local actions, remainingSec
 
 local function reset()
     S.targetPosition = nil
@@ -94,12 +96,6 @@ local function onLoad(ctxt)
         initPositions(ctxt)
 
         if S.targetPosition then
-            BJI.Managers.Restrictions.update({
-                {
-                    restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-                }
-            })
             BJI.Managers.GPS.reset()
             BJI.Managers.RaceWaypoint.resetAll()
 
@@ -116,12 +112,15 @@ local function onLoad(ctxt)
 end
 
 local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     BJI.Managers.GPS.reset()
     BJI.Managers.RaceWaypoint.resetAll()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 local function onDeliveryEnded()
@@ -164,38 +163,37 @@ local function onStopDelivery()
     onDeliveryEnded()
 end
 
+---@param ctxt TickContext
 local function drawUI(ctxt)
-    local line = LineBuilder():btnIcon({
-        id = "stopPackageDelivery",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"),
-        onClick = S.onStopDelivery,
-    }):text(BJI.Managers.Lang.get("packageDelivery.title"))
+    if IconButton("stopDelivery", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        S.onStopDelivery()
+    end
+    TooltipText(BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"))
+    SameLine()
+    Text(BJI.Managers.Lang.get("packageDelivery.title"))
     if S.checkTargetTime then
-        local remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
         if remainingSec > 0 then
-            line:text(string.var("({1})", { BJI.Managers.Lang.get("packageDelivery.depositIn"):var({
+            SameLine()
+            Text(string.var("({1})", { BJI.Managers.Lang.get("packageDelivery.depositIn"):var({
                 delay = remainingSec
-            }) }), BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+            }) }), { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
         end
     end
-    line:build()
 
-    LineLabel(BJI.Managers.Lang.get("packageDelivery.currentStreak")
-        :var({ streak = S.streak }), nil, false,
-        BJI.Managers.Lang.get("packageDelivery.streakTooltip"))
+    Text(BJI.Managers.Lang.get("packageDelivery.currentStreak")
+        :var({ streak = S.streak }))
+    TooltipText(BJI.Managers.Lang.get("packageDelivery.streakTooltip"))
 
     if S.distance then
-        ProgressBar({
-            floatPercent = 1 - math.max(S.distance / S.baseDistance, 0),
-            style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
-            tooltip = string.var("{1}: {2}", {
-                BJI.Managers.Lang.get("delivery.currentDelivery"),
-                BJI.Managers.Lang.get("delivery.distanceLeft")
-                    :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
-            })
-        })
+        ProgressBar(1 - math.max(S.distance / S.baseDistance, 0),
+            { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
+        TooltipText(string.var("{1}: {2}", {
+            BJI.Managers.Lang.get("delivery.currentDelivery"),
+            BJI.Managers.Lang.get("delivery.distanceLeft")
+                :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
+        }))
     end
 end
 
@@ -260,7 +258,7 @@ local function slowTick(ctxt)
 end
 
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
@@ -272,6 +270,8 @@ end
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.drawUI = drawUI
 

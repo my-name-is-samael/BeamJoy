@@ -2,10 +2,8 @@ local cache = {
     name = "MainHeader",
 
     data = {
-        firstRowRightButtonsWidth = 0,
         nametagsVisible = false,
 
-        secondRowRightButtonsWidth = 0,
         showTime = false,
         showTemp = false,
         time = nil,
@@ -31,6 +29,7 @@ local cache = {
             enabled = "",
             disabled = "",
         },
+        reputation = "",
         buttons = {
             userSettings = "",
             vehicleSelector = "",
@@ -43,6 +42,9 @@ local cache = {
         },
     }
 }
+-- gc prevention
+local style, value, nextValue, min, max, temperature, temperatureUnit, showReset,
+showTeleport, resetDelay, teleportDelay, level, levelRep, rep, nextLevel, repTooltip
 
 local function updateGravitySpeedLabel()
     if BJI.Managers.Context.UI.gravity and not BJI.Managers.Context.UI.gravity.default then
@@ -108,22 +110,17 @@ local function updateCacheData(ctxt)
     cache.data.vehResetBypass = BJI.Managers.Perm.isStaff()
 end
 
-local function updateWidths()
-    cache.data.firstRowRightButtonsWidth = math.round(BJI.Utils.UI.GetBtnIconSize() * 2)
-    cache.data.secondRowRightButtonsWidth = math.round(BJI.Utils.UI.GetBtnIconSize() *
-        (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) and 2 or 1))
-end
-
 local function updateLabels()
     cache.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
     updateGravitySpeedLabel()
-    cache.labels.resetCooldownLabel = string.var("{1}:", { BJI.Managers.Lang.get("header.nextReset") })
+    cache.labels.resetCooldownLabel = BJI.Managers.Lang.get("header.nextReset") .. " :"
     cache.labels.resetCooldownAvailable = BJI.Managers.Lang.get("header.resetAvailable")
-    cache.labels.teleportCooldownLabel = string.var("{1}:", { BJI.Managers.Lang.get("header.nextTeleport") })
+    cache.labels.teleportCooldownLabel = BJI.Managers.Lang.get("header.nextTeleport") .. " :"
     cache.labels.teleportCooldownAvailable = BJI.Managers.Lang.get("header.teleportAvailable")
-    cache.labels.collisions.title = string.var("{1}:", { BJI.Managers.Lang.get("header.collisions") })
+    cache.labels.collisions.title = BJI.Managers.Lang.get("header.collisions") .. " :"
     cache.labels.collisions.enabled = BJI.Managers.Lang.get("common.enabled")
     cache.labels.collisions.disabled = BJI.Managers.Lang.get("common.disabled")
+    cache.labels.reputation = BJI.Managers.Lang.get("header.reputation") .. " :"
 
     cache.labels.buttons.userSettings = BJI.Managers.Lang.get("menu.me.settings")
     cache.labels.buttons.vehicleSelector = BJI.Managers.Lang.get("menu.me.vehicleSelector")
@@ -140,7 +137,6 @@ local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
     updateCacheData(ctxt)
-    updateWidths()
     updateLabels()
 end
 
@@ -149,8 +145,6 @@ local function onLoad()
     updateCache()
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, cache.name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths,
-        cache.name))
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
         BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
@@ -170,187 +164,178 @@ local function onUnload()
 end
 
 local function draw(ctxt)
-    -- LANG / Settings / UIScale
-    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and #BJI.Managers.Lang.Langs > 1 then
-        ColumnsBuilder("headerLangUIScale", { -1, cache.data.firstRowRightButtonsWidth }):addRow({
-            cells = {
-                function()
-                    local line = LineBuilder():btnIcon({
-                        id = "toggleUserSettings",
-                        icon = BJI.Utils.Icon.ICONS.settings,
-                        style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                        active = BJI.Windows.UserSettings.show,
-                        tooltip = cache.labels.buttons.userSettings,
-                        onClick = function()
-                            BJI.Windows.UserSettings.show = not BJI.Windows.UserSettings.show
-                        end
-                    })
-                    if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
-                        line:btnIcon({
-                            id = "toggleVehicleSelector",
-                            icon = BJI.Utils.Icon.ICONS.directions_car,
-                            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                            active = BJI.Windows.VehSelector.show,
-                            tooltip = cache.labels.buttons.vehicleSelector,
-                            onClick = function()
-                                if BJI.Windows.VehSelector.show then
-                                    BJI.Windows.VehSelector.tryClose()
-                                else
-                                    BJI.Windows.VehSelector.open(true)
-                                end
-                            end
-                        })
-                    end
-                    line:btnIconToggle({
-                        id = "togleNametags",
-                        icon = cache.data.nametagsVisible and BJI.Utils.Icon.ICONS.speaker_notes or BJI.Utils.Icon.ICONS.speaker_notes_off,
-                        state = cache.data.nametagsVisible,
-                        coloredIcon = true,
-                        tooltip = cache.labels.buttons.toggleNametags,
-                        onClick = function()
-                            settings.setValue("hideNameTags", cache.data.nametagsVisible)
-                            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
-                        end,
-                    })
-                    if BJI.Managers.GPS.isClearable() then
-                        line:btnIcon({
-                            id = "clearGPS",
-                            icon = BJI.Utils.Icon.ICONS.location_off,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            coloredIcon = true,
-                            tooltip = cache.labels.buttons.clearGPS,
-                            onClick = BJI.Managers.GPS.clear,
-                            sound = BTN_NO_SOUND,
-                        })
-                    end
-                    line:build()
-                    BJI.Managers.Lang.drawSelector({
-                        selected = ctxt.user.lang,
-                        onChange = function(newLang)
-                            BJI.Tx.player.lang(newLang)
-                        end
-                    })
-                end,
-                function()
-                    local minScale = 0.85
-                    local maxScale = 2
-                    local value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-                    LineBuilder():btnIcon({
-                        id = "uiScaleZoomOut",
-                        icon = BJI.Utils.Icon.ICONS.zoom_out,
-                        tooltip = cache.labels.buttons.zoomOut,
-                        onClick = function()
-                            local scale = math.clamp(value - 0.05, minScale, maxScale)
-                            if scale ~= value then
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
-                                    scale)
-                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
-                                    scale = scale
-                                })
-                            end
-                        end
-                    }):btnIcon({
-                        id = "uiScaleZoomIn",
-                        icon = BJI.Utils.Icon.ICONS.zoom_in,
-                        tooltip = cache.labels.buttons.zoomIn,
-                        onClick = function()
-                            local scale = math.clamp(value + 0.05, minScale, maxScale)
-                            if scale ~= value then
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE,
-                                    scale)
-                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, {
-                                    scale = scale
-                                })
-                            end
-                        end
-                    }):build()
+    -- LANG // UI Scale
+    if BeginTable("MainHeaderRow1", {
+            { label = "##main-header-row-1-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##main-header-row-1-right" }
+        }) then
+        TableNewRow()
+        if BJI.Managers.Cache.areBaseCachesFirstLoaded() and #BJI.Managers.Lang.Langs > 1 then
+            BJI.Managers.Lang.drawSelector({
+                selected = ctxt.user.lang,
+                onChange = function(newLang)
+                    BJI.Tx.player.lang(newLang)
                 end
-            }
-        }):build()
+            })
+        end
+        TableNextColumn()
+        min, max = 0.85, 2
+        value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        if IconButton("uiScaleZoomOut", BJI.Utils.Icon.ICONS.zoom_out, { disabled = value == min }) then
+            nextValue = math.clamp(value - 0.05, min, max)
+            if nextValue ~= value then
+                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, nextValue)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, { scale = nextValue })
+            end
+        end
+        TooltipText(cache.labels.buttons.zoomOut)
+        SameLine()
+        if IconButton("uiScaleZoomIn", BJI.Utils.Icon.ICONS.zoom_in, { disabled = value == max }) then
+            nextValue = math.clamp(value + 0.05, min, max)
+            if nextValue ~= value then
+                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, nextValue)
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, { scale = nextValue })
+            end
+        end
+        TooltipText(cache.labels.buttons.zoomIn)
+
+        EndTable()
     end
 
-    -- MAP / TIME / TEMPERATURE
-    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.MAP) then
-        ColumnsBuilder("headerMapTimeTempPrivate", { -1, cache.data.secondRowRightButtonsWidth }):addRow({
-            cells = {
-                function()
-                    -- MAP
-                    local line = LineBuilder()
-                        :text(BJI.Managers.Context.UI.mapLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-
-                    -- TIME & TEMPERATURE
-                    local labels = {}
-                    if cache.data.showTime then
-                        table.insert(labels,
-                            cache.data.time or BJI.Utils.UI.PrettyTime(BJI.Managers.Env.getTime().time))
-                    end
-
-                    if cache.data.showTemp then
-                        if cache.data.temp then
-                            table.insert(labels, cache.data.temp)
-                        else
-                            local temp = BJI.Managers.Env.getTemperature()
-                            local tempUnit = settings.getValue("uiUnitTemperature")
-                            if tempUnit == "k" then
-                                table.insert(labels, string.var("{1}K", { math.round(temp, 2) }))
-                            elseif tempUnit == "c" then
-                                table.insert(labels,
-                                    string.var("{1}°C", { math.round(math.kelvinToCelsius(temp) or 0, 2) }))
-                            elseif tempUnit == "f" then
-                                table.insert(labels,
-                                    string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temp) or 0, 2) }))
-                            end
-                        end
-                    end
-                    if #labels > 0 then
-                        line:text(string.var("{1}",
-                            { table.join(labels, string.var(" {1} ", { cache.labels.vSeparator })) }))
-                    end
-                    line:build()
-                end,
-                function()
-                    local line = LineBuilder():btnIcon({
-                        id = "debugAppWaiting",
-                        icon = BJI.Utils.Icon.ICONS.bug_report,
-                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        coloredIcon = true,
-                        tooltip = cache.labels.buttons.debug,
-                        onClick = function()
-                            guihooks.trigger("app:waiting", false)
-                            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
-                        end,
-                    })
-                    if cache.data.showCorePublic then
-                        local state = BJI.Managers.Context.Core.Private
-                        line:btnIconToggle({
-                            id = "toggleCorePrivate",
-                            icon = state and BJI.Utils.Icon.ICONS.visibility_off or BJI.Utils.Icon.ICONS.visibility,
-                            state = not state,
-                            tooltip = cache.labels.buttons.serverVisibility,
-                            onClick = function()
-                                BJI.Tx.config.core("Private", not BJI.Managers.Context.Core.Private)
-                            end,
-                        })
-                    end
-                    line:build()
+    -- Settings / VehSelector / Nametags // Debug / Server visibility
+    if BeginTable("MainHeaderRow2", {
+            { label = "##main-header-row-2-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##main-header-row-2-right" }
+        }) then
+        TableNewRow()
+        style = table.clone(BJI.Utils.Style.BTN_PRESETS.INFO)
+        if BJI.Windows.UserSettings.show then
+            style[4] = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+        end
+        if IconButton("toggleUserSettings", BJI.Utils.Icon.ICONS.settings, { btnStyle = style }) then
+            BJI.Windows.UserSettings.show = not BJI.Windows.UserSettings.show
+        end
+        TooltipText(cache.labels.buttons.userSettings)
+        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
+            SameLine()
+            style = table.clone(BJI.Utils.Style.BTN_PRESETS.INFO)
+            if BJI.Windows.VehSelector.show then
+                style[4] = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+            end
+            if IconButton("toggleVehicleSelector", BJI.Utils.Icon.ICONS.directions_car, { btnStyle = style }) then
+                if BJI.Windows.VehSelector.show then
+                    BJI.Windows.VehSelector.tryClose()
+                else
+                    BJI.Windows.VehSelector.open(true)
                 end
-            }
-        }):build()
+            end
+            TooltipText(cache.labels.buttons.vehicleSelector)
+        end
+        SameLine()
+        if IconButton("toggleNametags", cache.data.nametagsVisible and BJI.Utils.Icon.ICONS.speaker_notes or
+                BJI.Utils.Icon.ICONS.speaker_notes_off, { btnStyle = cache.data.nametagsVisible and
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+            settings.setValue("hideNameTags", cache.data.nametagsVisible)
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+        end
+        TooltipText(cache.labels.buttons.toggleNametags)
+        if BJI.Managers.GPS.isClearable() then
+            SameLine()
+            if IconButton("clearGPS", BJI.Utils.Icon.ICONS.location_off,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true, noSound = true }) then
+                BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.BIGMAP_HOVER)
+                BJI.Managers.GPS.clear()
+            end
+            TooltipText(cache.labels.buttons.clearGPS)
+        end
+        TableNextColumn()
+        if IconButton("debugAction", BJI.Utils.Icon.ICONS.bug_report,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, bgLess = true }) then
+            guihooks.trigger("app:waiting", false)
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST)
+        end
+        TooltipText(cache.labels.buttons.debug)
+        if cache.data.showCorePublic then
+            SameLine()
+            if IconButton("toggleCorePrivate", BJI.Managers.Context.Core.Private and
+                    BJI.Utils.Icon.ICONS.visibility_off or BJI.Utils.Icon.ICONS.visibility,
+                    { btnStyle = BJI.Managers.Context.Core.Private and
+                        BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                BJI.Tx.config.core("Private", not BJI.Managers.Context.Core.Private)
+            end
+            TooltipText(cache.labels.buttons.serverVisibility)
+        end
+
+        EndTable()
+    end
+
+    -- MAP / TIME / TEMPERATURE // COLLISIONS INDICATOR
+    if BeginTable("MainHeaderRow3", {
+            { label = "##main-header-row-3-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##main-header-row-3-right" }
+        }) then
+        TableNewRow()
+        Text(BJI.Managers.Context.UI.mapLabel, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+        if cache.data.showTime then
+            SameLine()
+            Text(cache.labels.vSeparator)
+            SameLine()
+            Text(cache.data.time or BJI.Utils.UI.PrettyTime(BJI.Managers.Env.getTime().time))
+        end
+        if cache.data.showTemp then
+            if cache.data.temp then
+                SameLine()
+                Text(cache.labels.vSeparator)
+                SameLine()
+                Text(cache.data.temp)
+            else
+                temperature = BJI.Managers.Env.getTemperature()
+                temperatureUnit = settings.getValue("uiUnitTemperature")
+                if temperatureUnit == "k" then
+                    SameLine()
+                    Text(cache.labels.vSeparator)
+                    SameLine()
+                    Text(string.var("{1}K", { math.round(temperature, 2) }))
+                elseif temperatureUnit == "c" then
+                    SameLine()
+                    Text(cache.labels.vSeparator)
+                    SameLine()
+                    Text(string.var("{1}°C", { math.round(math.kelvinToCelsius(temperature) or 0, 2) }))
+                elseif temperatureUnit == "f" then
+                    SameLine()
+                    Text(cache.labels.vSeparator)
+                    SameLine()
+                    Text(string.var("{1}°F", { math.round(math.kelvinToFahrenheit(temperature) or 0, 2) }))
+                end
+            end
+        end
+        TableNextColumn()
+        Text(cache.labels.collisions.title)
+        SameLine()
+        Text(BJI.Managers.Collisions.getState(ctxt) and cache.labels.collisions.enabled or
+            cache.labels.collisions.disabled, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+
+        EndTable()
     end
 
     -- GRAVITY / SPEED
     if cache.data.gravity or cache.data.speed then
-        local labels = Table()
         -- GRAVITY
         if cache.data.gravity then
-            labels:insert(cache.data.gravity)
+            Text(cache.data.gravity)
+        end
+
+        -- COMMON
+        if cache.data.gravity and cache.data.speed then
+            SameLine()
+            Text(cache.labels.vSeparator)
+            SameLine()
         end
 
         -- SPEED
         if cache.data.speed then
-            labels:insert(cache.data.speed)
+            Text(cache.data.speed)
         end
-        LineLabel(labels:join(string.var(" {1} ", { cache.labels.vSeparator })))
     end
 
     -- TELEPORT DELAY / RESET DELAY
@@ -358,64 +343,58 @@ local function draw(ctxt)
         BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
         BJI.Managers.Scenario.isFreeroam() and
         ctxt.isOwner then
-        local showReset = BJI.Managers.Context.BJC.Freeroam.ResetDelay > 0
-        local showTeleport = BJI.Managers.Context.BJC.Freeroam.TeleportDelay > 0
+        showReset = BJI.Managers.Context.BJC.Freeroam.ResetDelay > 0
+        showTeleport = BJI.Managers.Context.BJC.Freeroam.TeleportDelay > 0
         if showReset or showTeleport then
-            local line = LineBuilder()
-
             if showReset then
-                local resetDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER)
+                resetDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER)
                 if resetDelay then
-                    line:text(cache.labels.resetCooldownLabel)
-                        :text(BJI.Utils.UI.PrettyDelay(math.round(resetDelay / 1000)),
-                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+                    Text(cache.labels.resetCooldownLabel)
+                    SameLine()
+                    Text(BJI.Utils.UI.PrettyDelay(math.round(resetDelay / 1000)),
+                        { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
                 else
-                    line:text(cache.labels.resetCooldownAvailable)
+                    Text(cache.labels.resetCooldownAvailable)
                 end
+            end
+
+            if showReset and showTeleport then
+                SameLine()
+                Text(cache.labels.vSeparator)
+                SameLine()
             end
 
             if showTeleport then
-                if showReset then
-                    line:text(cache.labels.vSeparator)
-                end
-                local teleportDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS
+                teleportDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS
                     .RESTRICTIONS_TELEPORT_TIMER)
                 if teleportDelay then
-                    line:text(cache.labels.teleportCooldownLabel)
-                        :text(BJI.Utils.UI.PrettyDelay(math.round(teleportDelay / 1000)),
-                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+                    Text(cache.labels.teleportCooldownLabel)
+                    SameLine()
+                    Text(BJI.Utils.UI.PrettyDelay(math.round(teleportDelay / 1000)),
+                        { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
                 else
-                    line:text(cache.labels.teleportCooldownAvailable)
+                    Text(cache.labels.teleportCooldownAvailable)
                 end
             end
-
-            line:build()
         end
     end
 
-    -- COLLISIONS INDICATOR
-    LineBuilder():text(cache.labels.collisions.title):text(BJI.Managers.Collisions.getState(ctxt) and
-        cache.labels.collisions.enabled or cache.labels.collisions.disabled,
-        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
-
     -- REPUTATION
     if cache.data.showLevel then
-        local level = BJI.Managers.Reputation.getReputationLevel()
-        local levelReputation = BJI.Managers.Reputation.getReputationLevelAmount(level)
-        local reputation = BJI.Managers.Reputation.reputation
-        local nextLevel = BJI.Managers.Reputation.getReputationLevelAmount(level + 1)
+        level = BJI.Managers.Reputation.getReputationLevel()
+        levelRep = BJI.Managers.Reputation.getReputationLevelAmount(level)
+        rep = BJI.Managers.Reputation.reputation
+        nextLevel = BJI.Managers.Reputation.getReputationLevelAmount(level + 1)
 
-        local repTooltip = string.var("{1}/{2}", { reputation, nextLevel })
-        LineBuilder()
-            :text(string.var("{1}:", { BJI.Managers.Lang.get("header.reputation") }), nil, repTooltip)
-            :text(level, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT, repTooltip)
-            :build()
+        repTooltip = string.var("{1}/{2}", { rep, nextLevel })
+        Text(cache.labels.reputation)
+        TooltipText(repTooltip)
+        SameLine()
+        Text(level, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+        TooltipText(repTooltip)
 
-        ProgressBar({
-            floatPercent = (reputation - levelReputation) / (nextLevel - levelReputation),
-            width = "100%",
-            tooltip = repTooltip,
-        })
+        ProgressBar((rep - levelRep) / (nextLevel - levelRep))
+        TooltipText(repTooltip)
     end
 
     Separator()

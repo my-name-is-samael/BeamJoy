@@ -87,12 +87,12 @@ function ctrl.addSoloRace(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.endSoloRace(ctxt)
+function ctrl.endSoloActivity(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    BJCTournament.endSoloRaceActivity()
+    BJCTournament.endSoloActivity()
 end
 
 return ctrl

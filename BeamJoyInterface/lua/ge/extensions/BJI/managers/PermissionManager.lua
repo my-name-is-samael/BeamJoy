@@ -170,7 +170,7 @@ local function hasMinimumGroupOrPermission(targetGroupName, permissionName, play
     end
 
     -- has minimum group
-    if M.hasMinimumGroup(targetGroupName, playerID or BJI.Managers.Context.User.playerID) then
+    if M.hasMinimumGroup(targetGroupName, playerID) then
         return true
     end
 
@@ -186,11 +186,27 @@ local function canSpawnVehicle(playerID)
     local groupName = playerID and BJI.Managers.Context.Players[playerID].group or BJI.Managers.Context.User.group
 
     local group = M.Groups[groupName]
-    if not group then
+    if not group then return false end
+
+    return group.canSpawn == true
+end
+
+local function canSpawnNewVehicle(playerID)
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI.Managers.Context.Players[playerID]) then
         return false
     end
 
-    return group.canSpawn == true
+    local groupName = playerID and BJI.Managers.Context.Players[playerID].group or BJI.Managers.Context.User.group
+
+    local group = M.Groups[groupName]
+    if not group then return false end
+
+    return group.vehicleCap == -1 or
+        group.vehicleCap > BJI.Managers.Veh.getMPVehicles({ isAi = false, ownerID = playerID }, true)
+        :filter(function(mpVeh)
+            return mpVeh.isVehicle
+        end):length()
 end
 
 local function canSpawnAI(playerID)
@@ -206,9 +222,7 @@ local function canSpawnAI(playerID)
     local groupName = playerID and BJI.Managers.Context.Players[playerID].group or BJI.Managers.Context.User.group
 
     local group = M.Groups[groupName]
-    if not group then
-        return false
-    end
+    if not group then return false end
 
     return group.canSpawnAI == true
 end
@@ -222,9 +236,7 @@ local function isStaff(playerID)
     local groupName = playerID and BJI.Managers.Context.Players[playerID].group or BJI.Managers.Context.User.group
 
     local group = M.Groups[groupName]
-    if not group then
-        return false
-    end
+    if not group then return false end
 
     return group.staff == true
 end
@@ -232,15 +244,13 @@ end
 ---@param groupName string
 ---@return string?
 local function getNextGroup(groupName)
-    local baseG = M.Groups[groupName]
-    if not baseG then
-        return nil
-    end
+    local group = M.Groups[groupName]
+    if not group then return nil end
 
     local next = Table(M.Groups)
         ---@param k string
         :reduce(function(acc, g, k)
-            return (g.level > baseG.level and
+            return (g.level > group.level and
                     (not acc or acc.level > g.level)) and
                 { name = k, level = g.level } or acc
         end)
@@ -250,15 +260,13 @@ end
 ---@param groupName string
 ---@return string?
 local function getPreviousGroup(groupName)
-    local baseG = M.Groups[groupName]
-    if not baseG then
-        return nil
-    end
+    local group = M.Groups[groupName]
+    if not group then return nil end
 
     local previous = Table(M.Groups)
         ---@param k string
         :reduce(function(acc, g, k)
-            return (g.level < baseG.level and
+            return (g.level < group.level and
                     (not acc or acc.level < g.level)) and
                 { name = k, level = g.level } or acc
         end)
@@ -275,6 +283,7 @@ M.hasMinimumGroup = hasMinimumGroup
 M.hasPermission = hasPermission
 M.hasMinimumGroupOrPermission = hasMinimumGroupOrPermission
 M.canSpawnVehicle = canSpawnVehicle
+M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canSpawnAI = canSpawnAI
 M.isStaff = isStaff
 M.getNextGroup = getNextGroup

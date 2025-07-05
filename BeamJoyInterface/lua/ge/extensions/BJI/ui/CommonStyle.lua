@@ -14,15 +14,32 @@ end
 U.RGBA_PRECISION = 3
 
 U.WINDOW_FLAGS = {
-    MENU_BAR = im.WindowFlags_MenuBar,
-    NO_SCROLLBAR = im.WindowFlags_NoScrollbar,
-    NO_SCROLL_WITH_MOUSE = im.WindowFlags_NoScrollWithMouse,
-    NO_COLLAPSE = im.WindowFlags_NoCollapse,
-    NO_FOCUS_ON_APPEARING = im.WindowFlags_NoFocusOnAppearing,
-    NO_RESIZE = im.WindowFlags_NoResize,
+    MENU_BAR = im.WindowFlags_MenuBar, -- adds menu bar
+    NO_SCROLLBAR = im.WindowFlags_NoScrollbar, -- prevents scrollbar to appear
+    NO_SCROLL_WITH_MOUSE = im.WindowFlags_NoScrollWithMouse, -- prevents window from getting scrolled with mouse
+    NO_COLLAPSE = im.WindowFlags_NoCollapse, -- hides the collapse button
+    NO_FOCUS_ON_APPEARING = im.WindowFlags_NoFocusOnAppearing, -- prevents window from taking focus on showing
+    NO_RESIZE = im.WindowFlags_NoResize, -- prevents window from being resized
+    NO_TITLE_BAR = im.WindowFlags_NoTitleBar, -- prevents window from having a title bar
+    NO_MOVE = im.WindowFlags_NoMove, -- prevents window from being moved by user
+    NO_BACKGROUND = im.WindowFlags_NoBackground, -- hides background and borders
+    NO_INPUTS = im.WindowFlags_NoInputs, -- prevents user from interacting with the window
+    NO_DOCKING = im.WindowFlags_NoDocking, -- prevents window from being docked
+    ALWAYS_AUTO_RESIZE = im.WindowFlags_AlwaysAutoResize, -- window will always auto resize to fit its contents (avoid BeginChild as they are wrongly shrinked)
 }
 
----@type table<string, number>
+U.COLOR_PICKER_FLAGS = {
+    NO_INPUTS = im.ColorEditFlags_NoInputs,
+    NO_ALPHA = im.ColorEditFlags_NoAlpha,
+    NO_PICKER = im.ColorEditFlags_NoPicker,
+    NO_OPTIONS = im.ColorEditFlags_NoOptions,
+    NO_SMALLPREVIEW = im.ColorEditFlags_NoSmallPreview,
+    NO_TOOLTIP = im.ColorEditFlags_NoTooltip,
+    NO_LABEL = im.ColorEditFlags_NoLabel,
+    NO_SIDEPREVIEW = im.ColorEditFlags_NoSidePreview,
+    NO_BORDER = im.ColorEditFlags_NoBorder,
+}
+
 U.STYLE_COLS = {
     WINDOW_BG = im.Col_WindowBg,
     POPUP_BG = im.Col_PopupBg,
@@ -57,10 +74,21 @@ U.STYLE_COLS = {
     BUTTON = im.Col_Button,
     BUTTON_HOVERED = im.Col_ButtonHovered,
     BUTTON_ACTIVE = im.Col_ButtonActive,
+    SLIDER_GRAB = im.Col_SliderGrab,
+    SLIDER_GRAB_ACTIVE = im.Col_SliderGrabActive,
+    TABLE_HEADER_BG = im.Col_TableHeaderBg,
     TABLE_ROW_BG = im.Col_TableRowBg,
     TABLE_ROW_BG_ALT = im.Col_TableRowBgAlt,
+    TABLE_BORDER_STRONG = im.Col_TableBorderStrong,
+    TABLE_BORDER_LIGHT = im.Col_TableBorderLight,
     DOCKING_PREVIEW = im.Col_DockingPreview,
     PROGRESSBAR = im.Col_PlotHistogram,
+}
+
+U.MOUSE_BUTTONS = {
+    LEFT = im.MouseButton_Left,
+    RIGHT = im.MouseButton_Right,
+    MIDDLE = im.MouseButton_Middle
 }
 
 ---@param col number
@@ -113,16 +141,16 @@ function U.LoadTheme(data)
 
     for k, v in pairs(data.Button) do
         local colors = {}
-        for _, col in ipairs(v) do
-            table.insert(colors, U.RGBA(col[1], col[2], col[3], col[4]))
+        for i, col in pairs(v) do
+            colors[tonumber(i)] = U.RGBA(col[1], col[2], col[3], col[4])
         end
         U.BTN_PRESETS[k] = colors
     end
 
     for k, v in pairs(data.Input) do
         local colors = {}
-        for _, col in ipairs(v) do
-            table.insert(colors, U.RGBA(col[1], col[2], col[3], col[4]))
+        for i, col in pairs(v) do
+            colors[tonumber(i)] = U.RGBA(col[1], col[2], col[3], col[4])
         end
         U.INPUT_PRESETS[k] = colors
     end

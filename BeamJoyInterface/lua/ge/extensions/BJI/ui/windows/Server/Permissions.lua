@@ -48,9 +48,7 @@ local W = {
         readOnlyGroups = Table(),
         selfGroup = nil,
         readOnlyPermissions = Table(),
-        permissionsNamesWidth = 0,
         groupsKeys = Table({ "level", "vehicleCap", "staff", "banned", "muted", "whitelisted", "permissions" }),
-        groupKeysWidth = 0,
 
         disableInputs = false,
 
@@ -59,7 +57,6 @@ local W = {
         newGroup = {
             label = "",
             level = 1,
-            labelsWidth = 0,
         },
     },
 }
@@ -125,26 +122,6 @@ local function updateCache(ctxt)
     end)
 end
 
-local function updateWidths()
-    W.cache.permissionsNamesWidth = W.labels.permissionsNames
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l .. " :")
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.groupKeysWidth = Table(W.labels.groupKeys)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.newGroup.labelsWidth = Table(W.labels.newGroup)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-end
-
 local listeners = Table()
 local function onLoad()
     updateLabels()
@@ -169,16 +146,10 @@ local function onLoad()
         end
     end, W.name))
 
-    W.labels.permissionsNames = Table()
-    Table(BJI.Managers.Perm.PERMISSIONS):forEach(function(permName)
-        W.labels.permissionsNames:insert(permName)
-    end)
-    W.labels.permissionsNames:sort(function(a, b)
-        return a:lower() < b:lower()
-    end)
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths, W.name))
+    W.labels.permissionsNames = Table(BJI.Managers.Perm.PERMISSIONS):values()
+        :sort(function(a, b)
+            return a:lower() < b:lower()
+        end)
 end
 
 local function onUnload()
@@ -187,12 +158,10 @@ end
 
 local function body(ctxt)
     W.ACCORDIONS:forEach(function(a)
-        AccordionBuilder()
-            :label(W.labels.accordion[a.labelKey])
-            :openedBehavior(function()
-                a.render(W.labels, W.cache)
-            end)
-            :build()
+        if BeginTree(W.labels.accordion[a.labelKey]) then
+            a.render(W.labels, W.cache)
+            EndTree()
+        end
     end)
 end
 

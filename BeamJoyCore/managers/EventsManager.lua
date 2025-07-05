@@ -180,4 +180,11 @@ M.addListener = addListener
 M.removeListener = removeListener
 M.trigger = trigger
 
+M.shutdown = function()
+    BJCSlowTick = function() end
+    BJCFastTick = function() end
+    M.trigger = function() end
+    M.listeners = {}
+end
+
 return M

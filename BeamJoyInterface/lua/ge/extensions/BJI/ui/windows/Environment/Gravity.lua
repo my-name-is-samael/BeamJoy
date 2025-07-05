@@ -3,19 +3,14 @@ local W = {
 
     ---@type table<string, string>
     labels = Table(), -- auto-alimented
-    labelsWidth = 0,
-    cols = Table(),
     presets = require("ge/extensions/utils/EnvironmentUtils").gravityPresets(),
 }
+--- gc prevention
+local nextValue, ranges
 
 local function updateLabels()
-    W.labelsWidth = 0
     W.KEYS:forEach(function(k)
         W.labels[k] = string.var("{1} :", { BJI.Managers.Lang.get(string.var("environment.{1}", { k })) })
-        local w = BJI.Utils.UI.GetColumnTextWidth(W.labels[k])
-        if w > W.labelsWidth then
-            W.labelsWidth = w
-        end
     end)
 
     W.presets:forEach(function(p)
@@ -26,113 +21,70 @@ local function updateLabels()
     W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
 end
 
-local function updateCols()
-    local ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
-    W.cols = Table({
-        {
-            function() LineLabel(W.labels.controlGravity) end,
-            function()
-                local line = LineBuilder()
-                    :btnIconToggle({
-                        id = "controlGravity",
-                        state = BJI.Managers.Env.Data.controlGravity,
-                        coloredIcon = true,
-                        onClick = function()
-                            BJI.Managers.Env.Data.controlGravity = not BJI.Managers.Env.Data.controlGravity
-                        end,
-                    })
-                line:build()
-            end
-        },
-        {
-            function() LineLabel(W.labels.gravityRate) end,
-            function()
-                LineBuilder():btnIcon({
-                    id = "resetgravityRate",
-                    icon = BJI.Utils.Icon.ICONS.refresh,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    disabled = not BJI.Managers.Env.Data.controlGravity,
-                    tooltip = W.labels.reset,
-                    onClick = function()
-                        BJI.Tx.config.env("gravityRate")
-                    end
-                }):slider({
-                    id = "gravityRate",
-                    type = ranges.gravityRate.type,
-                    value = BJI.Managers.Env.Data.gravityRate,
-                    min = ranges.gravityRate.min,
-                    max = ranges.gravityRate.max,
-                    precision = ranges.gravityRate.precision,
-                    disabled = not BJI.Managers.Env.Data.controlGravity,
-                    onUpdate = function(val)
-                        BJI.Managers.Env.Data.gravityRate = val
-                        BJI.Managers.Env.forceUpdate()
-                    end
-                }):build()
-            end
-        }
-    }):map(function(el) return { cells = el } end)
-end
-
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
-    updateCols()
+    ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
 end
 
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function drawGravityPresets()
-    W.presets:forEach(function(p)
-        local value = math.round(p.value, 3)
-        local selected = math.round(BJI.Managers.Env.Data.gravityRate, 3) == value
-        local style = BJI.Utils.Style.BTN_PRESETS.INFO
-        if not selected and p.default then
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS
-        end
-        LineBuilder()
-            :btn({
-                id = p.key,
-                label = W.labels[p.key],
-                style = style,
-                disabled = selected,
-                onClick = function()
-                    if BJI.Managers.Env.Data.gravityRate ~= value then
-                        BJI.Tx.config.env("gravityRate", p.value)
-                        -- no client assign to sync all players on change
-                    end
-                end
-            })
-            :build()
-    end)
-end
-
 local function body()
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.fitness_center,
-            big = true,
-        })
-        :build()
+    Icon(BJI.Utils.Icon.ICONS.fitness_center, { big = true })
 
-    Table(W.cols):reduce(function(cols, col)
-        cols:addRow(col)
-        return cols
-    end, ColumnsBuilder("EnvGravitySettings", { W.labelsWidth, -1 }))
-        :build()
+    if BeginTable("BJIEnvGravity", {
+            { label = "##env-gravity-labels" },
+            { label = "##env-gravity-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(W.labels.controlGravity)
+        TableNextColumn()
+        if IconButton("controlGravity", BJI.Managers.Env.Data.controlGravity and
+                BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+                { btnStyle = BJI.Managers.Env.Data.controlGravity and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                    BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+            BJI.Managers.Env.Data.controlGravity = not BJI.Managers.Env.Data.controlGravity
+        end
+
+        TableNewRow()
+        Text(W.labels.gravityRate)
+        TableNextColumn()
+        if IconButton("resetgravityRate", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlGravity }) then
+            BJI.Tx.config.env("gravityRate")
+        end
+        TooltipText(W.labels.reset)
+        SameLine()
+        nextValue = SliderFloatPrecision("gravityRate", BJI.Managers.Env.Data.gravityRate, ranges.gravityRate.min,
+            ranges.gravityRate.max, {
+                disabled = not BJI.Managers.Env.Data.controlGravity,
+                precision = ranges.gravityRate.precision,
+                step = ranges.gravityRate.step,
+                stepFast = ranges.gravityRate.stepFast
+            })
+        if nextValue then
+            BJI.Managers.Env.Data.gravityRate = nextValue
+            BJI.Managers.Env.forceUpdate()
+        end
+
+        EndTable()
+    end
 
     if BJI.Managers.Env.Data.controlGravity then
-        drawGravityPresets()
+        W.presets:forEach(function(p, i)
+            if i % 4 ~= 1 then SameLine() end
+            if Button(p.key, W.labels[p.key], { disabled = BJI.Managers.Env.Data.gravityRate == p.value,
+                    btnStyle = p.default and BJI.Utils.Style.BTN_PRESETS.SUCCESS or nil }) then
+                BJI.Tx.config.env("gravityRate", p.value) -- no client assign to sync all players on change
+            end
+        end)
     end
 end
-
 
 W.onLoad = onLoad
 W.onUnload = onUnload

@@ -49,7 +49,7 @@ end
 
 function M.Kick.start(targetID)
     if M.Kick.canStartVote(targetID) then
-        BJI.Tx.votekick.start(targetID)
+        BJI.Tx.vote.KickStart(targetID)
     end
 end
 
@@ -100,7 +100,7 @@ end
 
 function M.Map.start(mapName)
     if not M.Map.started() then
-        BJI.Tx.votemap.start(mapName)
+        BJI.Tx.vote.MapStart(mapName)
     end
 end
 
@@ -164,7 +164,7 @@ end
 
 function M.Race.start(raceID, isVote, settings)
     if not M.Race.started() then
-        BJI.Tx.voterace.start(raceID, isVote, settings)
+        BJI.Tx.vote.RaceStart(raceID, isVote, settings)
     end
 end
 
@@ -208,19 +208,20 @@ local function slowTick(ctxt)
         if M.Speed.isEvent and
             not M.Speed.participants[BJI.Managers.Context.User.playerID] and
             ctxt.isOwner then
-            if BJI.Managers.Tournament.state and BJI.Managers.Tournament.whitelist and not BJI.Managers.Tournament.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
+            if BJI.Managers.Tournament.state and BJI.Managers.Tournament.whitelist and
+                not BJI.Managers.Tournament.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
                 BJI.Managers.Veh.deleteAllOwnVehicles()
             else
-                BJI.Tx.scenario.SpeedJoin(ctxt.veh.gameVehicleID)
+                BJI.Tx.vote.SpeedVote(ctxt.veh.gameVehicleID)
             end
         end
 
         -- auto leave or update vehicle
         if M.Speed.participants[BJI.Managers.Context.User.playerID] then
             if not ctxt.isOwner then
-                BJI.Tx.scenario.SpeedJoin()
+                BJI.Tx.vote.SpeedVote()
             elseif ctxt.veh.gameVehicleID ~= M.Speed.participants[BJI.Managers.Context.User.playerID] then
-                BJI.Tx.scenario.SpeedJoin(ctxt.veh.gameVehicleID)
+                BJI.Tx.vote.SpeedVote(ctxt.veh.gameVehicleID)
             end
         end
     end

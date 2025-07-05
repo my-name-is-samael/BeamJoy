@@ -62,16 +62,9 @@ local cache = {
             list = "",
         }
     },
-
-    widths = {
-        players = {
-            moderation = {
-                labels = 0,
-                buttons = 0,
-            }
-        }
-    }
 }
+-- gc prevention
+local needSpace, needSeparator, showHealthIndicator
 
 local function updateCacheRaces()
     cache.data.raceLeaderboard.show = table.some({
@@ -126,9 +119,8 @@ local function updateLabels()
     cache.labels.raceLeaderboard.title = BJI.Managers.Lang.get("races.leaderboard.title")
 
     -- PLAYERS LIST
-    cache.labels.players.moderation.waiting = string.var("{1}:",
-        { BJI.Managers.Lang.get("moderationBlock.waitingPlayers") })
-    cache.labels.players.moderation.list = string.var("{1}:", { BJI.Managers.Lang.get("moderationBlock.players") })
+    cache.labels.players.moderation.waiting = BJI.Managers.Lang.get("moderationBlock.waitingPlayers") .. " :"
+    cache.labels.players.moderation.list = BJI.Managers.Lang.get("moderationBlock.players") .. " :"
     cache.labels.players.moderation.muteReason = BJI.Managers.Lang.get("moderationBlock.muteReason")
     cache.labels.players.moderation.kickReason = BJI.Managers.Lang.get("moderationBlock.kickReason")
     cache.labels.players.moderation.banReason = BJI.Managers.Lang.get("moderationBlock.banReason")
@@ -149,7 +141,7 @@ local function updateLabels()
     cache.labels.players.moderation.buttons.promoteTo = BJI.Managers.Lang.get("moderationBlock.buttons.promoteTo")
     cache.labels.players.moderation.buttons.demoteTo = BJI.Managers.Lang.get("moderationBlock.buttons.demoteTo")
     cache.labels.players.waiting = BJI.Managers.Lang.get("playersBlock.waitingPlayers")
-    cache.labels.players.list = string.var("{1}:", { BJI.Managers.Lang.get("playersBlock.players") })
+    cache.labels.players.list = BJI.Managers.Lang.get("playersBlock.players") .. " :"
 end
 
 ---@param ctxt TickContext
@@ -220,15 +212,6 @@ local function updateCachePlayers(ctxt)
             BJI.Managers.Lang.get("groups." .. promoteGroup, promoteGroup) or nil
 
         local vehicleCursor = "@ => "
-        local vehiclesLabelWidth = 0
-        if selfStaff and vehiclesCount > 0 then
-            table.forEach(p.vehicles, function(veh)
-                local w = BJI.Utils.UI.GetColumnTextWidth(string.var("{1} {2}", { vehicleCursor, veh.model }))
-                if w > vehiclesLabelWidth then
-                    vehiclesLabelWidth = w
-                end
-            end)
-        end
 
         table.insert(cache.data.players.list, {
             playerID = playerID,
@@ -244,7 +227,6 @@ local function updateCachePlayers(ctxt)
             currentVehicle = p.currentVehicle,
             vehicles = table.clone(p.vehicles or {}),
             vehicleCursor = vehicleCursor,
-            vehiclesLabelWidth = vehiclesLabelWidth,
             demoteGroup = demoteGroup,
             demoteLabel = demoteLabel,
             promoteGroup = promoteGroup,
@@ -272,24 +254,6 @@ local function updateCachePlayers(ctxt)
             return a.playerName < b.playerName
         end)
     end)
-
-    cache.widths.players.moderation.labels = 0
-    if BJI.Managers.Perm.isStaff() then
-        for _, k in ipairs({
-            "moderationBlock.muteReason",
-            "moderationBlock.kickReason",
-            "moderationBlock.banReason",
-            "moderationBlock.tempBanDuration",
-        }) do
-            local label = BJI.Managers.Lang.get(k)
-            local w = BJI.Utils.UI.GetColumnTextWidth(label .. ":")
-            if w > cache.widths.players.moderation.labels then
-                cache.widths.players.moderation.labels = w
-            end
-        end
-    end
-    cache.widths.players.moderation.buttons = math.max(BJI.Utils.UI.GetBtnIconSize(),
-        BJI.Utils.UI.GetColumnTextWidth(cache.labels.players.moderation.buttons.kick))
 end
 
 local listeners = Table()
@@ -325,19 +289,6 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHDATA_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
     }, updateLabels, cache.name .. "Labels"))
-
-    deliveryLeaderboard.updateCache(ctxt)
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
-    }, function(ctxt2, data)
-        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.DELIVERIES then
-            deliveryLeaderboard.updateCache(ctxt2)
-        end
-    end, cache.name .. "DeliveryLeaderboard"))
 
     updateCacheRaces()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -377,18 +328,27 @@ local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function draw(ctxt)
-    local needSpace, needSeparator = false, false
-    local function Delim()
-        if needSeparator then
-            Separator()
-        end
-        if needSpace then
-            EmptyLine()
-        end
+local function Delim()
+    if needSeparator then
+        Separator()
     end
+    if needSpace then
+        EmptyLine()
+    end
+end
 
-    local showHealthIndicator = cache.data.showVehDamages and healthIndicator.isVisible(ctxt)
+local function showRacesLeaderboardButton()
+    if Button("toggleRacesLeaderboardWindow", cache.labels.raceLeaderboard.title,
+            { btnStyle = BJI.Windows.RacesLeaderboard.show and BJI.Utils.Style.BTN_PRESETS.ERROR or
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+        BJI.Windows.RacesLeaderboard.show = not BJI.Windows.RacesLeaderboard.show
+    end
+end
+
+local function draw(ctxt)
+    needSpace, needSeparator = false, false
+
+    showHealthIndicator = cache.data.showVehDamages and healthIndicator.isVisible(ctxt)
     if cache.data.showVehEnergy or showHealthIndicator then
         if cache.data.showVehEnergy then
             energyIndicator.draw(ctxt)
@@ -404,25 +364,14 @@ local function draw(ctxt)
     if cache.data.showDeliveryLeaderboard or cache.data.raceLeaderboard.show then
         Delim()
         if cache.data.showDeliveryLeaderboard then
-            deliveryLeaderboard.draw(ctxt)
+            deliveryLeaderboard.draw(ctxt, cache.data.raceLeaderboard.show and
+                showRacesLeaderboardButton or nil)
+        elseif cache.data.raceLeaderboard.show then
+            showRacesLeaderboardButton()
         end
 
-        if cache.data.raceLeaderboard.show then
-            LineBuilder()
-                :btnSwitch({
-                    id = "toggleRacesLeaderboardWindow",
-                    labelOn = cache.labels.raceLeaderboard.title,
-                    labelOff = cache.labels.raceLeaderboard.title,
-                    state = not BJI.Windows.RacesLeaderboard.show,
-                    onClick = function()
-                        BJI.Windows.RacesLeaderboard.show = not BJI.Windows.RacesLeaderboard.show
-                    end
-                })
-                :build()
-        end
         needSpace, needSeparator = true, false
     end
-
 
     if type(cache.data.scenarioUIFn) == "function" then
         Delim()

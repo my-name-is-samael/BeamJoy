@@ -87,9 +87,7 @@ BJI.Tx.database = require("ge/extensions/BJI/tx/DatabaseTx")(BJI.Tx)
 BJI.Tx.moderation = require("ge/extensions/BJI/tx/ModerationTx")(BJI.Tx)
 BJI.Tx.player = require("ge/extensions/BJI/tx/PlayerTx")(BJI.Tx)
 BJI.Tx.scenario = require("ge/extensions/BJI/tx/ScenarioTx")(BJI.Tx)
-BJI.Tx.votekick = require("ge/extensions/BJI/tx/VoteKickTx")(BJI.Tx)
-BJI.Tx.votemap = require("ge/extensions/BJI/tx/VoteMapTx")(BJI.Tx)
-BJI.Tx.voterace = require("ge/extensions/BJI/tx/VoteRaceTx")(BJI.Tx)
+BJI.Tx.vote = require("ge/extensions/BJI/tx/VoteTx")(BJI.Tx)
 BJI.Tx.tournament = require("ge/extensions/BJI/tx/TournamentTx")(BJI.Tx)
 
 BJI.Rx.ctrls.CACHE = require("ge/extensions/BJI/rx/CacheRx")
@@ -107,8 +105,6 @@ BJI.Windows.UserSettings = require("ge/extensions/BJI/ui/windows/UserSettings")
 BJI.Windows.RacesLeaderboard = require("ge/extensions/BJI/ui/windows/RacesLeaderboard")
 ---@type BJIWindowVehSelector
 BJI.Windows.VehSelector = require("ge/extensions/BJI/ui/windows/VehSelector")
----@type BJIWindowVehSelectorPreview
-BJI.Windows.VehSelectorPreview = require("ge/extensions/BJI/ui/windows/VehSelectorPreview")
 ---@type BJIWindowBusMissionPreparation
 BJI.Windows.BusMissionPreparation = require("ge/extensions/BJI/ui/windows/BusMissionPreparation")
 ---@type BJIWindowTheme
@@ -129,8 +125,6 @@ BJI.Windows.Derby = require("ge/extensions/BJI/ui/windows/Derby")
 BJI.Windows.RaceSettings = require("ge/extensions/BJI/ui/windows/RaceSettings")
 ---@type BJIWindowRace
 BJI.Windows.Race = require("ge/extensions/BJI/ui/windows/Race")
----@type BJIWindowDeliveryMulti
-BJI.Windows.DeliveryMulti = require("ge/extensions/BJI/ui/windows/DeliveryMulti")
 ---@type BJIWindowSpeed
 BJI.Windows.Speed = require("ge/extensions/BJI/ui/windows/Speed")
 ---@type BJIWindowDatabase
@@ -143,7 +137,8 @@ BJI.Windows.ScenarioEditor = require("ge/extensions/BJI/ui/windows/ScenarioEdito
 BJI.Windows.Selection = require("ge/extensions/BJI/ui/windows/Selection")
 ---@type BJIWindowTournament
 BJI.Windows.Tournament = require("ge/extensions/BJI/ui/windows/Tournament")
-
+---@type BJIWindowGameDebug
+BJI.Windows.GameDebug = require("ge/extensions/BJI/ui/windows/GameDebug")
 
 BJI.Managers.Scenario.TYPES.FREEROAM = "FREEROAM"
 BJI.Managers.Scenario.TYPES.RACE_SOLO = "RACE_SOLO"
@@ -179,16 +174,3 @@ BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DERBY] = require(
     "ge/extensions/BJI/scenario/ScenarioDerby")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.TAG_DUO] = require(
     "ge/extensions/BJI/scenario/ScenarioTagDuo")
-
-BJI.DEBUG = function(ctxt)
-    return BJI.Managers.Veh.getMPVehicles({isAi = false}):map(function(v)
-        local trafficVeh = gameplay_traffic.getTrafficData()[v.gameVehicleID];
-        local trafficRole = trafficVeh and trafficVeh.roleName or nil
-        return {
-            owner = ctxt.players[v.ownerID].playerName,
-            gameVehID = v.gameVehicleID,
-            patrol = v.veh.isPatrol,
-            trafficRole = trafficRole
-        }
-    end)
-end

@@ -43,12 +43,17 @@ end
 
 local function findByPlayerName(playerName)
     local player
-    local file, error = io.open(string.var("{1}/{2}.json", { M._dbPath, playerName }), "r")
-    if file and not error then
+    local file, err = io.open(string.var("{1}/{2}.json", { M._dbPath, playerName }), "r")
+    if file and not err then
         player = {}
         local data = file:read("*a")
         file:close()
         data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file {1}: Invalid content data", string.var("{1}/{2}.json", { M._dbPath, playerName }))
+            data = nil
+            player = nil
+        end
         if data then
             for k, v in pairs(data) do
                 if type(v) == M._fields[k] then

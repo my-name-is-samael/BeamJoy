@@ -4,8 +4,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 350,
-    h = 125,
+    size = ImVec2(350, 125),
 
     LIMIT_ELEMS_THRESHOLD = 20,
 
@@ -17,13 +16,15 @@ local W = {
     show = false,
     title = "",
     elems = Table(),
-    ---@type {label: string, value: any}
+    ---@type any?
     selected = nil,
-    ---@type fun(line: LineBuilder, value: any, onClose: fun())?
+    ---@type fun(value: any, onClose: fun())?
     footerRender = function(line) end,
     ---@type fun(value: any)?
     callback = function(value) end,
 }
+--- gc prevention
+local nextValue
 
 local function updateLabels()
     W.labels.title = BJI.Managers.Lang.get(W.title, W.title)
@@ -35,18 +36,19 @@ local listeners = Table()
 local function onClose()
     W.show = false
     listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:clear()
     W.title = ""
     W.elems = Table()
     W.selected = nil
     W.valid = ""
-    W.callback = function(value) end
+    W.callback = nil
     W.validIcon = nil
     W.labels = {}
 end
 
 ---@param titleKey string
----@param elems {label: string, value: any}[]
----@param footerRender? fun(line: LineBuilder, value: any, onClose: fun())
+---@param elems ComboOption[]
+---@param footerRender? fun(value: any, onClose: fun())
 ---@param callback? fun(value: any)
 ---@param permissions? string[]
 local function open(titleKey, elems, footerRender, callback, permissions)
@@ -61,7 +63,7 @@ local function open(titleKey, elems, footerRender, callback, permissions)
 
     W.title = titleKey
     W.elems = Table(elems)
-    W.selected = W.elems[1]
+    W.selected = W.elems[1] and W.elems[1].value or nil
     W.callback = callback
     W.footerRender = footerRender
     W.show = true
@@ -87,49 +89,31 @@ local function open(titleKey, elems, footerRender, callback, permissions)
 end
 
 local function header()
-    LineLabel(W.labels.title, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+    Text(W.labels.title, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
 end
 
 local function body()
-    LineBuilder():inputCombo({
-        id = "selectionList",
-        items = W.elems,
-        value = W.selected,
-        getLabelFn = function(item)
-            return item.label
-        end,
-        ---@param item {label: string, value: any}
-        onChange = function(item)
-            W.selected = item
-        end
-    }):build()
+    nextValue = Combo("selectionList", W.selected, W.elems)
+    if nextValue then W.selected = nextValue end
 end
 
 local function footer()
-    local line = LineBuilder():btnIcon({
-        id = "selectionCancel",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.cancel,
-        onClick = onClose,
-    })
+    if IconButton("selectionCancel", BJI.Utils.Icon.ICONS.exit_to_app, { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.cancel)
     if W.show then -- on close click error handling
         if W.footerRender then
-            W.footerRender(line, W.selected.value, onClose)
+            W.footerRender(W.selected, onClose)
         elseif W.callback then
-            line:btnIcon({
-                id = "selectionConfirm",
-                icon = BJI.Utils.Icon.ICONS.check,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                tooltip = W.labels.valid,
-                onClick = function()
-                    W.callback(W.selected.value)
-                    onClose()
-                end,
-            })
+            SameLine()
+            if IconButton("selectionConfirm", BJI.Utils.Icon.ICONS.check, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                W.callback(W.selected)
+                onClose()
+            end
+            TooltipText(W.labels.valid)
         end
     end
-    line:build()
 end
 
 W.header = header

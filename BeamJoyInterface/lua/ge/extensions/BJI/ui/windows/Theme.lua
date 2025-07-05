@@ -1,8 +1,8 @@
 ---@class BJIWindowTheme : BJIWindow
 local W = {
     name = "Theme",
-    w = 350,
-    h = 750,
+    minSize = ImVec2(350, 300),
+    maxSize = ImVec2(500, 2000),
 
     show = false,
     changed = false,
@@ -15,18 +15,18 @@ local W = {
         categoriesElements = {},
         buttons = {
             reset = "",
+            resetToFactory = "",
             resetAll = "",
             close = "",
             save = "",
         },
     },
-    widths = {
-        Button = 0,
-        Input = 0,
-    },
     BUTTON_ELEMENTS = { "baseColor", "hoveredColor", "activeColor", "overrideTextColor", "preview" },
-    INPUT_ELEMENTS = { "baseColor", "overrideTextColor", "previewString", "previewNumeric" },
+    INPUT_ELEMENTS = { "baseColor", "overrideTextColor", "hoveredColor", "activeColor", "sliderGrabColor",
+        "sliderGrabActiveColor", "previewString", "previewNumeric" },
 }
+-- gc prevention
+local value, default, changed, typeLabels, nextValue
 
 local function onClose(ctxt)
     if W.changed then
@@ -68,40 +68,18 @@ local function updateLabels()
         end)
 
     W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.buttons.resetToFactory = BJI.Managers.Lang.get("themeEditor.resetAllTooltip")
     W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
     W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
 end
 
-local function updateWidths()
-    W.widths.Button = Table(W.BUTTON_ELEMENTS)
-        :reduce(function(acc, k)
-            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.categoriesElements.Button[k])
-            return w > acc and w or acc
-        end, 0)
-
-    W.widths.Input = Table(W.INPUT_ELEMENTS)
-        :reduce(function(acc, k)
-            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.categoriesElements.Input[k])
-            return w > acc and w or acc
-        end, 0)
-end
-
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        updateWidths()
-    end, W.name))
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(
+        BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name)
+    )
 
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
         function(_, data)
@@ -128,83 +106,6 @@ local function save()
     BJI.Tx.config.bjc("Server.Theme", W.data)
 end
 
-local function drawColorLine(data)
-    if not data.id or not data.label then
-        LogError("drawLabelPicker requires id, label")
-        return
-    elseif not data.reverse and not data.labelWidth then
-        LogError("drawLabelPicker requires reverse or labelWidth")
-        return
-    elseif not data.toggle and not data.color then
-        LogError("drawLabelPicker requires toggle or color")
-        return
-    elseif data.toggle then
-        if not data.toggle.onClick then
-            LogError("drawLabelPicker requires toggle.onClick")
-            return
-        end
-
-        if data.toggle.state and not data.color then
-            LogError("drawLabelPicker requires color when toggle is true")
-            return
-        end
-    else
-        if not data.color.value or not data.color.onChange then
-            LogError("drawLabelPicker requires color.value and color.onChange")
-            return
-        end
-
-        if data.reset and type(data.reset) ~= "function" then
-            LogError("drawLabelPicker requires reset to be a function")
-            return
-        end
-    end
-
-    local drawLabel = function(sameLine)
-        LineLabel(data.label, nil, sameLine == true)
-    end
-
-    local drawInputs = function()
-        local line = LineBuilder()
-        if data.toggle then
-            line:btnIconToggle({
-                id = string.var("{1}-toggle", { data.id }),
-                state = not not data.toggle.state,
-                coloredIcon = true,
-                onClick = data.toggle.onClick,
-            })
-        end
-        if not data.toggle or data.toggle.state then
-            line:colorPicker({
-                id = string.var("{1}-color", { data.id }),
-                value = data.color.value,
-                alpha = true,
-                onChange = data.color.onChange
-            })
-        end
-        if data.reset then
-            line:btnIcon({
-                id = string.var("{1}-reset", { data.id }),
-                icon = BJI.Utils.Icon.ICONS.refresh,
-                style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                tooltip = W.labels.buttons.reset,
-                onClick = data.reset,
-            })
-        end
-        line:build()
-    end
-
-    if data.reverse then
-        drawInputs()
-        drawLabel(true)
-    else
-        ColumnsBuilder(data.id, { data.labelWidth, -1 }):addRow({
-            cells = { drawLabel, drawInputs }
-        }):build()
-    end
-    Separator()
-end
-
 local function compareColorToDefault(color, default)
     if not color or not default then
         return color ~= default
@@ -220,111 +121,71 @@ end
 
 ---@param cat string
 local function drawThemeCategory(cat)
-    AccordionBuilder():label(W.labels.categoriesTitles[cat]):commonStart(Separator):openedBehavior(function()
-        local listInputs = {}
-        for key, value in pairs(W.data[cat]) do
-            local label = W.labels.categoriesPresets[cat][key]
-            table.insert(listInputs, {
-                key = key,
-                value = value,
-                label = label,
-            })
-        end
-        table.sort(listInputs, function(a, b) return a.label < b.label end)
-        for _, data in ipairs(listInputs) do
-            local changed = not compareColorToDefault(data.value,
-                BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
-            if changed then
-                W.changed = true
-            end
-            drawColorLine({
-                id = string.var("{1}-{2}", { cat, data.key }),
-                label = data.label,
-                reverse = true,
-                color = {
-                    value = data.value,
-                    onChange = function(color)
-                        W.data[cat][data.key] = color
-                        updateTheme()
-                    end
-                },
-                reset = changed and function()
-                    W.data[cat][data.key] = table.clone(BJI.Managers.Context.BJC.Server.Theme[cat][data.key])
+    if BeginTree(W.labels.categoriesTitles[cat]) then
+        if BeginTable("BJITheme-" .. cat, {
+                { label = "##theme-" .. cat .. "-labels" },
+                { label = "##theme-" .. cat .. "-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+            }, { flags = { TABLE_FLAGS.BORDERS_INNER_H, TABLE_FLAGS.ALTERNATE_ROW_BG } }) then
+            Table(W.data[cat]):map(function(v, k)
+                return { v = v, k = k }
+            end):sort(function(a, b)
+                return W.labels.categoriesPresets[cat][a.k] < W.labels.categoriesPresets[cat][b.k]
+            end):forEach(function(el)
+                TableNewRow()
+                nextValue = ColorPickerAlpha(cat .. "-" .. el.k .. "-color", ImVec4(table.unpack(el.v)))
+                if nextValue then
+                    W.data[cat][el.k] = math.vec4ColorToStorage(nextValue)
                     updateTheme()
                 end
-            })
-        end
-    end):build()
-end
+                TableNextColumn()
+                if not table.compare(W.data[cat][el.k], BJI.Managers.Context.BJC.Server.Theme[cat][el.k]) then
+                    W.changed = true
+                    if IconButton(cat .. "-" .. el.k .. "-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                        W.data[cat][el.k] = table.clone(BJI.Managers.Context.BJC.Server.Theme[cat][el.k])
+                        updateTheme()
+                    end
+                    TooltipText(W.labels.buttons.reset)
+                    SameLine()
+                end
+                Text(W.labels.categoriesPresets[cat][el.k])
+            end)
 
----@param id string
----@param labelWidth integer
----@param previewLabel string
----@param render fun()
-local function drawPreview(id, labelWidth, previewLabel, render)
-    ColumnsBuilder(id, { labelWidth, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(previewLabel)
-                        :build()
-                end,
-                render,
-            }
-        })
-        :build()
-    Separator()
+            EndTable()
+        end
+        EndTree()
+    end
 end
 
 local function drawButtonsPresets()
-    AccordionBuilder()
-        :label(W.labels.categoriesTitles.Button)
-        :commonStart(Separator)
-        :openedBehavior(function()
-            local btnPresets = Table(W.data.Button):map(function(v, k)
-                return {
-                    key = k,
-                    value = v,
-                    default = BJI.Managers.Context.BJC.Server.Theme.Button[k],
-                    label = W.labels.categoriesPresets.Button[k],
-                }
-            end):sort(function(a, b) return a.label < b.label end) or Table()
+    if BeginTree(W.labels.categoriesTitles.Button) then
+        typeLabels = Table(W.BUTTON_ELEMENTS)
+            :map(function(k)
+                return W.labels.categoriesElements.Button[k]
+            end)
+        Table(W.data.Button):map(function(v, k)
+            return { v = v, k = k }
+        end):sort(function(a, b)
+            return W.labels.categoriesPresets.Button[a.k] < W.labels.categoriesPresets.Button[b.k]
+        end):forEach(function(el)
+            Separator()
+            if BeginTree(W.labels.categoriesPresets.Button[el.k]) then
+                Indent()
+                if BeginTable("BJITheme-Button", {
+                        { label = "##theme-Button-labels" },
+                        { label = "##theme-Button-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+                    }, { flags = { TABLE_FLAGS.BORDERS_INNER_H } }) then
+                    -- preview
+                    TableNewRow()
+                    Text(typeLabels[5])
+                    TableNextColumn()
+                    Button("theme-Button-preview-btn", "ABC123", { btnStyle = BJI.Utils.Style.BTN_PRESETS[el.k] })
+                    IconButton("theme-Button-preview-iconbtn", BJI.Utils.Icon.ICONS.bug_report,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS[el.k] })
 
-            local btnTypes = Table(W.BUTTON_ELEMENTS)
-                :map(function(k)
-                    return {
-                        key = k,
-                        label = W.labels.categoriesElements.Button[k],
-                    }
-                end)
-
-            btnPresets:forEach(function(btnPreset)
-                AccordionBuilder():label(btnPreset.label):commonStart(Separator):openedBehavior(function()
-                    -- Preview
-                    drawPreview(
-                        string.var("Button-{1}-cols-preview", { btnPreset.key }),
-                        W.widths.Button,
-                        btnTypes[5].label,
-                        function()
-                            LineBuilder():btn({
-                                id = string.var("Button-{1}-preview-text", { btnPreset.key }),
-                                label = "ABC123",
-                                style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
-                                onClick = function() end,
-                            }):btnIcon({
-                                id = string.var("Button-{1}-preview-icon", { btnPreset.key }),
-                                icon = BJI.Utils.Icon.ICONS.bug_report,
-                                style = BJI.Utils.Style.BTN_PRESETS[btnPreset.key],
-                                onClick = function() end,
-                            }):build()
-                        end
-                    )
-
-                    local value, default, changed
+                    -- other sections
                     Range(1, 4):forEach(function(i)
-                        value = btnPreset.value[i]
-                        default = BJI.Managers.Context.BJC.Server.Theme.Button[btnPreset.key][i]
+                        value = el.v[i]
+                        default = BJI.Managers.Context.BJC.Server.Theme.Button[el.k][i]
                         if i < 4 then
                             changed = not compareColorToDefault(value, default)
                         else
@@ -337,209 +198,204 @@ local function drawButtonsPresets()
                         if changed then
                             W.changed = true
                         end
-                        drawColorLine({
-                            id = string.var("Button-{1}-{2}", { btnPreset.key, btnTypes[i].key }),
-                            label = btnTypes[i].label,
-                            labelWidth = W.widths.Button,
-                            color = {
-                                value = value,
-                                onChange = function(color)
-                                    W.data.Button[btnPreset.key][i] = color
-                                    updateTheme()
-                                end,
-                            },
-                            reset = changed and function()
-                                W.data.Button[btnPreset.key][i] = table.clone(default)
-                                updateTheme()
-                            end,
-                            toggle = i == 4 and {
-                                state = not not value,
-                                onClick = function()
-                                    if value then
-                                        W.data.Button[btnPreset.key][4] = nil
-                                    else
-                                        W.data.Button[btnPreset.key][4] = table.clone(W.data.Text.DEFAULT)
-                                    end
-                                    updateTheme()
+
+                        TableNewRow()
+                        Text(typeLabels[i])
+                        TableNextColumn()
+                        if i == 4 then
+                            if IconButton("theme-button-" .. el.k .. "-" .. tostring(i) .. "-toggle", value and
+                                    BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel, { btnStyle = value and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+                                if value then
+                                    W.data.Button[el.k][4] = nil
+                                else
+                                    W.data.Button[el.k][4] = table.clone(W.data.Text.DEFAULT)
                                 end
-                            } or nil,
-                        })
+                                updateTheme()
+                            end
+                            SameLine()
+                        end
+                        if i ~= 4 or value then
+                            nextValue = ColorPickerAlpha("theme-button-" .. el.k .. "-" .. tostring(i) .. "-color",
+                                ImVec4(table.unpack(value)))
+                            if nextValue then
+                                W.data.Button[el.k][i] = math.vec4ColorToStorage(nextValue)
+                                updateTheme()
+                            end
+                            SameLine()
+                        end
+                        if changed then
+                            if IconButton("theme-button-" .. el.k .. "-" .. tostring(i) .. "-reset",
+                                    BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                                W.data.Button[el.k][i] = table.clone(default)
+                                updateTheme()
+                            end
+                            TooltipText(W.labels.buttons.reset)
+                        end
                     end)
-                end):build()
-            end)
-        end):build()
+
+                    EndTable()
+                end
+                Unindent()
+
+                EndTree()
+            end
+        end)
+        EndTree()
+    end
 end
 
 local function drawInputsPresets()
-    AccordionBuilder()
-        :label(W.labels.categoriesTitles.Input)
-        :commonStart(Separator)
-        :openedBehavior(function()
-            local inputPresets = Table(W.data.Input)
-                :map(function(value, key)
-                    return {
-                        key = key,
-                        value = value,
-                        label = W.labels.categoriesPresets.Input[key],
-                    }
-                end):sort(function(a, b) return a.label < b.label end) or Table()
-
-            local inputTypes = Table(W.INPUT_ELEMENTS)
-                :map(function(k)
-                    return {
-                        key = k,
-                        label = W.labels.categoriesElements.Input[k],
-                    }
-                end)
-
-            inputPresets:forEach(function(inputPreset)
-                AccordionBuilder()
-                    :label(inputPreset.label)
-                    :commonStart(Separator)
-                    :openedBehavior(function()
-                        -- Preview String
-                        drawPreview(
-                            string.var("Input-{1}-cols-preview", { inputPreset.key }),
-                            W.widths.Input,
-                            inputTypes[3].label,
-                            function()
-                                LineBuilder()
-                                    :inputString({
-                                        id = string.var("Input-{1}-string-preview", { inputPreset.key }),
-                                        value = "ABC123",
-                                        style = BJI.Utils.Style.INPUT_PRESETS[inputPreset.key],
-                                        onChange = function() end,
-                                    })
-                                    :build()
-                            end
-                        )
-
-                        -- Preview Numeric
-                        drawPreview(
-                            string.var("Input-{1}-cols-preview", { inputPreset.key }),
-                            W.widths.Input,
-                            inputTypes[4].label,
-                            function()
-                                LineBuilder()
-                                    :inputNumeric({
-                                        id = string.var("Input-{1}-numeric-preview", { inputPreset.key }),
-                                        type = "float",
-                                        value = 123.456,
-                                        precision = 3,
-                                        style = BJI.Utils.Style.INPUT_PRESETS[inputPreset.key],
-                                        onChange = function() end,
-                                    })
-                                    :build()
-                            end
-                        )
-
-                        -- Base Color
-                        local value = inputPreset.value[1]
-                        local default = BJI.Managers.Context.BJC.Server.Theme.Input[inputPreset.key][1]
-                        local changed = not compareColorToDefault(value, default)
-                        if changed then
-                            W.changed = true
-                        end
-                        drawColorLine({
-                            id = string.var("Input-{1}-{2}", { inputPreset.key, inputTypes[1].key }),
-                            label = inputTypes[1].label,
-                            labelWidth = W.widths.Input,
-                            color = {
-                                value = value,
-                                onChange = function(color)
-                                    W.data.Input[inputPreset.key][1] = color
-                                    updateTheme()
-                                end,
-                            },
-                            reset = changed and function()
-                                W.data.Input[inputPreset.key][1] = table.clone(default)
-                                updateTheme()
-                            end
-                        })
-
-                        -- Override Text Color
-                        value = inputPreset.value[2]
-                        default = BJI.Managers.Context.BJC.Server.Theme.Input[inputPreset.key][2]
-                        if value and default then
-                            changed = not compareColorToDefault(value, default)
-                        else
-                            changed = value ~= default
-                        end
-                        if changed then
-                            W.changed = true
-                        end
-                        drawColorLine({
-                            id = string.var("Input-{1}-{2}", { inputPreset.key, inputTypes[2].key }),
-                            label = inputTypes[2].label,
-                            labelWidth = W.widths.Input,
-                            toggle = {
-                                state = not not value,
-                                onClick = function()
-                                    if value then
-                                        W.data.Input[inputPreset.key][2] = nil
-                                    else
-                                        W.data.Input[inputPreset.key][2] = table.clone(W.data.Text.DEFAULT)
-                                    end
-                                    updateTheme()
-                                end
-                            },
-                            color = value and {
-                                value = value,
-                                onChange = function(color)
-                                    W.data.Input[inputPreset.key][2] = color
-                                    updateTheme()
-                                end,
-                            } or nil,
-                            reset = changed and function()
-                                W.data.Input[inputPreset.key][2] = table.clone(default)
-                                updateTheme()
-                            end
-                        })
-                    end)
-                    :build()
+    if BeginTree(W.labels.categoriesTitles.Input) then
+        typeLabels = Table(W.INPUT_ELEMENTS)
+            :map(function(k)
+                return W.labels.categoriesElements.Input[k]
             end)
+        Table(W.data.Input):map(function(v, k)
+            return { v = v, k = k }
+        end):sort(function(a, b)
+            return W.labels.categoriesPresets.Input[a.k] < W.labels.categoriesPresets.Input[b.k]
+        end):forEach(function(el)
+            Separator()
+            if BeginTree(W.labels.categoriesPresets.Input[el.k]) then
+                Indent()
+                if BeginTable("BJITheme-Input", {
+                        { label = "##theme-Input-labels" },
+                        { label = "##theme-Input-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+                    }, { flags = { TABLE_FLAGS.BORDERS_INNER_H } }) then
+                    -- preview string
+                    TableNewRow()
+                    Text(typeLabels[7])
+                    TableNextColumn()
+                    InputText("theme-Input-" .. el.k .. "-7-preview-string", "ABC123",
+                        { inputStyle = BJI.Utils.Style.INPUT_PRESETS[el.k] })
+
+                    -- preview numeric
+                    TableNewRow()
+                    Text(typeLabels[8])
+                    TableNextColumn()
+                    SliderFloatPrecision("theme-Input-" .. el.k .. "-8-preview-numeric", 50, 0, 100,
+                        { inputStyle = BJI.Utils.Style.INPUT_PRESETS[el.k], btnStyle = BJI.Utils.Style.BTN_PRESETS[el.k] })
+
+                    Range(1, 6):filter(function(i) return i ~= 2 end):forEach(function(i)
+                        value = el.v[i]
+                        default = BJI.Managers.Context.BJC.Server.Theme.Input[el.k][i]
+                        changed = not compareColorToDefault(value, default)
+                        if changed then
+                            W.changed = true
+                        end
+                        TableNewRow()
+                        Text(typeLabels[i])
+                        TableNextColumn()
+                        nextValue = ColorPickerAlpha("theme-Input-" .. el.k .. "-" .. tostring(i),
+                            ImVec4(table.unpack(value)))
+                        if nextValue then
+                            W.data.Input[el.k][i] = math.vec4ColorToStorage(nextValue)
+                            updateTheme()
+                        end
+                        if changed then
+                            SameLine()
+                            if IconButton("theme-Input-" .. el.k .. "-" .. tostring(i) .. "-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                                W.data.Input[el.k][i] = table.clone(default)
+                                updateTheme()
+                            end
+                            TooltipText(W.labels.buttons.reset)
+                        end
+                    end)
+
+                    -- Override Text Color
+                    value = el.v[2]
+                    default = BJI.Managers.Context.BJC.Server.Theme.Input[el.k][2]
+                    if value and default then
+                        changed = not compareColorToDefault(value, default)
+                    else
+                        changed = value ~= default
+                    end
+                    if changed then
+                        W.changed = true
+                    end
+                    TableNewRow()
+                    Text(typeLabels[2])
+                    TableNextColumn()
+                    if IconButton("theme-Input-" .. el.k .. "-text-" .. "-toggle", value and
+                            BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel, { btnStyle = value and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+                        if value then
+                            W.data.Input[el.k][2] = nil
+                        else
+                            W.data.Input[el.k][2] = table.clone(W.data.Text.DEFAULT)
+                        end
+                        updateTheme()
+                    end
+                    if value then
+                        SameLine()
+                        nextValue = ColorPickerAlpha("theme-Input-" .. el.k .. "-text-color", ImVec4(table.unpack(value)))
+                        if nextValue then
+                            W.data.Input[el.k][2] = math.vec4ColorToStorage(nextValue)
+                            updateTheme()
+                        end
+                    end
+                    if changed then
+                        SameLine()
+                        if IconButton("theme-Input-" .. el.k .. "-text-color-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                            W.data.Input[el.k][2] = table.clone(default)
+                            updateTheme()
+                        end
+                        TooltipText(W.labels.buttons.reset)
+                    end
+
+                    EndTable()
+                end
+                Unindent()
+
+                EndTree()
+            end
         end)
-        :build()
+
+        EndTree()
+    end
 end
 
 ---@param ctxt TickContext
 local function drawBody(ctxt)
     Table({ "Fields", "Text" }):forEach(function(cat)
         drawThemeCategory(cat)
+        Separator()
     end)
     drawButtonsPresets()
+    Separator()
     drawInputsPresets()
 end
 
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
-    local line = LineBuilder():btnIcon({
-        id = "cancel",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.buttons.close,
-        onClick = onClose,
-    })
-    if W.changed then
-        line:btnIcon({
-            id = "reset",
-            icon = BJI.Utils.Icon.ICONS.refresh,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            tooltip = W.labels.buttons.resetAll,
-            onClick = function()
-                W.data = table.clone(BJI.Managers.Context.BJC.Server.Theme)
-                W.changed = false
-                updateTheme()
-            end,
-        }):btnIcon({
-            id = "save",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = W.labels.buttons.save,
-            onClick = save,
+    if IconButton("theme-cancel", BJI.Utils.Icon.ICONS.exit_to_app, { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.buttons.close)
+    SameLine()
+    if IconButton("theme-resetAll", BJI.Utils.Icon.ICONS.delete_forever, { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("themeEditor.resetAllModal"), {
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                W.saveProcess = true
+                BJI.Tx.config.bjc("Server.Theme")
+            end)
         })
     end
-    line:build()
+    TooltipText(W.labels.buttons.resetToFactory)
+    if W.changed then
+        SameLine()
+        if IconButton("theme-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+            W.data = table.clone(BJI.Managers.Context.BJC.Server.Theme)
+            W.changed = false
+            updateTheme()
+        end
+        TooltipText(W.labels.buttons.resetAll)
+        SameLine()
+        if IconButton("theme-save", BJI.Utils.Icon.ICONS.save, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            save()
+        end
+        TooltipText(W.labels.buttons.save)
+    end
 end
 
 local function open()

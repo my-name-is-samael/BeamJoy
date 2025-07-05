@@ -4,8 +4,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 460,
-    h = 350,
+    minSize = ImVec2(460, 350),
+    maxSize = ImVec2(800, 350),
 
     show = false,
     ---@type table<string, any>
@@ -36,12 +36,11 @@ local W = {
         },
     },
     cache = {
-        labelsWidth = 0,
-        buttonsWidth = 0,
-        colsConfig = Table(),
-        cols = Table(),
+        config = Table(),
     },
 }
+--- gc prevention
+local nextValue
 
 local function onClose()
     if W.changed then
@@ -91,15 +90,7 @@ end
 local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
-    W.cache.labelsWidth = Table(W.labels)
-        :filter(function(_, k) return not tostring(k):endswith("Tooltip") end)
-        :reduce(function(acc, label)
-            local w = BJI.Utils.UI.GetColumnTextWidth(label)
-            return w > acc and w or acc
-        end, 0)
-    W.cache.buttonsWidth = BJI.Utils.UI.GetBtnIconSize()
-
-    W.cache.colsConfig = Table({
+    W.cache.config = Table({
         {
             label = W.labels.vehicleSpawning,
             type = "boolean",
@@ -129,7 +120,7 @@ local function updateCache(ctxt)
             keyData = "ResetDelay",
             min = 0,
             max = 120,
-            renderFormat = "%ds",
+            formatRender = "%ds",
         },
         {
             label = W.labels.teleportDelay,
@@ -139,7 +130,7 @@ local function updateCache(ctxt)
             "TeleportDelay",
             min = 0,
             max = 120,
-            renderFormat = "%ds",
+            formatRender = "%ds",
         },
         {
             label = W.labels.driftGood,
@@ -167,7 +158,7 @@ local function updateCache(ctxt)
             keyData = "EmergencyRefuelDuration",
             min = 5,
             max = 60,
-            renderFormat = "%ds",
+            formatRender = "%ds",
             disabled = function() return not W.data.PreserveEnergy end
         },
         {
@@ -177,72 +168,10 @@ local function updateCache(ctxt)
             keyData = "EmergencyRefuelPercent",
             min = 5,
             max = 100,
-            renderFormat = "%d%%",
+            formatRender = "%d%%",
             disabled = function() return not W.data.PreserveEnergy end
         },
     })
-
-    W.cache.cols = W.cache.colsConfig
-        :filter(function(conf)
-            return not conf.minGroup or BJI.Managers.Perm.hasMinimumGroup(conf.minGroup)
-        end):map(function(conf)
-            return {
-                cells = {
-                    function()
-                        local line = LineBuilder():text(conf.label, nil, conf.tooltip)
-                        line:build()
-                    end,
-                    function()
-                        if conf.type == "boolean" then
-                            LineBuilder():btnIconToggle({
-                                id = conf.keyData,
-                                state = W.data[conf.keyData],
-                                coloredIcon = true,
-                                onClick = function()
-                                    W.data[conf.keyData] = not W.data[conf.keyData]
-                                    updateChanged()
-                                end,
-                            }):build()
-                        elseif conf.type == "number" then
-                            local min = conf.min and
-                                (type(conf.min) == "function" and conf.min() or conf.min) or
-                                nil
-                            local max = conf.max and
-                                (type(conf.max) == "function" and conf.max() or conf.max) or
-                                nil
-                            LineBuilder():slider({
-                                id = conf.keyData,
-                                type = "int",
-                                value = W.data[conf.keyData] or 0,
-                                min = min or 0,
-                                max = max or 0,
-                                renderFormat = conf.renderFormat,
-                                disabled = type(conf.disabled) == "function" and conf.disabled() or false,
-                                onUpdate = function(val)
-                                    W.data[conf.keyData] = val
-                                    updateChanged()
-                                end,
-                            }):build()
-                        end
-                    end,
-                    function()
-                        if W.data[conf.keyData] ~= BJI.Managers.Context.BJC.Freeroam[conf.keyData] then
-                            LineBuilder()
-                                :btnIcon({
-                                    id = conf.keyData,
-                                    icon = BJI.Utils.Icon.ICONS.refresh,
-                                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                    tooltip = W.labels.buttons.reset,
-                                    onClick = function()
-                                        W.data[conf.keyData] = BJI.Managers.Context.BJC.Freeroam[conf.keyData]
-                                        updateChanged()
-                                    end,
-                                }):build()
-                        end
-                    end,
-                }
-            }
-        end)
 end
 
 local listeners = Table()
@@ -285,57 +214,85 @@ end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    local cols = ColumnsBuilder("freeroamSettings", { W.cache.labelsWidth, -1, W.cache.buttonsWidth })
-    W.cache.cols:forEach(function(col)
-        cols:addRow(col)
-    end)
-    cols:build()
+    if BeginTable("freeroamSettings", {
+            { label = "##freeroam-settings-label" },
+            { label = "##freeroam-settings-input",  flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##freeroam-settings-buttons" },
+        }) then
+        W.cache.config:filter(function(conf)
+            return not conf.minGroup or BJI.Managers.Perm.hasMinimumGroup(conf.minGroup)
+        end):forEach(function(conf)
+            TableNewRow()
+            Text(conf.label)
+            TooltipText(conf.tooltip)
+            TableNextColumn()
+            if conf.type == "boolean" then
+                if IconButton(conf.keyData, W.data[conf.keyData] and BJI.Utils.Icon.ICONS.check_circle or
+                        BJI.Utils.Icon.ICONS.cancel, { disabled = conf.disabled and conf.disabled(), bgLess = true,
+                            btnStyle = W.data[conf.keyData] and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                                BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    W.data[conf.keyData] = not W.data[conf.keyData]
+                    updateChanged()
+                end
+                TooltipText(conf.tooltip)
+            elseif conf.type == "number" then
+                nextValue = SliderIntPrecision(conf.keyData, W.data[conf.keyData] or 0,
+                    type(conf.min) == "function" and conf.min() or conf.min or 0,
+                    type(conf.max) == "function" and conf.max() or conf.max or 0,
+                    { formatRender = conf.formatRender, disabled = conf.disabled and conf.disabled() })
+                TooltipText(conf.tooltip)
+                if nextValue then
+                    W.data[conf.keyData] = nextValue
+                    updateChanged()
+                end
+            end
+            TableNextColumn()
+            if W.data[conf.keyData] ~= BJI.Managers.Context.BJC.Freeroam[conf.keyData] then
+                if IconButton("reset" .. conf.keyData, BJI.Utils.Icon.ICONS.refresh,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                    W.data[conf.keyData] = BJI.Managers.Context.BJC.Freeroam[conf.keyData]
+                    updateChanged()
+                end
+                TooltipText(W.labels.buttons.reset)
+            end
+        end)
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    local line = LineBuilder()
-        :btnIcon({
-            id = "closeFreeroamSettings",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = W.labels.buttons.close,
-            onClick = function()
-                onClose()
-            end
-        })
-    if W.changed then
-        line:btnIcon({
-            id = "reset",
-            icon = BJI.Utils.Icon.ICONS.refresh,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            tooltip = W.labels.buttons.resetAll,
-            onClick = function()
-                W.data = table.clone(BJI.Managers.Context.BJC.Freeroam)
-                W.changed = false
-            end,
-        })
-            :btnIcon({
-                id = "save",
-                icon = BJI.Utils.Icon.ICONS.save,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                tooltip = W.labels.buttons.save,
-                onClick = function()
-                    W.cache.colsConfig:reduce(function(acc, conf)
-                        acc[conf.keyData] = W.data[conf.keyData]
-                        return acc
-                    end, Table())
-                        :filter(function(v, k) return v ~= BJI.Managers.Context.BJC.Freeroam[k] end)
-                        :forEach(function(v, k) BJI.Tx.config.bjc(string.var("Freeroam.{1}", { k }), v) end)
-                    W.changed = false
-                end
-            })
+    if IconButton("closeFreeroamSettings", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
     end
-    line:build()
+    TooltipText(W.labels.buttons.close)
+    if W.changed then
+        SameLine()
+        if IconButton("reset", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+            W.open()
+            W.changed = false
+        end
+        TooltipText(W.labels.buttons.resetAll)
+        SameLine()
+        if IconButton("save", BJI.Utils.Icon.ICONS.save,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            W.cache.config:reduce(function(acc, conf)
+                acc[conf.keyData] = W.data[conf.keyData]
+                return acc
+            end, Table())
+                :filter(function(v, k) return v ~= BJI.Managers.Context.BJC.Freeroam[k] end)
+                :forEach(function(v, k) BJI.Tx.config.bjc(string.var("Freeroam.{1}", { k }), v) end)
+            W.changed = false
+        end
+        TooltipText(W.labels.buttons.save)
+    end
 end
 
 local function open()
-    W.data = Table(BJI.Managers.Context.BJC.Freeroam):clone()
+    W.data = table.clone(BJI.Managers.Context.BJC.Freeroam)
     W.show = true
 end
 

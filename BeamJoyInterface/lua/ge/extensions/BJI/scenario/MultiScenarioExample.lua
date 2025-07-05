@@ -13,20 +13,17 @@ end
 
 -- load hook
 local function onLoad(ctxt)
-    -- declare restrictions
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-        },
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        }
-    })
+end
+
+-- unload hook (before switch to another scenario)
+local function onUnload(ctxt)
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
 end
 
 -- player vehicle spawn hook
@@ -131,26 +128,11 @@ end
 local function slowTick(ctxt)
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-    -- rollback restrictions
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            }):flat(),
-            state = false, -- forbidden bindings
-        },
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            state = true, -- allowed bindings
-        }
-    })
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onDropPlayerAtCamera = onDropPlayerAtCamera
@@ -179,7 +161,5 @@ S.getPlayerListActions = getPlayerListActions
 S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick
-
-S.onUnload = onUnload
 
 return S

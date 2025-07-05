@@ -12,8 +12,8 @@
 ---@class BJIWindowRaceSettings : BJIWindow
 local W = {
     name = "RaceSettings",
-    w = 390,
-    h = 220,
+    minSize = ImVec2(470, 260),
+    maxSize = ImVec2(700, 260),
 
     VEHICLE_MODES = {
         ALL = nil,
@@ -82,11 +82,14 @@ local W = {
             startVote = "",
             startRace = "",
         },
-        widths = {
-            labels = 0,
-        },
     },
 }
+--- gc prevention
+local ctxt, configLabel, nextValue
+
+local function onClose()
+    W.show = false
+end
 
 local function updateLabels()
     W.cache.labels.unknown = BJI.Managers.Lang.get("common.unknown")
@@ -120,23 +123,8 @@ local function updateLabels()
     W.cache.labels.startRace = BJI.Managers.Lang.get("races.settings.startRace")
 end
 
-local function updateWidths()
-    W.cache.widths.labels = 0
-    table.forEach({
-        W.cache.labels.laps,
-        W.cache.labels.respawnStrategies.title,
-        W.settings.multi and W.cache.labels.vehicle.title or nil,
-    }, function(label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label or "")
-        if w > W.cache.widths.labels then
-            W.cache.widths.labels = w
-        end
-    end)
-end
-
----@param ctxt? TickContext
-local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+local function updateCache()
+    ctxt = BJI.Managers.Tick.getContext()
 
     W.cache.data.currentVeh.model = nil
     W.cache.data.currentVeh.modelLabel = nil
@@ -152,33 +140,30 @@ local function updateCache(ctxt)
             not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
             not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO)
         )) then
-        W.onClose()
+        onClose()
         return
     elseif not W.settings.multi and not ctxt.isOwner then
-        W.onClose()
+        onClose()
         return
     elseif W.settings.multi and BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS then
         -- when a player leaves then there are not enough players to start
         BJI.Managers.Toast.warning(BJI.Managers.Lang.get("races.preparation.notEnoughPlayers"))
-        W.onClose()
+        onClose()
         return
     end
 
     -- respawn strategies
-    for _, rs in ipairs(W.settings.respawnStrategies) do
-        local comboElem = {
-            value = rs,
-            label = W.cache.labels.respawnStrategies[rs],
-        }
-        table.insert(W.cache.data.comboRespawnStrategies, comboElem)
-        if not W.cache.data.respawnStrategySelected and rs == W.settings.defaultRespawnStrategy then
-            W.cache.data.respawnStrategySelected = comboElem
-        end
-    end
-    if not W.cache.data.respawnStrategySelected or not table.find(W.cache.data.comboRespawnStrategies, function(crs)
-            return crs.value == W.cache.data.respawnStrategySelected.value
+    W.cache.data.comboRespawnStrategies = Table(W.settings.respawnStrategies)
+        :map(function(rs)
+            return {
+                value = rs,
+                label = W.cache.labels.respawnStrategies[rs],
+            }
+        end)
+    if not table.any(W.cache.data.comboRespawnStrategies, function(option)
+            return option.value == W.cache.data.respawnStrategySelected
         end) then
-        W.cache.data.respawnStrategySelected = W.cache.data.comboRespawnStrategies[1]
+        W.cache.data.respawnStrategySelected = W.cache.data.comboRespawnStrategies[1].value
     end
 
     if W.settings.multi then
@@ -189,7 +174,7 @@ local function updateCache(ctxt)
             value = W.VEHICLE_MODES.ALL,
             label = W.cache.labels.vehicle.all,
         })
-        if ctxt.veh and ctxt.veh.jbeam ~= "unicycle" and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+        if ctxt.veh and ctxt.veh.isVehicle and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
             table.insert(W.cache.data.comboVehicle, {
                 value = W.VEHICLE_MODES.MODEL,
                 label = W.cache.labels.vehicle.currentModel,
@@ -206,16 +191,12 @@ local function updateCache(ctxt)
                         return v.value == W.settings.vehicleMode
                     end) or W.cache.data.comboVehicle[1]
                 end
-            elseif not table.find(W.cache.data.comboVehicle, function(v)
-                    return v.value == W.cache.data.vehicleSelected.value
-                end) then
-                W.cache.data.vehicleSelected = W.cache.data.comboVehicle[1]
             end
         end
-        if not W.cache.data.vehicleSelected or not table.find(W.cache.data.comboVehicle, function(vm)
-                return vm.value == W.cache.data.vehicleSelected.value
+        if not table.find(W.cache.data.comboVehicle, function(option)
+                return option.value == W.cache.data.vehicleSelected
             end) then
-            W.cache.data.vehicleSelected = W.cache.data.comboVehicle[1]
+            W.cache.data.vehicleSelected = W.cache.data.comboVehicle[1].value
         end
     end
 
@@ -226,7 +207,7 @@ local function updateCache(ctxt)
             W.cache.labels.unknown
 
         W.cache.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
-        local configLabel = BJI.Managers.Veh.getCurrentConfigLabel()
+        configLabel = BJI.Managers.Veh.getCurrentConfigLabel()
         W.cache.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
             { W.cache.data.currentVeh.modelLabel, configLabel }) or W.cache.labels.unknown
     else
@@ -245,19 +226,8 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function(ctxt)
-        updateLabels()
-        updateWidths()
-    end, W.name .. "Labels"))
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateWidths, W.name .. "Widths"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels,
+        W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -272,7 +242,7 @@ local function onLoad()
     }, updateCache, W.name .. "Cache"))
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if data.cache == BJI.Managers.Cache.CACHES.RACES or data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
-            updateCache(ctxt)
+            updateCache()
         end
     end, W.name .. "Cache"))
 end
@@ -281,211 +251,125 @@ local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
-local function drawRespawnStrategies(cols)
-    cols:addRow({
-        cells = {
-            function()
-                LineBuilder()
-                    :text(W.cache.labels.respawnStrategies.title)
-                    :build()
-            end,
-            function()
-                LineBuilder()
-                    :inputCombo({
-                        id = "respawnStrategies",
-                        items = W.cache.data.comboRespawnStrategies,
-                        getLabelFn = function(v)
-                            return v.label
-                        end,
-                        value = W.cache.data.respawnStrategySelected,
-                        onChange = function(v)
-                            W.cache.data.respawnStrategySelected = v
-                        end,
-                    })
-                    :build()
-            end
-        }
-    })
-end
-
-local function drawVehicleSelector(cols, ctxt)
-    cols:addRow({
-        cells = {
-            function() LineLabel(W.cache.labels.vehicle.title) end,
-            function()
-                local line = LineBuilder()
-                if W.cache.data.selfProtected then
-                    line:helpMarker(W.cache.labels.vehicle.selfProtected)
-                elseif W.cache.data.currentVehicleProtected then
-                    line:helpMarker(W.cache.labels.vehicle.vehicleProtected)
-                end
-                line:inputCombo({
-                    id = "settingsVehicle",
-                    items = W.cache.data.comboVehicle,
-                    getLabelFn = function(v)
-                        return v.label
-                    end,
-                    value = W.cache.data.vehicleSelected,
-                    onChange = function(v)
-                        W.cache.data.vehicleSelected = v
-                    end,
-                }):build()
-            end
-        }
-    })
-    if W.cache.data.vehicleSelected.value ~= W.VEHICLE_MODES.ALL then
-        cols:addRow({
-            cells = {
-                nil,
-                function()
-                    LineBuilder()
-                        :text(W.cache.data.vehicleSelected.value == W.VEHICLE_MODES.MODEL and
-                            W.cache.data.currentVeh.modelLabel or
-                            W.cache.data.currentVeh.configLabel):build()
-                end
-            }
-        })
-    end
-end
-
 local function drawHeader()
-    LineLabel(W.cache.labels.title, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-    LineLabel(W.cache.labels.raceName)
+    Text(W.cache.labels.title, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    Text(W.cache.labels.raceName)
 end
 
 local function drawBody(ctxt)
-    local cols = ColumnsBuilder("BJIRaceSettings", { W.cache.widths.labels, -1 })
-
-    if W.settings.loopable then
-        cols:addRow({
-            cells = {
-                function()
-                    LineLabel(W.cache.labels.laps)
-                end,
-                function()
-                    LineBuilder():inputNumeric({
-                        id = "raceSettingsLaps",
-                        type = "int",
-                        value = W.settings.laps,
-                        min = 1,
-                        max = 50,
-                        step = 1,
-                        onUpdate = function(val)
-                            W.settings.laps = val
-                        end,
-                    }):build()
-                end
-            }
-        })
-        if W.settings.laps >= 20 then
-            cols:addRow({
-                cells = {
-                    nil,
-                    function()
-                        LineLabel(W.cache.labels.manyLapsWarning, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                    end
-                }
-            })
+    if BeginTable("BJIRaceSettings", {
+            { label = "##race-settings-labels" },
+            { label = "##race-settings-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        if W.settings.loopable then
+            TableNewRow()
+            Text(W.cache.labels.laps)
+            TableNextColumn()
+            nextValue = SliderInt("raceSettingsLaps", W.settings.laps, 1, 50)
+            if nextValue then W.settings.laps = nextValue end
+            if W.settings.laps >= 20 then
+                Text(W.cache.labels.manyLapsWarning, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+            end
         end
-    end
 
-    drawRespawnStrategies(cols)
-    if W.settings.multi then
-        cols:addRow({
-            cells = {
-                function()
-                    LineLabel(W.cache.labels.collisions)
-                end,
-                function()
-                    LineBuilder():btnIconToggle({
-                        id = "raceSettingsCollisions",
-                        state = W.settings.collisions,
-                        coloredIcon = true,
-                        onClick = function()
-                            W.settings.collisions = not W.settings.collisions
-                        end,
-                    }):build()
-                end
-            }
-        })
-        drawVehicleSelector(cols, ctxt)
-    end
+        TableNewRow()
+        Text(W.cache.labels.respawnStrategies.title)
+        TableNextColumn()
+        nextValue = Combo("respawnStrategies", W.cache.data.respawnStrategySelected,
+            W.cache.data.comboRespawnStrategies, { width = -1 })
+        if nextValue then W.cache.data.respawnStrategySelected = nextValue end
 
-    cols:build()
+        if W.settings.multi then
+            TableNewRow()
+            Text(W.cache.labels.collisions)
+            TableNextColumn()
+            if IconButton("raceSettingsCollisions", W.settings.collisions and BJI.Utils.Icon.ICONS.check_circle or
+                    BJI.Utils.Icon.ICONS.cancel, { btnStyle = W.settings.collisions and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                        BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+                W.settings.collisions = not W.settings.collisions
+            end
+
+            TableNewRow()
+            Text(W.cache.labels.vehicle.title)
+            TableNextColumn()
+            if W.cache.data.selfProtected then
+                ShowHelpMarker(W.cache.labels.vehicle.selfProtected)
+                SameLine()
+            elseif W.cache.data.currentVehicleProtected then
+                ShowHelpMarker(W.cache.labels.vehicle.vehicleProtected)
+                SameLine()
+            end
+            nextValue = Combo("settingsVehicle", W.cache.data.vehicleSelected, W.cache.data.comboVehicle, { width = -1 })
+            if nextValue then W.cache.data.vehicleSelected = nextValue end
+
+            if W.cache.data.vehicleSelected ~= W.VEHICLE_MODES.ALL then
+                TableNewRow()
+                TableNextColumn()
+                Text(W.cache.data.vehicleSelected == W.VEHICLE_MODES.MODEL and
+                    W.cache.data.currentVeh.modelLabel or W.cache.data.currentVeh.configLabel)
+            end
+        end
+
+        EndTable()
+    end
 end
 
 local function getPayloadSettings()
     return {
         laps = W.settings.loopable and W.settings.laps or nil,
-        model = W.cache.data.vehicleSelected.value ~= W.VEHICLE_MODES.ALL and W.cache.data.currentVeh.model or nil,
-        config = W.cache.data.vehicleSelected.value == W.VEHICLE_MODES.CONFIG and W.cache.data.currentVeh.config or nil,
-        respawnStrategy = W.cache.data.respawnStrategySelected.value,
+        model = W.cache.data.vehicleSelected ~= W.VEHICLE_MODES.ALL and W.cache.data.currentVeh.model or nil,
+        config = W.cache.data.vehicleSelected == W.VEHICLE_MODES.CONFIG and W.cache.data.currentVeh.config or nil,
+        respawnStrategy = W.cache.data.respawnStrategySelected,
         collisions = W.settings.collisions
     }
 end
 
+---@param ctxt TickContext
 local function drawFooter(ctxt)
-    if not W.settings then
-        return
+    if not W.settings then return end
+    if IconButton("cancelRaceStart", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
     end
-    local line = LineBuilder():btnIcon({
-        id = "cancelRaceStart",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.cache.labels.cancel,
-        onClick = function()
-            W.onClose()
-        end
-    })
+    TooltipText(W.cache.labels.cancel)
     if W.cache.data.showVoteBtn then
-        line:btnIcon({
-            id = "voteRaceStart",
-            icon = BJI.Utils.Icon.ICONS.event_available,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = W.cache.labels.startVote,
-            onClick = function()
-                BJI.Tx.voterace.start(W.settings.raceID, true, getPayloadSettings())
-                W.onClose()
-            end
-        })
+        SameLine()
+        if IconButton("voteRaceStart", BJI.Utils.Icon.ICONS.event_available,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Tx.vote.RaceStart(W.settings.raceID, true, getPayloadSettings())
+            onClose()
+        end
+        TooltipText(W.cache.labels.startVote)
     end
     if W.cache.data.showStartBtn then
-        line:btnIcon({
-            id = "raceStart",
-            icon = BJI.Utils.Icon.ICONS.videogame_asset,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = W.cache.labels.startRace,
-            onClick = function()
-                if W.settings.multi then
-                    BJI.Tx.voterace.start(W.settings.raceID, false, getPayloadSettings())
-                    W.onClose()
-                else
-                    BJI.Tx.scenario.RaceDetails(W.settings.raceID, function(raceData)
-                        if raceData then
-                            if BJI.Managers.Scenario.isFreeroam() then
-                                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).initRace(
-                                    ctxt,
-                                    {
-                                        laps = raceData.loopable and W.settings.laps or nil,
-                                        respawnStrategy = W.cache.data.respawnStrategySelected.value,
-                                    },
-                                    raceData
-                                )
-                            end
-                            W.onClose()
-                        else
-                            BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.invalidData"))
+        SameLine()
+        if IconButton("raceStart", BJI.Utils.Icon.ICONS.videogame_asset,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            if W.settings.multi then
+                BJI.Tx.vote.RaceStart(W.settings.raceID, false, getPayloadSettings())
+                onClose()
+            else
+                BJI.Tx.scenario.RaceDetails(W.settings.raceID, function(raceData)
+                    if raceData then
+                        if BJI.Managers.Scenario.isFreeroam() then
+                            BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).initRace(
+                                ctxt,
+                                {
+                                    laps = raceData.loopable and W.settings.laps or nil,
+                                    respawnStrategy = W.cache.data.respawnStrategySelected,
+                                },
+                                raceData
+                            )
                         end
-                    end)
-                end
+                        onClose()
+                    else
+                        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.invalidData"))
+                    end
+                end)
             end
-        })
+        end
+        TooltipText(W.cache.labels.startRace)
     end
-    line:build()
-end
-
-local function onClose()
-    W.show = false
 end
 
 ---@param raceSettings RaceSettings
@@ -499,6 +383,9 @@ local function open(raceSettings)
     raceSettings.collisions = raceSettings.collisions or W.settings.collisions
     W.settings = raceSettings
 
+    W.cache.data.respawnStrategySelected = W.settings.defaultRespawnStrategy or W.cache.data.respawnStrategySelected
+    W.cache.data.vehicleSelected = W.cache.data.vehicleSelected or W.VEHICLE_MODES.ALL
+
     if BJI.Managers.Scenario.isFreeroam() and
         (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
             BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) or
@@ -506,7 +393,6 @@ local function open(raceSettings)
         if W.show then
             --if already open, update data
             updateLabels()
-            updateWidths()
             updateCache()
         end
         W.show = true

@@ -4,8 +4,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 300,
-    h = 280,
+    minSize = ImVec2(350, 280),
 
     labels = {
         arenaName = "",
@@ -59,9 +58,8 @@ local W = {
         lives = 0,
         showForfeitBtn = false,
         showManualResetBtn = false,
-        manualResetWidth = 0,
-        gameLeaderboardCols = ColumnsBuilder("BJIDerbyLeaderboard", {}),
-        gameLeaderboardNamesWidth = 0,
+        showFocusBtn = false,
+        gameLeaderboard = Table(),
     },
     ---@type BJIScenarioDerby
     scenario = nil,
@@ -138,24 +136,16 @@ local function updateCache(ctxt)
     W.cache.showStartTime = W.cache.showStartTime ~= nil
     W.cache.lives = participant and participant.lives or 0
     W.cache.showForfeitBtn = W.cache.isParticipant and not W.scenario.isEliminated()
-    W.cache.manualResetWidth = 0
-    W.cache.gameLeaderboardCols = ColumnsBuilder("BJIDerbyLeaderboard", {})
+    W.cache.showFocusBtn = false
+    W.cache.gameLeaderboard = Table()
     if W.cache.showGame then
         W.cache.showManualResetBtn = participant ~= nil and participant.lives > 0
-        if W.cache.showManualResetBtn then
-            W.cache.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) + BJI.Utils.UI.GetTextWidth("  ")
-        end
-        W.cache.gameLeaderboardNamesWidth = 0
-        local selfSpec = not W.scenario.isParticipant() or W.scenario.isEliminated()
+        W.cache.showFocusBtn = not W.scenario.isParticipant() or W.scenario.isEliminated()
         ---@param p BJIDerbyParticipant
-        local cols = Table(W.scenario.participants):map(function(p)
+        W.cache.gameLeaderboard = Table(W.scenario.participants):map(function(p)
             local name, nameColor = ctxt.players[p.playerID].playerName,
                 p.playerID == BJI.Managers.Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                 BJI.Utils.Style.TEXT_COLORS.DEFAULT
-            local w = BJI.Utils.UI.GetColumnTextWidth(name) + BJI.Utils.UI.GetBtnIconSize()
-            if w > W.cache.gameLeaderboardNamesWidth then
-                W.cache.gameLeaderboardNamesWidth = w
-            end
             local suffix, suffixColor = "", p.playerID == BJI.Managers.Context.User.playerID and
                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
             if p.eliminationTime then
@@ -167,29 +157,14 @@ local function updateCache(ctxt)
                 })
             end
             return {
-                function()
-                    local line = LineBuilder()
-                    if selfSpec then
-                        line:btnIcon({
-                            id = "focus" .. tostring(p.playerID),
-                            icon = BJI.Utils.Icon.ICONS.visibility,
-                            disabled = BJI.Managers.Context.User.currentVehicle == p.gameVehID or
-                                W.scenario.isEliminated(p.playerID),
-                            onClick = function()
-                                BJI.Managers.Veh.focusVehicle(p.gameVehID)
-                            end,
-                        })
-                    end
-                    line:text(name, nameColor):build()
-                end,
-                function()
-                    LineLabel(suffix, suffixColor)
-                end,
+                focusDisabled = BJI.Managers.Context.User.currentVehicle == p.gameVehID or
+                    W.scenario.isEliminated(p.playerID),
+                gameVehID = p.gameVehID,
+                name = name,
+                nameColor = nameColor,
+                suffix = suffix,
+                suffixColor = suffixColor,
             }
-        end)
-        W.cache.gameLeaderboardCols = ColumnsBuilder("BJIDerbyLeaderboard", { W.cache.gameLeaderboardNamesWidth, -1 })
-        cols:forEach(function(el)
-            W.cache.gameLeaderboardCols:addRow({ cells = el })
         end)
     end
 end
@@ -250,104 +225,87 @@ end
 local function drawHeaderPreparation(ctxt)
     if W.cache.preparationTimeout then
         local remainingTime = getDiffTime(W.cache.preparationTimeout, ctxt.now)
-        LineLabel(remainingTime < 1 and W.labels.preparationTimeoutAboutToEnd or
+        Text(remainingTime < 1 and W.labels.preparationTimeoutAboutToEnd or
             W.labels.preparationTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) }),
-            remainingTime < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+            {
+                color = remainingTime < 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                    BJI.Utils.Style.TEXT_COLORS.DEFAULT
+            })
     else
         EmptyLine()
     end
 
     if W.cache.showPreparationActions then
-        local line = LineBuilder():btnIconToggle({
-            id = "joinDerby",
-            icon = W.cache.isParticipant and BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
-            big = true,
-            state = not W.cache.isParticipant,
-            disabled = W.cache.disableButtons,
-            tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
-            onClick = function()
-                W.cache.disableButtons = true -- api request protection
-                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
-            end
-        })
-        if W.cache.showReadyBtn then
-            line:btnIcon({
-                id = "readyDerby",
-                icon = BJI.Utils.Icon.ICONS.check,
-                big = true,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = not ctxt.isOwner or W.cache.disableButtons,
-                tooltip = W.labels.buttons.markReady,
-                onClick = function()
-                    W.cache.disableButtons = true -- api request protection
-                    BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
-                end
-            })
+        if IconButton("joinDerby", W.cache.isParticipant and
+                BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
+                { big = true, btnStyle = W.cache.isParticipant and BJI.Utils.Style.BTN_PRESETS.ERROR or
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableButtons }) then
+            W.cache.disableButtons = true
+            BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
         end
-        line:build()
+        TooltipText(W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join)
+        if W.cache.showReadyBtn then
+            SameLine()
+            if IconButton("readyDerby", BJI.Utils.Icon.ICONS.check,
+                    { big = true, style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                        disabled = not ctxt.isOwner or W.cache.disableButtons }) then
+                W.cache.disableButtons = true
+                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
+            end
+            TooltipText(W.labels.buttons.markReady)
+        end
     end
 end
 
 local function drawHeaderGame(ctxt)
-    ColumnsBuilder("BJIDerbyHeader", { -1, W.cache.manualResetWidth }):addRow({
-        cells = {
-            function()
-                local line = LineBuilder()
-                if W.cache.showForfeitBtn and W.cache.startTime < ctxt.now then
-                    line:btnIcon({
-                        id = "leaveDerby",
-                        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-                        big = true,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        disabled = W.cache.disableButtons,
-                        tooltip = W.labels.buttons.forfeit,
-                        onClick = function()
-                            W.cache.disableButtons = true
-                            BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
-                            BJI.Tx.player.explodeVehicle(W.scenario.getParticipant().gameVehID)
-                        end
-                    })
-                end
+    if BeginTable("BJIDerbyHeader", {
+            { label = "##header-derby-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##header-derby-right" },
+        }) then
+        TableNewRow()
+        if W.cache.showForfeitBtn and W.cache.startTime < ctxt.now then
+            if IconButton("leaveDerby", BJI.Utils.Icon.ICONS.exit_to_app,
+                    { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                W.cache.disableButtons = true
+                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
+                BJI.Tx.player.explodeVehicle(W.scenario.getParticipant().gameVehID)
+            end
+            TooltipText(W.labels.buttons.forfeit)
+            SameLine()
+        end
+        Icon(BJI.Utils.Icon.ICONS.timer, { big = true })
+        if W.cache.startTime and W.cache.startTime + 3000 > ctxt.now then -- START COUNTDOWN
+            SameLine()
+            local remainingTime = getDiffTime(W.cache.startTime, ctxt.now)
+            Text(remainingTime > 0 and
+                W.labels.startsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) }) or
+                W.labels.flashStart)
+        elseif W.cache.isParticipant and W.scenario.destroy.process then -- DNF COUNTDOWN
+            SameLine()
+            local remainingTime = getDiffTime(W.scenario.destroy.targetTime, ctxt.now)
+            Text((W.cache.lives > 0 and W.labels.resetIn or W.labels.eliminatedIn)
+                :var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) }))
+        end
+        TableNextColumn()
+        if W.cache.showManualResetBtn then
+            if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
+                    { big = true, disabled = W.scenario.resetLock, btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                BJI.Managers.Veh.loadHome()
+            end
+            TooltipText(string.var("{1} ({2})", {
+                W.labels.buttons.manualReset,
+                extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
+            }))
+        end
 
-                line:icon({
-                    icon = BJI.Utils.Icon.ICONS.timer,
-                    big = true,
-                })
-                if W.cache.startTime and W.cache.startTime + 3000 > ctxt.now then -- START COUNTDOWN
-                    local remainingTime = getDiffTime(W.cache.startTime, ctxt.now)
-                    line:text(remainingTime > 0 and
-                        W.labels.startsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) }) or
-                        W.labels.flashStart)
-                elseif W.cache.isParticipant and W.scenario.destroy.process then -- DNF COUNTDOWN
-                    local remainingTime = getDiffTime(W.scenario.destroy.targetTime, ctxt.now)
-                    line:text((W.cache.lives > 0 and W.labels.resetIn or W.labels.eliminatedIn)
-                        :var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) }))
-                end
-
-                line:build()
-            end,
-            W.cache.showManualResetBtn and function()
-                LineBuilder():btnIcon({
-                    id = "manualReset",
-                    icon = BJI.Utils.Icon.ICONS.build,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    big = true,
-                    disabled = W.scenario.resetLock,
-                    tooltip = string.var("{1} ({2})", {
-                        W.labels.buttons.manualReset,
-                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
-                    }),
-                    onClick = function()
-                        BJI.Managers.Veh.loadHome()
-                    end,
-                }):build()
-            end or nil,
-        }
-    }):build()
+        EndTable()
+    end
 end
 
 local function header(ctxt)
-    LineBuilder():text(W.cache.arenaName):text(W.cache.places):build()
+    Text(W.cache.arenaName)
+    SameLine()
+    Text(W.cache.places)
 
     if W.cache.showPreparation then
         drawHeaderPreparation(ctxt)
@@ -359,21 +317,44 @@ end
 local function body(ctxt)
     if W.cache.showPreparation then
         W.cache.preparationParticipants:forEach(function(p)
-            LineBuilder():text(p.name):text(p.nameSuffix, p.suffixColor):build()
+            Text(p.name)
+            SameLine()
+            Text(p.nameSuffix, { color = p.suffixColor })
         end)
 
         W.cache.preparationConfigs:forEach(function(c, i)
-            LineBuilder():btnIcon({
-                id = string.var("spawnConfig{1}", { i }),
-                icon = BJI.Utils.Icon.ICONS.carSensors,
-                style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = W.cache.disableButtons,
-                tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                onClick = function() W.scenario.tryReplaceOrSpawn(c.model, c) end,
-            }):text(c.label):build()
+            if IconButton("spawnConfig" .. tostring(i), BJI.Utils.Icon.ICONS.carSensors,
+                    { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableButtons }) then
+                W.scenario.tryReplaceOrSpawn(c.model, c)
+            end
+            TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
+            SameLine()
+            Text(c.label)
         end)
     elseif W.cache.showGame then
-        W.cache.gameLeaderboardCols:build()
+        if BeginTable("BJIDerbyLeaderboard", {
+                { label = "##derby-leaderboard-position" },
+                { label = "##derby-leaderboard-player" },
+                { label = "##derby-leaderboard-suffix" },
+            }) then
+            W.cache.gameLeaderboard:forEach(function(el, i)
+                TableNewRow()
+                Text(i)
+                TableNextColumn()
+                if W.cache.showFocusBtn then
+                    if IconButton("focus" .. tostring(el.gameVehID), BJI.Utils.Icon.ICONS.visibility,
+                            { disabled = el.focusDisabled }) then
+                        BJI.Managers.Veh.focusVehicle(el.gameVehID)
+                    end
+                    SameLine()
+                end
+                Text(el.name, { color = el.nameColor })
+                TableNextColumn()
+                Text(el.suffix, { color = el.suffixColor })
+            end)
+            EndTable()
+        end
     end
 end
 

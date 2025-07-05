@@ -2,10 +2,9 @@
 local W = {
     name = "Station",
     flags = {
-        BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
+        BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
+        BJI.Utils.Style.WINDOW_FLAGS.ALWAYS_AUTO_RESIZE,
     },
-    w = 280,
-    h = 150,
 
     labels = {
         andJoin = "",
@@ -18,6 +17,8 @@ local W = {
         damagedWarning = "",
         vehiclePristine = "",
         tanksAmount = "",
+        repair = "",
+        refill = "",
     },
 }
 
@@ -35,6 +36,9 @@ local function updateLabels()
     W.labels.damagedWarning = BJI.Managers.Lang.get("garages.damagedWarning")
     W.labels.vehiclePristine = BJI.Managers.Lang.get("garages.vehiclePristine")
     W.labels.tanksAmount = BJI.Managers.Lang.get("energyStations.tanksAmount")
+
+    W.labels.repair = BJI.Managers.Lang.get("garages.repairBtn")
+    W.labels.refill = BJI.Managers.Lang.get("energyStations.refill")
 end
 
 local listeners = Table()
@@ -51,51 +55,44 @@ local function onUnload()
 end
 
 ---@param ctxt TickContext
----@param energyStation BJIStation
-local function commonDrawEnergyLines(ctxt, energyStation)
-    if not ctxt.vehData.tanks then
-        return
-    end
+---@param station BJIStation
+local function commonDrawEnergyLines(ctxt, station)
+    if not ctxt.vehData.tanks then return end
 
     local function drawEnergyLine(energyType, energyData)
         local qty = BJI.Managers.Veh.jouleToReadableUnit(energyData.currentEnergy, energyType)
         local max = BJI.Managers.Veh.jouleToReadableUnit(energyData.maxEnergy, energyType)
-        local line = LineBuilder()
-            :text(string.var("{1} : {2}{4}/{3}{4}", {
-                W.labels.tankNames[energyType],
-                math.round(qty, 2),
-                math.round(max, 2),
-                W.labels.energyUnits[energyType]
-            }))
+        Text(string.var("{1} : {2}{4}/{3}{4}", {
+            W.labels.tankNames[energyType],
+            math.round(qty, 2),
+            math.round(max, 2),
+            W.labels.energyUnits[energyType]
+        }))
         if energyData.amount > 1 then
-            line:text(string.var(" ({1})", {
+            SameLine()
+            Text(string.var(" ({1})", {
                 W.labels.tanksAmount:var({ amount = energyData.amount })
             }))
         end
-        line:btnIcon({
-            id = string.var("refill{1}", { energyType }),
-            icon = energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
+        SameLine()
+        if IconButton(string.var("refill{1}", { energyType }),
+                energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
                 BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = energyData.currentEnergy / energyData.maxEnergy > .95,
-            onClick = function()
-                BJI.Managers.Stations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
-            end,
-        })
-            :build()
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = energyData.currentEnergy / energyData.maxEnergy > .95 }) then
+            BJI.Managers.Stations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
+        end
+        TooltipText(W.labels.refill)
 
-        ProgressBar({
-            floatPercent = energyData.currentEnergy / energyData.maxEnergy,
-            width = "100%",
-        })
+        ProgressBar(energyData.currentEnergy / energyData.maxEnergy)
     end
 
     local tankGroups = {}
     for _, tank in pairs(ctxt.vehData.tanks) do
-        if energyStation.isEnergy then
+        if station.isEnergy then
             -- Energy station
             if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, tank.energyType) and
-                table.includes(energyStation.types, tank.energyType) then
+                table.includes(station.types, tank.energyType) then
                 if not tankGroups[tank.energyType] then
                     tankGroups[tank.energyType] = {
                         currentEnergy = 0,
@@ -139,40 +136,28 @@ local function drawGarage(ctxt, garage)
     end
 
     if not BJI.Managers.Scenario.canRefuelAtStation() then
-        LineBuilder()
-            :icon({
-                icon = BJI.Utils.Icon.ICONS.block,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            })
-            :text(W.labels.noRefuelScenario)
-            :build()
+        Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+        SameLine()
+        Text(W.labels.noRefuelScenario)
     else
         commonDrawEnergyLines(ctxt, garage)
     end
 
     if not BJI.Managers.Scenario.canRepairAtGarage() then
-        LineBuilder()
-            :icon({
-                icon = BJI.Utils.Icon.ICONS.block,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            })
-            :text(W.labels.noRepairScenario)
-            :build()
+        Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+        SameLine()
+        Text(W.labels.noRepairScenario)
     elseif tonumber(ctxt.veh.veh.damageState) and
         tonumber(ctxt.veh.veh.damageState) >= 1 then
-        LineBuilder()
-            :text(W.labels.damagedWarning)
-            :btnIcon({
-                id = "repairVehicle",
-                icon = BJI.Utils.Icon.ICONS.build,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                onClick = function()
-                    BJI.Managers.Stations.tryRepair(ctxt)
-                end,
-            })
-            :build()
+        Text(W.labels.damagedWarning)
+        SameLine()
+        if IconButton("repairVehicle", BJI.Utils.Icon.ICONS.build,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Managers.Stations.tryRepair(ctxt)
+        end
+        TooltipText(W.labels.repair)
     else
-        LineLabel(W.labels.vehiclePristine)
+        Text(W.labels.vehiclePristine)
     end
 end
 
@@ -184,22 +169,16 @@ local function drawEnergyStation(ctxt, station)
     end
 
     if not BJI.Managers.Scenario.canRefuelAtStation() then
-        LineBuilder()
-            :icon({
-                icon = BJI.Utils.Icon.ICONS.block,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            })
-            :text(W.labels.noRefuelScenario)
-            :build()
+        Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+        SameLine()
+        Text(W.labels.noRefuelScenario)
     else
         commonDrawEnergyLines(ctxt, station)
     end
 end
 
 local function header(ctxt)
-    if not ctxt.vehData then
-        return
-    end
+    if not ctxt.vehData then return end
 
     ---@type table<string, any>
     local station = BJI.Managers.Stations.station
@@ -214,22 +193,17 @@ local function header(ctxt)
             end
             local stationNamesLabel = table.join(stationEnergyNames,
                 string.var(" {1} ", { W.labels.andJoin }))
-            LineBuilder()
-                :icon({
-                    icon = BJI.Utils.Icon.ICONS.local_gas_station,
-                })
-                :text(string.var("{1} \"{2}\"", { stationNamesLabel, station.name }))
-                :build()
+            Icon(BJI.Utils.Icon.ICONS.local_gas_station)
+            SameLine()
+            Text(string.var("{1} \"{2}\"", { stationNamesLabel, station.name }))
         else
-            LineLabel(string.var("{1} \"{2}\"", { W.labels.garage, station.name }))
+            Text(string.var("{1} \"{2}\"", { W.labels.garage, station.name }))
         end
     end
 end
 
 local function body(ctxt)
-    if not ctxt.vehData then
-        return
-    end
+    if not ctxt.vehData then return end
 
     ---@type BJIStation?
     local station = BJI.Managers.Stations.station
@@ -250,7 +224,7 @@ W.getState = function()
     return BJI.Managers.Perm.canSpawnVehicle() and
         not BJI.Windows.ScenarioEditor.getState() and
         BJI.Managers.Stations.station and
-        not BJI.Managers.Context.User.stationProcess
+        not BJI.Managers.Stations.stationProcess
 end
 
 return W

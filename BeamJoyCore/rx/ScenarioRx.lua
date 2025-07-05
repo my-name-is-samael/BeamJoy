@@ -273,31 +273,6 @@ function ctrl.BusMissionStop(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.SpeedStart(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) and
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    if BJCScenario.isServerScenarioInProgress() then
-        error({ key = "rx.errors.invalidData" })
-    end
-
-    local isVote = ctxt.data[1] == true
-    BJCVote.Speed.start(ctxt.senderID, isVote)
-end
-
----@param ctxt BJCContext
-function ctrl.SpeedJoin(ctxt)
-    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    local gameVehID = ctxt.data[1]
-    BJCVote.Speed.join(ctxt.senderID, gameVehID)
-end
-
----@param ctxt BJCContext
 function ctrl.SpeedFail(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
         error({ key = "rx.errors.insufficientPermissions" })

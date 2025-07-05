@@ -1,22 +1,33 @@
 local U = {
-    INPUT_MARGIN_WIDTH = 5,
-    COMBO_BUTTON_WIDTH = 35,
+    MARGINS = { -- absolute values
+        WINDOW_TOP = 9,
+        WINDOW_LEFT = 17,
+        WINDOW_RIGHT = 17,
+        WINDOW_BOTTOM = 13,
+
+        CHILD = 4,
+        INPUT = 5,
+    },
+    SIZES = { -- based on scale values
+        WINDOW_TITLE_HEIGHT = 21,
+        COMBO_BUTTON = 20,
+    },
 }
+local scale
 
 -- SIZES
 
 ---@param text string
 ---@return integer
 function U.GetTextWidth(text)
-    text = text and tostring(text) or ""
-    return math.round(ui_imgui.CalcTextSize(text).x *
-        (BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1))
+    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    return math.round(ui_imgui.CalcTextSize(text and tostring(text) or "").x * scale)
 end
 
 ---@param content any
 ---@return integer
 function U.GetColumnTextWidth(content)
-    return U.GetTextWidth(tostring(content)) + U.INPUT_MARGIN_WIDTH * 2
+    return U.GetTextWidth(tostring(content)) + U.MARGINS.INPUT * 2
 end
 
 ---@param content any
@@ -26,30 +37,28 @@ function U.GetInputWidthByContent(content, typeNumber)
     if typeNumber then
         return U.GetInputWidthByContent(content) + U.GetInputWidthByContent("-") + U.GetInputWidthByContent("+")
     else
-        return U.GetTextWidth(content) + U.INPUT_MARGIN_WIDTH * 4
+        return U.GetTextWidth(tostring(content)) + U.MARGINS.INPUT * 4
     end
 end
 
 ---@param content any
 ---@return integer
 function U.GetComboWidthByContent(content)
-    local inputOffset = U.INPUT_MARGIN_WIDTH * 2 +
-        U.COMBO_BUTTON_WIDTH * (BJI.Managers.LocalStorage.get(
-            BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1)
-    return U.GetInputWidthByContent(tostring(content)) + inputOffset
+    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    return U.GetTextWidth(tostring(content)) + U.MARGINS.INPUT * 2 + U.SIZES.COMBO_BUTTON * scale
 end
 
 ---@param big boolean?
 ---@return integer
 function U.GetIconSize(big)
-    return math.round((big and 32 or 20) *
-        BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE))
+    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    return math.round((big and 32 or 20) * scale)
 end
 
 ---@param big boolean?
 ---@return integer
 function U.GetBtnIconSize(big)
-    return U.GetIconSize(big) + U.INPUT_MARGIN_WIDTH * 2
+    return U.GetIconSize(big) + U.MARGINS.INPUT * 2
 end
 
 -- FORMATTING
@@ -232,9 +241,9 @@ end
 ---@param min? integer
 ---@param max? integer
 ---@param resetValue integer
----@param callback function
 ---@param disabled? boolean
-function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, disabled)
+---@return integer? changedValue
+function U.DrawLineDurationModifiers(id, value, min, max, resetValue, disabled)
     local showMonth = true
     if max and max < 60 * 60 * 24 * 30 then
         showMonth = false
@@ -248,142 +257,101 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, callback, 
         showHour = false
     end
 
-    local line = LineBuilder()
+    local res, drawn
     if showMonth then
-        line:btn({
-            id = string.var("{1}M1M", { id }),
-            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.month") }),
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value - (60 * 60 * 24 * 30), min, max))
-            end
-        })
+        if Button(id .. "M1M", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.month"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
+            res = math.clamp(value - (60 * 60 * 24 * 30), min, max)
+        end
+        drawn = true
     end
     if showDay then
-        line:btn({
-            id = string.var("{1}M1d", { id }),
-            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.day") }),
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value - (60 * 60 * 24), min, max))
-            end
-        })
-    end
-    if showHour then
-        line:btn({
-            id = string.var("{1}M1h", { id }),
-            label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.hour") }),
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value - (60 * 60), min, max))
-            end
-        })
-    end
-    line:btn({
-        id = string.var("{1}M1m", { id }),
-        label = string.var("-1{1}", { BJI.Managers.Lang.get("common.durationModifiers.minute") }),
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        disabled = disabled,
-        onClick = function()
-            callback(math.clamp(value - 60, min, max))
+        if drawn then SameLine() end
+        if Button(id .. "M1d", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.day"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
+            res = math.clamp(value - (60 * 60 * 24), min, max)
         end
-    })
-        :btn({
-            id = string.var("{1}P1m", { id }),
-            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.minute") }),
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value + 60, min, max))
-            end
-        })
+        drawn = true
+    end
     if showHour then
-        line:btn({
-            id = string.var("{1}P1h", { id }),
-            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.hour") }),
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value + (60 * 60), min, max))
-            end
-        })
+        if drawn then SameLine() end
+        if Button(id .. "M1h", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.hour"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
+            res = math.clamp(value - (60 * 60), min, max)
+        end
+        drawn = true
+    end
+    if drawn then SameLine() end
+    if Button(id .. "M1m", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.minute"),
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
+        res = math.clamp(value - 60, min, max)
+    end
+    SameLine()
+    if Button(id .. "P1m", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.minute"),
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
+        res = math.clamp(value + 60, min, max)
+    end
+    if showHour then
+        SameLine()
+        if Button(id .. "P1h", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.hour"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
+            res = math.clamp(value + (60 * 60), min, max)
+        end
     end
     if showDay then
-        line:btn({
-            id = string.var("{1}P1d", { id }),
-            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.day") }),
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value + (60 * 60 * 24), min, max))
-            end
-        })
+        SameLine()
+        if Button(id .. "P1d", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.day"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
+            res = math.clamp(value + (60 * 60 * 24), min, max)
+        end
     end
     if showMonth then
-        line:btn({
-            id = string.var("{1}P1M", { id }),
-            label = string.var("+1{1}", { BJI.Managers.Lang.get("common.durationModifiers.month") }),
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = disabled,
-            onClick = function()
-                callback(math.clamp(value + (60 * 60 * 24 * 30), min, max))
-            end
-        })
-    end
-    line:btnIcon({
-        id = string.var("{1}reset", { id }),
-        icon = BJI.Utils.Icon.ICONS.refresh,
-        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-        disabled = disabled,
-        tooltip = BJI.Managers.Lang.get("common.buttons.reset"),
-        onClick = function()
-            callback(resetValue)
+        SameLine()
+        if Button(id .. "P1M", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.month"),
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
+            res = math.clamp(value + (60 * 60 * 24 * 30), min, max)
         end
-    })
-        :build()
+    end
+    SameLine()
+    if IconButton(id .. "reset", BJI.Utils.Icon.ICONS.refresh, {
+            btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = disabled }) then
+        res = resetValue
+    end
+    TooltipText(BJI.Managers.Lang.get("common.buttons.reset"))
+    return res
 end
 
 ---@param id string
 ---@param withUpdate? boolean
 ---@param disabled? boolean
 function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
-    LineBuilder()
-        :btnIcon({
-            id = string.var("{1}-pause", { id }),
-            icon = BJI.Utils.Icon.ICONS.pause,
-            style = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or
+    if IconButton(id .. "-pause", BJI.Utils.Icon.ICONS.pause, {
+            btnStyle = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or
                 BJI.Utils.Style.BTN_PRESETS.INFO,
-            coloredIcon = not BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
-            tooltip = BJI.Managers.Lang.get("common.buttons.stop"),
-            onClick = function()
-                local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-                if hasRight and withUpdate and BJI.Managers.Env.Data.timePlay then
-                    BJI.Tx.config.env("timePlay", not BJI.Managers.Env.Data.timePlay)
-                    BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
-                end
-            end,
-        })
-        :btnIcon({
-            id = string.var("{1}-play", { id }),
-            icon = BJI.Utils.Icon.ICONS.play,
-            style = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+            bgLess = not BJI.Managers.Env.Data.timePlay,
+        }) then
+        local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+        if hasRight and withUpdate and BJI.Managers.Env.Data.timePlay then
+            BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
+            BJI.Tx.config.env("timePlay", BJI.Managers.Env.Data.timePlay)
+        end
+    end
+    TooltipText(BJI.Managers.Lang.get("common.buttons.stop"))
+    SameLine()
+    if IconButton(id .. "-play", BJI.Utils.Icon.ICONS.play, {
+            btnStyle = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                 BJI.Utils.Style.BTN_PRESETS.INFO,
-            coloredIcon = BJI.Managers.Env.Data.timePlay,
             disabled = disabled,
-            tooltip = BJI.Managers.Lang.get("common.buttons.play"),
-            onClick = function()
-                local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-                if hasRight and withUpdate and not BJI.Managers.Env.Data.timePlay then
-                    BJI.Tx.config.env("timePlay", not BJI.Managers.Env.Data.timePlay)
-                    BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
-                end
-            end,
-        })
-        :build()
+            bgLess = BJI.Managers.Env.Data.timePlay,
+        }) then
+        local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+        if hasRight and withUpdate and not BJI.Managers.Env.Data.timePlay then
+            BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
+            BJI.Tx.config.env("timePlay", BJI.Managers.Env.Data.timePlay)
+        end
+    end
+    TooltipText(BJI.Managers.Lang.get("common.buttons.play"))
 end
 
 function U.AddPlayerActionVoteKick(actions, playerID)

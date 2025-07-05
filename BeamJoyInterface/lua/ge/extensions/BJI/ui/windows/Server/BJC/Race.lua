@@ -1,19 +1,8 @@
-local fields = {
+local fields = Table({
     { key = "RaceSoloTimeBroadcast", type = "bool", },
-    { key = "PreparationTimeout",    type = "int",  min = 5,  max = 120, renderFormat = "%ds", default = 10 },
-    { key = "VoteTimeout",           type = "int",  min = 10, max = 120, renderFormat = "%ds", default = 30 },
-    {
-        key = "VoteThresholdRatio",
-        type = "float",
-        min = .01,
-        max = 1,
-        precision = 2,
-        renderFormat = function(val)
-            return string
-                .var("{1}%%", { math.round(val * 100) })
-        end,
-        default = .51,
-    },
+    { key = "PreparationTimeout",    type = "int",  min = 5,  max = 120, renderFormat = "%ds",  default = 10 },
+    { key = "VoteTimeout",           type = "int",  min = 10, max = 120, renderFormat = "%ds",  default = 30 },
+    { key = "VoteThresholdRatio",    type = "int",  min = 1,  max = 100, renderFormat = "%d%%", default = 51, multiplier = 100 },
     {
         key = "GridReadyTimeout",
         type = "int",
@@ -39,59 +28,56 @@ local fields = {
     { key = "RaceCountdown",  type = "int", min = 10, max = 60, renderFormat = "%ds", default = 10 },
     { key = "FinishTimeout",  type = "int", min = 5,  max = 30, renderFormat = "%ds", default = 5 },
     { key = "RaceEndTimeout", type = "int", min = 5,  max = 30, renderFormat = "%ds", default = 10 },
-}
+})
+--- gc prevention
+local value, nextValue
 
-return function(ctxt, labels, cache)
-    local cols = ColumnsBuilder("bjcRace", { cache.race.labelsWidth, -1 })
-    for _, v in ipairs(fields) do
-        cols = cols:addRow({
-            cells = {
-                function()
-                    LineLabel(labels.race.keys[v.key], nil, false, labels.race.keys[v.key .. "Tooltip"])
-                end,
-                function()
-                    if v.type == "bool" then
-                        LineBuilder():btnIconToggle({
-                            id = v.key,
-                            state = not not BJI.Managers.Context.BJC.Race[v.key],
-                            coloredIcon = true,
-                            onClick = function()
-                                BJI.Tx.config.bjc("Race." .. v.key,
-                                    not BJI.Managers.Context.BJC.Race[v.key])
-                                BJI.Managers.Context.BJC.Race[v.key] = not BJI.Managers.Context.BJC.Race[v.key]
-                            end
-                        }):build()
-                    else
-                        LineBuilder():btnIcon({
-                            id = v.key .. "reset",
-                            icon = BJI.Utils.Icon.ICONS.refresh,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = BJI.Managers.Context.BJC.Race[v.key] == v.default,
-                            tooltip = labels.buttons.reset,
-                            onClick = function()
-                                BJI.Managers.Context.BJC.Race[v.key] = v.default
-                                BJI.Tx.config.bjc("Race." .. v.key, v.default)
-                            end
-                        }):slider({
-                            id = v.key,
-                            type = tostring(v.type),
-                            precision = v.precision,
-                            value = BJI.Managers.Context.BJC.Race[v.key],
-                            min = type(v.min) == "function" and v.min() or v.min,
-                            max = type(v.max) == "function" and v.max() or v.max,
-                            renderFormat = type(v.renderFormat) == "function" and
-                                v.renderFormat(BJI.Managers.Context.BJC.Race[v.key]) or v.renderFormat,
-                            onUpdate = function(val)
-                                if BJI.Managers.Context.BJC.Race[v.key] ~= val then
-                                    BJI.Managers.Context.BJC.Race[v.key] = val
-                                    BJI.Tx.config.bjc("Race." .. v.key, val)
-                                end
-                            end
-                        }):build()
-                    end
+return function(ctxt, labels)
+    if BeginTable("BJIServerBJCRace", {
+            { label = "##bjiserverbjcrace-labels" },
+            { label = "##bjiserverbjcrace-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        fields:forEach(function(el)
+            TableNewRow()
+            Text(labels.race.keys[el.key])
+            TooltipText(labels.race.keys[el.key .. "Tooltip"])
+            TableNextColumn()
+            value = BJI.Managers.Context.BJC.Race[el.key]
+            if el.type == "bool" then
+                if IconButton(el.key, not not value and
+                        BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+                        { bgLess = true, btnStyle = not not value and
+                            BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                    BJI.Managers.Context.BJC.Race[el.key] = not value
+                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
                 end
-            }
-        })
+                TooltipText(labels.race.keys[el.key .. "Tooltip"])
+            else
+                value = value * (el.multiplier or 1)
+                if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            disabled = el.default == value }) then
+                    BJI.Managers.Context.BJC.Race[el.key] = el.default / (el.multiplier or 1)
+                    BJI.Tx.config.bjc("Race." .. el.key, el.default / (el.multiplier or 1))
+                end
+                TooltipText(labels.buttons.reset)
+                SameLine()
+                nextValue = SliderIntPrecision(el.key, value,
+                    type(el.min) == "function" and el.min() or el.min,
+                    type(el.max) == "function" and el.max() or el.max,
+                    { formatRender = el.renderFormat })
+                TooltipText(labels.race.keys[el.key .. "Tooltip"])
+                if nextValue then
+                    BJI.Managers.Context.BJC.Race[el.key] = nextValue
+                    if el.multiplier then
+                        BJI.Managers.Context.BJC.Race[el.key] = BJI.Managers.Context.BJC.Race[el.key] /
+                            (el.multiplier or 1)
+                    end
+                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
+                end
+            end
+        end)
+
+        EndTable()
     end
-    cols:build()
 end

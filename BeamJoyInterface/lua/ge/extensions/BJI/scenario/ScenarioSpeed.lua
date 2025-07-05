@@ -16,6 +16,8 @@ local S = {
     -- self data
     processCheck = nil,
 }
+--- gc prevention
+local actions, veh
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
@@ -24,14 +26,6 @@ end
 
 -- load hook
 local function onLoad(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     BJI.Windows.VehSelector.tryClose()
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
@@ -40,16 +34,21 @@ end
 
 -- unload hook (before switch to another scenario)
 local function onUnload(ctxt)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     BJI.Managers.Message.stopRealtimeDisplay()
     BJI.Managers.Message.cancelFlash("BJISpeedCheck")
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local res = Table():addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    if not S.isEliminated() then
+        res:addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+    end
+    return res
 end
 
 local function switchToRandomParticipant()
@@ -69,35 +68,26 @@ end
 ---@param player BJIPlayer
 ---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
-    if S.isSpec() and S.isParticipant(player.playerID) then
-        local veh = BJI.Managers.Veh.getVehicleObject(S.participants[player.playerID])
-        local finalGameVehID = veh and veh:getID() or nil
-        table.insert(actions, {
-            id = string.var("focus{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.visibility,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            disabled = not finalGameVehID or
-                (ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID) or
-                not S.isSpec(player.playerID),
-            tooltip = BJI.Managers.Lang.get("common.buttons.show"),
-            onClick = function()
-                BJI.Managers.Veh.focusVehicle(finalGameVehID or -1)
-            end
-        })
+    if S.isSpec() and S.isParticipant(player.playerID) and not S.isEliminated(player.playerID) then
+        veh = BJI.Managers.Veh.getMPVehicles({ ownerID = player.playerID }, true):find(TrueFn)
+        if veh then
+            table.insert(actions, {
+                id = string.var("focus{1}", { player.playerID }),
+                icon = BJI.Utils.Icon.ICONS.visibility,
+                style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                disabled = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID,
+                tooltip = BJI.Managers.Lang.get("common.buttons.show"),
+                onClick = function()
+                    BJI.Managers.Veh.focusVehicle(veh.gameVehicleID)
+                end
+            })
+        end
     end
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = string.var("voteKick{1}", { player.playerID }),
-            icon = BJI.Utils.Icon.ICONS.event_busy,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJI.Managers.Votes.Kick.start(player.playerID)
-            end
-        })
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
@@ -114,22 +104,7 @@ end
 
 local function onElimination()
     switchToRandomParticipant()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-end
-
----@param ctxt TickContext
-local function renderTick(ctxt)
-    if S.isParticipant() and not S.isEliminated() then
-        if not ctxt.isOwner then
-            BJI.Tx.scenario.SpeedFail(ctxt.now - S.startTime)
-        end
-    end
+    BJI.Managers.Restrictions.update()
 end
 
 ---@param ctxt TickContext
@@ -181,31 +156,13 @@ local function initScenario(data)
     BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.SPEED)
 
     BJI.Managers.Message.flash("BJISpeedStart", BJI.Managers.Lang.get("speed.flashStart"), 3, false)
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     if S.isSpec() then
-        BJI.Managers.Restrictions.update({ {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.BIG_MAP,
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        } })
         local ownerID = BJI.Managers.Veh.getVehOwnerID(BJI.Managers.Context.User.currentVehicle)
         if not ownerID or not S.participants[ownerID] then
             switchToRandomParticipant()
         end
     else
         S.startLock = true
-        BJI.Managers.Restrictions.update({ {
-            restrictions = BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-        } })
         BJI.Managers.Async.delayTask(function()
             S.startLock = false
         end, 1000, "BJISpeedStartLock")
@@ -231,15 +188,7 @@ local function updateData(data, previousMinSpeed)
         -- on player eliminated/forfeited
         if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH) and
             Table(S.participants):any(function(p) return p.playerID == BJI.Managers.Context.User.playerID end) then
-            BJI.Managers.Restrictions.update({ {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.BIG_MAP,
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                    BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            } })
+            BJI.Managers.Restrictions.update()
         end
     end
 end
@@ -267,6 +216,7 @@ local function rxData(data)
         if S.isParticipant() or S.isEvent then
             if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then
                 initScenario(data)
+                BJI.Managers.Restrictions.update()
             else
                 updateData(data, previousMinSpeed)
             end
@@ -279,7 +229,7 @@ end
 
 local function isParticipant(playerID)
     playerID = playerID or BJI.Managers.Context.User.playerID
-    return not not S.participants[playerID]
+    return S.participants[playerID] ~= nil
 end
 
 local function isEliminated(playerID)
@@ -306,6 +256,8 @@ S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
 
+S.getRestrictions = getRestrictions
+
 S.onVehicleSwitched = onVehicleSwitched
 
 S.canSpawnNewVehicle = FalseFn
@@ -316,7 +268,6 @@ S.canDeleteOtherVehicles = FalseFn
 
 S.getPlayerListActions = getPlayerListActions
 
-S.renderTick = renderTick
 S.fastTick = fastTick
 
 S.rxData = rxData

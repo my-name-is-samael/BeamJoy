@@ -17,8 +17,9 @@ local W = {
         keys = {},
         tooltips = {},
     },
-    labelsWidth = 0,
 }
+--- gc prevention
+local nextValue
 
 local function updateLabels()
     categories:forEach(function(c)
@@ -36,67 +37,43 @@ local function updateLabels()
         end)
 end
 
-local function updateWidths()
-    W.labelsWidth = Table(W.labels.keys)
-        :reduce(function(acc, l, k)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-end
-
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        updateWidths()
-    end, W.name))
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-    }, updateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 end
-
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
 local function body(ctxt)
-    categories:forEach(function(c)
-        LineLabel(W.labels.categories[c.category])
-        Indent(1)
-        Table(c.keys):reduce(function(cols, k)
-            local v = BJI.Managers.Context.BJC.Reputation[k]
-            return cols:addRow({
-                cells = {
-                    function()
-                        LineLabel(W.labels.keys[k], nil, false, W.labels.tooltips[k])
-                    end,
-                    function()
-                        LineBuilder()
-                            :inputNumeric({
-                                id = tostring(k),
-                                type = "int",
-                                value = v,
-                                min = 0,
-                                step = 1,
-                                onUpdate = function(val)
-                                    BJI.Managers.Context.BJC.Reputation[k] = val
-                                    BJI.Tx.config.bjc(string.var("Reputation.{1}", { k }), val)
-                                end,
-                            })
-                            :build()
-                    end,
-                }
-            })
-        end, ColumnsBuilder("reputationSettings", { W.labelsWidth, -1 })):build()
-        Indent(-1)
-        Separator()
-    end)
+    if BeginTable("BJIServerReputation", {
+            { label = "##serverreputation-labels" },
+            { label = "##serverreputation-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        categories:forEach(function(c)
+            TableNewRow()
+            Text(W.labels.categories[c.category])
+
+            Table(c.keys):forEach(function(k)
+                TableNewRow()
+                Indent()
+                Text(W.labels.keys[k])
+                TooltipText(W.labels.tooltips[k])
+                Unindent()
+                TableNextColumn()
+                nextValue = InputInt(tostring(k), BJI.Managers.Context.BJC.Reputation[k],
+                    { min = 0, step = 1 })
+                TooltipText(W.labels.tooltips[k])
+                if nextValue then
+                    BJI.Managers.Context.BJC.Reputation[k] = nextValue
+                    BJI.Tx.config.bjc(string.var("Reputation.{1}", { k }), BJI.Managers.Context.BJC.Reputation[k])
+                end
+            end)
+        end)
+
+        EndTable()
+    end
 end
 
 W.onLoad = onLoad

@@ -4,8 +4,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 300,
-    h = 350,
+    minSize = ImVec2(450, 300),
+    maxSize = ImVec2(800, 300),
 
     show = false,
 
@@ -38,14 +38,16 @@ local W = {
         configs = Table(),
 
         places = "",
-        labelsWidth = 0,
 
         currentVehProtected = false,
         selfProtected = false,
+        canSpawnNewVeh = false,
     },
 
     presets = require("ge/extensions/utils/VehiclePresets").getDerbyPresets(),
 }
+--- gc prevention
+local nextValue, tooltip, j
 
 local function onClose()
     W.show = false
@@ -77,16 +79,9 @@ local function updateCache(ctxt)
 
     W.data.places = string.var("({1})", { W.labels.places:var({ places = #W.data.arena.startPositions }) })
 
-    W.data.labelsWidth = Table({
-        W.labels.lives,
-        W.labels.configs,
-    }):reduce(function(acc, label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label)
-        return w > acc and w or acc
-    end, 0)
-
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
+    W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
 end
 
 local listeners = Table()
@@ -102,6 +97,7 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
@@ -135,52 +131,50 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    ColumnsBuilder("BJIDerbyHeader", { -1, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.title)
-                    LineBuilder():text(W.data.arena.name):text(W.data.places):build()
-                end,
-                function()
-                    LineLabel(W.labels.presets)
-                    local line = LineBuilder()
-                    Table(W.presets):forEach(function(preset, i)
-                        line:btn({
-                            id = string.var("preset-{1}", { i }),
-                            label = preset.label,
-                            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                            disabled = #W.data.configs == 5,
-                            onClick = function()
-                                W.data.configs:addAll(
-                                    Range(1, 5 - #W.data.configs)
-                                    :reduce(function(acc)
-                                        local j
-                                        while not j do
-                                            j = math.random(#acc.configs)
-                                            if W.data.configs:find(function(c)
-                                                    return c.model == acc.configs[j].model and
-                                                        c.key == acc.configs[j].key
-                                                end) then
-                                                acc.configs:remove(j)
-                                                j = nil
-                                            end
-                                        end
-                                        acc.gen:insert(acc.configs:remove(j))
-                                        return acc
-                                    end, { gen = Table(), configs = table.clone(preset.configs) }).gen
-                                    :map(function(gen)
-                                        return BJI.Managers.Veh.getFullConfig(BJI.Managers.Veh
-                                            .getConfigByModelAndKey(gen.model, gen.key))
-                                    end)
-                                )
+    if BeginTable("BJIDerbyHeader", {
+            { label = "##derby-settings-header-label" },
+            { label = "##derby-settings-header-presets" }
+        }, { flags = { TABLE_FLAGS.SIZING_STRETCH_SAME } }) then
+        TableNewRow()
+        Text(W.labels.title)
+        Text(W.data.arena.name)
+        SameLine()
+        Text(W.data.places)
+        TableNextColumn()
+        Text(W.labels.presets)
+        Table(W.presets):forEach(function(preset, i)
+            if i > 1 then
+                SameLine()
+            end
+            if Button("derby-preset-" .. tostring(i), preset.label,
+                    { disabled = #W.data.configs == 5 }) then
+                W.data.configs:addAll(
+                    Range(1, 5 - #W.data.configs)
+                    :reduce(function(acc)
+                        j = nil
+                        while not j do
+                            j = math.random(#acc.configs)
+                            if W.data.configs:find(function(c)
+                                    return c.model == acc.configs[j].model and
+                                        c.key == acc.configs[j].key
+                                end) then
+                                acc.configs:remove(j)
+                                j = nil
                             end
-                        })
+                        end
+                        acc.gen:insert(acc.configs:remove(j))
+                        return acc
+                    end, { gen = Table(), configs = table.clone(preset.configs) }).gen
+                    :map(function(gen)
+                        return BJI.Managers.Veh.getFullConfig(BJI.Managers.Veh
+                            .getConfigByModelAndKey(gen.model, gen.key))
                     end)
-                    line:build()
-                end
-            }
-        }):build()
+                )
+            end
+        end)
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
@@ -198,102 +192,75 @@ end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    local cols = ColumnsBuilder("BJIDerbySettings", { W.data.labelsWidth, -1 })
-        :addRow({
-            cells = {
-                function() LineLabel(W.labels.lives) end,
-                function()
-                    LineBuilder():inputNumeric({
-                        id = "derbyLives",
-                        type = "int",
-                        value = W.data.lives,
-                        min = 0,
-                        max = 5,
-                        step = 1,
-                        onUpdate = function(val)
-                            W.data.lives = val
-                        end
-                    }):build()
-                end,
-            }
-        })
+    if BeginTable("BJIDerbySettings", {
+            { label = "##derby-settings-labels" },
+            { label = "##derby-settings-configs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+        }) then
+        -- lives
+        TableNewRow()
+        Text(W.labels.lives)
+        TableNextColumn()
+        nextValue = SliderInt("derbyLives", W.data.lives, 0, 5)
+        if nextValue then
+            W.data.lives = nextValue
+        end
 
-    Range(1, math.min(#W.data.configs + 1, 5)):forEach(function(i)
-        local config = W.data.configs[i]
-        cols:addRow({
-            cells = {
-                function()
-                    if i == 1 then
-                        LineLabel(W.labels.configs, nil, false, W.labels.configsTooltip)
-                    end
-                end,
-                function()
-                    if config then
-                        LineBuilder():btnIcon({
-                            id = string.var("showDerbyConfig{1}", { i }),
-                            icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.add,
-                            style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                                BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                            tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                            onClick = function()
-                                local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
-                                    BJI.Managers.Veh.spawnNewVehicle
-                                fn(config.model, config.key or config)
-                            end,
-                        }):btnIcon({
-                            id = string.var("removeDerbyConfig{1}", { i }),
-                            icon = BJI.Utils.Icon.ICONS.delete_forever,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            tooltip = W.labels.buttons.remove,
-                            onClick = function()
-                                W.data.configs:remove(i)
-                            end,
-                        }):text(config.label):build()
-                    else
-                        local tooltip
-                        if W.data.currentVehProtected then
-                            tooltip = W.labels.protectedVehicle
-                        elseif W.data.selfProtected then
-                            tooltip = W.labels.selfProtected
-                        else
-                            tooltip = W.labels.buttons.add
-                        end
-                        LineBuilder():btnIcon({
-                            id = "addDerbyConfig",
-                            icon = BJI.Utils.Icon.ICONS.add,
-                            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                            disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
-                            tooltip = tooltip,
-                            onClick = function()
-                                addCurrentConfig(ctxt)
-                            end,
-                        }):build()
-                    end
-                end,
-            }
-        })
-    end)
-    cols:build()
+        -- configs
+        TableNewRow()
+        Text(W.labels.configs)
+        TooltipText(W.labels.configsTooltip)
+        TableNextColumn()
+        W.data.configs:forEach(function(config, i)
+            if IconButton("showDerbyConfig" .. tostring(i), BJI.Utils.Icon.ICONS.visibility,
+                    { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
+                        not W.data.canSpawnNewVeh }) then
+                BJI.Managers.Veh.replaceOrSpawnVehicle(config.model, config.key or config)
+            end
+            TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
+            SameLine()
+            if IconButton("removeDerbyConfig" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                W.data.configs:remove(i)
+            end
+            TooltipText(W.labels.buttons.remove)
+            SameLine()
+            Text(config.label)
+        end)
+        if #W.data.configs < 5 then
+            if IconButton("addDerbyConfig", BJI.Utils.Icon.ICONS.add,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                        disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected }) then
+                addCurrentConfig(ctxt)
+            end
+            if W.data.currentVehProtected then
+                tooltip = W.labels.protectedVehicle
+            elseif W.data.selfProtected then
+                tooltip = W.labels.selfProtected
+            else
+                tooltip = W.labels.buttons.add
+            end
+            TooltipText(tooltip)
+        end
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder():btnIcon({
-        id = "closeDerbySettings",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.buttons.close,
-        onClick = onClose,
-    }):btnIcon({
-        id = "startDerby",
-        icon = BJI.Utils.Icon.ICONS.check,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        tooltip = W.labels.buttons.start,
-        onClick = function()
-            BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
-            onClose()
-        end
-    }):build()
+    if IconButton("closeDerbySettings", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.buttons.close)
+    SameLine()
+    if IconButton("startDerby", BJI.Utils.Icon.ICONS.videogame_asset,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+        BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
+        onClose()
+    end
+    TooltipText(W.labels.buttons.start)
 end
 
 W.onLoad = onLoad

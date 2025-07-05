@@ -1,13 +1,17 @@
+local maxLineLength = 60
+-- gc prevention
+local playerColor, actions
+
 local function drawWaiting(cache)
-    if table.length(cache.data.players.waiting) == 0 then
+    if #cache.data.players.waiting == 0 then
         return
     end
 
-    LineBuilder():text(cache.labels.players.waiting):text(string.var("({1}):", {
-        table.length(cache.data.players.waiting) })):build()
-    local maxLineLength = 60
-    Indent(1)
-    LineLabel(Table(cache.data.players.waiting):reduce(function(acc, player, i)
+    Text(cache.labels.players.waiting)
+    SameLine()
+    Text(string.var("({1}):", { #cache.data.players.waiting }))
+    Indent()
+    Text(Table(cache.data.players.waiting):reduce(function(acc, player, i)
         if i > 1 and acc.curr + #player.playerName > maxLineLength then
             acc.res = acc.res .. "\n"
             acc.curr = 0
@@ -20,7 +24,7 @@ local function drawWaiting(cache)
         acc.curr = acc.curr + #player.playerName
         return acc
     end, { res = "", curr = 0 }).res)
-    Indent(-1)
+    Unindent()
 end
 
 local function drawPlayers(cache, ctxt)
@@ -28,50 +32,40 @@ local function drawPlayers(cache, ctxt)
         return
     end
 
-    LineBuilder():text(cache.labels.players.list):build()
-    Indent(1)
+    Text(cache.labels.players.list)
+    Indent()
     for _, player in ipairs(cache.data.players.list) do
-        local playerColor = player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        LineBuilder()
-            :text(player.playerName, playerColor)
-            :text(player.nameSuffix, playerColor)
-            :build()
+        playerColor = player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+        Text(player.playerName, { color = playerColor })
+        SameLine()
+        Text(player.nameSuffix, { color = playerColor })
 
-        Indent(1)
-        local actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
+        actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
         if #actions > 0 then
-            local line = LineBuilder(true)
             for _, action in ipairs(actions) do
-                if action.icon then
-                    line:btnIcon(action)
-                elseif action.labelOn then
-                    line:btnSwitch(action)
-                else
-                    line:btn(action)
+                SameLine()
+                if IconButton(action.id, action.icon, {
+                        btnStyle = action.style,
+                        disabled = action.disabled,
+                    }) then
+                    action.onClick()
+                end
+                if action.tooltip then
+                    TooltipText(action.tooltip)
                 end
             end
-            line:build()
         end
-
-        Indent(-1)
     end
-    Indent(-1)
+    Unindent()
 end
 
 ---@param ctxt TickContext
 ---@param cache table
 return function(ctxt, cache)
-    local waitingPlayers, players = {}, {}
-    ctxt.players:forEach(function(player, playerID)
-        table.insert(BJI.Managers.Perm.canSpawnVehicle(playerID) and
-            players or waitingPlayers, table.clone(player))
-    end)
-    table.sort(waitingPlayers, function(a, b)
-        return a.playerName < b.playerName
-    end)
-    table.sort(players, function(a, b)
-        return a.playerName < b.playerName
-    end)
+    if #cache.data.players.list + #cache.data.players.waiting == 0 then
+        Text(cache.labels.loading)
+        return
+    end
 
     drawWaiting(cache)
     drawPlayers(cache, ctxt)

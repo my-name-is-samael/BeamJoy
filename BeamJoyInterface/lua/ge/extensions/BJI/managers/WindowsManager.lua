@@ -17,7 +17,7 @@ local M = {
     showStates = Table(),
 }
 -- gc prevention
-local size, scale, ok, err, title, flagsToApply, alpha, window, lines
+local val1, val2
 
 ---@param w BJIWindow
 ---@return BJIWindow
@@ -33,7 +33,8 @@ local function register(w)
 
     M.windows:insert(w)
     M.showStates[w.name] = false
-    BJI.Managers.Context.GUI.registerWindow(w.name, im.ImVec2(w.w or -1, w.h or -1))
+
+    BJI.Managers.Context.GUI.registerWindow(w.name, w.size or w.minSize)
     return w
 end
 
@@ -41,19 +42,11 @@ end
 ---@param w BJIWindow
 ---@param fnName string
 local function windowSubFnCall(ctxt, w, fnName)
-    if M.showStates[w.name] then
-        -- apply min height (fixes moved out collapsed size issue)
-        size = im.GetWindowSize()
-        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-        if w.h and size.y < w.h * scale then
-            im.SetWindowSize1(im.ImVec2(size.x, math.floor(w.h * scale)), im.Cond_Always)
-        end
-    end
     if type(w[fnName]) == "function" then
-        ok, err = pcall(w[fnName], ctxt)
-        if not ok then
+        val1, val2 = pcall(w[fnName], ctxt)
+        if not val1 then
             LogError(string.var("Error executing \"{1}\" on window \"{2}\" : {3}",
-                { fnName, w.name, err }), M._name)
+                { fnName, w.name, val2 }), M._name)
         end
     end
 end
@@ -89,59 +82,11 @@ local function renderTick(ctxt)
             })
         end
 
-        title = w.name and
-            BJI.Managers.Lang.get(string.var("windows.{1}", { w.name }), w.name) or
-            nil
-        if M.showStates[w.name] then
-            if w.w and w.h then
-                scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
-                im.SetNextWindowSize(im.ImVec2(
-                    math.floor(w.w * scale),
-                    math.floor(w.h * scale)
-                ))
-            end
-            if w.x and w.y then
-                im.SetNextWindowPos(im.ImVec2(w.x, w.y))
-            end
-
-            flagsToApply = Table(M.BASE_FLAGS):clone()
-                :addAll(w.flags or {}, true)
-                :addAll(type(w.menu) == "function" and { BJI.Utils.Style.WINDOW_FLAGS.MENU_BAR } or {}, true)
-
-            BJI.Managers.Context.GUI.setupWindow(w.name)
-            alpha = BJI.Utils.Style.BJIStyles[BJI.Utils.Style.STYLE_COLS.WINDOW_BG] and
-                BJI.Utils.Style.BJIStyles[BJI.Utils.Style.STYLE_COLS.WINDOW_BG].w or .5
-            window = WindowBuilder(w.name, im.flags(table.unpack(flagsToApply)))
-                :title(title)
-                :opacity(alpha)
-
-            Table({ "menu", "header", "body" }):forEach(function(part)
-                if w[part] then
-                    window[part](window, function()
-                        windowSubFnCall(ctxt, w, part)
-                    end)
-                end
-            end)
-
-            if w.footer then
-                lines = 1
-                if w.footerLines then
-                    lines = w.footerLines(ctxt)
-                end
-                window:footer(function()
-                    windowSubFnCall(ctxt, w, "footer")
-                end, lines)
-            end
-
-            if w.onClose then
-                window:onClose(function()
-                    w.onClose(ctxt)
-                    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.MAIN_CANCEL)
-                end)
-            end
-            window:build()
-        elseif not title then
+        val1 = w.name and BJI.Managers.Lang.get(string.var("windows.{1}", { w.name }), w.name) or nil
+        if not val1 then
             LogError(string.var("Invalid name for window {1}", { w.name }))
+        elseif M.showStates[w.name] then
+            RenderWindow(ctxt, val1, w)
         end
         if BJI.Bench.STATE == 2 then
             BJI.Bench.saveGC(w.name)
@@ -170,12 +115,12 @@ local function onLoad()
         end):map(function(el)
         return el:gsub("^/lua/", ""):gsub(".lua$", "")
     end):forEach(function(windowPath)
-        local ok, w = pcall(require, windowPath)
-        if ok then
-            BJI.Windows[w.name] = register(w)
-            LogInfo(string.var("BJI.Windows.{1} loaded", { w.name }))
+        val1, val2 = pcall(require, windowPath)
+        if val1 then
+            BJI.Windows[val2.name] = register(val2)
+            LogInfo(string.var("BJI.Windows.{1} loaded", { val2.name }))
         else
-            LogError(string.var("Error loading window \"{1}\" : {2}", { windowPath, w }))
+            LogError(string.var("Error loading window \"{1}\" : {2}", { windowPath, val2 }))
         end
     end)
 

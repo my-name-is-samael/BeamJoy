@@ -101,7 +101,6 @@ local function onClientReady(senderID, lobby)
             p.tagger = id == nextTagger
         end)
         lobby.lastTagger = nextTagger
-        dump(lobby)
     end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TAG_DUO)
 end

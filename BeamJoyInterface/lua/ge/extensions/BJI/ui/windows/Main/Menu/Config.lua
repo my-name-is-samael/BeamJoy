@@ -1,6 +1,7 @@
 local M = {
     cache = {
         label = nil,
+        ---@type MenuDropdownElement[]
         elems = {},
     },
 }
@@ -12,6 +13,7 @@ local function menuServer(ctxt)
             BJI.Managers.Perm.PERMISSIONS.SET_PERMISSIONS, BJI.Managers.Perm.PERMISSIONS.WHITELIST })
         :any(function(p) return BJI.Managers.Perm.hasPermission(p) end) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.config.server"),
             active = BJI.Windows.Server.show,
             onClick = function()
@@ -25,6 +27,7 @@ end
 local function menuEnvironment(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.config.environment"),
             active = BJI.Windows.Environment.show,
             onClick = function()
@@ -42,6 +45,7 @@ end
 local function menuTheme(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.config.theme"),
             active = BJI.Windows.Theme.show,
             onClick = function()
@@ -60,6 +64,7 @@ local function menuDatabase(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.DATABASE_PLAYERS) or
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.DATABASE_VEHICLES) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.config.database"),
             active = BJI.Windows.Database.show,
             onClick = function()
@@ -73,6 +78,7 @@ end
 local function menuStopServer(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.config.stop"),
             onClick = function()
                 BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("menu.config.stopModal"), {
@@ -100,6 +106,8 @@ local function updateCache(ctxt)
     menuTheme(ctxt)
     menuDatabase(ctxt)
     menuStopServer(ctxt)
+
+    MenuDropdownSanitize(M.cache.elems)
 end
 
 local listeners = Table()
@@ -115,6 +123,13 @@ end
 
 function M.onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+---@param ctxt TickContext
+function M.draw(ctxt)
+    if #M.cache.elems > 0 then
+        RenderMenuDropdown(M.cache.label, M.cache.elems)
+    end
 end
 
 return M

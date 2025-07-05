@@ -52,8 +52,8 @@ return function(TX)
         TX._send(event.EVENT, event.TX.ADD_SOLO_RACE, { raceID, timeoutMin })
     end
 
-    function tournament.endSoloRace()
-        TX._send(event.EVENT, event.TX.END_SOLO_RACE)
+    function tournament.endSoloActivity()
+        TX._send(event.EVENT, event.TX.END_SOLO_ACTIVITY)
     end
 
 

@@ -4,8 +4,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 300,
-    h = 280,
+    size = ImVec2(300, 280),
 
     labels = {
         hunted = "",
@@ -60,12 +59,13 @@ local W = {
         huntedPlayer = nil,
         showGameActions = false,
         showManualResetBtn = false,
-        manualResetWidth = 0,
         startTime = 0,
     },
     ---@type BJIScenarioHunter
     scenario = nil,
 }
+--- gc prevention
+local label, color, remaining
 
 local function updateLabels()
     W.labels.hunted = string.var("{1}:", { BJI.Managers.Lang.get("hunter.play.hunted") })
@@ -118,13 +118,12 @@ local function updateCache(ctxt)
         W.cache.showConfigs = W.cache.isParticipant and not W.cache.isReady and
             not W.cache.isHunted and #W.scenario.settings.hunterConfigs > 1
         W.cache.showFugitiveAssignBtn = not W.cache.isReady and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS
-            .START_SERVER_SCENARIO)
+            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS
+                .START_SERVER_SCENARIO)
     end
 
     W.cache.huntedID = nil
     W.cache.huntedPlayer = nil
-    W.cache.manualResetWidth = 0
     if W.cache.showGame then
         Table(W.scenario.participants):find(function(part) return part.hunted end,
             function(_, playerID)
@@ -135,9 +134,6 @@ local function updateCache(ctxt)
         W.cache.startTime = W.cache.isHunted and W.scenario.huntedStartTime or W.scenario.hunterStartTime
 
         W.cache.showManualResetBtn = W.cache.isParticipant
-        if W.cache.showManualResetBtn then
-            W.cache.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) + BJI.Utils.UI.GetTextWidth("  ")
-        end
     end
 
     W.cache.playersList = Table(W.scenario.participants)
@@ -205,133 +201,117 @@ end
 ---@param ctxt TickContext
 local function drawHeaderPreparation(ctxt)
     if W.cache.preparationTimeoutTargetTime then
-        local remaining = getDiffTime(W.cache.preparationTimeoutTargetTime, ctxt.now)
-        local label = remaining < 1 and
+        remaining = getDiffTime(W.cache.preparationTimeoutTargetTime, ctxt.now)
+        Text(remaining < 1 and
             W.labels.preparationTimeoutAboutToEnd or
-            W.labels.preparationTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
-        LineLabel(label, remaining < 10 and
-            BJI.Utils.Style.TEXT_COLORS.ERROR or
-            BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        )
+            W.labels.preparationTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }), {
+                color = remaining < 10 and
+                    BJI.Utils.Style.TEXT_COLORS.ERROR or
+                    BJI.Utils.Style.TEXT_COLORS.DEFAULT
+            })
     else
         EmptyLine()
     end
 
     if W.cache.showPreparationActions then
-        local line = LineBuilder():btnIconToggle({
-            id = "joinParticipants",
-            icon = W.cache.isParticipant and BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
-            state = not W.cache.isParticipant,
-            disabled = W.cache.disabledButtons,
-            tooltip = W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join,
-            onClick = function()
-                W.cache.disabledButtons = true -- api request protection
-                BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
-            end,
-            big = true,
-        })
-        if ctxt.isOwner and not W.cache.isReady then
-            line:btnIcon({
-                id = "readyHunter",
-                icon = BJI.Utils.Icon.ICONS.check,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = not ctxt.isOwner or W.cache.disabledButtons,
-                tooltip = W.labels.buttons.markReady,
-                onClick = function()
-                    W.cache.disabledButtons = true -- api request protection
-                    BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
-                end,
-                big = true,
-            })
+        if IconButton("joinParticipants", W.cache.isParticipant and
+                BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
+                { btnStyle = W.cache.isParticipant and BJI.Utils.Style.BTN_PRESETS.ERROR or
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disabledButtons, big = true }) then
+            W.cache.disabledButtons = true -- api request protection
+            BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
         end
-        line:build()
+        TooltipText(W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join)
+        if ctxt.isOwner and not W.cache.isReady then
+            SameLine()
+            if IconButton("readyHunter", BJI.Utils.Icon.ICONS.check,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, big = true,
+                        disabled = not ctxt.isOwner or W.cache.disabledButtons }) then
+                W.cache.disabledButtons = true -- api request protection
+                BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
+            end
+            TooltipText(W.labels.buttons.markReady)
+        end
     end
 end
 
 ---@param ctxt TickContext
 local function drawHeaderGame(ctxt)
     if W.cache.showGameActions or W.cache.showManualResetBtn then
-        ColumnsBuilder("HunterGameHeader", { -1, W.cache.manualResetWidth }):addRow({
-            cells = {
-                W.cache.showGameActions and function()
-                    local line = LineBuilder():btnIcon({
-                        id = "leaveHunter",
-                        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        disabled = W.cache.disabledButtons,
-                        tooltip = W.labels.buttons.forfeit,
-                        onClick = function()
-                            W.cache.disabledButtons = true
-                            BJI.Tx.scenario.HunterUpdate(
-                                W.cache.huntedID == BJI.Managers.Context.User.playerID and
-                                W.scenario.CLIENT_EVENTS.ELIMINATED or
-                                W.scenario.CLIENT_EVENTS.LEAVE
-                            )
-                        end,
-                        big = true,
-                    })
+        if BeginTable("HunterGameHeader", {
+                { label = "##hunter-header-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+                { label = "##hunter-header-right" },
+            }) then
+            TableNewRow()
+            if W.cache.showGameActions then
+                if IconButton("leaveHunter", BJI.Utils.Icon.ICONS.exit_to_app,
+                        { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    W.cache.disabledButtons = true
+                    BJI.Tx.scenario.HunterUpdate(
+                        W.cache.huntedID == BJI.Managers.Context.User.playerID and
+                        W.scenario.CLIENT_EVENTS.ELIMINATED or
+                        W.scenario.CLIENT_EVENTS.LEAVE
+                    )
+                end
+                TooltipText(W.labels.buttons.forfeit)
 
-                    local label, color
-                    if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
-                        local remaining = getDiffTime(W.cache.startTime, ctxt.now)
-                        if remaining > 0 then
-                            label = W.labels.playStartIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
-                        else
-                            label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
-                        end
-                        color = remaining <= 3 and
-                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                            BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                label, color = nil, nil
+                if W.cache.startTime and ctxt.now < W.cache.startTime + 3000 then
+                    remaining = getDiffTime(W.cache.startTime, ctxt.now)
+                    if remaining > 0 then
+                        label = W.labels.playStartIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
                     else
-                        if W.cache.isHunted then
-                            --DNF DISPLAY
-                            if W.scenario.dnf.process and W.scenario.dnf.targetTime and
-                                ctxt.now < W.scenario.dnf.targetTime then
-                                local remaining = getDiffTime(W.scenario.dnf.targetTime, ctxt.now)
-                                label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
-                                color = remaining <= 3 and
-                                    BJI.Utils.Style.TEXT_COLORS.ERROR or
-                                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
-                            end
-                        else
-                            --- respawn cooldown
-                            if W.scenario.hunterRespawnTargetTime and ctxt.now < W.scenario.hunterRespawnTargetTime + 3000 then
-                                local remaining = getDiffTime(W.scenario.hunterRespawnTargetTime, ctxt.now)
-                                label = remaining >= 0 and
-                                    W.labels.hunterResumeIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }) or
-                                    W.labels.flashStartHunter
-                                color = remaining <= 3 and
-                                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                                    BJI.Utils.Style.TEXT_COLORS.DEFAULT
-                            end
+                        label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
+                    end
+                    color = remaining <= 3 and
+                        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                        BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                else
+                    if W.cache.isHunted then
+                        --DNF DISPLAY
+                        if W.scenario.dnf.process and W.scenario.dnf.targetTime and
+                            ctxt.now < W.scenario.dnf.targetTime then
+                            remaining = getDiffTime(W.scenario.dnf.targetTime, ctxt.now)
+                            label = W.labels.huntedLooseIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
+                            color = remaining <= 3 and
+                                BJI.Utils.Style.TEXT_COLORS.ERROR or
+                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+                        end
+                    else
+                        --- respawn cooldown
+                        if W.scenario.hunterRespawnTargetTime and ctxt.now < W.scenario.hunterRespawnTargetTime + 3000 then
+                            remaining = getDiffTime(W.scenario.hunterRespawnTargetTime, ctxt.now)
+                            label = remaining >= 0 and
+                                W.labels.hunterResumeIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) }) or
+                                W.labels.flashStartHunter
+                            color = remaining <= 3 and
+                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                                BJI.Utils.Style.TEXT_COLORS.DEFAULT
                         end
                     end
-                    if label then
-                        line:icon({
-                            icon = BJI.Utils.Icon.ICONS.timer,
-                            big = true,
-                        }):text(label, color)
-                    end
-                    line:build()
-                end or nil,
-                W.cache.showManualResetBtn and function()
-                    LineBuilder():btnIcon({
-                        id = "manualReset",
-                        icon = BJI.Utils.Icon.ICONS.build,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        big = true,
-                        disabled = W.scenario.resetLock,
-                        tooltip = string.var("{1} ({2})", {
-                            W.labels.buttons.manualReset,
-                            extensions.core_input_bindings.getControlForAction("recover_vehicle"):capitalizeWords()
-                        }),
-                        onClick = function()
-                            BJI.Managers.Veh.recoverInPlace()
-                        end,
-                    }):build()
-                end or nil,
-            }
-        }):build()
+                end
+                if label then
+                    SameLine()
+                    Icon(BJI.Utils.Icon.ICONS.timer, { big = true })
+                    SameLine()
+                    Text(label, { color = color })
+                end
+            end
+            TableNextColumn()
+            if W.cache.showManualResetBtn then
+                if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
+                        { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                            disabled = W.scenario.resetLock }) then
+                    BJI.Managers.Veh.recoverInPlace()
+                end
+                TooltipText(string.var("{1} ({2})", {
+                    W.labels.buttons.manualReset,
+                    extensions.core_input_bindings.getControlForAction("recover_vehicle"):capitalizeWords()
+                }))
+            end
+
+            EndTable()
+        end
     end
 end
 
@@ -347,49 +327,45 @@ end
 ---@param ctxt TickContext
 local function drawBodyPreparation(ctxt)
     if W.cache.showConfigs then
-        LineLabel(W.labels.configChoose)
-        Indent(1)
+        Text(W.labels.configChoose)
+        Indent()
         Table(W.scenario.settings.hunterConfigs)
             :forEach(function(confData, i)
-                LineBuilder():btnIcon({
-                    id = string.var("spawnConfig{1}", { i }),
-                    icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.add,
-                    style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                        BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                    disabled = W.cache.disabledButtons,
-                    tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                    onClick = function()
-                        W.scenario.tryReplaceOrSpawn(confData.model, confData)
-                    end,
-                }):text(confData.label):build()
+                if IconButton("spawnConfig" .. tostring(i), ctxt.isOwner and
+                        BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.add,
+                        { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                            BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disabledButtons }) then
+                    W.scenario.tryReplaceOrSpawn(confData.model, confData)
+                end
+                TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
+                SameLine()
+                Text(confData.label)
             end)
-        Indent(-1)
+        Unindent()
     end
 
     W.cache.playersList:forEach(function(p, i)
         if i < 3 then
-            LineLabel(i == 1 and W.labels.hunted or W.labels.hunters)
-            Indent(1)
+            Text(i == 1 and W.labels.hunted or W.labels.hunters)
+            Indent()
         end
-        local line = LineBuilder():text(p.playerName, p.self and
+        Text(p.playerName, {
+            color = p.self and
                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-            :text(p.readyLabel, p.color)
+                BJI.Utils.Style.TEXT_COLORS.DEFAULT
+        })
+        SameLine()
+        Text(p.readyLabel, { color = p.color })
         if i > 1 and W.cache.showFugitiveAssignBtn then
-            line:btn({
-                id = "forceFugitive" .. p.playerName,
-                label = W.labels.buttons.setAsFugitive,
-                style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                disabled = W.cache.disabledButtons,
-                onClick = function()
-                    W.cache.disabledButtons = true
-                    BJI.Tx.scenario.HunterForceFugitive(p.playerName)
-                end
-            })
+            SameLine()
+            if Button("forceFugitive" .. p.playerName, W.labels.buttons.setAsFugitive,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disabledButtons }) then
+                W.cache.disabledButtons = true
+                BJI.Tx.scenario.HunterForceFugitive(p.playerName)
+            end
         end
-        line:build()
         if i == 1 or i == #W.cache.playersList then
-            Indent(-1)
+            Unindent()
         end
     end)
 end
@@ -397,21 +373,21 @@ end
 ---@param ctxt TickContext
 local function drawBodyGame(ctxt)
     W.cache.playersList:forEach(function(p, i)
-        local color = p.self and
+        color = p.self and
             BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
             BJI.Utils.Style.TEXT_COLORS.DEFAULT
         if i == 1 then
-            LineLabel(W.labels.hunted)
-            LineLabel(string.var("{1} - {2}/{3} {4}", { p.playerName, W.cache.waypointsReached,
-                W.cache.waypointsTotal, W.labels.waypoints }), color)
+            Text(W.labels.hunted)
+            Text(string.var("{1} - {2}/{3} {4}", { p.playerName, W.cache.waypointsReached,
+                W.cache.waypointsTotal, W.labels.waypoints }), { color = color })
         else
             if i == 2 then
-                LineLabel(W.labels.hunters)
-                Indent(1)
+                Text(W.labels.hunters)
+                Indent()
             end
-            LineLabel(p.playerName, color)
+            Text(p.playerName, { color = color })
             if i == #W.cache.playersList then
-                Indent(-1)
+                Unindent()
             end
         end
     end)

@@ -18,14 +18,14 @@ local W = {
         },
     },
     cache = {
-        labelsWidth = 0,
-        iconWidth = 0,
         positions = Table(),
         disableInputs = false,
     },
     changed = false,
     valid = true,
 }
+--- gc prevention
+local nextValue
 
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
@@ -34,7 +34,6 @@ local function onClose()
 end
 
 local function reloadMarkers()
-    BJI.Managers.WaypointEdit.reset()
     BJI.Managers.WaypointEdit.setWaypoints(Table(W.cache.positions)
         :map(function(position, i)
             return {
@@ -62,17 +61,11 @@ local function updateLabels()
     W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
 end
 
-local function udpateWidths()
-    W.cache.iconWidth = BJI.Utils.UI.GetBtnIconSize()
-    W.cache.labelsWidth = Range(1, #W.cache.positions)
-        :map(function(i)
-            return W.labels.position:var({ index = i })
+local function validatePositions()
+    W.valid = #W.cache.positions == 0 or
+        W.cache.positions:every(function(g)
+            return g.radius > 0 and g.pos ~= nil and g.rot ~= nil
         end)
-        :addAll({ W.labels.radius })
-        :reduce(function(res, label)
-            local w = BJI.Utils.UI.GetColumnTextWidth(label)
-            return w > res and w or res
-        end, 0)
 end
 
 local function updateCache()
@@ -84,21 +77,14 @@ local function updateCache()
                 rot = quat(g.rot),
             }
         end)
+    validatePositions()
+    reloadMarkers()
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        udpateWidths()
-    end, W.name))
-
-    udpateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, udpateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -114,30 +100,10 @@ local function onUnload()
     BJI.Managers.WaypointEdit.reset()
 end
 
-local function validatePositions()
-    W.valid = #W.cache.positions == 0 or
-        W.cache.positions:every(function(g)
-            return g.radius > 0 and g.pos ~= nil and g.rot ~= nil
-        end)
-end
-
 local function save()
     W.cache.disableInputs = true
     BJI.Tx.scenario.DeliverySave(W.cache.positions:map(function(p)
-        return {
-            radius = p.radius,
-            pos = {
-                x = p.pos.x,
-                y = p.pos.y,
-                z = p.pos.z,
-            },
-            rot = {
-                x = p.rot.x,
-                y = p.rot.y,
-                z = p.rot.z,
-                w = p.rot.w,
-            }
-        }
+        return math.roundPositionRotation(p)
     end), function(result)
         if result then
             W.changed = false
@@ -150,168 +116,115 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    LineBuilder():text(W.labels.title)
-        :btnIcon({
-            id = "reloadMarkers",
-            icon = BJI.Utils.Icon.ICONS.sync,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            tooltip = W.labels.buttons.refreshMarkers,
-            onClick = reloadMarkers,
-        }):btnIcon({
-        id = "createPosition",
-        icon = BJI.Utils.Icon.ICONS.add_location,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        disabled = W.cache.disableInputs or not ctxt.veh,
-        tooltip = string.var("{1}{2}", {
-            W.labels.buttons.addPosition,
-            not ctxt.veh and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-        }),
-        onClick = function()
-            W.cache.positions:insert({
-                pos = ctxt.veh.position,
-                rot = ctxt.veh.rotation,
-                radius = 2.5,
-            })
-            W.changed = true
-            reloadMarkers()
-            validatePositions()
-            udpateWidths()
-        end,
-    }):build()
+    Text(W.labels.title)
+    SameLine()
+    if IconButton("reloadMarkers", BJI.Utils.Icon.ICONS.sync) then
+        reloadMarkers()
+    end
+    TooltipText(W.labels.buttons.refreshMarkers)
+    SameLine()
+    if IconButton("createPosition", BJI.Utils.Icon.ICONS.add_location,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
+                not ctxt.veh }) then
+        W.cache.positions:insert({
+            pos = ctxt.veh.position,
+            rot = ctxt.veh.rotation,
+            radius = 2.5,
+        })
+        W.changed = true
+        reloadMarkers()
+        validatePositions()
+    end
+    TooltipText(W.labels.buttons.addPosition ..
+        (not ctxt.veh and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
 end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    W.cache.positions:reduce(function(cols, position, i)
-        return cols:addRow({
-                cells = {
-                    function()
-                        LineBuilder():icon({
-                            icon = BJI.Utils.Icon.ICONS.simobject_bng_waypoint,
-                        }):build()
-                    end,
-                    function() LineLabel(W.labels.position:var({ index = i })) end,
-                    function()
-                        LineBuilder()
-                            :btnIcon({
-                                id = string.var("goTo{1}", { i }),
-                                icon = BJI.Utils.Icon.ICONS.pin_drop,
-                                style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                                tooltip = W.labels.buttons.showPosition,
-                                onClick = function()
-                                    if ctxt.isOwner then
-                                        BJI.Managers.Veh.setPositionRotation(position.pos, position.rot)
-                                        if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
-                                            BJI.Managers.Cam.toggleFreeCam()
-                                        end
-                                    else
-                                        if BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.FREE then
-                                            BJI.Managers.Cam.toggleFreeCam()
-                                        end
-                                        BJI.Managers.Cam.setPositionRotation(position.pos, position.rot)
-                                    end
-                                end,
-                            })
-                            :btnIcon({
-                                id = string.var("movePos{1}", { i }),
-                                icon = BJI.Utils.Icon.ICONS.edit_location,
-                                style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                disabled = W.cache.disableInputs or not ctxt.veh or
-                                    ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-                                tooltip = string.var("{1}{2}", {
-                                    W.labels.buttons.setPosition,
-                                    (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-                                }),
-                                onClick = function()
-                                    W.cache.positions[i].pos = ctxt.veh.position
-                                    W.cache.positions[i].rot = ctxt.veh.rotation
-                                    W.changed = true
-                                    reloadMarkers()
-                                    validatePositions()
-                                end,
-                            })
-                            :btnIcon({
-                                id = string.var("delete{1}", { i }),
-                                icon = BJI.Utils.Icon.ICONS.delete_forever,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                disabled = W.cache.disableInputs,
-                                tooltip = W.labels.buttons.deletePosition,
-                                onClick = function()
-                                    W.cache.positions:remove(i)
-                                    W.changed = true
-                                    reloadMarkers()
-                                    validatePositions()
-                                    udpateWidths()
-                                end
-                            })
-                            :build()
+    if BeginTable("BJIScenarioEditorDeliveries", {
+            { label = "##scenarioeditor-deliveries-labels" },
+            { label = "##scenarioeditor-deliveries-data",  flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        W.cache.positions:forEach(function(p, i)
+            TableNewRow()
+            Icon(BJI.Utils.Icon.ICONS.simobject_bng_waypoint)
+            SameLine()
+            Text(W.labels.position:var({ index = i }))
+            TableNextColumn()
+            if IconButton("goToPosition" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
+                if ctxt.isOwner then
+                    BJI.Managers.Veh.setPositionRotation(p.pos, p.rot)
+                    if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
+                        BJI.Managers.Cam.toggleFreeCam()
                     end
-                }
-            })
-            :addRow({
-                cells = {
-                    nil,
-                    function() LineLabel(W.labels.radius) end,
-                    function()
-                        LineBuilder():inputNumeric({
-                            id = string.var("radius{1}", { i }),
-                            type = "float",
-                            precision = 1,
-                            value = position.radius,
-                            width = 120,
-                            min = .5,
-                            max = 50,
-                            step = .5,
-                            stepFast = 2,
-                            disabled = W.cache.disableInputs,
-                            onUpdate = function(val)
-                                position.radius = val
-                                W.changed = true
-                                reloadMarkers()
-                                validatePositions()
-                            end,
-                        }):build()
+                else
+                    if BJI.Managers.Cam.getCamera() ~= BJI.Managers.Cam.CAMERAS.FREE then
+                        BJI.Managers.Cam.toggleFreeCam()
                     end
-                }
-            }):addSeparator()
-    end, ColumnsBuilder("BJIScenarioEditorDeliveries", { W.cache.iconWidth, W.cache.labelsWidth, -1 })):build()
+                    BJI.Managers.Cam.setPositionRotation(p.pos, p.rot)
+                end
+            end
+            TooltipText(W.labels.buttons.showPosition)
+            SameLine()
+            if IconButton("movePosition" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
+                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                W.cache.positions[i].pos = ctxt.veh.position
+                W.cache.positions[i].rot = ctxt.veh.rotation
+                W.changed = true
+                reloadMarkers()
+                validatePositions()
+            end
+            TooltipText(W.labels.buttons.setPosition ..
+                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+            SameLine()
+            if IconButton("deletePosition" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
+                W.cache.positions:remove(i)
+                W.changed = true
+                reloadMarkers()
+                validatePositions()
+            end
+            TooltipText(W.labels.buttons.deletePosition)
+
+            TableNewRow()
+            Text(W.labels.radius)
+            if i < #W.cache.positions then Separator() end
+            TableNextColumn()
+            nextValue = SliderFloatPrecision("radiusPosition" .. tostring(i), p.radius, .5, 50,
+                { step = .5, stepFast = 2, disabled = W.cache.disableInputs, precision = 1 })
+            if nextValue then
+                p.radius = nextValue
+                W.changed = true
+                reloadMarkers()
+                validatePositions()
+            end
+        end)
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    local line = LineBuilder()
-        :btnIcon({
-            id = "cancel",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = W.labels.buttons.close,
-            onClick = BJI.Windows.ScenarioEditor.onClose,
-        })
-    if W.changed then
-        line:btnIcon({
-            id = "save",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = W.cache.disableInputs,
-            tooltip = W.labels.buttons.save,
-            onClick = save,
-        })
+    if IconButton("closeDeliveriesEdit", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        BJI.Windows.ScenarioEditor.onClose()
     end
-    line:build()
+    TooltipText(W.labels.buttons.close)
+    if W.changed then
+        SameLine()
+        if IconButton("saveDeliveriesEdit", BJI.Utils.Icon.ICONS.save,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = W.cache.disableInputs }) then
+            save()
+        end
+        TooltipText(W.labels.buttons.save)
+    end
 end
 
 local function open()
-    W.cache.positions = Table(BJI.Managers.Context.Scenario.Data.Deliveries)
-        :map(function(g)
-            return {
-                radius = g.radius,
-                pos = vec3(g.pos),
-                rot = quat(g.rot),
-            }
-        end)
-    validatePositions()
-    reloadMarkers()
     BJI.Windows.ScenarioEditor.view = W
 end
 

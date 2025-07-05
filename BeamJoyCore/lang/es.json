@@ -275,11 +275,6 @@
         "day": "d",
         "month": "METRO"
       },
-      "types": {
-        "string": "Cadena",
-        "number": "Número",
-        "boolean": "Booleano"
-      },
       "enabled": "Activado",
       "disabled": "Desactivado",
       "yes": "Sí",
@@ -287,7 +282,8 @@
       "state": "Estado",
       "unknown": "Desconocido",
       "and": "&",
-      "random": "Aleatorio"
+      "random": "Aleatorio",
+      "precisionInputTooltip": "Haz clic derecho para cambiar el modo"
     },
     "errors": {
       "invalid": "Inválido",
@@ -370,7 +366,7 @@
       "RaceSettings": "Configuración de carrera",
       "Race": "Carrera",
       "DeliveryMulti": "Entrega juntos",
-      "VehicleSelector": "Selector de vehículos",
+      "VehSelector": "Selector de vehículos",
       "Station": "Estación",
       "BusMissionPreparation": "Preparación de la misión del autobús",
       "ScenarioEditor": "Editor de escenarios",
@@ -609,6 +605,8 @@
     },
     "themeEditor": {
       "cancelModal": "Los cambios no se guardarán. ",
+      "resetAllTooltip": "Restablecer a valores de fábrica",
+      "resetAllModal": "Estás a punto de restablecer el tema del servidor a los valores de fábrica. ¿Estás seguro de que deseas continuar?",
       "Fields": {
         "title": "Elementos",
         "WINDOW_BG": "Fondo de ventana",
@@ -640,8 +638,11 @@
         "SEPARATOR": "Color del separador",
         "SEPARATOR_HOVERED": "Color del separador suspendido",
         "SEPARATOR_ACTIVE": "Color activo del separador",
+        "TABLE_HEADER_BG": "Fondo del encabezado de la tabla",
         "TABLE_ROW_BG": "Fondo de fila de mesa",
-        "TABLE_ROW_BG_ALT": "Fondo alternativo de la fila de la tabla",
+        "TABLE_ROW_BG_ALT": "Fondo alternativo de fila de tabla",
+        "TABLE_BORDER_STRONG": "Borde de tabla (fuerte)",
+        "TABLE_BORDER_LIGHT": "Borde de tabla (ligero)",
         "DOCKING_PREVIEW": "Fondo de vista previa de acoplamiento",
         "PROGRESSBAR": "Color de la barra de progreso"
       },
@@ -673,6 +674,10 @@
         "previewNumeric": "Vista previa numérico",
         "baseColor": "Color básico",
         "overrideTextColor": "Anular el color del texto",
+        "hoveredColor": "Color al pasar el ratón",
+        "activeColor": "Color activo",
+        "sliderGrabColor": "Color del deslizador",
+        "sliderGrabActiveColor": "Color activo del deslizador",
         "DEFAULT": "Entrada predeterminada",
         "ERROR": "Entrada de error",
         "DISABLED": "Entrada deshabilitada",
@@ -702,7 +707,7 @@
       "uiScale": "escala de interfaz de usuario",
       "vehicles": {
         "automaticLights": "Luces automáticas",
-        "automaticLightsTooltip": "Cambia los faros automáticamente según la hora del día"
+        "automaticLightsTooltip": "Activar faros automáticamente según la hora del día (y luz policial durante persecuciones)"
       },
       "nametags": {
         "preview": "Vista previa",
@@ -772,6 +777,7 @@
         "whitelist": {
           "title": "Lista blanca",
           "players": "Jugadores",
+          "addAllConnectedPlayers": "Añadir todos los jugadores conectados",
           "offlinePlayers": "Jugadores sin conexión",
           "addOfflinePlayer": "Agregar reproductor sin conexión",
           "addOfflinePlayerPlaceholder": "Nombre exact del jugador"
@@ -813,7 +819,7 @@
           "RaceSoloTimeBroadcast": "Transmitir tiempos en solitario"
         },
         "server": {
-          "title": "Configuración del servidor",
+          "title": "Configuración global",
           "lang": "Idioma de la consola del servidor",
           "allowMods": "Permitir mods de jugadores",
           "driftBigBroadcast": "Difusión de grandes desviaciones",
@@ -896,7 +902,7 @@
         },
         "KmDriveReward": "Recompensa de conducción /km",
         "ArrestReward": "Recompensa por arresto",
-        "ArrestRewardTooltip": "Aplicable al arrestar a un jugador o IA durante una persecución",
+        "ArrestRewardTooltip": "Se aplica al arrestar a un jugador durante una persecución",
         "EvadeReward": "Recompensa por evasión",
         "EvadeRewardTooltip": "Aplicable al escapar con éxito de la policía",
         "DeliveryVehicleReward": "Recompensa por entrega de vehículo",
@@ -1226,6 +1232,7 @@
       "noRefuelScenario": "No puede repostar su vehículo en este escenario.",
       "tanksAmount": "{amount} tanques",
       "emergencyRefuel": "Repostaje de emergencia",
+      "refill": "Rellenar depósito(s)",
       "edit": {
         "title": "Editor de Estaciones de Energía",
         "name": "Nombre de la estación",
@@ -1319,6 +1326,7 @@
         "line": "Línea {index}",
         "lineName": "Nombre",
         "loopable": "En bucle",
+        "stops": "Paradas de línea",
         "stop": "Detener {index}",
         "stopsMinimumError": "Se requieren al menos 2 paradas.",
         "stopName": "Nombre",
@@ -1402,21 +1410,27 @@
       "cars": "Coches",
       "trucks": "Camiones",
       "trailers": "Remolques",
-      "props": "Accesorios"
+      "props": "Accesorios",
+      "filterTooltip": "Filtrar por modelo o nombre del preset",
+      "noMatch": "Sin coincidencias..."
     },
     "database": {
       "players": {
         "title": "Jugadores",
         "playerName": "Jugador",
         "group": "Grupo",
+        "lastKickReason": "Última razón de expulsión",
         "banned": "Prohibido",
         "tempBanEndsIn": "Termina en {secs}",
         "banReason": "Razón de prohibición",
+        "lastBanReason": "Última razón de baneo",
         "muted": "Apagado",
-        "muteReason": "Razón silenciosa"
+        "muteReason": "Razón silenciosa",
+        "lastMuteReason": "Última razón de silenciamiento"
       },
       "vehicles": {
         "title": "Vehículos",
+        "blacklistDescription": "Los vehículos en lista negra aún son visibles y pueden ser generados por el personal.",
         "blacklistedModels": "Modelos en la lista negra"
       }
     },
@@ -1555,7 +1569,7 @@
       "duration": "Duración",
       "noParticipant": "Sin participantes aún",
       "buttons": {
-        "endSoloRace": "Terminar contrarreloj",
+        "endSoloActivity": "Finalizar actividad individual",
         "endTournament": "Terminar torneo",
         "endTournamentTooltip": "Se publicarán las posiciones en el chat",
         "errorMustHaveVehicle": "Necesitas un vehículo"

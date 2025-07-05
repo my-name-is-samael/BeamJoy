@@ -9,42 +9,36 @@ local fields = Table({
     { key = "HuntedResetDistanceThreshold",  type = "int", min = 0, max = 500, renderFormat = "%dm", default = 150 },
     { key = "EndTimeout",                    type = "int", min = 5, max = 30,  renderFormat = "%ds", default = 10 },
 })
+--- gc prevention
+local nextValue
 
-return function(ctxt, labels, cache)
-    fields:reduce(function(cols, v)
-        return cols:addRow({
-            cells = {
-                function()
-                    LineLabel(labels.hunter.keys[v.key], nil, false, labels.hunter.keys[v.key .. "Tooltip"])
-                end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = v.key .. "reset",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = BJI.Managers.Context.BJC.Hunter[v.key] == v.default,
-                        tooltip = labels.buttons.reset,
-                        onClick = function()
-                            BJI.Managers.Context.BJC.Hunter[v.key] = v.default
-                            BJI.Tx.config.bjc("Hunter." .. v.key, v.default)
-                        end
-                    }):slider({
-                        id = v.key,
-                        type = v.type,
-                        value = BJI.Managers.Context.BJC.Hunter[v.key],
-                        min = v.min,
-                        max = v.max,
-                        step = v.step,
-                        renderFormat = v.renderFormat,
-                        onUpdate = function(val)
-                            if BJI.Managers.Context.BJC.Hunter[v.key] ~= val then
-                                BJI.Managers.Context.BJC.Hunter[v.key] = val
-                                BJI.Tx.config.bjc("Hunter." .. v.key, val)
-                            end
-                        end
-                    }):build()
-                end
-            }
-        })
-    end, ColumnsBuilder("bjcHunter", { cache.hunter.labelsWidth, -1 })):build()
+return function(ctxt, labels)
+    if BeginTable("BJIServerBJCHunter", {
+            { label = "##bjiserverbjchunter-labels" },
+            { label = "##bjiserverbjchunter-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        fields:forEach(function(el)
+            TableNewRow()
+            Text(labels.hunter.keys[el.key])
+            TooltipText(labels.hunter.keys[el.key .. "Tooltip"])
+            TableNextColumn()
+            if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = el.default == BJI.Managers.Context.BJC.Hunter[el.key] }) then
+                BJI.Managers.Context.BJC.Hunter[el.key] = el.default
+                BJI.Tx.config.bjc("Hunter." .. el.key, el.default)
+            end
+            TooltipText(labels.buttons.reset)
+            SameLine()
+            nextValue = SliderIntPrecision(el.key, BJI.Managers.Context.BJC.Hunter[el.key], el.min, el.max,
+                { formatRender = el.renderFormat })
+            TooltipText(labels.hunter.keys[el.key .. "Tooltip"])
+            if nextValue then
+                BJI.Managers.Context.BJC.Hunter[el.key] = nextValue
+                BJI.Tx.config.bjc("Hunter." .. el.key, BJI.Managers.Context.BJC.Hunter[el.key])
+            end
+        end)
+
+        EndTable()
+    end
 end

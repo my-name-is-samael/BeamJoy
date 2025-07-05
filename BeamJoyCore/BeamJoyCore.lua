@@ -55,6 +55,7 @@ end
 
 local function loadBeamJoy()
     Log(string.var("Loading BeamJoyCore v{1} ...", { BJCVERSION }), "BJC")
+    printLogo()
 
     BJCEvents = require("managers/EventsManager")
 
@@ -83,7 +84,20 @@ local function loadBeamJoy()
 
     require("rx/Rx")
 
-    printLogo()
+    if BJCCore.Data.Debug then
+        -- TESTS
+        if not pcall(function()
+                for _, filename in pairs(FS.ListFiles(BJCPluginPath .. "/tests")) do
+                    if filename:find(".lua") and not filename:find("CommonTests") then
+                        require("tests/" .. filename:gsub(".lua", ""))
+                    end
+                end
+            end) then
+            BJCEvents.shutdown()
+            return
+        end
+    end
+
     Log(string.var("BeamJoyCore v{1} loaded !", { BJCVERSION }), "BJC")
     Log(BJCLang.getConsoleMessage("common.startMessage"))
 end

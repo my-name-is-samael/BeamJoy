@@ -23,13 +23,14 @@ local W = {
     },
     cache = {
         stationsCounts = {},
-        labelsWidth = 0,
         stations = Table(),
         disableInputs = false,
     },
     changed = false,
     valid = true,
 }
+--- gc prevention
+local invalidName, nextValue
 
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
@@ -38,7 +39,6 @@ local function onClose()
 end
 
 local function reloadMarkers()
-    BJI.Managers.WaypointEdit.reset()
     BJI.Managers.WaypointEdit.setWaypoints(Table(W.cache.stations)
         :map(function(s)
             return {
@@ -74,14 +74,6 @@ local function updateLabels()
     W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
-local function udpateWidths()
-    W.cache.labelsWidth = Table({ W.labels.name, W.labels.types, W.labels.radius })
-        :reduce(function(res, label)
-            local w = BJI.Utils.UI.GetColumnTextWidth(label)
-            return w > res and w or res
-        end, 0)
-end
-
 local function updateCache()
     W.cache.stationsCounts = Table()
     Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):forEach(function(energyType)
@@ -97,16 +89,7 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        udpateWidths()
-    end, W.name))
-
-    udpateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, udpateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -150,36 +133,32 @@ local function save()
 end
 
 local function header(ctxt)
-    LineBuilder():text(W.labels.title):btnIcon({
-        id = "reloadMarkers",
-        icon = BJI.Utils.Icon.ICONS.sync,
-        style = BJI.Utils.Style.BTN_PRESETS.INFO,
-        tooltip = W.labels.buttons.refreshMarkers,
-        onClick = reloadMarkers,
-    }):btnIcon({
-        id = "createStation",
-        icon = BJI.Utils.Icon.ICONS.add_location,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
-        tooltip = string.var("{1}{2}", {
-            W.labels.buttons.addStationHere,
-            (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE) and
-            " (" .. W.labels.buttons.errorMustBeFreecaming .. ")" or ""
-        }),
-        onClick = function()
-            table.insert(W.cache.stations, {
-                name = "",
-                types = Table(),
-                radius = 2.5,
-                pos = BJI.Managers.Cam.getPositionRotation().pos,
-            })
-            W.changed = true
-            reloadMarkers()
-            validateStations()
-        end
-    }):build()
+    Text(W.labels.title)
+    SameLine()
+    if IconButton("reloadMarkers", BJI.Utils.Icon.ICONS.sync,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.INFO }) then
+        reloadMarkers()
+    end
+    TooltipText(W.labels.buttons.refreshMarkers)
+    SameLine()
+    if IconButton("createStation", BJI.Utils.Icon.ICONS.add_location,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
+        table.insert(W.cache.stations, {
+            name = "",
+            types = Table(),
+            radius = 2.5,
+            pos = BJI.Managers.Cam.getPositionRotation().pos,
+        })
+        W.changed = true
+        reloadMarkers()
+        validateStations()
+    end
+    TooltipText(W.labels.buttons.addStationHere ..
+        (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+            (" (" .. W.labels.buttons.errorMustBeFreecaming .. ")") or ""))
 
-    LineLabel(Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):map(function(energyType)
+    Text(Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):map(function(energyType)
         return string.var("{1} : {2}", {
             W.labels.energyTypes[energyType],
             W.cache.stationsCounts[energyType] or 0
@@ -188,153 +167,116 @@ local function header(ctxt)
 end
 
 local function body(ctxt)
-    W.cache.stations:reduce(function(cols, station, i)
-        local invalidName = #station.name:trim() == 0
-        return cols:addRow({
-                cells = {
-                    function() LineLabel(W.labels.name, invalidName and BJI.Utils.Style.TEXT_COLORS.ERROR or nil) end,
-                    function()
-                        LineBuilder():inputString({
-                            id = string.var("nameStation{1}", { i }),
-                            style = invalidName and BJI.Utils.Style.INPUT_PRESETS.ERROR or nil,
-                            value = station.name,
-                            disabled = W.cache.disableInputs,
-                            onUpdate = function(val)
-                                station.name = val
-                                W.changed = true
-                                reloadMarkers()
-                                validateStations()
-                            end
-                        }):build()
-                    end,
-                }
+    if BeginTable("BJIScenarioEditorEnergyStations", {
+            { label = "##scenarioeditor-energystations-labels" },
+            { label = "##scenarioeditor-energystations-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+        }) then
+        W.cache.stations:forEach(function(s, i)
+            TableNewRow()
+            Icon(BJI.Utils.Icon.ICONS.local_gas_station)
+            TableNextColumn()
+            if IconButton("goToStation-" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop,
+                    { disabled = W.cache.disableInputs }) then
+                if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
+                    BJI.Managers.Cam.toggleFreeCam()
+                end
+                BJI.Managers.Cam.setPositionRotation(s.pos)
+            end
+            TooltipText(W.labels.buttons.showStation)
+            SameLine()
+            if IconButton("moveStation-" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
+                        ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
+                s.pos = BJI.Managers.Cam.getPositionRotation().pos
+                W.changed = true
+                reloadMarkers()
+                validateStations()
+            end
+            TooltipText(W.labels.buttons.setStationHere ..
+                (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+                    " (" .. W.labels.buttons.errorMustBeFreecaming .. ")" or ""))
+            SameLine()
+            if IconButton("deleteStation-" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
+                s.types:forEach(function(energyType)
+                    W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] - 1
+                end)
+                W.cache.stations:remove(i)
+                W.changed = true
+                reloadMarkers()
+                validateStations()
+            end
+            TooltipText(W.labels.buttons.deleteStation)
+
+            invalidName = #s.name:trim() == 0
+            TableNewRow()
+            Text(W.labels.name, { color = invalidName and BJI.Utils.Style.TEXT_COLORS.ERROR or nil })
+            TableNextColumn()
+            nextValue = InputText("nameStation" .. tostring(i), s.name, {
+                disabled = W.cache.disableInputs,
+                inputStyle = invalidName and BJI.Utils.Style.INPUT_PRESETS.ERROR or nil
             })
-            :addRow({
-                cells = {
-                    function() LineLabel(W.labels.types, #station.types == 0 and BJI.Utils.Style.TEXT_COLORS.ERROR or nil) end,
-                    function()
-                        local line = LineBuilder()
-                        Table(BJI.CONSTANTS.ENERGY_STATION_TYPES)
-                            :forEach(function(energyType)
-                                line:btnSwitch({
-                                    id = string.var("typeStation{1}{2}", { i, energyType }),
-                                    labelOn = W.labels.energyTypes[energyType],
-                                    labelOff = W.labels.energyTypes[energyType],
-                                    state = station.types:includes(energyType),
-                                    disabled = W.cache.disableInputs,
-                                    onClick = function()
-                                        local pos = table.indexOf(station.types, energyType)
-                                        if pos then
-                                            W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] - 1
-                                            table.remove(station.types, pos)
-                                        else
-                                            W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] + 1
-                                            table.insert(station.types, energyType)
-                                        end
-                                        W.changed = true
-                                        validateStations()
-                                    end
-                                })
-                            end)
-                        line:build()
-                    end,
-                }
-            })
-            :addRow({
-                cells = {
-                    function() LineLabel(W.labels.radius) end,
-                    function()
-                        LineBuilder():inputNumeric({
-                            id = string.var("radiusStation{1}", { i }),
-                            type = "float",
-                            precision = 1,
-                            value = station.radius,
-                            disabled = W.cache.disableInputs,
-                            min = 1,
-                            max = 20,
-                            step = 1,
-                            onUpdate = function(val)
-                                station.radius = val
-                                W.changed = true
-                                reloadMarkers()
-                                validateStations()
-                            end
-                        }):build()
-                    end,
-                }
-            }):addRow({
-                cells = {
-                    nil,
-                    function()
-                        LineBuilder():btnIcon({
-                            id = string.var("goToStation{1}", { i }),
-                            icon = BJI.Utils.Icon.ICONS.pin_drop,
-                            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                            tooltip = W.labels.buttons.showStation,
-                            onClick = function()
-                                if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                                    BJI.Managers.Cam.toggleFreeCam()
-                                end
-                                BJI.Managers.Cam.setPositionRotation(station.pos)
-                            end
-                        }):btnIcon({
-                            id = string.var("moveStation{1}", { i }),
-                            icon = BJI.Utils.Icon.ICONS.edit_location,
-                            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE,
-                            tooltip = string.var("{1}{2}", {
-                                W.labels.buttons.setStationHere,
-                                (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE) and
-                                " (" .. W.labels.buttons.errorMustBeFreecaming .. ")" or ""
-                            }),
-                            onClick = function()
-                                station.pos = BJI.Managers.Cam.getPositionRotation().pos
-                                W.changed = true
-                                reloadMarkers()
-                                validateStations()
-                            end
-                        }):btnIcon({
-                            id = string.var("deleteStation{1}", { i }),
-                            icon = BJI.Utils.Icon.ICONS.delete_forever,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            disabled = W.cache.disableInputs,
-                            tooltip = W.labels.buttons.deleteStation,
-                            onClick = function()
-                                station.types:forEach(function(energyType)
-                                    W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] - 1
-                                end)
-                                W.cache.stations:remove(i)
-                                W.changed = true
-                                reloadMarkers()
-                                validateStations()
-                            end
-                        }):build()
-                    end,
-                }
-            }):addSeparator()
-    end, ColumnsBuilder("BJIScenarioEditorEnergyStations", { W.cache.labelsWidth, -1 })):build()
+            if nextValue then
+                s.name = nextValue
+                W.changed = true
+                reloadMarkers()
+                validateStations()
+            end
+
+            TableNewRow()
+            Text(W.labels.types, { color = #s.types == 0 and BJI.Utils.Style.TEXT_COLORS.ERROR or nil })
+            TableNextColumn()
+            Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):values()
+                :forEach(function(energyType, j)
+                    if j > 1 then SameLine() end
+                    if Button("type-station-" .. tostring(i) .. "-" .. energyType, W.labels.energyTypes[energyType],
+                            { btnStyle = s.types:includes(energyType) and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                                BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
+                        local pos = s.types:indexOf(energyType)
+                        if pos then
+                            W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] - 1
+                            s.types:remove(pos)
+                        else
+                            W.cache.stationsCounts[energyType] = W.cache.stationsCounts[energyType] + 1
+                            s.types:insert(energyType)
+                        end
+                        W.changed = true
+                        validateStations()
+                    end
+                end)
+
+            TableNewRow()
+            Text(W.labels.radius)
+            if i < #W.cache.stations then Separator() end
+            TableNextColumn()
+            nextValue = SliderFloatPrecision("radiusStation" .. tostring(i), s.radius, 1, 20,
+                { precision = 1, disabled = W.cache.disableInputs, formatRender = "%.1fm" })
+            if nextValue then
+                s.radius = nextValue
+                W.changed = true
+                reloadMarkers()
+                validateStations()
+            end
+        end)
+        EndTable()
+    end
 end
 
 local function footer(ctxt)
-    local line = LineBuilder():btnIcon({
-        id = "closeEnergyStations",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.buttons.close,
-        onClick = BJI.Windows.ScenarioEditor.onClose,
-    })
-    if W.changed then
-        line:btnIcon({
-            id = "saveEnergyStations",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = W.cache.disableInputs or not W.valid,
-            tooltip = string.var("{1}{2}", { W.labels.buttons.save,
-                not W.valid and " (" .. W.labels.buttons.errorInvalidData .. ")" or "" }),
-            onClick = save,
-        })
+    if IconButton("closeEnergyStations", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        BJI.Windows.ScenarioEditor.onClose()
     end
-    line:build()
+    if W.changed then
+        SameLine()
+        if IconButton("saveEnergyStations", BJI.Utils.Icon.ICONS.save,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = W.cache.disableInputs or not W.valid }) then
+            save()
+        end
+        TooltipText(W.labels.buttons.save ..
+            (not W.valid and " (" .. W.labels.buttons.errorInvalidData .. ")" or ""))
+    end
 end
 
 local function open()

@@ -40,6 +40,8 @@ local W = {
     changed = false,
     valid = false,
 }
+--- gc prevention
+local opened, nextValue
 
 local function onClose()
     BJI.Managers.WaypointEdit.reset()
@@ -47,10 +49,9 @@ local function onClose()
     W.valid = true
 end
 
+local hunterColor = BJI.Utils.ShapeDrawer.Color(1, 1, 0, .5)
+local huntedColor = BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5)
 local function reloadMarkers()
-    local hunterColor = BJI.Utils.ShapeDrawer.Color(1, 1, 0, .5)
-    local huntedColor = BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5)
-    BJI.Managers.WaypointEdit.reset()
     BJI.Managers.WaypointEdit.setWaypoints(W.cache.targets:map(function(target, i)
         return {
             name = BJI.Managers.Lang.get("hunter.edit.targetName"):var({ index = i }),
@@ -112,26 +113,37 @@ local function updateLabels()
     W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
 end
 
-local function udpateWidths()
-    W.cache.labelsWidth = 0
+local function validateData()
+    W.valid = not W.cache.enabled or (
+        #W.cache.targets >= 2 and
+        #W.cache.hunterPositions >= 5 and
+        #W.cache.huntedPositions > 0
+    )
 end
 
 local function updateCache()
+    local hunterData = BJI.Managers.Context.Scenario.Data.Hunter
+    W.cache.enabled = hunterData.enabled
+    W.cache.targets = Table(hunterData.targets):map(function(target)
+        return math.tryParsePosRot({
+            pos = target.pos,
+            radius = target.radius,
+        })
+    end)
+    W.cache.hunterPositions = Table(hunterData.hunterPositions):map(function(hunter)
+        return math.tryParsePosRot(hunter)
+    end)
+    W.cache.huntedPositions = Table(hunterData.huntedPositions):map(function(hunted)
+        return math.tryParsePosRot(hunted)
+    end)
+    validateData()
+    reloadMarkers()
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        udpateWidths()
-    end, W.name))
-
-    udpateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, udpateWidths, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -144,14 +156,6 @@ end
 
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
-end
-
-local function validateData()
-    W.valid = not W.cache.enabled or (
-        #W.cache.targets >= 2 and
-        #W.cache.hunterPositions >= 5 and
-        #W.cache.huntedPositions > 0
-    )
 end
 
 local function save()
@@ -192,68 +196,56 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    LineBuilder():text(W.labels.title):btnIcon({
-        id = "reloadMarkers",
-        icon = BJI.Utils.Icon.ICONS.sync,
-        style = BJI.Utils.Style.BTN_PRESETS.INFO,
-        tooltip = W.labels.buttons.refreshMarkers,
-        onClick = reloadMarkers,
-    }):build()
+    Text(W.labels.title)
+    SameLine()
+    if IconButton("reloadMarkers", BJI.Utils.Icon.ICONS.sync) then
+        reloadMarkers()
+    end
+    TooltipText(W.labels.buttons.refreshMarkers)
 
-    LineBuilder():text(W.labels.enabled):btnIconToggle({
-        id = "toggleEnabled",
-        icon = W.cache.enabled and BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
-        state = W.cache.enabled == true,
-        disabled = W.cache.disableButtons,
-        tooltip = W.labels.buttons.toggleModeVisibility,
-        onClick = function()
-            local origin = W.cache.enabled
-            W.cache.enabled = not W.cache.enabled
-            checkEnabled()
-            if origin ~= W.cache.enabled then
-                W.changed = true
-            end
+    Text(W.labels.enabled)
+    SameLine()
+    if IconButton("toggleEnabled", W.cache.enabled == true and BJI.Utils.Icon.ICONS.visibility or
+            BJI.Utils.Icon.ICONS.visibility_off, { disabled = W.cache.disableButtons,
+                btnStyle = W.cache.enabled == true and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                    BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        local origin = W.cache.enabled
+        W.cache.enabled = not W.cache.enabled
+        checkEnabled()
+        if origin ~= W.cache.enabled then
+            W.changed = true
         end
-    }):build()
+    end
+    TooltipText(W.labels.buttons.toggleModeVisibility)
 end
 
 ---@param ctxt TickContext
 local function drawHunters(ctxt)
-    W.cache.hunterPositions:forEach(function(hunterPoint, i)
-        LineBuilder():text(W.labels.hunterPositionName:var({ index = i })):btnIcon({
-            id = string.var("gotoHunter{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.pin_drop,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            tooltip = W.labels.buttons.showHunterStartPosition,
-            onClick = function()
+    if BeginTable("BJIScenarioEditorHunterHuntersStarts", {
+            { label = "##scenarioeditor-hunter-huntersstarts-labels" },
+            { label = "##scenarioeditor-hunter-huntersstarts-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        W.cache.hunterPositions:forEach(function(hunterPoint, i)
+            TableNewRow()
+            Text(W.labels.hunterPositionName:var({ index = i }))
+            TableNextColumn()
+            if IconButton("goToHunter" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
                     if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
                         BJI.Managers.Cam.toggleFreeCam()
                     end
                     BJI.Managers.Veh.setPositionRotation(hunterPoint.pos, hunterPoint.rot, { safe = false })
                 else
-                    if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
-                    end
-                    local pos = vec3(
-                        hunterPoint.pos.x,
-                        hunterPoint.pos.y,
-                        hunterPoint.pos.z + 1
-                    )
-                    BJI.Managers.Cam.setPositionRotation(pos, hunterPoint.rot * quat(0, 0, 1, 0))
+                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+                    BJI.Managers.Cam.setPositionRotation(hunterPoint.pos + vec3(0, 0, 1),
+                        hunterPoint.rot * quat(0, 0, 1, 0))
                 end
-            end,
-        }):btnIcon({
-            id = string.var("moveHunter{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.edit_location,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            disabled = W.cache.disableButtons or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-            tooltip = string.var("{1}{2}", {
-                W.labels.buttons.setHunterStartPositionHere,
-                (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-            }),
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.showHunterStartPosition)
+            SameLine()
+            if IconButton("moveHunter" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableButtons or
+                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
                 W.cache.hunterPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -261,60 +253,52 @@ local function drawHunters(ctxt)
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):btnIcon({
-            id = string.var("deleteHunter{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.delete_forever,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.disableButtons,
-            tooltip = W.labels.buttons.deleteHunterStartPosition,
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.setHunterStartPositionHere ..
+                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+            SameLine()
+            if IconButton("deleteHunter" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableButtons }) then
                 W.cache.hunterPositions:remove(i)
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):build()
-    end)
+            end
+            TooltipText(W.labels.buttons.deleteHunterStartPosition)
+        end)
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function drawHunted(ctxt)
-    W.cache.huntedPositions:forEach(function(huntedPoint, i)
-        LineBuilder():text(W.labels.huntedPositionName:var({ index = i })):btnIcon({
-            id = string.var("gotoHunted{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.pin_drop,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            tooltip = W.labels.buttons.showHuntedStartPosition,
-            onClick = function()
+    if BeginTable("BJIScenarioEditorHunterHuntedStarts", {
+            { label = "##scenarioeditor-hunter-huntedstarts-labels" },
+            { label = "##scenarioeditor-hunter-huntedstarts-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        W.cache.huntedPositions:forEach(function(huntedPoint, i)
+            TableNewRow()
+            Text(W.labels.huntedPositionName:var({ index = i }))
+            TableNextColumn()
+            if IconButton("goToHunted" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
                     if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
                         BJI.Managers.Cam.toggleFreeCam()
                     end
                     BJI.Managers.Veh.setPositionRotation(huntedPoint.pos, huntedPoint.rot, { safe = false })
                 else
-                    if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
-                    end
-                    local pos = vec3(
-                        huntedPoint.pos.x,
-                        huntedPoint.pos.y,
-                        huntedPoint.pos.z + 1
-                    )
-                    BJI.Managers.Cam.setPositionRotation(pos, huntedPoint.rot * quat(0, 0, 1, 0))
+                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+                    BJI.Managers.Cam.setPositionRotation(huntedPoint.pos + vec3(0, 0, 1),
+                        huntedPoint.rot * quat(0, 0, 1, 0))
                 end
-            end,
-        }):btnIcon({
-            id = string.var("moveHunted{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.edit_location,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            disabled = W.cache.disableButtons or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-            tooltip = string.var("{1}{2}", {
-                W.labels.buttons.setHuntedStartPositionHere,
-                (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-            }),
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.showHuntedStartPosition)
+            SameLine()
+            if IconButton("moveHunted" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableButtons or
+                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
                 W.cache.huntedPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -322,245 +306,199 @@ local function drawHunted(ctxt)
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):btnIcon({
-            id = string.var("deleteHunted{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.delete_forever,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.disableButtons,
-            tooltip = W.labels.buttons.deleteHuntedStartPosition,
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.setHuntedStartPositionHere ..
+                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+            SameLine()
+            if IconButton("deleteHunted" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableButtons }) then
                 W.cache.huntedPositions:remove(i)
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):build()
-    end)
+            end
+            TooltipText(W.labels.buttons.deleteHuntedStartPosition)
+        end)
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function drawWaypoints(ctxt)
-    W.cache.targets:forEach(function(waypoint, i)
-        LineBuilder():text(W.labels.targetName:var({ index = i })):btnIcon({
-            id = string.var("gotoWaypoint{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.pin_drop,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            tooltip = W.labels.buttons.showWaypoint,
-            onClick = function()
+    if BeginTable("BJIScenarioEditorHunterWaypoints", {
+            { label = "##scenarioeditor-hunter-waypoints-labels" },
+            { label = "##scenarioeditor-hunter-waypoints-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        W.cache.targets:forEach(function(waypoint, i)
+            TableNewRow()
+            Text(W.labels.targetName:var({ index = i }))
+            TableNextColumn()
+            if IconButton("gotoWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
                     if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
                         BJI.Managers.Cam.toggleFreeCam()
                     end
                     BJI.Managers.Veh.setPositionRotation(waypoint.pos, ctxt.veh.rotation, { safe = false })
                 else
-                    if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
-                    end
-                    local pos = vec3(
-                        waypoint.pos.x,
-                        waypoint.pos.y,
-                        waypoint.pos.z + 1
-                    )
-                    BJI.Managers.Cam.setPositionRotation(pos)
+                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
+                    BJI.Managers.Cam.setPositionRotation(waypoint.pos + vec3(0, 0, 1))
                 end
-            end,
-        }):btnIcon({
-            id = string.var("moveWaypoint{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.edit_location,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-            tooltip = string.var("{1}{2}", {
-                W.labels.buttons.setWaypointHere,
-                (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-            }),
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.showWaypoint)
+            SameLine()
+            if IconButton("moveWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
+                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
                 waypoint.pos = ctxt.veh.position
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):btnIcon({
-            id = string.var("deleteWaypoint{1}", { i }),
-            icon = BJI.Utils.Icon.ICONS.delete_forever,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.disableInputs,
-            tooltip = W.labels.buttons.deleteWaypoint,
-            onClick = function()
+            end
+            TooltipText(W.labels.buttons.setWaypointHere ..
+                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+            SameLine()
+            if IconButton("deleteWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
                 W.cache.targets:remove(i)
                 W.changed = true
                 reloadMarkers()
                 validateData()
-            end,
-        }):build()
+            end
+            TooltipText(W.labels.buttons.deleteWaypoint)
 
-        Indent(1)
-        LineBuilder():text(W.labels.radius):inputNumeric({
-            id = string.var("radiusWaypoint{1}", { i }),
-            type = "float",
-            precision = 1,
-            value = waypoint.radius,
-            min = 1,
-            max = 50,
-            step = .5,
-            stepFast = 2,
-            disabled = W.cache.disableInputs,
-            onUpdate = function(val)
-                waypoint.radius = val
+            TableNewRow()
+            Indent()
+            Text(W.labels.radius)
+            Unindent()
+            TableNextColumn()
+            nextValue = SliderFloatPrecision("radiusWaypoint" .. tostring(i), waypoint.radius, 1, 50,
+                { step = .5, stepFast = 2, precision = 1, disabled = W.cache.disableInputs })
+            if nextValue then
+                waypoint.radius = nextValue
                 W.changed = true
                 reloadMarkers()
                 validateData()
             end
-        }):build()
-        Indent(-1)
-    end)
+        end)
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    AccordionBuilder():label(BJI.Managers.Lang.get("hunter.edit.hunters")):commonStart(function(isOpen)
-        local line = LineBuilder(true):text(string.var("({1})", { #W.cache.hunterPositions }))
-        if isOpen then
-            line:btnIcon({
-                id = "addHunterPosition",
-                icon = BJI.Utils.Icon.ICONS.add_location,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-                tooltip = string.var("{1}{2}", {
-                    W.labels.buttons.addHunterStartPositionHere,
-                    (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-                }),
-                onClick = function()
-                    W.cache.hunterPositions:insert(math.roundPositionRotation({
-                        pos = ctxt.veh.position,
-                        rot = ctxt.veh.rotation,
-                    }))
-                    W.changed = true
-                    reloadMarkers()
-                    validateData()
-                end
-            })
+    opened = BeginTree(BJI.Managers.Lang.get("hunter.edit.hunters"))
+    SameLine()
+    Text(string.format("(%d)", #W.cache.hunterPositions))
+    if opened then
+        SameLine()
+        if IconButton("addHunterPosition", BJI.Utils.Icon.ICONS.add_location,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
+                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+            W.cache.hunterPositions:insert(math.roundPositionRotation({
+                pos = ctxt.veh.position,
+                rot = ctxt.veh.rotation,
+            }))
+            W.changed = true
+            reloadMarkers()
+            validateData()
         end
-        if #W.cache.hunterPositions < 5 then
-            line:text(W.labels.missingPoints:var({ amount = 5 - #W.cache.hunterPositions }),
-                BJI.Utils.Style.TEXT_COLORS.ERROR)
-        end
-        line:build()
-    end):openedBehavior(function()
+        TooltipText(W.labels.buttons.addHunterStartPositionHere ..
+            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+    end
+    if #W.cache.hunterPositions < 5 then
+        SameLine()
+        Text(W.labels.missingPoints:var({ amount = 5 - #W.cache.hunterPositions }),
+            { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+    end
+    if opened then
         drawHunters(ctxt)
-    end):build()
+        EndTree()
+    end
 
-    AccordionBuilder():label(BJI.Managers.Lang.get("hunter.edit.hunted")):commonStart(function(isOpen)
-        local line = LineBuilder(true):text(string.var("({1})", { #W.cache.huntedPositions }))
-        if isOpen then
-            line:btnIcon({
-                id = "addHuntedPosition",
-                icon = BJI.Utils.Icon.ICONS.add_location,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-                tooltip = string.var("{1}{2}", {
-                    W.labels.buttons.addHuntedStartPositionHere,
-                    (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-                }),
-                onClick = function()
-                    W.cache.huntedPositions:insert(math.roundPositionRotation({
-                        pos = ctxt.veh.position,
-                        rot = ctxt.veh.rotation,
-                    }))
-                    W.changed = true
-                    reloadMarkers()
-                    validateData()
-                end
-            })
+    opened = BeginTree(BJI.Managers.Lang.get("hunter.edit.hunted"))
+    SameLine()
+    Text(string.format("(%d)", #W.cache.huntedPositions))
+    if opened then
+        SameLine()
+        if IconButton("addHuntedPosition", BJI.Utils.Icon.ICONS.add_location,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
+                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+            W.cache.huntedPositions:insert(math.roundPositionRotation({
+                pos = ctxt.veh.position,
+                rot = ctxt.veh.rotation,
+            }))
+            W.changed = true
+            reloadMarkers()
+            validateData()
         end
-        if #W.cache.huntedPositions < 2 then
-            line:text(W.labels.missingPoints:var({ amount = 2 - #W.cache.huntedPositions }),
-                BJI.Utils.Style.TEXT_COLORS.ERROR)
-        end
-        line:build()
-    end):openedBehavior(function()
+        TooltipText(W.labels.buttons.addHuntedStartPositionHere ..
+            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+    end
+    if #W.cache.huntedPositions < 2 then
+        SameLine()
+        Text(W.labels.missingPoints:var({ amount = 2 - #W.cache.huntedPositions }),
+            { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+    end
+    if opened then
         drawHunted(ctxt)
-    end):build()
+        EndTree()
+    end
 
-    AccordionBuilder():label(BJI.Managers.Lang.get("hunter.edit.waypoints")):commonStart(function(isOpen)
-        local line = LineBuilder(true):text(string.var("({1})", { #W.cache.targets }))
-        if isOpen then
-            line:btnIcon({
-                id = "addWaypoint",
-                icon = BJI.Utils.Icon.ICONS.add_location,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = W.cache.disableInputs or not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE,
-                tooltip = string.var("{1}{2}", {
-                    W.labels.buttons.addWaypointHere,
-                    (not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
-                    " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-                }),
-                onClick = function()
-                    W.cache.targets:insert({
-                        pos = ctxt.veh.position,
-                        radius = 2,
-                    })
-                    W.changed = true
-                    reloadMarkers()
-                    validateData()
-                end
+    opened = BeginTree(BJI.Managers.Lang.get("hunter.edit.waypoints"))
+    SameLine()
+    Text(string.format("(%d)", #W.cache.targets))
+    if opened then
+        SameLine()
+        if IconButton("addWaypoint", BJI.Utils.Icon.ICONS.add_location,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
+                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+            W.cache.targets:insert({
+                pos = ctxt.veh.position,
+                radius = 2,
             })
+            W.changed = true
+            reloadMarkers()
+            validateData()
         end
-        if #W.cache.targets < 2 then
-            line:text(W.labels.missingPoints:var({ amount = 2 - #W.cache.targets }),
-                BJI.Utils.Style.TEXT_COLORS.ERROR)
-        end
-        line:build()
-    end):openedBehavior(function()
+        TooltipText(W.labels.buttons.addWaypointHere ..
+            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+    end
+    if #W.cache.targets < 2 then
+        SameLine()
+        Text(W.labels.missingPoints:var({ amount = 2 - #W.cache.targets }),
+            { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+    end
+    if opened then
         drawWaypoints(ctxt)
-    end):build()
+        EndTree()
+    end
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    local line = LineBuilder():btnIcon({
-        id = "cancelHunterEdit",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.buttons.close,
-        onClick = BJI.Windows.ScenarioEditor.onClose,
-    })
-    if W.changed then
-        line:btnIcon({
-            id = "saveHunterEdit",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = W.cache.disableButtons or not W.valid,
-            tooltip = string.var("{1}{2}", {
-                W.labels.buttons.save,
-                not W.valid and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""
-            }),
-            onClick = save,
-        })
+    if IconButton("closeHunterEdit", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        BJI.Windows.ScenarioEditor.onClose()
     end
-    line:build()
+    TooltipText(W.labels.buttons.close)
+    if W.changed then
+        SameLine()
+        if IconButton("saveHunterEdit", BJI.Utils.Icon.ICONS.save,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = W.cache.disableButtons or not W.valid }) then
+            save()
+        end
+        TooltipText(W.labels.buttons.save ..
+            (not W.valid and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or ""))
+    end
 end
 
 local function open()
-    local hunterData = BJI.Managers.Context.Scenario.Data.Hunter
-    W.cache.enabled = hunterData.enabled
-    W.cache.targets = Table(hunterData.targets):map(function(target)
-        return math.tryParsePosRot({
-            pos = target.pos,
-            radius = target.radius,
-        })
-    end)
-    W.cache.hunterPositions = Table(hunterData.hunterPositions):map(function(hunter)
-        return math.tryParsePosRot(hunter)
-    end)
-    W.cache.huntedPositions = Table(hunterData.huntedPositions):map(function(hunted)
-        return math.tryParsePosRot(hunted)
-    end)
-    validateData()
-    reloadMarkers()
     BJI.Windows.ScenarioEditor.view = W
 end
 

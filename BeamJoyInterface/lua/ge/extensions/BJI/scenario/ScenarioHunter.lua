@@ -64,6 +64,8 @@ local S = {
         huntersVehs = Table(),
     },
 }
+--- gc prevention
+local actions
 
 local function stop()
     S.state = nil
@@ -113,16 +115,6 @@ local function onLoad(ctxt)
         S.previousCamera = BJI.Managers.Cam.CAMERAS.ORBIT
     end
     BJI.Managers.Veh.deleteAllOwnVehicles()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.GPS.reset()
     BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
@@ -141,7 +133,7 @@ local function onUnload()
     BJI.Managers.Async.removeTask("BJIHunterStartCam")
     BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
 
-    BJI.Managers.Veh.getMPVehicles({ isAi = false }):forEach(function(v)
+    BJI.Managers.Veh.getMPVehicles({ isAi = false }, true):forEach(function(v)
         BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
         BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
@@ -158,32 +150,37 @@ local function onUnload()
     if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.EXTERNAL then
         BJI.Managers.Cam.setCamera(S.previousCamera or BJI.Managers.Cam.CAMERAS.ORBIT)
     end
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     BJI.Windows.VehSelector.tryClose(true)
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local res = Table():addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    if S.state == S.STATES.PREPARATION then
+        res:addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+    else
+        if participant and not S.finished then
+            res:addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+                :addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+                :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+                :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+        end
+    end
+    return res
 end
 
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.RESTRICTED
-            },
-        })
         BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
+        BJI.Managers.Restrictions.update()
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
         if not BJI.Windows.VehSelector.show then
             BJI.Windows.VehSelector.open(false)
         end
@@ -204,7 +201,6 @@ local function tryReplaceOrSpawn(model, config)
             BJI.Managers.Context.Scenario.Data.Hunter.hunterPositions[participant.startPosition]
         BJI.Managers.Cam.resetForceCamera()
         BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, startPos)
-        BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
         BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
     end
 end
@@ -452,16 +448,18 @@ local function onJoinParticipants(participant)
             end, "BJIHunterForcedConfigSpawn")
         end
     end
+    BJI.Managers.Restrictions.update()
 end
 
 ---@param skipVehDeletion boolean?
 local function onLeaveParticipants(skipVehDeletion)
     if S.state == S.STATES.PREPARATION then
         -- prevents from switching to another participant (spoil)
-        BJI.Managers.Cam.forceFreecamPos()
+        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
         BJI.Windows.VehSelector.tryClose(true)
     end
     BJI.Managers.Veh.deleteAllOwnVehicles()
+    BJI.Managers.Restrictions.update()
 end
 
 local function updatePreparation(data)
@@ -602,18 +600,10 @@ local function initGameHunter(participant)
 end
 
 local function initGameSpec()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     switchToRandomParticipant()
 
     ---@param v BJIMPVehicle
-    BJI.Managers.Veh.getMPVehicles():forEach(function(v)
+    BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(v)
         BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
         BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
@@ -627,11 +617,7 @@ local function initGame(data)
     S.hunterStartTime = BJI.Managers.Tick.applyTimeOffset(data.hunterStartTime)
 
     local participant = S.participants[BJI.Managers.Context.User.playerID]
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE,
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.Cam.resetForceCamera()
+    BJI.Managers.Cam.setCamera(S.previousCamera)
 
     if participant then
         BJI.Windows.VehSelector.tryClose(true)
@@ -647,6 +633,7 @@ local function initGame(data)
     if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
         BJI.Managers.Cam.toggleFreeCam()
     end
+    BJI.Managers.Restrictions.update()
 end
 
 local function updateGame(data)
@@ -657,15 +644,9 @@ local function updateGame(data)
     S.finished = data.finished
 
     if wasParticipant and not S.participants[BJI.Managers.Context.User.playerID] then
-        onLeaveParticipants()
-        BJI.Managers.Restrictions.update({ {
-            restrictions = Table({
-                BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            }):flat(),
-            state = BJI.Managers.Restrictions.STATE.ALLOWED,
-        } })
         -- own vehicle deletion will trigger switch to another participant
+        onLeaveParticipants()
+        BJI.Managers.Restrictions.update()
     end
     if S.settings.lastWaypointGPS and not S.revealHuntedLastWaypoint then
         Table(S.participants):find(function(p) return p.hunted end, function(p)
@@ -678,17 +659,9 @@ local function updateGame(data)
         updateProximityVehs()
     end
     if S.participants[BJI.Managers.Context.User.playerID] and not wasFinished and S.finished then
-        BJI.Managers.Restrictions.update({
-            {
-                restrictions = Table({
-                    BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-                    BJI.Managers.Restrictions.OTHER.FREE_CAM,
-                }):flat(),
-                state = BJI.Managers.Restrictions.STATE.ALLOWED,
-            }
-        })
         BJI.Managers.Async.removeTask("BJIHuntedResetReveal")
         BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
+        BJI.Managers.Restrictions.update()
     end
 end
 
@@ -710,6 +683,7 @@ local function rxData(data)
     elseif data.state == S.STATES.GAME then
         if S.state ~= S.STATES.GAME then
             initGame(data)
+            BJI.Managers.Restrictions.update()
         else
             updateGame(data)
         end
@@ -717,6 +691,19 @@ local function rxData(data)
         S.stop()
     end
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+end
+
+-- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
+local function getPlayerListActions(player, ctxt)
+    actions = {}
+
+    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
+    end
+
+    return actions
 end
 
 -- check for close hunters to prevent hunted from respawning<br/>
@@ -835,6 +822,8 @@ S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
 
+S.getRestrictions = getRestrictions
+
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
@@ -852,6 +841,8 @@ S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted
 
 S.rxData = rxData
+
+S.getPlayerListActions = getPlayerListActions
 
 S.fastTick = fastTick
 S.slowTick = slowTick

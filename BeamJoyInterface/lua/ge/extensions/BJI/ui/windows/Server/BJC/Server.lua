@@ -1,178 +1,140 @@
+--- gc prevention
+local nextValue, iLastMessage, lastMessage
+
 local function drawServerBroadcasts(labels, cache)
-    LineLabel(labels.server.broadcasts.title, nil, false, labels.server.broadcasts.tooltip)
-    Indent(2)
-    LineBuilder()
-        :text(labels.server.broadcasts.delay)
-        :inputNumeric({
-            id = "serverBroadcastsDelay",
-            type = "int",
-            value = BJI.Managers.Context.BJC.Server.Broadcasts.delay,
-            min = 30,
-            step = 1,
-            stepFast = 5,
-            width = 120,
-            onUpdate = function(val)
-                BJI.Managers.Context.BJC.Server.Broadcasts.delay = val
-            end
-        })
-        :text(BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.Server.Broadcasts.delay))
-        :build()
+    Text(labels.server.broadcasts.title)
+    TooltipText(labels.server.broadcasts.tooltip)
+    Indent(); Indent()
+    if BeginTable("BJIServerBJCServerBroadcasts1", {
+            { label = "##bjiserverbjcserverbroadcasts1-labels" },
+            { label = "##bjiserverbjcserverbroadcasts1-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(labels.server.broadcasts.delay)
+        TableNextColumn()
+        nextValue = SliderIntPrecision("serverBroadcastsDelay", BJI.Managers.Context.BJC.Server.Broadcasts.delay, 30,
+            3600, {
+                step = 1,
+                stepFast = 5,
+                formatRender = tostring(BJI.Managers.Context.BJC.Server.Broadcasts.delay) .. " - " ..
+                    cache.server.broadcasts.prettyBrodcastsDelay
+            })
+        if nextValue then
+            BJI.Managers.Context.BJC.Server.Broadcasts.delay = nextValue
+            cache.server.broadcasts.prettyBrodcastsDelay = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.Server
+                .Broadcasts.delay)
+        end
 
-    LineBuilder()
-        :text(labels.server.broadcasts.lang)
-        :inputCombo({
-            id = "serverBroadcastsLang",
-            items = cache.server.broadcasts.langs,
-            getLabelFn = function(v)
-                return v.label
-            end,
-            value = cache.server.broadcasts.selectedLang,
-            width = 50,
-            onChange = function(el)
-                cache.server.broadcasts.selectedLang = el
-            end
-        })
-        :build()
-    Indent(2)
-    local maxI = #BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]
-    local longestLabel = string.var("{1} {2}", { labels.server.broadcasts.broadcast, maxI })
-    local cols = ColumnsBuilder("serverBroadcasts", { BJI.Utils.UI.GetColumnTextWidth(longestLabel), -1 })
-    for i, broad in ipairs(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]) do
-        cols:addRow({
-            cells = {
-                function()
-                    LineBuilder()
-                        :text(string.var("{1} {2}", { labels.server.broadcasts.broadcast, i }))
-                        :build()
-                end,
-                function()
-                    LineBuilder()
-                        :inputString({
-                            id = "serverBroadcastsMessage" .. i,
-                            value = broad,
-                            size = 200,
-                            onUpdate = function(val)
-                                BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value][i] =
-                                    val
-                            end
-                        })
-                        :build()
+        TableNewRow()
+        Text(labels.server.broadcasts.lang)
+        TableNextColumn()
+        nextValue = Combo("serverBroadcastsLang", cache.server.broadcasts.selectedLang, cache.server.broadcasts.langs,
+            { width = 100 })
+        if nextValue then cache.server.broadcasts.selectedLang = nextValue end
+
+        EndTable()
+    end
+
+    Indent(); Indent()
+    if BeginTable("BJIServerBJCServerBroadcasts2", {
+            { label = "##bjiserverbjcserverbroadcasts2-labels" },
+            { label = "##bjiserverbjcserverbroadcasts2-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        table.forEach(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang],
+            function(broad, i)
+                TableNewRow()
+                Text(labels.server.broadcasts.broadcast .. " " .. tostring(i))
+                TableNextColumn()
+                if IconButton("deleteServerBroadcastsMessage", BJI.Utils.Icon.ICONS.delete_forever,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    table.remove(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], i)
+                    cache.server.broadcasts.langs:find(
+                        function(el) return el.value == cache.server.broadcasts.selectedLang end,
+                        function(el)
+                            el.label = string.format("%s (%d)", el.value:upper(),
+                                #BJI.Managers.Context.BJC.Server.Broadcasts[el.value])
+                        end)
                 end
-            }
-        })
-    end
-    cols:build()
-    local iLastMessage = #BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]
-    local lastMessage = BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value]
-        [iLastMessage]
-    local line = LineBuilder()
-        :btnIcon({
-            id = "addServerBroadcastsMessage",
-            icon = BJI.Utils.Icon.ICONS.addListItem,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = lastMessage and #lastMessage == 0,
-            tooltip = labels.server.add,
-            onClick = function()
-                table.insert(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value],
-                    "")
-            end
-        })
-    if iLastMessage > 0 then
-        line:btnIcon({
-            id = "deleteServerBroadcastsMessage",
-            icon = BJI.Utils.Icon.ICONS.delete_forever,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = labels.server.remove,
-            onClick = function()
-                table.remove(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang.value],
-                    iLastMessage)
-            end
-        })
-    end
-    line:build()
-    Indent(-2)
+                TooltipText(labels.buttons.remove)
+                SameLine()
+                nextValue = InputText("serverBroadcastsMessage" .. i, broad, { size = 200 })
+                if nextValue then
+                    BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][i] = nextValue
+                end
+            end)
 
-    LineBuilder()
-        :btnIcon({
-            id = "saveServerBroadcasts",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = cache.disableInputs,
-            tooltip = labels.server.save,
-            onClick = function()
-                cache.disableInputs = true
-                local data = table.clone(BJI.Managers.Context.BJC.Server.Broadcasts)
-                -- remove empty messages
-                for k, langBroads in pairs(data) do
-                    if k ~= "delay" then
-                        for i, broad in ipairs(langBroads) do
-                            if #broad == 0 then
-                                table.remove(langBroads, i)
-                            end
-                        end
+        EndTable()
+    end
+
+    iLastMessage = #BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang]
+    lastMessage = BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][iLastMessage]
+    if IconButton("addServerBroadcastsMessage", BJI.Utils.Icon.ICONS.addListItem,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = lastMessage and #lastMessage == 0 }) then
+        table.insert(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], "")
+        cache.server.broadcasts.langs:find(function(el) return el.value == cache.server.broadcasts.selectedLang end,
+            function(el)
+                el.label = string.format("%s (%d)", el.value:upper(),
+                    #BJI.Managers.Context.BJC.Server.Broadcasts[el.value])
+            end)
+    end
+    TooltipText(labels.buttons.add)
+    Unindent(); Unindent()
+
+    if IconButton("saveServerBroadcasts", BJI.Utils.Icon.ICONS.save,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = cache.disableInputs }) then
+        cache.disableInputs = true
+        local data = table.clone(BJI.Managers.Context.BJC.Server.Broadcasts)
+        -- remove empty messages
+        for k, langBroads in pairs(data) do
+            if k ~= "delay" then
+                for i, broad in ipairs(langBroads) do
+                    if #broad == 0 then
+                        table.remove(langBroads, i)
                     end
                 end
-                BJI.Tx.config.bjc("Server.Broadcasts", data)
             end
-        })
-    Indent(-2)
+        end
+        BJI.Tx.config.bjc("Server.Broadcasts", data)
+    end
+    TooltipText(labels.buttons.save)
+    Unindent(); Unindent()
 end
 
 local function drawServerWelcomeMessages(labels, cache)
-    LineLabel(labels.server.welcomeMessage.title, nil, false, labels.server.welcomeMessage.tooltip)
-    Indent(2)
-    Table(BJI.Managers.Context.BJC.Server.WelcomeMessage)
-        :map(function(msg, l)
-            return {
-                lang = l,
-                msg = msg
-            }
-        end):sort(function(a, b) return a.lang < b.lang end)
-        :reduce(function(cols, el)
-            return cols:addRow({
-                cells = {
-                    function() LineLabel(labels.server.welcomeMessage.message:var({ lang = el.lang:upper() })) end,
-                    function()
-                        LineBuilder()
-                            :inputString({
-                                id = "serverWelcomeMessage" .. el.lang,
-                                value = el.msg,
-                                size = 200,
-                                onUpdate = function(val)
-                                    BJI.Managers.Context.BJC.Server.WelcomeMessage[el.lang] = val
-                                end
-                            })
-                            :build()
-                    end
-                }
-            })
-        end, ColumnsBuilder("serverWelcomeMessages", { cache.server.welcomeMessage.langsWidth, -1 }))
-        :build()
-    LineBuilder()
-        :btnIcon({
-            id = "saveServerWelcomeMessage",
-            icon = BJI.Utils.Icon.ICONS.save,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = cache.disableInputs,
-            tooltip = labels.server.save,
-            onClick = function()
-                cache.disableInputs = true
-                local data = table.clone(BJI.Managers.Context.BJC.Server.WelcomeMessage)
-                for lang, msg in pairs(data) do
-                    if #msg == 0 then
-                        data[lang] = nil
-                    end
-                end
-                BJI.Tx.config.bjc("Server.WelcomeMessage", data)
+    Text(labels.server.welcomeMessage.title)
+    TooltipText(labels.server.welcomeMessage.tooltip)
+    Indent(); Indent()
+    if BeginTable("BJIServerBJCServerWelcomeMessages", {
+            { label = "##bjiserverbjcserverwelcomemessages-labels" },
+            { label = "##bjiserverbjcserverwelcomemessages-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        Table(BJI.Managers.Context.BJC.Server.WelcomeMessage):forEach(function(msg, lang)
+            TableNewRow()
+            Text(labels.server.welcomeMessage.message:var({ lang = tostring(lang):upper() }))
+            TableNextColumn()
+            nextValue = InputText("serverWelcomeMessage" .. lang, msg, { size = 200 })
+            if nextValue then BJI.Managers.Context.BJC.Server.WelcomeMessage[lang] = nextValue end
+        end)
+
+        EndTable()
+    end
+    if IconButton("saveServerWelcomeMessage", BJI.Utils.Icon.ICONS.save,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = cache.disableInputs }) then
+        cache.disableInputs = true
+        local data = table.clone(BJI.Managers.Context.BJC.Server.WelcomeMessage)
+        for lang, msg in pairs(data) do
+            if #msg == 0 then
+                data[lang] = nil
             end
-        })
-        :build()
-    Indent(-2)
+        end
+        BJI.Tx.config.bjc("Server.WelcomeMessage", data)
+    end
+    TooltipText(labels.buttons.save)
+    Unindent(); Unindent()
 end
 
 return function(ctxt, labels, cache)
     if #BJI.Managers.Lang.Langs > 1 then
-        EmptyLine()
         BJI.Managers.Lang.drawSelector({
             label = labels.server.lang,
             selected = BJI.Managers.Context.BJC.Server.Lang,
@@ -181,40 +143,32 @@ return function(ctxt, labels, cache)
             end
         })
     else
-        LineBuilder()
-            :text(labels.server.lang)
-            :text(BJI.Managers.Context.BJC.Server.Lang:upper())
-            :build()
+        Text(labels.server.lang)
+        SameLine()
+        Text(BJI.Managers.Context.BJC.Server.Lang:upper())
     end
 
-    LineBuilder()
-        :text(labels.server.allowMods)
-        :btnIconToggle({
-            id = "toggleAllowClientMods",
-            state = BJI.Managers.Context.BJC.Server.AllowClientMods,
-            coloredIcon = true,
-            disabled = cache.disableInputs,
-            onClick = function()
-                cache.disableInputs = true
-                BJI.Tx.config.bjc("Server.AllowClientMods", not BJI.Managers.Context.BJC.Server.AllowClientMods)
-            end,
-        })
-        :build()
+    Text(labels.server.allowMods)
+    SameLine()
+    if IconButton("toggleAllowClientMods", BJI.Managers.Context.BJC.Server.AllowClientMods and
+            BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+            { bgLess = true, btnStyle = BJI.Managers.Context.BJC.Server.AllowClientMods and
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                disabled = cache.disableInputs }) then
+        cache.disableInputs = true
+        BJI.Tx.config.bjc("Server.AllowClientMods", not BJI.Managers.Context.BJC.Server.AllowClientMods)
+    end
 
-    LineBuilder()
-        :text(labels.server.driftBigBroadcast)
-        :btnIconToggle({
-            id = "driftBigBroadcast",
-            state = BJI.Managers.Context.BJC.Server.DriftBigBroadcast,
-            coloredIcon = true,
-            disabled = cache.disableInputs,
-            onClick = function()
-                cache.disableInputs = true
-                BJI.Tx.config.bjc("Server.DriftBigBroadcast",
-                    not BJI.Managers.Context.BJC.Server.DriftBigBroadcast)
-            end,
-        })
-        :build()
+    Text(labels.server.driftBigBroadcast)
+    SameLine()
+    if IconButton("toggleDriftBigBroadcast", BJI.Managers.Context.BJC.Server.DriftBigBroadcast and
+            BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+            { bgLess = true, btnStyle = BJI.Managers.Context.BJC.Server.DriftBigBroadcast and
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
+                disabled = cache.disableInputs }) then
+        cache.disableInputs = true
+        BJI.Tx.config.bjc("Server.DriftBigBroadcast", not BJI.Managers.Context.BJC.Server.DriftBigBroadcast)
+    end
 
     drawServerBroadcasts(labels, cache)
     drawServerWelcomeMessages(labels, cache)

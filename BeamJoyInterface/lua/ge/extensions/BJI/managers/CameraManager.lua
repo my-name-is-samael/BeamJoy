@@ -32,7 +32,7 @@ local function getCamera()
 end
 
 ---@param cameraName string
----@param withTransition? boolean
+---@param withTransition? boolean default true
 local function setCamera(cameraName, withTransition)
     if withTransition == nil then
         withTransition = true
@@ -219,7 +219,7 @@ local initKey
 --- Called when self player is connected and every vehicle is ready
 ---@param ctxt TickContext
 local function onConnection(ctxt)
-    local vehs = BJI.Managers.Veh.getMPVehicles({ isAi = false })
+    local vehs = BJI.Managers.Veh.getMPVehicles({ isAi = false }, true)
         :filter(function(v) ---@param v BJIMPVehicle
             local owner = ctxt.players[v.ownerID] ---@type BJIPlayer
             return owner and owner.currentVehicle == v.remoteVehID

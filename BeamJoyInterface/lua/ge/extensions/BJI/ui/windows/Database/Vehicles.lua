@@ -11,14 +11,17 @@ local W = {
         blackListDisplay = Table(),
         ---@type {value: string, label: string}[]
         modelsCombo = Table(),
-        ---@type {value: string, label: string}?
+        ---@type string?
         selectedModel = nil,
 
         disableInputs = false,
     },
 }
+--- gc prevention
+local nextValue
 
 local function updateLabels()
+    W.labels.description = BJI.Managers.Lang.get("database.vehicles.blacklistDescription")
     W.labels.title = BJI.Managers.Lang.get("database.vehicles.blacklistedModels") .. " :"
     W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
     W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
@@ -26,7 +29,7 @@ end
 
 local function updateCache()
     W.cache.disableInputs = false
-    W.cache.blacklist = Table(BJI.Managers.Context.Database.Vehicles.ModelBlacklist):sort()
+    W.cache.blacklist = Table(BJI.Managers.Context.Database.Vehicles.ModelBlacklist):clone():sort()
 
     W.cache.blackListDisplay = Table()
     W.cache.modelsCombo = Table()
@@ -45,19 +48,15 @@ local function updateCache()
         end)
     end)
     W.cache.blackListDisplay, W.cache.modelsCombo = res.models, res.combo
-    if not W.cache.selectedModel or
-        not W.cache.modelsCombo:find(function(mc) return mc.value == W.cache.selectedModel.value end) then
-        W.cache.selectedModel = W.cache.modelsCombo[1]
+    if not W.cache.modelsCombo:any(function(mc) return mc.value == W.cache.selectedModel end) then
+        W.cache.selectedModel = W.cache.modelsCombo[1].value
     end
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
@@ -76,43 +75,31 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    LineLabel(W.labels.title)
-    LineBuilder():btnIcon({
-        id = "addBlacklistedModel",
-        icon = BJI.Utils.Icon.ICONS.add,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        disabled = W.cache.disableInputs or not W.cache.selectedModel,
-        tooltip = W.labels.add,
-        onClick = function()
-            W.cache.disableInputs = true
-            BJI.Tx.database.vehicle(W.cache.selectedModel.value, true)
-        end
-    }):inputCombo({
-        id = "addBlacklistedModelList",
-        items = W.cache.modelsCombo,
-        getLabelFn = function(item)
-            return item.label
-        end,
-        value = W.cache.selectedModel,
-        onChange = function(item)
-            W.cache.selectedModel = item
-        end
-    }):build()
+    Text(W.labels.description)
+    EmptyLine()
+    Text(W.labels.title)
+    if IconButton("addBlacklistedModel", BJI.Utils.Icon.ICONS.add,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                disabled = W.cache.disableInputs or not W.cache.selectedModel }) then
+        W.cache.disableInputs = true
+        BJI.Tx.database.vehicle(W.cache.selectedModel, true)
+    end
+    SameLine()
+    nextValue = Combo("addBlacklistedModelList", W.cache.selectedModel, W.cache.modelsCombo)
+    if nextValue then W.cache.selectedModel = nextValue end
+    TooltipText(W.labels.add)
 end
 
 local function body(data)
     W.cache.blackListDisplay:forEach(function(el)
-        LineBuilder():btnIcon({
-            id = string.var("removeBlacklisted-{1}", { el.model }),
-            icon = BJI.Utils.Icon.ICONS.delete_forever,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            disabled = W.cache.disableInputs,
-            tooltip = W.labels.remove,
-            onClick = function()
-                W.cache.disableInputs = true
-                BJI.Tx.database.vehicle(el.model, false)
-            end
-        }):text(el.label):build()
+        if IconButton("removeBlacklisted-" .. el.model, BJI.Utils.Icon.ICONS.delete_forever,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
+            W.cache.disableInputs = true
+            BJI.Tx.database.vehicle(el.model, false)
+        end
+        TooltipText(W.labels.remove)
+        SameLine()
+        Text(el.label)
     end)
 end
 

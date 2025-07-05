@@ -19,6 +19,8 @@ local S = {
         timeout = 10, -- +1 during first check
     },
 }
+--- gc prevention
+local actions
 
 local function initManagerData()
     S.baseSettings = nil
@@ -99,15 +101,6 @@ end
 -- load hook
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.WaypointEdit.reset()
     BJI.Managers.GPS.reset()
@@ -147,16 +140,17 @@ local function onUnload(ctxt)
     elseif ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
         BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
     end
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     guihooks.trigger('ScenarioResetTimer')
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 local function getCollisionsType(ctxt)
@@ -165,7 +159,7 @@ end
 
 -- player list contextual actions getter
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
@@ -597,23 +591,15 @@ local function findFreeStartPosition(startPositions)
     end
     local currMargin = currVeh:getInitialWidth() / 2
 
-    local vehs = BJI.Managers.Veh.getMPVehicles():filter(function(v)
+    local otherVehsPositions = BJI.Managers.Veh.getMPVehicles():filter(function(v)
         return v.gameVehicleID ~= currVeh:getID()
-    end):map(function(v)
-        return BJI.Managers.Veh.getPositionRotation(BJI.Managers.Veh.getVehicleObject(v.gameVehicleID))
-    end)
+    end):map(function(v) return v.position end)
 
-    local found = table.find(startPositions, function(sp)
-        return vehs:every(function(vpos)
+    return math.tryParsePosRot(table.clone(#startPositions > 1 and table.find(startPositions, function(sp)
+        return otherVehsPositions:every(function(vpos)
             return vpos:distance(vec3(sp.pos)) > vpos:getInitialWidth() / 2 + currMargin
         end)
-    end)
-
-    if found then
-        return math.tryParsePosRot(table.clone(found))
-    else
-        return math.tryParsePosRot(table.clone(startPositions[1]))
-    end
+    end) or startPositions[1]))
 end
 
 ---@param ctxt TickContext
@@ -802,10 +788,9 @@ local function slowTick(ctxt)
                     S.dnf.process = true
                     S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
                     BJI.Managers.Message.flashCountdown("BJIRaceDNF", S.dnf.targetTime, true,
-                        BJI.Managers.Lang.get("races.play.flashDnfOut"), nil,
-                        function()
+                        nil, nil, function()
                             BJI.Managers.Message.flash("BJIRaceEndSelf", BJI.Managers.Lang.get("races.play.flashDnfOut"),
-                                3, false)
+                                3)
                             BJI.Managers.Async.delayTask(stopWithLoop, 3000, "BJIRaceDNFStop")
                         end)
                 end
@@ -833,6 +818,8 @@ end
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.initRace = initRace
 S.restartRace = restartRace

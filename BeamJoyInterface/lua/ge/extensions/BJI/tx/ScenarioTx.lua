@@ -127,14 +127,6 @@ return function(TX)
         TX._send(event.EVENT, event.TX.BUS_MISSION_STOP)
     end
 
-    function scenario.SpeedStart(isVote)
-        TX._send(event.EVENT, event.TX.SPEED_START, { isVote })
-    end
-
-    function scenario.SpeedJoin(gameVehID)
-        TX._send(event.EVENT, event.TX.SPEED_JOIN, { gameVehID })
-    end
-
     function scenario.SpeedFail(time)
         TX._send(event.EVENT, event.TX.SPEED_FAIL, { time })
     end

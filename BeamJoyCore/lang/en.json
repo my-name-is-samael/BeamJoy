@@ -276,11 +276,6 @@
         "day": "d",
         "month": "M"
       },
-      "types": {
-        "string": "String",
-        "number": "Number",
-        "boolean": "Boolean"
-      },
       "enabled": "Enabled",
       "disabled": "Disabled",
       "yes": "Yes",
@@ -288,7 +283,8 @@
       "state": "State",
       "unknown": "Unknown",
       "and": "&",
-      "random": "Random"
+      "random": "Random",
+      "precisionInputTooltip": "Right click to toggle mode"
     },
     "errors": {
       "invalid": "Invalid",
@@ -610,6 +606,8 @@
     },
     "themeEditor": {
       "cancelModal": "Changes will not be saved. Are you sure you want to cancel ?",
+      "resetAllTooltip": "Reset to factory settings",
+      "resetAllModal": "You are about to revert the server theme to factory settings. Are you sure you want to proceed?",
       "Fields": {
         "title": "Elements",
         "WINDOW_BG": "Window Background",
@@ -641,8 +639,11 @@
         "SEPARATOR": "Separator Color",
         "SEPARATOR_HOVERED": "Separator Hovered Color",
         "SEPARATOR_ACTIVE": "Separator Active Color",
+        "TABLE_HEADER_BG": "Table Header Background",
         "TABLE_ROW_BG": "Table Row Background",
-        "TABLE_ROW_BG_ALT": "Table Row Alternate Background",
+        "TABLE_ROW_BG_ALT": "Table Row Background (alt.)",
+        "TABLE_BORDER_STRONG": "Table Border (strong)",
+        "TABLE_BORDER_LIGHT": "Table Border (light)",
         "DOCKING_PREVIEW": "Docking Preview Background",
         "PROGRESSBAR": "Progress Bar Color"
       },
@@ -674,6 +675,10 @@
         "previewNumeric": "Preview Numeric",
         "baseColor": "Base Color",
         "overrideTextColor": "Override Text Color",
+        "hoveredColor": "Hovered Color",
+        "activeColor": "Active Color",
+        "sliderGrabColor": "Slider Grab Color",
+        "sliderGrabActiveColor": "Slider Grab Active Color",
         "DEFAULT": "Default Input",
         "ERROR": "Error Input",
         "DISABLED": "Disabled Input",
@@ -703,7 +708,7 @@
       "uiScale": "UI scale",
       "vehicles": {
         "automaticLights": "Automatic lights",
-        "automaticLightsTooltip": "Toggle headlights automatically based on the time of day"
+        "automaticLightsTooltip": "Toggle headlights automatically based on the time of day (and turn police lightbar on during pursuits)"
       },
       "nametags": {
         "preview": "Preview",
@@ -773,6 +778,7 @@
         "whitelist": {
           "title": "Whitelist",
           "players": "Players",
+          "addAllConnectedPlayers": "Add all connected players",
           "offlinePlayers": "Offline players",
           "addOfflinePlayer": "Add offline player",
           "addOfflinePlayerPlaceholder": "Exact player name"
@@ -814,7 +820,7 @@
           "RaceSoloTimeBroadcast": "Broadcast solo time"
         },
         "server": {
-          "title": "Server Settings",
+          "title": "Global Settings",
           "lang": "Server Console Language",
           "allowMods": "Allow Player Mods",
           "driftBigBroadcast": "Brodcast big drifts",
@@ -897,7 +903,7 @@
         },
         "KmDriveReward": "Drive Reward /km",
         "ArrestReward": "Arrest Reward",
-        "ArrestRewardTooltip": "Applicable when arresting a player or an AI during a pursuit",
+        "ArrestRewardTooltip": "Applicable when arresting a player during a pursuit",
         "EvadeReward": "Evasion Reward",
         "EvadeRewardTooltip": "Applicable when evading the police with success",
         "DeliveryVehicleReward": "Vehicle Delivery Reward",
@@ -1227,6 +1233,7 @@
       "noRefuelScenario": "You cannot refuel your vehicle in this scenario",
       "tanksAmount": "{amount} tanks",
       "emergencyRefuel": "Emergency refuel",
+      "refill": "Refill tank(s)",
       "edit": {
         "title": "Energy Stations Editor",
         "name": "Station name",
@@ -1320,6 +1327,7 @@
         "line": "Line {index}",
         "lineName": "Name",
         "loopable": "Loopable",
+        "stops": "Line stops",
         "stop": "Stop {index}",
         "stopsMinimumError": "At least 2 stops are required",
         "stopName": "Name",
@@ -1403,21 +1411,27 @@
       "cars": "Cars",
       "trucks": "Trucks",
       "trailers": "Trailers",
-      "props": "Props"
+      "props": "Props",
+      "filterTooltip": "Filter by model or preset label",
+      "noMatch": "No match ..."
     },
     "database": {
       "players": {
         "title": "Players",
         "playerName": "Player",
         "group": "Group",
+        "lastKickReason": "Last kick reason",
         "banned": "Banned",
         "tempBanEndsIn": "Ends in {secs}",
         "banReason": "Ban Reason",
+        "lastBanReason": "Last ban reason",
         "muted": "Muted",
-        "muteReason": "Mute Reason"
+        "muteReason": "Mute Reason",
+        "lastMuteReason": "Last Mute Reason"
       },
       "vehicles": {
         "title": "Vehicles",
+        "blacklistDescription": "Blacklisted vehicles are still visible and spawnable by staff members.",
         "blacklistedModels": "Blacklisted Models"
       }
     },
@@ -1556,7 +1570,7 @@
       "duration": "Duration",
       "noParticipant": "No participant yet",
       "buttons": {
-        "endSoloRace": "End Time Attack Activity",
+        "endSoloActivity": "End Solo Activity",
         "endTournament": "End Tournament",
         "endTournamentTooltip": "Will broadcast participants positions in the chat",
         "errorMustHaveVehicle": "You need a vehicle"

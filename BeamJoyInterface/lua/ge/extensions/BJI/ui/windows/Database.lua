@@ -1,8 +1,7 @@
 ---@class BJIWindowDatabase : BJIWindow
 local W = {
     name = "Database",
-    w = 400,
-    h = 250,
+    minSize = ImVec2(400, 250),
 
     TABS = Table({
         {
@@ -41,14 +40,9 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-    }, function()
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, function()
         if not W.TABS:any(function(t)
                 return not t.permission or BJI.Managers.Perm.hasPermission(t.permission)
             end) then
@@ -57,6 +51,9 @@ local function onLoad()
     end, W.name))
 
     if not W.tab or (W.tab.permission and not BJI.Managers.Perm.hasPermission(W.tab.permission)) then
+        if W.tab then
+            W.tab.subWindow.onUnload()
+        end
         W.tab = W.TABS:find(function(t)
             return not t.permission or BJI.Managers.Perm.hasPermission(t.permission)
         end)
@@ -89,15 +86,19 @@ local function updateTab(newTab)
 end
 
 local function header(ctxt)
-    W.TABS:filter(function(t)
-        return BJI.Managers.Perm.hasPermission(t.permission)
-    end):reduce(function(tabbar, t)
-        return tabbar:addTab(W.labels[t.labelKey], function()
-            updateTab(t)
+    if BeginTabBar("BJIDatabaseTabs") then
+        W.TABS:filter(function(t)
+            return BJI.Managers.Perm.hasPermission(t.permission)
+        end):forEach(function(tab)
+            if BeginTabItem(W.labels[tab.labelKey]) then
+                updateTab(tab)
+                if W.tab and W.tab.subWindow.header then
+                    W.tab.subWindow.header(ctxt)
+                end
+                EndTabItem()
+            end
         end)
-    end, TabBarBuilder("BJIDatabaseTabs")):build()
-    if W.tab and W.tab.subWindow.body then
-        W.tab.subWindow.header(ctxt)
+        EndTabBar()
     end
 end
 
@@ -108,15 +109,15 @@ local function body(ctxt)
 end
 
 local function footer(ctxt)
-    LineBuilder()
-        :btnIcon({
-            id = "databaseEditorClose",
-            icon = BJI.Utils.Icon.ICONS.exit_to_app,
-            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-            tooltip = W.labels.close,
-            onClick = onClose,
-        })
-        :build()
+    if IconButton("databaseClose", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.close)
+    if W.tab and W.tab.subWindow.footer then
+        SameLine()
+        W.tab.subWindow.footer(ctxt)
+    end
 end
 
 W.onLoad = onLoad

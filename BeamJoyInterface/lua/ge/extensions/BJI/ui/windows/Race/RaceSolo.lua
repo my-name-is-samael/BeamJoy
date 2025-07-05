@@ -2,7 +2,6 @@ local W = {
     name = "RaceSolo",
 
     SHOW_ALL_THRESHOLD = 3,
-    ELLIPSIS_MARKER = "...",
 
     cache = {
         data = {
@@ -12,7 +11,6 @@ local W = {
             recordColor = nil,
             showPb = false,
             pbTime = "",
-            pbWidth = 0,
             hasStartTime = false,
             startTime = 0,
 
@@ -27,15 +25,10 @@ local W = {
             showRestartBtn = false,
             showManualResetBtn = false,
             showLaunchedRespawnBtn = false,
-            manualResetWidth = 0,
             ---@type boolean
             showAll = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
-            showAllWidth = 0,
-            ---@type number[]
-            columnsWidths = {},
-            ---@type {cells: function[]}[]
-            cols = {},
+            bodyData = Table(),
             showRaceTimer = false,
             wpCounter = "",
             lapCounter = "",
@@ -72,6 +65,8 @@ local W = {
     ---@type BJIScenarioRaceSolo
     scenario = nil,
 }
+--- gc prevention
+local loop, currentTime, remainingStart, remainingDNF
 
 local function updateLabels()
     W.cache.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
@@ -121,8 +116,6 @@ local function updateCache(ctxt)
     end
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
-    W.cache.data.pbWidth = W.cache.data.showPb and BJI.Utils.UI.GetColumnTextWidth(string.var("{1} {2}",
-        { W.cache.labels.pb, W.cache.data.pbTime })) or 0
     W.cache.data.showLoopBtn = not W.scenario.testing
     W.cache.data.showRestartBtn = W.scenario.isRaceStarted() and not W.scenario.testing and
         not W.scenario.isRaceFinished()
@@ -142,10 +135,6 @@ local function updateCache(ctxt)
     local leaderboard = W.scenario.race.leaderboard or {}
     local wpPerLap = W.scenario.race.raceData.wpPerLap
 
-    local function printEllipsis()
-        LineBuilder():text(W.ELLIPSIS_MARKER):build()
-    end
-
     W.cache.data.showSprint = not W.scenario.settings.laps or W.scenario.settings.laps == 1
     if W.cache.data.showSprint then
         -- sprint
@@ -155,47 +144,35 @@ local function updateCache(ctxt)
             wpPerLap,
         })
 
-        local labelsWidth = 0
         local currentWp = 0
-        for i = 1, wpPerLap do
-            local w = BJI.Utils.UI.GetColumnTextWidth(W.cache.labels.wpCounter:var({ wp = i }))
-            if w > labelsWidth then
-                labelsWidth = w
-            end
+        for i = wpPerLap, 1, -1 do
             if leaderboard.waypoints and leaderboard.waypoints[i] then
                 currentWp = i
+                break
             end
         end
 
-        W.cache.data.columnsWidths = { labelsWidth, -1 }
-        W.cache.data.cols = {}
-        local wps = Table(leaderboard.waypoints):map(function(time, wp)
-                return {
-                    wp = wp,
+        W.cache.data.bodyData = Range(1, currentWp):reduce(function(res, i)
+            local time = leaderboard.waypoints[i]
+            if time then
+                res:insert({
+                    wp = W.cache.labels.wpCounter:var({ wp = i }),
                     time = time and BJI.Utils.UI.RaceDelay(time) or
-                        W.cache.data.baseTime
-                }
-            end)
-            :sort(function(a, b) return a.wp < b.wp end) or Table()
-        if not W.cache.data.showAll and #wps > W.SHOW_ALL_THRESHOLD then
-            while #wps > W.SHOW_ALL_THRESHOLD do
-                Table(wps):remove(1)
+                        W.cache.data.baseTime,
+                    color = i == currentWp and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
+                })
             end
-            table.insert(W.cache.data.cols, {
-                cells = { printEllipsis, printEllipsis }
+            return res
+        end, Table())
+        if not W.cache.data.showAll and #W.cache.data.bodyData > W.SHOW_ALL_THRESHOLD then
+            while #W.cache.data.bodyData > W.SHOW_ALL_THRESHOLD do
+                W.cache.data.bodyData:remove(1)
+            end
+            W.cache.data.bodyData:insert(1, {
+                ellipsis = true,
             })
         end
-        wps:forEach(function(el)
-            local color = el.wp == currentWp and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                BJI.Utils.Style.TEXT_COLORS.DEFAULT
-            local wpLabel = W.cache.labels.wpCounter:var({ wp = el.wp })
-            table.insert(W.cache.data.cols, {
-                cells = { function() LineBuilder():text(wpLabel, color):build() end,
-                    function() LineBuilder():text(el.time, color):build() end }
-            })
-        end)
-    else
-        -- loop
+    else -- loop
         W.cache.data.showBtnShowAll = W.scenario.settings.laps > W.SHOW_ALL_THRESHOLD
         local lap = leaderboard.laps and #leaderboard.laps or 0
         W.cache.data.lapCounter = string.var("{1}/{2}", {
@@ -208,24 +185,25 @@ local function updateCache(ctxt)
             wpPerLap,
         })
 
-        local labelsWidth = 0
-        for i = 1, W.scenario.race.lap do
-            local w = BJI.Utils.UI.GetColumnTextWidth(W.cache.labels.lapCounter:var({ lap = i }))
-            if w > labelsWidth then
-                labelsWidth = w
+        W.cache.data.bodyData = Range(1, W.scenario.settings.laps):reduce(function(res, i)
+            if leaderboard.laps[i] then
+                res:insert({
+                    lap = i,
+                    lapLabel = W.cache.labels.lapCounter:var({ lap = i }),
+                    timeLabel = leaderboard.laps[i].wp == wpPerLap and
+                        BJI.Utils.UI.RaceDelay(leaderboard.laps[i].time) or nil,
+                    diffLabel = (leaderboard.laps[i].wp == wpPerLap and
+                            leaderboard.laps[i].diff and leaderboard.laps[i].diff > 0) and
+                        "+" .. BJI.Utils.UI.RaceDelay(leaderboard.laps[i].diff) or nil
+                })
             end
-        end
-
-        W.cache.data.columnsWidths = { labelsWidth, -1 }
-        W.cache.data.cols = {}
-        ---@param data {wp: integer, time?: integer, diff?: integer}
-        local laps = Table(leaderboard.laps):map(function(data, i) return { lap = i, data = data } end)
-            :sort(function(a, b) return a.lap < b.lap end) or Table()
-        if not W.cache.data.showAll and #laps > W.SHOW_ALL_THRESHOLD then
+            return res
+        end, Table())
+        if not W.cache.data.showAll and #W.cache.data.bodyData > W.SHOW_ALL_THRESHOLD then
             local hiddenBestLap
-            while #laps > W.SHOW_ALL_THRESHOLD do
-                local removed = laps:remove(1)
-                if removed.data and removed.data.wp == wpPerLap and not removed.data.diff then
+            while #W.cache.data.bodyData > W.SHOW_ALL_THRESHOLD do
+                local removed = W.cache.data.bodyData:remove(1)
+                if removed and removed.timeLabel and not removed.diffLabel then
                     hiddenBestLap = removed
                 end
             end
@@ -236,7 +214,7 @@ local function updateCache(ctxt)
                 Lap 4 %best_time%
                 Lap 5 %current_time%
             ]]
-            laps:insert(1, W.ELLIPSIS_MARKER)
+            W.cache.data.bodyData:insert(1, { ellipsis = true })
             if hiddenBestLap then
                 --[[
                     case with best time 3+ laps before:
@@ -246,54 +224,17 @@ local function updateCache(ctxt)
                     Lap 4 %time% + %diff%
                     Lap 5 %current_time%
                 ]]
-                laps:insert(1, hiddenBestLap)
+                W.cache.data.bodyData:insert(1, hiddenBestLap)
             end
         end
-        laps:forEach(function(el)
-            if el == W.ELLIPSIS_MARKER then
-                table.insert(W.cache.data.cols, { cells = { printEllipsis, printEllipsis } })
-            else
-                local lapLabel = W.cache.labels.lapCounter:var({ lap = el.lap })
-                local timeLabel, diff
-                if el.data.wp == wpPerLap then
-                    -- one of previous laps
-                    timeLabel = BJI.Utils.UI.RaceDelay(el.data.time or 0)
-                    diff = el.data.diff
-                end
-                local diffLabel = (diff and diff > 0) and string.var("+{1}", { BJI.Utils.UI.RaceDelay(diff or 0) }) or
-                    ""
-                table.insert(W.cache.data.cols, {
-                    cells = {
-                        function() LineBuilder():text(lapLabel):build() end,
-                        function()
-                            local finalTimeLabel = timeLabel or BJI.Utils.UI.RaceDelay(W.cache.data.lapTimer:get())
-                            LineBuilder():text(finalTimeLabel):text(diffLabel, BJI.Utils.Style.TEXT_COLORS.ERROR):build()
-                        end,
-                    }
-                })
-            end
-        end)
     end
 
-    W.cache.data.manualResetWidth = 0
     W.cache.data.showManualResetBtn = not table.includes({
         BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key,
         BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
     }, W.scenario.settings.respawnStrategy)
-    W.cache.data.showLaunchedRespawnBtn = false--[[W.cache.data.showManualResetBtn and
+    W.cache.data.showLaunchedRespawnBtn = false --[[W.cache.data.showManualResetBtn and
         W.scenario.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key]]
-    if W.cache.data.showManualResetBtn then
-        W.cache.data.manualResetWidth = BJI.Utils.UI.GetBtnIconSize(true) +
-            BJI.Utils.UI.GetTextWidth("  ") -- load home reset
-        if W.cache.data.showLaunchedRespawnBtn then
-            W.cache.data.manualResetWidth = W.cache.data.manualResetWidth +
-                BJI.Utils.UI.GetBtnIconSize(true) -- launched reset
-        end
-    end
-
-    W.cache.data.showAllWidth = W.cache.data.showBtnShowAll and
-        BJI.Utils.UI.GetColumnTextWidth(W.cache.labels.showAll) + BJI.Utils.UI.GetBtnIconSize() + (
-            BJI.Utils.UI.GetTextWidth("  ")) or 0
 end
 
 local listeners = Table()
@@ -328,6 +269,10 @@ local function onLoad()
                 BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
             end
         end, W.name))
+
+    if not W.cache.data.showAll then
+        BJI.Windows.Race.maxSize = ImVec2(350, 320)
+    end
 end
 
 local function onUnload()
@@ -346,220 +291,241 @@ end
 
 ---@param ctxt TickContext
 local function headerSprint(ctxt)
-    local currentTime = W.cache.data.baseTime
+    currentTime = W.cache.data.baseTime
     if W.cache.data.showFinalTime then
         currentTime = W.cache.data.finalTime
     elseif W.cache.data.showRaceTimer then
         currentTime = BJI.Utils.UI.RaceDelay(W.cache.data.raceTimer:get())
     end
 
-    LineBuilder():text(W.cache.data.wpCounter)
-        :text(W.cache.labels.vSeparator)
-        :text(currentTime):build()
+    Text(W.cache.data.wpCounter)
+    SameLine()
+    Text(W.cache.labels.vSeparator)
+    SameLine()
+    Text(currentTime)
 end
 
 ---@param ctxt TickContext
 local function headerLoop(ctxt)
-    local currentTime = W.cache.data.baseTime
+    currentTime = W.cache.data.baseTime
     if W.cache.data.showFinalTime then
         currentTime = W.cache.data.finalTime
     elseif W.cache.data.showRaceTimer then
         currentTime = BJI.Utils.UI.RaceDelay(W.cache.data.raceTimer:get())
     end
 
-    LineBuilder():text(W.cache.data.lapCounter)
-        :text(W.cache.labels.vSeparator):text(W.cache.data.wpCounter)
-        :text(W.cache.labels.vSeparator):text(currentTime):build()
+    Text(W.cache.data.lapCounter)
+    SameLine()
+    Text(W.cache.labels.vSeparator)
+    SameLine()
+    Text(W.cache.data.wpCounter)
+    SameLine()
+    Text(W.cache.labels.vSeparator)
+    SameLine()
+    Text(currentTime)
 end
 
 ---@param ctxt TickContext
 local function header(ctxt)
     if not W.scenario then return end
 
-    local line = LineBuilder()
-        :text(W.scenario.raceName)
-        :text(W.cache.labels.byAuthor)
+    Text(W.scenario.raceName)
+    SameLine()
+    Text(W.cache.labels.byAuthor)
     if W.scenario.settings.laps then
-        line:text(W.cache.labels.lap)
+        SameLine()
+        Text(W.cache.labels.lap)
     end
-    line:build()
 
     if W.cache.data.showRecord or W.cache.data.showPb then
-        ColumnsBuilder("RaceSoloRecordPb", { -1, W.cache.data.pbWidth }):addRow({
-            cells = { W.cache.data.showRecord and function()
-                LineBuilder()
-                    :text(W.cache.labels.record, nil, W.cache.data.recordTooltip)
-                    :text(W.cache.data.recordTime, W.cache.data.recordColor, W.cache.data.recordTooltip)
-                    :build()
-            end or nil,
-                W.cache.data.showPb and function()
-                    LineBuilder():text(W.cache.labels.pb):text(W.cache.data.pbTime):build()
-                end or nil }
-        }):build()
+        if BeginTable("RaceSoloRecord", {
+                { label = "##race-record-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+                { label = "##race-record-right" },
+            }) then
+            TableNewRow()
+            if W.cache.data.showRecord then
+                Text(W.cache.labels.record, nil)
+                TooltipText(W.cache.data.recordTooltip)
+                SameLine()
+                Text(W.cache.data.recordTime, { color = W.cache.data.recordColor })
+                TooltipText(W.cache.data.recordTooltip)
+            end
+            TableNextColumn()
+            if W.cache.data.showPb then
+                Text(W.cache.labels.pb)
+                SameLine()
+                Text(W.cache.data.pbTime)
+            end
+
+            EndTable()
+        end
     else
         EmptyLine()
     end
 
-    ColumnsBuilder("BJIRaceSoloActions", { -1, W.cache.data.manualResetWidth }):addRow({
-        cells = {
-            function()
-                line = LineBuilder()
-                if W.cache.data.showLoopBtn then
-                    local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES
-                        .SCENARIO_SOLO_RACE_LOOP)
-                    line:btnIconToggle({
-                        id = "toggleRaceLoop",
-                        icon = BJI.Utils.Icon.ICONS.all_inclusive,
-                        state = loop,
-                        tooltip = W.cache.labels.loop,
-                        onClick = function()
-                            BJI.Managers.LocalStorage.set(
-                                BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
-                        end,
-                        big = true,
-                    })
+    if BeginTable("RaceSoloActions", {
+            { label = "##race-actions-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##race-actions-right" },
+        }) then
+        TableNewRow()
+        if W.cache.data.showLoopBtn then
+            loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES
+                .SCENARIO_SOLO_RACE_LOOP)
+            if IconButton("toggleRaceLoop", BJI.Utils.Icon.ICONS.all_inclusive,
+                    { btnStyle = loop and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                        BJI.Utils.Style.BTN_PRESETS.ERROR, big = true }) then
+                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
+            end
+            TooltipText(W.cache.labels.loop)
+            SameLine()
+        end
+        if IconButton("leaveRace", BJI.Utils.Icon.ICONS.exit_to_app,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, big = true }) then
+            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+        end
+        TooltipText(W.cache.labels.forfeit)
+        if W.cache.data.showRestartBtn then
+            SameLine()
+            if IconButton("restartRace", BJI.Utils.Icon.ICONS.restart,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, big = true }) then
+                W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
+            end
+            TooltipText(W.cache.labels.restart)
+        end
+        TableNextColumn()
+        if W.cache.data.showManualResetBtn then
+            if W.cache.data.showLaunchedRespawnBtn then
+                if IconButton("manualLaunchedRespawn", BJI.Utils.Icon.ICONS.vertical_align_top,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, big = true,
+                            disabled = W.scenario.resetLock }) then
+                    BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
                 end
-                line:btnIcon({
-                    id = "leaveRace",
-                    icon = BJI.Utils.Icon.ICONS.exit_to_app,
-                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                    tooltip = W.cache.labels.forfeit,
-                    onClick = function()
-                        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
-                    end,
-                    big = true,
-                })
-                if W.cache.data.showRestartBtn then
-                    line:btnIcon({
-                        id = "restartRace",
-                        icon = BJI.Utils.Icon.ICONS.restart,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        tooltip = W.cache.labels.restart,
-                        onClick = function()
-                            W.scenario.restartRace(W.scenario.baseSettings, W.scenario.baseRaceData)
-                        end,
-                        big = true,
-                    })
-                end
-                line:build()
-            end,
-            W.cache.data.showManualResetBtn and function()
-                line = LineBuilder()
-                if W.cache.data.showLaunchedRespawnBtn then
-                    line:btnIcon({
-                        id = "manualLaunchedRespawn",
-                        icon = BJI.Utils.Icon.ICONS.vertical_align_top,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        big = true,
-                        disabled = W.scenario.resetLock,
-                        tooltip = string.var("{1} ({2})", {
-                            W.cache.labels.launchedRespawn,
-                            extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()
-                        }),
-                        onClick = function()
-                            BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
-                        end,
-                    })
-                end
-                line:btnIcon({
-                    id = "manualReset",
-                    icon = BJI.Utils.Icon.ICONS.build,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    big = true,
-                    disabled = W.scenario.resetLock,
-                    tooltip = string.var("{1} ({2})", {
-                        W.cache.labels.manualReset,
-                        extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
-                    }),
-                    onClick = function()
-                        BJI.Managers.Scenario.loadHome(ctxt.veh.gameVehicleID)
-                    end,
-                }):build()
-            end or nil,
-        },
-    }):build()
+                TooltipText(string.format("%s (%s)", W.cache.labels.launchedRespawn,
+                    extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()))
+                SameLine()
+            end
+            if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        big = true, disabled = W.scenario.resetLock }) then
+                BJI.Managers.Scenario.loadHome(ctxt.veh.gameVehicleID)
+            end
+            TooltipText(string.format("%s (%s)", W.cache.labels.manualReset,
+                extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
+            ))
+        end
+        EndTable()
+    end
 
     Separator()
 
-    ColumnsBuilder("RaceSoloHeader",
-        { -1, W.cache.data.showAllWidth }):addRow({
-        cells = {
-            function()
-                if W.cache.data.showSprint then
-                    headerSprint(ctxt)
-                else
-                    headerLoop(ctxt)
-                end
-            end,
-            W.cache.data.showBtnShowAll and function()
-                LineBuilder():text(W.cache.labels.showAll)
-                    :btnIconToggle({
-                        id = "toggleShowAll",
-                        state = W.cache.data.showAll,
-                        coloredIcon = true,
-                        onClick = function()
-                            W.cache.data.showAll = not W.cache.data.showAll
-                            BJI.Managers.LocalStorage.set(
-                                BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
-                                W.cache.data.showAll)
-                            updateCache(ctxt)
-                        end,
-                    }):build()
-            end or nil,
-        }
-    }):build()
+    if BeginTable("RaceSoloHeader", {
+            { label = "##race-header-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##race-header-right" },
+        }) then
+        TableNewRow()
+        if W.cache.data.showSprint then
+            headerSprint(ctxt)
+        else
+            headerLoop(ctxt)
+        end
+        TableNextColumn()
+        if W.cache.data.showBtnShowAll then
+            Text(W.cache.labels.showAll)
+            SameLine()
+            if IconButton("toggleShowAll", W.cache.data.showAll and
+                    BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+                    { bgLess = true, btnStyle = W.cache.data.showAll and
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                W.cache.data.showAll = not W.cache.data.showAll
+                BJI.Managers.LocalStorage.set(
+                    BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
+                    W.cache.data.showAll)
+                BJI.Windows.Race.maxSize = W.cache.data.showAll and ImVec2(350, 800) or ImVec2(350, 320)
+                updateCache(ctxt)
+            end
+        end
+        EndTable()
+    end
 
-    line = LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.timer,
-            big = true,
-        })
-
+    Icon(BJI.Utils.Icon.ICONS.timer, { big = true })
     if W.cache.data.hasStartTime then
-        local remainingStart = getDiffTime(W.cache.data.startTime, ctxt.now)
-        local remainingDNF = (remainingStart < -3 and W.cache.data.DNFEnabled and
+        remainingStart = getDiffTime(W.cache.data.startTime, ctxt.now)
+        remainingDNF = (remainingStart < -3 and W.cache.data.DNFEnabled and
                 W.cache.data.DNFData.process and W.cache.data.DNFData.targetTime)
             and getDiffTime(W.cache.data.DNFData.targetTime, ctxt.now) or nil
         if remainingStart > 0 then
-            line:text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingStart) }))
+            SameLine()
+            Text(W.cache.labels.gameStartsIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingStart) }))
         elseif remainingStart > -3 then
-            line:text(W.cache.labels.flashCountdownZero)
+            SameLine()
+            Text(W.cache.labels.flashCountdownZero)
         elseif remainingDNF then
             remainingStart = getDiffTime(W.cache.data.DNFData.targetTime, ctxt.now)
             if remainingDNF < W.cache.data.DNFData.timeout then
-                local color = remainingDNF > 3 and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                    BJI.Utils.Style.TEXT_COLORS.ERROR
+                SameLine()
                 if remainingDNF > 0 then
-                    line:text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingDNF) }))
+                    Text(W.cache.labels.eliminatedIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingDNF) }))
                 else
-                    line:text(W.cache.labels.eliminated, color)
+                    Text(W.cache.labels.eliminated, {
+                        color = remainingDNF > 3 and
+                            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.ERROR
+                    })
                 end
             end
         end
     end
-
-
-    line:build()
 end
 
 ---@param ctxt TickContext
-local function drawData(ctxt)
-    local cols = ColumnsBuilder("BJIRaceSoloLeaderboard", W.cache.data.columnsWidths)
-    Table(W.cache.data.cols):forEach(function(col)
-        cols:addRow(col)
-    end)
-    cols:build()
-end
-
----@param ctxt TickContext
-local function drawBody(ctxt)
-    drawData(ctxt)
+local function body(ctxt)
+    if W.cache.data.showSprint then
+        if BeginTable("BJIRaceSoloSprint", {
+                { label = "##race-wps" },
+                { label = "##race-times", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+            }) then
+            W.cache.data.bodyData:forEach(function(el)
+                TableNewRow()
+                if el.ellipsis then
+                    TableNextColumn()
+                    Text("...")
+                else
+                    Text(el.wp, { color = el.color })
+                    TableNextColumn()
+                    Text(el.time, { color = el.color })
+                end
+            end)
+            EndTable()
+        end
+    else -- loop race
+        if BeginTable("BJIRaceSoloLoop", {
+                { label = "##race-wps" },
+                { label = "##race-times", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+            }) then
+            W.cache.data.bodyData:forEach(function(el)
+                TableNewRow()
+                if el.ellipsis then
+                    TableNextColumn()
+                    Text("...")
+                else
+                    Text(el.lapLabel)
+                    TableNextColumn()
+                    Text(el.timeLabel or BJI.Utils.UI.RaceDelay(W.cache.data.lapTimer:get()),
+                        { color = (el.timeLabel and not el.diffLabel) and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil })
+                    if el.timeLabel and el.diffLabel then
+                        SameLine()
+                        Text(el.diffLabel, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+                    end
+                end
+            end)
+            EndTable()
+        end
+    end
 end
 
 W.onLoad = onLoad
 W.onUnload = onUnload
 
 W.header = header
-W.body = drawBody
+W.body = body
 
 return W

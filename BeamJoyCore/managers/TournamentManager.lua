@@ -41,10 +41,15 @@ local function init()
     end)
     M.whitelist = data.whitelist
     M.whitelistPlayers = Table(data.whitelistPlayers)
+
+    if #M.activities > 0 and M.activities[#M.activities] and
+        M.activities[#M.activities].targetTime then
+        M.endSoloActivity()
+    end
 end
 
 local function clear()
-    BJCAsync.removeTask("BJCTournamentSoloRaceTimeout")
+    BJCAsync.removeTask("BJCTournamentSoloActivityTimeout")
 
     M.state = false
     M.activities = Table()
@@ -57,6 +62,12 @@ local function clear()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TOURNAMENT)
 end
 
+---@return boolean
+local function isSoloActivityInProgress()
+    return M.activities[#M.activities] and
+        M.activities[#M.activities].targetTime
+end
+
 ---@param state boolean?
 local function toggle(state)
     if state == nil then
@@ -67,20 +78,17 @@ local function toggle(state)
     end
     M.state = state
 
-    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TOURNAMENT)
-end
+    if not M.state and isSoloActivityInProgress() then
+        M.endSoloActivity()
+    end
 
----@return boolean
-local function isRaceSoloInProgress()
-    return M.state and M.activities[#M.activities] and
-        M.activities[#M.activities].type == M.ACTIVITIES_TYPES.RACE_SOLO and
-        M.activities[#M.activities].targetTime
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.TOURNAMENT)
 end
 
 ---@param playerName string
 ---@return integer?
 local function getCurrentSoloRaceScore(playerName)
-    if isRaceSoloInProgress() then
+    if isSoloActivityInProgress() and M.activities[#M.activities].raceID then
         ---@param p BJTournamentPlayer
         local sorted = M.players:filter(function(p)
             return p.scores[#M.activities] and p.scores[#M.activities].tempValue
@@ -104,18 +112,23 @@ end
 
 local function sortPlayers()
     local emptyScore = M.players:length()
-    local currentSoloRace = isRaceSoloInProgress()
+    local currentSoloActivity = isSoloActivityInProgress()
 
     ---@param a BJTournamentPlayer
     ---@param b BJTournamentPlayer
     M.players:sort(function(a, b)
         local res = Range(1, #M.activities):reduce(function(res, i)
-            if i == #M.activities and currentSoloRace then
-                res[1] = res[1] + getCurrentSoloRaceScore(a.playerName)
-                res[2] = res[2] + getCurrentSoloRaceScore(b.playerName)
+            if i == #M.activities and currentSoloActivity then
+                if M.activities[#M.activities].raceID then
+                    -- solo race
+                    res[1] = res[1] + (getCurrentSoloRaceScore(a.playerName) or emptyScore)
+                    res[2] = res[2] + (getCurrentSoloRaceScore(b.playerName) or emptyScore)
+                else
+                    -- other (no increment for now)
+                end
             else
-                res[1] = res[1] + (a.scores[i] and a.scores[i].score or #M.players)
-                res[2] = res[2] + (b.scores[i] and b.scores[i].score or #M.players)
+                res[1] = res[1] + (a.scores[i] and a.scores[i].score or emptyScore)
+                res[2] = res[2] + (b.scores[i] and b.scores[i].score or emptyScore)
             end
             return res
         end, { 0, 0 })
@@ -206,7 +219,7 @@ local function editPlayerScore(playerName, activityIndex, score, tempValue)
 end
 
 local function endTournament()
-    M.endSoloRaceActivity()
+    M.endSoloActivity()
     if #M.activities > 0 and #M.players > 0 then
         -- broadcast results
         for pos = #M.players, 1, -1 do
@@ -290,16 +303,17 @@ end
 ---@param raceID integer
 ---@param timeoutMin integer
 local function addSoloRaceActivity(raceID, timeoutMin)
-    if not isRaceSoloInProgress() then
+    if not isSoloActivityInProgress() then
         local race = BJCScenarioData.getRace(raceID)
         if race then
             addActivity(M.ACTIVITIES_TYPES.RACE_SOLO, race.name)
             M.activities[#M.activities].raceID = raceID
             M.activities[#M.activities].targetTime = GetCurrentTime() + timeoutMin * 60
-            BJCAsync.programTask(M.endSoloRaceActivity, M.activities[#M.activities].targetTime,
-                "BJCTournamentSoloRaceTimeout")
 
             save()
+
+            BJCAsync.programTask(M.endSoloActivity, M.activities[#M.activities].targetTime,
+                "BJCTournamentSoloActivityTimeout")
         end
     end
 end
@@ -307,7 +321,7 @@ end
 ---@param playerName string
 ---@param time integer
 local function saveSoloRaceTime(playerName, time)
-    if isRaceSoloInProgress() and
+    if isSoloActivityInProgress() and M.activities[#M.activities].raceID and
         (not M.whitelist or M.whitelistPlayers:includes(playerName)) then
         local changed = false
         local activityIndex = #M.activities
@@ -341,30 +355,33 @@ local function saveSoloRaceTime(playerName, time)
     end
 end
 
-local function endSoloRaceActivity()
-    if isRaceSoloInProgress() then
-        BJCAsync.removeTask("BJCTournamentSoloRaceTimeout")
+local function endSoloActivity()
+    if isSoloActivityInProgress() then
+        BJCAsync.removeTask("BJCTournamentSoloActivityTimeout")
         -- apply scores to participants
-        M.players:filter(function(p)
-            return p.scores[#M.activities] and p.scores[#M.activities].tempValue
-        end):map(function(p)
-            return {
-                playerName = p.playerName,
-                time = p.scores[#M.activities].tempValue,
-            }
-        end):sort(function(a, b)
-            if a.time and b.time then
-                return a.time < b.time
-            else
-                return a.time
-            end
-        end):map(function(el)
-            return el.playerName
-        end):forEach(function(playerName, pos)
-            M.players:find(function(p) return p.playerName == playerName end, function(p)
-                p.scores[#M.activities].score = pos
+        if M.activities[#M.activities].raceID then
+            -- solo race score calculation
+            M.players:filter(function(p)
+                return p.scores[#M.activities] and p.scores[#M.activities].tempValue
+            end):map(function(p)
+                return {
+                    playerName = p.playerName,
+                    time = p.scores[#M.activities].tempValue,
+                }
+            end):sort(function(a, b)
+                if a.time and b.time then
+                    return a.time < b.time
+                else
+                    return a.time
+                end
+            end):map(function(el)
+                return el.playerName
+            end):forEach(function(playerName, pos)
+                M.players:find(function(p) return p.playerName == playerName end, function(p)
+                    p.scores[#M.activities].score = pos
+                end)
             end)
-        end)
+        end
         -- remove temp values
         M.players:forEach(function(p)
             if p.scores[#M.activities] then
@@ -415,7 +432,7 @@ M.toggleWhitelist = toggleWhitelist
 M.togglePlayer = togglePlayer
 M.addSoloRaceActivity = addSoloRaceActivity
 M.saveSoloRaceTime = saveSoloRaceTime
-M.endSoloRaceActivity = endSoloRaceActivity
+M.endSoloActivity = endSoloActivity
 
 -- on player disconnect, if enabled and no staff online, disable tournament
 BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnected, "TournamentManager")

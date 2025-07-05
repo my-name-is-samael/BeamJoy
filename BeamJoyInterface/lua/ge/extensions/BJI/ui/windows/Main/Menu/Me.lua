@@ -1,6 +1,7 @@
 local M = {
     cache = {
         label = nil,
+        ---@type MenuDropdownElement[]
         elems = {},
     },
 }
@@ -15,6 +16,7 @@ local function updateCache(ctxt)
 
     -- SETTINGS
     table.insert(M.cache.elems, {
+        type = "item",
         label = BJI.Managers.Lang.get("menu.me.settings"),
         active = BJI.Windows.UserSettings.show,
         onClick = function()
@@ -25,6 +27,7 @@ local function updateCache(ctxt)
     -- VEHICLE SELECTOR
     if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.me.vehicleSelector"),
             active = BJI.Windows.VehSelector.show,
             onClick = function()
@@ -40,6 +43,7 @@ local function updateCache(ctxt)
     -- CLEAR GPS
     if BJI.Managers.GPS.isClearable() then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.me.clearGPS"),
             onClick = BJI.Managers.GPS.clear,
         })
@@ -61,6 +65,13 @@ end
 
 function M.onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+---@param ctxt TickContext
+function M.draw(ctxt)
+    if #M.cache.elems > 0 then
+        RenderMenuDropdown(M.cache.label, M.cache.elems)
+    end
 end
 
 return M

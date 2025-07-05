@@ -148,11 +148,6 @@
         "day": "д",
         "month": "М"
       },
-      "types": {
-        "string": "Нить",
-        "number": "Число",
-        "boolean": "логическое значение"
-      },
       "enabled": "Включено",
       "disabled": "Неполноценный",
       "yes": "Да",
@@ -160,7 +155,8 @@
       "state": "Состояние",
       "unknown": "Неизвестный",
       "and": "&",
-      "random": "Случайный"
+      "random": "Случайный",
+      "precisionInputTooltip": "Щелкните правой кнопкой мыши, чтобы сменить режим"
     },
     "errors": {
       "invalid": "Неверный",
@@ -243,7 +239,7 @@
       "RaceSettings": "Настройки гонки",
       "Race": "Раса",
       "DeliveryMulti": "Доставка вместе",
-      "VehicleSelector": "Выбор автомобиля",
+      "VehSelector": "Выбор автомобиля",
       "Station": "Станция",
       "BusMissionPreparation": "Подготовка автобусной миссии",
       "ScenarioEditor": "Редактор сценариев",
@@ -482,6 +478,8 @@
     },
     "themeEditor": {
       "cancelModal": "Изменения не будут сохранены. ",
+      "resetAllTooltip": "Сбросить до заводских настроек",
+      "resetAllModal": "Вы собираетесь сбросить тему сервера до заводских настроек. Вы уверены, что хотите продолжить?",
       "Fields": {
         "title": "Элементы",
         "WINDOW_BG": "Фон окна",
@@ -513,8 +511,11 @@
         "SEPARATOR": "Цвет разделителя",
         "SEPARATOR_HOVERED": "Цвет при наведении разделителя",
         "SEPARATOR_ACTIVE": "Разделитель Активный Цвет",
+        "TABLE_HEADER_BG": "Фон заголовка таблицы",
         "TABLE_ROW_BG": "Фон строки таблицы",
         "TABLE_ROW_BG_ALT": "Альтернативный фон строки таблицы",
+        "TABLE_BORDER_STRONG": "Граница таблицы (жирная)",
+        "TABLE_BORDER_LIGHT": "Граница таблицы (тонкая)",
         "DOCKING_PREVIEW": "Фон предварительного просмотра стыковки",
         "PROGRESSBAR": "Цвет индикатора выполнения"
       },
@@ -546,6 +547,10 @@
         "previewNumeric": "Предварительный просмотр числа",
         "baseColor": "Базовый цвет",
         "overrideTextColor": "Переопределить цвет текста",
+        "hoveredColor": "Цвет при наведении",
+        "activeColor": "Активный цвет",
+        "sliderGrabColor": "Цвет ползунка",
+        "sliderGrabActiveColor": "Цвет активного ползунка",
         "DEFAULT": "Ввод по умолчанию",
         "ERROR": "Ошибка ввода",
         "DISABLED": "Отключенный ввод",
@@ -575,7 +580,7 @@
       "uiScale": "Масштаб пользовательского интерфейса",
       "vehicles": {
         "automaticLights": "Автоматические фонари",
-        "automaticLightsTooltip": "Автоматическое переключение фар в зависимости от времени суток"
+        "automaticLightsTooltip": "Автоматическое включение фар в зависимости от времени суток (и включение полицейской мигалки при преследованиях)"
       },
       "nametags": {
         "preview": "Предпросмотр",
@@ -645,6 +650,7 @@
         "whitelist": {
           "title": "Белый список",
           "players": "Игроки",
+          "addAllConnectedPlayers": "Добавить всех подключенных игроков",
           "offlinePlayers": "Оффлайн игроки",
           "addOfflinePlayer": "Добавить офлайн-плеер",
           "addOfflinePlayerPlaceholder": "Точное имя игрока"
@@ -686,7 +692,7 @@
           "RaceSoloTimeBroadcast": "Трансляция одиночных времен"
         },
         "server": {
-          "title": "Настройки сервера",
+          "title": "Глобальные настройки",
           "lang": "Язык консоли сервера",
           "allowMods": "Разрешить модификации игроков",
           "driftBigBroadcast": "Бродкаст «Большие заносы»",
@@ -769,7 +775,7 @@
         },
         "KmDriveReward": "Награда за проезд/км",
         "ArrestReward": "Награда за арест",
-        "ArrestRewardTooltip": "Применяется при аресте игрока или ИИ во время погони",
+        "ArrestRewardTooltip": "Применяется при аресте игрока во время погони",
         "EvadeReward": "Награда за побег",
         "EvadeRewardTooltip": "Применяется при успешном уходе от полиции",
         "DeliveryVehicleReward": "Награда за доставку автомобиля",
@@ -1099,6 +1105,7 @@
       "noRefuelScenario": "В этом сценарии вы не сможете заправить свой автомобиль.",
       "tanksAmount": "{amount} баков",
       "emergencyRefuel": "Аварийная заправка",
+      "refill": "Заправить бак(и)",
       "edit": {
         "title": "Редактор энергетических станций",
         "name": "Название станции",
@@ -1192,6 +1199,7 @@
         "line": "Строка {index}",
         "lineName": "Имя",
         "loopable": "Зацикливаемый",
+        "stops": "Остановки маршрута",
         "stop": "Остановить {index}",
         "stopsMinimumError": "Требуется минимум 2 остановки.",
         "stopName": "Имя",
@@ -1275,21 +1283,27 @@
       "cars": "Машины",
       "trucks": "Грузовики",
       "trailers": "Прицепы",
-      "props": "Объекты"
+      "props": "Объекты",
+      "filterTooltip": "Фильтр по модели или названию пресета",
+      "noMatch": "Нет совпадений..."
     },
     "database": {
       "players": {
         "title": "Игроки",
         "playerName": "Игрок",
         "group": "Группа",
+        "lastKickReason": "Последняя причина кика",
         "banned": "Запрещено",
         "tempBanEndsIn": "Завершится через {secs}",
         "banReason": "Причина бана",
+        "lastBanReason": "Последняя причина бана",
         "muted": "Без звука",
-        "muteReason": "Немая причина"
+        "muteReason": "Немая причина",
+        "lastMuteReason": "Последняя причина заглушки"
       },
       "vehicles": {
         "title": "Транспортные средства",
+        "blacklistDescription": "Заблокированные машины видны и доступны только для администраторов.",
         "blacklistedModels": "Модели из черного списка"
       }
     },
@@ -1428,7 +1442,7 @@
       "duration": "Продолжительность",
       "noParticipant": "Пока нет участников",
       "buttons": {
-        "endSoloRace": "Завершить заезд на время",
+        "endSoloActivity": "Завершить одиночную активность",
         "endTournament": "Завершить турнир",
         "endTournamentTooltip": "Отобразит позиции участников в чате",
         "errorMustHaveVehicle": "Вам нужно транспортное средство"

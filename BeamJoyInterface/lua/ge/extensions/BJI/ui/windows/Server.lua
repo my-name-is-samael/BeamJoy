@@ -4,40 +4,39 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
     },
-    w = 470,
-    h = 450,
+    minSize = ImVec2(500, 600),
+    maxSize = ImVec2(1500, 1500),
 
-    ---@type tablelib<integer, {show: (fun(): boolean), labelKey: string, content: table}>
+    ---@type tablelib<integer, {show: (fun(): boolean), labelKey: string, subWindow: table}>
     TABS = Table({
         {
             show = function()
-                return BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
-                    (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) or
-                        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.WHITELIST))
+                return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) or
+                    BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.WHITELIST)
             end,
             labelKey = "bjc",
-            content = require("ge/extensions/BJI/ui/windows/Server/BJC"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/BJC"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_REPUTATION)
             end,
             labelKey = "reputation",
-            content = require("ge/extensions/BJI/ui/windows/Server/Reputation"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/Reputation"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_PERMISSIONS)
             end,
             labelKey = "permissions",
-            content = require("ge/extensions/BJI/ui/windows/Server/Permissions"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/Permissions"),
         },
         {
             show = function()
                 return BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_MAPS)
             end,
             labelKey = "maps",
-            content = require("ge/extensions/BJI/ui/windows/Server/Maps"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/Maps"),
         },
         {
             show = function()
@@ -45,7 +44,7 @@ local W = {
                     BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CEN)
             end,
             labelKey = "core",
-            content = require("ge/extensions/BJI/ui/windows/Server/CoreCEN"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/CoreCEN"),
         },
         {
             show = function()
@@ -53,12 +52,12 @@ local W = {
                     BJI.Managers.Context.Core.Debug
             end,
             labelKey = "icons",
-            content = require("ge/extensions/BJI/ui/windows/Server/Icons"),
+            subWindow = require("ge/extensions/BJI/ui/windows/Server/Icons"),
         },
     }),
 
     show = false,
-    ---@type {show: (fun(): boolean), labelKey: string, content: table}?
+    ---@type {show: (fun(): boolean), labelKey: string, subWindow: table}?
     tab = nil,
     labels = {
         bjc = "",
@@ -88,88 +87,83 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-    }, function(_, data)
-        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            table.includes({
-                BJI.Managers.Cache.CACHES.PERMISSIONS,
-                BJI.Managers.Cache.CACHES.USER,
-                BJI.Managers.Cache.CACHES.GROUPS,
-            }, data.cache) then
-            if not W.TABS:any(function(t) return t.show() end) then
-                onClose()
-            end
+    }, function()
+        if not W.TABS:any(function(t) return t.show() end) then
+            onClose()
         end
     end, W.name))
 
     if not W.tab then
         W.TABS:find(function(t) return t.show() end, function(t)
             W.tab = t
-            if t.content.onLoad then
-                t.content.onLoad()
+            if t.subWindow.onLoad then
+                t.subWindow.onLoad()
             end
         end)
     end
 end
 
 local function onUnload()
-    if W.tab and W.tab.content.onUnload then
-        W.tab.content.onUnload()
+    if W.tab and W.tab.subWindow.onUnload then
+        W.tab.subWindow.onUnload()
     end
     W.tab = nil
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
 
----@param newTab {show: (fun(): boolean), labelKey: string, content: table}?
+---@param newTab {show: (fun(): boolean), labelKey: string, subWindow: table}?
 local function updateTab(newTab)
     if newTab and newTab ~= W.tab then
-        if W.tab and W.tab.content.onUnload then
-            W.tab.content.onUnload()
+        if W.tab and W.tab.subWindow.onUnload then
+            W.tab.subWindow.onUnload()
         end
         W.tab = newTab
-        if W.tab and W.tab.content.onLoad then
-            W.tab.content.onLoad()
+        if W.tab and W.tab.subWindow.onLoad then
+            W.tab.subWindow.onLoad()
         end
     end
 end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    local t = TabBarBuilder("BJIEnvironmentTabs")
-    W.TABS:filter(function(tab)
-        return tab.show()
-    end)
-        :forEach(function(tab)
-            t:addTab(W.labels[tab.labelKey], function()
+    if BeginTabBar("BJIServerTabs") then
+        W.TABS:filter(function(tab)
+            return tab.show()
+        end):forEach(function(tab)
+            if BeginTabItem(W.labels[tab.labelKey]) then
                 updateTab(tab)
-            end)
+                if W.tab and W.tab.subWindow.header then
+                    W.tab.subWindow.header(ctxt)
+                end
+                EndTabItem()
+            end
         end)
-    t:build()
+        EndTabBar()
+    end
 end
 
 ---@param ctxt TickContext
 local function body(ctxt)
-    if W.tab and W.tab.content.body then
-        W.tab.content.body(ctxt)
+    if W.tab and W.tab.subWindow.body then
+        W.tab.subWindow.body(ctxt)
     end
 end
 
 ---@param ctxt TickContext
 local function footer(ctxt)
-    LineBuilder():btnIcon({
-        id = "closeServer",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.close,
-        onClick = onClose,
-    }):build()
+    if IconButton("closeServer", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.close)
+    if W.tab and W.tab.subWindow.footer then
+        SameLine()
+        W.tab.subWindow.footer(ctxt)
+    end
 end
 
 W.onLoad = onLoad

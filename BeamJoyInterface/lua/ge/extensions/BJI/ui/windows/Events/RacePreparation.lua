@@ -1,56 +1,48 @@
+--- gc prevention
+local vr, remainingTime
+
 return function(ctxt, cache)
-    local vr = BJI.Managers.Votes.Race
-    LineBuilder():text(cache.hasStarted):build()
-    LineBuilder():text(cache.title):build()
-    LineBuilder():text(cache.settings):build()
+    if not vr then
+        vr = BJI.Managers.Votes.Race
+    end
+
+    Text(cache.hasStarted)
+    Text(cache.title)
+    Text(cache.settings)
 
     if cache.record then
-        LineBuilder():text(cache.record):build()
+        Text(cache.record)
     end
 
-    local line = LineBuilder()
     if cache.votes then
-        line:text(cache.votes)
+        Text(cache.votes)
+        SameLine()
     end
-    local remainingTime = vr.endsAt - ctxt.now
-    line:text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
+    remainingTime = vr.endsAt - ctxt.now
+    Text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
         :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
-        :build()
 
-    if cache.showVoteBtn or BJI.Managers.Perm.isStaff() then
-        line = LineBuilder()
+    if cache.showVoteBtn then
+        if IconButton("voteRace", vr.selfVoted and BJI.Utils.Icon.ICONS.event_busy or
+                BJI.Utils.Icon.ICONS.event_available, { disabled = cache.disableButtons,
+                    big = true, btnStyle = vr.selfVoted and BJI.Utils.Style.BTN_PRESETS.ERROR or
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            cache.disableButtons = true
+            BJI.Tx.vote.RaceVote()
+        end
+        TooltipText(vr.isVote and
+            (vr.selfVoted and cache.buttons.unvote or cache.buttons.vote) or
+            cache.buttons.stop)
+    end
+    if cache.showCancelBtn then
         if cache.showVoteBtn then
-            line:btnIconToggle({
-                id = "voteRace",
-                icon = vr.isVote and
-                    (vr.selfVoted and BJI.Utils.Icon.ICONS.event_busy or BJI.Utils.Icon.ICONS.event_available) or
-                    BJI.Utils.Icon.ICONS.cancel,
-                state = not vr.selfVoted,
-                tooltip = vr.isVote and
-                    (vr.selfVoted and cache.buttons.unvote or cache.buttons.vote) or
-                    cache.buttons.stop,
-                disabled = cache.disableButtons,
-                big = true,
-                onClick = function()
-                    cache.disableButtons = true
-                    BJI.Tx.voterace.vote()
-                end,
-            })
+            SameLine()
         end
-        if BJI.Managers.Perm.isStaff() and vr.isVote or not cache.showVoteBtn then
-            line:btnIcon({
-                id = "stopPrepRace",
-                icon = BJI.Utils.Icon.ICONS.cancel,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                tooltip = cache.buttons.stop,
-                disabled = cache.disableButtons,
-                big = true,
-                onClick = function()
-                    cache.disableButtons = true
-                    BJI.Tx.voterace.stop()
-                end,
-            })
+        if IconButton("stopPrepRace", BJI.Utils.Icon.ICONS.cancel, { disabled = cache.disableButtons,
+                big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            cache.disableButtons = true
+            BJI.Tx.vote.RaceStop()
         end
-        line:build()
+        TooltipText(cache.buttons.stop)
     end
 end

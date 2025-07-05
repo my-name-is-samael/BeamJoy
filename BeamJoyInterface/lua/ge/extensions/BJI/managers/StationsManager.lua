@@ -24,6 +24,8 @@ local M = {
     detectionStations = {},
     detectionProcess = nil,
     detectionLimit = 20, -- amount of detection by frame
+
+    stationProcess = false,
 }
 
 ---@param ctxt TickContext
@@ -194,6 +196,60 @@ local function fastTick(ctxt)
 end
 
 ---@param ctxt TickContext
+---@param id string
+---@param durationSec integer
+---@param beginCallback fun()?
+---@param endCallback fun(ctxt: TickContext)?
+local function commonStationProcess(ctxt, id, durationSec, beginCallback, endCallback)
+    if not ctxt.veh or not ctxt.veh.isLocal then return end
+    beginCallback = beginCallback or function() end
+    endCallback = endCallback or function() end
+
+    BJI.Managers.Veh.stopCurrentVehicle()
+    M.stationProcess = true
+    BJI.Managers.Restrictions.update()
+    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RESTRICTIONS_UPDATE)
+    local previousCam = {
+        name = ctxt.camera,
+        posrot = ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE and BJI.Managers.Cam.getPositionRotation() or nil
+    }
+    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
+    ctxt.vehData.freezeStation = true
+    BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
+    ctxt.vehData.engineStation = false
+    BJI.Managers.Veh.engine(false, ctxt.veh.gameVehicleID)
+    beginCallback()
+
+    local timeout = GetCurrentTimeMillis() + durationSec * 1000 + 10 -- 10 ms to allow first flash to print
+    BJI.Managers.Message.flashCountdown(id, timeout, false, nil, durationSec)
+    BJI.Managers.Async.task(function(ctxt2)
+        return not ctxt2.veh or ctxt2.now >= timeout
+    end, function(ctxt2)
+        if ctxt2.veh then
+            ctxt.vehData.freezeStation = false
+            if not ctxt.vehData.freeze then
+                BJI.Managers.Veh.freeze(false, ctxt.vehData.gameVehID)
+            end
+            ctxt.vehData.engineStation = true
+            if ctxt.vehData.engine then
+                BJI.Managers.Veh.engine(true, ctxt.vehData.gameVehID)
+            end
+        else
+            BJI.Managers.Message.cancelFlash(id)
+        end
+        if previousCam.name == BJI.Managers.Cam.CAMERAS.FREE then
+            BJI.Managers.Cam.setCamera(previousCam.name)
+            BJI.Managers.Cam.setPositionRotation(previousCam.posrot.pos, previousCam.posrot.rot)
+        elseif ctxt2.veh then
+            BJI.Managers.Cam.setCamera(previousCam.name)
+        end
+        endCallback(ctxt2)
+        M.stationProcess = false
+        BJI.Managers.Restrictions.update()
+    end, id .. "-ended")
+end
+
+---@param ctxt TickContext
 local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     if not ctxt.isOwner or not ctxt.vehData or not ctxt.vehData.tanks then return end
     if not energyTypes or #energyTypes == 0 then return end
@@ -211,79 +267,53 @@ local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
     end
     if table.length(tanksToRefuel) == 0 then return end
 
-    -- start process
-    BJI.Managers.Veh.stopCurrentVehicle()
-    ctxt.user.stationProcess = true
-    BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-    ctxt.vehData.freezeStation = true
-    BJI.Managers.Veh.freeze(true, ctxt.vehData.gameVehID)
-    ctxt.vehData.engineStation = false
-    BJI.Managers.Veh.engine(false, ctxt.vehData.gameVehID)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROCESS_CHANGED)
+    commonStationProcess(ctxt, "BJIRefill", fillDuration, nil, function(ctxt2)
+        if ctxt2.veh then
+            for tankName, t in pairs(tanksToRefuel) do
+                local targetEnergy = math.round(t.maxEnergy * fillPercent)
+                BJI.Managers.Veh.setFuel(tankName, targetEnergy)
+            end
 
-    local completedKey = table.length(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
-        "energyStations.flashTankFilled"
-    if #energyTypes == 1 and energyTypes[1] == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC then
-        completedKey = "energyStations.flashBatteryFilled"
-    end
-    BJI.Managers.Message.flashCountdown("BJIRefill", GetCurrentTimeMillis() + fillDuration * 1000 + 10, false,
-        BJI.Managers.Lang.get(completedKey), fillDuration)
-    BJI.Managers.Async.delayTask(function()
-        for tankName, t in pairs(tanksToRefuel) do
-            local targetEnergy = math.round(t.maxEnergy * fillPercent)
-            BJI.Managers.Veh.setFuel(tankName, targetEnergy)
+            local completedKey = table.length(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
+                "energyStations.flashTankFilled"
+            if #energyTypes == 1 and energyTypes[1] == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC then
+                completedKey = "energyStations.flashBatteryFilled"
+            end
+            BJI.Managers.Message.flash("BJIRefillDone", BJI.Managers.Lang.get(completedKey), 3, false)
         end
-    end, fillDuration * 1000 - 1000, "BJIStationRefillFuel")
-    BJI.Managers.Async.delayTask(function()
-        ctxt.vehData.freezeStation = false
-        if not ctxt.vehData.freeze then
-            BJI.Managers.Veh.freeze(false, ctxt.vehData.gameVehID)
-        end
-        ctxt.vehData.engineStation = true
-        if ctxt.vehData.engine then
-            BJI.Managers.Veh.engine(true, ctxt.vehData.gameVehID)
-        end
-        BJI.Managers.Cam.resetForceCamera(true)
-        BJI.Managers.Context.User.stationProcess = false
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.STATION_PROCESS_CHANGED)
-    end, fillDuration * 1000, "BJIStationRefillEnd")
+    end)
 end
 
 ---@param ctxt TickContext
 local function tryRepair(ctxt)
-    BJI.Managers.Veh.stopCurrentVehicle()
-    ctxt.user.stationProcess = true
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
-    BJI.Managers.Cam.forceCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-    ctxt.vehData.freezeStation = true
-    BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
-    ctxt.vehData.engineStation = false
-    BJI.Managers.Veh.engine(false, ctxt.veh.gameVehicleID)
-    BJI.Managers.Reputation.onGarageRepair()
-    BJI.Managers.Scenario.onGarageRepair()
-
-    BJI.Managers.Message.flashCountdown("BJIRefill", GetCurrentTimeMillis() + 5010, false,
-        BJI.Managers.Lang.get("garages.flashVehicleRepaired"))
-    BJI.Managers.Async.delayTask(function(ctxt2)
+    commonStationProcess(ctxt, "BJIStationRepair", 5, function()
+        BJI.Managers.Reputation.onGarageRepair()
+        BJI.Managers.Scenario.onGarageRepair()
+    end, function(ctxt2)
         if ctxt2.veh then
             BJI.Managers.Veh.setPositionRotation(ctxt2.veh.position, nil, {
                 safe = false
             })
             BJI.Managers.Veh.postResetPreserveEnergy(ctxt2.veh.gameVehicleID)
-            ctxt2.vehData.freezeStation = false
-            if not ctxt2.vehData.freeze then
-                BJI.Managers.Veh.freeze(false, ctxt2.veh.gameVehicleID)
-            end
-            ctxt2.vehData.engineStation = true
-            if ctxt2.vehData.engine then
-                BJI.Managers.Veh.engine(true, ctxt2.veh.gameVehicleID)
-            end
-            BJI.Managers.Cam.resetForceCamera(true)
             BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.REPAIR)
+
+            BJI.Managers.Message.flash("BJIStationRepairDone", BJI.Managers.Lang.get("garages.flashVehicleRepaired"), 3, false)
         end
-        ctxt2.user.stationProcess = false
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
-    end, 5000, "BJIStationRepair")
+    end)
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    if M.stationProcess then
+        return Table():addAll(BJI.Managers.Restrictions.RESETS.ALL, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+            :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+    end
+    return {}
 end
 
 M.tryRefillVehicle = tryRefillVehicle
@@ -293,5 +323,7 @@ M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 M.renderTick = renderTick
+
+M.getRestrictions = getRestrictions
 
 return M

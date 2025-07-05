@@ -97,12 +97,6 @@ function ctrl.BusLinesSave(data)
     busLinesSaveCallbackFn = nil
 end
 
-function ctrl.SpeedStop()
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then
-        BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).stop()
-    end
-end
-
 local hunterSaveCallbackFn
 ---@param callback fun(boolean)
 function ctrl.hunterSaveCallback(callback)

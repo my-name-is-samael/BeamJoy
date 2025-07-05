@@ -63,13 +63,15 @@ local function processFastTick(ctxt)
     end
 end
 
+--- gc prevention
+local ctxt, start
 -- ClientTick (each render tick)
 local function client()
     if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
-        local ctxt = getContext()
+        ctxt = getContext()
         Table(BJI.Managers):forEach(function(m)
             if m.renderTick then
-                local start = GetCurrentTimeMillis()
+                start = GetCurrentTimeMillis()
                 m.renderTick(ctxt)
                 if BJI.Bench.STATE == 1 then
                     BJI.Bench.add(m._name, "renderTick", GetCurrentTimeMillis() - start)

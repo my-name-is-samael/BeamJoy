@@ -2,10 +2,9 @@
 local W = {
     name = "Speed",
     flags = {
-        BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE
+        BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
+        BJI.Utils.Style.WINDOW_FLAGS.ALWAYS_AUTO_RESIZE,
     },
-    w = 350,
-    h = 250,
 
     labels = {
         title = "",
@@ -21,6 +20,8 @@ local W = {
     ---@type BJIScenarioSpeed
     scenario = nil,
 }
+--- gc prevention
+local remaining, lb, color
 
 local function updateLabels()
     W.labels.title = BJI.Managers.Lang.get("speed.title")
@@ -74,35 +75,43 @@ local function onUnload()
 end
 
 local function drawHeader(ctxt)
-    LineLabel(W.labels.title)
+    Text(W.labels.title)
+    Text(W.cache.minSpeed)
 
-    LineLabel(W.cache.minSpeed)
-
-    local now = GetCurrentTimeMillis()
     if W.scenario.processCheck and W.scenario.processCheck - ctxt.now >= 0 then
-        local remaining = math.round((W.scenario.processCheck - now) / 1000)
-        LineLabel(W.labels.counterWarning:var({ seconds = remaining }), remaining > 3 and
-            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.ERROR)
+        remaining = math.round((W.scenario.processCheck - ctxt.now) / 1000)
+        Text(W.labels.counterWarning:var({ seconds = remaining }), {
+            color = remaining > 3 and
+                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.ERROR
+        })
     end
 end
 
 local function drawBody(ctxt)
-    LineLabel(W.labels.leaderboard)
-    Indent(1)
-    Range(1, table.length(W.scenario.participants)):forEach(function(i)
-        local lb = W.cache.leaderboard[i]
-        local color = (lb and lb.self) and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        local line = LineBuilder()
-            :text(i, color)
-            :text("-", color)
-        if lb then
-            line:text(lb.player.playerName, color)
-                :text(string.var("({1}{2}, {3})", { lb.speed, W.labels.speedUnit, BJI.Utils.UI.RaceDelay(lb.time) }),
-                    color)
-        end
-        line:build()
-    end)
-    Indent(-1)
+    Text(W.labels.leaderboard)
+    Indent()
+    if BeginTable("BJISpeedGameLeaderboard", {
+            { label = "##speedgame-positions" },
+            { label = "##speedgame-scores" },
+        }) then
+        Range(1, table.length(W.scenario.participants)):forEach(function(i)
+            lb = W.cache.leaderboard[i]
+            color = (lb and lb.self) and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+            TableNewRow()
+            Text(i, { color = color })
+            TableNextColumn()
+            Text("-", { color = color })
+            if lb then
+                SameLine()
+                Text(string.var("{1} ({2}{3}, {4})", {
+                    lb.player.playerName, lb.speed, W.labels.speedUnit,
+                    BJI.Utils.UI.RaceDelay(lb.time) }), { color = color })
+            end
+        end)
+
+        EndTable()
+    end
+    Unindent()
 end
 
 W.onLoad = onLoad

@@ -23,6 +23,8 @@ local S = {
     eventLock = false,
     minDistance = 4,
 }
+--- gc prevention
+local other, taggerMark, actions
 
 ---@param ctxt TickContext
 ---@return boolean
@@ -36,15 +38,6 @@ end
 local function onLoad(ctxt)
     S.resetLock = false
     BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-    } })
     BJI.Managers.RaceWaypoint.resetAll()
     BJI.Managers.WaypointEdit.reset()
     BJI.Managers.GPS.reset()
@@ -58,18 +51,19 @@ local function onUnload(ctxt)
     BJI.Managers.Message.stopRealtimeDisplay()
     S.playerVehs = Table()
 
-    BJI.Managers.Restrictions.update({ {
-        restrictions = Table({
-            BJI.Managers.Restrictions.OTHER.BIG_MAP,
-            BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            BJI.Managers.Restrictions.OTHER.FREE_CAM,
-            BJI.Managers.Restrictions.OTHER.PHOTO_MODE,
-        }):flat(),
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
     BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
     BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
     BJI.Managers.GPS.reset()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 ---@return boolean
@@ -119,7 +113,7 @@ local function doShowNametag(vehData)
 end
 
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
@@ -134,54 +128,47 @@ local function drawUI(ctxt)
         return
     end
 
-    local other
-    if not S.waitForPlayers then
-        other = ctxt.players
-            [S.selfLobby.players:keys():find(function(p) return p ~= ctxt.user.playerID end)]
+    other = not S.waitForPlayers and ctxt.players
+        [S.selfLobby.players:keys():find(function(p) return p ~= ctxt.user.playerID end)] or nil
+
+    if IconButton("leaveTagDuo", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        BJI.Tx.scenario.TagDuoLeave()
     end
-    LineBuilder():btnIcon({
-        id = "leaveTagDuo",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("menu.scenario.tagduo.leave"),
-        onClick = function()
-            BJI.Tx.scenario.TagDuoLeave()
-        end
-    }):text(string.var(BJI.Managers.Lang.get("tagduo.title"),
+    TooltipText(BJI.Managers.Lang.get("menu.scenario.tagduo.leave"))
+    SameLine()
+    Text(string.var(BJI.Managers.Lang.get("tagduo.title"),
             { playerName = ctxt.players[S.selfLobby.host].playerName }),
-        S.selfLobby.host == ctxt.user.playerID and
-        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil):build()
+        {
+            color = S.selfLobby.host == ctxt.user.playerID and
+                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
+        })
 
     if S.waitForPlayers then
-        LineLabel(BJI.Managers.Lang.get("tagduo.flashWaitingForPlayer"))
+        Text(BJI.Managers.Lang.get("tagduo.flashWaitingForPlayer"))
     elseif S.waitForSpread then
-        LineLabel(BJI.Managers.Lang.get("tagduo.flashWaitForSpread"))
+        Text(BJI.Managers.Lang.get("tagduo.flashWaitForSpread"))
     elseif S.selfLobby.players[ctxt.user.playerID].tagger then
-        LineLabel(BJI.Managers.Lang.get("tagduo.flashChase"))
+        Text(BJI.Managers.Lang.get("tagduo.flashChase"))
     else
-        LineLabel(BJI.Managers.Lang.get("tagduo.flashFlee"))
+        Text(BJI.Managers.Lang.get("tagduo.flashFlee"))
     end
 
-    local taggerMark = string.var("({1})", { BJI.Managers.Lang.get("tagduo.taggerMark") })
-    ColumnsBuilder("BJITagDuoUI", { -1, -1 }):addRow({
-        cells = {
-            function()
-                local line = LineBuilder():text(ctxt.user.playerName,
-                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                if S.selfLobby.players[ctxt.user.playerID].tagger then
-                    line:text(taggerMark, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                end
-                line:build()
-            end,
-            other and function()
-                local line = LineBuilder():text(other.playerName)
-                if S.selfLobby.players[other.playerID].tagger then
-                    line:text(taggerMark, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-                end
-                line:build()
-            end or nil,
-        }
-    }):build()
+    taggerMark = string.var("({1})", { BJI.Managers.Lang.get("tagduo.taggerMark") })
+    Text(ctxt.user.playerName, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    if S.selfLobby.players[ctxt.user.playerID].tagger then
+        SameLine()
+        Text(taggerMark, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    end
+    if other then
+        SameLine()
+        SetCursorPosX(GetWindowSize().x / 2)
+        Text(other.playerName)
+        if S.selfLobby.players[other.playerID].tagger then
+            SameLine()
+            Text(taggerMark, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+        end
+    end
 end
 
 local function getVehsDistance()
@@ -353,6 +340,8 @@ end
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
 S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.isLobbyFilled = isLobbyFilled
 S.isTagger = isTagger

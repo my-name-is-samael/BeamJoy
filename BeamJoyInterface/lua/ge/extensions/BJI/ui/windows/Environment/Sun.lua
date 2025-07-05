@@ -46,13 +46,12 @@ local W = {
         dusk = "",
         midnight = "",
     },
-    labelsCommonWidth = 0,
-    labelsDayWidth = 0,
-    labelsNightWidth = 0,
     presets = require("ge/extensions/utils/EnvironmentUtils").timePresets(),
 
     cachedShared = {},
 }
+--- gc prevention
+local nextValue, parent, child, ranges
 
 local function updateLabels()
     Table(W.labels):forEach(function(_, k)
@@ -63,33 +62,14 @@ local function updateLabels()
     end)
     W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
     W.labels.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
-
-    W.labelsCommonWidth = W.KEYS.common:reduce(function(acc, k)
-        local l = W.labels[k]
-        local w = BJI.Utils.UI.GetColumnTextWidth(l)
-        return w > acc and w or acc
-    end, 0)
-
-    W.labelsDayWidth = W.KEYS.day:reduce(function(acc, k)
-        local l = W.labels[k]
-        local w = BJI.Utils.UI.GetColumnTextWidth(l)
-        return w > acc and w or acc
-    end, 0)
-
-    W.labelsNightWidth = W.KEYS.night:reduce(function(acc, k)
-        local l = W.labels[k]
-        local w = BJI.Utils.UI.GetColumnTextWidth(l)
-        return w > acc and w or acc
-    end, 0)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+
+    ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
 end
 
 local function onUnload()
@@ -97,353 +77,294 @@ local function onUnload()
 end
 
 local function body()
-    LineBuilder()
-        :icon({
-            icon = BJI.Utils.Icon.ICONS.simobject_sun,
-            big = true,
-        })
-        :build()
+    Icon(BJI.Utils.Icon.ICONS.simobject_sun, { big = true })
 
-    ColumnsBuilder("EnvSunSettingsBase", { W.labelsCommonWidth, -1 }):addRow({
-        cells = {
-            function() LineLabel(W.labels.controlSun) end,
-            function()
-                LineBuilder()
-                    :btnIconToggle({
-                        id = "controlSun",
-                        state = BJI.Managers.Env.Data.controlSun,
-                        coloredIcon = true,
-                        onClick = function()
-                            BJI.Managers.Env.Data.controlSun = not BJI.Managers.Env.Data.controlSun
-                            BJI.Tx.config.env("controlSun", BJI.Managers.Env.Data.controlSun)
-                        end,
-                    }):btn({
-                    id = "resetSun",
-                    label = W.labels.resetAll,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    disabled = not BJI.Managers.Env.Data.controlSun,
-                    onClick = function()
-                        BJI.Tx.config.env("reset", BJI.CONSTANTS.ENV_TYPES.SUN)
-                    end,
-                }):build()
-            end,
-        }
-    }):addRow({
-        cells = {
-            function() LineLabel(W.labels.timePlay) end,
-            function()
-                BJI.Utils.UI.DrawTimePlayPauseButtons("envSunTimePlay", true,
-                    not BJI.Managers.Env.Data.controlSun)
-                W.presets:reduce(function(line, p)
-                    return line:btn({
-                        id = "timepreset" .. p.label,
-                        label = W.labelsPresets[p.label],
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onClick = function()
-                            BJI.Managers.Env.Data.ToD = p.ToD
-                            BJI.Tx.config.env("ToD", p.ToD)
-                        end,
-                    })
-                end, LineBuilder(true)):build()
-            end,
-        }
-    }):build()
+    if BeginTable("BJIEnvSunHead", {
+            { label = "##env-sun-head-left-labels" },
+            { label = "##env-sun-head-left-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(W.labels.controlSun)
+        TableNextColumn()
+        if IconButton("controlSun", BJI.Managers.Env.Data.controlSun and
+                BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
+                { btnStyle = BJI.Managers.Env.Data.controlSun and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+                    BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+            BJI.Managers.Env.Data.controlSun = not BJI.Managers.Env.Data.controlSun
+            BJI.Tx.config.env("controlSun", BJI.Managers.Env.Data.controlSun)
+        end
+        SameLine()
+        if Button("resetSun", W.labels.resetAll, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("reset", BJI.CONSTANTS.ENV_TYPES.SUN)
+        end
 
-    local ranges = require("ge/extensions/utils/EnvironmentUtils").numericData()
-    local function addSliderRow(rowData)
-        local finalParent1 = BJI.Managers.Env.Data
-        local finalKey1 = rowData[1]
-        if finalKey1:find("%.") then
-            local parts = tostring(finalKey1):split2(".")
-            finalParent1 = finalParent1[parts[1]]
-            finalKey1 = parts[2]
-        end
-        local finalParent2 = BJI.Managers.Env.Data
-        local finalKey2 = rowData[2]
-        if finalKey2 and finalKey2:find("%.") then
-            local parts = tostring(finalKey2):split2(".")
-            finalParent2 = finalParent2[parts[1]]
-            finalKey2 = parts[2]
-        end
-        return {
-            cells = {
-                function() LineLabel(W.labels[finalKey1]) end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "reset" .. rowData[1],
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env(rowData[1])
-                        end
-                    }):slider({
-                        id = rowData[1],
-                        type = ranges[finalKey1].type,
-                        value = tonumber(finalParent1[finalKey1]) or 0,
-                        min = ranges[finalKey1].min,
-                        max = ranges[finalKey1].max,
-                        precision = ranges[finalKey1].precision,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onUpdate = function(val)
-                            finalParent1[finalKey1] = val
-                            BJI.Managers.Env.forceUpdate()
-                        end,
-                    }):build()
-                end,
-                finalKey2 and function() LineLabel(W.labels[finalKey2]) end or nil,
-                finalKey2 and function()
-                    LineBuilder():btnIcon({
-                        id = "reset" .. rowData[2],
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env(rowData[2])
-                        end
-                    }):slider({
-                        id = rowData[2],
-                        type = ranges[finalKey2].type,
-                        value = tonumber(finalParent2[finalKey2]) or 0,
-                        min = ranges[finalKey2].min,
-                        max = ranges[finalKey2].max,
-                        precision = ranges[finalKey2].precision,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onUpdate = function(val)
-                            finalParent2[finalKey2] = val
-                            BJI.Managers.Env.forceUpdate()
-                        end,
-                    }):build()
-                end or nil,
-            }
-        }
+        TableNewRow()
+        Text(W.labels.timePlay)
+        TableNextColumn()
+        BJI.Utils.UI.DrawTimePlayPauseButtons("envSunTimePlay", true,
+            not BJI.Managers.Env.Data.controlSun)
+        W.presets:forEach(function(p)
+            SameLine()
+            if Button("timepreset-" .. p.label, W.labelsPresets[p.label],
+                    { disabled = not BJI.Managers.Env.Data.controlSun }) then
+                BJI.Managers.Env.Data.ToD = p.ToD
+                BJI.Tx.config.env("ToD", p.ToD)
+            end
+        end)
+
+        TableNewRow()
+        TableNextColumn()
+
+        EndTable()
     end
-    ColumnsBuilder("EnvSunSettingsCommon", { W.labelsCommonWidth, -1, -1 })
-        :addRow({
-            cells = {
-                function() LineLabel(W.labels.ToD) end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "resetToD",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+
+    if BeginTable("BJIEnvSunTime", {
+            { label = "##env-sun-time-labels" },
+            { label = "##env-sun-time-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##env-sun-time-third", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(W.labels.ToD)
+        TableNextColumn()
+        if IconButton("resetToD", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("ToD")
+        end
+        TooltipText(W.labels.reset)
+        SameLine()
+        nextValue = SliderFloatPrecision("ToD", (BJI.Managers.Env.Data.ToD + .5) % 1, 0, 1,
+            { disabled = not BJI.Managers.Env.Data.controlSun, step = .01, stepFast = .05 })
+        if nextValue then
+            local newToD = math.round((nextValue + .5) % 1, 6)
+            BJI.Managers.Env.Data.ToD = newToD
+            BJI.Managers.Env.forceUpdate()
+            if BJI.Managers.Env.Data.timePlay then
+                BJI.Managers.Env.ToDEdit = true
+                BJI.Managers.Async.removeTask("EnvToDManualChange")
+                BJI.Managers.Async.delayTask(function()
+                    if newToD ~= BJI.Managers.Env.Data.ToD then
+                        BJI.Tx.config.env("ToD", newToD)
+                    end
+                end, 1000, "EnvToDManualChange")
+            else
+                BJI.Tx.config.env("ToD", newToD)
+            end
+        end
+        TableNextColumn()
+        Text(BJI.Utils.UI.PrettyTime(BJI.Managers.Env.Data.ToD))
+
+        TableNewRow()
+        Text(W.labels.dayLength)
+        TableNextColumn()
+        if IconButton("resetDayLength", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("dayLength")
+        end
+        TooltipText(W.labels.reset)
+        SameLine()
+        nextValue = SliderIntPrecision("dayLength", BJI.Managers.Env.Data.dayLength, 60, 86400,
+            { disabled = not BJI.Managers.Env.Data.controlSun, step = 60, stepFast = 600 })
+        if nextValue then BJI.Managers.Env.Data.dayLength = nextValue end
+        TableNextColumn()
+        if Button("dayLengthRealtime", W.labels.realtime,
+                { disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Managers.Env.Data.dayLength = 86400
+            BJI.Managers.Env.Data.skyDay.dayScale = .5
+            BJI.Managers.Env.Data.skyNight.nightScale = .5
+        end
+        SameLine()
+        if Button("dayLength20min", "20m", { disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Managers.Env.Data.dayLength = 1200
+        end
+        SameLine()
+        if Button("dayLength1hour", "1h", { disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Managers.Env.Data.dayLength = 3600
+        end
+        SameLine()
+        Text(BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength))
+
+        Table({ "visibleDistance", "shadowDistance", "shadowSoftness", "shadowSplits", "shadowLogWeight" }):forEach(function(
+            k)
+            TableNewRow()
+            Text(W.labels[k])
+            TableNextColumn()
+            if IconButton("reset-" .. tostring(k), BJI.Utils.Icon.ICONS.refresh,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                        disabled = not BJI.Managers.Env.Data.controlSun }) then
+                BJI.Tx.config.env(k)
+            end
+            TooltipText(W.labels.reset)
+            SameLine()
+            if ranges[k].type == "int" then
+                nextValue = SliderIntPrecision("env-" .. k, tonumber(BJI.Managers.Env.Data[k]) or 0, ranges[k].min,
+                    ranges[k].max, {
                         disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env("ToD")
-                        end
-                    }):slider({
-                        id = "ToD",
-                        type = "float",
-                        value = (BJI.Managers.Env.Data.ToD + .5) % 1,
-                        min = 0,
-                        max = 1,
+                        step = ranges[k].step,
+                        stepFast = ranges[k].stepFast
+                    })
+            else
+                nextValue = SliderFloatPrecision("env-" .. k, tonumber(BJI.Managers.Env.Data[k]) or 0, ranges[k].min,
+                    ranges[k].max, {
                         disabled = not BJI.Managers.Env.Data.controlSun,
-                        onUpdate = function(val)
-                            local newToD = math.round((val + .5) % 1, 6)
-                            BJI.Managers.Env.Data.ToD = newToD
-                            BJI.Managers.Env.forceUpdate()
-                            if BJI.Managers.Env.Data.timePlay then
-                                BJI.Managers.Env.ToDEdit = true
-                                BJI.Managers.Async.removeTask("EnvToDManualChange")
-                                BJI.Managers.Async.delayTask(function()
-                                    if newToD ~= BJI.Managers.Env.Data.ToD then
-                                        BJI.Tx.config.env("ToD", newToD)
-                                    end
-                                end, 1000, "EnvToDManualChange")
-                            else
-                                BJI.Tx.config.env("ToD", newToD)
-                            end
-                        end
-                    }):build()
-                end,
-                function()
-                    LineLabel(BJI.Utils.UI.PrettyTime(BJI.Managers.Env.Data.ToD))
+                        precision = ranges[k].precision,
+                        step = ranges[k].step,
+                        stepFast = ranges[k].stepFast
+                    })
+            end
+            if nextValue then
+                BJI.Managers.Env.Data[k] = nextValue
+                BJI.Managers.Env.forceUpdate()
+            end
+        end)
+
+        TableNewRow()
+        Text(W.labels.shadowTexSize)
+        TableNextColumn()
+        if IconButton("resetShadowTexSize", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("shadowTexSize")
+        end
+        TooltipText()
+        SameLine()
+        nextValue = SliderInt("env-shadowTexSize", BJI.Managers.Env.Data.shadowTexSizeInput, 1, 7,
+            {
+                disabled = not BJI.Managers.Env.Data.controlSun,
+                formatRender = string.var("%d (x{1})",
+                    { BJI.Managers.Env.Data.shadowTexSize })
+            })
+        if nextValue then
+            BJI.Managers.Env.Data.shadowTexSizeInput = nextValue
+            nextValue = math.clamp(2 ^ (nextValue + 4), 32, 2048)
+            if nextValue ~= BJI.Managers.Env.Data.shadowTexSize then
+                BJI.Managers.Env.Data.shadowTexSize = nextValue
+                BJI.Managers.Env.forceUpdate()
+            end
+        end
+
+        EndTable()
+    end
+    Separator()
+
+    if BeginTable("BJIEnvSunDayNight", {
+            { label = "##env-sun-day-labels" },
+            { label = "##env-sun-day-inputs",   flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##env-sun-night-labels" },
+            { label = "##env-sun-night-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(W.labels.day)
+        TableNextColumn()
+        TableNextColumn()
+        Text(W.labels.night)
+
+        TableNewRow()
+        Text(W.labels.dayScale)
+        TableNextColumn()
+        if IconButton("resetskyDay.dayScale", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("skyDay.dayScale")
+            BJI.Tx.config.env("skyNight.nightScale")
+        end
+        TooltipText(W.labels.reset)
+        SameLine()
+        nextValue = SliderIntPrecision("skyDay.dayScale", math.round(BJI.Managers.Env.Data.skyDay.dayScale * 100), 1,
+            99,
+            {
+                disabled = not BJI.Managers.Env.Data.controlSun,
+                step = 1,
+                stepFast = 5,
+                formatRender = string.var("%d%% ({1})", { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
+                    BJI.Managers.Env.Data.skyDay.dayScale) })
+            })
+        if nextValue then
+            BJI.Managers.Env.Data.skyDay.dayScale = math.round(nextValue / 100, 2)
+            BJI.Managers.Env.Data.skyNight.nightScale = 1 - BJI.Managers.Env.Data.skyDay.dayScale
+        end
+        TableNextColumn()
+        Text(W.labels.nightScale)
+        TableNextColumn()
+        if IconButton("resetnightScale", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = not BJI.Managers.Env.Data.controlSun }) then
+            BJI.Tx.config.env("skyNight.nightScale")
+            BJI.Tx.config.env("skyDay.dayScale")
+        end
+        TooltipText(W.labels.reset)
+        SameLine()
+        nextValue = SliderIntPrecision("skyNight.nightScale", math.round(BJI.Managers.Env.Data.skyNight.nightScale * 100),
+            1, 99,
+            {
+                disabled = not BJI.Managers.Env.Data.controlSun,
+                step = 1,
+                stepFast = 5,
+                formatRender = string.var("%d%% ({1})", { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
+                    BJI.Managers.Env.Data.skyNight.nightScale) })
+            })
+        if nextValue then
+            BJI.Managers.Env.Data.skyNight.nightScale = math.round(nextValue / 100, 2)
+            BJI.Managers.Env.Data.skyDay.dayScale = 1 - BJI.Managers.Env.Data.skyNight.nightScale
+        end
+
+        Table({
+            { "skyDay.brightness",         "skyNight.brightness" },
+            { "skyDay.sunAzimuthOverride", "skyNight.moonAzimuth" },
+            { "skyDay.sunSize",            "skyNight.moonScale" },
+            { "skyDay.skyBrightness",      "skyNight.moonElevation" },
+            { "skyDay.rayleighScattering" },
+            { "skyDay.exposure" },
+            { "skyDay.flareScale" },
+            { "skyDay.occlusionScale" }
+        }):forEach(function(el)
+            for i = 1, 2 do
+                if i == 1 or el[i] then
+                    if i == 1 then
+                        TableNewRow()
+                    else
+                        TableNextColumn()
+                    end
+                    parent = BJI.Managers.Env.Data[el[i]:split2(".")[1]]
+                    child = el[i]:split2(".")[2]
+                    Text(W.labels[child])
+                    TableNextColumn()
+                    if IconButton("reset" .. el[i], BJI.Utils.Icon.ICONS.refresh,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                                disabled = not BJI.Managers.Env.Data.controlSun }) then
+                        BJI.Tx.config.env(el[i])
+                    end
+                    TooltipText(W.labels.reset)
+                    SameLine()
+                    if ranges[child].type == "int" then
+                        nextValue = SliderIntPrecision(el[i], tonumber(parent[child]) or 0, ranges[child].min,
+                            ranges[child].max, {
+                                disabled = not BJI.Managers.Env.Data.controlSun,
+                                step = ranges[child].step,
+                                stepFast = ranges[child].stepFast
+                            })
+                    else
+                        nextValue = SliderFloatPrecision(el[i], tonumber(parent[child]) or 0, ranges[child].min,
+                            ranges[child].max,
+                            {
+                                disabled = not BJI.Managers.Env.Data.controlSun,
+                                precision = ranges[child].precision,
+                                step = ranges[child].step,
+                                stepFast = ranges[child].stepFast
+                            })
+                    end
+                    if nextValue then
+                        parent[child] = nextValue
+                        BJI.Managers.Env.forceUpdate()
+                    end
                 end
-            }
-        })
-        :addRow({
-            cells = {
-                function() LineLabel(W.labels.dayLength) end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "resetdayLength",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env("dayLength")
-                        end
-                    }):inputNumeric({
-                        id = "dayLength",
-                        type = "int",
-                        value = BJI.Managers.Env.Data.dayLength,
-                        step = 60,
-                        stepFast = 600,
-                        min = 60,
-                        max = 86400,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onUpdate = function(val)
-                            BJI.Managers.Env.Data.dayLength = val
-                        end
-                    }):build()
-                end,
-                function()
-                    LineBuilder():btn({
-                        id = "dayLengthRealtime",
-                        label = W.labels.realtime,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onClick = function()
-                            BJI.Managers.Env.Data.dayLength = 86400
-                            BJI.Managers.Env.Data.skyDay.dayScale = .5
-                            BJI.Managers.Env.Data.skyNight.nightScale = .5
-                        end,
-                    }):btn({
-                        id = "dayLength20min",
-                        label = "20m",
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onClick = function()
-                            BJI.Managers.Env.Data.dayLength = 1200
-                        end,
-                    }):btn({
-                        id = "dayLength1hour",
-                        label = "1h",
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        onClick = function()
-                            BJI.Managers.Env.Data.dayLength = 3600
-                        end,
-                    }):text(BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength))
-                        :build()
-                end
-            }
-        })
-        :addRow(addSliderRow({ "visibleDistance" }))
-        :addRow(addSliderRow({ "shadowDistance" }))
-        :addRow(addSliderRow({ "shadowSoftness" }))
-        :addRow(addSliderRow({ "shadowSplits" }))
-        :addRow({
-            cells = {
-                function() LineLabel(W.labels.shadowTexSize) end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "resetshadowTexSize",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env("shadowTexSize")
-                        end
-                    }):slider({
-                        id = "shadowTexSize",
-                        type = "int",
-                        value = BJI.Managers.Env.Data.shadowTexSizeInput,
-                        min = 1, -- 2 ^ (1 + 4) = 32
-                        max = 7, -- 2 ^ (7 + 4) = 2048
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        renderFormat = string.var("%d (x{1})", { BJI.Managers.Env.Data.shadowTexSize }),
-                        onUpdate = function(val)
-                            BJI.Managers.Env.Data.shadowTexSizeInput = val
-                            val = 2 ^ (val + 4)
-                            if val >= 32 and val <= 2048 then
-                                BJI.Managers.Env.Data.shadowTexSize = val
-                                BJI.Managers.Env.forceUpdate()
-                            end
-                        end
-                    }):build()
-                end
-            }
-        })
-        :addRow(addSliderRow({ "shadowLogWeight" }))
-        :addSeparator():build()
-    ColumnsBuilder("EnvSunSettingsDayNight", { W.labelsDayWidth, -1, W.labelsNightWidth, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.day)
-                end,
-                nil,
-                function()
-                    LineLabel(W.labels.night)
-                end,
-            }
-        })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.dayScale)
-                end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "resetskyDay.dayScale",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env("skyDay.dayScale")
-                            BJI.Tx.config.env("skyNight.nightScale")
-                        end
-                    }):slider({
-                        id = "skyDay.dayScale",
-                        type = "int",
-                        value = math.round(BJI.Managers.Env.Data.skyDay.dayScale * 100),
-                        min = 1,
-                        max = 99,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        renderFormat = string.var("%d%% ({1})",
-                            { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
-                                BJI.Managers.Env.Data.skyDay.dayScale) }),
-                        onUpdate = function(val)
-                            BJI.Managers.Env.Data.skyDay.dayScale = math.round(val / 100, 2)
-                            BJI.Managers.Env.Data.skyNight.nightScale = 1 - BJI.Managers.Env.Data.skyDay.dayScale
-                        end
-                    }):build()
-                end,
-                function()
-                    LineLabel(W.labels.nightScale)
-                end,
-                function()
-                    LineBuilder():btnIcon({
-                        id = "resetnightScale",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        tooltip = W.labels.reset,
-                        onClick = function()
-                            BJI.Tx.config.env("skyNight.nightScale")
-                            BJI.Tx.config.env("skyDay.dayScale")
-                        end
-                    }):slider({
-                        id = "skyNight.nightScale",
-                        type = "int",
-                        value = math.round(BJI.Managers.Env.Data.skyNight.nightScale * 100),
-                        min = 1,
-                        max = 99,
-                        disabled = not BJI.Managers.Env.Data.controlSun,
-                        renderFormat = string.var("%d%% ({1})",
-                            { BJI.Utils.UI.PrettyDelay(BJI.Managers.Env.Data.dayLength *
-                                BJI.Managers.Env.Data.skyNight.nightScale) }),
-                        onUpdate = function(val)
-                            BJI.Managers.Env.Data.skyNight.nightScale = math.round(val / 100, 2)
-                            BJI.Managers.Env.Data.skyDay.dayScale = 1 - BJI.Managers.Env.Data.skyNight.nightScale
-                        end
-                    }):build()
-                end,
-            }
-        })
-        :addRow(addSliderRow({ "skyDay.brightness", "skyNight.brightness" }))
-        :addRow(addSliderRow({ "skyDay.sunAzimuthOverride", "skyNight.moonAzimuth" }))
-        :addRow(addSliderRow({ "skyDay.sunSize", "skyNight.moonScale" }))
-        :addRow(addSliderRow({ "skyDay.skyBrightness", "skyNight.moonElevation" }))
-        :addRow(addSliderRow({ "skyDay.rayleighScattering" }))
-        :addRow(addSliderRow({ "skyDay.exposure" }))
-        :addRow(addSliderRow({ "skyDay.flareScale" }))
-        :addRow(addSliderRow({ "skyDay.occlusionScale" }))
-        :build()
+            end
+        end)
+
+        EndTable()
+    end
 end
 
 W.onLoad = onLoad

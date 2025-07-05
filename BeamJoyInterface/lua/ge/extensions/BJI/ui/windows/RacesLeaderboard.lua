@@ -1,14 +1,13 @@
 ---@class BJIWindowRacesLeaderboard : BJIWindow
 local W = {
     name = "RacesLeaderboard",
-    w = 530,
-    h = 320,
+    minSize = ImVec2(500, 250),
+    maxSize = ImVec2(600, 800),
 
     show = false,
     data = {
         amountPBs = 0,
-        ---@type ColumnsBuilder?
-        leaderboardCols = nil,
+        leaderboard = Table(),
     },
 
     labels = {
@@ -49,106 +48,30 @@ local function updateCache(ctxt)
             W.data.amountPBs = W.data.amountPBs + table.length(mapPBs)
         end)
 
-    W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", {})
-    if table.length(BJI.Managers.Context.Scenario.Data.Races) > 0 then
-        local namesWidth = BJI.Utils.UI.GetColumnTextWidth(W.labels.columnRace)
-        local PBsWidth = BJI.Utils.UI.GetColumnTextWidth(W.labels.columnPB)
-        local cols = Table(BJI.Managers.Context.Scenario.Data.Races):filter(function(race)
-                return type(race) == "table"
-            end):map(function(race)
-                local _, pb = BJI.Managers.RaceWaypoint.getPB(race.hash)
-                local res = {
-                    id = race.id,
-                    name = race.name,
-                    hash = race.hash,
-                    pb = pb,
-                    record = race.record and table.clone(race.record) or nil,
-                }
-                return res
-            end):map(function(race)
-                local w = BJI.Utils.UI.GetColumnTextWidth(race.name)
-                if w > namesWidth then
-                    namesWidth = w
-                end
-
-                local pbLabel = ""
-                if race.pb then
-                    pbLabel = BJI.Utils.UI.RaceDelay(race.pb or 0)
-                    w = BJI.Utils.UI.GetColumnTextWidth(pbLabel)
-                    if w + BJI.Utils.UI.GetBtnIconSize() > PBsWidth then
-                        PBsWidth = w + BJI.Utils.UI.GetBtnIconSize()
-                    end
-                end
-
-                local hasRecord = race.record and race.record.playerName == ctxt.user.playerName
-                local recordLabel = race.record and BJI.Utils.UI.RaceDelay(race.record.time) or ""
-                return {
-                    name = race.name,
-                    cells = {
-                        function()
-                            LineLabel(race.name, hasRecord and
-                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-                        end,
-                        race.pb and function()
-                            LineBuilder():btnIcon({
-                                id = string.var("removePb-{1}", { race.id }),
-                                icon = BJI.Utils.Icon.ICONS.delete_forever,
-                                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                tooltip = W.labels.buttons.remove,
-                                onClick = function()
-                                    BJI.Managers.Popup.createModal(
-                                        string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
-                                            { raceName = race.name }), {
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                "common.buttons.cancel"
-                                            )),
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                "common.buttons.confirm"
-                                            ), function()
-                                                BJI.Managers.RaceWaypoint.setPB(race.hash)
-                                                BJI.Managers.Events.trigger(
-                                                    BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
-                                                        raceName = race.name,
-                                                        raceID = race.id,
-                                                        raceHash = race.hash,
-                                                    })
-                                            end),
-                                        })
-                                end,
-                            }):text(pbLabel, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT):build()
-                        end,
-                        race.record and function()
-                            LineLabel(recordLabel, hasRecord and
-                                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT,
-                                false,
-                                race.record and string.var("{1} - {2}", { race.record.playerName,
-                                    BJI.Managers.Veh.getModelLabel(race.record.model) }) or nil
-                            )
-                        end
-                    },
-                }
-            end):values()
-            :sort(function(a, b)
-                if a.name:startswith(b.name) then
-                    return false
-                elseif b.name:startswith(a.name) then
-                    return true
-                end
-                return a.name < b.name
-            end)
-
-        W.data.leaderboardCols = ColumnsBuilder("BJIRacesLeaderboard", { -1, -1, -1 }, true)
-            :addRow({
-                cells = {
-                    function() LineLabel(W.labels.columnRace) end,
-                    function() LineLabel(W.labels.columnPB) end,
-                    function() LineLabel(W.labels.columnRecord) end,
-                }
-            }):addSeparator()
-        Table(cols):forEach(function(col)
-            W.data.leaderboardCols:addRow(col)
+    W.data.leaderboard = Table(BJI.Managers.Context.Scenario.Data.Races):values()
+        :filter(function(race)
+            return type(race) == "table"
+        end):map(function(race)
+            local _, pb = BJI.Managers.RaceWaypoint.getPB(race.hash)
+            return {
+                id = race.id,
+                name = race.name,
+                hash = race.hash,
+                color = race.record and race.record.playerName == ctxt.user.playerName and
+                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT,
+                pb = pb and BJI.Utils.UI.RaceDelay(pb) or nil,
+                record = race.record and BJI.Utils.UI.RaceDelay(race.record.time) or nil,
+                recordTooltip = race.record and string.var("{1} - {2}", { race.record.playerName,
+                    BJI.Managers.Veh.getModelLabel(race.record.model) }) or nil,
+            }
+        end):sort(function(a, b)
+            if a.name:lower():startswith(b.name:lower()) then
+                return false
+            elseif b.name:lower():startswith(a.name:lower()) then
+                return true
+            end
+            return a.name:lower() < b.name:lower()
         end)
-    end
 end
 
 local listeners = Table()
@@ -182,31 +105,75 @@ end
 
 local function header()
     if W.data.amountPBs > 0 then
-        LineBuilder():text(W.labels.amountPBs)
-            :text(W.data.amountPBs, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-            :text(W.labels.vSeparator)
-            :btnIcon({
-                id = "btnRemoveAllPbs",
-                icon = BJI.Utils.Icon.ICONS.delete_forever,
-                tooltip = W.labels.buttons.removeAllPBs,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                onClick = function()
-                    BJI.Managers.Popup.createModal(
-                        BJI.Managers.Lang.get("races.leaderboard.removeAllPBsModal"), {
-                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
-                                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, {})
-                                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {})
-                            end),
-                        })
-                end,
-            }):build()
+        Text(W.labels.amountPBs)
+        SameLine()
+        Text(W.data.amountPBs, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+        SameLine()
+        Text(W.labels.vSeparator)
+        SameLine()
+        if IconButton("btnRemoveAllPbs", BJI.Utils.Icon.ICONS.delete_forever,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            BJI.Managers.Popup.createModal(
+                BJI.Managers.Lang.get("races.leaderboard.removeAllPBsModal"), {
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
+                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, {})
+                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {})
+                    end),
+                })
+        end
+        TooltipText(W.labels.buttons.removeAllPBs)
     end
 end
 
 local function body()
-    if W.data.leaderboardCols then
-        W.data.leaderboardCols:build()
+    if #W.data.leaderboard > 0 then
+        if BeginTable("BJIRacesLeaderboard", {
+                { label = "##racesleaderboard-label" },
+                { label = "##racesleaderboard-pb" },
+                { label = "##racesleaderboard-pb-remove" },
+                { label = "##racesleaderboard-record" },
+            }) then
+            W.data.leaderboard:forEach(function(el)
+                TableNewRow()
+                Text(el.name, { color = el.color })
+                TableNextColumn()
+                if el.pb then
+                    Text(el.pb, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+                end
+                TableNextColumn()
+                if el.pb then
+                    if IconButton("remove-pb-" .. tostring(el.id), BJI.Utils.Icon.ICONS.delete_forever,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                        BJI.Managers.Popup.createModal(
+                            string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
+                                { raceName = el.name }), {
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                    "common.buttons.cancel"
+                                )),
+                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                    "common.buttons.confirm"
+                                ), function()
+                                    BJI.Managers.RaceWaypoint.setPB(el.hash)
+                                    BJI.Managers.Events.trigger(
+                                        BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                                            raceName = el.name,
+                                            raceID = el.id,
+                                            raceHash = el.hash,
+                                        })
+                                end),
+                            })
+                    end
+                    TooltipText(W.labels.buttons.remove)
+                end
+                TableNextColumn()
+                if el.record then
+                    Text(el.record, { color = el.color })
+                    TooltipText(el.recordTooltip)
+                end
+            end)
+            EndTable()
+        end
     end
 end
 

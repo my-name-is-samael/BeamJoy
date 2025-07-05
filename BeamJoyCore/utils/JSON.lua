@@ -6,7 +6,7 @@ function json.stringify(obj)
     if obj == nil then
         return nil
     end
-    return require("utils/JSONold").stringify(obj)
+    return require("utils/JSONold").stringify(obj, nil, true)
 end
 
 function json.stringifyRaw(obj)
@@ -15,7 +15,7 @@ function json.stringifyRaw(obj)
     if obj == nil then
         return nil
     end
-    return require("utils/JSONold").stringifyRaw(obj)
+    return require("utils/JSONold").stringify(obj)
 end
 
 function json.parse(str)
@@ -23,7 +23,9 @@ function json.parse(str)
         LogWarn("Tried to parse empty or not string value")
         return nil
     end
-    return Util.JsonDecode(str)
+    -- return Util.JsonDecode(str)
+    -- FALLBACK https://github.com/BeamMP/BeamMP-Server/issues/348#issuecomment-2999621760
+    return require("utils/JSONold").parse(str)
 end
 
 return json

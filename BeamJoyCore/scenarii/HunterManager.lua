@@ -398,7 +398,6 @@ local function forceFugitive(playerName)
     M.joinOrder:remove(pos)
     M.joinOrder:insert(1, target.playerID)
 
-    dump({ M.participants, M.joinOrder })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
 end
 

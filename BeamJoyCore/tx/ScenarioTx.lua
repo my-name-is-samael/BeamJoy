@@ -49,10 +49,6 @@ function BJCTx.scenario.BusLinesSave(targetID, state)
     BJCTx.sendToPlayer(eventName, BJC_EVENTS.SCENARIO.TX.BUS_LINES_SAVE, targetID, state)
 end
 
-function BJCTx.scenario.SpeedStop()
-    BJCTx.sendToPlayer(eventName, BJC_EVENTS.SCENARIO.TX.SPEED_STOP, BJCTx.ALL_PLAYERS)
-end
-
 ---@param targetID integer
 ---@param state boolean
 function BJCTx.scenario.HunterSave(targetID, state)

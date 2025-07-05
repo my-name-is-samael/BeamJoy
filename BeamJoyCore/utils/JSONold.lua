@@ -93,24 +93,49 @@ local function parse_num_val(str, pos)
     return val, pos + #num_str
 end
 
+--- returns true if obj is a table with all integer indices, min index 1 (it can have missing indices)
+--- returns also the real max index if the object respects all conditions
+---@param obj any
+---@return boolean isArray, integer? maxIndex
+local function isJsonArray(obj)
+    if type(obj) ~= "table" then
+        return false
+    end
+    local max = 0
+    for k in pairs(obj) do
+        local numK = tonumber(k)
+        if not numK or math.round(numK) ~= numK then
+            return false
+        end
+        if numK < 1 then
+            return false
+        end
+        if numK > max then
+            max = numK
+        end
+    end
+    return true, max
+end
 
 -- Public values and functions.
 
-function json.stringify(obj, level, key)
+---@param obj any
+---@param key integer|string?
+---@param pretty boolean?
+---@param level integer?
+function json.stringify(obj, key, pretty, level)
     if not level then
         level = 0
     end
 
     local s = {}
 
-    local indent = ""
-    for _ = 1, level do
-        indent = indent .. "    "
-    end
+    local indent = pretty and string.rep(" ", level * 4) or ""
+    local lineBreak = pretty and "\n" or ""
 
     s[#s + 1] = indent
     if key then
-        s[#s + 1] = "\"" .. key .. "\": "
+        s[#s + 1] = "\"" .. key .. "\":" .. (pretty and " " or "")
     end
     if table.includes({ "boolean", "number" }, type(obj)) then
         s[#s + 1] = tostring(obj)
@@ -119,28 +144,25 @@ function json.stringify(obj, level, key)
     elseif type(obj) == "nil" then
         s[#s + 1] = "null"
     elseif type(obj) == "table" then
-        if table.isArray(obj) then
-            s[#s + 1] = "[\n"
-            for i, v in ipairs(obj) do
-                if i > 1 then
-                    s[#s + 1] = ",\n"
-                end
-                s[#s + 1] = json.stringify(v, level + 1)
+        local isArray, maxIndex = isJsonArray(obj)
+        if isArray then
+            s[#s + 1] = "[" .. lineBreak
+            if maxIndex >= 1 then
+                s[#s + 1] = Range(1, maxIndex or 0):map(function(i)
+                    return obj[i] and json.stringify(obj[i], nil, pretty, level + 1) or "null"
+                end):join("," .. lineBreak)
             end
-            s[#s + 1] = "\n"
+            s[#s + 1] = lineBreak
             s[#s + 1] = indent
             s[#s + 1] = "]"
         else
-            s[#s + 1] = "{\n"
-            local i = 1
-            for k, v in pairs(obj) do
-                if i > 1 then
-                    s[#s + 1] = ",\n"
-                end
-                s[#s + 1] = json.stringify(v, level + 1, k)
-                i = i + 1
-            end
-            s[#s + 1] = "\n"
+            s[#s + 1] = "{" .. lineBreak
+            s[#s + 1] = Table(obj):keys()
+                :sort(function(a, b) return tostring(a) < tostring(b) end)
+                :map(function(k)
+                    return json.stringify(obj[k], k, pretty, level + 1)
+                end):join("," .. lineBreak)
+            s[#s + 1] = lineBreak
             s[#s + 1] = indent
             s[#s + 1] = "}"
         end
@@ -149,53 +171,14 @@ function json.stringify(obj, level, key)
     return table.join(s)
 end
 
-function json.stringifyRaw(obj, key)
-    local s = {}
-
-    if key then
-        s[#s + 1] = "\"" .. key .. "\":"
-    end
-    if table.includes({ "boolean", "number" }, type(obj)) then
-        s[#s + 1] = tostring(obj)
-    elseif type(obj) == "string" then
-        s[#s + 1] = "\"" .. obj:escape() .. "\""
-    elseif type(obj) == "nil" then
-        s[#s + 1] = "null"
-    elseif type(obj) == "table" then
-        --[[if table.isArray(obj) then
-            s[#s + 1] = "["
-            for i, v in ipairs(obj) do
-                if i > 1 then
-                    s[#s + 1] = ","
-                end
-                s[#s + 1] = json.stringifyRaw(v)
-            end
-            s[#s + 1] = "]"
-        else]]
-        s[#s + 1] = "{"
-        local i = 1
-        for k, v in pairs(obj) do
-            if i > 1 then
-                s[#s + 1] = ","
-            end
-            s[#s + 1] = json.stringifyRaw(v, k)
-            i = i + 1
-        end
-        s[#s + 1] = "}"
-        --end
-    end
-
-    return table.join(s)
-end
-
-json.null = {} -- This is a one-off table to represent the null value.
+json.null = "JSON_NULL_VALUE" -- This is a one-off value to represent the null value.
 
 function json.parse(str, pos, end_delim)
     pos = pos or 1
     if pos > #str then error('Reached unexpected end of input.') end
-    local pos = pos + #str:match('^%s*', pos) -- Skip whitespace.
+    pos = pos + #str:match('^%s*', pos) -- Skip whitespace.
     local first = str:sub(pos, pos)
-    if first == '{' then                      -- Parse an object.
+    if first == '{' then                -- Parse an object.
         local obj, key, delim_found = {}, true, true
         pos = pos + 1
         while true do
@@ -203,15 +186,26 @@ function json.parse(str, pos, end_delim)
             if key == nil then return obj, pos end
             if not delim_found then error('Comma missing between object items.') end
             pos = skip_delim(str, pos, ':', true) -- true -> error if missing.
-            obj[key], pos = json.parse(str, pos)
+            local finalKey = tonumber(key) or key
+            obj[finalKey], pos = json.parse(str, pos)
+            if obj[finalKey] == json.null then obj[finalKey] = nil end
             pos, delim_found = skip_delim(str, pos, ',')
         end
     elseif first == '[' then -- Parse an array.
-        local arr, val, delim_found = {}, true, true
+        local val; val = true
+        local arr, delim_found = {}, true
         pos = pos + 1
         while true do
             val, pos = json.parse(str, pos, ']')
-            if val == nil then return arr, pos end
+            if val == nil then
+                -- not more array values, sanitize null values
+                for i, v in pairs(arr) do
+                    if v == json.null then
+                        arr[i] = nil
+                    end
+                end
+                return arr, pos
+            end
             if not delim_found then error('Comma missing between array items.') end
             arr[#arr + 1] = val
             pos, delim_found = skip_delim(str, pos, ',')
@@ -226,7 +220,9 @@ function json.parse(str, pos, end_delim)
         local literals = { ['true'] = true, ['false'] = false, ['null'] = json.null }
         for lit_str, lit_val in pairs(literals) do
             local lit_end = pos + #lit_str - 1
-            if str:sub(pos, lit_end) == lit_str then return lit_val, lit_end + 1 end
+            if str:sub(pos, lit_end) == lit_str then
+                return lit_val, lit_end + 1
+            end
         end
         local pos_info_str = 'position ' .. pos .. ': ' .. str:sub(pos, pos + 10)
         error('Invalid json syntax starting at ' .. pos_info_str)

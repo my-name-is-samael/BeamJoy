@@ -4,8 +4,8 @@ local ACCORDION_THRESHOLD = 2
 ---@field tryClose fun(force?: boolean)
 local W = {
     name = "VehSelector",
-    w = 320,
-    h = 420,
+    minSize = ImVec2(350, 400),
+    maxSize = ImVec2(600, 1200),
 
     show = false,
     models = {
@@ -14,6 +14,7 @@ local W = {
         trailers = {},
         props = {},
     },
+    modelsCount = 0,
     vehFilter = "",
     cache = {
         vehicles = {},
@@ -31,6 +32,8 @@ local W = {
         notAllowed = "",
         protectedVehicle = "",
         invalidVeh = "",
+        filterTooltip = "",
+        noMatch = "",
 
         openVehSelector = "",
         remove = "",
@@ -65,6 +68,8 @@ local W = {
     },
 }
 local ownVeh, limitReached = false, false
+--- gc prevention
+local width, nextValue, vehsDrew, opened, drawTitle, drawModels, drawModelTitle, drawModelButtons, drawModelConfigs, drawn
 
 local function updateCacheVehicles()
     W.cache.vehicles = {}
@@ -106,6 +111,8 @@ local function updateCacheLabels()
     W.labels.notAllowed = BJI.Managers.Lang.get("vehicleSelector.notAllowed")
     W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
     W.labels.invalidVeh = BJI.Managers.Lang.get("vehicleSelector.invalidVeh")
+    W.labels.filterTooltip = BJI.Managers.Lang.get("vehicleSelector.filterTooltip")
+    W.labels.noMatch = BJI.Managers.Lang.get("vehicleSelector.noMatch")
 
     W.labels.openVehSelector = BJI.Managers.Lang.get("vehicleSelector.openVehSelector")
     W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
@@ -123,6 +130,18 @@ local function updateCacheLabels()
     W.labels.paints = BJI.Managers.Lang.get("vehicleSelector.paints")
 end
 
+---@param baseColor number[]
+local function paintToIconStyle(baseColor)
+    local converted = ui_imgui.ImVec4(baseColor[1], baseColor[2], baseColor[3], baseColor[4] or 1.2)
+    local contrasted = baseColor[1] + baseColor[2] + baseColor[3] > 1.5 and 0 or 1
+    return {
+        converted,
+        converted,
+        converted,
+        ui_imgui.ImVec4(contrasted, contrasted, contrasted, 1),
+    }
+end
+
 local function updateCachePaints()
     local ctxt = BJI.Managers.Tick.getContext()
     W.cache.paints = Table()
@@ -133,6 +152,7 @@ local function updateCachePaints()
                 return {
                     label = paintLabel,
                     paint = paintData,
+                    style = paintToIconStyle(paintData.baseColor)
                 }
             end):values():sort(function(a, b)
             return a.label < b.label
@@ -278,66 +298,61 @@ end
 
 ---@param ctxt TickContext
 local function drawHeader(ctxt)
-    LineBuilder():btn({
-        id = "loadPrevious",
-        label = W.labels.previousVeh,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        disabled = W.headerBtns.loadPreviousDisabled,
-        tooltip = W.headerBtns.loadPreviousTooltip,
-        onClick = function()
-            BJI.Managers.Scenario.tryReplaceOrSpawn(ctxt.user.previousVehConfig.model, ctxt.user.previousVehConfig)
-            extensions.hook("trackNewVeh")
-        end,
-    }):build()
+    if Button("loadPrevious", W.labels.previousVeh,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                disabled = W.headerBtns.loadPreviousDisabled }) then
+        BJI.Managers.Scenario.tryReplaceOrSpawn(ctxt.user.previousVehConfig.model, ctxt.user.previousVehConfig)
+        extensions.hook("trackNewVeh")
+    end
+    TooltipText(W.headerBtns.loadPreviousTooltip)
 
-    LineBuilder():btn({
-        id = "setAsDefault",
-        label = W.labels.setAsDefault,
-        disabled = W.headerBtns.setAsDefaultDisabled,
-        tooltip = W.headerBtns.setAsDefaultTooltip,
-        onClick = function()
+    width = GetWindowSize().x / 3 - GetStyle().CellPadding.x * 4
+    if BeginTable("BJIVehSelectorHeaderButtons", {
+            { label = "##left" },
+            { label = "##middle" },
+            { label = "##right" },
+        }, { flags = { TABLE_FLAGS.SIZING_STRETCH_SAME } }) then
+        TableNewRow()
+        if Button("setAsDefault", W.labels.setAsDefault,
+                { disabled = W.headerBtns.setAsDefaultDisabled,
+                    width = width }) then
             core_vehicle_partmgmt.savedefault()
             updateButtonsStates(ctxt)
-        end,
-    }):btn({
-        id = "loadDefault",
-        label = W.labels.loadDefault,
-        disabled = W.headerBtns.loadDefaultDisabled,
-        tooltip = W.headerBtns.loadDefaultTooltip,
-        onClick = function()
+        end
+        TooltipText(W.headerBtns.setAsDefaultTooltip)
+        TableNextColumn()
+        if Button("loadDefault", W.labels.loadDefault,
+                { disabled = W.headerBtns.loadDefaultDisabled,
+                    width = width }) then
             local defaultVeh = BJI.Managers.Veh.getDefaultModelAndConfig()
             if defaultVeh then
                 BJI.Managers.Scenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
                 extensions.hook("trackNewVeh")
             end
-        end,
-    }):btn({
-        id = "cloneCurrent",
-        label = W.labels.cloneCurrent,
-        disabled = W.headerBtns.cloneCurrentDisabled,
-        tooltip = W.headerBtns.cloneCurrentTooltip,
-        onClick = function()
+        end
+        TooltipText(W.headerBtns.loadDefaultTooltip)
+        TableNextColumn()
+        if Button("cloneCurrent", W.labels.cloneCurrent,
+                { disabled = W.headerBtns.cloneCurrentDisabled,
+                    width = width }) then
             BJI.Managers.Scenario.trySpawnNew(ctxt.veh.jbeam, ctxt.veh.veh.partConfig)
             extensions.hook("trackNewVeh")
-        end,
-    }):build()
+        end
+        TooltipText(W.headerBtns.cloneCurrentTooltip)
 
-    LineBuilder():btn({
-        id = "resetAll",
-        label = W.labels.resetAll,
-        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-        disabled = W.headerBtns.resetAllDisabled,
-        tooltip = W.headerBtns.resetAllTooltip,
-        onClick = function()
+        TableNewRow()
+        if Button("resetAll", W.labels.resetAll,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = W.headerBtns.resetAllDisabled,
+                    width = width }) then
             resetGameplay(-1)
-        end,
-    }):btn({
-        id = "removeCurrent",
-        label = W.labels.removeCurrent,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        disabled = W.headerBtns.removeCurrentDisabled,
-        tooltip = W.headerBtns.removeCurrentTooltip,
-        onClick = function()
+        end
+        TooltipText(W.headerBtns.resetAllTooltip)
+        TableNextColumn()
+        if Button("resetCurrent", W.labels.removeCurrent,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    disabled = W.headerBtns.removeCurrentDisabled,
+                    width = width }) then
             if ctxt.isOwner then
                 BJI.Managers.Veh.deleteCurrentOwnVehicle()
             else
@@ -349,157 +364,189 @@ local function drawHeader(ctxt)
                     end),
                 })
             end
-        end,
-    }):btn({
-        id = "deleteOthers",
-        label = W.labels.removeOthers,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        disabled = W.headerBtns.removeOthersDisabled,
-        tooltip = W.headerBtns.removeOthersTooltip,
-        onClick = function()
+        end
+        TooltipText(W.headerBtns.removeCurrentTooltip)
+        TableNextColumn()
+        if Button("deleteOthers", W.labels.removeOthers,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                    disabled = W.headerBtns.removeOthersDisabled,
+                    width = width }) then
             BJI.Managers.Veh.deleteOtherOwnVehicles()
             extensions.hook("trackNewVeh")
-        end,
-    }):build()
+        end
+        TooltipText(W.headerBtns.removeOthersTooltip)
 
-    -- filter line
+        EndTable()
+    end
+
+    -- open basegame veh selector / filter
     if #W.models.cars + #W.models.trucks +
         #W.models.trailers + #W.models.props > 0 then
         Separator()
-        local line = LineBuilder()
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
-            line:btnIcon({
-                id = "openVehSelectorUI",
-                icon = BJI.Utils.Icon.ICONS.open_in_new,
-                style = BJI.Utils.Style.BTN_PRESETS.INFO,
-                tooltip = W.labels.openVehSelector,
-                onClick = function()
-                    if W.onClose then
-                        BJI.Windows.VehSelector.tryClose()
-                    end
-                    core_vehicles.openSelectorUI()
-                end,
-            })
+            if IconButton("openVehSelectorUI", BJI.Utils.Icon.ICONS.open_in_new) then
+                if W.onClose then
+                    BJI.Windows.VehSelector.tryClose()
+                end
+                core_vehicles.openSelectorUI()
+            end
+            TooltipText(W.labels.openVehSelector)
+            SameLine()
         end
         if #W.vehFilter == 0 then
-            line:icon({
-                icon = BJI.Utils.Icon.ICONS.ab_filter_default,
-            })
+            Icon(BJI.Utils.Icon.ICONS.ab_filter_default)
         else
-            line:btnIcon({
-                id = "removeVehFilter",
-                icon = BJI.Utils.Icon.ICONS.ab_filter_default,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                coloredIcon = true,
-                tooltip = W.labels.remove,
-                onClick = function()
-                    W.vehFilter = ""
-                    updateCacheVehicles()
-                end,
-            })
-        end
-        line:inputString({
-            id = "vehFilter",
-            value = W.vehFilter,
-            onUpdate = function(val)
-                W.vehFilter = val
+            if IconButton("removeVehFilter", BJI.Utils.Icon.ICONS.ab_filter_default,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+                W.vehFilter = ""
                 updateCacheVehicles()
             end
-        }):build()
+            TooltipText(W.labels.remove)
+        end
+        SameLine()
+        nextValue = InputText("vehFilter", W.vehFilter)
+        TooltipText(W.labels.filterTooltip)
+        if nextValue then
+            W.vehFilter = nextValue
+            updateCacheVehicles()
+        end
     end
 end
 
 ---@param modelKey string
 ---@param config { key: string, label: string, custom?: boolean }
 local function drawConfig(modelKey, config)
-    local line = LineBuilder()
+    drawn = false
+    TableNewRow()
+    TableNextColumn()
+    TableNextColumn()
     if not limitReached then
-        line:btnIcon({
-            id = string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
-            icon = BJI.Utils.Icon.ICONS.add,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = W.labels.spawn,
-            onClick = function()
-                BJI.Managers.Scenario.trySpawnNew(modelKey, config.key)
-            end
-        })
+        if IconButton(string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
+                BJI.Utils.Icon.ICONS.add,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Managers.Scenario.trySpawnNew(modelKey, config.key)
+        end
+        TooltipText(W.labels.spawn)
+        drawn = true
     end
     if ownVeh then
-        if not line then
-            line = LineBuilder()
+        if drawn then
+            SameLine()
         end
-        line:btnIcon({
-            id = string.var("replace-{1}-{2}", { modelKey, config.key }),
-            icon = BJI.Utils.Icon.ICONS.carSensors,
-            style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-            tooltip = W.labels.replace,
-            onClick = function()
-                BJI.Managers.Scenario.tryReplaceOrSpawn(modelKey, config.key)
-            end
-        })
+        if IconButton(string.var("replace-{1}-{2}", { modelKey, config.key }),
+                BJI.Utils.Icon.ICONS.carSensors, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+            BJI.Managers.Scenario.tryReplaceOrSpawn(modelKey, config.key)
+        end
+        TooltipText(W.labels.replace)
     end
-    line:text(config.label,
-        config.custom and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
-        :build()
+    TableNextColumn()
+    Text(config.label, {
+        color = config.custom and
+            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+    })
 end
+
+local imgs = {}
+---@param modelPath string
+---@return {texId: any}?
+local function getModelImage(modelPath)
+    if imgs[modelPath] then
+        return imgs[modelPath]
+    end
+
+    local img = require('ui/imguiUtils').texObj(modelPath)
+    if img.size.x > 0 and img.size.y > 0 then
+        imgs[modelPath] = img
+        return img
+    else -- invalid image
+        -- test if its a png file with a jpg extension
+        -- https://github.com/my-name-is-samael/BeamJoy/issues/18#issuecomment-2508961479
+        if modelPath:find(".jpg$") then
+            local pngPath = modelPath:gsub(".jpg$", ".png")
+            local file = io.open(pngPath, "r")
+            if file then
+                file:close()
+            else
+                local jpgFile = io.open(modelPath, "r")
+                file = io.open(pngPath, "w")
+                if jpgFile and file then
+                    file:write(jpgFile:read("*all"))
+                    jpgFile:close()
+                    file:close()
+                end
+            end
+            return getModelImage(pngPath)
+        else -- already a png, no solution :(
+            return
+        end
+    end
+end
+
+local previewSize = ImVec2(356, 200)
+local scale, finalPreviewSize
 
 ---@param model { key: string, preview: string, label: string, custom?: boolean, configs: { key: string, label: string, custom?: boolean }[] }
 local function drawModel(model)
-    local function drawModelButtons(line, withSpawn)
-        line:btnIcon({
-            id = string.var("preview-{1}", { model.key }),
-            icon = BJI.Utils.Icon.ICONS.ab_asset_image,
-            style = BJI.Utils.Style.BTN_PRESETS.INFO,
-            tooltip = W.labels.show,
-            onClick = function()
-                BJI.Windows.VehSelectorPreview.open(model.preview)
-            end,
-        })
+    drawModelButtons = function(withSpawn, isAccordion)
+        Icon(BJI.Utils.Icon.ICONS.ab_asset_image)
+        if IsItemHovered() then
+            local img = getModelImage(model.preview)
+            if img then
+                scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+                finalPreviewSize = ImVec2(previewSize.x * scale, previewSize.y * scale)
+                BeginTooltip()
+                Image(img.texId, finalPreviewSize)
+                EndTooltip()
+            else
+                TooltipText("Invalid vehicle preview image :'(")
+            end
+        end
+        TableNextColumn()
+        drawn = false
         if withSpawn then
             if not limitReached then
-                line:btnIcon({
-                    id = string.var("spawnNew-{1}", { model.key }),
-                    icon = BJI.Utils.Icon.ICONS.add,
-                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                    tooltip = W.labels.spawn,
-                    onClick = function()
-                        BJI.Managers.Scenario.trySpawnNew(model.key, #model.configs == 1 and model.configs[1].key or nil)
-                    end
-                })
+                if IconButton(string.var("spawnNew-{1}", { model.key }), BJI.Utils.Icon.ICONS.add,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                    BJI.Managers.Scenario.trySpawnNew(model.key, #model.configs == 1 and
+                        model.configs[1].key or nil)
+                end
+                TooltipText(W.labels.spawn)
+                drawn = true
             end
             if ownVeh then
-                line:btnIcon({
-                    id = string.var("replace-{1}", { model.key }),
-                    icon = BJI.Utils.Icon.ICONS.carSensors,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    tooltip = W.labels.replace,
-                    onClick = function()
-                        BJI.Managers.Scenario.tryReplaceOrSpawn(model.key,
-                            #model.configs == 1 and model.configs[1].key or nil)
-                    end
-                })
+                if drawn then
+                    SameLine()
+                end
+                if IconButton(string.var("replace-{1}", { model.key }), BJI.Utils.Icon.ICONS.carSensors,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                    BJI.Managers.Scenario.tryReplaceOrSpawn(model.key,
+                        #model.configs == 1 and model.configs[1].key or nil)
+                end
+                TooltipText(W.labels.replace)
+                drawn = true
             end
         end
         if #model.configs > 1 and (ownVeh or not limitReached) then
-            line:btnIcon({
-                id = string.var("spawnRandom-{1}", { model.key }),
-                icon = BJI.Utils.Icon.ICONS.casino,
-                style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                tooltip = W.labels.random,
-                onClick = function()
-                    local config = table.random(model.configs) or {}
-                    BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
-                end
-            })
+            if drawn then
+                SameLine()
+            end
+            if IconButton(string.var("spawnRandom-{1}", { model.key }), BJI.Utils.Icon.ICONS.casino,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                local config = table.random(model.configs) or {}
+                BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
+            end
+            TooltipText(W.labels.random)
         end
     end
 
-    local drawModelTitle = function(line)
-        return line:text(model.label,
-            model.custom and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+    drawModelTitle = function()
+        Text(model.label, {
+            color = model.custom and
+                BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+        })
     end
 
-    local function drawModelConfigs()
+    drawModelConfigs = function()
         for _, config in ipairs(model.configs) do
             drawConfig(model.key, config)
         end
@@ -509,36 +556,34 @@ local function drawModel(model)
         return
     elseif #model.configs == 1 then
         -- compacted model-config (only 1 line)
-        Indent(1)
-        local line = LineBuilder():text("")
-        drawModelButtons(line, true)
-        drawModelTitle(line):build()
+        TableNewRow()
+        TableNextColumn()
+        drawModelButtons(true)
+        TableNextColumn()
+        drawModelTitle()
+        SameLine()
         local config = model.configs[1]
-        line:text(string.var("({1})", { config.label }))
-            :build()
-        Indent(-1)
+        Text(string.var("({1})", { config.label }))
     elseif #model.configs < ACCORDION_THRESHOLD then
-        local line = LineBuilder()
-        drawModelButtons(line, false)
-        drawModelTitle(line):build()
-        Indent(2)
+        TableNewRow()
+        TableNextColumn()
+        drawModelButtons(false)
+        TableNextColumn()
+        drawModelTitle()
+
         drawModelConfigs()
-        Indent(-2)
     else
-        AccordionBuilder()
-            :label(string.var("##{1}", { model.key }))
-            :openedBehavior(function()
-                local line = LineBuilder(true)
-                drawModelButtons(line, false)
-                drawModelTitle(line):build()
-                drawModelConfigs()
-            end)
-            :closedBehavior(function()
-                local line = LineBuilder(true)
-                drawModelButtons(line, true)
-                drawModelTitle(line):build()
-            end)
-            :build()
+        TableNewRow()
+        opened = BeginTree(" ##tree-" .. model.key)
+        if opened then EndTree() end
+        TableNextColumn()
+        drawModelButtons(not opened)
+        TableNextColumn()
+        drawModelTitle()
+
+        if opened then
+            drawModelConfigs()
+        end
     end
 end
 
@@ -546,99 +591,90 @@ end
 ---@param label string
 ---@param name string
 ---@param icon string
+---@return boolean vehsRendered
 local function drawType(vehs, label, name, icon)
     if #vehs > 0 then
-        local function drawTitle(inAccordion)
-            local line = LineBuilder(inAccordion)
+        drawTitle = function(inAccordion)
             if not inAccordion then
-                line:text(label)
+                Text(label)
             end
             if icon then
-                line:icon({
-                    icon = icon,
-                })
+                SameLine()
+                Icon(icon)
             end
             if #vehs > 0 then
-                line:btnIcon({
-                    id = string.var("random-{1}", { name }),
-                    icon = BJI.Utils.Icon.ICONS.casino,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    tooltip = W.labels.random,
-                    onClick = function()
-                        local model = table.random(vehs) or {}
-                        local config = table.random(model.configs) or {}
-
-                        if model.key and config.key then
-                            BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
-                        end
+                SameLine()
+                if IconButton("random-" .. name, BJI.Utils.Icon.ICONS.casino,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                    local model = table.random(vehs) or {}
+                    local config = table.random(model.configs) or {}
+                    if model.key and config.key then
+                        BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
                     end
-                })
-            end
-            line:build()
-        end
-
-        local function drawModels()
-            for _, model in ipairs(vehs) do
-                drawModel(model)
+                end
+                TooltipText(W.labels.random)
             end
         end
 
-        if #vehs == 0 then
+        drawModels = function()
+            if BeginTable("##table-" .. name, {
+                    { label = "##cell-tree-" .. name },
+                    { label = "##cell-preview-" .. name },
+                    { label = "##cell-actions-" .. name },
+                    { label = "##cell-label-" .. name },
+                }) then
+                for _, m in ipairs(vehs) do
+                    drawModel(m)
+                end
+
+                EndTable()
+            end
+        end
+
+        if #vehs < ACCORDION_THRESHOLD then
             drawTitle(false)
-            LineBuilder(true)
-                :text("No match ...")
-                :build()
-        elseif #vehs < ACCORDION_THRESHOLD then
-            drawTitle(false)
-            Indent(2)
+            Indent(); Indent()
             drawModels()
-            Indent(-2)
+            Unindent(); Unindent()
         else
-            AccordionBuilder()
-                :label(label)
-                :commonStart(function()
-                    drawTitle(true)
-                end)
-                :openedBehavior(drawModels)
-                :build()
+            opened = BeginTree(label)
+            drawTitle(true)
+            if opened then
+                drawModels()
+                EndTree()
+            end
         end
     end
+    return #vehs > 0
 end
 
----@param baseColor number[]
-local function paintToIconStyle(baseColor)
-    local converted = ui_imgui.ImVec4(baseColor[1], baseColor[2], baseColor[3], baseColor[4] or 1.2)
-    local contrasted = baseColor[1] + baseColor[2] + baseColor[3] > 1.5 and 0 or 1
-    return {
-        converted,
-        converted,
-        converted,
-        ui_imgui.ImVec4(contrasted, contrasted, contrasted, 1),
-    }
-end
-
----@param paints { label: string, paint: { baseColor: number[] } }[]
+---@param paints { label: string, paint: { baseColor: number[] }, style: vec4[] }[]
 local function drawPaints(paints)
     if not BJI.Managers.Veh.isCurrentVehicleOwn() then
         return
     end
 
-    for i, paintData in ipairs(paints) do
-        local line = LineBuilder()
-        local style = paintToIconStyle(paintData.paint.baseColor)
-        for j = 1, 3 do
-            line:btnIcon({
-                id = string.var("applyPaint-{1}-{2}", { i, j }),
-                icon = BJI.Utils.Icon.ICONS.format_color_fill,
-                style = style,
-                tooltip = W.labels.applyPaint:var({ position = j }),
-                onClick = function()
+    if BeginTable("BJIVehSelectorPaints", {
+            { label = "##vehselector-paint-labels" },
+            { label = "##vehselector-paint-actions", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        for i, paintData in ipairs(paints) do
+            TableNewRow()
+            Text(paintData.label)
+            TableNextColumn()
+            Range(1, 3):forEach(function(j)
+                if j > 1 then
+                    SameLine()
+                end
+                if IconButton(string.var("applyPaint-{1}-{2}", { i, j }),
+                        BJI.Utils.Icon.ICONS.format_color_fill, { btnStyle = paintData.style }) then
                     BJI.Managers.Scenario.tryPaint(j, paintData.paint)
                 end
-            })
+                TooltipText(W.labels.applyPaint:var({ position = j }))
+            end)
         end
-        line:text(paintData.label)
-            :build()
+
+        EndTable()
     end
 end
 
@@ -647,64 +683,55 @@ local function drawBody(ctxt)
     ownVeh = ctxt.isOwner
     limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount()
 
-    local vehsDrew = false
+    vehsDrew = false
 
     if W.cache.vehicles.cars then
-        drawType(W.cache.vehicles.cars, W.labels.cars, "car", BJI.Utils.Icon.ICONS.fg_vehicle_suv)
-        vehsDrew = true
+        vehsDrew = drawType(W.cache.vehicles.cars, W.labels.cars, "car", BJI.Utils.Icon.ICONS.fg_vehicle_suv) or vehsDrew
     end
 
     if W.cache.vehicles.trucks then
-        drawType(W.cache.vehicles.trucks, W.labels.trucks, "truck", BJI.Utils.Icon.ICONS.fg_vehicle_truck)
-        vehsDrew = true
+        vehsDrew = drawType(W.cache.vehicles.trucks, W.labels.trucks, "truck", BJI.Utils.Icon.ICONS.fg_vehicle_truck) or
+            vehsDrew
     end
 
     if W.cache.vehicles.trailers then
-        drawType(W.cache.vehicles.trailers, W.labels.trailers, "trailer", BJI.Utils.Icon.ICONS.fg_vehicle_tanker_trailer)
-        vehsDrew = true
+        vehsDrew = drawType(W.cache.vehicles.trailers, W.labels.trailers, "trailer",
+            BJI.Utils.Icon.ICONS.fg_vehicle_tanker_trailer) or vehsDrew
     end
 
     if W.cache.vehicles.props then
-        drawType(W.cache.vehicles.props, W.labels.props, "prop", BJI.Utils.Icon.ICONS.fg_traffic_cone)
-        vehsDrew = true
+        vehsDrew = drawType(W.cache.vehicles.props, W.labels.props, "prop", BJI.Utils.Icon.ICONS.fg_traffic_cone) or
+            vehsDrew
     end
 
-    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    if W.modelsCount > 0 and not vehsDrew then
+        Text(W.labels.noMatch)
+    end
+
     -- must get a new instance of current vehicle or else crash
     if #W.cache.paints > 0 then
-        if vehsDrew then
+        if W.modelsCount > 0 then
             Separator()
         end
 
-        AccordionBuilder()
-            :label(BJI.Managers.Lang.get("vehicleSelector.paints"))
-            :commonStart(function()
-                LineBuilder(true)
-                    :icon({
-                        icon = BJI.Utils.Icon.ICONS.style,
-                    })
-                    :build()
-            end)
-            :openedBehavior(
-                function()
-                    drawPaints(W.cache.paints)
-                end)
-            :build()
+        opened = BeginTree(BJI.Managers.Lang.get("vehicleSelector.paints"))
+        SameLine()
+        Icon(BJI.Utils.Icon.ICONS.style)
+        if opened then
+            drawPaints(W.cache.paints)
+            EndTree()
+        end
     end
 end
 
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
     if W.onClose then
-        LineBuilder()
-            :btnIcon({
-                id = "closeVehicleSelector",
-                icon = BJI.Utils.Icon.ICONS.exit_to_app,
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                tooltip = W.labels.close,
-                onClick = W.onClose,
-            })
-            :build()
+        if IconButton("closeVehicleSelector", BJI.Utils.Icon.ICONS.exit_to_app,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            W.onClose()
+        end
+        TooltipText(W.labels.close)
     end
 end
 
@@ -716,7 +743,6 @@ end
 local function updateOnClose(state)
     if state and not W.onClose then
         W.onClose = function()
-            BJI.Windows.VehSelectorPreview.onClose()
             W.show = false
             W.models = {
                 cars = {},
@@ -809,6 +835,9 @@ local function updateBaseModels()
     W.models.trucks = trucks
     W.models.trailers = trailers
     W.models.props = props
+
+    W.modelsCount = #W.models.cars + #W.models.trucks +
+        #W.models.trailers + #W.models.props
 
     W.cache.vehicles = {}
     updateCacheVehicles()

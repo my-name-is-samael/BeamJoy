@@ -1,46 +1,43 @@
 local utils = {}
 
----@return table<string, {type: "int"|"float", min: number, max: number, precision: integer?}>
+---@return table<string, {type: "int"|"float", min: number, max: number, precision: integer?, step: number?, stepFast: number?}>
 function utils.numericData()
     return {
         -- SUN
-        visibleDistance = { type = "int", min = 1000, max = 32000 },
-        shadowDistance = { type = "int", min = 1000, max = 12800 },
-        shadowSoftness = { type = "float", min = 0, max = 3, precision = 2 },
+        visibleDistance = { type = "int", min = 1000, max = 32000, step = 100, stepFast = 1000 },
+        shadowDistance = { type = "int", min = 1000, max = 12800, step = 100, stepFast = 250 },
+        shadowSoftness = { type = "float", min = 0, max = 3, precision = 2, step = .01, stepFast = .1 },
         shadowSplits = { type = "int", min = 1, max = 4 },
-        shadowLogWeight = { type = "float", min = 0, max = .99, precision = 2 },
-        brightness = { type = "float", min = -1, max = 50, precision = 1 },
-        sunAzimuthOverride = { type = "int", min = 1, max = 360 },
-        moonAzimuth = { type = "int", min = 0, max = 360 },
-        sunSize = { type = "float", min = 0, max = 10, precision = 2 },
-        moonScale = { type = "float", min = 0, max = 2, precision = 2 },
-        skyBrightness = { type = "float", min = 0, max = 100, precision = 1 },
-        moonElevation = { type = "float", min = 10, max = 80, precision = 1 },
-        rayleighScattering = { type = "float", min = -.002, max = .3 },
-        exposure = { type = "float", min = .001, max = 3 },
-        flareScale = { type = "float", min = 0, max = 10, precision = 1 },
-        occlusionScale = { type = "float", min = 0, max = 1.6, precision = 1 },
+        shadowLogWeight = { type = "float", min = 0, max = .99, precision = 2, step = .01, stepFast = .1 },
+        brightness = { type = "float", min = -1, max = 50, precision = 1, step = .5, stepFast = 1 },
+        sunAzimuthOverride = { type = "int", min = 1, max = 360, stepFast = 5 },
+        moonAzimuth = { type = "int", min = 0, max = 360, stepFast = 5 },
+        sunSize = { type = "float", min = 0, max = 10, precision = 2, step = .05, stepFast = .25 },
+        moonScale = { type = "float", min = 0, max = 2, precision = 2, step = .01, stepFast = .1 },
+        skyBrightness = { type = "float", min = 0, max = 100, precision = 1, step = .5, stepFast = 2 },
+        moonElevation = { type = "float", min = 10, max = 80, precision = 1, step = .5, stepFast = 2 },
+        rayleighScattering = { type = "float", min = -.002, max = .3, step = .001, stepFast = .005 },
+        exposure = { type = "float", min = .001, max = 3, step = .001, stepFast = .01 },
+        flareScale = { type = "float", min = 0, max = 10, precision = 1, step = .5, stepFast = 1 },
+        occlusionScale = { type = "float", min = 0, max = 1.6, precision = 1, step = .1 },
         -- WEATHER
-        fogDensity = { type = "float", min = 0, max = .1 },
-        fogDensityOffset = { type = "int", min = 0, max = 5000 },
-        fogAtmosphereHeight = { type = "float", min = 50, max = 2000, precision = 1 },
-        cloudHeight = { type = "float", min = 2, max = 20, precision = 2 },
-        cloudCover = { type = "float", min = 0, max = 1, precision = 2 },
-        cloudSpeed = { type = "float", min = 0, max = 3, precision = 2 },
-        cloudExposure = { type = "float", min = .2, max = 5, precision = 1 },
-        rainDrops = { type = "int", min = 0, max = 10000 },
-        dropSize = { type = "float", min = 0, max = 1, precision = 2 },
-        dropMinSpeed = { type = "float", min = .01, max = 5, precision = 2 },
-        dropMaxSpeed = { type = "float", min = .01, max = 5, precision = 2 },
+        fogDensity = { type = "float", min = 0, max = .1, step = .001, stepFast = .005 },
+        fogDensityOffset = { type = "int", min = 0, max = 5000, step = 100, stepFast = 500 },
+        fogAtmosphereHeight = { type = "float", min = 50, max = 2000, precision = 1, step = 10, stepFast = 50 },
+        cloudHeight = { type = "float", min = 2, max = 20, precision = 2, step = .05, stepFast = .5 },
+        cloudCover = { type = "float", min = 0, max = 1, precision = 2, step = .001, stepFast = .01 },
+        cloudSpeed = { type = "float", min = 0, max = 3, precision = 2, step = .001, stepFast = .01 },
+        cloudExposure = { type = "float", min = .2, max = 5, precision = 1, step = .1, stepFast = .2 },
+        rainDrops = { type = "int", min = 0, max = 10000, step = 100, stepFast = 500 },
+        dropSize = { type = "float", min = 0, max = 1, precision = 2, step = .01, stepFast = .05 },
+        dropMinSpeed = { type = "float", min = .01, max = 5, precision = 2, step = .01, stepFast = .1 },
+        dropMaxSpeed = { type = "float", min = .01, max = 5, precision = 2, step = .01, stepFast = .1 },
         -- GRAVITY
-        gravityRate = { type = "float", min = -280, max = 10, precision = 2 },
+        gravityRate = { type = "float", min = -280, max = 10, precision = 2, step = .05, stepFast = .5 },
         --TEMPERATURE
-        tempCurveNoon = { type = "int", min = -50, max = 50 },
-        tempCurveDusk = { type = "int", min = -50, max = 50 },
-        tempCurveMidnight = { type = "int", min = -50, max = 50 },
-        tempCurveDawn = { type = "int", min = -50, max = 50 },
+        temperature = { type = "float", min = -50, max = 50, precision = 1, step = .5, stepFast = 1 },
         --SPEED
-        simSpeed = { type = "float", min = .01, max = 10, precision = 2 },
+        simSpeed = { type = "float", min = .01, max = 10, precision = 2, step = .01, stepFast = .2 },
     }
 end
 

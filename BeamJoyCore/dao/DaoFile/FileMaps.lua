@@ -22,9 +22,14 @@ local function findAll()
     if file and not error then
         local data = file:read("*a")
         file:close()
-        return #data > 0 and JSON.parse(data) or {}
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file maps.json: Invalid content data")
+            data = BJCDefaults.maps()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.maps()
 end
 
 local function saveMap(mapName, mapData)

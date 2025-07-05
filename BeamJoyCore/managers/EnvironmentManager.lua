@@ -15,23 +15,25 @@ local M = {
 }
 
 local function updateEnvToV2_0()
+    local defaults = BJCDefaults.environment()
     M.Data.skyDay = {
-        dayScale = M.Data.dayScale,
-        sunAzimuthOverride = M.Data.sunAzimuthOverride / 6.25 * 360,
-        sunSize = M.Data.sunSize,
-        skyBrightness = M.Data.skyBrightness,
-        rayleighScattering = M.Data.rayleighScattering,
-        brightness = M.Data.sunLightBrightness,
-        exposure = M.Data.exposure,
-        flareScale = M.Data.flareScale,
-        occlusionScale = M.Data.occlusionScale,
+        dayScale = M.Data.dayScale or defaults.skyDay.dayScale,
+        sunAzimuthOverride = M.Data.sunAzimuthOverride and M.Data.sunAzimuthOverride / 6.25 * 360 or
+            defaults.skyDay.sunAzimuthOverride,
+        sunSize = M.Data.sunSize or defaults.skyDay.sunSize,
+        skyBrightness = M.Data.skyBrightness or defaults.skyDay.skyBrightness,
+        rayleighScattering = M.Data.rayleighScattering or defaults.skyDay.rayleighScattering,
+        brightness = M.Data.sunLightBrightness or defaults.skyDay.brightness,
+        exposure = M.Data.exposure or defaults.skyDay.exposure,
+        flareScale = M.Data.flareScale or defaults.skyDay.flareScale,
+        occlusionScale = M.Data.occlusionScale or defaults.skyDay.occlusionScale,
     }
     M.Data.skyNight = {
-        nightScale = M.Data.nightScale,
-        moonAzimuth = M.Data.moonAzimuth,
-        moonScale = M.Data.moonScale,
-        brightness = 30,
-        moonElevation = 45,
+        nightScale = M.Data.nightScale or defaults.skyNight.nightScale,
+        moonAzimuth = M.Data.moonAzimuth or defaults.skyNight.moonAzimuth,
+        moonScale = M.Data.moonScale or defaults.skyNight.moonScale,
+        brightness = defaults.skyNight.brightness,
+        moonElevation = defaults.skyNight.moonElevation,
     }
     M.Data.dayScale = nil
     M.Data.nightScale = nil
@@ -46,7 +48,7 @@ local function updateEnvToV2_0()
     M.Data.moonAzimuth = nil
     M.Data.moonElevation = nil
     M.Data.moonScale = nil
-    M.Data.fogColor = { 0.275, 0.325, 0.359 }
+    M.Data.fogColor = defaults.fogColor
 
     BJCDao.environment.save(M.Data)
     Log("Environment data updated to v2.0.0", logTag)

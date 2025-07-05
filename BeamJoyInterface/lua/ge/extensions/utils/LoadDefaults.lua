@@ -71,6 +71,10 @@ GetMapName = function()
 end
 ui_message = ui_message or function(msg, ttl, category, icon) end
 translateLanguage = translateLanguage or function(key, default) return "" end
+---@return NGVehicle?
+getPlayerVehicle = getPlayerVehicle or function(playerID) return {} end
+gcprobe = gcprobe or function(printZero, omitPrint) end
+timeprobe = timeprobe or function(omitPrint) end
 
 nop = nop or {}
 be = be or {}

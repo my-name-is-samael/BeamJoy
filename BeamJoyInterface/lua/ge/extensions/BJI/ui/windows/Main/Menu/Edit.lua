@@ -1,31 +1,16 @@
 local M = {
     cache = {
+        ---@type MenuDropdownElement[]
         elems = {},
     },
 }
-
-local function menuFreeroamSettings(ctxt)
-    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) then
-        table.insert(M.cache.elems, {
-            label = BJI.Managers.Lang.get("menu.edit.freeroamSettings"),
-            active = BJI.Windows.FreeroamSettings.show,
-            onClick = function()
-                if BJI.Windows.FreeroamSettings.show then
-                    BJI.Windows.FreeroamSettings.onClose()
-                else
-                    BJI.Windows.FreeroamSettings.open()
-                end
-            end,
-        })
-    end
-end
 
 local function menuTimePresets(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
         BJI.Managers.Env.Data.controlSun then
         local elems = {
-            [1] = {
+            {
+                type = "custom",
                 render = function()
                     BJI.Utils.UI.DrawTimePlayPauseButtons("menuTimePlay", true)
                 end,
@@ -35,31 +20,29 @@ local function menuTimePresets(ctxt)
             local disabled = not BJI.Managers.Env.Data.timePlay and
                 math.round(BJI.Managers.Env.Data.ToD, 3) == math.round(preset.ToD, 3)
             table.insert(elems, {
+                type = "custom",
                 render = function()
                     local onClick = function()
-                        if not disabled then
-                            BJI.Tx.config.env("ToD", preset.ToD)
-                        end
+                        BJI.Tx.config.env("ToD", preset.ToD)
                     end
-                    LineBuilder()
-                        :btnIcon({
-                            id = string.var("timePreset{1}Button", { preset.label }),
-                            icon = preset.icon,
-                            style = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or BJI.Utils.Style.BTN_PRESETS
-                                .INFO,
-                            onClick = onClick,
-                        })
-                        :btn({
-                            id = string.var("timePreset{1}Label", { preset.label }),
-                            label = BJI.Managers.Lang.get(string.var("presets.time.{1}", { preset.label })),
+                    if IconButton(string.var("timePreset{1}Button", { preset.label }), preset.icon, {
+                            btnStyle = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or
+                                BJI.Utils.Style.BTN_PRESETS.INFO,
                             disabled = disabled,
-                            onClick = onClick,
-                        })
-                        :build()
+                        }) then
+                        onClick()
+                    end
+                    SameLine()
+                    if Button(string.var("timePreset{1}Label", { preset.label }),
+                            BJI.Managers.Lang.get(string.var("presets.time.{1}", { preset.label })),
+                            { disabled = disabled }) then
+                        onClick()
+                    end
                 end,
             })
         end)
         table.insert(M.cache.elems, {
+            type = "menu",
             label = BJI.Managers.Lang.get("menu.edit.time"),
             elems = elems,
         })
@@ -92,32 +75,29 @@ local function menuWeatherPresets(ctxt)
         end):forEach(function(preset)
             local disabled = preset.key == BJI.Managers.Env.Data.preset
             local onClick = function()
-                if not disabled then
-                    BJI.Tx.config.envPreset(preset.key)
-                end
+                BJI.Tx.config.envPreset(preset.key)
             end
             table.insert(elems, {
+                type = "custom",
                 render = function()
-                    LineBuilder()
-                        :btnIcon({
-                            id = string.var("weatherPreset{1}Button", { preset.key }),
-                            icon = preset.icon,
-                            style = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or
+                    if IconButton(string.var("weatherPreset{1}Button", { preset.key }), preset.icon, {
+                            btnStyle = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or
                                 BJI.Utils.Style.BTN_PRESETS.INFO,
-                            onClick = onClick,
-                        })
-                        :btn({
-                            id = string.var("weatherPreset{1}Label", { preset.key }),
-                            label = preset.label,
                             disabled = disabled,
-                            onClick = onClick,
-                        })
-                        :build()
+                        }) then
+                        onClick()
+                    end
+                    SameLine()
+                    if Button(string.var("weatherPreset{1}Label", { preset.key }),
+                            preset.label, { disabled = disabled }) then
+                        onClick()
+                    end
                 end,
             })
         end)
         if #elems > 0 then
             table.insert(M.cache.elems, {
+                type = "menu",
                 label = BJI.Managers.Lang.get("menu.edit.weather"),
                 elems = elems,
             })
@@ -132,18 +112,21 @@ local function menuGravityPresets(ctxt)
             local value = math.round(preset.value, 3)
             local disabled = value == math.round(BJI.Managers.Env.Data.gravityRate, 3)
             table.insert(elems, {
+                type = "item",
                 label = string.var("{1} ({2})", {
                     BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { preset.key })),
                     value,
                 }),
                 disabled = disabled,
                 active = disabled,
+                checked = disabled,
                 onClick = function()
                     BJI.Tx.config.env("gravityRate", value)
                 end
             })
         end)
         table.insert(M.cache.elems, {
+            type = "menu",
             label = BJI.Managers.Lang.get("menu.edit.gravity"),
             elems = elems,
         })
@@ -157,18 +140,21 @@ local function menuSpeedPresets(ctxt)
             local value = math.round(preset.value, 3)
             local disabled = value == math.round(BJI.Managers.Env.Data.simSpeed, 3)
             table.insert(elems, {
+                type = "item",
                 label = string.var("{1} (x{2})", {
                     BJI.Managers.Lang.get(string.var("presets.speed.{1}", { preset.key })),
                     value,
                 }),
                 disabled = disabled,
                 active = disabled,
+                checked = disabled,
                 onClick = function()
                     BJI.Tx.config.env("simSpeed", value)
                 end
             })
         end)
         table.insert(M.cache.elems, {
+            type = "menu",
             label = BJI.Managers.Lang.get("menu.edit.speed"),
             elems = elems,
         })
@@ -182,41 +168,66 @@ local function menuSwitchMap(ctxt)
         local rawMaps = Table(BJI.Managers.Context.Maps)
             :filter(function(map) return map.enabled end)
 
-        if rawMaps:length() <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
-            -- sub elems
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.edit.map"),
-                elems = rawMaps:map(function(map, mapName)
-                    return {
-                        label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
-                        disabled = mapName == BJI.Managers.Context.UI.mapName,
-                        active = mapName == BJI.Managers.Context.UI.mapName,
-                        onClick = function()
-                            BJI.Tx.config.switchMap(mapName)
-                        end
-                    }
-                end):sort(function(a, b) return a.label < b.label end)
-            })
-        else
-            -- selection window
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.edit.map"),
-                onClick = function()
-                    BJI.Windows.Selection.open("menu.edit.map", rawMaps
-                        :filter(function(_, mapName) return mapName ~= BJI.Managers.Context.UI.mapName end)
-                        :map(function(map, mapName)
-                            return {
-                                label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or
-                                    map.label,
-                                value = mapName,
-                            }
-                        end):values():sort(function(a, b) return a.label < b.label end) or {}, nil,
-                        function(mapName)
-                            BJI.Tx.config.switchMap(mapName)
-                        end, { BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP })
-                end,
-            })
+        if rawMaps:length() > 1 then
+            if rawMaps:length() <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+                -- sub elems
+                table.insert(M.cache.elems, {
+                    type = "menu",
+                    label = BJI.Managers.Lang.get("menu.edit.map"),
+                    elems = rawMaps:map(function(map, mapName)
+                        local disabled = mapName == BJI.Managers.Context.UI.mapName
+                        return {
+                            type = "item",
+                            label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
+                            disabled = disabled,
+                            active = disabled,
+                            checked = disabled,
+                            onClick = function()
+                                BJI.Tx.config.switchMap(mapName)
+                            end
+                        }
+                    end):sort(function(a, b) return a.label < b.label end)
+                })
+            else
+                -- selection window
+                table.insert(M.cache.elems, {
+                    type = "item",
+                    label = BJI.Managers.Lang.get("menu.edit.map"),
+                    onClick = function()
+                        BJI.Windows.Selection.open("menu.edit.map", rawMaps
+                            :filter(function(_, mapName) return mapName ~= BJI.Managers.Context.UI.mapName end)
+                            :map(function(map, mapName)
+                                return {
+                                    label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or
+                                        map.label,
+                                    value = mapName,
+                                }
+                            end):values():sort(function(a, b) return a.label < b.label end) or {}, nil,
+                            function(mapName)
+                                BJI.Tx.config.switchMap(mapName)
+                            end, { BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP })
+                    end,
+                })
+            end
         end
+    end
+end
+
+local function menuFreeroamSettings(ctxt)
+    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) then
+        table.insert(M.cache.elems, {
+            type = "item",
+            label = BJI.Managers.Lang.get("menu.edit.freeroamSettings"),
+            active = BJI.Windows.FreeroamSettings.show,
+            onClick = function()
+                if BJI.Windows.FreeroamSettings.show then
+                    BJI.Windows.FreeroamSettings.onClose()
+                else
+                    BJI.Windows.FreeroamSettings.open()
+                end
+            end,
+        })
     end
 end
 
@@ -227,6 +238,7 @@ local function menuEnergyStations(ctxt)
         local stationsEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.STATIONS
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.energyStations")
                 :var({ amount = table.length(BJI.Managers.Context.Scenario.Data.EnergyStations) }),
             active = editorOpen and stationsEditorOpen,
@@ -249,6 +261,7 @@ local function menuGarages(ctxt)
         local garagesEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.GARAGES
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.garages")
                 :var({ amount = #BJI.Managers.Context.Scenario.Data.Garages }),
             active = editorOpen and garagesEditorOpen,
@@ -271,6 +284,7 @@ local function menuDeliveries(ctxt)
         local deliveriesEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.DELIVERIES
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.deliveries")
                 :var({ amount = #BJI.Managers.Context.Scenario.Data.Deliveries }),
             active = editorOpen and deliveriesEditorOpen,
@@ -293,6 +307,7 @@ local function menuBusLines(ctxt)
         local busEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.BUS_LINES
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.buslines")
                 :var({ amount = #BJI.Managers.Context.Scenario.Data.BusLines }),
             active = editorOpen and busEditorOpen,
@@ -318,75 +333,77 @@ local function menuRaces(ctxt)
             -- editor already open
             local isEditorRace = BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.RACE
             table.insert(M.cache.elems, {
+                type = "item",
                 label = label,
                 active = isEditorRace,
                 disabled = not isEditorRace,
                 onClick = BJI.Windows.ScenarioEditor.onClose,
             })
         else
-            if #BJI.Managers.Context.Scenario.Data.Races + 1 <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+            if #rawRaces + 1 <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
                 table.insert(M.cache.elems, {
+                    type = "menu",
                     label = label,
                     elems = Table({
                         {
+                            type = "item",
                             label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
                             onClick = BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID,
                         }
                     }):addAll(rawRaces:map(function(race)
                         return {
+                            type = "custom",
                             render = function()
-                                LineBuilder():btnIconToggle({
-                                    id = "toggle-" .. tostring(race.id),
-                                    icon = race.enabled and BJI.Utils.Icon.ICONS.visibility or
-                                        BJI.Utils.Icon.ICONS.visibility_off,
-                                    state = race.enabled == true,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.toggle"),
-                                    onClick = function()
-                                        BJI.Tx.scenario.RaceToggle(race.id, not race.enabled)
-                                    end
-                                }):btnIcon({
-                                    id = "editRace-" .. tostring(race.id),
-                                    icon = BJI.Utils.Icon.ICONS.mode_edit,
-                                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
-                                    onClick = function()
-                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
-                                    end
-                                }):btnIcon({
-                                    id = "copyRace-" .. tostring(race.id),
-                                    icon = BJI.Utils.Icon.ICONS.content_copy,
-                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
-                                    onClick = function()
-                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
-                                    end
-                                }):btnIcon({
-                                    id = "deleteRace-" .. tostring(race.id),
-                                    icon = BJI.Utils.Icon.ICONS.delete_forever,
-                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
-                                    onClick = function()
-                                        BJI.Managers.Popup.createModal(
-                                            BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
-                                            :var({ raceName = race.name }), {
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                    "common.buttons.cancel"
-                                                )),
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                        "common.buttons.confirm"
-                                                    ),
-                                                    function()
-                                                        BJI.Tx.scenario.RaceDelete(race.id)
-                                                    end)
-                                            })
-                                    end
-                                }):text(race.name):build()
+                                if IconButton("toggle-" .. tostring(race.id), race.enabled and BJI.Utils.Icon.ICONS.visibility or
+                                        BJI.Utils.Icon.ICONS.visibility_off, { btnStyle = race.enabled and
+                                            BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                                    BJI.Tx.scenario.RaceToggle(race.id, not race.enabled)
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.toggle"))
+
+                                SameLine()
+                                if IconButton("editRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.mode_edit,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.edit"))
+
+                                SameLine()
+                                if IconButton("copyRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.content_copy,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.duplicate"))
+
+                                SameLine()
+                                if IconButton("deleteRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.delete_forever,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                                    BJI.Managers.Popup.createModal(
+                                        BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                        :var({ raceName = race.name }), {
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                "common.buttons.cancel"
+                                            )),
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                    "common.buttons.confirm"
+                                                ),
+                                                function()
+                                                    BJI.Tx.scenario.RaceDelete(race.id)
+                                                end)
+                                        })
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.delete"))
+
+                                SameLine()
+                                Text(race.name)
                             end,
                         }
                     end)),
                 })
             else
+                -- open selection window
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = label,
                     onClick = function()
                         BJI.Windows.Selection.open("menu.edit.races", Table({ {
@@ -397,62 +414,54 @@ local function menuRaces(ctxt)
                                 label = r.name,
                                 value = r.id,
                             }
-                        end)), function(line, raceID, onClose)
+                        end)), function(raceID, onClose)
                             if not raceID then
                                 -- create race
-                                line:btnIcon({
-                                    id = "createRace",
-                                    icon = BJI.Utils.Icon.ICONS.add,
-                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.create"),
-                                    onClick = function()
-                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID()
-                                        onClose()
-                                    end
-                                })
+                                SameLine()
+                                if IconButton("createRace", BJI.Utils.Icon.ICONS.add,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID()
+                                    onClose()
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.create"))
                                 return
                             end
                             rawRaces:find(function(r) return r.id == raceID end, function(race)
-                                line:btnIcon({
-                                    id = "editRace-" .. tostring(raceID),
-                                    icon = BJI.Utils.Icon.ICONS.mode_edit,
-                                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.edit"),
-                                    onClick = function()
-                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
-                                        onClose()
-                                    end
-                                }):btnIcon({
-                                    id = "copyRace-" .. tostring(race.id),
-                                    icon = BJI.Utils.Icon.ICONS.content_copy,
-                                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.duplicate"),
-                                    onClick = function()
-                                        BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
-                                        onClose()
-                                    end
-                                }):btnIcon({
-                                    id = "deleteRace-" .. tostring(race.id),
-                                    icon = BJI.Utils.Icon.ICONS.delete_forever,
-                                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                                    tooltip = BJI.Managers.Lang.get("common.buttons.delete"),
-                                    onClick = function()
-                                        BJI.Managers.Popup.createModal(
-                                            BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
-                                            :var({ raceName = race.name }),
-                                            {
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                    "common.buttons.cancel"
-                                                )),
-                                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
-                                                    "common.buttons.confirm"
-                                                ), function()
-                                                    BJI.Tx.scenario.RaceDelete(race.id)
-                                                    onClose()
-                                                end),
-                                            })
-                                    end
-                                })
+                                SameLine()
+                                if IconButton("editRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.mode_edit,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                    onClose()
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.edit"))
+
+                                SameLine()
+                                if IconButton("copyRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.content_copy,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                    onClose()
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.duplicate"))
+
+                                SameLine()
+                                if IconButton("deleteRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.delete_forever,
+                                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                                    BJI.Managers.Popup.createModal(
+                                        BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                        :var({ raceName = race.name }),
+                                        {
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                "common.buttons.cancel"
+                                            )),
+                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                                "common.buttons.confirm"
+                                            ), function()
+                                                BJI.Tx.scenario.RaceDelete(race.id)
+                                                onClose()
+                                            end),
+                                        })
+                                end
+                                TooltipText(BJI.Managers.Lang.get("common.buttons.delete"))
                             end)
                         end, nil, { BJI.Managers.Perm.PERMISSIONS.SCENARIO })
                     end,
@@ -470,6 +479,7 @@ local function menuHunter(ctxt)
         local hunterEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.hunter")
                 :var({
                     visibility = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.Hunter.enabled and
@@ -496,6 +506,7 @@ local function menuDerby(ctxt)
         local derbyEditorOpen = editorOpen and
             BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.DERBY
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.edit.derby")
                 :var({ amount = #BJI.Managers.Context.Scenario.Data.Derby }),
             active = editorOpen and derbyEditorOpen,
@@ -528,7 +539,7 @@ local function updateCache(ctxt)
         menuSwitchMap(ctxt)
     end
 
-    table.insert(M.cache.elems, { separator = true })
+    table.insert(M.cache.elems, { type = "separator" })
     menuFreeroamSettings(ctxt)
 
     if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
@@ -541,6 +552,8 @@ local function updateCache(ctxt)
         menuHunter(ctxt)
         menuDerby(ctxt)
     end
+
+    MenuDropdownSanitize(M.cache.elems)
 end
 
 local listeners = Table()
@@ -575,6 +588,13 @@ end
 
 function M.onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+---@param ctxt TickContext
+function M.draw(ctxt)
+    if #M.cache.elems > 0 then
+        RenderMenuDropdown(M.cache.label, M.cache.elems)
+    end
 end
 
 return M

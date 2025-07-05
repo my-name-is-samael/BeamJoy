@@ -2,6 +2,7 @@ local M = {
     STATE = 0,
 
     data = Table(),
+    gcdata = Table(),
     _threshold = 100,
 }
 
@@ -74,40 +75,42 @@ function M.startWindow(amount, recurrent)
     BJI.DEBUG = function() return M.get(amount or 10, recurrent ~= false) end
 end
 
-local gcdata, init = Table(), false
+local init = false
 function M.startGC()
     gcprobe(false, true)
     timeprobe(true)
     init = true
-    if not gcdata then
-        gcdata = Table()
-    end
 end
 
 ---@param name string
 function M.saveGC(name)
     if init then
-        gcdata[name] = { t = tonumber(timeprobe(true)), gc = tonumber(gcprobe(false, true)) }
+        M.gcdata[name] = { t = tonumber(timeprobe(true)), gc = tonumber(gcprobe(false, true)) }
     end
     init = false
 end
 
-function M.showGC()
+local data
+function M.showGC(sorted)
     M.STATE = 2
     M.reset()
     BJI.DEBUG = function()
-        return gcdata:map(function(v, k)
+        data = M.gcdata:map(function(v, k)
             return {
                 name = k,
                 t = v.t,
                 gc = v.gc,
             }
-        end):sort(function(a, b)
-            if a.gc ~= b.gc then
-                return a.gc > b.gc
-            end
-            return a.t > b.t
-        end):reduce(function(res, v)
+        end)
+        if sorted ~= false then
+            data:sort(function(a, b)
+                if a.gc ~= b.gc then
+                    return a.gc > b.gc
+                end
+                return a.t > b.t
+            end)
+        end
+        return data:reduce(function(res, v)
             res = res .. v.name .. " = " .. tostring(v.gc) .. " - " .. tostring(math.round(v.t, 6)) .. "\n"
             return res
         end, "\n")
@@ -115,8 +118,8 @@ function M.showGC()
 end
 
 function M.reset()
-    M.data = M.data:clear()
-    gcdata = gcdata:clear()
+    if M.data then M.data:clear() end
+    if M.gcdata then M.gcdata:clear() end
 end
 
 function M.stop()

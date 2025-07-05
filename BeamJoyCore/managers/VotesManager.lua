@@ -2,10 +2,14 @@ local M = {}
 
 -- KICK
 M.Kick = {
-    creatorID = nil, -- playerID
-    targetID = nil,  -- playerID
-    endsAt = nil,    -- OSTime
-    voters = {},     -- list of playerIDs
+    ---@type integer? playerID
+    creatorID = nil,
+    ---@type integer? playerID
+    targetID = nil,
+    ---@type integer? time
+    endsAt = nil,
+    ---@type integer[] playerIDs
+    voters = {},
 }
 
 local function kickStarted()
@@ -136,11 +140,15 @@ end
 
 -- MAP
 M.Map = {
-    creatorID = nil, -- playerID
-    targetMap = nil, -- map object
-    endsAt = nil,    -- OSTime
+    ---@type integer? playerID
+    creatorID = nil,
+    ---@type string? techName
+    targetMap = nil,
+    ---@type integer? time
+    endsAt = nil,
 
-    voters = {},     -- list of playerIDs
+    ---@type integer[] playerIDs
+    voters = {},
 }
 
 local function mapStarted()
@@ -260,22 +268,33 @@ end
 
 -- RACE
 M.Race = {
+    ---@type integer? playerID
     creatorID = nil,
+    ---@type integer? time
     endsAt = nil,
     isVote = false,
+    ---@type integer?
     raceID = nil,
+    ---@type string?
     raceName = nil,
+    ---@type integer?
     places = nil,
+    ---@type {playerName: string?, time: integer?, model: string?}
     record = {},
     settings = { -- race settings
+        ---@type integer?
         laps = nil,
+        ---@type string?
         model = nil,
+        ---@type ClientVehicleConfig?
         config = nil,
+        ---@type string?
         respawnStrategy = nil,
         collisions = true,
     },
 
-    voters = {}, -- list of playerIDs
+    ---@type integer[] playerIDs
+    voters = {},
 }
 
 local function raceStarted()
@@ -312,7 +331,7 @@ local function raceVoteTimeout()
     end
 
     if M.Race.isVote then
-        if table.length(M.Race.voters) >= getRaceThreshold() then
+        if #M.Race.voters >= getRaceThreshold() then
             BJCChat.sendChatEvent("chat.events.voteAccepted", {
                 voteEvent = "chat.events.voteEvents.raceStart",
                 suffix = BJCScenarioData.getRace(M.Race.raceID).name
@@ -439,7 +458,7 @@ function M.Race.stop()
         else
             BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
                 gamemode = "chat.events.gamemodes.race",
-                reason = "chat.events.gamemodeStepReasons.manual",
+                reason = "chat.events.gamemodeStopReasons.manual",
             })
         end
         raceReset()
@@ -466,8 +485,11 @@ end
 -- SPEED
 M.Speed = {
     isVote = false,
+    ---@type integer? playerID
     creatorID = nil,
+    ---@type integer? time
     endsAt = nil,
+    ---@type table<integer, integer> index playerID, value gameVehID
     participants = {},
 }
 
@@ -562,6 +584,16 @@ function M.Speed.onPlayerDisconnect(player)
     if speedStarted() and M.Speed.participants[player.playerID] then
         M.Speed.participants[player.playerID] = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.VOTE)
+    end
+end
+
+function M.Speed.stop()
+    if speedStarted() then
+        BJCChat.sendChatEvent("chat.events.gamemodeStop", {
+            gamemode = "chat.events.gamemodes.speed",
+            reason = "chat.events.gamemodeStopReasons.manual",
+        })
+        resetSpeed()
     end
 end
 

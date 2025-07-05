@@ -62,29 +62,20 @@ local function drawSelector(data)
         return
     end
 
-    local line = LineBuilder(true)
     if data.label then
-        line:text(data.label)
+        Text(data.label)
     else
-        line:icon({
-            icon = BJI.Utils.Icon.ICONS.translate,
-            style = { BJI.Utils.Style.TEXT_COLORS.DEFAULT },
-            coloredIcon = true,
-        })
+        Icon(BJI.Utils.Icon.ICONS.translate)
     end
     for _, l in ipairs(M.Langs) do
-        line:btn({
-            id = l,
-            label = l:upper(),
-            style = data.selected == l and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO,
-            onClick = function()
-                if data.selected ~= l and data.onChange then
-                    data.onChange(l)
-                end
+        SameLine()
+        if Button(l, l:upper(), { btnStyle = data.selected == l and
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
+            if data.selected ~= l and data.onChange then
+                data.onChange(l)
             end
-        })
+        end
     end
-    line:build()
 end
 
 M.get = get

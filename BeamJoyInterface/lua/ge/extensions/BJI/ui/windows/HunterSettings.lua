@@ -4,8 +4,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 350,
-    h = 350,
+    minSize = ImVec2(550, 330),
+    maxSize = ImVec2(800, 330),
 
     show = false,
     labels = {
@@ -42,11 +42,14 @@ local W = {
 
         currentVehProtected = false,
         selfProtected = false,
+        canSpawnNewVeh = false,
     },
     widths = {
         labels = 0,
     },
 }
+--- gc prevention
+local nextValue, tooltip
 
 local function onClose()
     W.show = false
@@ -81,18 +84,9 @@ end
 local function updateCache(ctxt)
     ctxt = ctxt or BJI.Managers.Tick.getContext()
 
-    W.widths.labels = Table({
-        W.labels.huntedWaypoints,
-        W.labels.huntedConfig,
-        W.labels.hunterConfigs,
-        W.labels.lastWaypointGPS,
-    }):reduce(function(acc, label)
-        local w = BJI.Utils.UI.GetColumnTextWidth(label)
-        return w > acc and w or acc
-    end, 0)
-
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
+    W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
 end
 
 local listeners = Table()
@@ -152,221 +146,161 @@ end
 
 ---@param ctxt TickContext
 local function drawHeader(ctxt)
-    LineLabel(W.labels.title)
+    Text(W.labels.title)
 end
 
 ---@param ctxt TickContext
+---@return ClientVehicleConfig?
 local function getConfig(ctxt)
-    if not ctxt.veh then
-        return
-    end
+    if not ctxt.veh then return end
     return BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
 end
 
 ---@param ctxt TickContext
 local function drawBody(ctxt)
-    local cols = ColumnsBuilder("BJIHunterSettings", { W.widths.labels, -1 })
-        :addRow({
-            cells = {
-                function()
-                    LineLabel(W.labels.huntedWaypoints, nil, false, W.labels.huntedWaypointsTooltip)
-                end,
-                function()
-                    LineBuilder():inputNumeric({
-                        id = "huntedWaypoints",
-                        type = "int",
-                        value = W.data.waypoints,
-                        min = 1,
-                        max = 50,
-                        step = 1,
-                        onUpdate = function(val)
-                            W.data.waypoints = val
-                        end
-                    }):build()
-                end,
-            }
-        })
+    if BeginTable("BJIHunterSettings", {
+            { label = "##hunter-settings-labels" },
+            { label = "##hunter-settings-actions", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } }
+        }) then
+        TableNewRow()
+        Text(W.labels.huntedWaypoints)
+        TooltipText(W.labels.huntedWaypointsTooltip)
+        TableNextColumn()
+        nextValue = SliderInt("huntedWaypoints", W.data.waypoints, 1, 50)
+        TooltipText(W.labels.huntedWaypointsTooltip)
+        if nextValue then W.data.waypoints = nextValue end
 
-    cols:addRow({
-        cells = {
-            function()
-                LineLabel(W.labels.huntedConfig, nil, false, W.labels.huntedConfigTooltip)
-            end,
-            function()
-                local line = LineBuilder()
-                if W.data.huntedConfig then
-                    line:btnIcon({
-                        id = "showHuntedConfig",
-                        icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.visibility,
-                        style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                            BJI.Utils.Style.BTN_PRESETS.INFO,
-                        tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                        onClick = function()
-                            local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
-                                BJI.Managers.Veh.spawnNewVehicle
-                            fn(W.data.huntedConfig.model, W.data.huntedConfig)
-                        end,
-                    }):btnIcon({
-                        id = "refreshHuntedConfig",
-                        icon = BJI.Utils.Icon.ICONS.refresh,
-                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = not ctxt.veh,
-                        tooltip = W.labels.buttons.set,
-                        onClick = function()
-                            if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
-                            else
-                                W.data.huntedConfig = getConfig(ctxt)
-                            end
-                        end,
-                    }):btnIcon({
-                        id = "removeHuntedConfig",
-                        icon = BJI.Utils.Icon.ICONS.delete_forever,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        tooltip = W.labels.buttons.remove,
-                        onClick = function()
-                            W.data.huntedConfig = nil
-                        end,
-                    }):text(W.data.huntedConfig.label)
-                else
-                    local tooltip
-                    if W.data.currentVehProtected then
-                        tooltip = W.labels.protectedVehicle
-                    elseif W.data.selfProtected then
-                        tooltip = W.labels.selfProtected
-                    else
-                        tooltip = W.labels.buttons.add
-                    end
-                    line:btnIcon({
-                        id = "addHuntedConfig",
-                        icon = BJI.Utils.Icon.ICONS.add,
-                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
-                        tooltip = tooltip,
-                        onClick = function()
-                            if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
-                            else
-                                W.data.huntedConfig = getConfig(ctxt)
-                            end
-                        end,
-                    })
-                end
-                line:build()
-            end,
-        }
-    })
-
-    Range(1, math.min(#W.data.hunterConfigs + 1, 5)):forEach(function(i)
-        local config = W.data.hunterConfigs[i]
-        cols:addRow({
-            cells = {
-                function()
-                    if i == 1 then
-                        LineLabel(W.labels.hunterConfigs, nil, false, W.labels.hunterConfigsTooltip)
-                    end
-                end,
-                function()
-                    if config then
-                        LineBuilder():btnIcon({
-                            id = string.var("showHunterConfig{1}", { i }),
-                            icon = ctxt.isOwner and BJI.Utils.Icon.ICONS.carSensors or BJI.Utils.Icon.ICONS.visibility,
-                            style = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
-                                BJI.Utils.Style.BTN_PRESETS.INFO,
-                            tooltip = ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn,
-                            onClick = function()
-                                local fn = ctxt.isOwner and BJI.Managers.Veh.replaceOrSpawnVehicle or
-                                    BJI.Managers.Veh.spawnNewVehicle
-                                fn(config.model, config.key or config)
-                            end,
-                        }):btnIcon({
-                            id = string.var("removeHunterConfig{1}", { i }),
-                            icon = BJI.Utils.Icon.ICONS.delete_forever,
-                            style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            tooltip = W.labels.buttons.remove,
-                            onClick = function()
-                                table.remove(W.data.hunterConfigs, i)
-                            end,
-                        }):text(config.label):build()
-                    else
-                        local tooltip
-                        if W.data.currentVehProtected then
-                            tooltip = W.labels.protectedVehicle
-                        elseif W.data.selfProtected then
-                            tooltip = W.labels.selfProtected
-                        else
-                            tooltip = W.labels.buttons.add
-                        end
-                        LineBuilder():btnIcon({
-                            id = "addHunterConfig",
-                            icon = BJI.Utils.Icon.ICONS.add,
-                            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                            disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected,
-                            tooltip = tooltip,
-                            onClick = function()
-                                local newConf = getConfig(ctxt) or {}
-                                if W.data.hunterConfigs:any(function(c)
-                                        return newConf.model == c.model and
-                                            table.compare(newConf.parts, c.parts)
-                                    end) then
-                                    BJI.Managers.Toast.error(BJI.Managers.Lang.get(
-                                        "hunter.settings.toastConfigAlreadySaved"))
-                                else
-                                    table.insert(W.data.hunterConfigs, newConf)
-                                end
-                            end,
-                        }):build()
-                    end
-                end,
-            }
-        })
-    end)
-
-    cols:addRow({
-        cells = {
-            function()
-                LineLabel(W.labels.lastWaypointGPS, nil, false, W.labels.lastWaypointGPSTooltip)
-            end,
-            function()
-                LineBuilder()
-                    :btnIconToggle({
-                        id = "lastWaypointGPS",
-                        state = W.data.lastWaypointGPS,
-                        coloredIcon = true,
-                        onClick = function()
-                            W.data.lastWaypointGPS = not W.data.lastWaypointGPS
-                        end,
-                    })
-                    :build()
+        TableNewRow()
+        Text(W.labels.huntedConfig)
+        TooltipText(W.labels.huntedConfigTooltip)
+        TableNextColumn()
+        if W.data.huntedConfig then
+            if IconButton("showHuntedConfig", BJI.Utils.Icon.ICONS.visibility,
+                    { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
+                        not W.data.canSpawnNewVeh }) then
+                BJI.Managers.Veh.replaceOrSpawnVehicle(W.data.huntedConfig.model, W.data.huntedConfig.key or W.data.huntedConfig)
             end
-        }
-    })
-    cols:build()
+            TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
+            SameLine()
+            if IconButton("refreshHuntedConfig", BJI.Utils.Icon.ICONS.refresh,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = not ctxt.veh }) then
+                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                else
+                    W.data.huntedConfig = getConfig(ctxt)
+                end
+            end
+            TooltipText(W.labels.buttons.set)
+            SameLine()
+            if IconButton("removeHuntedConfig", BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                W.data.huntedConfig = nil
+            end
+            TooltipText(W.labels.buttons.remove)
+            if W.data.huntedConfig then -- on remove safe
+                SameLine()
+                Text(W.data.huntedConfig.label)
+            end
+        else
+            if IconButton("addHuntedConfig", BJI.Utils.Icon.ICONS.add,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                        disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected }) then
+                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                else
+                    W.data.huntedConfig = getConfig(ctxt)
+                end
+            end
+            if W.data.currentVehProtected then
+                tooltip = W.labels.protectedVehicle
+            elseif W.data.selfProtected then
+                tooltip = W.labels.selfProtected
+            else
+                tooltip = W.labels.buttons.add
+            end
+            TooltipText(tooltip)
+        end
+
+        TableNewRow()
+        Text(W.labels.hunterConfigs)
+        TooltipText(W.labels.hunterConfigsTooltip)
+        TableNextColumn()
+        W.data.hunterConfigs:forEach(function(config, i)
+            if IconButton("showHunterConfig" .. tostring(i), BJI.Utils.Icon.ICONS.visibility,
+                    { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                        BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
+                        not W.data.canSpawnNewVeh }) then
+                BJI.Managers.Veh.replaceOrSpawnVehicle(config.model, config.key or config)
+            end
+            TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
+            SameLine()
+            if IconButton("removeHunterConfig" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                W.data.hunterConfigs:remove(i)
+            end
+            TooltipText(W.labels.buttons.remove)
+            SameLine()
+            Text(config.label)
+        end)
+        if #W.data.hunterConfigs < 5 then
+            if IconButton("addHunterConfig", BJI.Utils.Icon.ICONS.add,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                        disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected }) then
+                local newConf = getConfig(ctxt) or {}
+                if W.data.hunterConfigs:any(function(c)
+                        return newConf.model == c.model and
+                            table.compare(newConf.parts, c.parts)
+                    end) then
+                    BJI.Managers.Toast.error(BJI.Managers.Lang.get(
+                        "hunter.settings.toastConfigAlreadySaved"))
+                else
+                    W.data.hunterConfigs:insert(newConf)
+                end
+            end
+            if W.data.currentVehProtected then
+                tooltip = W.labels.protectedVehicle
+            elseif W.data.selfProtected then
+                tooltip = W.labels.selfProtected
+            else
+                tooltip = W.labels.buttons.add
+            end
+            TooltipText(tooltip)
+        end
+
+        TableNewRow()
+        Text(W.labels.lastWaypointGPS)
+        TooltipText(W.labels.lastWaypointGPSTooltip)
+        TableNextColumn()
+        if IconButton("lastWaypointGPS", W.data.lastWaypointGPS and BJI.Utils.Icon.ICONS.check_circle or
+                BJI.Utils.Icon.ICONS.cancel, { bgLess = true, btnStyle = W.data.lastWaypointGPS and
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            W.data.lastWaypointGPS = not W.data.lastWaypointGPS
+        end
+
+        EndTable()
+    end
 end
 
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
-    LineBuilder():btnIcon({
-        id = "closeHunterSettings",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = W.labels.buttons.close,
-        onClick = onClose,
-    }):btnIcon({
-        id = "startHunter",
-        icon = BJI.Utils.Icon.ICONS.videogame_asset,
-        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-        tooltip = W.labels.buttons.start,
-        onClick = function()
-            BJI.Tx.scenario.HunterStart({
-                waypoints = W.data.waypoints,
-                huntedConfig = W.data.huntedConfig,
-                hunterConfigs = W.data.hunterConfigs,
-                lastWaypointGPS = W.data.lastWaypointGPS,
-            })
-            onClose()
-        end
-    }):build()
+    if IconButton("closeHunterSettings", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onClose()
+    end
+    TooltipText(W.labels.buttons.close)
+    SameLine()
+    if IconButton("startHunter", BJI.Utils.Icon.ICONS.videogame_asset,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+        BJI.Tx.scenario.HunterStart({
+            waypoints = W.data.waypoints,
+            huntedConfig = W.data.huntedConfig,
+            hunterConfigs = W.data.hunterConfigs,
+            lastWaypointGPS = W.data.lastWaypointGPS,
+        })
+        onClose()
+    end
+    TooltipText(W.labels.buttons.start)
 end
 
 local function open()

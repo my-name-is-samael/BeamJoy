@@ -297,7 +297,7 @@ end
 
 ---@param playerID integer
 local function onClientDestroyed(playerID)
-    local time = M.game.gameTimer:get()
+    local time = M.game.gameTimer and M.game.gameTimer:get() or 0
     local pos = getParticipantPosition(playerID)
     if not pos then
         -- not a participant
@@ -412,7 +412,6 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
 
         if #M.settings.configs > 0 then
             -- forced config
-            dump({ M.settings.configs, vehData })
             local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
             local found = M.settings.configs:any(function(config)
                 return model == config.model and

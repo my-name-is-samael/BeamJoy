@@ -14,12 +14,14 @@ local S = {
         totalDistance = 0,
     },
     nextStop = 2,
-    progression = nil,
+    progression = 0,
 
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
 
     cornerMarkers = {},
 }
+--- gc prevention
+local actions, loop, stopLabel
 
 local function reset()
     S.config             = nil
@@ -31,7 +33,7 @@ local function reset()
         totalDistance = 0,
     }
     S.nextStop           = 2
-    S.progression        = nil
+    S.progression        = 0
 
     S.checkTargetProcess = false
 end
@@ -136,16 +138,33 @@ end
 
 local function onLoad(ctxt)
     BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.Restrictions.update({
-        {
-            restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-            state = BJI.Managers.Restrictions.STATE.RESTRICTED,
-        }
-    })
     BJI.Managers.GPS.reset()
     BJI.Managers.RaceWaypoint.resetAll()
 
     BJI.Tx.scenario.BusMissionStart()
+end
+
+local function removeCornerMarkers()
+    for _, marker in ipairs(S.cornerMarkers) do
+        scenetree.findObject('ScenarioObjectsGroup'):removeObject(marker)
+        marker:unregisterObject()
+        marker:delete()
+    end
+    table.clear(S.cornerMarkers)
+end
+
+local function onUnload(ctxt)
+    removeCornerMarkers()
+    reset()
+    BJI.Managers.GPS.reset()
+    BJI.Managers.BusUI.reset()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
+    :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 ---@param ctxt TickContext
@@ -202,37 +221,32 @@ end
 
 ---@param ctxt TickContext
 local function drawUI(ctxt)
-    local line = LineBuilder():btnIcon({
-        id = "stopBusMission",
-        icon = BJI.Utils.Icon.ICONS.exit_to_app,
-        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("menu.scenario.busMission.stop"),
-        onClick = onStopBusMission,
-    })
-    if S.line.loopable then
-        local loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
-        line:btnIconToggle({
-            id = "toggleBusLoop",
-            icon = BJI.Utils.Icon.ICONS.all_inclusive,
-            state = loop,
-            tooltip = BJI.Managers.Lang.get("common.buttons.loop"),
-            onClick = function()
-                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
-            end,
-        })
+    if IconButton("stopBusMission", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+        onStopBusMission()
     end
-    line:text(BJI.Managers.Lang.get("buslines.play.title")):build()
+    TooltipText(BJI.Managers.Lang.get("menu.scenario.busMission.stop"))
+    if S.line.loopable then
+        SameLine()
+        loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
+        if IconButton("toggleBusLoop", BJI.Utils.Icon.ICONS.all_inclusive, { btnStyle = loop and
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
+            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
+        end
+        TooltipText(BJI.Managers.Lang.get("common.buttons.loop"))
+    end
+    SameLine()
+    Text(BJI.Managers.Lang.get("buslines.play.title"))
 
-    local stopLabel = BJI.Managers.Lang.get("buslines.play.stopCount")
+    stopLabel = BJI.Managers.Lang.get("buslines.play.stopCount")
         :var({ current = S.nextStop - 1, total = #S.line.stops })
-    LineBuilder():text(BJI.Managers.Lang.get("buslines.play.line")
-        :var({ name = S.line.name }), nil, stopLabel):build()
 
-    ProgressBar({
-        floatPercent = S.progression,
-        style = BJI.Utils.Style.BTN_PRESETS.INFO[1],
-        tooltip = stopLabel,
-    })
+    Text(BJI.Managers.Lang.get("buslines.play.line")
+        :var({ name = S.line.name }))
+    TooltipText(stopLabel)
+
+    ProgressBar(S.progression, { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
+    TooltipText(stopLabel)
 end
 
 ---@param ctxt TickContext
@@ -317,7 +331,7 @@ end
 ---@param player BJIPlayer
 ---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
     if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
@@ -326,28 +340,11 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
-local function removeCornerMarkers()
-    for _, marker in ipairs(S.cornerMarkers) do
-        scenetree.findObject('ScenarioObjectsGroup'):removeObject(marker)
-        marker:unregisterObject()
-        marker:delete()
-    end
-    table.clear(S.cornerMarkers)
-end
-
-local function onUnload(ctxt)
-    removeCornerMarkers()
-    reset()
-    BJI.Managers.Restrictions.update({ {
-        restrictions = BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH,
-        state = BJI.Managers.Restrictions.STATE.ALLOWED,
-    } })
-    BJI.Managers.GPS.reset()
-    BJI.Managers.BusUI.reset()
-end
-
 S.canChangeTo = canChangeTo
 S.onLoad = onLoad
+S.onUnload = onUnload
+
+S.getRestrictions = getRestrictions
 
 S.start = start
 
@@ -367,7 +364,5 @@ S.canSpawnAI = TrueFn
 S.slowTick = slowTick
 
 S.getPlayerListActions = getPlayerListActions
-
-S.onUnload = onUnload
 
 return S

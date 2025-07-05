@@ -18,7 +18,7 @@ function BJCTx.sendToPlayer(controller, endpoint, targetID, data)
         (BJCPlayers.Players[targetID] and BJCPlayers.Players[targetID].ready) then
         local id = UUID()
         local parts = {}
-        local payload = JSON.stringifyRaw(data)
+        local payload = JSON.stringifyRaw(data) or ""
         while #payload > 0 do
             table.insert(parts, payload:sub(1, BJCTx.PAYLOAD_LIMIT_SIZE))
             payload = payload:sub(BJCTx.PAYLOAD_LIMIT_SIZE + 1)

@@ -13,6 +13,8 @@ local function newCache()
         },
     }
 end
+-- gc prevention
+local tanksValues, valuePercent, indicatorColor, progressColor, stations, garages, distance
 
 local cache = newCache()
 
@@ -35,7 +37,7 @@ local function updateCache(ctxt)
 
     if ctxt.vehData and ctxt.vehData.tanks then
         local stationBtnEnabled = BJI.Managers.Scenario.canRefuelAtStation() and
-            not BJI.Managers.Context.User.stationProcess
+            not BJI.Managers.Stations.stationProcess
         for _, tank in pairs(ctxt.vehData.tanks) do
             if not cache.tanksMaxes[tank.energyType] then
                 -- labels by energy type
@@ -75,7 +77,7 @@ local function updateCache(ctxt)
 
     cache.canShowEmergencyRefuelButton = ctxt.isOwner and
         BJI.Managers.Context.BJC.Freeroam.PreserveEnergy and
-        not BJI.Managers.Context.User.stationProcess
+        not BJI.Managers.Stations.stationProcess
 
     cache.ready = table.length(cache.tanksMaxes) > 0
 end
@@ -86,7 +88,7 @@ local function draw(ctxt)
     end
 
     -- energy amount values by type
-    local tanksValues = {}
+    tanksValues = {}
     for _, tank in pairs(ctxt.vehData.tanks) do
         if not tanksValues[tank.energyType] then
             tanksValues[tank.energyType] = 0
@@ -94,90 +96,90 @@ local function draw(ctxt)
         tanksValues[tank.energyType] = tanksValues[tank.energyType] + tank.currentEnergy
     end
 
-    local i = 1
-    for energyType, energyAmount in pairs(tanksValues) do
-        local valuePercent = energyAmount / cache.tanksMaxes[energyType]
-        local indicatorColor = BJI.Utils.Style.TEXT_COLORS.DEFAULT
-        local progressColor = BJI.Utils.Style.BTN_PRESETS.SUCCESS[1]
-        if valuePercent <= BJI.Managers.Veh.tankLowThreshold then
-            indicatorColor = BJI.Utils.Style.TEXT_COLORS.ERROR
-            progressColor = BJI.Utils.Style.BTN_PRESETS.ERROR[1]
-        elseif valuePercent <= BJI.Managers.Veh.tankMedThreshold then
-            indicatorColor = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
-            progressColor = BJI.Utils.Style.BTN_PRESETS.WARNING[1]
-        end
-        local line = LineBuilder()
-            :text(string.var("{1}:", { cache.labels.tanks[energyType] }))
-            :text(string.var("{1}{2}", {
-                math.round(BJI.Managers.Veh.jouleToReadableUnit(energyAmount, energyType), 1),
-                cache.labels.energyTypes[energyType]
-            }), indicatorColor)
-        if cache.showGPSButton[energyType] then
-            line:btnIcon({
-                id = string.var("setRouteStation{1}", { i }),
-                icon = BJI.Utils.Icon.ICONS.add_location,
-                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation") ~= nil,
-                tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
-                onClick = function()
-                    if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
-                        -- Gas station energy types
-                        local stations = {}
-                        for _, station in ipairs(BJI.Managers.Context.Scenario.Data.EnergyStations) do
-                            if table.includes(station.types, energyType) then
-                                local distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, station
-                                    .pos })
-                                table.insert(stations, { station = station, distance = distance })
+    if BeginTable("BJIMainVehicleEnergyIndicator", {
+            { label = "##main-energy-indicator-amount", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##main-energy-indicator-buttons" },
+        }) then
+        for energyType, energyAmount in pairs(tanksValues) do
+            if cache.labels.tanks[energyType] then
+                valuePercent = energyAmount / (cache.tanksMaxes[energyType] or 1)
+                indicatorColor = BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                progressColor = BJI.Utils.Style.BTN_PRESETS.SUCCESS[1]
+                if valuePercent <= BJI.Managers.Veh.tankLowThreshold then
+                    indicatorColor = BJI.Utils.Style.TEXT_COLORS.ERROR
+                    progressColor = BJI.Utils.Style.BTN_PRESETS.ERROR[1]
+                elseif valuePercent <= BJI.Managers.Veh.tankMedThreshold then
+                    indicatorColor = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT
+                    progressColor = BJI.Utils.Style.BTN_PRESETS.WARNING[1]
+                end
+                TableNewRow()
+                Text(cache.labels.tanks[energyType] .. " :")
+                SameLine()
+                Text(string.var("{1}{2}", {
+                    math.round(BJI.Managers.Veh.jouleToReadableUnit(energyAmount, energyType), 1),
+                    cache.labels.energyTypes[energyType]
+                }), { color = indicatorColor })
+                ProgressBar(valuePercent, { color = progressColor }) -- progress on the next line
+                TableNextColumn()
+                if cache.showGPSButton[energyType] then
+                    if IconButton("setRouteStation" .. energyType, #BJI.Managers.GPS.targets > 0 and
+                            BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true,
+                                disabled = BJI.Managers.GPS.getByKey("BJIEnergyStation") ~= nil }) then
+                        if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
+                            -- Gas station energy types
+                            stations = {}
+                            for _, station in ipairs(BJI.Managers.Context.Scenario.Data.EnergyStations) do
+                                if table.includes(station.types, energyType) then
+                                    distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, station
+                                        .pos })
+                                    table.insert(stations, { station = station, distance = distance })
+                                end
                             end
+                            table.sort(stations, function(a, b)
+                                return a.distance < b.distance
+                            end)
+                            BJI.Managers.GPS.prependWaypoint({
+                                key = BJI.Managers.GPS.KEYS.STATION,
+                                pos = stations[1].station.pos,
+                                radius = stations[1].station.radius
+                            })
+                        else
+                            -- Garage energy types
+                            garages = {}
+                            for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
+                                distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, garage.pos })
+                                table.insert(garages, { garage = garage, distance = distance })
+                            end
+                            table.sort(garages, function(a, b)
+                                return a.distance < b.distance
+                            end)
+                            BJI.Managers.GPS.prependWaypoint({
+                                key = BJI.Managers.GPS.KEYS.STATION,
+                                pos = garages[1].garage.pos,
+                                radius = garages[1].garage.radius
+                            })
                         end
-                        table.sort(stations, function(a, b)
-                            return a.distance < b.distance
-                        end)
-                        BJI.Managers.GPS.prependWaypoint({
-                            key = BJI.Managers.GPS.KEYS.STATION,
-                            pos = stations[1].station.pos,
-                            radius = stations[1].station.radius
-                        })
-                    else
-                        -- Garage energy types
-                        local garages = {}
-                        for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
-                            local distance = BJI.Managers.GPS.getRouteLength({ ctxt.veh.position, garage.pos })
-                            table.insert(garages, { garage = garage, distance = distance })
-                        end
-                        table.sort(garages, function(a, b)
-                            return a.distance < b.distance
-                        end)
-                        BJI.Managers.GPS.prependWaypoint({
-                            key = BJI.Managers.GPS.KEYS.STATION,
-                            pos = garages[1].garage.pos,
-                            radius = garages[1].garage.radius
-                        })
                     end
-                end,
-                sound = BTN_NO_SOUND,
-            })
+                    TooltipText(BJI.Managers.Lang.get("common.buttons.setGPS"))
+                end
+                if cache.canShowEmergencyRefuelButton and
+                    table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) and
+                    valuePercent <= BJI.Managers.Veh.tankEmergencyRefuelThreshold then
+                    if cache.showGPSButton[energyType] then
+                        SameLine()
+                    end
+                    if IconButton("emergencyRefuel" .. energyType, energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
+                            BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                        BJI.Managers.Stations.tryRefillVehicle(ctxt, { energyType })
+                    end
+                    TooltipText(BJI.Managers.Lang.get("energyStations.emergencyRefuel"))
+                end
+            end
         end
-        if cache.canShowEmergencyRefuelButton and
-            table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) and
-            valuePercent <= BJI.Managers.Veh.tankEmergencyRefuelThreshold then
-            line:btn({
-                id = string.var("emergencyRefuel{1}", { energyType }),
-                label = BJI.Managers.Lang.get("energyStations.emergencyRefuel"),
-                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                onClick = function()
-                    BJI.Managers.Stations.tryRefillVehicle(ctxt, { energyType })
-                end,
-            })
-        end
-        line:build()
 
-        ProgressBar({
-            floatPercent = valuePercent,
-            style = progressColor,
-            width = "100%",
-        })
-        i = i + 1
+        EndTable()
     end
 end
 

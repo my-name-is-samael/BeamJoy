@@ -1,6 +1,7 @@
 local M = {
     cache = {
         label = "",
+        ---@type MenuDropdownElement[]
         elems = {},
     },
 }
@@ -25,9 +26,11 @@ local function menuSoloRace(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
@@ -38,9 +41,11 @@ local function menuSoloRace(ctxt)
             if #rawRaces <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
                 -- sub elems
                 table.insert(M.cache.elems, {
+                    type = "menu",
                     label = BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
                     elems = rawRaces:map(function(race)
                         return {
+                            type = "item",
                             label = race.name,
                             onClick = function()
                                 BJI.Windows.RaceSettings.open({
@@ -62,6 +67,7 @@ local function menuSoloRace(ctxt)
             else
                 -- selection window
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.soloRace.start"),
                     onClick = function()
                         BJI.Windows.Selection.open("menu.vote.race.title", rawRaces
@@ -92,6 +98,7 @@ local function menuSoloRace(ctxt)
         end
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.soloRace.stop"),
             onClick = function()
                 BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
@@ -113,13 +120,16 @@ local function menuVehicleDelivery(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.start"),
                 onClick = function()
                     BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).start()
@@ -129,6 +139,7 @@ local function menuVehicleDelivery(ctxt)
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY) and
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.stop"),
             onClick = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY).onStopDelivery,
         })
@@ -152,13 +163,16 @@ local function menuPackageDelivery(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.packageDelivery.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.packageDelivery.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.packageDelivery.start"),
                 onClick = function()
                     BJI.Managers.Async.delayTask(function()
@@ -170,6 +184,7 @@ local function menuPackageDelivery(ctxt)
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY) and
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"),
             onClick = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).onStopDelivery,
         })
@@ -192,13 +207,16 @@ local function menuDeliveryMulti(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.join"),
                 onClick = function()
                     BJI.Tx.scenario.DeliveryMultiJoin(ctxt.veh.gameVehicleID, ctxt.veh.position)
@@ -208,6 +226,7 @@ local function menuDeliveryMulti(ctxt)
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DELIVERY_MULTI) and
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DELIVERY_MULTI) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.deliveryMulti.leave"),
             onClick = function()
                 BJI.Tx.scenario.DeliveryMultiLeave()
@@ -230,14 +249,17 @@ local function menuTagDuo(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.tagduo.join"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.tagduo.join"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             local lobbyEntries = {}
             table.insert(lobbyEntries, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.tagduo.createLobby"),
                 onClick = function()
                     BJI.Tx.scenario.TagDuoJoin(-1, ctxt.veh.gameVehicleID)
@@ -246,6 +268,7 @@ local function menuTagDuo(ctxt)
             for i, l in ipairs(BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.TAG_DUO).lobbies) do
                 if table.length(l.players) < 2 then
                     table.insert(lobbyEntries, {
+                        type = "item",
                         label = string.var(BJI.Managers.Lang.get("menu.scenario.tagduo.joinLobby"),
                             { playerName = ctxt.players[l.host].playerName }),
                         onClick = function()
@@ -255,12 +278,14 @@ local function menuTagDuo(ctxt)
                 end
             end
             table.insert(M.cache.elems, {
+                type = "menu",
                 label = BJI.Managers.Lang.get("menu.scenario.tagduo.join"),
                 elems = lobbyEntries,
             })
         end
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.TAG_DUO) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.tagduo.leave"),
             onClick = function()
                 BJI.Tx.scenario.TagDuoLeave()
@@ -282,13 +307,16 @@ local function menuBusMission(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.busMission.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.busMission.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.busMission.start"),
                 onClick = function()
                     BJI.Windows.BusMissionPreparation.show = true
@@ -298,6 +326,7 @@ local function menuBusMission(ctxt)
     elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.BUS_MISSION) and
         BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION) then
         table.insert(M.cache.elems, {
+            type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.busMission.stop"),
             onClick = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION).onStopBusMission,
         })
@@ -306,40 +335,38 @@ end
 
 ---@param ctxt TickContext
 local function menuSpeedGame(ctxt)
-    if not BJI.Managers.Scenario.isServerScenarioInProgress() and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
-        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
-        local errorMessage = nil
-        if potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
-                amount = minimumParticipants - potentialPlayers
-            })
-        end
+    local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
+    local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
+    local errorMessage = nil
+    if potentialPlayers < minimumParticipants then
+        errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
+            amount = minimumParticipants - potentialPlayers
+        })
+    end
 
-        if errorMessage then
-            table.insert(M.cache.elems, {
-                render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.speed.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
-                end
-            })
-        else
-            table.insert(M.cache.elems, {
-                label = BJI.Managers.Lang.get("menu.scenario.speed.start"),
-                onClick = function()
-                    BJI.Tx.scenario.SpeedStart(false)
-                end,
-            })
-        end
+    if errorMessage then
+        table.insert(M.cache.elems, {
+            type = "custom",
+            render = function()
+                Text(BJI.Managers.Lang.get("menu.scenario.speed.start"),
+                    { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                TooltipText(errorMessage)
+            end
+        })
+    else
+        table.insert(M.cache.elems, {
+            type = "item",
+            label = BJI.Managers.Lang.get("menu.scenario.speed.start"),
+            onClick = function()
+                BJI.Tx.vote.SpeedStart(false)
+            end,
+        })
     end
 end
 
 ---@param ctxt TickContext
 local function menuHunter(ctxt)
-    if not BJI.Managers.Scenario.isServerScenarioInProgress() and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Hunter then
+    if BJI.Managers.Context.Scenario.Data.Hunter then
         local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS
         local errorMessage = nil
@@ -354,13 +381,16 @@ local function menuHunter(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.hunter.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.hunter.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.hunter.start"),
                 active = BJI.Windows.HunterSettings.show,
                 onClick = function()
@@ -377,9 +407,7 @@ end
 
 ---@param ctxt TickContext
 local function menuDerby(ctxt)
-    if not BJI.Managers.Scenario.isServerScenarioInProgress() and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Derby then
+    if BJI.Managers.Context.Scenario.Data.Derby then
         local rawArenas = Table(BJI.Managers.Context.Scenario.Data.Derby)
             :filter(function(arena) return arena.enabled end)
 
@@ -396,18 +424,22 @@ local function menuDerby(ctxt)
 
         if errorMessage then
             table.insert(M.cache.elems, {
+                type = "custom",
                 render = function()
-                    LineLabel(BJI.Managers.Lang.get("menu.scenario.derby.start"),
-                        BJI.Utils.Style.TEXT_COLORS.DISABLED, false, errorMessage)
+                    Text(BJI.Managers.Lang.get("menu.scenario.derby.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
                 end
             })
         else
             if #rawArenas <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
                 -- sub elems
                 table.insert(M.cache.elems, {
+                    type = "menu",
                     label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
                     elems = rawArenas:map(function(arena, iArena)
                         return {
+                            type = "item",
                             label = string.var("{1} ({2})", { arena.name,
                                 BJI.Managers.Lang.get("derby.settings.places")
                                     :var({ places = #arena.startPositions })
@@ -423,6 +455,7 @@ local function menuDerby(ctxt)
             else
                 -- selection window
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
                     onClick = function()
                         BJI.Windows.Selection.open("menu.scenario.derby.start", rawArenas:map(function(arena, iArena)
@@ -460,10 +493,13 @@ local function updateCache(ctxt)
         menuPackageDelivery(ctxt)
         menuDeliveryMulti(ctxt)
         menuTagDuo(ctxt)
-        table.insert(M.cache.elems, { separator = true })
-        menuSpeedGame(ctxt)
-        menuHunter(ctxt)
-        menuDerby(ctxt)
+        if not BJI.Managers.Scenario.isServerScenarioInProgress() and
+            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+            table.insert(M.cache.elems, { type = "separator" })
+            menuSpeedGame(ctxt)
+            menuHunter(ctxt)
+            menuDerby(ctxt)
+        end
     end
 
     -- STOP Server Scenario
@@ -471,21 +507,25 @@ local function updateCache(ctxt)
         if BJI.Managers.Scenario.isServerScenarioInProgress() then
             if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.raceStop"),
                     onClick = BJI.Tx.scenario.RaceMultiStop,
                 })
             elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.speed.stop"),
                     onClick = BJI.Tx.scenario.SpeedStop,
                 })
             elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.hunter.stop"),
                     onClick = BJI.Tx.scenario.HunterStop,
                 })
             elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
                 table.insert(M.cache.elems, {
+                    type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.derby.stop"),
                     onClick = BJI.Tx.scenario.DerbyStop,
                 })
@@ -494,6 +534,7 @@ local function updateCache(ctxt)
 
         if not BJI.Managers.Tournament.state then
             table.insert(M.cache.elems, {
+                type = "item",
                 label = BJI.Managers.Lang.get("menu.scenario.tournament"),
                 active = BJI.Windows.Tournament.manualShow,
                 onClick = function()
@@ -507,6 +548,8 @@ local function updateCache(ctxt)
             })
         end
     end
+
+    MenuDropdownSanitize(M.cache.elems)
 end
 
 local listeners = Table()
@@ -548,6 +591,13 @@ end
 
 function M.onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
+end
+
+---@param ctxt TickContext
+function M.draw(ctxt)
+    if #M.cache.elems > 0 then
+        RenderMenuDropdown(M.cache.label, M.cache.elems)
+    end
 end
 
 return M

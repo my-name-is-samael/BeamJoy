@@ -31,12 +31,13 @@ local M = {
         CONFIG_REMOVED = "config_removed",
         CONFIG_PROTECTION_UPDATED = "config_protection_updated",
         STATION_PROXIMITY_CHANGED = "station_proximity_changed",
-        STATION_PROCESS_CHANGED = "station_process_changed",
         TOURNAMENT_UPDATED = "tournament_updated",
         PURSUIT_UPDATE = "pursuit_update",
+        RESTRICTIONS_UPDATE = "restrictions_update",
 
         -- functional and communication events (sync)
-        NG_VEHICLE_INITIALIZED = "ngVehicleInitialized",
+
+        VEHICLE_INITIALIZED = "vehicle_initialized",
 
         -- base game events (sync)
 
@@ -90,7 +91,7 @@ M.SYNC_EVENTS = Table({
     M.EVENTS.NG_PURSUIT_ACTION,
     M.EVENTS.NG_PURSUIT_MODE_UPDATE,
 
-    M.EVENTS.NG_VEHICLE_INITIALIZED,
+    M.EVENTS.VEHICLE_INITIALIZED,
 })
 M.LOG_BLACKLIST_EVENTS = Table({
     M.EVENTS.SLOW_TICK,
@@ -186,7 +187,7 @@ local function trigger(events, ...)
                 M.fastTickQueued:insert({ target = k, callback = callback })
             end)
         elseif M.listeners[event] then
-            data = { ... }
+            local data = { ... }
             if M.SYNC_EVENTS:includes(event) then -- sync events
                 M.listeners[event]:forEach(function(callback, k)
                     ok, err = pcall(callback, table.unpack(data))

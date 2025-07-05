@@ -1,8 +1,7 @@
 ---@class BJIWindowTournament : BJIWindow
 local W = {
     name = "Tournament",
-    w = 450,
-    h = 300,
+    minSize = ImVec2(450, 300),
 
     ACTIVITIES_FILTERS = Table({
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.RACE_SOLO] = function()
@@ -56,7 +55,7 @@ local W = {
             add = "",
             start = "",
             resetAll = "",
-            endSoloRace = "",
+            endSoloActivity = "",
             endTournament = "",
             endTournamentTooltip = "",
             errorMustHaveVehicle = "",
@@ -73,10 +72,15 @@ local W = {
         inputs = Table(),
         staffView = false,
         disableToggleBtns = false,
-        ---@type ColumnsBuilder?
-        chartCols = nil,
+        tournamentData = {
+            inFreeroam = false,
+            showPlayersModeration = false,
+            activities = Table(),
+            columnsConfig = Table(),
+            players = Table(),
+        },
         showPlayersCombo = false,
-        ---@type tablelib<integer, string>
+        ---@type ComboOption[]
         playersCombo = Table(),
         ---@type string?
         selectedPlayer = nil,
@@ -96,19 +100,12 @@ local W = {
 
         disableInputs = false,
     },
-    widths = {
-        whitelist = 0,
-        editNumInput = 0,
-        editInputsCol = 0,
-        chart = {},
-        addPlayerCombo = 0,
-        addActivityLabels = 0,
-        addActivityCombos = 0,
-        clearAndEnd = 0,
-    },
     ---@type BJIManagerTournament?
     manager = nil,
 }
+--- gc prevention
+local nextValue, drawn, remainingSecs, label, scenario, sorted, staff, inFreeroam,
+showPlayersModeration, cells, total, score, custom, totalIncr
 
 local function onClose()
     W.manualShow = false
@@ -135,7 +132,7 @@ local function updateLabels()
     W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
     W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
     W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
-    W.labels.buttons.endSoloRace = BJI.Managers.Lang.get("tournament.buttons.endSoloRace")
+    W.labels.buttons.endSoloActivity = BJI.Managers.Lang.get("tournament.buttons.endSoloActivity")
     W.labels.buttons.endTournament = BJI.Managers.Lang.get("tournament.buttons.endTournament")
     W.labels.buttons.endTournamentTooltip = BJI.Managers.Lang.get("tournament.buttons.endTournamentTooltip")
     W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("tournament.buttons.errorMustHaveVehicle")
@@ -152,142 +149,31 @@ local function canAddOrRemovePlayer(staff)
         if not BJI.Managers.Scenario.isServerScenarioInProgress() then
             return true
         elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
-            local scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI)
             return scenario.state == scenario.STATES.GRID
         elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
-            local scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
+            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
             return scenario.state == scenario.STATES.PREPARATION
         elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
-            local scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY)
+            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY)
             return scenario.state == scenario.STATES.PREPARATION
         end
     end
     return false
 end
 
-local function updateWidths()
-    local staff = BJI.Managers.Perm.isStaff()
-    local inFreeroam = BJI.Managers.Scenario.isFreeroam()
-    local showPlayerAddOrRemove = canAddOrRemovePlayer(staff)
-
-    W.widths.whitelist = staff and BJI.Utils.UI.GetColumnTextWidth(W.labels.whitelist) + BJI.Utils.UI.GetBtnIconSize() or
-        0
-    W.widths.clearAndEnd = staff and BJI.Utils.UI.GetInputWidthByContent(W.labels.buttons.endTournament .. "  ") +
-        BJI.Utils.UI.GetInputWidthByContent(W.labels.buttons.resetAll .. "  ") or 0
-
-    W.widths.editNumInput = staff and BJI.Utils.UI.GetInputWidthByContent("8888", true) or 0
-    W.widths.editInputsCol = staff and
-        W.widths.editNumInput + BJI.Utils.UI.GetBtnIconSize() * 2 + BJI.Utils.UI.GetColumnTextWidth("") or 0
-
-    W.widths.chart = {}
-    ---@param activity BJTournamentActivity
-    ---@param i integer
-    Table(W.manager.activities):forEach(function(activity, i)
-        if i == #W.manager.activities then
-            W.widths.chart[i + 1] = -1
-            return
-        end
-        W.widths.chart[i + 1] = BJI.Utils.UI.GetColumnTextWidth(W.labels.activities[activity.type]) +
-            ((inFreeroam and staff) and BJI.Utils.UI.GetBtnIconSize() * (activity.targetTime and 2 or 1) or 0)
-        if activity.name then
-            local w = BJI.Utils.UI.GetColumnTextWidth(activity.name)
-            if w > W.widths.chart[i + 1] then
-                W.widths.chart[i + 1] = w
-            end
-        end
-    end)
-    -- playernames (+ activities input autocheck)
-    ---@param res integer
-    ---@param p BJTournamentPlayer
-    W.widths.chart[1] = W.manager.players:reduce(function(res, p)
-        if W.cache.inputs[p.playerName] and #W.manager.activities > 1 then
-            Range(1, #W.manager.activities - 1):forEach(function(i)
-                local input = W.cache.inputs[p.playerName][i]
-                if input then
-                    if W.widths.chart[i + 1] < W.widths.editInputsCol then
-                        W.widths.chart[i + 1] = W.widths.editInputsCol
-                    end
-                elseif staff then
-                    local w = BJI.Utils.UI.GetBtnIconSize()
-                    if p.scores[i] then
-                        w = w + BJI.Utils.UI.GetColumnTextWidth("88") -- max size
-                    end
-                    if w > W.widths.chart[i + 1] then
-                        W.widths.chart[i + 1] = w
-                    end
-                end
-            end)
-        end
-
-        local w = BJI.Utils.UI.GetColumnTextWidth(p.playerName)
-        if showPlayerAddOrRemove then
-            w = w + BJI.Utils.UI.GetBtnIconSize()
-        end
-        return w > res and w or res
-    end, 0)
-    if #W.manager.players == 0 then
-        W.widths.chart[1] = BJI.Utils.UI.GetColumnTextWidth(W.labels.noParticipant)
-    end
-    -- total
-    W.widths.chart[#W.manager.activities + 2] = BJI.Utils.UI.GetColumnTextWidth(W.labels.total)
-
-    if #W.manager.activities == 0 then
-        W.widths.chart[1] = -1
-    end
-
-    W.widths.addPlayerCombo = BJI.Managers.Context.Players
-        :map(function(p) return p.playerName end)
-        :filter(function(p) return not W.manager.players:any(function(p2) return p == p2.playerName end) end)
-        :reduce(function(res, p)
-            local w = BJI.Utils.UI.GetComboWidthByContent(p)
-            return w > res and w or res
-        end, 0)
-
-    if W.cache.showStartActivity then
-        W.widths.addActivityLabels = BJI.Utils.UI.GetColumnTextWidth(W.labels.startActivity.title)
-        if W.cache.selectedStartActivity then
-            local label
-            if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.DERBY then
-                label = W.labels.startActivity.arena
-            elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE or
-                W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
-                label = W.labels.startActivity.track
-            end
-            if label then
-                local w = BJI.Utils.UI.GetColumnTextWidth(label)
-                if w > W.widths.addActivityLabels then
-                    W.widths.addActivityLabels = w
-                end
-            end
-        end
-
-        W.widths.addActivityCombos = W.cache.startActivityCombo:reduce(function(res, option)
-            local w = BJI.Utils.UI.GetComboWidthByContent(option.label)
-            return w > res and w or res
-        end, 0)
-        if W.cache.selectedStartActivity then
-            W.cache.startActivitySecCombo:forEach(function(option)
-                local w = BJI.Utils.UI.GetComboWidthByContent(option.label)
-                if w > W.widths.addActivityCombos then
-                    W.widths.addActivityCombos = w
-                end
-            end)
-        end
-    end
-end
-
-local function isRaceSoloInProgress()
-    return W.manager.state and W.manager.activities[#W.manager.activities] and
-        W.manager.activities[#W.manager.activities].type == W.manager.ACTIVITIES_TYPES.RACE_SOLO and
-        W.manager.activities[#W.manager.activities].targetTime
+---@return boolean
+local function isSoloActivityInProgress()
+    return W.manager.activities[#W.manager.activities] ~= nil and
+        W.manager.activities[#W.manager.activities].targetTime ~= nil
 end
 
 ---@param playerName string
 ---@return integer?
 local function getCurrentSoloRaceScore(playerName)
-    if isRaceSoloInProgress() then
+    if isSoloActivityInProgress() and W.manager.activities[#W.manager.activities].raceID then
         ---@param p BJTournamentPlayer
-        local sorted = W.manager.players:filter(function(p)
+        sorted = W.manager.players:filter(function(p)
             return p.scores[#W.manager.activities] and p.scores[#W.manager.activities].tempValue
         end):map(function(p)
             return {
@@ -307,14 +193,14 @@ local function getCurrentSoloRaceScore(playerName)
     end
 end
 
-local savedActivitiesAmount = 0
+local previousActivitiesAmount = 0
 local function updateData()
     if not W.getState() then return end
 
     W.manager = BJI.Managers.Tournament
-    local staff = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
-    local inFreeroam = BJI.Managers.Scenario.isFreeroam()
-    local showPlayerAddOrRemove = canAddOrRemovePlayer(staff)
+    staff = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
+    inFreeroam = BJI.Managers.Scenario.isFreeroam()
+    showPlayersModeration = canAddOrRemovePlayer(staff)
 
     if W.manager.state then
         W.onClose = nil
@@ -327,15 +213,24 @@ local function updateData()
     W.cache.disableToggleBtns = not inFreeroam
 
     -- player combo
-    W.cache.showPlayersCombo = staff and showPlayerAddOrRemove
+    W.cache.showPlayersCombo = staff and showPlayersModeration
     W.cache.playersCombo = Table()
     if W.cache.showPlayersCombo then
-        W.cache.playersCombo = BJI.Managers.Context.Players
-            :map(function(p) return p.playerName end)
-            :filter(function(p) return not W.manager.players:any(function(p2) return p == p2.playerName end) end)
-            :values():sort(function(a, b) return a < b end)
-        if not W.cache.selectedPlayer or not W.cache.playersCombo:includes(W.cache.selectedPlayer) then
-            W.cache.selectedPlayer = W.cache.playersCombo[1]
+        W.cache.playersCombo = BJI.Managers.Context.Players:filter(function(p)
+                return not W.manager.players:any(function(p2)
+                    return p.playerName == p2.playerName
+                end) and BJI.Managers.Perm.canSpawnVehicle(p.playerID)
+            end):map(function(p)
+                return {
+                    value = p.playerName,
+                    label = p.playerName,
+                }
+            end)
+            :values():sort(function(a, b) return a.label:lower() < b.label:lower() end)
+        if not W.cache.playersCombo:any(function(option)
+                return option.value == W.cache.selectedPlayer
+            end) then
+            W.cache.selectedPlayer = W.cache.playersCombo[1] and W.cache.playersCombo[1].value or nil
         end
 
         if #W.cache.playersCombo == 0 then
@@ -346,7 +241,7 @@ local function updateData()
     W.cache.showStartActivitySec = false
     W.cache.showStartActivityDuration = false
     W.cache.showStartActivity = W.manager.state and staff and inFreeroam and
-        not isRaceSoloInProgress()
+        not isSoloActivityInProgress()
     if W.cache.showStartActivity then
         W.cache.startActivityCombo = Table(W.ACTIVITIES_FILTERS):filter(function(af) return af() end):map(function(_, t)
             return {
@@ -354,11 +249,10 @@ local function updateData()
                 label = W.labels.activities[t],
             }
         end):values():sort(function(a, b) return a.label < b.label end)
-        if not W.cache.selectedStartActivity or
-            not W.cache.startActivityCombo:any(function(el)
-                return el.value == W.cache.selectedStartActivity.value
+        if not W.cache.startActivityCombo:any(function(el)
+                return el.value == W.cache.selectedStartActivity
             end) then
-            W.cache.selectedStartActivity = W.cache.startActivityCombo[1]
+            W.cache.selectedStartActivity = W.cache.startActivityCombo[1].value
         end
         if #W.cache.startActivityCombo == 0 then
             W.cache.showStartActivity = false
@@ -366,7 +260,7 @@ local function updateData()
     end
 
     if W.cache.showStartActivity then
-        if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.DERBY then
+        if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.arena end
             W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Derby):filter(function(a)
@@ -377,22 +271,21 @@ local function updateData()
                     label = arena.name,
                 }
             end):values():sort(function(a, b) return a.label < b.label end)
-            if not W.cache.selectedStartActivitySec or
-                not W.cache.startActivitySecCombo:any(function(el)
-                    return el.value == W.cache.selectedStartActivitySec.value
+            if not W.cache.startActivitySecCombo:any(function(el)
+                    return el.value == W.cache.selectedStartActivitySec
                 end) then
-                W.cache.selectedStartActivitySec = W.cache.startActivitySecCombo[1]
+                W.cache.selectedStartActivitySec = W.cache.startActivitySecCombo[1].value
             end
-        elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
-            W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE then
+        elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
+            W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.track end
             W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Races):filter(function(r)
-                return W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
+                return W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
                     r.places > 1
             end):map(function(r, i)
                 local label = r.name
-                if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE then
+                if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
                     label = label .. string.var(" ({1})",
                         { BJI.Managers.Lang.get("races.preparation.places"):var({ places = r.places }) })
                 end
@@ -406,21 +299,20 @@ local function updateData()
                 end
                 return a.label < b.label
             end)
-            if not W.cache.selectedStartActivitySec or
-                not W.cache.startActivitySecCombo:any(function(el)
-                    return el.value == W.cache.selectedStartActivitySec.value
+            if not W.cache.startActivitySecCombo:any(function(el)
+                    return el.value == W.cache.selectedStartActivitySec
                 end) then
                 W.cache.selectedStartActivitySec = nil
             end
 
-            if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
+            if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
                 W.cache.showStartActivityDuration = true
                 W.cache.startActivityDuration = math.clamp(W.cache.startActivityDuration, 2, 120)
             end
         end
     end
 
-    if savedActivitiesAmount > #W.manager.activities then
+    if previousActivitiesAmount > #W.manager.activities then
         -- on activity removed (or data resetted), clear inputs
         W.cache.inputs = Table()
     else
@@ -429,232 +321,78 @@ local function updateData()
             return W.manager.players:any(function(p) return p.playerName == playerName end)
         end)
     end
-    savedActivitiesAmount = #W.manager.activities
+    previousActivitiesAmount = #W.manager.activities
 
-    updateWidths()
-
-    W.cache.chartCols = ColumnsBuilder("BJITournamentChart", W.widths.chart --[[, true]])
-    ---@param data BJTournamentActivity
-    local headerCells = W.manager.activities:reduce(function(res, data, i)
-        local isSoloRaceInprogress = i == #W.manager.activities and data.raceID and data.targetTime
-        local showJoinSoloRace = W.manager.state and isSoloRaceInprogress and (not W.manager.whitelist or
-            W.manager.whitelistPlayers:includes(BJI.Managers.Context.User.playerName))
-        res[i + 1] = function()
-            local ctxt = BJI.Managers.Tick.getContext()
-            local line = LineBuilder()
-            if inFreeroam and staff then
-                if isSoloRaceInprogress then
-                    line:btnIcon({
-                        id = "endSoloRace",
-                        icon = BJI.Utils.Icon.ICONS.check_circle,
-                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        coloredIcon = true,
-                        tooltip = W.labels.buttons.endSoloRace,
-                        disabled = W.cache.disableInputs,
-                        onClick = function()
-                            W.cache.disableInputs = true
-                            BJI.Tx.tournament.endSoloRace()
-                        end
-                    })
-                else
-                    line:btnIcon({
-                        id = "removeActivity-" .. tostring(i),
-                        icon = BJI.Utils.Icon.ICONS.cancel,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        coloredIcon = true,
-                        tooltip = W.labels.buttons.remove,
-                        disabled = W.cache.disableInputs,
-                        onClick = function()
-                            W.cache.disableInputs = true
-                            BJI.Tx.tournament.removeActivity(i)
-                        end
-                    })
-                end
-            end
-            line:text(W.labels.activities[data.type])
-            if inFreeroam and showJoinSoloRace then
-                line:btnIcon({
-                    id = "joinActivity",
-                    icon = BJI.Utils.Icon.ICONS.videogame_asset,
-                    style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                    disabled = not ctxt.isOwner,
-                    tooltip = string.var("{1}{2}", {
-                        W.labels.buttons.join,
-                        not ctxt.isOwner and " (" .. W.labels.buttons.errorMustHaveVehicle .. ")" or "",
-                    }),
-                    onClick = function()
-                        Table(BJI.Managers.Context.Scenario.Data.Races)
-                            :find(function(r) return r.id == data.raceID end, function(race)
-                                BJI.Windows.RaceSettings.open({
-                                    multi = false,
-                                    raceID = race.id,
-                                    raceName = race.name,
-                                    loopable = race.loopable,
-                                    defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
-                                        .LAST_CHECKPOINT.key,
-                                    respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
-                                        :filter(function(rs)
-                                            return race.hasStand or
-                                                rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
-                                        end)
-                                        :sort(function(a, b) return a.order < b.order end)
-                                        :map(function(el) return el.key end),
-                                })
-                            end)
-                    end,
-                })
-            end
-            line:build()
-
-            if data.name then
-                LineLabel(data.name)
-            end
-            if data.targetTime then
-                local remainingSecs = math.round((data.targetTime - ctxt.now) / 1000)
-                local label
-                if remainingSecs > 0 then
-                    label = W.labels.activityTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingSecs) })
-                else
-                    label = W.labels.activityAboutToTimeout
-                end
-                LineLabel(label, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
-            end
-        end
-        return res
-    end, Table())
-    headerCells[#W.manager.activities + 2] = function() LineLabel(W.labels.total) end
-    W.cache.chartCols:addRow({
-        cells = headerCells
-    }):addSeparator()
-    ---@param p BJTournamentPlayer
-    W.manager.players:forEach(function(p, iPlayer)
-        -- playername (+ remove btn)
-        local playerCells = Table({
-            function()
-                local line = LineBuilder()
-                if staff and showPlayerAddOrRemove then
-                    line:btnIcon({
-                        id = "removePlayer-" .. tostring(iPlayer),
-                        icon = BJI.Utils.Icon.ICONS.cancel,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        coloredIcon = true,
-                        tooltip = W.labels.buttons.remove,
-                        disabled = W.cache.disableInputs,
-                        onClick = function()
-                            W.cache.disableInputs = true
-                            BJI.Tx.tournament.removePlayer(p.playerName)
-                        end
-                    })
-                end
-                line:text(p.playerName,
-                    p.playerName == BJI.Managers.Context.User.playerName and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil)
-                    :build()
-            end,
-        })
-        local total = 0
-        -- scores columns (+edit btn/input)
-        W.manager.activities:forEach(function(activity, iActivity)
-            local score = #W.manager.players
-            local label = ""
-            if p.scores[iActivity] then
-                if p.scores[iActivity].score then
-                    score = p.scores[iActivity].score
-                    label = score
-                elseif p.scores[iActivity].tempValue then
-                    -- parse tempValue
-                    if iActivity == #W.manager.activities and activity.type == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
-                        -- solo race time
-                        score = getCurrentSoloRaceScore(p.playerName) or score
-                        label = BJI.Utils.UI.RaceDelay(p.scores[iActivity].tempValue)
-                    end
-                end
-            end
-            total = total + score
-            playerCells[iActivity + 1] = function()
-                local showInput = staff and W.cache.inputs[p.playerName] and W.cache.inputs[p.playerName][iActivity]
-                local showEdit = not showInput and staff
-                if showEdit and iActivity == #W.manager.activities and (isRaceSoloInProgress() or
-                        BJI.Managers.Scenario.isServerScenarioInProgress()) then
-                    showEdit = false
-                end
-                local showLabel = not showInput and p.scores[iActivity]
-                local line = LineBuilder()
-                if showInput then
-                    line:btnIcon({
-                        id = string.var("cancelEdit-{1}-{2}", { p.playerName, iActivity }),
-                        icon = BJI.Utils.Icon.ICONS.cancel,
-                        style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        coloredIcon = true,
-                        tooltip = W.labels.buttons.cancel,
-                        disabled = W.cache.disableInputs,
-                        onClick = function()
-                            W.cache.inputs[p.playerName][iActivity] = nil
-                            updateData()
-                        end
-                    }):btnIcon({
-                        id = string.var("confirmEdit-{1}-{2}", { p.playerName, iActivity }),
-                        icon = BJI.Utils.Icon.ICONS.check_circle,
-                        style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                        coloredIcon = true,
-                        tooltip = W.labels.buttons.confirm,
-                        disabled = W.cache.disableInputs,
-                        onClick = function()
-                            W.cache.disableInputs = true
-                            BJI.Tx.tournament.editScore(p.playerName, iActivity, W.cache.inputs[p.playerName][iActivity])
-                            W.cache.inputs[p.playerName][iActivity] = nil
-                        end
-                    }):inputNumeric({
-                        id = string.var("edit-{1}-{2}", { p.playerName, iActivity }),
-                        type = "int",
-                        value = W.cache.inputs[p.playerName][iActivity] or 0,
-                        disabled = W.cache.disableInputs,
-                        min = 0,
-                        max = #W.manager.players,
-                        step = 1,
-                        width = W.widths.editNumInput,
-                        onUpdate = function(v)
-                            W.cache.inputs[p.playerName][iActivity] = v
-                        end
-                    })
-                else
-                    if showEdit then
-                        local add = #tostring(label) == 0
-                        line:btnIcon({
-                            id = string.var("edit-{1}-{2}", { p.playerName, iActivity }),
-                            icon = add and BJI.Utils.Icon.ICONS.add_circle or BJI.Utils.Icon.ICONS.mode_edit,
-                            style = add and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            coloredIcon = true,
-                            tooltip = W.labels.buttons.edit,
-                            onClick = function()
-                                if not W.cache.inputs[p.playerName] then
-                                    W.cache.inputs[p.playerName] = {}
-                                end
-                                W.cache.inputs[p.playerName][iActivity] = p.scores[iActivity] and
-                                    p.scores[iActivity].score or 0
-                                updateData()
-                            end
-                        })
-                    end
-                    if showLabel then
-                        line:text(label)
-                    end
-                end
-                line:build()
-            end
-        end)
-        -- total
-        playerCells[#W.manager.activities + 2] = function() LineLabel(tostring(total)) end
-        W.cache.chartCols:addRow({
-            cells = playerCells
-        }):addSeparator()
+    W.cache.tournamentData.inFreeroam = inFreeroam
+    W.cache.tournamentData.showPlayersModeration = showPlayersModeration
+    W.cache.tournamentData.activities = W.manager.activities:map(function(a, i)
+        local soloActInProgress = i == #W.manager.activities and isSoloActivityInProgress()
+        return {
+            type = a.type,
+            name = a.name,
+            raceID = a.raceID,
+            isSoloActivityInProgress = soloActInProgress,
+            soloRaceName = a.raceID and (Table(BJI.Managers.Context.Scenario.Data.Races)
+                :find(function(r) return r.id == a.raceID end) or { name = "INVALID" }).name or nil,
+            targetTime = a.targetTime,
+            showJoinSoloRace = W.manager.state and soloActInProgress and a.raceID and
+                (not W.manager.whitelist or W.manager.whitelistPlayers
+                    :includes(BJI.Managers.Context.User.playerName))
+        }
     end)
-    if # W.manager.players == 0 then
-        W.cache.chartCols:addRow({
-            cells = {
-                function() LineLabel(W.labels.noParticipant) end
+    W.cache.tournamentData.columnsConfig = Table({
+        { label = "##tournament-players" },
+    })
+    W.cache.tournamentData.activities:forEach(function(_, i, t)
+        W.cache.tournamentData.columnsConfig:insert({
+            label = "##tournament-activity-" .. tostring(i),
+        })
+    end)
+    W.cache.tournamentData.columnsConfig:insert({
+        label = "##tournament-activity-spacer",
+        flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH }
+    })
+    W.cache.tournamentData.columnsConfig:insert({ label = "##tournament-total" })
+    W.cache.tournamentData.players = W.manager.players:map(function(p)
+        cells = Table({
+            { -- name column
+                playerName = p.playerName,
+                color = p.playerName == BJI.Managers.Context.User.playerName and
+                    BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
             }
-        }):addSeparator()
-    end
+        })
+        total = 0
+        W.cache.tournamentData.activities:forEach(function(a, i, t)
+            score, custom, totalIncr = nil, nil, #W.manager.players
+            if p.scores[i] then
+                if p.scores[i].tempValue then
+                    -- parse tempValue
+                    if a.raceID then
+                        -- solo race time
+                        totalIncr = getCurrentSoloRaceScore(p.playerName) or #W.manager.players
+                        custom = BJI.Utils.UI.RaceDelay(p.scores[i].tempValue)
+                    else
+                        custom = p.scores[i].tempValue
+                    end
+                end
+                if p.scores[i].score then
+                    score = p.scores[i].score
+                    totalIncr = score
+                end
+            end
+            total = total + totalIncr
+            cells:insert({ -- activities columns
+                score = score,
+                custom = custom,
+                edit = staff and W.cache.inputs[p.playerName] and W.cache.inputs[p.playerName][i],
+                canEdit = staff and (i < #W.cache.tournamentData.activities or
+                    BJI.Managers.Scenario.isFreeroam()),
+            })
+        end)
+        cells:insert({})                -- spacer
+        cells:insert({ score = total }) -- total column
+        return cells
+    end)
 end
 
 local listeners = Table()
@@ -662,19 +400,7 @@ local function onLoad()
     W.manager = BJI.Managers.Tournament
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        updateWidths()
-    end, W.name .. "Labels"))
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateWidths, W.name .. "Widths"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateData()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -704,202 +430,332 @@ end
 
 ---@param ctxt TickContext
 local function header(ctxt)
-    ColumnsBuilder("BJITournamentHeader", { -1, -1, W.widths.whitelist }):addRow({
-        cells = {
-            function() LineLabel(W.labels.title) end,
-            W.cache.staffView and function()
-                LineBuilder():text(W.labels.state):btnIconToggle({
-                    id = "toggleState",
-                    state = W.manager.state,
-                    coloredIcon = true,
-                    disabled = W.cache.disableInputs or W.cache.disableToggleBtns,
-                    onClick = function()
+    if BeginTable("BJITournamentHeader", {
+            { label = "##tournament-header-left",   flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##tournament-header-middle", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##tournament-header-right" },
+        }) then
+        TableNewRow()
+        Text(W.labels.title)
+        TableNextColumn()
+        Text(W.labels.state)
+        SameLine()
+        if IconButton("toggleState", W.manager.state and BJI.Utils.Icon.ICONS.check_circle or
+                BJI.Utils.Icon.ICONS.cancel, { bgLess = true, disabled = W.cache.disableInputs or
+                    W.cache.disableToggleBtns, btnStyle = W.manager.state and
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            W.cache.disableInputs = true
+            BJI.Tx.tournament.toggle(not W.manager.state)
+        end
+        TableNextColumn()
+        Text(W.labels.whitelist)
+        SameLine()
+        if IconButton("toggleWhitelist", W.manager.whitelist and BJI.Utils.Icon.ICONS.check_circle or
+                BJI.Utils.Icon.ICONS.cancel, { bgLess = true, disabled = W.cache.disableInputs or
+                    W.cache.disableToggleBtns, btnStyle = W.manager.whitelist and
+                    BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            W.cache.disableInputs = true
+            BJI.Tx.tournament.toggleWhitelist(not W.manager.whitelist)
+        end
+
+        EndTable()
+    end
+end
+
+local function drawTournamentData(ctxt)
+    if BeginTable("BJITournamentData", W.cache.tournamentData.columnsConfig,
+            { flags = { TABLE_FLAGS.BORDERS_INNER } }) then
+        TableNewRow()
+        W.cache.tournamentData.activities:forEach(function(a, i)
+            drawn = false
+            TableNextColumn()
+            if W.cache.tournamentData.inFreeroam and W.cache.staffView then
+                if a.isSoloActivityInProgress then
+                    if IconButton("endSoloActivity", BJI.Utils.Icon.ICONS.check_circle,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, bgLess = true,
+                                disabled = W.cache.disableInputs }) then
                         W.cache.disableInputs = true
-                        BJI.Tx.tournament.toggle(not W.manager.state)
+                        BJI.Tx.tournament.endSoloActivity()
                     end
-                }):build()
-            end or nil,
-            W.cache.staffView and function()
-                LineBuilder():text(W.labels.whitelist):btnIconToggle({
-                    id = "toggleWhitelist",
-                    state = W.manager.whitelist,
-                    coloredIcon = true,
-                    disabled = W.cache.disableInputs or W.cache.disableToggleBtns,
-                    onClick = function()
+                    TooltipText(W.labels.buttons.endSoloActivity)
+                else
+                    if IconButton("removeActivity-" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true,
+                                disabled = W.cache.disableInputs }) then
                         W.cache.disableInputs = true
-                        BJI.Tx.tournament.toggleWhitelist(not W.manager.whitelist)
+                        BJI.Tx.tournament.removeActivity(i)
                     end
-                }):build()
-            end or nil,
-        }
-    }):build()
+                    TooltipText(W.labels.buttons.remove)
+                end
+                drawn = true
+            end
+            if drawn then SameLine() end
+            Text(W.labels.activities[a.type])
+            if W.cache.tournamentData.inFreeroam and a.showJoinSoloRace then
+                SameLine()
+                if IconButton("joinActivity", BJI.Utils.Icon.ICONS.videogame_asset,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner }) then
+                    Table(BJI.Managers.Context.Scenario.Data.Races)
+                        :find(function(r) return r.id == a.raceID end, function(race)
+                            BJI.Windows.RaceSettings.open({
+                                multi = false,
+                                raceID = race.id,
+                                raceName = race.name,
+                                loopable = race.loopable,
+                                defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
+                                    .LAST_CHECKPOINT.key,
+                                respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
+                                    :filter(function(rs)
+                                        return race.hasStand or
+                                            rs.key ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                                    end)
+                                    :sort(function(el1, el2) return el1.order < el2.order end)
+                                    :map(function(el) return el.key end),
+                            })
+                        end)
+                end
+            end
+            if a.name then
+                Text(a.name)
+            end
+            if a.targetTime then
+                remainingSecs = math.round((a.targetTime - ctxt.now) / 1000)
+                if remainingSecs > 0 then
+                    label = W.labels.activityTimeoutIn:var({ delay = BJI.Utils.UI.PrettyDelay(remainingSecs) })
+                else
+                    label = W.labels.activityAboutToTimeout
+                end
+                Text(label, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+            end
+        end)
+        TableNextColumn() -- spacer
+        TableNextColumn()
+        Text(W.labels.total)
+
+        W.cache.tournamentData.players:forEach(function(cells, iPlayer)
+            TableNewRow()
+            if W.cache.tournamentData.showPlayersModeration then
+                if IconButton("removePlayer-" .. tostring(iPlayer), BJI.Utils.Icon.ICONS.delete_forever,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true,
+                            disabled = W.cache.disableInputs }) then
+                    W.cache.disableInputs = true
+                    BJI.Tx.tournament.removePlayer(cells[1].playerName)
+                end
+                TooltipText(W.labels.buttons.remove)
+                SameLine()
+            end
+            Text(cells[1].playerName, { color = cells[1].color })
+            for iCell = 2, #cells do
+                TableNextColumn()
+                if iCell < #cells then
+                    if cells[iCell].custom then
+                        Text(cells[iCell].custom)
+                    elseif cells[iCell].edit then
+                        if IconButton("canceledit-" .. tostring(iPlayer) .. "-" .. tostring(iCell),
+                                BJI.Utils.Icon.ICONS.cancel, { disabled = W.cache.disableInputs,
+                                    btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true }) then
+                            W.cache.inputs[cells[1].playerName][iCell - 1] = nil
+                            cells[iCell].edit = false
+                            updateData()
+                        end
+                        TooltipText(W.labels.buttons.cancel)
+                        SameLine()
+                        if IconButton("confirmedit-" .. tostring(iPlayer) .. "-" .. tostring(iCell),
+                                W.cache.inputs[cells[1].playerName][iCell - 1] == 0 and
+                                BJI.Utils.Icon.ICONS.delete_forever or BJI.Utils.Icon.ICONS.check_circle,
+                                { disabled = W.cache.disableInputs, bgLess = true,
+                                    btnStyle = W.cache.inputs[cells[1].playerName][iCell - 1] == 0 and
+                                        BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+                            W.cache.disableInputs = true
+                            BJI.Tx.tournament.editScore(cells[1].playerName, iCell - 1,
+                                W.cache.inputs[cells[1].playerName][iCell - 1])
+                            cells[iCell].score = W.cache.inputs[cells[1].playerName][iCell - 1] ~= 0 and
+                                W.cache.inputs[cells[1].playerName][iCell - 1] or nil
+                            W.cache.inputs[cells[1].playerName][iCell - 1] = nil
+                            cells[iCell].edit = false
+                        end
+                        TooltipText(W.labels.buttons.confirm)
+                        SameLine()
+                        nextValue = InputInt("edit-" .. tostring(iPlayer) .. "-" .. tostring(iCell),
+                            W.cache.inputs[cells[1].playerName][iCell - 1] or 0, {
+                                disabled = W.cache.disableInputs,
+                                min = 0,
+                                max = #W.cache.tournamentData.players,
+                                width = 200
+                            })
+                        TooltipText("Set to 0 to remove score") -- TODO i18n
+                        if nextValue then W.cache.inputs[cells[1].playerName][iCell - 1] = nextValue end
+                    else
+                        if cells[iCell].canEdit then
+                            if IconButton("startedit-" .. tostring(iPlayer) .. "-" .. tostring(iCell),
+                                    cells[iCell].score and BJI.Utils.Icon.ICONS.mode_edit or BJI.Utils.Icon.ICONS.add_circle,
+                                    { btnStyle = cells[iCell].score and BJI.Utils.Style.BTN_PRESETS.WARNING or
+                                        BJI.Utils.Style.BTN_PRESETS.SUCCESS, bgLess = not cells[iCell].score,
+                                        disabled = W.cache.disableInputs }) then
+                                if not W.cache.inputs[cells[1].playerName] then
+                                    W.cache.inputs[cells[1].playerName] = {}
+                                end
+                                W.cache.inputs[cells[1].playerName][iCell - 1] = cells[iCell].score or
+                                    #W.cache.tournamentData.players
+                                updateData()
+                            end
+                            SameLine()
+                        end
+                        if cells[iCell].score then
+                            Text(tostring(cells[iCell].score))
+                        end
+                    end
+                else -- total
+                    Text(tostring(cells[iCell].score))
+                end
+            end
+        end)
+        if #W.cache.tournamentData.players == 0 then
+            TableNewRow()
+            Text(W.labels.noParticipant)
+        end
+
+        EndTable()
+    end
+end
+
+local function drawAddPlayerCombo(ctxt)
+    if W.cache.showPlayersCombo then
+        if IconButton("addWhitelistPlayer", BJI.Utils.Icon.ICONS.add,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
+                    not W.cache.selectedPlayer or #W.cache.selectedPlayer == 0 }) then
+            W.cache.disableInputs = true
+            BJI.Tx.tournament.togglePlayer(W.cache.selectedPlayer, true)
+        end
+        TooltipText(W.labels.buttons.add)
+        SameLine()
+        nextValue = Combo("whitelistPlayersCombo", W.cache.selectedPlayer, W.cache.playersCombo,
+            { disabled = W.cache.disableInputs })
+        if nextValue then W.cache.selectedPlayer = nextValue end
+    end
+end
+
+local function drawStartActivity(ctxt)
+    if W.cache.showStartActivity then
+        if W.cache.showPlayersCombo then
+            Separator()
+        end
+        if BeginTable("BJITournamentStartActivity", {
+                { label = "##tournament-startactivity-labels" },
+                { label = "##tournament-startactivity-combo" },
+                { label = "##tournament-startactivity-extra", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            }) then
+            TableNewRow()
+            Text(W.labels.startActivity.title)
+            TableNextColumn()
+            nextValue = Combo("startActivityCombo", W.cache.selectedStartActivity,
+                W.cache.startActivityCombo:filter(function(p)
+                    return not W.cache.disableInputs or p == W.cache.selectedStartActivity
+                end))
+            if nextValue then
+                W.cache.selectedStartActivity = nextValue
+                updateData()
+            end
+
+            if W.cache.showStartActivitySec then
+                TableNewRow()
+                Text(W.cache.startActivitySecLabel())
+                TableNextColumn()
+                nextValue = Combo("startActivitySecCombo", W.cache.selectedStartActivitySec,
+                    W.cache.startActivitySecCombo:filter(function(p)
+                        return not W.cache.disableInputs or p == W.cache.selectedStartActivitySec
+                    end))
+                if nextValue then
+                    W.cache.selectedStartActivitySec = nextValue
+                end
+                if W.cache.showStartActivityDuration then
+                    TableNextColumn()
+                    Text(W.labels.startActivity.duration)
+                    SameLine()
+                    nextValue = SliderIntPrecision("startActivityDuration", W.cache.startActivityDuration, 2, 120,
+                        { formatRender = BJI.Utils.UI.PrettyDelay(W.cache.startActivityDuration * 60) })
+                    if nextValue then W.cache.startActivityDuration = nextValue end
+                end
+            end
+
+            EndTable()
+        end
+        if Button("startActivity", W.labels.buttons.start,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    disabled = W.cache.disableInputs or not W.cache.selectedStartActivity }) then
+            if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
+                W.cache.disableInputs = true
+                W.cache.showStartActivity = false
+                BJI.Tx.tournament.addSoloRace(W.cache.selectedStartActivitySec,
+                    W.cache.startActivityDuration)
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
+                Table(BJI.Managers.Context.Scenario.Data.Races):find(function(r)
+                    return r.id == W.cache.selectedStartActivitySec and r.places > 1
+                end, function(race)
+                    BJI.Windows.RaceSettings.open({
+                        multi = true,
+                        raceID = race.id,
+                        raceName = race.name,
+                        loopable = race.loopable,
+                        defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
+                            .LAST_CHECKPOINT.key,
+                        respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
+                            :sort(function(a, b) return a.order < b.order end)
+                            :map(function(el) return el.key end)
+                            :filter(function(rs)
+                                return race.hasStand or
+                                    rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
+                            end),
+                    })
+                end)
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.SPEED then
+                BJI.Tx.vote.SpeedStart(false)
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.HUNTER then
+                BJI.Windows.HunterSettings.open()
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
+                BJI.Windows.DerbySettings.open(W.cache.selectedStartActivitySec)
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.TAG then
+                -- TODO start tag
+            end
+        end
+    end
 end
 
 ---@param ctxt TickContext
 local function body(ctxt)
     EmptyLine()
-    if W.cache.chartCols then
-        W.cache.chartCols:build()
-    end
 
-    if W.cache.showPlayersCombo then
-        LineBuilder():btnIcon({
-            id = "addWhitelistPlayer",
-            icon = BJI.Utils.Icon.ICONS.add,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = W.labels.buttons.add,
-            disabled = W.cache.disableInputs or not W.cache.selectedPlayer or
-                #W.cache.selectedPlayer == 0,
-            onClick = function()
-                W.cache.disableInputs = true
-                BJI.Tx.tournament.togglePlayer(W.cache.selectedPlayer, true)
-            end
-        }):inputCombo({
-            id = "whitelistPlayersCombo",
-            items = W.cache.playersCombo:filter(function(p)
-                return not W.cache.disableInputs or p == W.cache.selectedPlayer
-            end),
-            value = W.cache.selectedPlayer,
-            width = W.widths.addPlayerCombo,
-            onChange = function(v)
-                W.cache.selectedPlayer = tostring(v)
-            end
-        }):build()
-    end
-
+    drawTournamentData(ctxt)
+    drawAddPlayerCombo(ctxt)
     for _ = 1, 3 - #W.manager.players do
         EmptyLine()
     end
 
-    if W.cache.showStartActivity then
-        if W.cache.showPlayersCombo then
-            Separator()
-        end
-        local cols = ColumnsBuilder("BJITournamentStartActivity",
-            { W.widths.addActivityLabels, W.widths.addActivityCombos, -1 }):addRow({
-            cells = {
-                function() LineLabel(W.labels.startActivity.title) end,
-                function()
-                    LineBuilder():inputCombo({
-                        id = "startActivityCombo",
-                        items = W.cache.startActivityCombo:filter(function(p)
-                            return not W.cache.disableInputs or p == W.cache.selectedStartActivity
-                        end),
-                        value = W.cache.selectedStartActivity,
-                        getLabelFn = function(el) return el.label end,
-                        onChange = function(v)
-                            W.cache.selectedStartActivity = v
-                            updateData()
-                        end
-                    }):build()
-                end,
-            }
-        })
-        if W.cache.showStartActivitySec then
-            cols:addRow({
-                cells = {
-                    function() LineLabel(W.cache.startActivitySecLabel()) end,
-                    function()
-                        LineBuilder():inputCombo({
-                            id = "startActivitySecCombo",
-                            items = W.cache.startActivitySecCombo:filter(function(p)
-                                return not W.cache.disableInputs or p == W.cache.selectedStartActivitySec
-                            end),
-                            value = W.cache.selectedStartActivitySec,
-                            getLabelFn = function(el) return el.label end,
-                            onChange = function(v)
-                                W.cache.selectedStartActivitySec = v
-                            end
-                        }):build()
-                    end,
-                    W.cache.showStartActivityDuration and function()
-                        LineBuilder():text(W.labels.startActivity.duration):slider({
-                            id = "startActivityDuration",
-                            type = "int",
-                            value = W.cache.startActivityDuration,
-                            min = 2,
-                            max = 120,
-                            renderFormat = BJI.Utils.UI.PrettyDelay(W.cache.startActivityDuration * 60),
-                            onUpdate = function(v)
-                                W.cache.startActivityDuration = v
-                            end
-                        }):build()
-                    end or nil,
-                }
-            })
-        end
-        cols:build()
-        LineBuilder():btn({
-            id = "startActivity",
-            label = W.labels.buttons.start,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            disabled = W.cache.disableInputs or not W.cache.selectedStartActivity,
-            onClick = function()
-                if W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
-                    W.cache.disableInputs = true
-                    BJI.Tx.tournament.addSoloRace(W.cache.selectedStartActivitySec.value,
-                        W.cache.startActivityDuration)
-                elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.RACE then
-                    Table(BJI.Managers.Context.Scenario.Data.Races):find(function(r)
-                        return r.id == W.cache.selectedStartActivitySec.value and r.places > 1
-                    end, function(race)
-                        BJI.Windows.RaceSettings.open({
-                            multi = true,
-                            raceID = race.id,
-                            raceName = race.name,
-                            loopable = race.loopable,
-                            defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
-                                .LAST_CHECKPOINT.key,
-                            respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
-                                :sort(function(a, b) return a.order < b.order end)
-                                :map(function(el) return el.key end)
-                                :filter(function(rs)
-                                    return race.hasStand or
-                                        rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
-                                end),
-                        })
-                    end)
-                elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.SPEED then
-                    BJI.Tx.scenario.SpeedStart(false)
-                elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.HUNTER then
-                    BJI.Windows.HunterSettings.open()
-                elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.DERBY then
-                    BJI.Windows.DerbySettings.open(W.cache.selectedStartActivitySec.value)
-                elseif W.cache.selectedStartActivity.value == W.manager.ACTIVITIES_TYPES.TAG then
-                    -- TODO start tag
-                end
-            end,
-        }):build()
-    end
-end
+    drawStartActivity(ctxt)
 
-local function footer(ctxt)
-    ColumnsBuilder("BJITournamentFooter", { -1, W.widths.clearAndEnd }):addRow({
-        cells = { nil,
-            function()
-                LineBuilder():btn({
-                    id = "resetTournament",
-                    label = W.labels.buttons.resetAll,
-                    style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                    disabled = W.cache.disableInputs or (#W.manager.players == 0 and #W.manager.activities == 0),
-                    onClick = function()
-                        W.cache.disableInputs = true
-                        BJI.Tx.tournament.clear()
-                    end
-                }):btn({
-                    id = "endTournament",
-                    label = W.labels.buttons.endTournament,
-                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    tooltip = W.labels.buttons.endTournamentTooltip,
-                    disabled = W.cache.disableInputs or not W.manager.state or #W.manager.activities == 0,
-                    onClick = function()
-                        W.cache.disableInputs = true
-                        BJI.Tx.tournament.endTournament()
-                    end
-                }):build()
-            end
-        }
-    }):build()
+    if W.cache.staffView and BeginTable("BJITournamentFooter", {
+            { label = "##tournament-footer-left", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##tournament-footer-right" },
+        }) then
+        TableNewRow()
+        TableNextColumn()
+        if Button("resetTournament", W.labels.buttons.resetAll,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs or
+                    (#W.manager.players == 0 and #W.manager.activities == 0) }) then
+            W.cache.disableInputs = true
+            BJI.Tx.tournament.clear()
+        end
+        SameLine()
+        if Button("endTournament", W.labels.buttons.endTournament,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
+                    not W.manager.state or #W.manager.activities == 0 }) then
+            W.cache.disableInputs = true
+            BJI.Tx.tournament.endTournament()
+        end
+        TooltipText(W.labels.buttons.endTournamentTooltip)
+
+        EndTable()
+    end
 end
 
 local function open()
@@ -913,7 +769,6 @@ W.onLoad = onLoad
 W.onUnload = onUnload
 W.header = header
 W.body = body
-W.footer = footer
 W.open = open
 W.getState = function()
     return W.manualShow or BJI.Managers.Tournament.state

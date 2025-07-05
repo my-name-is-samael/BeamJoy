@@ -66,12 +66,26 @@ end
 --- cannot override string.split otherwise breaks the entire gameplay
 ---@param sep string
 ---@return table
-string.split2 = function(str, sep)
-    if type(sep) ~= "string" then return {} end
+string.split2 = string.split2 or function(str, sep)
+    if type(str) ~= "string" or type(sep) ~= "string" or #sep == 0 then return {} end
+    sep = sep:gsub("%%", "%%%%"):gsub(" ", "%%s"):gsub("%.", "%%.")
+        :gsub("%^", "%%^"):gsub("%$", "%%$"):gsub("%(", "%%(")
+        :gsub("%)", "%%)"):gsub("%+", "%%+"):gsub("%-", "%%-")
+        :gsub("%*", "%%*"):gsub("%?", "%%?"):gsub("%[", "%%[")
+        :gsub("%]", "%%]")
     local res = {}
-    for s in string.gmatch(str, "([^" .. sep .. "]+)") do
-        table.insert(res, s)
+    local strEnd = 1
+    local s, e
+
+    while true do
+        s, e = string.find(str, sep, strEnd, false)
+        if not s then break end
+        table.insert(res, string.sub(str, strEnd, s - 1))
+        strEnd = e + 1
     end
+
+    table.insert(res, string.sub(str, strEnd))
+
     return res
 end
 

@@ -8,6 +8,8 @@ local function newCache()
         },
     }
 end
+-- gc prevention
+local damages, garages, distance
 
 local cache = newCache()
 
@@ -28,28 +30,26 @@ end
 ---@param ctxt TickContext
 ---@return boolean
 local function isVisible(ctxt)
-    local damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
+    damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
     return damages ~= nil and damages > cache.damageThreshold
 end
 
 ---@param ctxt TickContext
 local function draw(ctxt)
-    if not isVisible(ctxt) then
-        return
-    end
-
-    local line = LineBuilder()
-        :text(cache.labels.damageWarning)
-    if cache.showGPSButton then
-        line:btnIcon({
-            id = "setRouteGarage",
-            icon = BJI.Utils.Icon.ICONS.add_location,
-            style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-            tooltip = BJI.Managers.Lang.get("common.buttons.setGPS"),
-            onClick = function()
-                local garages = {}
+    if BeginTable("BJIMainVehicleHelthIndicator", {
+            { label = "##main-health-indicator-indicator", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##main-health-indicator-button" },
+        }) then
+        TableNewRow()
+        Text(cache.labels.damageWarning)
+        TableNextColumn()
+        if cache.showGPSButton then
+            if IconButton("setRouteGarage", #BJI.Managers.GPS.targets > 0 and
+                    BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
+                    { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true }) then
+                garages = {}
                 for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
-                    local distance = BJI.Managers.GPS.getRouteLength({
+                    distance = BJI.Managers.GPS.getRouteLength({
                         ctxt.veh.position,
                         garage.pos
                     })
@@ -68,11 +68,12 @@ local function draw(ctxt)
                         radius = garages[1].garage.radius
                     })
                 end
-            end,
-            sound = BTN_NO_SOUND,
-        })
+            end
+            TooltipText(BJI.Managers.Lang.get("common.buttons.setGPS"))
+        end
+
+        EndTable()
     end
-    line:build()
 end
 
 return {

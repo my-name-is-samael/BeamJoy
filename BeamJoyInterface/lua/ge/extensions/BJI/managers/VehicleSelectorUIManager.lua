@@ -325,41 +325,30 @@ local function getAvailableParts(ioCtx)
     return M.baseFunctions.getAvailableParts(ioCtx)
 end
 
-local function onUpdateRestrictions()
-    local function _update()
-        M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and (
-            BJI.Managers.Scenario.canSpawnNewVehicle() or (
-                BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn()
-            ) and not BJI.Managers.Pursuit.getState()
-        )
-        M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam() and
-            not BJI.Managers.Pursuit.getState()
-        M.statePaint = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn() and
-            BJI.Managers.Scenario.canPaintVehicle() and not BJI.Managers.Pursuit.getState()
-        BJI.Managers.Restrictions.update({
-            {
-                -- update selector restriction
-                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR,
-                state = not M.stateSelector and BJI.Managers.Restrictions.STATE.RESTRICTED,
-            },
-            {
-                -- update editor restriction
-                restrictions = BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR,
-                state = not M.stateEditor and BJI.Managers.Restrictions.STATE.RESTRICTED,
-            },
-        })
-        if BJI.Managers.Scenario.isFreeroam() and not M.stateSelector and not M.stateEditor then
-            BJI.Windows.VehSelector.tryClose(true)
-        end
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    if not BJI.Managers.Cache.areBaseCachesFirstLoaded() or not BJI.CLIENT_READY then
+        return {}
     end
 
-    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
-        _update()
-    else
-        BJI.Managers.Async.task(function()
-            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
-        end, _update)
+    M.stateSelector = BJI.Managers.Perm.canSpawnVehicle() and (
+        BJI.Managers.Scenario.canSpawnNewVehicle() or (
+            BJI.Managers.Scenario.canReplaceVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn()
+        ) and not BJI.Managers.Pursuit.getState()
+    )
+    M.stateEditor = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Scenario.isFreeroam() and
+        not BJI.Managers.Pursuit.getState()
+    M.statePaint = BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Veh.isCurrentVehicleOwn() and
+        BJI.Managers.Scenario.canPaintVehicle() and not BJI.Managers.Pursuit.getState()
+
+    if BJI.Managers.Scenario.isFreeroam() and not M.stateSelector and not M.stateEditor then
+        BJI.Windows.VehSelector.tryClose(true)
     end
+
+    return Table()
+        :addAll(M.stateSelector and {} or BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR, true)
+        :addAll(M.stateEditor and {} or BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR, true)
 end
 
 local function onUnload()
@@ -405,15 +394,10 @@ local function onLoad()
     jbeamIO.getAvailableParts = getAvailableParts
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-    }, onUpdateRestrictions, M._name)
 end
 
 M.onLoad = onLoad
+
+M.getRestrictions = getRestrictions
 
 return M

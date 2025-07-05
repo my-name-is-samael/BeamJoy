@@ -5,14 +5,39 @@ local drawer = {}
 ---@field g number 0-1
 ---@field b number 0-1
 ---@field a number 0-1
+---@field fromRaw fun(self: BJIColor, rawColor: {r: number?, g: number?, b: number?, a: number?}): BJIColor -- self mutable
+---@field fromVec4 fun(self: BJIColor, vec4, vec4): BJIColor -- self mutable
+---@field vec4 fun(self: BJIColor): vec4
+---@field compare fun(self: BJIColor, color2: BJIColor): boolean
 
----@param r number 0-1
----@param g number 0-1
----@param b number 0-1
----@param a? number 0-1
+---@param r number? 0-1
+---@param g number? 0-1
+---@param b number? 0-1
+---@param a number? 0-1
 ---@return BJIColor
 local function Color(r, g, b, a)
-    return { r = r, g = g, b = b, a = a or 1 }
+    local color = { r = r or 0, g = g or 0, b = b or 0, a = a or 1 }
+    local meta = {
+        fromRaw = function(self, rawColor)
+            if not rawColor or not rawColor.r then return end
+            self.r, self.g, self.b, self.a = rawColor.r or 0, rawColor.g or 0, rawColor.b or 0, rawColor.a or 1
+            return self
+        end,
+        fromVec4 = function(self, vec4)
+            if not vec4 or not vec4.x then return end
+            self.r, self.g, self.b, self.a = vec4.x, vec4.y, vec4.z, vec4.w
+            return self
+        end,
+        vec4 = function(self)
+            return ImVec4(self.r, self.g, self.b, self.a)
+        end,
+        compare = function(self, color2)
+            if not color2 then return false end
+            return self.r == color2.r and self.g == color2.g and self.b == color2.b and self.a == color2.a
+        end
+    }
+
+    return setmetatable(color, { __index = meta })
 end
 
 ---@param r number 0-1
@@ -148,7 +173,8 @@ local function Arrow(pos, rot, radius, shapeColor)
     local len = math.rotate2DVec(vec3(0, radius, 0), angle)
     local tip = vec3(pos) + len
     local base = vec3(pos) + math.rotate2DVec(len, math.pi)
-    debugDrawer:drawArrow(base, tip, ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
+    debugDrawer:drawArrow(base, tip,
+        ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
 end
 
 drawer.Color = Color

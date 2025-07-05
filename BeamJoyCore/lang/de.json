@@ -275,11 +275,6 @@
         "day": "D",
         "month": "M"
       },
-      "types": {
-        "string": "Zeichenfolge",
-        "number": "Nummer",
-        "boolean": "Boolescher Wert"
-      },
       "enabled": "Ermöglicht",
       "disabled": "Deaktiviert",
       "yes": "Ja",
@@ -287,7 +282,8 @@
       "state": "Zustand",
       "unknown": "Unbekannt",
       "and": "&",
-      "random": "Zufällig"
+      "random": "Zufällig",
+      "precisionInputTooltip": "Rechtsklick, um den Modus zu wechseln"
     },
     "errors": {
       "invalid": "Ungültig",
@@ -370,7 +366,7 @@
       "RaceSettings": "Renneinstellungen",
       "Race": "Wettrennen",
       "DeliveryMulti": "Lieferung zusammen",
-      "VehicleSelector": "Fahrzeugauswahl",
+      "VehSelector": "Fahrzeugauswahl",
       "Station": "Station",
       "BusMissionPreparation": "Vorbereitung der Busmission",
       "ScenarioEditor": "Szenario-Editor",
@@ -609,6 +605,8 @@
     },
     "themeEditor": {
       "cancelModal": "Änderungen werden nicht gespeichert. ",
+      "resetAllTooltip": "Auf Werkseinstellungen zurücksetzen",
+      "resetAllModal": "Du bist dabei, das Server-Theme auf Werkseinstellungen zurückzusetzen. Möchtest du fortfahren?",
       "Fields": {
         "title": "Elemente",
         "WINDOW_BG": "Fensterhintergrund",
@@ -640,8 +638,11 @@
         "SEPARATOR": "Trennfarbe",
         "SEPARATOR_HOVERED": "Trennzeichen schwebende Farbe",
         "SEPARATOR_ACTIVE": "Aktive Trennfarbe",
+        "TABLE_HEADER_BG": "Hintergrund der Tabellenüberschrift",
         "TABLE_ROW_BG": "Hintergrund der Tabellenzeile",
-        "TABLE_ROW_BG_ALT": "Alternativer Hintergrund der Tabellenzeile",
+        "TABLE_ROW_BG_ALT": "Hintergrund der Tabellenzeile (alternativ)",
+        "TABLE_BORDER_STRONG": "Tabellenrahmen (stark)",
+        "TABLE_BORDER_LIGHT": "Tabellenrahmen (leicht)",
         "DOCKING_PREVIEW": "Docking-Vorschau-Hintergrund",
         "PROGRESSBAR": "Farbe des Fortschrittsbalkens"
       },
@@ -673,6 +674,10 @@
         "previewNumeric": "Vorschau Nummer",
         "baseColor": "Grundfarbe",
         "overrideTextColor": "Textfarbe überschreiben",
+        "hoveredColor": "Hover-Farbe",
+        "activeColor": "Aktive Farbe",
+        "sliderGrabColor": "Slider-Griff-Farbe",
+        "sliderGrabActiveColor": "Slider-Griff aktiv Farbe",
         "DEFAULT": "Standardeingabe",
         "ERROR": "Fehlereingabe",
         "DISABLED": "Deaktivierter Eingang",
@@ -702,7 +707,7 @@
       "uiScale": "UI-Skala",
       "vehicles": {
         "automaticLights": "Automatische Lichter",
-        "automaticLightsTooltip": "Schalten Sie die Scheinwerfer je nach Tageszeit automatisch um"
+        "automaticLightsTooltip": "Scheinwerfer werden abhängig von der Tageszeit automatisch aktiviert (und Blaulicht bei Verfolgungen)"
       },
       "nametags": {
         "preview": "Vorschau",
@@ -772,6 +777,7 @@
         "whitelist": {
           "title": "Whitelist",
           "players": "Spieler",
+          "addAllConnectedPlayers": "Alle verbundenen Spieler hinzufügen",
           "offlinePlayers": "Offline-Spieler",
           "addOfflinePlayer": "Offline-Player hinzufügen",
           "addOfflinePlayerPlaceholder": "Exakter Spielername"
@@ -813,7 +819,7 @@
           "RaceSoloTimeBroadcast": "Übertrage Solozeiten"
         },
         "server": {
-          "title": "Servereinstellungen",
+          "title": "Globale Einstellungen",
           "lang": "Sprache der Serverkonsole",
           "allowMods": "Spieler-Mods erlauben",
           "driftBigBroadcast": "Übertragen Sie große Drifts",
@@ -896,7 +902,7 @@
         },
         "KmDriveReward": "Fahrtprämie/km",
         "ArrestReward": "Festnahme-Belohnung",
-        "ArrestRewardTooltip": "Gilt bei der Festnahme eines Spielers oder einer KI während einer Verfolgung",
+        "ArrestRewardTooltip": "Gilt bei Festnahme eines Spielers während einer Verfolgung",
         "EvadeReward": "Flucht-Belohnung",
         "EvadeRewardTooltip": "Gilt bei erfolgreicher Flucht vor der Polizei",
         "DeliveryVehicleReward": "Belohnung für Fahrzeuglieferung",
@@ -1226,6 +1232,7 @@
       "noRefuelScenario": "In diesem Szenario können Sie Ihr Fahrzeug nicht betanken",
       "tanksAmount": "{amount} Tanks",
       "emergencyRefuel": "Notbetankung",
+      "refill": "Tank(en) auffüllen",
       "edit": {
         "title": "Herausgeber von Energiestationen",
         "name": "Stationsname",
@@ -1319,6 +1326,7 @@
         "line": "Zeile {index}",
         "lineName": "Name",
         "loopable": "Wiederholbar",
+        "stops": "Linienhaltestellen",
         "stop": "Stoppen Sie {index}",
         "stopsMinimumError": "Es sind mindestens 2 Stopps erforderlich",
         "stopName": "Name",
@@ -1402,21 +1410,27 @@
       "cars": "Autos",
       "trucks": "Lastwagen",
       "trailers": "Anhänger",
-      "props": "Requisiten"
+      "props": "Requisiten",
+      "filterTooltip": "Nach Modell oder Preset-Bezeichnung filtern",
+      "noMatch": "Keine Treffer ..."
     },
     "database": {
       "players": {
         "title": "Spieler",
         "playerName": "Spieler",
         "group": "Gruppe",
+        "lastKickReason": "Letzter Kick-Grund",
         "banned": "Verboten",
         "tempBanEndsIn": "Endet in {secs}",
         "banReason": "Verbotsgrund",
+        "lastBanReason": "Letzter Ban-Grund",
         "muted": "Stummgeschaltet",
-        "muteReason": "Stumme Vernunft"
+        "muteReason": "Stumme Vernunft",
+        "lastMuteReason": "Letzter Mute-Grund"
       },
       "vehicles": {
         "title": "Fahrzeuge",
+        "blacklistDescription": "Schwarze Liste: Fahrzeuge bleiben für Staff sichtbar und spawnenbar.",
         "blacklistedModels": "Auf der schwarzen Liste stehende Modelle"
       }
     },
@@ -1555,7 +1569,7 @@
       "duration": "Dauer",
       "noParticipant": "Noch keine Teilnehmer",
       "buttons": {
-        "endSoloRace": "Zeitfahren beenden",
+        "endSoloActivity": "Solo-Aktivität beenden",
         "endTournament": "Turnier beenden",
         "endTournamentTooltip": "Veröffentlicht die Platzierungen der Teilnehmer im Chat",
         "errorMustHaveVehicle": "Du benötigst ein Fahrzeug"

@@ -1,56 +1,52 @@
+--- gc prevention
+local nextValue
+
 return function(ctxt, labels, cache)
-    ColumnsBuilder("voteKickSettings", { cache.voteKick.labelsWidth, -1 })
-        :addRow({
-            cells = {
-                function() LineLabel(labels.voteKick.timeout) end,
-                function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = "voteTimeout",
-                            type = "int",
-                            value = BJI.Managers.Context.BJC.VoteKick.Timeout,
-                            min = 5,
-                            max = 300,
-                            step = 1,
-                            stepFast = 5,
-                            width = 120,
-                            disabled = cache.disableInputs,
-                            onUpdate = function(val)
-                                BJI.Managers.Context.BJC.VoteKick.Timeout = val
-                                BJI.Tx.config.bjc("VoteKick.Timeout", val)
-                            end,
-                        })
-                        :text(cache.voteKick.timeoutPretty)
-                        :build()
-                end
-            }
-        })
-        :addRow({
-            cells = {
-                function() LineLabel(labels.voteKick.thresholdRatio) end,
-                function()
-                    LineBuilder()
-                        :inputNumeric({
-                            id = "voteThresholdRatio",
-                            type = "float",
-                            precision = 2,
-                            value = BJI.Managers.Context.BJC.VoteKick.ThresholdRatio,
-                            min = 0.01,
-                            max = 1,
-                            step = .01,
-                            stepFast = .05,
-                            width = 120,
-                            disabled = cache.disableInputs,
-                            onUpdate = function(val)
-                                BJI.Managers.Context.BJC.VoteKick.ThresholdRatio = val
-                                BJI.Tx.config.bjc("VoteKick.ThresholdRatio", val)
-                            end,
-                        })
-                        :text(string.var("({1}%%)",
-                            { math.round(BJI.Managers.Context.BJC.VoteKick.ThresholdRatio * 100) }))
-                        :build()
-                end
-            }
-        })
-        :build()
+    if BeginTable("BJIServerBJCVoteKick", {
+            { label = "##bjiserverbjcvotekick-labels" },
+            { label = "##bjiserverbjcvotekick-inputs",  flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            { label = "##bjiserverbjcvotekick-preview", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        Text(labels.voteKick.timeout)
+        TableNextColumn()
+        if IconButton("votekickTimeoutReset", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = cache.disableInputs or
+                    BJI.Managers.Context.BJC.VoteKick.Timeout == 30 }) then
+            BJI.Managers.Context.BJC.VoteKick.Timeout = 30
+            BJI.Tx.config.bjc("VoteKick.Timeout", BJI.Managers.Context.BJC.VoteKick.Timeout)
+            cache.voteKick.timeoutPretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
+        end
+        SameLine()
+        nextValue = SliderIntPrecision("voteTimeout", BJI.Managers.Context.BJC.VoteKick.Timeout, 5, 300,
+            { step = 1, stepFast = 5, disabled = cache.disableInputs, formatRender = "%ds" })
+        if nextValue then
+            BJI.Managers.Context.BJC.VoteKick.Timeout = nextValue
+            BJI.Tx.config.bjc("VoteKick.Timeout", BJI.Managers.Context.BJC.VoteKick.Timeout)
+            cache.voteKick.timeoutPretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.VoteKick.Timeout)
+        end
+        TableNextColumn()
+        Text(cache.voteKick.timeoutPretty)
+
+        TableNewRow()
+        Text(labels.voteKick.thresholdRatio)
+        TableNextColumn()
+        if IconButton("votekickThresholdRatioReset", BJI.Utils.Icon.ICONS.refresh,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = cache.disableInputs or
+                    BJI.Managers.Context.BJC.VoteKick.ThresholdRatio == 0.51 }) then
+            BJI.Managers.Context.BJC.VoteKick.ThresholdRatio = 0.51
+            BJI.Tx.config.bjc("VoteKick.ThresholdRatio", BJI.Managers.Context.BJC.VoteKick.ThresholdRatio)
+        end
+        SameLine()
+        nextValue = SliderIntPrecision("voteThresholdRatio", BJI.Managers.Context.BJC.VoteKick.ThresholdRatio * 100, 1,
+            100, { step = 1, stepFast = 5, disabled = cache.disableInputs, formatRender = "%d%%" })
+        if nextValue then
+            BJI.Managers.Context.BJC.VoteKick.ThresholdRatio = math.round(nextValue / 100, 2)
+            BJI.Tx.config.bjc("VoteKick.ThresholdRatio", BJI.Managers.Context.BJC.VoteKick.ThresholdRatio)
+        end
+        TableNextColumn()
+        Text(tostring(BJI.Managers.Context.BJC.VoteKick.ThresholdRatio * 100) .. "%%")
+
+        EndTable()
+    end
 end

@@ -2,8 +2,7 @@
 local W = {
     name = "Main",
     getState = TrueFn,
-    w = 300,
-    h = 350,
+    minSize = ImVec2(337, 420),
 }
 
 local menu = require("ge/extensions/BJI/ui/windows/Main/Menu")
@@ -24,8 +23,11 @@ end
 
 W.onLoad = onLoad
 W.onUnload = onUnload
+
 W.menu = menu.draw
+
 W.header = header.draw
+
 W.body = body.draw
 
 return W

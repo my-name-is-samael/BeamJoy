@@ -8,8 +8,9 @@ local M = {
 local function onVehicleSpawn(playerID, vehID, vehDataStr)
     local s, e = vehDataStr:find('%{')
     vehDataStr = s and vehDataStr:sub(s) or ""
+    local data = JSON.parse(vehDataStr)
     ---@type ServerVehicleConfig?
-    local vehData = JSON.parse(vehDataStr) or nil
+    local vehData = type(data) == "table" and data or nil
 
     local player = BJCPlayers.Players[playerID]
     if not player then

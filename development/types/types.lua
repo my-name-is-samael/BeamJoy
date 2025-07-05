@@ -1,6 +1,8 @@
 ---@class BJIManager
 ---@field _name string
 ---@field onLoad? fun()
+---@field renderTick (fun(ctxt: TickContext))?
+---@field getRestrictions (fun(ctxt: TickContext): string[])?
 
 ---@class BJIScenario
 ---@field _name string
@@ -45,6 +47,7 @@
 ---@field doShowNametag (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
 ---@field doShowNametagsSpecs (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
 ---@field getCollisionsType (fun(ctxt: TickContext): integer)? BJI.Managers.Collisions.TYPES
+---@field getRestrictions (fun(ctxt: TickContext): string[])?
 ---@field drawUI (fun(ctxt: TickContext))?
 ---@field renderTick (fun(ctxt: TickContext))?
 ---@field fastTick (fun(ctxt: TickContext))?
@@ -62,10 +65,10 @@
 ---@field footerLines fun(ctxt: TickContext): integer?
 ---@field flags number[]?
 ---@field onClose fun()?
----@field w integer?
----@field h integer?
----@field x integer?
----@field y integer?
+---@field size point?
+---@field minSize point?
+---@field maxSize point?
+---@field position point?
 
 ---@class BJArena
 ---@field name string

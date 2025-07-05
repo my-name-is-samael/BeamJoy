@@ -44,7 +44,12 @@ function M.Races.findAll()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultRaces
+            end
+            return data
         end
     end
     return defaultRaces
@@ -127,7 +132,12 @@ local function _loadMapStations()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultStations
+            end
+            return data
         end
     end
     return defaultStations
@@ -179,7 +189,12 @@ function M.Delivery.findAll()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultDeliveries
+            end
+            return data
         end
     end
     return defaultDeliveries
@@ -207,7 +222,12 @@ function M.BusLines.findAll()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultBusLines
+            end
+            return data
         end
     end
     return defaultBusLines
@@ -240,7 +260,12 @@ function M.Hunter.findAll()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultHunterData
+            end
+            return data
         end
     end
     return defaultHunterData
@@ -264,7 +289,12 @@ function M.Derby.findAll()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultDerbyData
+            end
+            return data
         end
     end
     return defaultDerbyData
@@ -295,7 +325,12 @@ function M.Tournament.get()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data) or {}
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { M._tournamentPath }))
+                data = defaultTournamentData
+            end
+            return data
         end
     end
     return defaultTournamentData

@@ -7,7 +7,6 @@
 ---@field engine boolean
 ---@field vehicles table<integer, BJIVehicleData>
 ---@field currentVehicle integer? gameVehID
----@field stationProcess boolean? (auto injected)
 ---@field previousVehConfig table?
 
 ---@class BJIPlayerVehicle
@@ -101,6 +100,32 @@ local M = {
     Database = {},
 }
 
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local restrictions = Table()
+    if not BJI.Managers.Context.BJC.CEN then
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
+        restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+    else
+        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI.Managers.Context.BJC.CEN.Console then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
+        end
+        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI.Managers.Context.BJC.CEN.Editor then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
+        end
+        if not BJI.Managers.Scenario.isFreeroam() or
+            (not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+                not BJI.Managers.Context.BJC.CEN.NodeGrabber) then
+            restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+        end
+    end
+    return restrictions
+end
+
 local function loadUser()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.USER, function(cacheData)
         local previous = table.clone(M.User) or {}
@@ -176,7 +201,7 @@ end
 
 local function updateAllVehicles(ctxt)
     ---@param veh BJIMPVehicle
-    BJI.Managers.Veh.getMPVehicles():forEach(function(veh)
+    BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(veh)
         M.Players:find(function(p) return p.playerID == veh.ownerID end, function(p)
             p.vehicles:find(function(v) return v.gameVehID == veh.gameVehicleID end, function(v)
                 v.finalGameVehID = ctxt.user.playerID == veh.ownerID and veh.gameVehicleID or veh.remoteVehID
@@ -246,6 +271,7 @@ local function loadPlayers()
                     })
                 end)
             end
+            BJI.Managers.Restrictions.update()
         end
     end)
 end
@@ -301,30 +327,6 @@ local function loadUI()
     end)
 end
 
-local function updateCENRestrictions()
-    local restrictions = Table()
-    if not BJI.Managers.Context.BJC.CEN then
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
-    else
-        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-            not BJI.Managers.Context.BJC.CEN.Console then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
-        end
-        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-            not BJI.Managers.Context.BJC.CEN.Editor then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
-        end
-        if not BJI.Managers.Scenario.isFreeroam() or
-            (not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI.Managers.Context.BJC.CEN.NodeGrabber) then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
-        end
-    end
-    BJI.Managers.Restrictions.updateCEN(restrictions)
-end
-
 local function loadConfig()
     -- core data
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.CORE, function(cacheData)
@@ -351,7 +353,7 @@ local function loadConfig()
         local permissionChanged = false
 
         M.BJC.CEN = cacheData.CEN
-        updateCENRestrictions()
+        BJI.Managers.Restrictions.update()
 
         if BJI.Managers.Scenario.isFreeroam() and (
                 not M.BJC.Freeroam or
@@ -530,11 +532,6 @@ local function onLoad()
     loadDatabase()
     loadMaps()
     loadScenarii()
-
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-    }, updateCENRestrictions, M._name)
 end
 
 local function isSelf(playerID)
@@ -542,6 +539,7 @@ local function isSelf(playerID)
 end
 
 M.isSelf = isSelf
+M.getRestrictions = getRestrictions
 
 M.onLoad = onLoad
 

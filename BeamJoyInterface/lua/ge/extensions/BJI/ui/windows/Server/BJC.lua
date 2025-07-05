@@ -1,7 +1,19 @@
 local W = {
     name = "ServerBJC",
 
+    ---@class BJIServerAccordionConfig
+    ---@field labelKey string
+    ---@field render fun(ctxt: TickContext, labels: table, cache: table?)
+    ---@field permission string?
+    ---@field minimumGroup string?
+
+    ---@type tablelib<integer, BJIServerAccordionConfig> index 1-N
     ACCORDION = Table({
+        {
+            minimumGroup = BJI.CONSTANTS.GROUP_NAMES.OWNER,
+            labelKey = "server",
+            render = require("ge/extensions/BJI/ui/windows/Server/BJC/Server"),
+        },
         {
             permission = BJI.Managers.Perm.PERMISSIONS.WHITELIST,
             labelKey = "whitelist",
@@ -47,12 +59,9 @@ local W = {
             labelKey = "vehicleDelivery",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/VehicleDelivery"),
         },
-        {
-            minimumGroup = BJI.CONSTANTS.GROUP_NAMES.OWNER,
-            labelKey = "server",
-            render = require("ge/extensions/BJI/ui/windows/Server/BJC/Server"),
-        },
     }),
+    ---@type tablelib<integer, BJIServerAccordionConfig> index 1-N
+    filtered = Table(),
 
     labels = {
         whitelist = {
@@ -61,11 +70,10 @@ local W = {
             enabled = "",
             disabled = "",
             players = "",
+            addAllConnectedPlayers = "",
             offlinePlayers = "",
             addOfflinePlayer = "",
             addOfflinePlayerPlaceholder = "",
-            add = "",
-            remove = "",
         },
         voteKick = {
             title = "",
@@ -81,6 +89,9 @@ local W = {
             title = "",
             minTime = "",
             maxTime = "",
+            minDefault = 0,
+            maxDefault = 0,
+            maxOverall = 0,
             zeroTooltip = "",
         },
         race = {
@@ -122,12 +133,13 @@ local W = {
                 tooltip = "",
                 message = "",
             },
-            add = "",
-            remove = "",
-            save = "",
         },
         buttons = {
             reset = "",
+            save = "",
+            resetAll = "",
+            add = "",
+            remove = "",
         },
     },
     cache = {
@@ -136,48 +148,36 @@ local W = {
             online = Table(),
             offline = Table(),
             addName = "",
+            canToggleState = false,
         },
         voteKick = {
-            labelsWidth = 0,
             timeoutPretty = "",
         },
         mapVote = {
-            labelsWidth = 0,
             timeoutPretty = "",
         },
         tempban = {
+            minTime = 0,
+            maxTime = 0,
             minTimePretty = "",
             maxTimePretty = "",
         },
-        race = {
-            labelsWidth = 0,
-        },
-        speed = {
-            labelsWidth = 0,
-        },
-        hunter = {
-            labelsWidth = 0,
-        },
-        derby = {
-            labelsWidth = 0,
-        },
         vehicleDelivery = {
+            ---@type tablelib<integer, {model: string, label: string}> index 1-N
             displayList = Table(),
-            ---@type {value: string, label: string}[]
+            ---@type tablelib<integer, {value: string, label: string}> index 1-N
             modelsCombo = Table(),
-            ---@type {value: string, label: string}?
+            ---@type string?
             selectedModel = nil,
         },
         server = {
             broadcasts = {
-                ---@type {value: string, label: string}[]
+                prettyBrodcastsDelay = "",
+                ---@type tablelib<integer, {value: string, label: string}> index 1-N
                 langs = Table(),
-                ---@type {value: string, label: string}?
+                ---@type string?
                 selectedLang = nil,
             },
-            welcomeMessage = {
-                langsWidth = 0,
-            }
         },
     },
 }
@@ -198,12 +198,12 @@ local function updateLabels()
     W.labels.whitelist.enabled = BJI.Managers.Lang.get("common.enabled")
     W.labels.whitelist.disabled = BJI.Managers.Lang.get("common.disabled")
     W.labels.whitelist.players = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.players") .. " :"
+    W.labels.whitelist.addAllConnectedPlayers = BJI.Managers.Lang.get(
+        "serverConfig.bjc.whitelist.addAllConnectedPlayers")
     W.labels.whitelist.offlinePlayers = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.offlinePlayers") .. " :"
     W.labels.whitelist.addOfflinePlayer = BJI.Managers.Lang.get("serverConfig.bjc.whitelist.addOfflinePlayer") .. ":"
     W.labels.whitelist.addOfflinePlayerPlaceholder = BJI.Managers.Lang.get(
         "serverConfig.bjc.whitelist.addOfflinePlayerPlaceholder")
-    W.labels.whitelist.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.whitelist.remove = BJI.Managers.Lang.get("common.buttons.remove")
 
     W.labels.voteKick.timeout = BJI.Managers.Lang.get("serverConfig.bjc.voteKick.timeout") .. " :"
     W.labels.voteKick.thresholdRatio = BJI.Managers.Lang.get("serverConfig.bjc.voteKick.thresholdRatio") .. " :"
@@ -263,72 +263,12 @@ local function updateLabels()
     W.labels.server.welcomeMessage.title = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.title") .. " :"
     W.labels.server.welcomeMessage.tooltip = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.tooltip")
     W.labels.server.welcomeMessage.message = BJI.Managers.Lang.get("serverConfig.bjc.server.welcomeMessage.message")
-    W.labels.server.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.server.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.server.save = BJI.Managers.Lang.get("common.buttons.save")
 
     W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
-end
-
-local function updateWidths()
-    W.cache.voteKick.labelsWidth = Table({ W.labels.voteKick.timeout, W.labels.voteKick.thresholdRatio })
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.mapVote.labelsWidth = Table({ W.labels.mapVote.timeout, W.labels.mapVote.thresholdRatio })
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.race.labelsWidth = Table(W.labels.race.keys)
-        ---@param k string
-        :filter(function(_, k)
-            return not k:endswith("Tooltip")
-        end)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.speed.labelsWidth = Table(W.labels.speed.keys)
-        ---@param k string
-        :filter(function(_, k)
-            return not k:endswith("Tooltip")
-        end)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.hunter.labelsWidth = Table(W.labels.hunter.keys)
-        ---@param k string
-        :filter(function(_, k)
-            return not k:endswith("Tooltip")
-        end)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.derby.labelsWidth = Table(W.labels.derby.keys)
-        ---@param k string
-        :filter(function(_, k)
-            return not k:endswith("Tooltip")
-        end)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(l)
-            return w > acc and w or acc
-        end, 0)
-
-    W.cache.server.welcomeMessage.langsWidth = Table(BJI.Managers.Lang.Langs)
-        :reduce(function(acc, l)
-            local w = BJI.Utils.UI.GetColumnTextWidth(W.labels.server.welcomeMessage.message
-                :var({ lang = l:upper() }))
-            return w > acc and w or acc
-        end, 0)
+    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
+    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
+    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
 end
 
 local function updateCache()
@@ -342,6 +282,7 @@ local function updateCache()
             :filter(function(p)
                 return not table.includes(W.cache.whitelist.online, p)
             end):values()
+        W.cache.whitelist.canToggleState = BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN)
     end
 
     if BJI.Managers.Context.BJC.VoteKick then
@@ -353,8 +294,13 @@ local function updateCache()
     end
 
     if BJI.Managers.Context.BJC.TempBan then
+        W.cache.tempban.minTime = BJI.Managers.Context.BJC.TempBan.minTime
+        W.cache.tempban.maxTime = BJI.Managers.Context.BJC.TempBan.maxTime
         W.cache.tempban.minTimePretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.TempBan.minTime)
         W.cache.tempban.maxTimePretty = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.TempBan.maxTime)
+        W.cache.tempban.minDefault = 300                -- 5 min
+        W.cache.tempban.maxDefault = 60 * 60 * 24 * 30  -- 1 month
+        W.cache.tempban.maxOverall = 60 * 60 * 24 * 365 -- 1 year
     end
 
     if BJI.Managers.Context.BJC.VehicleDelivery then
@@ -378,34 +324,56 @@ local function updateCache()
                 return a.label:lower() < b.label:lower()
             end)
         end)
-        W.cache.vehicleDelivery.displayList = Table(res.display)
-        W.cache.vehicleDelivery.modelsCombo = Table(res.combo)
-        if not W.cache.vehicleDelivery.selectedModel or not W.cache.vehicleDelivery.modelsCombo
-            :find(function(mc) return mc.value == W.cache.vehicleDelivery.selectedModel.value end) then
-            W.cache.vehicleDelivery.selectedModel = W.cache.vehicleDelivery.modelsCombo[1]
+        W.cache.vehicleDelivery.modelsCombo = res.combo
+        if not W.cache.vehicleDelivery.modelsCombo
+            :any(function(option) return option.value == W.cache.vehicleDelivery.selectedModel end) then
+            W.cache.vehicleDelivery.selectedModel = W.cache.vehicleDelivery.modelsCombo[1].value
         end
+        W.cache.vehicleDelivery.displayList = res.display
     end
+end
+
+local function initServer()
+    if BJI.Managers.Perm.hasMinimumGroup(W.ACCORDION[1].minimumGroup) then
+        W.cache.server.broadcasts.langs = Table(BJI.Managers.Lang.Langs)
+            :map(function(l)
+                return {
+                    value = l,
+                    label = string.format("%s (%d)", l:upper(), #BJI.Managers.Context.BJC.Server.Broadcasts[l]),
+                }
+            end):sort(function(a, b) return a.label < b.label end)
+        if not W.cache.server.broadcasts.langs
+            :any(function(l) return l.value == W.cache.server.broadcasts.selectedLang end) then
+            W.cache.server.broadcasts.selectedLang = W.cache.server.broadcasts.langs[1].value
+        end
+        W.cache.server.broadcasts.prettyBrodcastsDelay = BJI.Utils.UI.PrettyDelay(
+            BJI.Managers.Context.BJC.Server.Broadcasts.delay)
+    end
+end
+
+local function updateAccordions()
+    ---@param accordionContent BJIServerAccordionConfig
+    W.filtered = W.ACCORDION:filter(function(accordionContent)
+        if accordionContent.permission and not BJI.Managers.Perm.hasPermission(accordionContent.permission) then
+            return false
+        end
+        if accordionContent.minimumGroup and not BJI.Managers.Perm.hasMinimumGroup(accordionContent.minimumGroup) then
+            return false
+        end
+        return true
+    end)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function()
-        updateLabels()
-        updateWidths()
-    end, W.name .. "Labels"))
-
-    updateWidths()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED, updateWidths,
-        W.name .. "Widths"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels,
+        W.name .. "Labels"))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
     }, function(_, data)
         if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
             table.includes({ BJI.Managers.Cache.CACHES.BJC,
@@ -414,16 +382,13 @@ local function onLoad()
         end
     end, W.name .. "Cache"))
 
-    W.cache.server.broadcasts.langs = Table(BJI.Managers.Lang.Langs)
-        :map(function(l)
-            return {
-                value = l,
-                label = l:upper(),
-            }
-        end):sort(function(a, b) return a.label < b.label end)
-    if not W.cache.server.broadcasts.selectedLang then
-        W.cache.server.broadcasts.selectedLang = W.cache.server.broadcasts.langs[1]
-    end
+    initServer()
+
+    updateAccordions()
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        function()
+            updateAccordions()
+        end, W.name .. "PermissionFilter"))
 end
 
 local function onUnload()
@@ -431,20 +396,22 @@ local function onUnload()
 end
 
 local function body(ctxt)
-    W.ACCORDION:filter(function(a)
-        if a.permission and not BJI.Managers.Perm.hasPermission(a.permission) then
-            return false
-        end
-        if a.minimumGroup and not BJI.Managers.Perm.hasMinimumGroup(a.minimumGroup) then
-            return false
-        end
-        return true
-    end):forEach(function(a)
-        AccordionBuilder()
-            :label(W.labels[a.labelKey].title)
-            :openedBehavior(function() a.render(ctxt, W.labels, W.cache) end)
-            :build()
-    end)
+    if #W.filtered == 0 then
+        return -- no content
+    elseif #W.filtered == 1 then
+        Text(W.labels[W.filtered[1].labelKey].title)
+        Indent()
+        W.filtered[1].render(ctxt, W.labels, W.cache)
+        Unindent()
+    else
+        ---@param accordionContent BJIServerAccordionConfig
+        W.filtered:forEach(function(accordionContent)
+            if BeginTree(W.labels[accordionContent.labelKey].title) then
+                accordionContent.render(ctxt, W.labels, W.cache)
+                EndTree()
+            end
+        end)
+    end
 end
 
 W.onLoad = onLoad
