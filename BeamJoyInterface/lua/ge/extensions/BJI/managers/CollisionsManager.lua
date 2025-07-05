@@ -14,7 +14,7 @@ local M = {
     ghostAlpha = .5,
     playerAlpha = 1,
 
-    ---@type tablelib<integer, {ghostType: boolean, veh: BJIMPVehicle}> index gameVehID
+    ---@type tablelib<integer, {ghostType: boolean, mpVeh: BJIMPVehicle}> index gameVehID
     vehsCaches = Table(),
 
     ---@type tablelib<integer, integer> index gameVehID, value targetTime
@@ -30,7 +30,7 @@ local function getState(ctxt)
     elseif M.type ~= M.TYPES.GHOSTS then
         return M.type == M.TYPES.FORCED or
             not M.vehsCaches[ctxt.veh.gameVehicleID].ghostType or
-            M.vehsCaches[ctxt.veh.gameVehicleID].veh.isAi
+            M.vehsCaches[ctxt.veh.gameVehicleID].mpVeh.isAi
     else
         return not M.permaGhosts[ctxt.veh.gameVehicleID] and
             not M.ghosts[ctxt.veh.gameVehicleID]
@@ -118,27 +118,51 @@ end
 local function onTypeChange(ctxt, previousType)
     -- remove ghosts
     M.ghosts:forEach(function(_, gameVehID)
-        removeGhost(ctxt, gameVehID, M.vehsCaches[gameVehID] and M.vehsCaches[gameVehID].veh.veh or nil)
+        removeGhost(ctxt, gameVehID, M.vehsCaches[gameVehID] and M.vehsCaches[gameVehID].mpVeh.veh or nil)
     end)
     M.ghosts:clear()
 
     if M.type ~= M.TYPES.GHOSTS then
         M.vehsCaches:filter(function(vehData, gameVehID)
-            return vehData.ghostType and not vehData.veh.isAi and not M.permaGhosts[gameVehID]
-        end):forEach(function(vehData, gameVehID)
-            vehData.veh.veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(M.type == M.TYPES.DISABLED) .. ")")
+            return vehData.ghostType and not vehData.mpVeh.isAi and not M.permaGhosts[gameVehID]
+        end):forEach(function(vehData)
+            vehData.mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(" .. tostring(M.type == M.TYPES.DISABLED) .. ")")
             if M.type == M.TYPES.DISABLED then
-                setAlpha(ctxt, vehData.veh.veh, M.ghostAlpha)
+                setAlpha(ctxt, vehData.mpVeh.veh, M.ghostAlpha)
             else -- forced
-                setAlpha(ctxt, vehData.veh.veh, M.playerAlpha)
+                setAlpha(ctxt, vehData.mpVeh.veh, M.playerAlpha)
             end
         end)
     elseif previousType == M.TYPES.DISABLED then
         M.vehsCaches:filter(function(vehData, gameVehID)
-            return vehData.ghostType and not vehData.veh.isAi and not M.permaGhosts[gameVehID]
+            return vehData.ghostType and not vehData.mpVeh.isAi and not M.permaGhosts[gameVehID]
         end):forEach(function(vehData, gameVehID)
-            addGhost(ctxt, gameVehID, vehData.veh.veh)
+            addGhost(ctxt, gameVehID, vehData.mpVeh.veh)
         end)
+    end
+end
+
+---@param gameVehID integer
+local function onVehReset(gameVehID)
+    local vehData = M.vehsCaches[gameVehID]
+    if not vehData then
+        return
+    elseif vehData.mpVeh.isAi or vehData.mpVeh.jbeam == "unicycle" then
+        vehData.mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        return
+    end
+
+    local ctxt = BJI.Managers.Tick.getContext()
+    if M.type == M.TYPES.GHOSTS and not M.permaGhosts[gameVehID] then
+        if vehData.ghostType and not vehData.mpVeh.isAi then
+            addGhost(ctxt, gameVehID, vehData.mpVeh.veh)
+        end
+    else
+        if M.type == M.TYPES.FORCED then
+            vehData.mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        elseif M.type == M.TYPES.DISABLED or M.permaGhosts[gameVehID] then
+            setAlpha(ctxt, vehData.mpVeh.veh, M.ghostAlpha)
+        end
     end
 end
 
@@ -149,32 +173,10 @@ local function onVehSpawned(mpVeh)
         ghostType = mpVeh.jbeam ~= "unicycle" and
             not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
                 BJI.Managers.Veh.getType(mpVeh.jbeam)),
-        veh = mpVeh,
+        mpVeh = mpVeh,
     }
-end
-
----@param gameVehID integer
-local function onVehReset(gameVehID)
-    local vehData = M.vehsCaches[gameVehID]
-    if not vehData then
-        return
-    elseif vehData.veh.isAi or vehData.veh.jbeam == "unicycle" then
-        vehData.veh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
-        return
-    end
-
-    local ctxt = BJI.Managers.Tick.getContext()
-    if M.type == M.TYPES.GHOSTS and not M.permaGhosts[gameVehID] then
-        if vehData.ghostType and not vehData.veh.isAi then
-            addGhost(ctxt, gameVehID, vehData.veh.veh)
-        end
-    else
-        if M.type == M.TYPES.FORCED then
-            vehData.veh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
-        elseif M.type == M.TYPES.DISABLED or M.permaGhosts[gameVehID] then
-            setAlpha(ctxt, vehData.veh.veh, M.ghostAlpha)
-        end
-    end
+    -- recover reset event
+    onVehReset(mpVeh.gameVehicleID)
 end
 
 ---@param oldGameVehID integer
@@ -184,19 +186,19 @@ local function onVehSwitched(oldGameVehID, newGameVehID)
     if M.type == M.TYPES.GHOSTS then
         -- previous vehicle actions
         if oldGameVehID ~= -1 and (M.ghosts[oldGameVehID] or M.permaGhosts[oldGameVehID]) then
-            setAlpha(ctxt, M.vehsCaches[oldGameVehID].veh.veh, M.ghostAlpha)
+            setAlpha(ctxt, M.vehsCaches[oldGameVehID].mpVeh.veh, M.ghostAlpha)
         end
         -- new vehicle actions
         if newGameVehID ~= -1 and (M.ghosts[newGameVehID] or M.permaGhosts[newGameVehID]) then
-            setAlpha(ctxt, M.vehsCaches[newGameVehID].veh.veh, M.playerAlpha)
+            setAlpha(ctxt, M.vehsCaches[newGameVehID].mpVeh.veh, M.playerAlpha)
         end
     elseif M.type == M.TYPES.DISABLED then
         if oldGameVehID ~= -1 and (M.vehsCaches[oldGameVehID].ghostType and
-                not M.vehsCaches[oldGameVehID].veh.isAi) then
-            setAlpha(ctxt, M.vehsCaches[oldGameVehID].veh.veh, M.ghostAlpha)
+                not M.vehsCaches[oldGameVehID].mpVeh.isAi) then
+            setAlpha(ctxt, M.vehsCaches[oldGameVehID].mpVeh.veh, M.ghostAlpha)
         end
         if newGameVehID ~= -1 then
-            setAlpha(ctxt, M.vehsCaches[newGameVehID].veh.veh, M.playerAlpha)
+            setAlpha(ctxt, M.vehsCaches[newGameVehID].mpVeh.veh, M.playerAlpha)
         end
     end
 end
@@ -212,29 +214,25 @@ end
 ---@param ctxt TickContext
 local function fastTick(ctxt)
     if M.type == M.TYPES.GHOSTS then
-        local currVeh, targetVeh
+        local selfPos, targetPos -- both must be calculated because can change every frame
         M.ghosts:filter(function(targetTime)
             return targetTime <= ctxt.now
         end):forEach(function(_, gameVehID)
-            M.vehsCaches[gameVehID].veh = BJI.Managers.Veh.getMPVehicle(gameVehID)
-            if not M.vehsCaches[gameVehID].veh then
+            if not M.vehsCaches[gameVehID].mpVeh then
                 M.ghosts[gameVehID] = nil
                 return
             end
-            currVeh = M.vehsCaches[gameVehID].veh.veh
-            if currVeh then
-                BJI.Managers.Veh.getPositionRotation(currVeh, function(currVehPos)
-                    if not M.vehsCaches:filter(function(_, vid)
-                            return not M.ghosts[vid] and not M.permaGhosts[vid]
-                        end):any(function(vehData)
-                            targetVeh = vehData.veh.veh
-                            local targetVehPos = vehData.veh.position
-                            return targetVehPos ~= nil and currVehPos:distance(targetVehPos) <
-                                getGhostDistance(currVeh, targetVeh)
-                        end) then
-                        removeGhost(ctxt, gameVehID, currVeh)
-                    end
-                end)
+            selfPos = BJI.Managers.Veh.getPositionRotation(M.vehsCaches[gameVehID].mpVeh.veh)
+            if not selfPos then return end
+            if not M.vehsCaches:filter(function(_, vid)
+                    return vid ~= gameVehID and not M.ghosts[vid] and not M.permaGhosts[vid]
+                end):any(function(vehData)
+                    targetPos = BJI.Managers.Veh.getPositionRotation(vehData.mpVeh.veh)
+                    if not targetPos then return false end
+                    return selfPos:distance(targetPos) <
+                        getGhostDistance(M.vehsCaches[gameVehID].mpVeh.veh, vehData.mpVeh.veh)
+                end) then
+                removeGhost(ctxt, gameVehID, M.vehsCaches[gameVehID].mpVeh.veh)
             end
         end)
     end
@@ -252,18 +250,18 @@ local function updatePermaghostsAndAI(ctxt)
             return v.finalGameVehID
         end):forEach(function(gameVehID)
             if player.isGhost and not M.permaGhosts[gameVehID] and
-                M.vehsCaches[gameVehID].ghostType and not M.vehsCaches[gameVehID].veh.isAi then
+                M.vehsCaches[gameVehID].ghostType and not M.vehsCaches[gameVehID].mpVeh.isAi then
                 M.permaGhosts[gameVehID] = true
                 if not M.ghosts[gameVehID] and M.type ~= M.TYPES.DISABLED then
-                    M.vehsCaches[gameVehID].veh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
-                    setAlpha(ctxt, M.vehsCaches[gameVehID].veh.veh, M.ghostAlpha)
+                    M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
+                    setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.ghostAlpha)
                 end
                 M.ghosts[gameVehID] = nil
             elseif not player.isGhost and M.permaGhosts[gameVehID] then
                 M.permaGhosts[gameVehID] = nil
                 if M.type == M.TYPES.FORCED then
-                    M.vehsCaches[gameVehID].veh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
-                    setAlpha(ctxt, M.vehsCaches[gameVehID].veh.veh, M.playerAlpha)
+                    M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+                    setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.playerAlpha)
                 elseif M.type == M.TYPES.GHOSTS then
                     addGhost(ctxt, gameVehID)
                 end
