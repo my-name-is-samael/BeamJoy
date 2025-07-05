@@ -18,7 +18,8 @@ local S = {
 
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
 
-    cornerMarkers = {},
+    ---@type table?
+    cornerMarkers = nil,
 }
 --- gc prevention
 local actions, loop, stopLabel
@@ -48,41 +49,16 @@ local function canChangeTo(ctxt)
 end
 
 local function initCornerMarkers()
-    local function create(name)
-        local marker = createObject('TSStatic')
-        marker:setField('shapeName', 0, "art/shapes/interface/position_marker.dae")
-        marker:setPosition(vec3(0, 0, 0))
-        marker.scale = vec3(1, 1, 1)
-        marker:setField('rotation', 0, '1 0 0 0')
-        marker.useInstanceRenderData = true
-        marker:setField('instanceColor', 0, '1 1 1 0')
-        marker:setField('collisionType', 0, "Collision Mesh")
-        marker:setField('decalType', 0, "Collision Mesh")
-        marker:setField('playAmbient', 0, "1")
-        marker:setField('allowPlayerStep', 0, "1")
-        marker:setField('canSave', 0, "0")
-        marker:setField('canSaveDynamicFields', 0, "1")
-        marker:setField('renderNormals', 0, "0")
-        marker:setField('meshCulling', 0, "0")
-        marker:setField('originSort', 0, "0")
-        marker:setField('forceDetail', 0, "-1")
-        marker.canSave = false
-        marker:registerObject(name)
-        return marker;
+    S.cornerMarkers = BJI.Managers.WorldObject.createGroup("BJIBusMarkers")
+    if not S.cornerMarkers then
+        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+        error("Unable to create BJI bus markers tree")
     end
-
-    if not scenetree.findObject("ScenarioObjectsGroup") then
-        local ScenarioObjectsGroup = createObject('SimGroup')
-        ScenarioObjectsGroup:registerObject('ScenarioObjectsGroup')
-        ScenarioObjectsGroup.canSave = false
-        scenetree.MissionGroup:addObject(ScenarioObjectsGroup.obj)
-    end
-    for _, name in ipairs({ "busMarkerTL", "busMarkerTR", "busMarkerBL", "busMarkerBR" }) do
+    for _, name in ipairs({ "BJIBusMarker1", "BJIBusMarker2", "BJIBusMarker3", "BJIBusMarker4" }) do
         local marker = scenetree.findObject(name)
         if not marker then
-            marker = create(name)
-            scenetree.findObject("ScenarioObjectsGroup"):addObject(marker.obj)
-            table.insert(S.cornerMarkers, marker)
+            marker = BJI.Managers.WorldObject.createCornerMarker(name)
+            S.cornerMarkers:addObject(marker.obj)
         end
     end
 end
@@ -100,24 +76,25 @@ local function updateCornerMarkers(ctxt, stop)
     local yVec, xVec = tr * vec3(0, 1, 0), tr * vec3(1, 0, 0)
     local d = ctxt.veh.veh:getInitialLength() / 2 + wpRadius / 2
     local w = ctxt.veh.veh:getInitialWidth() / 2 + wpRadius / 2
-    for k, marker in ipairs(S.cornerMarkers) do
-        if k == 1 then
-            pos = (tpos - xVec * d + yVec * w)
-            r = tr * quatFromEuler(0, 0, math.rad(90))
-        elseif k == 2 then
-            pos = (tpos + xVec * d + yVec * w)
-            r = tr * quatFromEuler(0, 0, math.rad(180))
-        elseif k == 3 then
-            pos = (tpos + xVec * d - yVec * w)
-            r = tr * quatFromEuler(0, 0, math.rad(270))
-        elseif k == 4 then
-            pos = (tpos - xVec * d - yVec * w)
-            r = tr
-        end
-        pos.z = be:getSurfaceHeightBelow(pos) + .2
-        marker:setPosRot(pos.x, pos.y, pos.z, r.x, r.y, r.z, r.w)
-        marker:setField('instanceColor', 0, "1 0 0 1")
-    end
+    BJI.Managers.WorldObject.getGroupChildren(S.cornerMarkers)
+        :forEach(function(marker, i)
+            if i == 1 then
+                pos = (tpos - xVec * d + yVec * w)
+                r = tr * quatFromEuler(0, 0, math.rad(90))
+            elseif i == 2 then
+                pos = (tpos + xVec * d + yVec * w)
+                r = tr * quatFromEuler(0, 0, math.rad(180))
+            elseif i == 3 then
+                pos = (tpos + xVec * d - yVec * w)
+                r = tr * quatFromEuler(0, 0, math.rad(270))
+            elseif i == 4 then
+                pos = (tpos - xVec * d - yVec * w)
+                r = tr
+            end
+            pos.z = be:getSurfaceHeightBelow(pos) + .2
+            marker:setPosRot(pos.x, pos.y, pos.z, r.x, r.y, r.z, r.w)
+            marker:setField('instanceColor', 0, "1 0 0 1")
+        end)
 end
 
 local function updateTarget(ctxt)
@@ -144,17 +121,15 @@ local function onLoad(ctxt)
     BJI.Tx.scenario.BusMissionStart()
 end
 
-local function removeCornerMarkers()
-    for _, marker in ipairs(S.cornerMarkers) do
-        scenetree.findObject('ScenarioObjectsGroup'):removeObject(marker)
-        marker:unregisterObject()
-        marker:delete()
+local function clearScenetreeObjects()
+    if S.cornerMarkers then
+        BJI.Managers.WorldObject.unregister(S.cornerMarkers)
+        S.cornerMarkers = nil
     end
-    table.clear(S.cornerMarkers)
 end
 
 local function onUnload(ctxt)
-    removeCornerMarkers()
+    clearScenetreeObjects()
     reset()
     BJI.Managers.GPS.reset()
     BJI.Managers.BusUI.reset()
@@ -164,7 +139,7 @@ end
 ---@return string[]
 local function getRestrictions(ctxt)
     return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-    :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
 end
 
 ---@param ctxt TickContext
@@ -274,13 +249,14 @@ end
 
 ---@param reached boolean
 local function updateCornerMarkersColor(reached)
-    for _, marker in ipairs(S.cornerMarkers) do
-        if reached then
-            marker:setField('instanceColor', 0, '0 1 0 1')
-        else
-            marker:setField('instanceColor', 0, "1 0 0 1")
-        end
-    end
+    BJI.Managers.WorldObject.getGroupChildren(S.cornerMarkers)
+        :forEach(function(marker)
+            if reached then
+                marker:setField('instanceColor', 0, '0 1 0 1')
+            else
+                marker:setField('instanceColor', 0, "1 0 0 1")
+            end
+        end)
 end
 
 ---@param ctxt TickContext
