@@ -69,7 +69,8 @@ local W = {
 }
 local ownVeh, limitReached = false, false
 --- gc prevention
-local width, nextValue, vehsDrew, opened, drawTitle, drawModels, drawModelTitle, drawModelButtons, drawModelConfigs, drawn
+local width, nextValue, vehsDrew, opened, drawTitle, drawModels, drawModelTitle,
+drawModelButtons, drawModelConfigs, drawn, lineOverflow
 
 local function updateCacheVehicles()
     W.cache.vehicles = {}
@@ -440,10 +441,14 @@ local function drawConfig(modelKey, config)
         TooltipText(W.labels.replace)
     end
     TableNextColumn()
+    lineOverflow = GetCursorPosX() + CalcTextSize(config.label).x > GetWindowSize().x
     Text(config.label, {
         color = config.custom and
             BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
     })
+    if lineOverflow then
+        TooltipText(config.label)
+    end
 end
 
 local imgs = {}
