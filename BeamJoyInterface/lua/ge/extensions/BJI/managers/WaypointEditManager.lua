@@ -25,7 +25,7 @@ local function reset()
 end
 
 -- gc prevention
-local zOffset, angle, len, left, right, textPos, flatWps, wpIndices,
+local zOffset, angle, len, forward, up, left, right, textPos, flatWps, wpIndices,
 finishIndices, fromPos, toPos, parent, bottomPos, topPos, a, b, c, d,
 e, f, arrowPos, radius, color, tip, base
 
@@ -55,11 +55,12 @@ local function _insertWaypoint(wp)
         })
     elseif wp.type == M.TYPES.RACE_GATE then
         zOffset = wp.zOffset or 1
-        angle = math.angleFromQuatRotation(wp.rot)
-        len = math.rotate2DVec(vec3(0, wp.radius, 0), angle)
-        left = vec3(wp.pos) + math.rotate2DVec(len, math.pi / 2)
+        forward = math.quatToForwardVector(wp.rot)
+        up = vec3(0, 0, 1)
+        right = forward:cross(up):normalized()
+        left = wp.pos - right * wp.radius
         left = quat(left.x, left.y, left.z - zOffset, left.z + wp.radius * 2)
-        right = vec3(wp.pos) + math.rotate2DVec(len, -math.pi / 2)
+        right = wp.pos + right * wp.radius
         right = quat(right.x, right.y, right.z - zOffset, right.z + wp.radius * 2)
         textPos = vec3(wp.pos)
         textPos.z = ((wp.pos.z - zOffset) + (wp.pos.z + wp.radius * 2)) / 2
@@ -223,10 +224,9 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.arrows) do
-        angle = math.angleFromQuatRotation(wp.rot)
-        len = math.rotate2DVec(vec3(0, ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius or 1, 0), angle)
-        tip = vec3(wp.pos) + len
-        base = vec3(wp.pos) + math.rotate2DVec(len, math.pi)
+        forward = math.quatToForwardVector(wp.rot) * (ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius or 1)
+        tip = vec3(wp.pos) + forward
+        base = vec3(wp.pos) - forward
         BJI.Utils.ShapeDrawer.SquarePrism(
             base, ctxt.veh and ctxt.veh.veh:getInitialWidth() or wp.radius * 1.2,
             tip, 0,

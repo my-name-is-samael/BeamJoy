@@ -1222,6 +1222,7 @@ local function footer(ctxt)
         SameLine()
         Text(W.labels.laps)
         TooltipText(W.labels.lapsTooltip)
+        SameLine()
         nextValue = SliderIntPrecision("raceLaps", W.tryLaps, 1, 20, { step = 1 })
         if nextValue then W.tryLaps = nextValue end
     end

@@ -106,6 +106,30 @@ local function canChangeTo(ctxt)
     return true
 end
 
+---@param mpVeh BJIMPVehicle
+local function hideVehicle(mpVeh)
+    core_vehicle_partmgmt.setHighlightedPartsVisiblity(0, mpVeh.gameVehicleID)
+    mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
+    BJI.Managers.Minimap.toggleVehicle({ veh = mpVeh.veh, state = false })
+    BJI.Managers.Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = false })
+    BJI.Managers.Veh.stopVehicle(mpVeh)
+    if mpVeh.isLocal then
+        BJI.Managers.Veh.freeze(true, mpVeh.gameVehicleID)
+    end
+end
+
+local function revealVehicles()
+    BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(mpVeh)
+        core_vehicle_partmgmt.setHighlightedPartsVisiblity(1, mpVeh.gameVehicleID)
+        mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        BJI.Managers.Minimap.toggleVehicle({ veh = mpVeh.veh, state = not mpVeh.isAi })
+        BJI.Managers.Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = not mpVeh.isAi })
+        if mpVeh.isLocal then
+            BJI.Managers.Veh.freeze(false, mpVeh.gameVehicleID)
+        end
+    end)
+end
+
 -- load hook
 ---@param ctxt TickContext
 local function onLoad(ctxt)
@@ -141,6 +165,7 @@ local function onUnload(ctxt)
         BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = true })
         BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
+    revealVehicles()
 
     BJI.Managers.RaceWaypoint.resetAll()
     for _, veh in pairs(BJI.Managers.Context.User.vehicles) do
@@ -402,6 +427,7 @@ local function specRandomRacer()
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
+    local ctxt = BJI.Managers.Tick.getContext()
     S.resetLock = true
     S.dnf.standExempt = true
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
@@ -412,8 +438,8 @@ local function onStandStop(delayMs, wp, lastWp, callback)
 
     local previousCam = BJI.Managers.Cam.getCamera()
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-    BJI.Managers.Veh.stopCurrentVehicle()
-    BJI.Managers.Veh.freeze(true)
+    BJI.Managers.Veh.stopVehicle(ctxt.veh)
+    BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
     BJI.Managers.Veh.getPositionRotation(nil, function(pos)
         S.race.lastStand = { step = lastWp.wp, pos = pos, rot = wp.rot }
         BJI.Managers.Veh.saveHome(S.race.lastStand)
@@ -702,14 +728,11 @@ local function onFinishReached()
                 :var({ place = racePosition }), 3, false)
 
             BJI.Managers.Async.programTask(function()
-                if isLappedRacer then
-                    BJI.Managers.Veh.deleteAllOwnVehicles()
-                else
-                    for _, v in ipairs(BJI.Managers.Veh.getMPOwnVehicles()) do
-                        BJI.Managers.Veh.freeze(false, v.gameVehicleID)
-                    end
-                    specRandomRacer()
+                for _, v in ipairs(BJI.Managers.Veh.getMPOwnVehicles()) do
+                    hideVehicle(v)
+                    BJI.Managers.Veh.freeze(false, v.gameVehicleID)
                 end
+                specRandomRacer()
             end, postFinishTimeout, "BJIRacePostFinish")
         end
     end)
@@ -899,20 +922,17 @@ local function initRace(data)
     end, S.race.startTime, "BJIRaceStartTime")
 end
 
-local function updateRace(data)
+local function updateRace(data, wasFinished, wasEliminated)
     if not S.isRaceFinished() and BJI.Managers.Veh.isCurrentVehicleOwn() then
-        if S.isFinished() or S.isEliminated() then
+        if not wasFinished and not wasEliminated and
+            (S.isFinished() or S.isEliminated()) then
             S.resetLock = true
-            if S.isEliminated() then
-                -- onEliminated
-                BJI.Managers.Veh.deleteAllOwnVehicles()
-            end
             if BJI.Managers.RaceWaypoint.isRacing() then
                 BJI.Managers.RaceWaypoint.resetAll()
             end
             specRandomRacer()
 
-            -- parse steps again for spectating
+            -- parse steps again on spectating switch
             parseRaceData(data.steps)
             showSpecWaypoints()
         end
@@ -921,8 +941,7 @@ local function updateRace(data)
     ---@param v BJIMPVehicle
     BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(v)
         if S.isFinished(v.ownerID) or S.isEliminated(v.ownerID) then
-            BJI.Managers.Minimap.toggleVehicle({ veh = v.veh, state = false })
-            BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = false })
+            hideVehicle(v)
         end
     end)
 end
@@ -931,6 +950,7 @@ local function initRaceFinish()
     S.resetLock = true
     S.state = S.STATES.FINISHED
     S.race.timers = {}
+    BJI.Managers.RaceWaypoint.resetAll()
 
     if S.race.leaderboard[1] then
         local winner = S.race.leaderboard[1].playerID
@@ -968,7 +988,9 @@ local function rxData(data)
             S.race.startTime = BJI.Managers.Tick.applyTimeOffset(data.startTime)
         end
         S.race.leaderboard = data.leaderboard
+        local wasFinished = table.includes(S.race.finished, BJI.Managers.Context.User.playerID)
         S.race.finished = data.finished
+        local wasEliminated = table.includes(S.race.eliminated, BJI.Managers.Context.User.playerID)
         S.race.eliminated = data.eliminated
 
         if data.state == S.STATES.GRID then
@@ -989,7 +1011,7 @@ local function rxData(data)
             if S.state ~= S.STATES.RACE then
                 initRace(data)
             elseif S.state == S.STATES.RACE then
-                updateRace(data)
+                updateRace(data, wasFinished, wasEliminated)
             end
         elseif data.state == S.STATES.FINISHED then
             initRaceFinish()
@@ -1138,7 +1160,7 @@ local function slowTick(ctxt)
                                 BJI.Managers.Message.flash("BJIRaceDNFReached",
                                     BJI.Managers.Lang.get("races.play.flashDnfOut"), 3)
                                 BJI.Tx.scenario.RaceMultiUpdate(S.CLIENT_EVENTS.LEAVE)
-                                BJI.Managers.Veh.deleteCurrentOwnVehicle()
+                                hideVehicle(ctxt.veh)
                                 BJI.Managers.RaceWaypoint.resetAll()
                                 specRandomRacer()
                             end)

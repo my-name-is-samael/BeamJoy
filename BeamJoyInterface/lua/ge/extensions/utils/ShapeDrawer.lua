@@ -1,4 +1,7 @@
 local drawer = {}
+--- gc prevention
+local col, meta, contrast, err, _, errBottom, errTop, errA, errB, errC, errPos, errRot,
+forward, base, tip
 
 ---@class BJIColor
 ---@field r number 0-1
@@ -16,8 +19,8 @@ local drawer = {}
 ---@param a number? 0-1
 ---@return BJIColor
 local function Color(r, g, b, a)
-    local color = { r = r or 0, g = g or 0, b = b or 0, a = a or 1 }
-    local meta = {
+    col = { r = r or 0, g = g or 0, b = b or 0, a = a or 1 }
+    meta = {
         fromRaw = function(self, rawColor)
             if not rawColor or not rawColor.r then return end
             self.r, self.g, self.b, self.a = rawColor.r or 0, rawColor.g or 0, rawColor.b or 0, rawColor.a or 1
@@ -37,7 +40,7 @@ local function Color(r, g, b, a)
         end
     }
 
-    return setmetatable(color, { __index = meta })
+    return setmetatable(col, { __index = meta })
 end
 
 ---@param r number 0-1
@@ -46,7 +49,7 @@ end
 ---@param a? number 0-1
 ---@return BJIColor
 local function ColorContrasted(r, g, b, a)
-    local contrast = 0.2126 * r * r + 0.7152 * g * g + 0.0722 * b * b
+    contrast = 0.2126 * r * r + 0.7152 * g * g + 0.0722 * b * b
     if contrast > .3 then
         return Color(0, 0, 0, a)
     else
@@ -58,7 +61,6 @@ end
 ---@param radius number
 ---@param shapeColor BJIColor?
 local function Sphere(pos, radius, shapeColor)
-    local err, _
     _, pos, err = pcall(vec3, pos)
     if err or not tonumber(radius) then
         -- invalid position or radius
@@ -75,7 +77,6 @@ end
 ---@param bgColor BJIColor?
 ---@param shadow? boolean
 local function Text(text, pos, textColor, bgColor, shadow)
-    local err, _
     _, pos, err = pcall(vec3, pos)
     if err then
         -- invalid position
@@ -97,7 +98,6 @@ end
 ---@param toWidth number
 ---@param shapeColor BJIColor?
 local function SquarePrism(fromPos, fromWidth, toPos, toWidth, shapeColor)
-    local err, _
     _, fromPos, err = pcall(vec3, fromPos)
     if err or not tonumber(fromWidth) then
         -- invalid from position or width
@@ -121,7 +121,6 @@ end
 ---@param radius number
 ---@param shapeColor BJIColor?
 local function Cylinder(bottomPos, topPos, radius, shapeColor)
-    local errBottom, errTop, _
     _, bottomPos, errBottom = pcall(vec3, bottomPos)
     _, topPos, errTop = pcall(vec3, topPos)
     if errBottom or errTop or
@@ -140,7 +139,6 @@ end
 ---@param posC vec3
 ---@param shapeColor BJIColor?
 local function Triangle(posA, posB, posC, shapeColor)
-    local errA, errB, errC, _
     _, posA, errA = pcall(vec3, posA)
     _, posB, errB = pcall(vec3, posB)
     _, posC, errC = pcall(vec3, posC)
@@ -150,7 +148,7 @@ local function Triangle(posA, posB, posC, shapeColor)
     end
     shapeColor = shapeColor or Color(1, 1, 1, .5)
 
-    local col = color(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255)
+    col = color(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255)
     debugDrawer:drawTriSolid(posA, posB, posC, col)
     debugDrawer:drawTriSolid(posC, posB, posA, col)
 end
@@ -160,7 +158,6 @@ end
 ---@param radius number
 ---@param shapeColor BJIColor?
 local function Arrow(pos, rot, radius, shapeColor)
-    local errPos, errRot, _
     _, pos, errPos = pcall(vec3, pos)
     _, rot, errRot = pcall(quat, rot)
     if errPos or errRot or not tonumber(radius) then
@@ -169,10 +166,9 @@ local function Arrow(pos, rot, radius, shapeColor)
     end
     shapeColor = shapeColor or Color(1, 1, 1, .5)
 
-    local angle = math.angleFromQuatRotation(rot)
-    local len = math.rotate2DVec(vec3(0, radius, 0), angle)
-    local tip = vec3(pos) + len
-    local base = vec3(pos) + math.rotate2DVec(len, math.pi)
+    forward = math.quatToForwardVector(rot) * radius
+    tip = vec3(pos) + forward
+    base = vec3(pos) - forward
     debugDrawer:drawArrow(base, tip,
         ColorI(shapeColor.r * 255, shapeColor.g * 255, shapeColor.b * 255, shapeColor.a * 255), false)
 end

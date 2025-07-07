@@ -406,7 +406,7 @@ end
 ---@param playerID integer
 local function focus(playerID)
     local player = BJI.Managers.Context.Players[playerID]
-    local veh = (player and player.currentVehicle) and M.getVehicleObject(player.currentVehicle) or nil
+    veh = (player and player.currentVehicle) and M.getVehicleObject(player.currentVehicle) or nil
     if veh then
         be:enterVehicle(0, veh)
         -- _vehGE.focusCameraOnPlayer(playerName)
@@ -418,7 +418,7 @@ end
 
 ---@param gameVehID integer
 local function focusVehicle(gameVehID)
-    local veh = M.getVehicleObject(gameVehID)
+    veh = M.getVehicleObject(gameVehID)
     if veh then
         be:enterVehicle(0, veh)
         if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
@@ -438,7 +438,7 @@ local function toggleVehicleFocusable(data)
         return
     end
 
-    local veh = M.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
+    veh = M.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
     if not veh or BJI.Managers.AI.isAIVehicle(veh:getID()) then
         error("Invalid vehicle")
         return
@@ -614,9 +614,9 @@ local function getPositionRotation(veh, callback)
 
     if veh then
         local nodeId = veh:getRefNodeId()
-        local pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID())) -
-            vec3(0, 0, veh:getInitialHeight() / 2) -- center at ground
-        local rot = quat(veh:getClusterRotationSlow(nodeId))
+        pos = vec3(be:getObjectOOBBCenterXYZ(veh:getID())) -
+            veh:getDirectionVectorUp() * veh:getInitialHeight() / 2 -- center at ground
+        rot = quat(veh:getClusterRotationSlow(nodeId))
 
         local res = math.roundPositionRotation({ pos = pos, rot = rot })
         if type(callback) == "function" then
@@ -788,10 +788,10 @@ local function setPosRotVel(posRotVel)
 end
 
 
-local function stopCurrentVehicle()
-    local veh = M.getCurrentVehicleOwn()
-    if veh then
-        veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
+---@param mpVeh BJIMPVehicle
+local function stopVehicle(mpVeh)
+    if mpVeh.isLocal then
+        mpVeh.veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 0, 0, 0, 0)
     end
 end
 
@@ -1810,55 +1810,57 @@ local function updateVehCustomAttribute(attr, gameVehID, value)
 end
 
 local function onUnload()
-    extensions.util_screenshotCreator.startWork = M.baseFunctions.saveConfigBaseFunction
-    extensions.core_vehicle_partmgmt.removeLocal = M.baseFunctions.removeConfigBaseFunction
-    extensions.core_vehicle_manager.liveUpdateVehicleColors = M.baseFunctions.liveUpdateVehicleColors
+    M.baseFunctions:forEach(function(fns, extName)
+        table.assign(extensions[extName], fns)
+    end)
 end
 
 M.onLoad = function()
-    -- update configs cache when saving/overwriting/deleting a config
-    BJI.Managers.Async.task(function()
-        return not not extensions.core_vehicle_partmgmt and
-            not not extensions.util_screenshotCreator and
-            not not extensions.core_vehicle_manager
-    end, function()
-        M.baseFunctions.saveConfigBaseFunction = extensions.util_screenshotCreator.startWork
-        M.baseFunctions.removeConfigBaseFunction = extensions.core_vehicle_partmgmt.removeLocal
-        M.baseFunctions.liveUpdateVehicleColors = extensions.core_vehicle_manager.liveUpdateVehicleColors
+    M.baseFunctions = Table({
+        util_screenshotCreator = {
+            startWork = extensions.util_screenshotCreator.startWork,
+        },
+        core_vehicle_partmgmt = {
+            removeLocal = extensions.core_vehicle_partmgmt.removeLocal,
+        },
+        core_vehicle_manager = {
+            liveUpdateVehicleColors = extensions.core_vehicle_manager.liveUpdateVehicleColors,
+        },
+    })
 
-        extensions.util_screenshotCreator.startWork = function(...)
-            M.baseFunctions.saveConfigBaseFunction(...)
+    extensions.util_screenshotCreator.startWork = function(...)
+        M.baseFunctions.saveConfigBaseFunction(...)
+        BJI.Managers.Async.delayTask(function()
+            M.getAllVehicleConfigs(false, false, true)
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
+        end, 3000, "BJIVehPostSaveConfig")
+    end
+    extensions.core_vehicle_partmgmt.removeLocal = function(...)
+        M.baseFunctions.removeConfigBaseFunction(...)
+        BJI.Managers.Async.delayTask(function()
+            M.getAllVehicleConfigs(false, false, true)
+            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
+        end, 1000, "BJIVehPostRemoveConfig")
+    end
+    ---@param vehID integer
+    ---@param veh NGVehicle?
+    ---@param paintIndex integer
+    ---@param paint NGPaint
+    extensions.core_vehicle_manager.liveUpdateVehicleColors = function(vehID, veh, paintIndex, paint)
+        if M.isVehicleOwn(vehID) then
+            -- send live update to all players
+            local taskKey = string.var("syncPaint-{1}-{2}", { vehID, paintIndex })
+            BJI.Managers.Async.removeTask(taskKey)
             BJI.Managers.Async.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
-            end, 3000, "BJIVehPostSaveConfig")
+                local v = veh or M.getVehicleObject(vehID)
+                if v then
+                    BJI.Tx.player.syncPaint(vehID, paintIndex, paint)
+                end
+            end, 1000, taskKey)
         end
-        extensions.core_vehicle_partmgmt.removeLocal = function(...)
-            M.baseFunctions.removeConfigBaseFunction(...)
-            BJI.Managers.Async.delayTask(function()
-                M.getAllVehicleConfigs(false, false, true)
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
-            end, 1000, "BJIVehPostRemoveConfig")
-        end
-        ---@param vehID integer
-        ---@param veh NGVehicle?
-        ---@param paintIndex integer
-        ---@param paint NGPaint
-        extensions.core_vehicle_manager.liveUpdateVehicleColors = function(vehID, veh, paintIndex, paint)
-            if M.isVehicleOwn(vehID) then
-                -- send live update to all players
-                local taskKey = string.var("syncPaint-{1}-{2}", { vehID, paintIndex })
-                BJI.Managers.Async.removeTask(taskKey)
-                BJI.Managers.Async.delayTask(function()
-                    local v = veh or M.getVehicleObject(vehID)
-                    if v then
-                        BJI.Tx.player.syncPaint(vehID, paintIndex, paint)
-                    end
-                end, 1000, taskKey)
-            end
-            M.baseFunctions.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
-        end
-    end, "BJIVehSaveRemoveConfigOverride")
+        M.baseFunctions.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
+    end
+
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
@@ -1915,7 +1917,7 @@ M.getPositionRotation = getPositionRotation
 M.getPosRotVel = getPosRotVel
 M.setPositionRotation = setPositionRotation
 M.setPosRotVel = setPosRotVel
-M.stopCurrentVehicle = stopCurrentVehicle
+M.stopVehicle = stopVehicle
 
 M.freeze = freeze
 M.engine = engine

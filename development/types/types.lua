@@ -106,6 +106,8 @@
 ---@field getInitialLength fun(self: NGVehicle): number
 ---@field getInitialHeight fun(self: NGVehicle): number
 ---@field getInitialWidth fun(self: NGVehicle): number
+---@field getDirectionVector fun(self: NGVehicle): vec3
+---@field getDirectionVectorUp fun(self: NGVehicle): vec3
 ---@field isTraffic "true"?
 ---@field isParked "true"?
 ---@field delete fun(self: NGVehicle)

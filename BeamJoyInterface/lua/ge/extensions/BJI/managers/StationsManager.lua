@@ -205,7 +205,7 @@ local function commonStationProcess(ctxt, id, durationSec, beginCallback, endCal
     beginCallback = beginCallback or function() end
     endCallback = endCallback or function() end
 
-    BJI.Managers.Veh.stopCurrentVehicle()
+    BJI.Managers.Veh.stopVehicle(ctxt.veh)
     M.stationProcess = true
     BJI.Managers.Restrictions.update()
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RESTRICTIONS_UPDATE)

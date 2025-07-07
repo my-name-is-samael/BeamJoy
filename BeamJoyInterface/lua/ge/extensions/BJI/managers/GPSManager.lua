@@ -38,7 +38,7 @@ local M = {
 }
 --- gc prevention
 local color, pos, typeTarget, targetPlayer, veh, existingIndex, ok, err, target,
-targetIndex, length, wps, distance, updateIndex
+targetIndex, length, wps, distance
 
 local function navigateToMission(poiID)
     -- call default to have line animation on bigmap
@@ -399,6 +399,7 @@ local function deleteAndCheckLast(i)
     end
 end
 
+local updateIndex = 0
 local function updateTargets()
     updateIndex = (updateIndex + 1) % 2
     -- update around twice/sec

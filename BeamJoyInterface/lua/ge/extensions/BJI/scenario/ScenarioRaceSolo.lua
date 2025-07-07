@@ -329,6 +329,7 @@ local function updateLeaderBoard(remainingSteps, raceTime, lapTime)
 end
 
 local function onStandStop(delayMs, wp, lastWp, callback)
+    local ctxt = BJI.Managers.Tick.getContext()
     S.resetLock = true
     S.dnf.standExempt = true
     BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
@@ -338,8 +339,8 @@ local function onStandStop(delayMs, wp, lastWp, callback)
 
     S.preRaceCam = BJI.Managers.Cam.getCamera()
     BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-    BJI.Managers.Veh.stopCurrentVehicle()
-    BJI.Managers.Veh.freeze(true)
+    BJI.Managers.Veh.stopVehicle(ctxt.veh)
+    BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
     BJI.Managers.Veh.getPositionRotation(nil, function(pos)
         S.race.lastStand = { step = lastWp.wp, pos = pos, rot = wp.rot }
         BJI.Managers.Veh.saveHome(S.race.lastStand)
