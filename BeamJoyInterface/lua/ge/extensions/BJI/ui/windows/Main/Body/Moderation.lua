@@ -1,6 +1,5 @@
-local _actionLinebreak = "linebreak"
 -- gc prevention
-local skipLine, actions, opened, inputs, nextValue, min, max, canFocus, isCurrentVehicle
+local nextLineBreak, actions, inputs, nextValue, min, max, canFocus, isCurrentVehicle
 
 ---@param cache table
 local function drawWaitingPlayers(cache)
@@ -40,6 +39,7 @@ end
 ---@param player table
 ---@param isAccordionOpen boolean
 ---@param ctxt TickContext
+---@return table
 local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
     -- base actions
     actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
@@ -60,10 +60,6 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
         })
     end
 
-    if #actions > 0 then
-        table.insert(actions, _actionLinebreak)
-    end
-
     -- line moderation actions
     if not player.self and player.isGroupLower and not player.staff then
         if not isAccordionOpen then
@@ -75,7 +71,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
                     tooltip = cache.labels.players.moderation.buttons.mute,
                     onClick = function()
                         BJI.Tx.moderation.mute(player.playerName)
-                    end
+                    end,
                 })
             end
 
@@ -94,7 +90,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
                                         BJI.Tx.moderation.kick(player.playerID)
                                     end),
                             })
-                    end
+                    end,
                 })
             end
         end
@@ -109,7 +105,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
                 tooltip = cache.labels.players.moderation.buttons.freeze,
                 onClick = function()
                     BJI.Tx.moderation.freeze(player.playerID)
-                end
+                end,
             })
         end
 
@@ -121,7 +117,7 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
                 tooltip = cache.labels.players.moderation.buttons.engine,
                 onClick = function()
                     BJI.Tx.moderation.engine(player.playerID)
-                end
+                end,
             })
         end
     end
@@ -289,85 +285,87 @@ local function drawModeration(player, ctxt, cache)
 end
 
 ---@param player table
+---@param cache table
+local function drawListVehicles(player, cache)
+    if BeginTable("BJIMainPlayerVehicles-" .. player.playerName, {
+            { label = "##main-player-vehicles-" .. player.playerName .. "-icon" },
+            { label = "##main-player-vehicles-" .. player.playerName .. "-name" },
+            { label = "##main-player-vehicles-" .. player.playerName .. "-actions", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        for vehID, vehicle in pairs(player.vehicles) do
+            TableNewRow()
+            if vehicle.isAi then
+                Icon(BJI.Utils.Icon.ICONS.AIMicrochip, {
+                    color = isCurrentVehicle and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                        BJI.Utils.Style.TEXT_COLORS.DEFAULT
+                })
+            elseif isCurrentVehicle then
+                Icon(BJI.Utils.Icon.ICONS.visibility, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+            end
+            TableNextColumn()
+            Text(vehicle.model)
+            TableNextColumn()
+            if player.self or player.isGroupLower then
+                if canFocus then
+                    if IconButton("focus-" .. player.playerName .. "-" .. tostring(vehID),
+                            BJI.Utils.Icon.ICONS.cameraFocusOnVehicle2,
+                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.INFO }) then
+                        BJI.Managers.Veh.focusVehicle(vehicle.finalGameVehID)
+                    end
+                    TooltipText(cache.labels.players.moderation.buttons.show)
+                    SameLine()
+                end
+                if IconButton("toggleFreeze-" .. player.playerName .. "-" .. tostring(vehID),
+                        BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
+                            btnStyle = vehicle.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    BJI.Tx.moderation.freeze(player.playerID, vehID)
+                end
+                TooltipText(cache.labels.players.moderation.buttons.freeze)
+                SameLine()
+                if IconButton("toggleEngine-" .. player.playerName .. "-" .. tostring(vehID),
+                        BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
+                            btnStyle = vehicle.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    BJI.Tx.moderation.engine(player.playerID, vehID)
+                end
+                TooltipText(cache.labels.players.moderation.buttons.engine)
+                SameLine()
+                if IconButton("delete-" .. player.playerName .. "-" .. tostring(vehID),
+                        BJI.Utils.Icon.ICONS.delete_forever, { disabled = not vehicle.finalGameVehID,
+                            btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+                    BJI.Tx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
+                end
+                TooltipText(cache.labels.players.moderation.buttons.delete)
+                SameLine()
+                if IconButton("explode-" .. player.playerName .. "-" .. tostring(vehID),
+                        BJI.Utils.Icon.ICONS.whatshot,
+                        { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+                    BJI.Tx.player.explodeVehicle(vehicle.gameVehID)
+                end
+                TooltipText(cache.labels.players.moderation.buttons.explode)
+            end
+        end
+        EndTable()
+    end
+end
+
+---@param player table
 ---@param ctxt TickContext
 ---@param cache table
 local function drawVehicles(player, ctxt, cache)
-    local function drawList()
-        if BeginTable("BJIPlayerVehicles-" .. player.playerName, {
-                { label = "##BJIPlayerVehicles-" .. player.playerName .. "-icon" },
-                { label = "##BJIPlayerVehicles-" .. player.playerName .. "-name" },
-                { label = "##BJIPlayerVehicles-" .. player.playerName .. "-actions", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
-            }) then
-            for vehID, vehicle in pairs(player.vehicles) do
-                TableNewRow()
-                if vehicle.isAi then
-                    Icon(BJI.Utils.Icon.ICONS.AIMicrochip, {
-                        color = isCurrentVehicle and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
-                            BJI.Utils.Style.TEXT_COLORS.DEFAULT
-                    })
-                elseif isCurrentVehicle then
-                    Icon(BJI.Utils.Icon.ICONS.visibility, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
-                end
-                TableNextColumn()
-                Text(vehicle.model)
-                TableNextColumn()
-                if player.self or player.isGroupLower then
-                    if canFocus then
-                        if IconButton("focus-" .. player.playerName .. "-" .. tostring(vehID),
-                                BJI.Utils.Icon.ICONS.cameraFocusOnVehicle2,
-                                { btnStyle = BJI.Utils.Style.BTN_PRESETS.INFO }) then
-                            BJI.Managers.Veh.focusVehicle(vehicle.finalGameVehID)
-                        end
-                        TooltipText(cache.labels.players.moderation.buttons.show)
-                        SameLine()
-                    end
-                    if IconButton("toggleFreeze-" .. player.playerName .. "-" .. tostring(vehID),
-                            BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
-                                btnStyle = vehicle.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                        BJI.Tx.moderation.freeze(player.playerID, vehID)
-                    end
-                    TooltipText(cache.labels.players.moderation.buttons.freeze)
-                    SameLine()
-                    if IconButton("toggleEngine-" .. player.playerName .. "-" .. tostring(vehID),
-                            BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
-                                btnStyle = vehicle.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                        BJI.Tx.moderation.engine(player.playerID, vehID)
-                    end
-                    TooltipText(cache.labels.players.moderation.buttons.engine)
-                    SameLine()
-                    if IconButton("delete-" .. player.playerName .. "-" .. tostring(vehID),
-                            BJI.Utils.Icon.ICONS.delete_forever, { disabled = not vehicle.finalGameVehID,
-                                btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                        BJI.Tx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
-                    end
-                    TooltipText(cache.labels.players.moderation.buttons.delete)
-                    SameLine()
-                    if IconButton("explode-" .. player.playerName .. "-" .. tostring(vehID),
-                            BJI.Utils.Icon.ICONS.whatshot,
-                            { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                        BJI.Tx.player.explodeVehicle(vehicle.gameVehID)
-                    end
-                    TooltipText(cache.labels.players.moderation.buttons.explode)
-                end
-            end
-            EndTable()
-        end
-    end
-
     if player.showModeration then
-        opened = BeginTree(cache.labels.players.moderation.vehicles ..
+        local opened = BeginTree(cache.labels.players.moderation.vehicles ..
             "##" .. string.var("vehicles{1}", { player.playerID }))
         SameLine()
         Text(string.var("({1}):", { player.vehiclesCount }))
         if opened then
-            drawList()
+            drawListVehicles(player, cache)
             EndTree()
         end
     else
         Text(cache.labels.players.moderation.vehicles)
         SameLine()
         Text(string.var("({1}):", { player.vehiclesCount }))
-        drawList()
+        drawListVehicles(player, cache)
     end
 end
 
@@ -376,19 +374,17 @@ end
 ---@param player any
 ---@param isAccordionOpen boolean
 local function drawHeaderActions(ctxt, cache, player, isAccordionOpen)
-    skipLine = false
     actions = getHeaderActions(player, isAccordionOpen, ctxt, cache)
+    local iconSize = BJI.Utils.UI.GetBtnIconSize()
     if not isAccordionOpen then
         Indent(); Indent()
     end
-    for _, action in ipairs(actions) do
-        if not skipLine then
-            SameLine()
-        end
-        skipLine = false
-        if action == _actionLinebreak then
-            skipLine = true
-        elseif action.icon then
+    for i, action in ipairs(actions) do
+        SameLine()
+        if action.icon then
+            if GetContentRegionAvail().x < iconSize then
+                NewLine()
+            end
             if IconButton(action.id, action.icon, {
                     btnStyle = action.style,
                     disabled = action.disabled,
@@ -399,6 +395,9 @@ local function drawHeaderActions(ctxt, cache, player, isAccordionOpen)
                 TooltipText(action.tooltip)
             end
         else
+            if GetContentRegionAvail().x < BJI.Utils.UI.GetInputWidthByContent(action.label) then
+                NewLine()
+            end
             if Button(action.id, action.label, {
                     btnStyle = action.style,
                     disabled = action.disabled,
@@ -431,7 +430,7 @@ local function drawListPlayers(ctxt, cache)
             drawHeaderActions(ctxt, cache, player, false)
             Unindent()
         else
-            opened = BeginTree(player.playerName,
+            local opened = BeginTree(player.playerName,
                 { color = player.self and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT })
             SameLine()
             Text(player.nameSuffix,
@@ -444,6 +443,7 @@ local function drawListPlayers(ctxt, cache)
                 if player.showVehicles then
                     drawVehicles(player, ctxt, cache)
                 end
+                EndTree()
             end
         end
     end)

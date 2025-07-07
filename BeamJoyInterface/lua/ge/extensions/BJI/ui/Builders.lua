@@ -369,6 +369,7 @@ Indent = ui_imgui.Indent or function(width) end
 ---@param width integer?
 Unindent = ui_imgui.Unindent or function(width) end
 SameLine = ui_imgui.SameLine or function() end
+NewLine = ui_imgui.NewLine or function() end
 Separator = ui_imgui.Separator or function() end
 ---@param text any
 ---@param data {color: vec4?, align: "left"|"center"|"right"?, wrap: boolean?}?
