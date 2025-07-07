@@ -397,7 +397,7 @@ local function drawNametagsSettings(ctxt)
                     end
                     SameLine()
                 end
-                nextValue = SliderIntPrecision(nf.setting, value, nf.min, nf.max, {
+                nextValue = SliderIntPrecision(nf.setting, value or nf.default or nf.min, nf.min, nf.max, {
                     disabled = disabled, step = nf.step, stepFast = nf.stepFast
                 })
                 if nextValue then
