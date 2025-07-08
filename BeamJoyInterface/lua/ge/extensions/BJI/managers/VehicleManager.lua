@@ -1550,35 +1550,36 @@ local function onVehicleResetted(gameVehID)
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
+    local previousMpVeh, currentMpVeh
     -- anti unicycle-spam
     if oldGameVehID ~= -1 then
-        local mpVeh = M.getMPVehicle(oldGameVehID, true)
-        if mpVeh and mpVeh.isLocal then
-            if mpVeh.jbeam == "unicycle" then
-                M.deleteVehicle(mpVeh.gameVehicleID)
+        previousMpVeh = M.getMPVehicle(oldGameVehID, true)
+        if previousMpVeh and previousMpVeh.isLocal then
+            if previousMpVeh.jbeam == "unicycle" then
+                M.deleteVehicle(previousMpVeh.gameVehicleID)
             end
-            mpVeh.veh:queueLuaCommand("input.init()") -- resets currently pressed inputs
+            previousMpVeh.veh:queueLuaCommand("input.init()") -- resets currently pressed inputs
         end
     end
 
     -- current vehicle update
     if newGameVehID ~= -1 then
-        local mpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
+        currentMpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
 
         local function process()
             local finalID
-            if not mpVeh or mpVeh.isLocal then
+            if not currentMpVeh or currentMpVeh.isLocal then
                 finalID = newGameVehID
             else
-                finalID = mpVeh.remoteVehID
+                finalID = currentMpVeh.remoteVehID
             end
             BJI.Tx.player.switchVehicle(finalID)
         end
 
-        if not mpVeh then
+        if not currentMpVeh then
             BJI.Managers.Async.task(function()
-                mpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
-                return mpVeh ~= nil
+                currentMpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID)
+                return currentMpVeh ~= nil
             end, process)
         else
             process()
@@ -1592,12 +1593,8 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     -- event
     if oldGameVehID ~= -1 or newGameVehID ~= -1 then
         BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED, {
-            self = true,
-            playerID = BJI.Managers.Context.User.playerID,
-            previousGameVehID = oldGameVehID,
-            previousOwner = M.getVehOwnerID(oldGameVehID),
-            currentGameVehID = newGameVehID,
-            currentOwner = M.getVehOwnerID(newGameVehID),
+            previousMPVeh = previousMpVeh,
+            currentMPVeh = currentMpVeh
         })
         BJI.Managers.Restrictions.update()
     end

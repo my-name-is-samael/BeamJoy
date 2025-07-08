@@ -239,34 +239,30 @@ local function fastTick(ctxt)
 end
 
 ---@param ctxt TickContext
-local function updatePermaghostsAndAI(ctxt)
-    -- CHECK PERMAGHOSTS
-    BJI.Managers.Context.Players:filter(function(p)
-        return p.playerID ~= BJI.Managers.Context.User.playerID
-    end):forEach(function(player)
-        player.vehicles:filter(function(v)
-            return not v.isAi
-        end):map(function(v)
-            return v.finalGameVehID
-        end):forEach(function(gameVehID)
-            if player.isGhost and not M.permaGhosts[gameVehID] and
-                M.vehsCaches[gameVehID].ghostType and not M.vehsCaches[gameVehID].mpVeh.isAi then
-                M.permaGhosts[gameVehID] = true
-                if not M.ghosts[gameVehID] and M.type ~= M.TYPES.DISABLED then
-                    M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
-                    setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.ghostAlpha)
-                end
-                M.ghosts[gameVehID] = nil
-            elseif not player.isGhost and M.permaGhosts[gameVehID] then
-                M.permaGhosts[gameVehID] = nil
-                if M.type == M.TYPES.FORCED then
-                    M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
-                    setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.playerAlpha)
-                elseif M.type == M.TYPES.GHOSTS then
-                    addGhost(ctxt, gameVehID)
-                end
+---@param event {playerID: integer}
+local function onPlayerScenarioChanged(ctxt, event)
+    ctxt.players[event.playerID].vehicles:filter(function(v)
+        return not v.isAi
+    end):map(function(v)
+        return v.finalGameVehID
+    end):forEach(function(gameVehID)
+        if ctxt.players[event.playerID].isGhost and not M.permaGhosts[gameVehID] and
+            M.vehsCaches[gameVehID].ghostType and not M.vehsCaches[gameVehID].mpVeh.isAi then
+            M.permaGhosts[gameVehID] = true
+            if not M.ghosts[gameVehID] and M.type ~= M.TYPES.DISABLED then
+                M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
+                setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.ghostAlpha)
             end
-        end)
+            M.ghosts[gameVehID] = nil
+        elseif not ctxt.players[event.playerID].isGhost and M.permaGhosts[gameVehID] then
+            M.permaGhosts[gameVehID] = nil
+            if M.type == M.TYPES.FORCED then
+                M.vehsCaches[gameVehID].mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+                setAlpha(ctxt, M.vehsCaches[gameVehID].mpVeh.veh, M.playerAlpha)
+            elseif M.type == M.TYPES.GHOSTS then
+                addGhost(ctxt, gameVehID)
+            end
+        end
     end)
 end
 
@@ -288,7 +284,7 @@ local function onLoad()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDestroyed, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED, updatePermaghostsAndAI, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PLAYER_SCENARIO_CHANGED, onPlayerScenarioChanged, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 

@@ -371,8 +371,10 @@ end
 ---@return string[]
 local function getRestrictions(ctxt)
     return Table()
-    :addAll((M.fugitivePursuit or M.policeTargets:length() > 0) and BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH or {}, true)
-    :addAll(M.fugitivePursuit and BJI.Managers.Restrictions.RESETS.ALL or {}, true)
+        :addAll(
+            (M.fugitivePursuit or M.policeTargets:length() > 0) and BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH or {},
+            true)
+        :addAll(M.fugitivePursuit and BJI.Managers.Restrictions.RESETS.ALL or {}, true)
 end
 
 ---@param gameVehID integer
@@ -432,76 +434,6 @@ local function onPlayerDisconnect(ctxt, data)
     end
 end
 
----@return boolean
-local function isPursuitTrafficEnabled()
-    return Table(extensions.gameplay_traffic.getTrafficData())
-        :any(function(v) return not v.isAi end)
-end
-
----@param gameVehID integer?
-local function initPursuitTraffic(gameVehID)
-    BJI.Managers.Veh.getMPVehicles({ isAI = false }, true)
-        :filter(function(v) return not gameVehID or v.gameVehicleID == gameVehID end)
-        :forEach(function(mpVeh)
-            if not extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID] then
-                extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true)
-            end
-            extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
-                :setRole(mpVeh.veh.isPatrol and "police" or "standard")
-        end)
-end
-
----@param gameVehID integer?
-local function removePursuitTraffic(gameVehID)
-    Table(extensions.gameplay_traffic.getTrafficData())
-        :filter(function(v)
-            return not v.isAi and
-                (not gameVehID or v.gameVehicleID == gameVehID)
-        end)
-        :forEach(function(_, vid)
-            extensions.gameplay_traffic.removeTraffic(vid)
-        end)
-end
-
----@param oldGameVehID integer|-1
----@param newGameVehID integer|-1
-local function onVehSwitched(oldGameVehID, newGameVehID)
-    if BJI.Managers.Scenario.isServerScenarioInProgress() or
-        BJI.Managers.Context.Players[BJI.Managers.Context.User.playerID].isGhost then
-        return -- do not impact server scenarios and no collisions scenarios
-    end
-    local isPursuitTrafficOn = isPursuitTrafficEnabled()
-    if newGameVehID ~= -1 then
-        local mpVeh = BJI.Managers.Veh.getMPVehicle(newGameVehID, true, true)
-        if not mpVeh then
-            return isPursuitTrafficOn and removePursuitTraffic() or nil
-        end
-        local ownValidPatrolVehicle = mpVeh.isLocal and not mpVeh.isAi and
-            mpVeh.isVehicle and mpVeh.veh.isPatrol
-        if isPursuitTrafficOn and not ownValidPatrolVehicle then
-            removePursuitTraffic()
-        elseif not isPursuitTrafficOn and ownValidPatrolVehicle then
-            initPursuitTraffic()
-        end
-    elseif isPursuitTrafficOn then
-        removePursuitTraffic()
-    end
-end
-
-local function onVehSpawned(mpVeh)
-    if not mpVeh.isAi then
-        if mpVeh.isLocal then
-            onVehSwitched(-1, mpVeh.gameVehicleID)
-        elseif isPursuitTrafficEnabled() then
-            if mpVeh.isVehicle then
-                initPursuitTraffic(mpVeh.gameVehicleID)
-            else
-                removePursuitTraffic(mpVeh.gameVehicleID)
-            end
-        end
-    end
-end
-
 ---@param gameVehID integer
 local function onVehDelete(gameVehID)
     if M.policeTargets[gameVehID] then
@@ -511,33 +443,161 @@ local function onVehDelete(gameVehID)
 end
 
 ---@param ctxt TickContext
-local function onScenarioChanged(ctxt)
+local function initPursuitTraffic(ctxt)
+    local serverScenarioOrSelfGhost = BJI.Managers.Scenario.isServerScenarioInProgress() or
+        ctxt.players[ctxt.user.playerID].isGhost
+    local trafficVeh, finalRole
+    BJI.Managers.Veh.getMPVehicles(nil, true)
+        :forEach(function(mpVeh)
+            trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+            if not trafficVeh then
+                extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, not mpVeh.isLocal or not mpVeh.isAi)
+                trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+            end
+            if serverScenarioOrSelfGhost then
+                trafficVeh:setRole("empty")
+            elseif mpVeh.isAi then
+                if mpVeh.isLocal then
+                    if not trafficVeh.isAi then
+                        extensions.gameplay_traffic.removeTraffic(mpVeh.gameVehicleID)
+                        extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID)
+                        trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+                    end
+                    trafficVeh:setRole("empty")
+                else
+                    if trafficVeh.isAi then
+                        extensions.gameplay_traffic.removeTraffic(mpVeh.gameVehicleID)
+                        extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true)
+                        trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+                    end
+                    trafficVeh:setRole("empty")
+                end
+            else
+                if trafficVeh.isAi then
+                    extensions.gameplay_traffic.removeTraffic(mpVeh.gameVehicleID)
+                    extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true)
+                    trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+                end
+                if not mpVeh.isLocal and ctxt.players[mpVeh.ownerID].isGhost then
+                    trafficVeh:setRole("empty")
+                elseif mpVeh.veh.isPatrol then
+                    finalRole = (ctxt.isOwner and ctxt.veh.gameVehicleID == mpVeh.gameVehicleID and
+                        ctxt.veh.veh.isPatrol) and "police" or "empty"
+                    trafficVeh:setRole(finalRole)
+                else
+                    trafficVeh:setRole("standard")
+                end
+            end
+        end)
+end
+
+---@param mpVeh BJIMPVehicle
+local function onVehSpawned(mpVeh)
+    local ctxt = BJI.Managers.Tick.getContext()
     if BJI.Managers.Scenario.isServerScenarioInProgress() or
         ctxt.players[ctxt.user.playerID].isGhost then
-        resetAll()
-        if isPursuitTrafficEnabled() then
-            removePursuitTraffic()
+        return -- do not impact server scenarios and no collisions scenarios
+    end
+    local trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+    if not trafficVeh then
+        extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, not mpVeh.isLocal or not mpVeh.isAi)
+        trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+    end
+    if mpVeh.isAi then
+        trafficVeh:setRole("empty")
+    elseif not mpVeh.isLocal and ctxt.players[mpVeh.ownerID].isGhost then
+        trafficVeh:setRole("empty")
+    elseif mpVeh.veh.isPatrol then
+        if mpVeh.isLocal and mpVeh.gameVehicleID == ctxt.user.currentVehicle then
+            trafficVeh:setRole("police")
+        else
+            trafficVeh:setRole("empty")
+        end
+    else
+        trafficVeh:setRole("standard")
+    end
+end
+
+---@param ctxt TickContext
+---@param event {previousMPVeh: BJIMPVehicle?, currentMPVeh: BJIMPVehicle?}
+local function onVehSwitched(ctxt, event)
+    if BJI.Managers.Scenario.isServerScenarioInProgress() or
+        ctxt.players[ctxt.user.playerID].isGhost then
+        return -- do not impact server scenarios and no collisions scenarios
+    end
+    if event.previousMPVeh then
+        if event.previousMPVeh.isLocal and event.previousMPVeh.veh.isPatrol then
+            local trafficVeh = extensions.gameplay_traffic.getTrafficData()[event.previousMPVeh.gameVehicleID]
+            if trafficVeh then trafficVeh:setRole("empty") end
+        end
+    end
+    if event.currentMPVeh then
+        if event.currentMPVeh.isLocal and event.currentMPVeh.veh.isPatrol then
+            local trafficVeh = extensions.gameplay_traffic.getTrafficData()[event.currentMPVeh.gameVehicleID]
+            if trafficVeh then trafficVeh:setRole("police") end
         end
     end
 end
 
-local lastPermaGhostState = false
+---@param ctxt TickContext
+local function onScenarioChanged(ctxt)
+    if BJI.Managers.Scenario.isServerScenarioInProgress() or
+        ctxt.players[ctxt.user.playerID].isGhost then
+        if ctxt.isOwner and ctxt.veh.veh.isPatrol then
+            local trafficVeh = extensions.gameplay_traffic.getTrafficData()[ctxt.veh.gameVehicleID]
+            if trafficVeh then trafficVeh:setRole("empty") end
+        end
+    else
+        if ctxt.isOwner and ctxt.veh.veh.isPatrol then
+            local trafficVeh = extensions.gameplay_traffic.getTrafficData()[ctxt.veh.gameVehicleID]
+            if trafficVeh then trafficVeh:setRole("police") end
+        end
+    end
+end
+
+---@param ctxt TickContext
+---@param event {playerID: integer}
+local function onPlayerScenariosChanged(ctxt, event)
+    local serverScenarioOrGhost = BJI.Managers.Scenario.isServerScenarioInProgress() or
+        ctxt.players[event.playerID].isGhost
+    ---@param v BJIPlayerVehicle
+    ctxt.players[event.playerID].vehicles:forEach(function(v)
+        local mpVeh = BJI.Managers.Veh.getMPVehicle(v.gameVehID)
+        if not mpVeh then return end
+        local trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+        if not trafficVeh then
+            extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, not mpVeh.isLocal or not mpVeh.isAi)
+            trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+        end
+        if serverScenarioOrGhost or mpVeh.isAi then
+            trafficVeh:setRole("empty")
+        else
+            if mpVeh.veh.isPatrol then
+                if mpVeh.isLocal and mpVeh.gameVehicleID == ctxt.user.currentVehicle then
+                    trafficVeh:setRole("police")
+                else
+                    trafficVeh:setRole("empty")
+                end
+            else
+                trafficVeh:setRole("standard")
+            end
+        end
+    end)
+end
+
 M.onLoad = function()
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_PURSUIT_ACTION, onPursuitActionUpdate, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDelete, M._name)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDelete, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED, onVehSwitched, M._name)
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, onScenarioChanged, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJI.Managers.Cache.CACHES.PLAYERS and
-            ctxt.players[ctxt.user.playerID].isGhost ~= lastPermaGhostState then
-            onScenarioChanged(ctxt)
-        end
-    end, M._name)
+    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PLAYER_SCENARIO_CHANGED, onPlayerScenariosChanged, M
+        ._name)
+    initPursuitTraffic(BJI.Managers.Tick.getContext())
 end
 
 M.rxData = rxData

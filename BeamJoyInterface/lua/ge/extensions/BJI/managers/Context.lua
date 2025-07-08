@@ -71,7 +71,7 @@ local M = {
 
     ---@type table<string, integer>
     UserStats = {},
-    ---@type tablelib<string, BJIPlayer> index playerID
+    ---@type tablelib<integer, BJIPlayer> index playerID
     Players = Table(),
 
     -- CONFIG DATA
@@ -199,19 +199,7 @@ local function loadUser()
     end)
 end
 
-local function updateAllVehicles(ctxt)
-    ---@param veh BJIMPVehicle
-    BJI.Managers.Veh.getMPVehicles(nil, true):forEach(function(veh)
-        M.Players:find(function(p) return p.playerID == veh.ownerID end, function(p)
-            p.vehicles:find(function(v) return v.gameVehID == veh.gameVehicleID end, function(v)
-                v.finalGameVehID = ctxt.user.playerID == veh.ownerID and veh.gameVehicleID or veh.remoteVehID
-                v.isAi = veh.isAi
-            end)
-        end)
-    end)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
-end
-
+local previousPlayersScenarios = Table()
 local function loadPlayers()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PLAYERS, function(cacheData)
         ---@type tablelib<integer, BJIPlayer> playerID index
@@ -228,7 +216,6 @@ local function loadPlayers()
                 }, p)
             else
                 table.assign(M.Players[p.playerID], p)
-                M.Players[p.playerID].vehicles = Table(p.vehicles or {})
             end
         end)
 
@@ -238,13 +225,6 @@ local function loadPlayers()
                 M.Players[pid] = nil
             end
         end)
-
-        BJI.Managers.Async.removeTask("BJILoadPlayersUpdateVehicles")
-        BJI.Managers.Async.task(function()
-            return Table(MPVehicleGE.getVehicles()):every(function(v)
-                return v.gameVehicleID ~= -1 and v.isSpawned
-            end)
-        end, updateAllVehicles, "BJILoadPlayersUpdateVehicles")
 
         -- events detection
         local previousPlayersCount = previousPlayers:length()
@@ -273,6 +253,12 @@ local function loadPlayers()
             end
             BJI.Managers.Restrictions.update()
         end
+        M.Players:forEach(function(p, pid)
+            if p.isGhost ~= previousPlayersScenarios[pid] then
+                previousPlayersScenarios[pid] = p.isGhost
+                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_SCENARIO_CHANGED, { playerID = pid })
+            end
+        end)
     end)
 end
 
@@ -524,6 +510,22 @@ local function loadScenarii()
     end)
 end
 
+---@param mpVeh BJIMPVehicle
+local function onVehSpawn(mpVeh)
+    BJI.Managers.Async.task(function()
+        return M.Players[mpVeh.ownerID] and M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
+    end, function()
+        local v = M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
+        v.finalGameVehID = mpVeh.gameVehicleID
+        v.isAi = mpVeh.isAi
+        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
+    end)
+end
+
+local listeners = Table()
+local function onUnload()
+    listeners:forEach(BJI.Managers.Events.removeListener)
+end
 local function onLoad()
     loadUser()
     loadPlayers()
@@ -532,6 +534,9 @@ local function onLoad()
     loadDatabase()
     loadMaps()
     loadScenarii()
+
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawn, M._name))
 end
 
 local function isSelf(playerID)

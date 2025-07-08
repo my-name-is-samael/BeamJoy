@@ -34,6 +34,7 @@ local M = {
         TOURNAMENT_UPDATED = "tournament_updated",
         PURSUIT_UPDATE = "pursuit_update",
         RESTRICTIONS_UPDATE = "restrictions_update",
+        PLAYER_SCENARIO_CHANGED = "player_scenario_changed",
 
         -- functional and communication events (sync)
 
