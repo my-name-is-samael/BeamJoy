@@ -7,7 +7,7 @@ local M = {
 }
 
 local function menuMap(ctxt)
-    if BJI.Managers.Votes.Map.canStartVote() then
+    if BJI.Managers.Context.Maps then
         local rawMaps = Table(BJI.Managers.Context.Maps):filter(function(m)
             return m.enabled
         end)
@@ -66,136 +66,33 @@ local function menuMap(ctxt)
     end
 end
 
-local function menuRace(ctxt)
-    if BJI.Managers.Votes.Race.canStartVote() then
-        local errorMessage = nil
-        local minParticipants = (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI) or {})
-            .MINIMUM_PARTICIPANTS
-        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
-        local rawRaces = Table(BJI.Managers.Context.Scenario.Data.Races)
-            :filter(function(race) return race.enabled and race.places > 1 end)
-
-        if #rawRaces == 0 then
-            errorMessage = BJI.Managers.Lang.get("menu.vote.race.noRace")
-        elseif potentialPlayers < minParticipants then
-            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers")
-                :var({ amount = minParticipants - potentialPlayers })
-        end
-
-        if errorMessage then
-            table.insert(M.cache.elems, {
-                type = "custom",
-                render = function()
-                    Text(BJI.Managers.Lang.get("menu.vote.race.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
-                    TooltipText(errorMessage)
-                end
-            })
-        else
-            local respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
-                :sort(function(a, b) return a.order < b.order end)
-                :map(function(el) return el.key end)
-            local disabledSuffix = string.var(", {1}", { BJI.Managers.Lang.get("common.disabled") })
-            if #rawRaces <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
-                -- sub elems
-                table.insert(M.cache.elems, {
-                    type = "menu",
-                    label = BJI.Managers.Lang.get("menu.vote.race.title"),
-                    elems = rawRaces:map(function(race)
-                        return {
-                            type = "item",
-                            label = string.var("{1} ({2}{3})", {
-                                race.name,
-                                BJI.Managers.Lang.get("races.preparation.places")
-                                    :var({ places = race.places }),
-                                race.enabled and "" or disabledSuffix,
-                            }),
-                            onClick = function()
-                                BJI.Windows.RaceSettings.open({
-                                    multi = true,
-                                    raceID = race.id,
-                                    raceName = race.name,
-                                    loopable = race.loopable,
-                                    defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
-                                    respawnStrategies = respawnStrategies:filter(function(rs)
-                                        return race.hasStand or
-                                            rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
-                                    end),
-                                })
-                            end
-                        }
-                    end):sort(function(a, b) return a.label < b.label end)
-                })
-            else
-                -- selection window
-                table.insert(M.cache.elems, {
-                    type = "item",
-                    label = BJI.Managers.Lang.get("menu.vote.race.title"),
-                    onClick = function()
-                        BJI.Windows.Selection.open("menu.vote.race.title", rawRaces
-                            :map(function(race)
-                                return {
-                                    label = string.var("{1} ({2}{3})", {
-                                        race.name,
-                                        BJI.Managers.Lang.get("races.preparation.places")
-                                            :var({ places = race.places }),
-                                        race.enabled and "" or disabledSuffix,
-                                    }),
-                                    value = race.id
-                                }
-                            end):sort(function(a, b) return a.label < b.label end) or Table(), nil,
-                            function(raceID)
-                                rawRaces:find(function(r) return r.id == raceID end,
-                                    function(race)
-                                        BJI.Windows.RaceSettings.open({
-                                            multi = true,
-                                            raceID = race.id,
-                                            raceName = race.name,
-                                            loopable = race.loopable,
-                                            defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
-                                                .LAST_CHECKPOINT.key,
-                                            respawnStrategies = respawnStrategies:filter(function(rs)
-                                                return race.hasStand or
-                                                    rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key
-                                            end),
-                                        })
-                                    end)
-                            end, { BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO })
-                    end,
-                })
-            end
-        end
-    end
-end
-
 local function menuSpeed(ctxt)
-    if BJI.Managers.Votes.Speed.canStartVote() then
-        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED) or {})
-            .MINIMUM_PARTICIPANTS or 0
-        local errorMessage = nil
-        if potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
-                amount = minimumParticipants - potentialPlayers
-            })
-        end
+    local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
+    local minimumParticipants = (BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED) or {})
+        .MINIMUM_PARTICIPANTS or 0
+    local errorMessage = nil
+    if potentialPlayers < minimumParticipants then
+        errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
+            amount = minimumParticipants - potentialPlayers
+        })
+    end
 
-        if errorMessage then
-            table.insert(M.cache.elems, {
-                type = "custom",
-                render = function()
-                    Text(BJI.Managers.Lang.get("menu.vote.speed.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
-                    TooltipText(errorMessage)
-                end
-            })
-        else
-            table.insert(M.cache.elems, {
-                type = "item",
-                label = BJI.Managers.Lang.get("menu.vote.speed.title"),
-                onClick = function()
-                    BJI.Tx.vote.SpeedStart(true)
-                end,
-            })
-        end
+    if errorMessage then
+        table.insert(M.cache.elems, {
+            type = "custom",
+            render = function()
+                Text(BJI.Managers.Lang.get("menu.vote.speed.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                TooltipText(errorMessage)
+            end
+        })
+    else
+        table.insert(M.cache.elems, {
+            type = "item",
+            label = BJI.Managers.Lang.get("menu.vote.speed.title"),
+            onClick = function()
+                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.SPEED, true)
+            end,
+        })
     end
 end
 
@@ -207,12 +104,23 @@ local function updateCache(ctxt)
         elems = {},
     }
 
-    if not BJI.Managers.Tournament.state then
-        menuMap(ctxt)
+    if not BJI.Managers.Tournament.state and
+        not BJI.Managers.Votes.Map.started() and
+        not BJI.Managers.Votes.Scenario.started() and
+        BJI.Managers.Scenario.isFreeroam() then
+        if BJI.Managers.Votes.Map.canStartVote() then
+            menuMap(ctxt)
+        end
 
-        if not BJI.Windows.ScenarioEditor.getState() then
-            menuRace(ctxt)
+        if not BJI.Windows.ScenarioEditor.getState() and
+            BJI.Managers.Votes.Scenario.canStartVote() then
             menuSpeed(ctxt)
+            if not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+                local common = require("ge/extensions/BJI/ui/windows/Main/Menu/Common")
+                common.menuRace(ctxt, M.cache.elems)
+                common.menuHunter(ctxt, M.cache.elems)
+                common.menuDerby(ctxt, M.cache.elems)
+            end
         end
     end
 
@@ -229,6 +137,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,
         BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI.Managers.Events.EVENTS.VOTE_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
     }, updateCache, "MainMenuVote"))
 

@@ -1,5 +1,5 @@
 local fields = Table({
-    { key = "PreparationTimeout", type = "int", min = 5,  max = 120, renderFormat = "%ds",    default = 10 },
+    { key = "PreparationTimeout", type = "int", min = 5,  max = 120, renderFormat = "%ds",    default = 20 },
     { key = "VoteTimeout",        type = "int", min = 5,  max = 120, renderFormat = "%ds",    default = 30 },
     { key = "BaseSpeed",          type = "int", min = 20, max = 100, renderFormat = "%dkm/h", default = 30 },
     { key = "StepSpeed",          type = "int", min = 1,  max = 50,  renderFormat = "%dkm/h", default = 5 },

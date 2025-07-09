@@ -245,6 +245,7 @@
         "close": "Close",
         "vote": "Vote",
         "unvote": "Withdraw Vote",
+        "startVote": "Start a Vote",
         "stopVote": "Stop Vote",
         "set": "Set",
         "create": "Create",
@@ -282,6 +283,7 @@
       "no": "No",
       "state": "State",
       "unknown": "Unknown",
+      "defaultPlayerName": "A player",
       "and": "&",
       "random": "Random",
       "precisionInputTooltip": "Right click to toggle mode"
@@ -316,11 +318,14 @@
           "mapSwitch": "switching to map ",
           "playerKick": "kicking ",
           "raceStart": "starting race ",
-          "speedStart": "starting a speed game"
+          "speedStart": "starting a speed game",
+          "hunterStart": "starting a hunter game",
+          "derbyStart": "starting a derby match"
         },
         "vote": "{playerName} started a vote for {voteEvent}{suffix}",
         "voteAccepted": "Vote for {voteEvent}{suffix} accepted",
         "voteDenied": "Vote for {voteEvent}{suffix} denied: not enough voters",
+        "voteCancelledByCreator": "Vote for {voteEvent}{suffix} cancelled by the creator",
         "voteCancelled": "Vote for {voteEvent}{suffix} cancelled by moderation",
         "gamemodes": {
           "race": "Race",
@@ -331,7 +336,8 @@
           "tagduo": "Tag Duo"
         },
         "gamemodeStopReasons": {
-          "manual": "moderation",
+          "moderation": "by moderation",
+          "creator": "by the creator",
           "notEnoughParticipants": "not enough participants",
           "timedout": "timed out",
           "invalidVehConfig": "A vehicle config is invalid"
@@ -855,7 +861,13 @@
         "hunter": {
           "title": "Hunter Gamemode Settings",
           "PreparationTimeout": "Preparation Duration",
-          "PreparationTimeoutTooltip": "Time in seconds during which players can join the gamemode",
+          "PreparationTimeoutTooltip": "Time in seconds before the game starts",
+          "VoteTimeout": "Vote Duration",
+          "VoteTimeoutTooltip": "Duration of the vote in seconds",
+          "VoteThresholdRatio": "Vote Threshold",
+          "VoteThresholdRatioTooltip": "The required ratio of voters among all server players to start the game",
+          "GridTimeout": "Grid Stage Timeout",
+          "GridTimeoutTooltip": "Timeout in seconds for any player to join, select a vehicle and mark ready. When a player marks ready, the timeout is removed.",
           "HuntedStartDelay": "Fugitive Start Delay",
           "HuntedStartDelayTooltip": "Countdown in seconds for fugitives",
           "HuntersStartDelay": "Hunters Start Delay",
@@ -876,7 +888,13 @@
         "derby": {
           "title": "Destruction Derby Settings",
           "PreparationTimeout": "Preparation Duration",
-          "PreparationTimeoutTooltip": "Time in seconds during which players can join the derby",
+          "PreparationTimeoutTooltip": "Time in seconds before the derby starts",
+          "VoteTimeout": "Vote Duration",
+          "VoteTimeoutTooltip": "Duration of the vote in seconds",
+          "VoteThresholdRatio": "Vote Threshold",
+          "VoteThresholdRatioTooltip": "The required ratio of voters among all server players to start the game",
+          "GridTimeout": "Grid Stage Timeout",
+          "GridTimeoutTooltip": "Timeout in seconds for any player to join, select a vehicle and mark ready. When a player marks ready, the timeout is removed.",
           "StartCountdown": "Start Countdown",
           "StartCountdownTooltip": "Time in seconds before the derby starts",
           "DestroyedTimeout": "Elimination Countdown",
@@ -1137,14 +1155,11 @@
           "currentModel": "Current model",
           "currentConfig": "Current config",
           "specific": "Specific {model}"
-        },
-        "startVote": "Start a vote",
-        "startRace": "Start the race"
+        }
       },
       "preparation": {
         "singleplayer": "Singleplayer Race",
         "multiplayer": "Multiplayer Race",
-        "defaultPlayerName": "A player",
         "hasStarted": "{creatorName} has started the race \"{raceName}\" ({places} places)",
         "startTimeout": "The race will start in {delay}",
         "raceAboutToStart": "The race is about to start",
@@ -1479,6 +1494,15 @@
         "lastWaypointGPSTooltip": "When only one waypoint left, hunters can see where the fugitive is (Nametag & GPS)",
         "notEnoughPlayers": "There are not enough players to start the hunter mode"
       },
+      "vote": {
+        "hasStarted": "{creatorName} has started a hunter game ({places} places)",
+        "hasStartedVote": "{creatorName} has started a vote to start a hunter game ({places} places)",
+        "timeout": "The game will start in {delay}",
+        "aboutToStart": "The game is about to start",
+        "voteTimeout": "The vote will end in {delay}",
+        "voteAboutToEnd": "The vote is about to end",
+        "currentVotes": "Current votes"
+      },
       "play": {
         "flashChooseVehicle": "Choose your vehicle",
         "flashHunterResume": "Stop the fugitive !",
@@ -1538,6 +1562,15 @@
         "toastConfigAlreadySaved": "Config already saved",
         "specificConfig": "Specific {model}",
         "notEnoughPlayers": "There are not enough players to start the derby"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} has started a derby match on arena \"{arenaName}\" ({places} places)",
+        "hasStartedVote": "{creatorName} has started a vote to start a derby match on arena \"{arenaName}\" ({places} places)",
+        "timeout": "The match will start in {delay}",
+        "aboutToStart": "The match is about to start",
+        "voteTimeout": "The vote will end in {delay}",
+        "voteAboutToEnd": "The vote is about to end",
+        "currentVotes": "Current votes"
       },
       "play": {
         "flashNoLifeRemaining": "Last life",

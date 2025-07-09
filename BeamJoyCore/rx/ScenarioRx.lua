@@ -305,15 +305,6 @@ function ctrl.HunterSave(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.HunterStart(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    BJCScenario.HunterManager.start(ctxt.data[1])
-end
-
----@param ctxt BJCContext
 function ctrl.HunterUpdate(ctxt)
     if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
         error({ key = "rx.errors.insufficientPermissions" })
@@ -352,16 +343,6 @@ function ctrl.DerbySave(ctxt)
     if err then
         error(err)
     end
-end
-
----@param ctxt BJCContext
-function ctrl.DerbyStart(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    local derbyIndex, lives, configs = ctxt.data[1], ctxt.data[2], ctxt.data[3]
-    BJCScenario.DerbyManager.start(derbyIndex, lives, configs)
 end
 
 ---@param ctxt BJCContext

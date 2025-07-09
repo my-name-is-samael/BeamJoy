@@ -129,18 +129,14 @@ end
 local function body()
     if #W.data.leaderboard > 0 then
         if BeginTable("BJIRacesLeaderboard", {
-                { label = "##racesleaderboard-label" },
-                { label = "##racesleaderboard-pb" },
-                { label = "##racesleaderboard-pb-remove" },
-                { label = "##racesleaderboard-record" },
-            }) then
+                { label = W.labels.columnRace .. "##racesleaderboard-label" },
+                { label = W.labels.columnPB .. "##racesleaderboard-pb" },
+                { label = W.labels.columnRecord .. "##racesleaderboard-record",
+                    flags = { TABLE_COLUMNS_FLAGS.NO_RESIZE, TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+            }, { showHeader = true, flags = { TABLE_FLAGS.RESIZABLE } }) then
             W.data.leaderboard:forEach(function(el)
                 TableNewRow()
                 Text(el.name, { color = el.color })
-                TableNextColumn()
-                if el.pb then
-                    Text(el.pb, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
-                end
                 TableNextColumn()
                 if el.pb then
                     if IconButton("remove-pb-" .. tostring(el.id), BJI.Utils.Icon.ICONS.delete_forever,
@@ -165,6 +161,8 @@ local function body()
                             })
                     end
                     TooltipText(W.labels.buttons.remove)
+                    SameLine()
+                    Text(el.pb, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
                 end
                 TableNextColumn()
                 if el.record then

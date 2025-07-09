@@ -102,7 +102,7 @@ local function onModerationStop()
 
     BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
         gamemode = "chat.events.gamemodes.race",
-        reason = "chat.events.gamemodeStopReasons.manual",
+        reason = "chat.events.gamemodeStopReasons.moderation",
     })
     stopRace()
 end
@@ -238,7 +238,7 @@ local function stop()
     if M.state then
         BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
             gamemode = "chat.events.gamemodes.race",
-            reason = "chat.events.gamemodeStopReasons.manual",
+            reason = "chat.events.gamemodeStopReasons.moderation",
         })
         stopRace()
     end

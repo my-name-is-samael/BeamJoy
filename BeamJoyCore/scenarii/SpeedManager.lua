@@ -171,7 +171,7 @@ local function stop(ended)
     if M.participants:length() > 0 then
         BJCChat.sendChatEvent(ended and "chat.events.gamemodeEnded" or "chat.events.gamemodeStopped", {
             gamemode = "chat.events.gamemodes.speed",
-            reason = not ended and "chat.events.gamemodeStopReasons.manual" or nil,
+            reason = not ended and "chat.events.gamemodeStopReasons.moderation" or nil,
         })
     end
     BJCAsync.removeTask("BJCSpeedStart")

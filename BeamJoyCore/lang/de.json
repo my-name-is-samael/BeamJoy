@@ -244,6 +244,7 @@
         "close": "Schließen",
         "vote": "Abstimmung",
         "unvote": "Abstimmung zurückziehen",
+        "startVote": "Abstimmung starten",
         "stopVote": "Abstimmung beenden",
         "set": "Satz",
         "create": "Erstellen",
@@ -281,6 +282,7 @@
       "no": "NEIN",
       "state": "Zustand",
       "unknown": "Unbekannt",
+      "defaultPlayerName": "Ein Spieler",
       "and": "&",
       "random": "Zufällig",
       "precisionInputTooltip": "Rechtsklick, um den Modus zu wechseln"
@@ -315,11 +317,14 @@
           "mapSwitch": "Wechsel zu Karte ",
           "playerKick": "Spieler entfernen ",
           "raceStart": "Rennen starten ",
-          "speedStart": "Speed-Spiel starten"
+          "speedStart": "Speed-Spiel starten",
+          "hunterStart": "Hunter-Spiel wird gestartet",
+          "derbyStart": "Derby-Match wird gestartet"
         },
         "vote": "{playerName} hat eine Abstimmung gestartet für {voteEvent}{suffix}",
         "voteAccepted": "Abstimmung für {voteEvent}{suffix} akzeptiert",
         "voteDenied": "Abstimmung für {voteEvent}{suffix} abgelehnt: nicht genug Stimmen",
+        "voteCancelledByCreator": "Abstimmung für {voteEvent}{suffix} vom Ersteller abgebrochen",
         "voteCancelled": "Abstimmung für {voteEvent}{suffix} durch Moderation abgebrochen",
         "gamemodes": {
           "race": "Rennen",
@@ -330,7 +335,8 @@
           "tagduo": "Fangen"
         },
         "gamemodeStopReasons": {
-          "manual": "Moderation",
+          "moderation": "durch Moderation",
+          "creator": "durch den Ersteller",
           "notEnoughParticipants": "nicht genug Teilnehmer",
           "timedout": "Zeitüberschreitung",
           "invalidVehConfig": "Eine Fahrzeugkonfiguration ist ungültig"
@@ -854,7 +860,13 @@
         "hunter": {
           "title": "Hunter Gamemode Einstellungen",
           "PreparationTimeout": "Vorbereitungsdauer",
-          "PreparationTimeoutTooltip": "Zeit in Sekunden, in der Spieler dem Spielmodus beitreten können",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden bis Spielstart",
+          "VoteTimeout": "Abstimmungsdauer",
+          "VoteTimeoutTooltip": "Dauer der Abstimmung in Sekunden",
+          "VoteThresholdRatio": "Abstimmschwelle",
+          "VoteThresholdRatioTooltip": "Erforderliches Verhältnis an Wählern unter allen Spielern, um das Spiel zu starten",
+          "GridTimeout": "Wartezeit in Kiste-Phase",
+          "GridTimeoutTooltip": "Zeitlimit in Sekunden, damit sich ein Spieler anmeldet, Fahrzeug wählt und als bereit markiert. Bei Markierung als bereit entfällt das Limit.",
           "HuntedStartDelay": "Flüchtiger Startverzögerung",
           "HuntedStartDelayTooltip": "Countdown in Sekunden für die Flüchtigen",
           "HuntersStartDelay": "Jäger Startverzögerung",
@@ -875,7 +887,13 @@
         "derby": {
           "title": "Destruction Derby Einstellungen",
           "PreparationTimeout": "Vorbereitungsdauer",
-          "PreparationTimeoutTooltip": "Zeit in Sekunden, in der Spieler dem Derby beitreten können",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden bis Derby-Start",
+          "VoteTimeout": "Abstimmungsdauer",
+          "VoteTimeoutTooltip": "Dauer der Abstimmung in Sekunden",
+          "VoteThresholdRatio": "Abstimmschwelle",
+          "VoteThresholdRatioTooltip": "Erforderliches Verhältnis an Wählern unter allen Spielern, um das Spiel zu starten",
+          "GridTimeout": "Wartezeit in Kiste-Phase",
+          "GridTimeoutTooltip": "Zeitlimit in Sekunden, damit sich ein Spieler anmeldet, Fahrzeug wählt und als bereit markiert. Bei Markierung als bereit entfällt das Limit.",
           "StartCountdown": "Start-Countdown",
           "StartCountdownTooltip": "Zeit in Sekunden bis zum Start des Derbys",
           "DestroyedTimeout": "Eliminierungs-Countdown",
@@ -1138,14 +1156,11 @@
           "currentModel": "Aktuelles Modell",
           "currentConfig": "Aktuelle Konfiguration",
           "specific": "Spezifisches {model}"
-        },
-        "startVote": "Abstimmung starten",
-        "startRace": "Rennen starten"
+        }
       },
       "preparation": {
         "singleplayer": "Einzelspieler-Rennen",
         "multiplayer": "Mehrspielerrennen",
-        "defaultPlayerName": "Ein Spieler",
         "hasStarted": "{creatorName} hat das Rennen „{raceName}“ gestartet ({places} Orte)",
         "startTimeout": "Das Rennen beginnt in {delay}",
         "raceAboutToStart": "Das Rennen beginnt gleich",
@@ -1478,6 +1493,15 @@
         "lastWaypointGPSTooltip": "Wenn nur noch ein Wegpunkt übrig ist, können die Jäger sehen, wo sich der Flüchtige befindet (Namensschild & GPS)",
         "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um den Jägermodus zu starten"
       },
+      "vote": {
+        "hasStarted": "{creatorName} hat ein Hunter-Spiel gestartet ({places} Plätze)",
+        "hasStartedVote": "{creatorName} hat eine Abstimmung zum Start eines Hunter-Spiels gestartet ({places} Plätze)",
+        "timeout": "Das Spiel startet in {delay}",
+        "aboutToStart": "Das Spiel steht kurz vor dem Start",
+        "voteTimeout": "Die Abstimmung endet in {delay}",
+        "voteAboutToEnd": "Die Abstimmung endet bald",
+        "currentVotes": "Aktuelle Stimmen"
+      },
       "play": {
         "flashChooseVehicle": "Wählen Sie Ihr Fahrzeug",
         "flashHunterResume": "Stoppen Sie den Flüchtling!",
@@ -1537,6 +1561,15 @@
         "toastConfigAlreadySaved": "Konfiguration bereits gespeichert",
         "specificConfig": "Spezifisches {model}",
         "notEnoughPlayers": "Es sind nicht genug Spieler vorhanden, um das Derby zu starten"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} hat ein Derby-Match auf Arena „{arenaName}“ gestartet ({places} Plätze)",
+        "hasStartedVote": "{creatorName} hat eine Abstimmung zum Start eines Derby-Matches auf Arena „{arenaName}“ gestartet ({places} Plätze)",
+        "timeout": "Das Match startet in {delay}",
+        "aboutToStart": "Das Match steht kurz vor dem Start",
+        "voteTimeout": "Die Abstimmung endet in {delay}",
+        "voteAboutToEnd": "Die Abstimmung endet bald",
+        "currentVotes": "Aktuelle Stimmen"
       },
       "play": {
         "flashNoLifeRemaining": "Letztes Leben",

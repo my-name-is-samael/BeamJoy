@@ -31,33 +31,24 @@ return function(TX)
         TX._send(event.EVENT, event.TX.MAP_STOP)
     end
 
-    ---@param raceID integer
+    ---@param scenario string
     ---@param isVote boolean
-    ---@param settings table
-    function vote.RaceStart(raceID, isVote, settings)
-        TX._send(event.EVENT, event.TX.RACE_START, { raceID, isVote, settings })
+    ---@param data any
+    function vote.ScenarioStart(scenario, isVote, data)
+        if not table.includes(BJI.Managers.Votes.SCENARIO_TYPES, scenario) then
+            LogError("Invalid scenario type " .. scenario)
+            return
+        end
+        TX._send(event.EVENT, event.TX.SCENARIO_START, { scenario, isVote, data })
     end
 
-    function vote.RaceVote()
-        TX._send(event.EVENT, event.TX.RACE_VOTE)
+    ---@param data any
+    function vote.ScenarioVote(data)
+        TX._send(event.EVENT, event.TX.SCENARIO_VOTE, {data})
     end
 
-    function vote.RaceStop()
-        TX._send(event.EVENT, event.TX.RACE_STOP)
-    end
-
-    ---@param isVote boolean
-    function vote.SpeedStart(isVote)
-        TX._send(event.EVENT, event.TX.SPEED_START, { isVote })
-    end
-
-    ---@param gameVehID integer?
-    function vote.SpeedVote(gameVehID)
-        TX._send(event.EVENT, event.TX.SPEED_VOTE, { gameVehID })
-    end
-
-    function vote.SpeedStop()
-        TX._send(event.EVENT, event.TX.SPEED_STOP)
+    function vote.ScenarioStop()
+        TX._send(event.EVENT, event.TX.SCENARIO_STOP)
     end
 
     return vote

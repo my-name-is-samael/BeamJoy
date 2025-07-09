@@ -35,53 +35,51 @@ local W = {
         vehicleMode = nil,
     },
 
-    cache = {
-        data = {
-            currentVeh = {
-                model = nil,
-                modelLabel = nil,
-                config = nil,
-            },
-
-            comboRespawnStrategies = {},
-            respawnStrategySelected = nil,
-
-            currentVehicleProtected = false,
-            selfProtected = false,
-            ---@type {value?: string, label: string}[]
-            comboVehicle = {},
-            ---@type {value?: string, label: string}?
-            vehicleSelected = nil,
-
-            showVoteBtn = false,
-            showStartBtn = false,
+    data = {
+        currentVeh = {
+            model = nil,
+            modelLabel = nil,
+            config = nil,
         },
-        labels = {
-            unknown = "",
+
+        comboRespawnStrategies = {},
+        respawnStrategySelected = nil,
+
+        currentVehicleProtected = false,
+        selfProtected = false,
+        ---@type {value?: string, label: string}[]
+        comboVehicle = {},
+        ---@type {value?: string, label: string}?
+        vehicleSelected = nil,
+
+        showVoteBtn = false,
+        showStartBtn = false,
+    },
+    labels = {
+        unknown = "",
+        title = "",
+        raceName = "",
+        laps = "",
+        manyLapsWarning = "",
+        respawnStrategies = {
             title = "",
-            raceName = "",
-            laps = "",
-            manyLapsWarning = "",
-            respawnStrategies = {
-                title = "",
-                all = "",
-                norespawn = "",
-                lastcheckpoint = "",
-                stand = "",
-            },
-            collisions = "",
-            vehicle = {
-                title = "",
-                all = "",
-                currentModel = "",
-                currentConfig = "",
-                vehicleProtected = "",
-                selfProtected = "",
-            },
-            cancel = "",
-            startVote = "",
-            startRace = "",
+            all = "",
+            norespawn = "",
+            lastcheckpoint = "",
+            stand = "",
         },
+        collisions = "",
+        vehicle = {
+            title = "",
+            all = "",
+            currentModel = "",
+            currentConfig = "",
+            vehicleProtected = "",
+            selfProtected = "",
+        },
+        cancel = "",
+        startVote = "",
+        startRace = "",
     },
 }
 --- gc prevention
@@ -92,47 +90,47 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.cache.labels.unknown = BJI.Managers.Lang.get("common.unknown")
+    W.labels.unknown = BJI.Managers.Lang.get("common.unknown")
 
-    W.cache.labels.title = W.settings.multi and
+    W.labels.title = W.settings.multi and
         BJI.Managers.Lang.get("races.preparation.multiplayer") or
         BJI.Managers.Lang.get("races.preparation.singleplayer")
-    W.cache.labels.raceName = string.var("{1} \"{2}\"", { BJI.Managers.Lang.get("races.play.race"), W.settings.raceName })
+    W.labels.raceName = string.var("{1} \"{2}\"", { BJI.Managers.Lang.get("races.play.race"), W.settings.raceName })
 
-    W.cache.labels.laps = BJI.Managers.Lang.get("races.edit.laps")
-    W.cache.labels.manyLapsWarning = BJI.Managers.Lang.get("races.settings.manyLapsWarning")
+    W.labels.laps = BJI.Managers.Lang.get("races.edit.laps")
+    W.labels.manyLapsWarning = BJI.Managers.Lang.get("races.settings.manyLapsWarning")
 
-    W.cache.labels.respawnStrategies.title = BJI.Managers.Lang.get("races.settings.respawnStrategies.title")
-    W.cache.labels.respawnStrategies.all = BJI.Managers.Lang.get("races.settings.respawnStrategies.all")
-    W.cache.labels.respawnStrategies.norespawn = BJI.Managers.Lang.get("races.settings.respawnStrategies.norespawn")
-    W.cache.labels.respawnStrategies.lastcheckpoint = BJI.Managers.Lang.get(
+    W.labels.respawnStrategies.title = BJI.Managers.Lang.get("races.settings.respawnStrategies.title")
+    W.labels.respawnStrategies.all = BJI.Managers.Lang.get("races.settings.respawnStrategies.all")
+    W.labels.respawnStrategies.norespawn = BJI.Managers.Lang.get("races.settings.respawnStrategies.norespawn")
+    W.labels.respawnStrategies.lastcheckpoint = BJI.Managers.Lang.get(
         "races.settings.respawnStrategies.lastcheckpoint")
-    W.cache.labels.respawnStrategies.stand = BJI.Managers.Lang.get("races.settings.respawnStrategies.stand")
+    W.labels.respawnStrategies.stand = BJI.Managers.Lang.get("races.settings.respawnStrategies.stand")
 
-    W.cache.labels.collisions = BJI.Managers.Lang.get("races.settings.collisions")
+    W.labels.collisions = BJI.Managers.Lang.get("races.settings.collisions")
 
-    W.cache.labels.vehicle.title = BJI.Managers.Lang.get("races.settings.vehicles.playerVehicle")
-    W.cache.labels.vehicle.all = BJI.Managers.Lang.get("races.settings.vehicles.all")
-    W.cache.labels.vehicle.currentModel = BJI.Managers.Lang.get("races.settings.vehicles.currentModel")
-    W.cache.labels.vehicle.currentConfig = BJI.Managers.Lang.get("races.settings.vehicles.currentConfig")
-    W.cache.labels.vehicle.vehicleProtected = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
-    W.cache.labels.vehicle.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+    W.labels.vehicle.title = BJI.Managers.Lang.get("races.settings.vehicles.playerVehicle")
+    W.labels.vehicle.all = BJI.Managers.Lang.get("races.settings.vehicles.all")
+    W.labels.vehicle.currentModel = BJI.Managers.Lang.get("races.settings.vehicles.currentModel")
+    W.labels.vehicle.currentConfig = BJI.Managers.Lang.get("races.settings.vehicles.currentConfig")
+    W.labels.vehicle.vehicleProtected = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.vehicle.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
 
-    W.cache.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
-    W.cache.labels.startVote = BJI.Managers.Lang.get("races.settings.startVote")
-    W.cache.labels.startRace = BJI.Managers.Lang.get("races.settings.startRace")
+    W.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
+    W.labels.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
+    W.labels.startRace = BJI.Managers.Lang.get("common.buttons.start")
 end
 
 local function updateCache()
     ctxt = BJI.Managers.Tick.getContext()
 
-    W.cache.data.currentVeh.model = nil
-    W.cache.data.currentVeh.modelLabel = nil
-    W.cache.data.currentVeh.config = nil
-    W.cache.data.comboRespawnStrategies = {}
-    W.cache.data.comboVehicle = {}
-    W.cache.data.showVoteBtn = false
-    W.cache.data.showStartBtn = false
+    W.data.currentVeh.model = nil
+    W.data.currentVeh.modelLabel = nil
+    W.data.currentVeh.config = nil
+    W.data.comboRespawnStrategies = {}
+    W.data.comboVehicle = {}
+    W.data.showVoteBtn = false
+    W.data.showStartBtn = false
 
     -- autoclose checks
     if W.show and (not BJI.Managers.Scenario.isFreeroam() or (
@@ -153,73 +151,73 @@ local function updateCache()
     end
 
     -- respawn strategies
-    W.cache.data.comboRespawnStrategies = Table(W.settings.respawnStrategies)
+    W.data.comboRespawnStrategies = Table(W.settings.respawnStrategies)
         :map(function(rs)
             return {
                 value = rs,
-                label = W.cache.labels.respawnStrategies[rs],
+                label = W.labels.respawnStrategies[rs],
             }
         end)
-    if not table.any(W.cache.data.comboRespawnStrategies, function(option)
-            return option.value == W.cache.data.respawnStrategySelected
+    if not table.any(W.data.comboRespawnStrategies, function(option)
+            return option.value == W.data.respawnStrategySelected
         end) then
-        W.cache.data.respawnStrategySelected = W.cache.data.comboRespawnStrategies[1].value
+        W.data.respawnStrategySelected = W.data.comboRespawnStrategies[1].value
     end
 
     if W.settings.multi then
-        W.cache.data.currentVehicleProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
-        W.cache.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
+        W.data.currentVehicleProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
+        W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
         -- vehicle combo
-        table.insert(W.cache.data.comboVehicle, {
+        table.insert(W.data.comboVehicle, {
             value = W.VEHICLE_MODES.ALL,
-            label = W.cache.labels.vehicle.all,
+            label = W.labels.vehicle.all,
         })
         if ctxt.veh and ctxt.veh.isVehicle and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-            table.insert(W.cache.data.comboVehicle, {
+            table.insert(W.data.comboVehicle, {
                 value = W.VEHICLE_MODES.MODEL,
-                label = W.cache.labels.vehicle.currentModel,
+                label = W.labels.vehicle.currentModel,
             })
-            if not W.cache.data.currentVehicleProtected and not W.cache.data.selfProtected then
-                table.insert(W.cache.data.comboVehicle, {
+            if not W.data.currentVehicleProtected and not W.data.selfProtected then
+                table.insert(W.data.comboVehicle, {
                     value = W.VEHICLE_MODES.CONFIG,
-                    label = W.cache.labels.vehicle.currentConfig,
+                    label = W.labels.vehicle.currentConfig,
                 })
             end
-            if not W.cache.data.vehicleSelected then
+            if not W.data.vehicleSelected then
                 if W.settings.vehicleMode then
-                    W.cache.data.vehicleSelected = table.find(W.cache.data.comboVehicle, function(v)
+                    W.data.vehicleSelected = table.find(W.data.comboVehicle, function(v)
                         return v.value == W.settings.vehicleMode
-                    end) or W.cache.data.comboVehicle[1]
+                    end) or W.data.comboVehicle[1]
                 end
             end
         end
-        if not table.find(W.cache.data.comboVehicle, function(option)
-                return option.value == W.cache.data.vehicleSelected
+        if not table.find(W.data.comboVehicle, function(option)
+                return option.value == W.data.vehicleSelected
             end) then
-            W.cache.data.vehicleSelected = W.cache.data.comboVehicle[1].value
+            W.data.vehicleSelected = W.data.comboVehicle[1].value
         end
     end
 
     -- current veh
     if ctxt.veh then
-        W.cache.data.currentVeh.model = ctxt.veh.jbeam
-        W.cache.data.currentVeh.modelLabel = BJI.Managers.Veh.getModelLabel(W.cache.data.currentVeh.model) or
-            W.cache.labels.unknown
+        W.data.currentVeh.model = ctxt.veh.jbeam
+        W.data.currentVeh.modelLabel = BJI.Managers.Veh.getModelLabel(W.data.currentVeh.model) or
+            W.labels.unknown
 
-        W.cache.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
+        W.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
         configLabel = BJI.Managers.Veh.getCurrentConfigLabel()
-        W.cache.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
-            { W.cache.data.currentVeh.modelLabel, configLabel }) or W.cache.labels.unknown
+        W.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
+            { W.data.currentVeh.modelLabel, configLabel }) or W.labels.unknown
     else
-        W.cache.data.currentVeh.model = nil
-        W.cache.data.currentVeh.modelLabel = nil
-        W.cache.data.currentVeh.config = nil
-        W.cache.data.currentVeh.configLabel = nil
+        W.data.currentVeh.model = nil
+        W.data.currentVeh.modelLabel = nil
+        W.data.currentVeh.config = nil
+        W.data.currentVeh.configLabel = nil
     end
 
-    W.cache.data.showVoteBtn = W.settings.multi and not BJI.Managers.Tournament.state and
+    W.data.showVoteBtn = W.settings.multi and not BJI.Managers.Tournament.state and
         BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
-    W.cache.data.showStartBtn = (W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
+    W.data.showStartBtn = (W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
         (not W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO))
 end
 
@@ -252,8 +250,8 @@ local function onUnload()
 end
 
 local function drawHeader()
-    Text(W.cache.labels.title, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
-    Text(W.cache.labels.raceName)
+    Text(W.labels.title, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    Text(W.labels.raceName)
 end
 
 local function drawBody(ctxt)
@@ -263,25 +261,25 @@ local function drawBody(ctxt)
         }) then
         if W.settings.loopable then
             TableNewRow()
-            Text(W.cache.labels.laps)
+            Text(W.labels.laps)
             TableNextColumn()
             nextValue = SliderInt("raceSettingsLaps", W.settings.laps, 1, 50)
             if nextValue then W.settings.laps = nextValue end
             if W.settings.laps >= 20 then
-                Text(W.cache.labels.manyLapsWarning, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+                Text(W.labels.manyLapsWarning, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
             end
         end
 
         TableNewRow()
-        Text(W.cache.labels.respawnStrategies.title)
+        Text(W.labels.respawnStrategies.title)
         TableNextColumn()
-        nextValue = Combo("respawnStrategies", W.cache.data.respawnStrategySelected,
-            W.cache.data.comboRespawnStrategies, { width = -1 })
-        if nextValue then W.cache.data.respawnStrategySelected = nextValue end
+        nextValue = Combo("respawnStrategies", W.data.respawnStrategySelected,
+            W.data.comboRespawnStrategies, { width = -1 })
+        if nextValue then W.data.respawnStrategySelected = nextValue end
 
         if W.settings.multi then
             TableNewRow()
-            Text(W.cache.labels.collisions)
+            Text(W.labels.collisions)
             TableNextColumn()
             if IconButton("raceSettingsCollisions", W.settings.collisions and BJI.Utils.Icon.ICONS.check_circle or
                     BJI.Utils.Icon.ICONS.cancel, { btnStyle = W.settings.collisions and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
@@ -290,23 +288,23 @@ local function drawBody(ctxt)
             end
 
             TableNewRow()
-            Text(W.cache.labels.vehicle.title)
+            Text(W.labels.vehicle.title)
             TableNextColumn()
-            if W.cache.data.selfProtected then
-                ShowHelpMarker(W.cache.labels.vehicle.selfProtected)
+            if W.data.selfProtected then
+                ShowHelpMarker(W.labels.vehicle.selfProtected)
                 SameLine()
-            elseif W.cache.data.currentVehicleProtected then
-                ShowHelpMarker(W.cache.labels.vehicle.vehicleProtected)
+            elseif W.data.currentVehicleProtected then
+                ShowHelpMarker(W.labels.vehicle.vehicleProtected)
                 SameLine()
             end
-            nextValue = Combo("settingsVehicle", W.cache.data.vehicleSelected, W.cache.data.comboVehicle, { width = -1 })
-            if nextValue then W.cache.data.vehicleSelected = nextValue end
+            nextValue = Combo("settingsVehicle", W.data.vehicleSelected, W.data.comboVehicle, { width = -1 })
+            if nextValue then W.data.vehicleSelected = nextValue end
 
-            if W.cache.data.vehicleSelected ~= W.VEHICLE_MODES.ALL then
+            if W.data.vehicleSelected ~= W.VEHICLE_MODES.ALL then
                 TableNewRow()
                 TableNextColumn()
-                Text(W.cache.data.vehicleSelected == W.VEHICLE_MODES.MODEL and
-                    W.cache.data.currentVeh.modelLabel or W.cache.data.currentVeh.configLabel)
+                Text(W.data.vehicleSelected == W.VEHICLE_MODES.MODEL and
+                    W.data.currentVeh.modelLabel or W.data.currentVeh.configLabel)
             end
         end
 
@@ -317,9 +315,9 @@ end
 local function getPayloadSettings()
     return {
         laps = W.settings.loopable and W.settings.laps or nil,
-        model = W.cache.data.vehicleSelected ~= W.VEHICLE_MODES.ALL and W.cache.data.currentVeh.model or nil,
-        config = W.cache.data.vehicleSelected == W.VEHICLE_MODES.CONFIG and W.cache.data.currentVeh.config or nil,
-        respawnStrategy = W.cache.data.respawnStrategySelected,
+        model = W.data.vehicleSelected ~= W.VEHICLE_MODES.ALL and W.data.currentVeh.model or nil,
+        config = W.data.vehicleSelected == W.VEHICLE_MODES.CONFIG and W.data.currentVeh.config or nil,
+        respawnStrategy = W.data.respawnStrategySelected,
         collisions = W.settings.collisions
     }
 end
@@ -331,22 +329,38 @@ local function drawFooter(ctxt)
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
         onClose()
     end
-    TooltipText(W.cache.labels.cancel)
-    if W.cache.data.showVoteBtn then
+    TooltipText(W.labels.cancel)
+    if W.data.showVoteBtn then
         SameLine()
         if IconButton("voteRaceStart", BJI.Utils.Icon.ICONS.event_available,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI.Tx.vote.RaceStart(W.settings.raceID, true, getPayloadSettings())
+            local settings = getPayloadSettings()
+            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.RACE, true, {
+                raceID = W.settings.raceID,
+                laps = settings.laps,
+                model = settings.model,
+                config = settings.config,
+                respawnStrategy = settings.respawnStrategy,
+                collisions = settings.collisions,
+            })
             onClose()
         end
-        TooltipText(W.cache.labels.startVote)
+        TooltipText(W.labels.startVote)
     end
-    if W.cache.data.showStartBtn then
+    if W.data.showStartBtn then
         SameLine()
         if IconButton("raceStart", BJI.Utils.Icon.ICONS.videogame_asset,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             if W.settings.multi then
-                BJI.Tx.vote.RaceStart(W.settings.raceID, false, getPayloadSettings())
+                local settings = getPayloadSettings()
+                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.RACE, false, {
+                    raceID = W.settings.raceID,
+                    laps = settings.laps,
+                    model = settings.model,
+                    config = settings.config,
+                    respawnStrategy = settings.respawnStrategy,
+                    collisions = settings.collisions,
+                })
                 onClose()
             else
                 BJI.Tx.scenario.RaceDetails(W.settings.raceID, function(raceData)
@@ -356,7 +370,7 @@ local function drawFooter(ctxt)
                                 ctxt,
                                 {
                                     laps = raceData.loopable and W.settings.laps or nil,
-                                    respawnStrategy = W.cache.data.respawnStrategySelected,
+                                    respawnStrategy = W.data.respawnStrategySelected,
                                 },
                                 raceData
                             )
@@ -368,7 +382,7 @@ local function drawFooter(ctxt)
                 end)
             end
         end
-        TooltipText(W.cache.labels.startRace)
+        TooltipText(W.labels.startRace)
     end
 end
 
@@ -383,8 +397,8 @@ local function open(raceSettings)
     raceSettings.collisions = raceSettings.collisions or W.settings.collisions
     W.settings = raceSettings
 
-    W.cache.data.respawnStrategySelected = W.settings.defaultRespawnStrategy or W.cache.data.respawnStrategySelected
-    W.cache.data.vehicleSelected = W.cache.data.vehicleSelected or W.VEHICLE_MODES.ALL
+    W.data.respawnStrategySelected = W.settings.defaultRespawnStrategy or W.data.respawnStrategySelected
+    W.data.vehicleSelected = W.data.vehicleSelected or W.VEHICLE_MODES.ALL
 
     if BJI.Managers.Scenario.isFreeroam() and
         (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or

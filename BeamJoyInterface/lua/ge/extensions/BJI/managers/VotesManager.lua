@@ -1,9 +1,15 @@
 ---@class BJIManagerVotes : BJIManager
 local M = {
     _name = "Votes",
+    
+    SCENARIO_TYPES = {
+        RACE = "race",
+        SPEED = "speed",
+        HUNTER = "hunter",
+        DERBY = "derby",
+    }
 }
 
--- KICK
 M.Kick = {
     threshold = 0,
     creatorID = nil,
@@ -20,9 +26,8 @@ function M.Kick.onLoad()
             M.Kick.creatorID = cacheData.Kick.creatorID
             M.Kick.targetID = cacheData.Kick.targetID
             M.Kick.endsAt = BJI.Managers.Tick.applyTimeOffset(cacheData.Kick.endsAt)
-            M.Kick.amountVotes = cacheData.Kick.voters and table.length(cacheData.Kick.voters) or 0
-            M.Kick.selfVoted = cacheData.Kick.voters and
-                table.includes(cacheData.Kick.voters, BJI.Managers.Context.User.playerID) or false
+            M.Kick.amountVotes = table.length(cacheData.Kick.voters)
+            M.Kick.selfVoted = table.includes(cacheData.Kick.voters, BJI.Managers.Context.User.playerID)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VOTE_UPDATED)
         end
     end)
@@ -53,7 +58,6 @@ function M.Kick.start(targetID)
     end
 end
 
--- MAP
 M.Map = {
     threshold = 0,
     creatorID = nil,
@@ -72,9 +76,8 @@ function M.Map.onLoad()
             M.Map.mapLabel = cacheData.Map.mapLabel
             M.Map.mapCustom = cacheData.Map.mapCustom == true
             M.Map.endsAt = BJI.Managers.Tick.applyTimeOffset(cacheData.Map.endsAt)
-            M.Map.amountVotes = cacheData.Map.voters and table.length(cacheData.Map.voters) or 0
-            M.Map.selfVoted = cacheData.Map.voters and
-                table.includes(cacheData.Map.voters, BJI.Managers.Context.User.playerID) or false
+            M.Map.amountVotes = table.length(cacheData.Map.voters)
+            M.Map.selfVoted = table.includes(cacheData.Map.voters, BJI.Managers.Context.User.playerID)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VOTE_UPDATED)
         end
     end)
@@ -104,131 +107,75 @@ function M.Map.start(mapName)
     end
 end
 
--- RACE (VOTE OR PREPARATION)
-M.Race = {
-    threshold = 0,
+M.Scenario = {
+    type = nil,
     creatorID = nil,
-    endsAt = nil,
     isVote = false,
-    raceName = nil,
-    places = 0,
-    record = nil,
-    timeLabel = nil,
-    weatherLabel = nil,
-    laps = nil,
-    model = nil,
-    specificConfig = false,
-    respawnStrategy = nil,
-    collisions = true,
+    threshold = 0,
+    endsAt = nil,
+    scenarioData = {},
+    voters = {},
     amountVotes = 0,
     selfVoted = false,
 }
 
-function M.Race.onLoad()
+function M.Scenario.onLoad()
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.VOTE, function(cacheData)
-        if cacheData.Race then
-            M.Race.threshold = cacheData.Race.threshold
-            M.Race.creatorID = cacheData.Race.creatorID
-            M.Race.endsAt = BJI.Managers.Tick.applyTimeOffset(cacheData.Race.endsAt)
-            M.Race.isVote = cacheData.Race.isVote
-            M.Race.raceName = cacheData.Race.raceName
-            M.Race.places = cacheData.Race.places
-            M.Race.record = cacheData.Race.record
-            M.Race.timeLabel = cacheData.Race.timeLabel
-            M.Race.weatherLabel = cacheData.Race.weatherLabel
-            M.Race.laps = cacheData.Race.laps
-            M.Race.model = cacheData.Race.model
-            M.Race.specificConfig = cacheData.Race.specificConfig == true
-            M.Race.respawnStrategy = cacheData.Race.respawnStrategy
-            M.Race.collisions = cacheData.Race.collisions == true
-            M.Race.amountVotes = cacheData.Race.voters and table.length(cacheData.Race.voters) or 0
-            M.Race.selfVoted = cacheData.Race.voters and
-                table.includes(cacheData.Race.voters, BJI.Managers.Context.User.playerID) or false
+        if cacheData.Scenario then
+            M.Scenario.type = cacheData.Scenario.type
+            M.Scenario.creatorID = cacheData.Scenario.creatorID
+            M.Scenario.isVote = cacheData.Scenario.isVote
+            M.Scenario.threshold = cacheData.Scenario.threshold
+            M.Scenario.endsAt = BJI.Managers.Tick.applyTimeOffset(cacheData.Scenario.endsAt)
+            M.Scenario.scenarioData = cacheData.Scenario.scenarioData
+            M.Scenario.voters = cacheData.Scenario.voters
+            M.Scenario.amountVotes = table.length(cacheData.Scenario.voters or {})
+            M.Scenario.selfVoted = cacheData.Scenario.voters and
+                cacheData.Scenario.voters[BJI.Managers.Context.User.playerID] or false
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VOTE_UPDATED)
         end
     end)
 end
 
-function M.Race.started()
-    return M.Race.creatorID ~= nil
+function M.Scenario.started()
+    return M.Scenario.creatorID ~= nil
 end
 
-function M.Race.canStartVote()
-    return not M.Race.started() and
+function M.Scenario.canStartVote()
+    return not M.Scenario.started() and not M.Map.started() and
         BJI.Managers.Scenario.isFreeroam() and
-        (
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
-        )
-end
-
-function M.Race.start(raceID, isVote, settings)
-    if not M.Race.started() then
-        BJI.Tx.vote.RaceStart(raceID, isVote, settings)
-    end
-end
-
--- SPEED
-M.Speed = {
-    creatorID = nil,
-    isEvent = false,
-    endsAt = nil,
-    participants = {},
-}
-
-function M.Speed.onLoad()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.VOTE, function(cacheData)
-        if cacheData.Speed then
-            M.Speed.creatorID = cacheData.Speed.creatorID
-            M.Speed.isEvent = not cacheData.Speed.isVote
-            M.Speed.endsAt = BJI.Managers.Tick.applyTimeOffset(cacheData.Speed.endsAt)
-            M.Speed.participants = cacheData.Speed.participants
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VOTE_UPDATED)
-        end
-    end)
-end
-
-function M.Speed.started()
-    return M.Speed.endsAt ~= nil
-end
-
-function M.Speed.canStartVote()
-    return not M.Speed.started() and
-        BJI.Managers.Scenario.isFreeroam() and
-        (
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
-        )
+        (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO))
 end
 
 ---@param ctxt TickContext
 local function slowTick(ctxt)
-    if M.Speed.started() then
+    if M.Scenario.started() and M.Scenario.type == M.SCENARIO_TYPES.SPEED then
         -- autojoin on event
-        if M.Speed.isEvent and
-            not M.Speed.participants[BJI.Managers.Context.User.playerID] and
+        if not M.Scenario.isVote and
+            not M.Scenario.voters[BJI.Managers.Context.User.playerID] and
             ctxt.isOwner then
             if BJI.Managers.Tournament.state and BJI.Managers.Tournament.whitelist and
                 not BJI.Managers.Tournament.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
                 BJI.Managers.Veh.deleteAllOwnVehicles()
             else
-                BJI.Tx.vote.SpeedVote(ctxt.veh.gameVehicleID)
+                BJI.Tx.vote.ScenarioVote(ctxt.veh.gameVehicleID)
             end
         end
 
         -- auto leave or update vehicle
-        if M.Speed.participants[BJI.Managers.Context.User.playerID] then
+        if M.Scenario.voters[BJI.Managers.Context.User.playerID] then
             if not ctxt.isOwner then
-                BJI.Tx.vote.SpeedVote()
-            elseif ctxt.veh.gameVehicleID ~= M.Speed.participants[BJI.Managers.Context.User.playerID] then
-                BJI.Tx.vote.SpeedVote(ctxt.veh.gameVehicleID)
+                BJI.Tx.vote.ScenarioVote()
+            elseif ctxt.veh.gameVehicleID ~= M.Scenario.voters[BJI.Managers.Context.User.playerID] then
+                BJI.Tx.vote.ScenarioVote(ctxt.veh.gameVehicleID)
             end
         end
     end
 end
 
 M.onLoad = function()
-    table.forEach({ M.Kick, M.Map, M.Race, M.Speed }, function(el)
+    table.forEach({ M.Kick, M.Map, M.Scenario }, function(el)
         if el.onLoad then
             el.onLoad()
         end

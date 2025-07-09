@@ -29,19 +29,16 @@ local M = {
     },
 
     state = nil,
-    ---@type {name: string, startPositions: BJIPositionRotation[]}?
+    ---@type BJArena?
     baseArena = nil,
     settings = {
         lives = 0,
         configs = Table(),
     },
-
     ---@type tablelib<integer, BJIDerbyParticipant> index 1-N position
     participants = Table(),
-
-    preparation = {
-        timeout = nil,
-    },
+    ---@type integer?
+    preparationTimeout = nil,
     game = {
         ---@type integer?
         startTime = nil,
@@ -50,7 +47,6 @@ local M = {
         ---@type Timer?
         gameTimer = nil,
     },
-
     countInvalidVehicles = {}, -- count to detect invalid setting config
     positionsAnnounced = {},
 }
@@ -64,8 +60,8 @@ local function getParticipantPosition(playerID)
 end
 
 local function cancelPreparationTimeout()
-    BJCAsync.removeTask("BJCDerbyPreparationTimeout")
-    M.preparation.timeout = nil
+    BJCAsync.removeTask("BJCDerbyGridTimeout")
+    M.preparationTimeout = nil
 end
 
 -- ends the derby
@@ -77,7 +73,7 @@ local function stopDerby()
         lives = 0,
     }
     M.participants = Table()
-    M.preparation = {}
+    M.preparationTimeout = nil
     M.game = {}
     M.countInvalidVehicles = {}
 
@@ -155,7 +151,7 @@ local function startDerby()
     end
 end
 
-local function onPreparationTimeout()
+local function onGridTimeout()
     -- remove no vehicle players from participants
     M.participants:filter(function(p) return not p.ready end)
         :forEach(function(p)
@@ -192,9 +188,9 @@ local function onPreparationTimeout()
     end
 end
 
-local function startPreparationTimeout()
-    M.preparation.timeout = GetCurrentTime() + BJCConfig.Data.Derby.PreparationTimeout
-    BJCAsync.programTask(onPreparationTimeout, M.preparation.timeout, "BJCDerbyPreparationTimeout")
+local function startGridTimeout()
+    M.preparationTimeout = GetCurrentTime() + BJCConfig.Data.Derby.GridTimeout
+    BJCAsync.programTask(onGridTimeout, M.preparationTimeout, "BJCDerbyGridTimeout")
 end
 
 local function finishDerby()
@@ -219,8 +215,8 @@ local function updateDerbyState()
             M.participants:every(function(p) return p.ready end) then
             startDerby()
         elseif not M.participants:any(function(p) return p.ready end) and
-            not BJCAsync.exists("BJCDerbyPreparationTimeout") then
-            startPreparationTimeout()
+            not BJCAsync.exists("BJCDerbyGridTimeout") then
+            startGridTimeout()
         end
     elseif M.state == M.STATES.GAME then
         if not M.participants[math.min(2, M.MINIMUM_PARTICIPANTS())] or
@@ -239,6 +235,11 @@ local function updateDerbyState()
 end
 
 local function start(derbyIndex, lives, configs)
+    if not BJCScenarioData.Derby[derbyIndex] or
+        not BJCScenarioData.Derby[derbyIndex].enabled then
+        error({ key = "rx.errors.invalidData" })
+    end
+
     BJCScenario.stopServerScenarii()
     for _, player in pairs(BJCPlayers.Players) do
         player.scenario = nil
@@ -257,7 +258,7 @@ local function start(derbyIndex, lives, configs)
     BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
         gamemode = "chat.events.gamemodes.derby",
     })
-    startPreparationTimeout()
+    startGridTimeout()
 
     BJCScenario.CurrentScenario = M
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DERBY)
@@ -267,7 +268,7 @@ local function stop()
     if M.state then
         BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
             gamemode = "chat.events.gamemodes.derby",
-            reason = "chat.events.gamemodeStopReasons.manual",
+            reason = "chat.events.gamemodeStopReasons.moderation",
         })
         stopDerby()
     end
@@ -484,7 +485,7 @@ local function getCache()
         -- preparation
         baseArena = M.baseArena,
         participants = M.participants,
-        preparationTimeout = M.preparation.timeout,
+        preparationTimeout = M.preparationTimeout,
         -- game
         startTime = M.game.startTime,
         zoneReductionTime = M.game.zoneReductionTime,
@@ -496,7 +497,7 @@ local function getCacheHash()
         M.MINIMUM_PARTICIPANTS(),
         M.state,
         M.baseArena,
-        M.preparation,
+        M.preparationTimeout,
         M.participants,
         M.game,
         BJCConfig.Data.Derby.DestroyedTimeout,

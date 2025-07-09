@@ -709,7 +709,7 @@ local function drawStartActivity(ctxt)
                     })
                 end)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.SPEED then
-                BJI.Tx.vote.SpeedStart(false)
+                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.SPEED, false)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.HUNTER then
                 BJI.Windows.HunterSettings.open()
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then

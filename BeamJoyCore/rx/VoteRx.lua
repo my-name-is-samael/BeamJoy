@@ -53,8 +53,8 @@ function ctrl.KickStop(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.RaceStart(ctxt)
-    local raceID, isVote, settings = ctxt.data[1], ctxt.data[2], ctxt.data[3]
+function ctrl.ScenarioStart(ctxt)
+    local scenario, isVote, data = ctxt.data[1], ctxt.data[2] == true, ctxt.data[3] or {}
     if isVote and not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     elseif not isVote and not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
@@ -65,55 +65,22 @@ function ctrl.RaceStart(ctxt)
         error({ key = "rx.errors.invalidData" })
     end
 
-    BJCVote.Race.start(ctxt.senderID, isVote, raceID, settings)
+    BJCVote.Scenario.start(scenario, ctxt.senderID, isVote, data)
 end
 
 ---@param ctxt BJCContext
-function ctrl.RaceVote(ctxt)
-    BJCVote.Race.vote(ctxt.senderID)
+function ctrl.ScenarioVote(ctxt)
+    local data = ctxt.data[1]
+    BJCVote.Scenario.vote(ctxt.senderID, data)
 end
 
 ---@param ctxt BJCContext
-function ctrl.RaceStop(ctxt)
+function ctrl.ScenarioStop(ctxt)
     if not BJCPerm.isStaff(ctxt.senderID) and
-        ctxt.senderID ~= BJCVote.Race.creatorID then
+        ctxt.senderID ~= BJCVote.Scenario.creatorID then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCVote.Race.stop()
-end
-
----@param ctxt BJCContext
-function ctrl.SpeedStart(ctxt)
-    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) and
-        not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    if BJCScenario.isServerScenarioInProgress() then
-        error({ key = "rx.errors.invalidData" })
-    end
-
-    local isVote = ctxt.data[1] == true
-    BJCVote.Speed.start(ctxt.senderID, isVote)
-end
-
----@param ctxt BJCContext
-function ctrl.SpeedVote(ctxt)
-    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-
-    local gameVehID = ctxt.data[1]
-    BJCVote.Speed.join(ctxt.senderID, gameVehID)
-end
-
----@param ctxt BJCContext
-function ctrl.SpeedStop(ctxt)
-    if not BJCPerm.isStaff(ctxt.senderID) and
-        ctxt.senderID ~= BJCVote.Speed.creatorID then
-        error({ key = "rx.errors.insufficientPermissions" })
-    end
-    BJCVote.Speed.stop()
+    BJCVote.Scenario.stop()
 end
 
 return ctrl

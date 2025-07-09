@@ -142,11 +142,6 @@ return function(TX)
         TX._send(event.EVENT, event.TX.HUNTER_SAVE, { hunterData })
     end
 
-    ---@param settings table
-    function scenario.HunterStart(settings)
-        TX._send(event.EVENT, event.TX.HUNTER_START, { settings })
-    end
-
     ---@param clientEvent string
     ---@param data any
     function scenario.HunterUpdate(clientEvent, data)
@@ -167,10 +162,6 @@ return function(TX)
     function scenario.DerbySave(arenas, callback)
         BJI.Rx.ctrls.SCENARIO.derbySaveCallback(callback)
         TX._send(event.EVENT, event.TX.DERBY_SAVE, { arenas })
-    end
-
-    function scenario.DerbyStart(index, lives, configs)
-        TX._send(event.EVENT, event.TX.DERBY_START, { index, lives, configs })
     end
 
     function scenario.DerbyUpdate(clientEvent, data)

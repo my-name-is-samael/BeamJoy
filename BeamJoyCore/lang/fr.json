@@ -244,6 +244,7 @@
         "close": "Fermer",
         "vote": "Voter",
         "unvote": "Retirer le vote",
+        "startVote": "Lancer un vote",
         "stopVote": "Arrêter le vote",
         "set": "Définir",
         "create": "Créer",
@@ -281,6 +282,7 @@
       "no": "Non",
       "state": "État",
       "unknown": "Inconnu",
+      "defaultPlayerName": "Un joueur",
       "and": "&",
       "random": "Aléatoire",
       "precisionInputTooltip": "Clic droit pour changer de mode"
@@ -315,11 +317,14 @@
           "mapSwitch": "passage à la carte ",
           "playerKick": "exclusion de ",
           "raceStart": "lancement de la course ",
-          "speedStart": "lancement d'un jeu de Speed"
+          "speedStart": "lancement d'un jeu de Speed",
+          "hunterStart": "lancement d'une partie de chasse",
+          "derbyStart": "lancement d'un match de derby"
         },
         "vote": "{playerName} a lancé un vote pour {voteEvent}{suffix}",
         "voteAccepted": "Vote pour {voteEvent}{suffix} accepté",
         "voteDenied": "Vote pour {voteEvent}{suffix} refusé : pas assez de votants",
+        "voteCancelledByCreator": "Vote pour {voteEvent}{suffix} annulé par le créateur",
         "voteCancelled": "Vote pour {voteEvent}{suffix} annulé par la modération",
         "gamemodes": {
           "race": "Course",
@@ -330,7 +335,8 @@
           "tagduo": "Jeu du Loup"
         },
         "gamemodeStopReasons": {
-          "manual": "modération",
+          "moderation": "par la modération",
+          "creator": "par le créateur",
           "notEnoughParticipants": "pas assez de participants",
           "timedout": "temps écoulé",
           "invalidVehConfig": "Une configuration de véhicule est invalide"
@@ -852,9 +858,15 @@
           "EndTimeoutTooltip": "Temps en secondes entre la fin des derniers joueurs et la fin du mode"
         },
         "hunter": {
-          "title": "Paramètres du Mode Hunter",
+          "title": "Paramètres du Hunter",
           "PreparationTimeout": "Durée de préparation",
-          "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre le mode de jeu",
+          "PreparationTimeoutTooltip": "Temps en secondes avant le début de la partie",
+          "VoteTimeout": "Durée du vote",
+          "VoteTimeoutTooltip": "Durée du vote en secondes",
+          "VoteThresholdRatio": "Seuil de vote",
+          "VoteThresholdRatioTooltip": "Proportion de votants requise parmi tous les joueurs du serveur pour démarrer la partie",
+          "GridTimeout": "Temps de préparation",
+          "GridTimeoutTooltip": "Temps limite en secondes pour qu'un joueur rejoigne, sélectionne un véhicule et se marque prêt. Le temps est annulé quand un joueur est prêt.",
           "HuntedStartDelay": "Délai de départ du fugitif",
           "HuntedStartDelayTooltip": "Compte à rebours en secondes pour les fugitifs",
           "HuntersStartDelay": "Délai de départ des chasseurs",
@@ -875,7 +887,13 @@
         "derby": {
           "title": "Paramètres du Destruction Derby",
           "PreparationTimeout": "Durée de préparation",
-          "PreparationTimeoutTooltip": "Temps en secondes pendant lequel les joueurs peuvent rejoindre le derby",
+          "PreparationTimeoutTooltip": "Temps en secondes avant le début du derby",
+          "VoteTimeout": "Durée du vote",
+          "VoteTimeoutTooltip": "Durée du vote en secondes",
+          "VoteThresholdRatio": "Seuil de vote",
+          "VoteThresholdRatioTooltip": "Proportion de votants requise parmi tous les joueurs du serveur pour démarrer le match",
+          "GridTimeout": "Temps de préparation",
+          "GridTimeoutTooltip": "Temps limite en secondes pour qu'un joueur rejoigne, sélectionne un véhicule et se marque prêt. Le temps est annulé quand un joueur est prêt.",
           "StartCountdown": "Décompte de départ",
           "StartCountdownTooltip": "Temps en secondes avant le début du derby",
           "DestroyedTimeout": "Décompte d'élimination",
@@ -1138,14 +1156,11 @@
           "currentModel": "Modèle actuel",
           "currentConfig": "Configuration actuelle",
           "specific": "{model} spécifique"
-        },
-        "startVote": "Lancer un vote",
-        "startRace": "Démarrer la course"
+        }
       },
       "preparation": {
         "singleplayer": "Course Solo",
         "multiplayer": "Course Multijoueur",
-        "defaultPlayerName": "Un joueur",
         "hasStarted": "{creatorName} a démarré la course \"{raceName}\" ({places} places)",
         "startTimeout": "La course commencera dans {delay}",
         "raceAboutToStart": "La course est sur le point de commencer",
@@ -1478,6 +1493,15 @@
         "lastWaypointGPSTooltip": "Lorsqu'il ne reste qu'un point de passage, les chasseurs peuvent voir où se trouve le fugitif (Nom et GPS)",
         "notEnoughPlayers": "Il n'y a pas assez de joueurs pour lancer un Hunter"
       },
+      "vote": {
+        "hasStarted": "{creatorName} a lancé un jeu du Hunter ({places} places)",
+        "hasStartedVote": "{creatorName} a lancé un vote pour démarrer un jeu du Hunter ({places} places)",
+        "timeout": "La partie commencera dans {delay}",
+        "aboutToStart": "La partie est sur le point de commencer",
+        "voteTimeout": "Le vote se terminera dans {delay}",
+        "voteAboutToEnd": "Le vote est sur le point de se terminer",
+        "currentVotes": "Votes actuels"
+      },
       "play": {
         "flashChooseVehicle": "Choisissez votre véhicule",
         "flashHunterResume": "Arrêtez le fugitif !",
@@ -1537,6 +1561,15 @@
         "toastConfigAlreadySaved": "Configuration déjà enregistrée",
         "specificConfig": "Spécifique {model}",
         "notEnoughPlayers": "Il n'y a pas assez de joueurs pour lancer un Derby"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} a lancé un match de derby sur l'arène \"{arenaName}\" ({places} places)",
+        "hasStartedVote": "{creatorName} a lancé un vote pour démarrer un match de derby sur l'arène \"{arenaName}\" ({places} places)",
+        "timeout": "Le match commencera dans {delay}",
+        "aboutToStart": "Le match est sur le point de commencer",
+        "voteTimeout": "Le vote se terminera dans {delay}",
+        "voteAboutToEnd": "Le vote est sur le point de se terminer",
+        "currentVotes": "Votes actuels"
       },
       "play": {
         "flashNoLifeRemaining": "Dernière vie",

@@ -27,6 +27,7 @@ local W = {
             remove = "",
             add = "",
             close = "",
+            startVote = "",
             start = "",
         },
     },
@@ -42,6 +43,9 @@ local W = {
         currentVehProtected = false,
         selfProtected = false,
         canSpawnNewVeh = false,
+
+        showVoteBtn = false,
+        showStartBtn = false,
     },
 
     presets = require("ge/extensions/utils/VehiclePresets").getDerbyPresets(),
@@ -70,6 +74,7 @@ local function updateLabels()
     W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
     W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
     W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
 end
 
@@ -82,15 +87,16 @@ local function updateCache(ctxt)
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
     W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
+
+    W.data.showVoteBtn = not BJI.Managers.Tournament.state and
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    W.data.showStartBtn = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name .. "Labels"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -98,15 +104,32 @@ local function onLoad()
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.CACHE_LOADED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
     }, function(_, data)
-        if data.cache == BJI.Managers.Cache.CACHES.PLAYERS and
-            BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS then
-            BJI.Managers.Toast.warning(BJI.Managers.Lang.get("derby.settings.notEnoughPlayers"))
+        local mustClose, msg = false, ""
+        if data._event == BJI.Managers.Events.EVENTS.CACHE_LOADED and
+            data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
+            if BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS then
+                mustClose, msg = true, BJI.Managers.Lang.get("derby.settings.notEnoughPlayers")
+            end
+        else
+            if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) or
+                (not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+                    not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
+                mustClose = true
+            end
+        end
+        if mustClose then
+            if msg then
+                BJI.Managers.Toast.warning(msg)
+            end
             onClose()
         end
     end, W.name .. "AutoClose"))
@@ -254,13 +277,32 @@ local function footer(ctxt)
         onClose()
     end
     TooltipText(W.labels.buttons.close)
-    SameLine()
-    if IconButton("startDerby", BJI.Utils.Icon.ICONS.videogame_asset,
-            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-        BJI.Tx.scenario.DerbyStart(W.data.arenaIndex, W.data.lives, W.data.configs)
-        onClose()
+    if W.data.showVoteBtn then
+        SameLine()
+        if IconButton("startVoteDerby", BJI.Utils.Icon.ICONS.event_available,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.DERBY, true, {
+                arenaIndex = W.data.arenaIndex,
+                lives = W.data.lives,
+                configs = W.data.configs,
+            })
+            onClose()
+        end
+        TooltipText(W.labels.buttons.startVote)
     end
-    TooltipText(W.labels.buttons.start)
+    if W.data.showStartBtn then
+        SameLine()
+        if IconButton("startDerby", BJI.Utils.Icon.ICONS.videogame_asset,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.DERBY, false, {
+                arenaIndex = W.data.arenaIndex,
+                lives = W.data.lives,
+                configs = W.data.configs,
+            })
+            onClose()
+        end
+        TooltipText(W.labels.buttons.start)
+    end
 end
 
 W.onLoad = onLoad

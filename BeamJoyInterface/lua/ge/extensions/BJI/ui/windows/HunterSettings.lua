@@ -30,6 +30,7 @@ local W = {
             remove = "",
             add = "",
             close = "",
+            startVote = "",
             start = "",
         },
     },
@@ -43,6 +44,9 @@ local W = {
         currentVehProtected = false,
         selfProtected = false,
         canSpawnNewVeh = false,
+
+        showVoteBtn = false,
+        showStartBtn = false,
     },
     widths = {
         labels = 0,
@@ -77,6 +81,7 @@ local function updateLabels()
     W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
     W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
     W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.buttons.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
     W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
 end
 
@@ -87,24 +92,24 @@ local function updateCache(ctxt)
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
     W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
+
+    W.data.showVoteBtn = not BJI.Managers.Tournament.state and
+        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    W.data.showStartBtn = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, function(ctxt)
-        updateLabels()
-        updateCache(ctxt)
-    end, W.name .. "Labels"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
         BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
         BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
+        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
         BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
@@ -127,7 +132,8 @@ local function onLoad()
             end
         else
             if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) or
-                not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+                (not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+                    not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
                 mustClose = true
             end
         end
@@ -179,7 +185,8 @@ local function drawBody(ctxt)
                     { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
                         not W.data.canSpawnNewVeh }) then
-                BJI.Managers.Veh.replaceOrSpawnVehicle(W.data.huntedConfig.model, W.data.huntedConfig.key or W.data.huntedConfig)
+                BJI.Managers.Veh.replaceOrSpawnVehicle(W.data.huntedConfig.model,
+                    W.data.huntedConfig.key or W.data.huntedConfig)
             end
             TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
             SameLine()
@@ -289,18 +296,34 @@ local function drawFooter(ctxt)
         onClose()
     end
     TooltipText(W.labels.buttons.close)
-    SameLine()
-    if IconButton("startHunter", BJI.Utils.Icon.ICONS.videogame_asset,
-            { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-        BJI.Tx.scenario.HunterStart({
-            waypoints = W.data.waypoints,
-            huntedConfig = W.data.huntedConfig,
-            hunterConfigs = W.data.hunterConfigs,
-            lastWaypointGPS = W.data.lastWaypointGPS,
-        })
-        onClose()
+    if W.data.showVoteBtn then
+        SameLine()
+        if IconButton("startVoteHunter", BJI.Utils.Icon.ICONS.event_available,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.HUNTER, true, {
+                waypoints = W.data.waypoints,
+                huntedConfig = W.data.huntedConfig,
+                hunterConfigs = W.data.hunterConfigs,
+                lastWaypointGPS = W.data.lastWaypointGPS,
+            })
+            onClose()
+        end
+        TooltipText(W.labels.buttons.startVote)
     end
-    TooltipText(W.labels.buttons.start)
+    if W.data.showStartBtn then
+        SameLine()
+        if IconButton("startHunter", BJI.Utils.Icon.ICONS.videogame_asset,
+                { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
+            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.HUNTER, false, {
+                waypoints = W.data.waypoints,
+                huntedConfig = W.data.huntedConfig,
+                hunterConfigs = W.data.hunterConfigs,
+                lastWaypointGPS = W.data.lastWaypointGPS,
+            })
+            onClose()
+        end
+        TooltipText(W.labels.buttons.start)
+    end
 end
 
 local function open()

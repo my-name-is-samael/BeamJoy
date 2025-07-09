@@ -117,6 +117,7 @@
         "close": "Закрывать",
         "vote": "Голосование",
         "unvote": "Отозвать голос",
+        "startVote": "Начать голосование",
         "stopVote": "Остановить голосование",
         "set": "Набор",
         "create": "Создавать",
@@ -154,6 +155,7 @@
       "no": "Нет",
       "state": "Состояние",
       "unknown": "Неизвестный",
+      "defaultPlayerName": "Игрок",
       "and": "&",
       "random": "Случайный",
       "precisionInputTooltip": "Щелкните правой кнопкой мыши, чтобы сменить режим"
@@ -188,11 +190,14 @@
           "mapSwitch": "смена карты ",
           "playerKick": "исключение игрока ",
           "raceStart": "запуск гонки ",
-          "speedStart": "запуск скоростной игры"
+          "speedStart": "запуск скоростной игры",
+          "hunterStart": "запуск режима охоты",
+          "derbyStart": "запуск дерби"
         },
         "vote": "{playerName} начал голосование за {voteEvent}{suffix}",
         "voteAccepted": "Голосование за {voteEvent}{suffix} принято",
         "voteDenied": "Голосование за {voteEvent}{suffix} отклонено: недостаточно голосов",
+        "voteCancelledByCreator": "Голосование по событию {voteEvent}{suffix} отменено создателем",
         "voteCancelled": "Голосование за {voteEvent}{suffix} отменено модерацией",
         "gamemodes": {
           "race": "Гонка",
@@ -203,7 +208,8 @@
           "tagduo": "Салки Дуо"
         },
         "gamemodeStopReasons": {
-          "manual": "модерация",
+          "moderation": "модерацией",
+          "creator": "создателем",
           "notEnoughParticipants": "недостаточно участников",
           "timedout": "вышло время",
           "invalidVehConfig": "Недопустимая конфигурация транспорта"
@@ -727,7 +733,13 @@
         "hunter": {
           "title": "Настройки режима Охотник",
           "PreparationTimeout": "Время подготовки",
-          "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться к режиму",
+          "PreparationTimeoutTooltip": "Время в секундах до начала игры",
+          "VoteTimeout": "Длительность голосования",
+          "VoteTimeoutTooltip": "Продолжительность голосования в секундах",
+          "VoteThresholdRatio": "Порог голосов",
+          "VoteThresholdRatioTooltip": "Необходимое соотношение голосующих среди всех игроков сервера для начала игры",
+          "GridTimeout": "Тайм-аут подготовительного этапа",
+          "GridTimeoutTooltip": "Тайм-аут в секундах для входа, выбора транспорта и готовности игрока. Тайм-аут отменяется, когда кто-либо нажимает «Готов»",
           "HuntedStartDelay": "Задержка начала для беглецов",
           "HuntedStartDelayTooltip": "Обратный отсчет в секундах для беглецов",
           "HuntersStartDelay": "Задержка начала для охотников",
@@ -748,7 +760,13 @@
         "derby": {
           "title": "Настройки Destruction Derby",
           "PreparationTimeout": "Время подготовки",
-          "PreparationTimeoutTooltip": "Время в секундах, в течение которого игроки могут присоединиться к дерби",
+          "PreparationTimeoutTooltip": "Время в секундах до начала дерби",
+          "VoteTimeout": "Длительность голосования",
+          "VoteTimeoutTooltip": "Продолжительность голосования в секундах",
+          "VoteThresholdRatio": "Порог голосов",
+          "VoteThresholdRatioTooltip": "Необходимое соотношение голосующих среди всех игроков сервера для начала игры",
+          "GridTimeout": "Тайм-аут подготовительного этапа",
+          "GridTimeoutTooltip": "Тайм-аут в секундах для входа, выбора транспорта и готовности игрока. Тайм-аут отменяется, когда кто-либо нажимает «Готов»",
           "StartCountdown": "Обратный отсчет старта",
           "StartCountdownTooltip": "Время в секундах до начала дерби",
           "DestroyedTimeout": "Обратный отсчет до выбытия",
@@ -1011,14 +1029,11 @@
           "currentModel": "Текущая модель",
           "currentConfig": "Текущая конфигурация",
           "specific": "Конкретная {model}"
-        },
-        "startVote": "Начать голосование",
-        "startRace": "Начать гонку"
+        }
       },
       "preparation": {
         "singleplayer": "Одиночная гонка",
         "multiplayer": "Многопользовательская гонка",
-        "defaultPlayerName": "Игрок",
         "hasStarted": "Пользователь {creatorName} начал гонку \"{raceName}\" (мест: {places})",
         "startTimeout": "Гонка начнется через {delay}",
         "raceAboutToStart": "Гонка вот-вот начнется",
@@ -1351,6 +1366,15 @@
         "lastWaypointGPSTooltip": "Когда остается только одна точка маршрута, охотники могут видеть, где находится беглец (Имя и GPS)",
         "notEnoughPlayers": "Недостаточно игроков для запуска режима охотника"
       },
+      "vote": {
+        "hasStarted": "{creatorName} начал игру в охотника ({places} мест)",
+        "hasStartedVote": "{creatorName} начал голосование для запуска охоты ({places} мест)",
+        "timeout": "Игра начнется через {delay}",
+        "aboutToStart": "Игра вот-вот начнется",
+        "voteTimeout": "Голосование закончится через {delay}",
+        "voteAboutToEnd": "Голосование скоро завершится",
+        "currentVotes": "Текущие голоса"
+      },
       "play": {
         "flashChooseVehicle": "Выберите свой автомобиль",
         "flashHunterResume": "Остановите беглеца!",
@@ -1410,6 +1434,15 @@
         "toastConfigAlreadySaved": "Конфигурация уже сохранена",
         "specificConfig": "Конкретная {model}",
         "notEnoughPlayers": "Недостаточно игроков для начала дерби"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} начал дерби на арене «{arenaName}» ({places} мест)",
+        "hasStartedVote": "{creatorName} начал голосование для начала дерби на арене «{arenaName}» ({places} мест)",
+        "timeout": "Матч начнется через {delay}",
+        "aboutToStart": "Матч вот-вот начнется",
+        "voteTimeout": "Голосование закончится через {delay}",
+        "voteAboutToEnd": "Голосование скоро завершится",
+        "currentVotes": "Текущие голоса"
       },
       "play": {
         "flashNoLifeRemaining": "Последняя жизнь",

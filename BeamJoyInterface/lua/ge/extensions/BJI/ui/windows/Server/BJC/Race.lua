@@ -57,8 +57,9 @@ return function(ctxt, labels)
                 if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = el.default == value }) then
-                    BJI.Managers.Context.BJC.Race[el.key] = el.default / (el.multiplier or 1)
-                    BJI.Tx.config.bjc("Race." .. el.key, el.default / (el.multiplier or 1))
+                    value = el.default
+                    BJI.Managers.Context.BJC.Race[el.key] = value / (el.multiplier or 1)
+                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
                 end
                 TooltipText(labels.buttons.reset)
                 SameLine()
@@ -68,11 +69,8 @@ return function(ctxt, labels)
                     { formatRender = el.renderFormat })
                 TooltipText(labels.race.keys[el.key .. "Tooltip"])
                 if nextValue then
-                    BJI.Managers.Context.BJC.Race[el.key] = nextValue
-                    if el.multiplier then
-                        BJI.Managers.Context.BJC.Race[el.key] = BJI.Managers.Context.BJC.Race[el.key] /
-                            (el.multiplier or 1)
-                    end
+                    value = nextValue
+                    BJI.Managers.Context.BJC.Race[el.key] = nextValue / (el.multiplier or 1)
                     BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
                 end
             end

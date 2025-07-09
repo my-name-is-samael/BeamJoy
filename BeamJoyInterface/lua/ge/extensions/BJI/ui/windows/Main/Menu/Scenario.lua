@@ -358,121 +358,9 @@ local function menuSpeedGame(ctxt)
             type = "item",
             label = BJI.Managers.Lang.get("menu.scenario.speed.start"),
             onClick = function()
-                BJI.Tx.vote.SpeedStart(false)
+                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.SPEED, false)
             end,
         })
-    end
-end
-
----@param ctxt TickContext
-local function menuHunter(ctxt)
-    if BJI.Managers.Context.Scenario.Data.Hunter then
-        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS
-        local errorMessage = nil
-        if not BJI.Managers.Context.Scenario.Data.Hunter or
-            not BJI.Managers.Context.Scenario.Data.Hunter.enabled then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
-        elseif potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
-                amount = minimumParticipants - potentialPlayers
-            })
-        end
-
-        if errorMessage then
-            table.insert(M.cache.elems, {
-                type = "custom",
-                render = function()
-                    Text(BJI.Managers.Lang.get("menu.scenario.hunter.start"),
-                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
-                    TooltipText(errorMessage)
-                end
-            })
-        else
-            table.insert(M.cache.elems, {
-                type = "item",
-                label = BJI.Managers.Lang.get("menu.scenario.hunter.start"),
-                active = BJI.Windows.HunterSettings.show,
-                onClick = function()
-                    if BJI.Windows.HunterSettings.show then
-                        BJI.Windows.HunterSettings.onClose()
-                    else
-                        BJI.Windows.HunterSettings.open()
-                    end
-                end,
-            })
-        end
-    end
-end
-
----@param ctxt TickContext
-local function menuDerby(ctxt)
-    if BJI.Managers.Context.Scenario.Data.Derby then
-        local rawArenas = Table(BJI.Managers.Context.Scenario.Data.Derby)
-            :filter(function(arena) return arena.enabled end)
-
-        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
-        local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
-        local errorMessage = nil
-        if #rawArenas == 0 then
-            errorMessage = BJI.Managers.Lang.get("menu.scenario.derby.noArena")
-        elseif potentialPlayers < minimumParticipants then
-            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
-                amount = minimumParticipants - potentialPlayers
-            })
-        end
-
-        if errorMessage then
-            table.insert(M.cache.elems, {
-                type = "custom",
-                render = function()
-                    Text(BJI.Managers.Lang.get("menu.scenario.derby.start"),
-                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
-                    TooltipText(errorMessage)
-                end
-            })
-        else
-            if #rawArenas <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
-                -- sub elems
-                table.insert(M.cache.elems, {
-                    type = "menu",
-                    label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
-                    elems = rawArenas:map(function(arena, iArena)
-                        return {
-                            type = "item",
-                            label = string.var("{1} ({2})", { arena.name,
-                                BJI.Managers.Lang.get("derby.settings.places")
-                                    :var({ places = #arena.startPositions })
-                            }),
-                            onClick = function()
-                                BJI.Windows.DerbySettings.open(iArena)
-                            end
-                        }
-                    end):sort(function(a, b)
-                        return a.label < b.label
-                    end)
-                })
-            else
-                -- selection window
-                table.insert(M.cache.elems, {
-                    type = "item",
-                    label = BJI.Managers.Lang.get("menu.scenario.derby.start"),
-                    onClick = function()
-                        BJI.Windows.Selection.open("menu.scenario.derby.start", rawArenas:map(function(arena, iArena)
-                            return {
-                                label = string.var("{1} ({2})", { arena.name,
-                                    BJI.Managers.Lang.get("derby.settings.places")
-                                        :var({ places = #arena.startPositions })
-                                }),
-                                value = iArena,
-                            }
-                        end), nil, function(iArena)
-                            BJI.Windows.DerbySettings.open(iArena)
-                        end, { BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO })
-                    end,
-                })
-            end
-        end
     end
 end
 
@@ -494,11 +382,15 @@ local function updateCache(ctxt)
         menuDeliveryMulti(ctxt)
         menuTagDuo(ctxt)
         if not BJI.Managers.Scenario.isServerScenarioInProgress() and
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+            not BJI.Managers.Votes.Map.started() and
+            not BJI.Managers.Votes.Scenario.started() then
             table.insert(M.cache.elems, { type = "separator" })
             menuSpeedGame(ctxt)
-            menuHunter(ctxt)
-            menuDerby(ctxt)
+            local common = require("ge/extensions/BJI/ui/windows/Main/Menu/Common")
+            common.menuRace(ctxt, M.cache.elems)
+            common.menuHunter(ctxt, M.cache.elems)
+            common.menuDerby(ctxt, M.cache.elems)
         end
     end
 
@@ -566,6 +458,7 @@ function M.onLoad()
         BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
         BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,
         BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        BJI.Managers.Events.EVENTS.VOTE_UPDATED,
         BJI.Managers.Events.EVENTS.LANG_CHANGED,
         BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
         BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
@@ -579,10 +472,6 @@ function M.onLoad()
                 BJI.Managers.Cache.CACHES.RACES,
                 BJI.Managers.Cache.CACHES.DELIVERIES,
                 BJI.Managers.Cache.CACHES.BUS_LINES,
-                BJI.Managers.Cache.CACHES.HUNTER_DATA,
-                BJI.Managers.Cache.CACHES.HUNTER,
-                BJI.Managers.Cache.CACHES.DERBY_DATA,
-                BJI.Managers.Cache.CACHES.DERBY,
             }, data.cache) then
             updateCache(ctxt)
         end

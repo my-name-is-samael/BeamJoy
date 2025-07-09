@@ -114,7 +114,7 @@ local function config()
         },
         Race = {
             RaceSoloTimeBroadcast = false,
-            PreparationTimeout = 10,
+            PreparationTimeout = 30,
             VoteTimeout = 30,
             VoteThresholdRatio = .51,
             GridReadyTimeout = 10,
@@ -125,6 +125,9 @@ local function config()
         },
         Hunter = {
             PreparationTimeout = 30,
+            VoteTimeout = 30,
+            VoteThresholdRatio = .51,
+            GridTimeout = 60,
             HuntedStartDelay = 0,
             HuntersStartDelay = 5,
             HuntedStuckTimeout = 10,
@@ -135,7 +138,7 @@ local function config()
             EndTimeout = 10,
         },
         Speed = {
-            PreparationTimeout = 10,
+            PreparationTimeout = 20,
             VoteTimeout = 30,
             BaseSpeed = 30,
             StepSpeed = 5,
@@ -143,7 +146,10 @@ local function config()
             EndTimeout = 10,
         },
         Derby = {
-            PreparationTimeout = 60,
+            PreparationTimeout = 30,
+            VoteTimeout = 30,
+            VoteThresholdRatio = .51,
+            GridTimeout = 60,
             StartCountdown = 10,
             DestroyedTimeout = 5,
             EndTimeout = 10,

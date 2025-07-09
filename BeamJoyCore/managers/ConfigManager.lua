@@ -142,6 +142,9 @@ local function getCache(senderID)
 
         data.Hunter = {
             PreparationTimeout = M.Data.Hunter.PreparationTimeout,
+            VoteTimeout = M.Data.Hunter.VoteTimeout,
+            VoteThresholdRatio = M.Data.Hunter.VoteThresholdRatio,
+            GridTimeout = M.Data.Hunter.GridTimeout,
             HuntedStartDelay = M.Data.Hunter.HuntedStartDelay,
             HuntersStartDelay = M.Data.Hunter.HuntersStartDelay,
             HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
@@ -154,6 +157,9 @@ local function getCache(senderID)
 
         data.Derby = {
             PreparationTimeout = M.Data.Derby.PreparationTimeout,
+            VoteTimeout = M.Data.Derby.VoteTimeout,
+            VoteThresholdRatio = M.Data.Derby.VoteThresholdRatio,
+            GridTimeout = M.Data.Derby.GridTimeout,
             StartCountdown = M.Data.Derby.StartCountdown,
             DestroyedTimeout = M.Data.Derby.DestroyedTimeout,
             EndTimeout = M.Data.Derby.EndTimeout,

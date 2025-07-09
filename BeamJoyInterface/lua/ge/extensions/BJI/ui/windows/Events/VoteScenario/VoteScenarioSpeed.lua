@@ -1,28 +1,27 @@
 --- gc prevention
-local vs, remainingTime
+local mgr, remainingTime
 
 return function(ctxt, cache)
-    if not vs then
-        vs = BJI.Managers.Votes.Speed
+    if not mgr then
+        mgr = BJI.Managers.Votes.Scenario
     end
 
     Text(cache.hasStarted)
 
-    remainingTime = vs.endsAt - ctxt.now
+    remainingTime = mgr.endsAt - ctxt.now
     Text(remainingTime < 1000 and cache.timeAboutEnd or cache.timeout
         :var({ delay = BJI.Utils.UI.PrettyDelay(math.floor(remainingTime / 1000)) }))
 
     if cache.showVoteBtn then
-        if IconButton("joinSpeed", vs.participants[BJI.Managers.Context.User.playerID] and
+        if IconButton("joinSpeed", mgr.voters[BJI.Managers.Context.User.playerID] and
                 BJI.Utils.Icon.ICONS.exit_to_app or BJI.Utils.Icon.ICONS.videogame_asset,
                 { disabled = not ctxt.isOwner or cache.disableButtons, big = true,
-                    btnStyle = vs.participants[BJI.Managers.Context.User.playerID] and
+                    btnStyle = mgr.voters[BJI.Managers.Context.User.playerID] and
                         BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             cache.disableButtons = true
-            BJI.Tx.vote.SpeedVote(not vs.participants[BJI.Managers.Context.User.playerID] and
-                ctxt.veh.gameVehicleID or nil)
+            BJI.Tx.vote.ScenarioVote(ctxt.veh.gameVehicleID)
         end
-        TooltipText(vs.participants[BJI.Managers.Context.User.playerID] and
+        TooltipText(mgr.voters[BJI.Managers.Context.User.playerID] and
             cache.buttons.spectate or cache.buttons.join)
     end
     if cache.showCancelBtn then
@@ -32,7 +31,7 @@ return function(ctxt, cache)
         if IconButton("stopSpeed", BJI.Utils.Icon.ICONS.cancel, { disabled = cache.disableButtons,
                 big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             cache.disableButtons = true
-            BJI.Tx.vote.SpeedStop()
+            BJI.Tx.vote.ScenarioStop()
         end
         TooltipText(cache.buttons.stop)
     end
