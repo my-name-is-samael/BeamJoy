@@ -1,5 +1,3 @@
-local im = ui_imgui
-
 ---@class BJIManagerWindows : BJIManager
 local M = {
     _name = "Windows",
@@ -10,7 +8,6 @@ local M = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_FOCUS_ON_APPEARING,
     },
 
-    loaded = false,
     ---@type tablelib<BJIWindow>
     windows = Table(),
     ---@type tablelib<string, boolean>
@@ -51,6 +48,9 @@ local function windowSubFnCall(ctxt, w, fnName)
     end
 end
 
+--- gc prevention
+local state
+
 ---@param ctxt TickContext
 local function renderTick(ctxt)
     if not BJI.CLIENT_READY or not BJI.Managers.Cache.areBaseCachesFirstLoaded() or not BJI.Utils.Style.BJIThemeLoaded then
@@ -62,9 +62,8 @@ local function renderTick(ctxt)
         if BJI.Bench.STATE == 2 then
             BJI.Bench.startGC()
         end
-        if (M.showStates[w.name] and not w.getState()) or
-            --not M.loaded or
-            not MPGameNetwork.launcherConnected() then
+        state = extensions.ui_visibility.getImgui() and w.getState()
+        if (M.showStates[w.name] and not state) or not MPGameNetwork.launcherConnected() then
             windowSubFnCall(ctxt, w, "onUnload")
             M.showStates[w.name] = false
             BJI.Managers.Context.GUI.hideWindow(w.name)
@@ -72,7 +71,7 @@ local function renderTick(ctxt)
                 name = w.name,
                 state = false,
             })
-        elseif not M.showStates[w.name] and w.getState() then
+        elseif not M.showStates[w.name] and state then
             windowSubFnCall(ctxt, w, "onLoad")
             M.showStates[w.name] = true
             BJI.Managers.Context.GUI.showWindow(w.name)
@@ -105,7 +104,6 @@ local function onUnload()
             M.windows[w.name] = nil
             BJI.Managers.Context.GUI.hideWindow(w.name)
         end)
-    M.loaded = false
 end
 
 local function onLoad()
@@ -125,8 +123,6 @@ local function onLoad()
     end)
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-
-    M.loaded = true
 end
 
 M.onLoad = onLoad

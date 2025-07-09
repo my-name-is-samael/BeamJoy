@@ -80,7 +80,7 @@ initManagers()
 
 
 local M = {
-    dependencies = { "ui_imgui", "core_camera", "core_vehicles", "core_vehicle_partmgmt",
+    dependencies = { "ui_imgui", "core_camera", "core_vehicles", "core_vehicle_partmgmt", "ui_visibility",
         "simTimeAuthority", "gameplay_traffic", "gameplay_police", "core_modmanager", "core_repository",
         "core_groundMarkers", "core_vehicle_manager", "map", "spawn", "core_vehicleBridge",
         "core_environment", "gameplay_parking", "gameplay_drift_general", "gameplay_drift_drift",
