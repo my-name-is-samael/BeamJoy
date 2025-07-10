@@ -489,8 +489,8 @@ local function loadScenarii()
     end)
 
     -- hunter data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.HUNTER_DATA, function(cacheData)
-        M.Scenario.Data.Hunter = cacheData
+    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
+        M.Scenario.Data.HunterInfected = cacheData
     end)
 
     -- derby data

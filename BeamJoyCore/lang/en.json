@@ -402,10 +402,6 @@
           "title": "Map",
           "custom": "custom"
         },
-        "race": {
-          "title": "Race",
-          "noRace": "No race available"
-        },
         "speed": {
           "title": "Speed Game"
         }
@@ -441,10 +437,19 @@
           "start": "Start Speed Game",
           "stop": "Stop Speed Game"
         },
-        "raceStop": "Stop Race",
+        "race": {
+          "title": "Race",
+          "noRace": "No race available",
+          "stop": "Stop Race"
+        },
         "hunter": {
           "start": "Start Hunter",
           "stop": "Stop Hunter",
+          "modeDisabled": "disabled"
+        },
+        "infected": {
+          "start": "Start Infected",
+          "stop": "Stop Infected",
           "modeDisabled": "disabled"
         },
         "derby": {
@@ -476,7 +481,8 @@
         "races": "Races",
         "raceCreate": "Create Race",
         "raceDeleteModal": "Are you sure you want to delete the race \"{raceName}\"",
-        "hunter": "Hunter ({visibility}, {amount} waypoints)",
+        "hunter": "Hunter ({state})",
+        "infected": "Infected ({state})",
         "derby": "Derby Arenas ({amount})"
       },
       "config": {
@@ -1451,35 +1457,6 @@
       }
     },
     "hunter": {
-      "edit": {
-        "title": "Hunter Editor",
-        "targetName": "Target {index}",
-        "hunterPositionName": "Hunter {index}",
-        "huntedPositionName": "Fugitive {index}",
-        "waypoints": "Waypoints",
-        "hunters": "Hunters",
-        "hunted": "Fugitive",
-        "enabled": "Voteable mode",
-        "radius": "Radius",
-        "missingPoints": "Missing {amount} point(s)",
-        "saveErrorToast": "Hunter data save failed, please try again or contact the administrator",
-        "buttons": {
-          "refreshMarkers": "Refresh Markers",
-          "toggleModeVisibility": "Toggle the mode visibility",
-          "showHunterStartPosition": "Show the hunter start position",
-          "setHunterStartPositionHere": "Set the hunter start position here",
-          "deleteHunterStartPosition": "Delete the hunter start position",
-          "addHunterStartPositionHere": "Add a hunter start position here",
-          "showHuntedStartPosition": "Show the fugitive start position",
-          "setHuntedStartPositionHere": "Set the fugitive start position here",
-          "deleteHuntedStartPosition": "Delete the fugitive start position",
-          "addHuntedStartPositionHere": "Add a fugitive start position here",
-          "addWaypointHere": "Add a waypoint here",
-          "showWaypoint": "Show waypoint",
-          "setWaypointHere": "Set waypoint here",
-          "deleteWaypoint": "Delete waypoint"
-        }
-      },
       "settings": {
         "title": "Hunter Settings",
         "huntedWaypoints": "Fugitive Waypoints",
@@ -1625,6 +1602,81 @@
       "flashTag": "Tag !",
       "title": "Tag - {playerName}'s lobby",
       "taggerMark": "Tagger"
+    },
+    "hunterInfectedEditor": {
+      "title": "Hunter/Infected Editor",
+      "enabled": "Voteable mode",
+      "buttons": {
+        "refreshMarkers": "Refresh Markers",
+        "toggleModeVisibility": "Toggle the mode visibility"
+      },
+      "errors": {
+        "missingPoints": "Missing {amount} point(s)",
+        "saveErrorToast": "Data save failed, please try again or contact the administrator"
+      },
+      "hunter": {
+        "title": "Hunter",
+        "fields": {
+          "hunters": "Hunters",
+          "hunted": "Fugitive",
+          "waypoints": "Waypoints",
+          "radius": "Radius"
+        },
+        "buttons": {
+          "showHunterStartPosition": "Show the hunter start position",
+          "setHunterStartPositionHere": "Set the hunter start position here",
+          "deleteHunterStartPosition": "Delete the hunter start position",
+          "addHunterStartPositionHere": "Add a hunter start position here",
+          "showHuntedStartPosition": "Show the fugitive start position",
+          "setHuntedStartPositionHere": "Set the fugitive start position here",
+          "deleteHuntedStartPosition": "Delete the fugitive start position",
+          "addHuntedStartPositionHere": "Add a fugitive start position here",
+          "addWaypointHere": "Add a waypoint here",
+          "showWaypoint": "Show waypoint",
+          "setWaypointHere": "Set waypoint here",
+          "deleteWaypoint": "Delete waypoint"
+        },
+        "tags": {
+          "waypointName": "Waypoint {index}",
+          "hunterName": "Hunter {index}",
+          "huntedName": "Fugitive {index}"
+        }
+      },
+      "infected": {
+        "title": "Infected",
+        "fields": {
+          "survivors": "Survivors",
+          "infected": "Infected"
+        },
+        "buttons": {
+          "showSurvivorStartPosition": "Show the survivor start position",
+          "setSurvivorStartPositionHere": "Set the survivor start position here",
+          "deleteSurvivorStartPosition": "Delete the survivor start position",
+          "addSurvivorStartPositionHere": "Add a survivor start position here",
+          "showInfectedStartPosition": "Show the infected start position",
+          "setInfectedStartPositionHere": "Set the infected start position here",
+          "deleteInfectedStartPosition": "Delete the infected start position",
+          "addInfectedStartPositionHere": "Add an infected start position here"
+        },
+        "tags": {
+          "survivorName": "Survivor {index}",
+          "infectedName": "Infected {index}"
+        }
+      }
+    },
+    "infected": {
+      "title": "Infected Game",
+      "infected": "Infected",
+      "survivors": "Survivors",
+      "remainingSurvivors": "{amount} survivors remaining",
+      "preparation": {
+        "endAfterLastSurvivorInfected": "Last survivor infection",
+        "endAfterLastSurvivorInfectedTooltip": "The game will end after the last survivor is infected, otherwise the game will end when only 1 survivor left",
+        "config": "Vehicle",
+        "enableColors": "Use vehicle colors",
+        "survivorsColor": "Survivors color",
+        "infectedColor": "Infected color"
+      }
     }
   }
 }

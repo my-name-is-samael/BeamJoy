@@ -123,11 +123,11 @@ local function onLoad()
         if data._event == BJI.Managers.Events.EVENTS.CACHE_LOADED and
             (
                 data.cache == BJI.Managers.Cache.CACHES.PLAYERS or
-                data.cache == BJI.Managers.Cache.CACHES.HUNTER_DATA
+                data.cache == BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA
             ) then
             if BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS then
                 mustClose, msg = true, BJI.Managers.Lang.get("hunter.settings.notEnoughPlayers")
-            elseif not BJI.Managers.Context.Scenario.Data.Hunter.enabled then
+            elseif not BJI.Managers.Context.Scenario.Data.HunterInfected.enabledHunter then
                 mustClose, msg = true, BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
             end
         else

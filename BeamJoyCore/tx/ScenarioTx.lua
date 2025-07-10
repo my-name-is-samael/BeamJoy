@@ -51,8 +51,8 @@ end
 
 ---@param targetID integer
 ---@param state boolean
-function BJCTx.scenario.HunterSave(targetID, state)
-    BJCTx.sendToPlayer(eventName, BJC_EVENTS.SCENARIO.TX.HUNTER_SAVE, targetID, state)
+function BJCTx.scenario.HunterInfectedSave(targetID, state)
+    BJCTx.sendToPlayer(eventName, BJC_EVENTS.SCENARIO.TX.HUNTER_INFECTED_SAVE, targetID, state)
 end
 
 ---@param targetID integer

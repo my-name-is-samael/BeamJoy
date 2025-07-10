@@ -400,7 +400,7 @@ local function updateCache(ctxt)
             if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
                 table.insert(M.cache.elems, {
                     type = "item",
-                    label = BJI.Managers.Lang.get("menu.scenario.raceStop"),
+                    label = BJI.Managers.Lang.get("menu.scenario.race.stop"),
                     onClick = BJI.Tx.scenario.RaceMultiStop,
                 })
             elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED) then

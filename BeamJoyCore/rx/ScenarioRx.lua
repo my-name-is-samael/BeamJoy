@@ -292,13 +292,13 @@ function ctrl.SpeedStop(ctxt)
 end
 
 ---@param ctxt BJCContext
-function ctrl.HunterSave(ctxt)
+function ctrl.HunterInfectedSave(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.SCENARIO) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveHunter, ctxt.data[1])
-    BJCTx.scenario.HunterSave(ctxt.senderID, not err)
+    local _, err = pcall(BJCScenarioData.saveHunterInfected, ctxt.data[1])
+    BJCTx.scenario.HunterInfectedSave(ctxt.senderID, not err)
     if err then
         error(err)
     end

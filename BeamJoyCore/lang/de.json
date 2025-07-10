@@ -401,10 +401,6 @@
           "title": "Karte",
           "custom": "Brauch"
         },
-        "race": {
-          "title": "Wettrennen",
-          "noRace": "Kein Rennen verfügbar"
-        },
         "speed": {
           "title": "Geschwindigkeitsspiel"
         }
@@ -440,11 +436,20 @@
           "start": "Geschwindigkeitsspiel starten",
           "stop": "Stoppen Sie das Geschwindigkeitsspiel"
         },
-        "raceStop": "Stoppen Sie das Rennen",
+        "race": {
+          "title": "Wettrennen",
+          "noRace": "Kein Rennen verfügbar",
+          "stop": "Stoppen Sie das Rennen"
+        },
         "hunter": {
           "start": "Starten Sie Hunter",
           "stop": "Stoppen Sie Hunter",
           "modeDisabled": "deaktiviert"
+        },
+        "infected": {
+          "start": "Infiziert starten",
+          "stop": "Infiziert stoppen",
+          "modeDisabled": "Deaktiviert"
         },
         "derby": {
           "start": "Starten Sie Destruction Derby",
@@ -475,7 +480,8 @@
         "races": "Rennen",
         "raceCreate": "Rennen erstellen",
         "raceDeleteModal": "Sind Sie sicher, dass Sie das Rennen „{raceName}“ löschen möchten?",
-        "hunter": "Jäger ({visibility}, {amount} Wegpunkte)",
+        "hunter": "Jäger ({state})",
+        "infected": "Infiziert ({state})",
         "derby": "Derby-Arenen ({amount})"
       },
       "config": {
@@ -1522,35 +1528,6 @@
       }
     },
     "derby": {
-      "edit": {
-        "title": "Derby-Herausgeber",
-        "arena": "Arena {index}",
-        "name": "Name",
-        "enabled": "Ermöglicht",
-        "enabledTooltip": "Kann diese Arena eröffnet werden?",
-        "previewPosition": "Vorschauposition",
-        "previewPositionTooltip": "Freecam-Position zu Beginn des Derbys",
-        "centerPosition": "Zentralposition",
-        "radius": "Start-Radius",
-        "startPositions": "Startpositionen",
-        "startPositionName": "{index} starten",
-        "amountStartPositionsNeeded": "{amount} weitere Punkte fehlen",
-        "saveErrorToast": "Das Speichern der Derby-Daten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
-        "buttons": {
-          "addArena": "Arena hinzufügen",
-          "showArena": "Arenamarkierungen anzeigen",
-          "deleteArena": "Arena löschen",
-          "toggleArenaVisibility": "Arenasichtbarkeit umschalten",
-          "setPreviewPositionHere": "Vorschaustellung hier setzen",
-          "showPreviewPosition": "Vorschaustellung anzeigen",
-          "setCenterPositionHere": "Setze die Arenamitte hier",
-          "showCenterPosition": "Zeige Arenamitte",
-          "addStartPositionHere": "Startposition hier hinzufügen",
-          "showStartPosition": "Startposition anzeigen",
-          "setStartPositionHere": "Startposition hier setzen",
-          "deleteStartPosition": "Startposition löschen"
-        }
-      },
       "settings": {
         "title": "Destruction Derby-Einstellungen",
         "places": "{places} Orte",
@@ -1624,6 +1601,81 @@
       "flashTag": "Abgetippt!",
       "title": "Fangen - Lobby von {playerName}",
       "taggerMark": "Fänger"
+    },
+    "hunterInfectedEditor": {
+      "title": "Jäger/Infiziert-Editor",
+      "enabled": "Wählbarer Modus",
+      "buttons": {
+        "refreshMarkers": "Markierungen aktualisieren",
+        "toggleModeVisibility": "Modus-Sichtbarkeit umschalten"
+      },
+      "errors": {
+        "missingPoints": "{amount} Punkt(e) fehlen",
+        "saveErrorToast": "Fehler beim Speichern der Daten. Bitte erneut versuchen oder Administrator kontaktieren"
+      },
+      "hunter": {
+        "title": "Jäger",
+        "fields": {
+          "hunters": "Jäger",
+          "hunted": "Gejagte",
+          "waypoints": "Wegpunkte",
+          "radius": "Radius"
+        },
+        "buttons": {
+          "showHunterStartPosition": "Startposition der Jäger anzeigen",
+          "setHunterStartPositionHere": "Startposition der Jäger hier festlegen",
+          "deleteHunterStartPosition": "Startposition der Jäger löschen",
+          "addHunterStartPositionHere": "Startposition für einen Jäger hier hinzufügen",
+          "showHuntedStartPosition": "Startposition der Gejagten anzeigen",
+          "setHuntedStartPositionHere": "Startposition der Gejagten hier festlegen",
+          "deleteHuntedStartPosition": "Startposition der Gejagten löschen",
+          "addHuntedStartPositionHere": "Startposition für einen Gejagten hier hinzufügen",
+          "addWaypointHere": "Wegpunkt hier hinzufügen",
+          "showWaypoint": "Wegpunkt anzeigen",
+          "setWaypointHere": "Wegpunkt hier festlegen",
+          "deleteWaypoint": "Wegpunkt löschen"
+        },
+        "tags": {
+          "waypointName": "Wegpunkt {index}",
+          "hunterName": "Jäger {index}",
+          "huntedName": "Gejagter {index}"
+        }
+      },
+      "infected": {
+        "title": "Infiziert",
+        "fields": {
+          "survivors": "Überlebende",
+          "infected": "Infizierte"
+        },
+        "buttons": {
+          "showSurvivorStartPosition": "Startposition der Überlebenden anzeigen",
+          "setSurvivorStartPositionHere": "Startposition der Überlebenden hier festlegen",
+          "deleteSurvivorStartPosition": "Startposition der Überlebenden löschen",
+          "addSurvivorStartPositionHere": "Startposition für einen Überlebenden hier hinzufügen",
+          "showInfectedStartPosition": "Startposition der Infizierten anzeigen",
+          "setInfectedStartPositionHere": "Startposition der Infizierten hier festlegen",
+          "deleteInfectedStartPosition": "Startposition der Infizierten löschen",
+          "addInfectedStartPositionHere": "Startposition für einen Infizierten hier hinzufügen"
+        },
+        "tags": {
+          "survivorName": "Überlebender {index}",
+          "infectedName": "Infizierter {index}"
+        }
+      }
+    },
+    "infected": {
+      "title": "Infiziert-Spiel",
+      "infected": "Infizierte",
+      "survivors": "Überlebende",
+      "remainingSurvivors": "{amount} Überlebende übrig",
+      "preparation": {
+        "endAfterLastSurvivorInfected": "Letzte Infektion",
+        "endAfterLastSurvivorInfectedTooltip": "Das Spiel endet, nachdem der letzte Überlebende infiziert wurde. Andernfalls endet es, wenn nur noch ein Überlebender übrig ist.",
+        "config": "Fahrzeug",
+        "enableColors": "Fahrzeugfarben verwenden",
+        "survivorsColor": "Farbe der Überlebenden",
+        "infectedColor": "Farbe der Infizierten"
+      }
     }
   }
 }

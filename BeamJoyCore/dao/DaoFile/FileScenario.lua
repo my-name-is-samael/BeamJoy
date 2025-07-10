@@ -6,7 +6,7 @@ local M = {
         STATIONS = "_stations",
         DELIVERIES = "_deliveries",
         BUS_LINES = "_buslines",
-        HUNTER = "_hunter",
+        HUNTER_INFECTED = "_hunter",
         DERBY = "_derby",
     },
     Races = {},
@@ -14,7 +14,7 @@ local M = {
     Garages = {},
     Delivery = {},
     BusLines = {},
-    Hunter = {},
+    HunterInfected = {},
     Derby = {},
     Tournament = {},
 }
@@ -245,14 +245,14 @@ end
 
 -- HUNTER
 ---@return table
-function M.Hunter.findAll()
-    local filePath = _getFilePath(M._TYPES.HUNTER)
+function M.HunterInfected.findAll()
+    local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
 
-    local defaultHunterData = {
+    local defaultHunterInfectedData = {
         enabled = false,
-        targets = {},
-        hunterPositions = {},
-        huntedPositions = {},
+        waypoints = {},
+        majorPositions = {},
+        minorPositions = {},
     }
 
     if FS.Exists(filePath) then
@@ -263,18 +263,18 @@ function M.Hunter.findAll()
             data = JSON.parse(data)
             if type(data) ~= "table" then
                 LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
-                data = defaultHunterData
+                data = defaultHunterInfectedData
             end
             return data
         end
     end
-    return defaultHunterData
+    return defaultHunterInfectedData
 end
 
----@param hunterData table
-function M.Hunter.save(hunterData)
-    local filePath = _getFilePath(M._TYPES.HUNTER)
-    BJCDao._saveFile(filePath, hunterData)
+---@param hunterInfectedData table
+function M.HunterInfected.save(hunterInfectedData)
+    local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
+    BJCDao._saveFile(filePath, hunterInfectedData)
 end
 
 -- DERBY

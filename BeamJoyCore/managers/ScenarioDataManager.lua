@@ -11,7 +11,7 @@ local M = {
     Deliveries = {},
     DeliveryLeaderboard = {},
     BusLines = {},
-    Hunter = {},
+    HunterInfected = {},
     Derby = {},
 }
 
@@ -27,6 +27,25 @@ local function checkRacesUpdate2_0_0()
             LogDebug(string.var("Added hash to race \"{1}\"({2}): {3}", { race.name, race.id, race.hash }))
         end
     end)
+end
+
+--- Update 2.0.0<br/>
+--- Update hunter data to hunter/infected
+local function checkHunterUpdate2_0_0()
+    if M.HunterInfected.enabled ~= nil and M.HunterInfected.enabledHunter == nil then
+        M.HunterInfected.enabledHunter = M.HunterInfected.enabled
+        M.HunterInfected.enabledInfected = M.HunterInfected.enabled
+        M.HunterInfected.waypoints = M.HunterInfected.targets
+        M.HunterInfected.majorPositions = M.HunterInfected.hunterPositions
+        M.HunterInfected.minorPositions = M.HunterInfected.huntedPositions
+
+        M.HunterInfected.enabled = nil
+        M.HunterInfected.targets = nil
+        M.HunterInfected.hunterPositions = nil
+        M.HunterInfected.huntedPositions = nil
+        BJCDao.scenario.HunterInfected.save(M.HunterInfected)
+        LogDebug("Updated hunter data to hunter/infected new format")
+    end
 end
 
 --- Update 2.0.0<br/>
@@ -68,16 +87,13 @@ local function reload()
     M.Garages = BJCDao.scenario.Garages.findAll()
     M.Deliveries = BJCDao.scenario.Delivery.findAll()
     M.BusLines = BJCDao.scenario.BusLines.findAll()
-    M.Hunter = BJCDao.scenario.Hunter.findAll()
+    M.HunterInfected = BJCDao.scenario.HunterInfected.findAll()
     M.Derby = BJCDao.scenario.Derby.findAll()
 
-    BJCAsync.delayTask(function()
-        if #M.DeliveryLeaderboard == 0 then
-            M.updateDeliveryLeaderboard()
-        end
-    end, 0)
+    M.updateDeliveryLeaderboard()
 
     checkRacesUpdate2_0_0()
+    checkHunterUpdate2_0_0()
     checkDerbyUpdate2_0_0()
 end
 
@@ -161,20 +177,21 @@ local function getCacheBusLinesHash()
     return Hash(M.BusLines)
 end
 
-local function getCacheHunter(senderID)
+local function getCacheHunterInfected(senderID)
     local cache = {
-        enabled = false,
+        enabledHunter = false,
+        enabledInfected = false,
     }
-    if M.Hunter.enabled or
+    if M.HunterInfected.enabledHunter or M.HunterInfected.enabledInfected or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        cache = table.deepcopy(M.Hunter) or {}
+        cache = table.deepcopy(M.HunterInfected)
     end
 
-    return cache, M.getCacheHunterHash()
+    return cache, M.getCacheHunterInfectedHash()
 end
 
-local function getCacheHunterHash()
-    return Hash(M.Hunter)
+local function getCacheHunterInfectedHash()
+    return Hash(M.HunterInfected)
 end
 
 local function getCacheDerby(senderID)
@@ -586,22 +603,41 @@ local function saveBusLines(lines)
         BJCPerm.PERMISSIONS.SCENARIO)
 end
 
-local function saveHunter(data)
-    if type(data) ~= "table" or (
-            data.enabled == true and (
-                not table.isArray(data.targets) or
-                not Table(data.targets):every(checkValidPosAndRadius) or
-                not table.isArray(data.hunterPositions) or
-                not Table(data.hunterPositions):every(checkValidPosRot) or
-                not table.isArray(data.huntedPositions) or
-                not Table(data.huntedPositions):every(checkValidPosRot)
-            )) then
+local function saveHunterInfected(data)
+    if type(data) ~= "table" then
         error({ key = "rx.errors.invalidData" })
+    else
+        data.enabledHunter = data.enabledHunter == true
+        data.enabledInfected = data.enabledInfected == true
+
+        if data.enabledHunter then
+            if not table.isArray(data.waypoints) or
+                #data.waypoints < 2 or
+                not Table(data.waypoints):every(checkValidPosAndRadius) or
+                not table.isArray(data.majorPositions) or
+                #data.majorPositions < 5 or
+                not Table(data.majorPositions):every(checkValidPosRot) or
+                not table.isArray(data.minorPositions) or
+                #data.minorPositions < 2 or
+                not Table(data.minorPositions):every(checkValidPosRot) then
+                error({ key = "rx.errors.invalidData" })
+            end
+        end
+        if data.enabledInfected then
+            if not table.isArray(data.majorPositions) or
+                #data.majorPositions < 5 or
+                not Table(data.majorPositions):every(checkValidPosRot) or
+                not table.isArray(data.minorPositions) or
+                #data.minorPositions < 2 or
+                not Table(data.minorPositions):every(checkValidPosRot) then
+                error({ key = "rx.errors.invalidData" })
+            end
+        end
     end
 
-    BJCDao.scenario.Hunter.save(data)
-    M.Hunter = BJCDao.scenario.Hunter.findAll()
-    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER_DATA)
+    BJCDao.scenario.HunterInfected.save(data)
+    M.HunterInfected = BJCDao.scenario.HunterInfected.findAll()
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER_INFECTED_DATA)
 end
 
 ---@param arenas BJArena[]
@@ -635,8 +671,8 @@ M.getCacheStations = getCacheStations
 M.getCacheStationsHash = getCacheStationsHash
 M.getCacheBusLines = getCacheBusLines
 M.getCacheBusLinesHash = getCacheBusLinesHash
-M.getCacheHunter = getCacheHunter
-M.getCacheHunterHash = getCacheHunterHash
+M.getCacheHunterInfected = getCacheHunterInfected
+M.getCacheHunterInfectedHash = getCacheHunterInfectedHash
 M.getCacheDerby = getCacheDerby
 M.getCacheDerbyHash = getCacheDerbyHash
 
@@ -655,7 +691,7 @@ M.updateDeliveryLeaderboard = updateDeliveryLeaderboard
 
 M.saveBusLines = saveBusLines
 
-M.saveHunter = saveHunter
+M.saveHunterInfected = saveHunterInfected
 
 M.saveDerbyArenas = saveDerbyArenas
 

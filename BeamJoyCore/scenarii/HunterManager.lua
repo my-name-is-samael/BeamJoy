@@ -190,7 +190,7 @@ local function startGridTimeout()
 end
 
 local function start(settings)
-    if not BJCScenarioData.Hunter.enabled then
+    if not BJCScenarioData.HunterInfected.enabledHunter then
         error({ key = "rx.errors.invalidData" })
     elseif BJCPerm.getCountPlayersCanSpawnVehicle() < M.MINIMUM_PARTICIPANTS() then
         error({ key = "rx.errors.insufficientPlayers" })
@@ -227,9 +227,9 @@ end
 ---@return integer
 local function findFreeStartPosition(hunted)
     if hunted then
-        return math.random(1, #BJCScenarioData.Hunter.huntedPositions)
+        return math.random(1, #BJCScenarioData.HunterInfected.minorPositions)
     else
-        return Range(1, #BJCScenarioData.Hunter.hunterPositions)
+        return Range(1, #BJCScenarioData.HunterInfected.majorPositions)
             :filter(function(i)
                 return not M.participants:any(function(p)
                     return not p.hunted and p.startPosition == i

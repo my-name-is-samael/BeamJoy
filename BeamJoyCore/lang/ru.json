@@ -274,10 +274,6 @@
           "title": "Карта",
           "custom": "обычай"
         },
-        "race": {
-          "title": "Раса",
-          "noRace": "Нет доступных гонок"
-        },
         "speed": {
           "title": "Скорость игры"
         }
@@ -313,10 +309,19 @@
           "start": "Начать игру на скорость",
           "stop": "Игра «Остановить скорость»"
         },
-        "raceStop": "Остановить гонку",
+        "race": {
+          "title": "Раса",
+          "noRace": "Нет доступных гонок",
+          "stop": "Остановить гонку"
+        },
         "hunter": {
           "start": "Начать Охотник",
           "stop": "Остановить Хантера",
+          "modeDisabled": "отключено"
+        },
+        "infected": {
+          "start": "Начать Инфекцию",
+          "stop": "Остановить Инфекцию",
           "modeDisabled": "отключено"
         },
         "derby": {
@@ -348,7 +353,8 @@
         "races": "Гонки",
         "raceCreate": "Создать гонку",
         "raceDeleteModal": "Вы уверены, что хотите удалить гонку \"{raceName}\"?",
-        "hunter": "Охотник ({visibility}, {amount} путевых точек)",
+        "hunter": "Охотник ({state})",
+        "infected": "Инфекция ({state})",
         "derby": "Дерби Аренас ({amount})"
       },
       "config": {
@@ -1323,35 +1329,6 @@
       }
     },
     "hunter": {
-      "edit": {
-        "title": "Редактор охотника",
-        "targetName": "Цель {index}",
-        "hunterPositionName": "Охотник {index}",
-        "huntedPositionName": "Охота {index}",
-        "waypoints": "Путевые точки",
-        "hunters": "Охотники",
-        "hunted": "Охота",
-        "enabled": "Режим голосования",
-        "radius": "Радиус",
-        "missingPoints": "Отсутствует балл(ы): {amount}",
-        "saveErrorToast": "Не удалось сохранить данные охотника, попробуйте еще раз или обратитесь к администратору.",
-        "buttons": {
-          "refreshMarkers": "Обновить метки",
-          "toggleModeVisibility": "Переключить видимость режима",
-          "showHunterStartPosition": "Показать стартовую позицию охотника",
-          "setHunterStartPositionHere": "Установить стартовую позицию охотника здесь",
-          "deleteHunterStartPosition": "Удалить стартовую позицию охотника",
-          "addHunterStartPositionHere": "Добавить стартовую позицию охотника здесь",
-          "showHuntedStartPosition": "Показать стартовую позицию преследуемого",
-          "setHuntedStartPositionHere": "Установить стартовую позицию преследуемого здесь",
-          "deleteHuntedStartPosition": "Удалить стартовую позицию преследуемого",
-          "addHuntedStartPositionHere": "Добавить стартовую позицию преследуемого здесь",
-          "addWaypointHere": "Добавить точку пути здесь",
-          "showWaypoint": "Показать точку пути",
-          "setWaypointHere": "Установить точку пути здесь",
-          "deleteWaypoint": "Удалить точку пути"
-        }
-      },
       "settings": {
         "title": "Настройки охотника",
         "huntedWaypoints": "Путевые точки беглецов",
@@ -1497,6 +1474,81 @@
       "flashTag": "Пойман!",
       "title": "Салки - Лобби {playerName}",
       "taggerMark": "Водящий"
+    },
+    "hunterInfectedEditor": {
+      "title": "Редактор Охотник/Инфекция",
+      "enabled": "Режим доступен для голосования",
+      "buttons": {
+        "refreshMarkers": "Обновить маркеры",
+        "toggleModeVisibility": "Переключить видимость режима"
+      },
+      "errors": {
+        "missingPoints": "Отсутствует {amount} точка(и)",
+        "saveErrorToast": "Не удалось сохранить данные, попробуйте снова или свяжитесь с администратором"
+      },
+      "hunter": {
+        "title": "Охотник",
+        "fields": {
+          "hunters": "Охотники",
+          "hunted": "Преследуемый",
+          "waypoints": "Точки маршрута",
+          "radius": "Радиус"
+        },
+        "buttons": {
+          "showHunterStartPosition": "Показать стартовую позицию охотника",
+          "setHunterStartPositionHere": "Установить стартовую позицию охотника здесь",
+          "deleteHunterStartPosition": "Удалить стартовую позицию охотника",
+          "addHunterStartPositionHere": "Добавить стартовую позицию охотника здесь",
+          "showHuntedStartPosition": "Показать стартовую позицию преследуемого",
+          "setHuntedStartPositionHere": "Установить стартовую позицию преследуемого здесь",
+          "deleteHuntedStartPosition": "Удалить стартовую позицию преследуемого",
+          "addHuntedStartPositionHere": "Добавить стартовую позицию преследуемого здесь",
+          "addWaypointHere": "Добавить точку маршрута здесь",
+          "showWaypoint": "Показать точку маршрута",
+          "setWaypointHere": "Установить точку маршрута здесь",
+          "deleteWaypoint": "Удалить точку маршрута"
+        },
+        "tags": {
+          "waypointName": "Точка {index}",
+          "hunterName": "Охотник {index}",
+          "huntedName": "Преследуемый {index}"
+        }
+      },
+      "infected": {
+        "title": "Инфекция",
+        "fields": {
+          "survivors": "Выжившие",
+          "infected": "Инфицированные"
+        },
+        "buttons": {
+          "showSurvivorStartPosition": "Показать стартовую позицию выжившего",
+          "setSurvivorStartPositionHere": "Установить стартовую позицию выжившего здесь",
+          "deleteSurvivorStartPosition": "Удалить стартовую позицию выжившего",
+          "addSurvivorStartPositionHere": "Добавить стартовую позицию выжившего здесь",
+          "showInfectedStartPosition": "Показать стартовую позицию инфицированного",
+          "setInfectedStartPositionHere": "Установить стартовую позицию инфицированного здесь",
+          "deleteInfectedStartPosition": "Удалить стартовую позицию инфицированного",
+          "addInfectedStartPositionHere": "Добавить стартовую позицию инфицированного здесь"
+        },
+        "tags": {
+          "survivorName": "Выживший {index}",
+          "infectedName": "Инфицированный {index}"
+        }
+      }
+    },
+    "infected": {
+      "title": "Режим Инфекции",
+      "infected": "Инфицированные",
+      "survivors": "Выжившие",
+      "remainingSurvivors": "Осталось {amount} выживших",
+      "preparation": {
+        "endAfterLastSurvivorInfected": "Завершение после последнего заражения",
+        "endAfterLastSurvivorInfectedTooltip": "Игра закончится после заражения последнего выжившего. Иначе — когда останется только один.",
+        "config": "Транспорт",
+        "enableColors": "Использовать цвета транспорта",
+        "survivorsColor": "Цвет выживших",
+        "infectedColor": "Цвет инфицированных"
+      }
     }
   }
 }

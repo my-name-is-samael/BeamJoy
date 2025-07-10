@@ -4,8 +4,7 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    w = 450,
-    h = 850,
+    minSize = ImVec2(450, 850),
 
     SCENARIOS = {
         STATIONS = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Stations"),
@@ -13,7 +12,7 @@ local W = {
         DELIVERIES = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Deliveries"),
         BUS_LINES = require("ge/extensions/BJI/ui/windows/ScenarioEditor/BusLines"),
         RACE = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Race"),
-        HUNTER = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Hunter"),
+        HUNTER_INFECTED = require("ge/extensions/BJI/ui/windows/ScenarioEditor/HunterInfected"),
         DERBY = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Derby"),
     },
 

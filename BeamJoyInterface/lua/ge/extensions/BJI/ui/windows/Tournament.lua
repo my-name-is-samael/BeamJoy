@@ -18,8 +18,8 @@ local W = {
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.HUNTER] = function()
-            return BJI.Managers.Context.Scenario.Data.Hunter and
-                BJI.Managers.Context.Scenario.Data.Hunter.enabled and
+            return BJI.Managers.Context.Scenario.Data.HunterInfected and
+                BJI.Managers.Context.Scenario.Data.HunterInfected.enabledHunter and
                 BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
                 .MINIMUM_PARTICIPANTS
@@ -416,7 +416,7 @@ local function onLoad()
     }, function(_, data)
         if table.includes({
                 BJI.Managers.Cache.CACHES.RACES,
-                BJI.Managers.Cache.CACHES.HUNTER_DATA,
+                BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA,
                 BJI.Managers.Cache.CACHES.DERBY_DATA,
             }, data.cache) then
             updateData()

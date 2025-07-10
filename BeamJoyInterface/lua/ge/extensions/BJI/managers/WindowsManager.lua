@@ -53,7 +53,8 @@ local state
 
 ---@param ctxt TickContext
 local function renderTick(ctxt)
-    if not BJI.CLIENT_READY or not BJI.Managers.Cache.areBaseCachesFirstLoaded() or not BJI.Utils.Style.BJIThemeLoaded then
+    if not BJI.CLIENT_READY or not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+        not BJI.Utils.Style.BJIThemeLoaded then
         return
     end
 

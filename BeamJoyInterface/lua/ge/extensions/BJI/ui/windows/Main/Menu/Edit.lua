@@ -471,28 +471,41 @@ local function menuRaces(ctxt)
     end
 end
 
-local function menuHunter(ctxt)
+local function menuHunterInfected(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Hunter and
-        BJI.Managers.Context.Scenario.Data.Hunter.targets then
+        BJI.Managers.Context.Scenario.Data.HunterInfected then
         local editorOpen = BJI.Windows.ScenarioEditor.getState()
         local hunterEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER
+            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.hunter")
-                :var({
-                    visibility = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.Hunter.enabled and
-                        "common.enabled" or "common.disabled"),
-                    amount = #BJI.Managers.Context.Scenario.Data.Hunter.targets,
-                }),
+            label = BJI.Managers.Lang.get("menu.edit.hunter"):var({
+                state = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.HunterInfected
+                    .enabledHunter and "common.enabled" or "common.disabled"),
+            }),
             active = editorOpen and hunterEditorOpen,
             disabled = editorOpen and not hunterEditorOpen,
             onClick = function()
                 if editorOpen then
                     BJI.Windows.ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER.open()
+                    BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(1)
+                end
+            end,
+        })
+        table.insert(M.cache.elems, {
+            type = "item",
+            label = BJI.Managers.Lang.get("menu.edit.infected"):var({
+                state = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.HunterInfected
+                    .enabledInfected and "common.enabled" or "common.disabled"),
+            }),
+            active = editorOpen and hunterEditorOpen,
+            disabled = editorOpen and not hunterEditorOpen,
+            onClick = function()
+                if editorOpen then
+                    BJI.Windows.ScenarioEditor.onClose()
+                else
+                    BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(2)
                 end
             end,
         })
@@ -549,7 +562,7 @@ local function updateCache(ctxt)
         menuDeliveries(ctxt)
         menuBusLines(ctxt)
         menuRaces(ctxt)
-        menuHunter(ctxt)
+        menuHunterInfected(ctxt)
         menuDerby(ctxt)
     end
 
@@ -578,7 +591,7 @@ function M.onLoad()
                 BJI.Managers.Cache.CACHES.RACES,
                 BJI.Managers.Cache.CACHES.DELIVERIES,
                 BJI.Managers.Cache.CACHES.BUS_LINES,
-                BJI.Managers.Cache.CACHES.HUNTER_DATA,
+                BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA,
                 BJI.Managers.Cache.CACHES.DERBY_DATA,
             }, data.cache) then
             updateCache(ctxt)

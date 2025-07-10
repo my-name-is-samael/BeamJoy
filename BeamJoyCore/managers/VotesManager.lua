@@ -482,7 +482,7 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
     elseif M.Scenario.type == "hunter" then
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.HunterManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
-        elseif not BJCScenarioData.Hunter.enabled then
+        elseif not BJCScenarioData.HunterInfected.enabledHunter then
             error({ key = "rx.errors.invalidData" })
         end
         if isVote then
@@ -495,7 +495,7 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
             scenarioData.lastWaypointGPS = true
         end
         M.Scenario.scenarioData = {
-            places = #BJCScenarioData.Hunter.hunterPositions + 1,
+            places = #BJCScenarioData.HunterInfected.majorPositions + 1,
             waypoints = scenarioData.waypoints,
             lastWaypointGPS = scenarioData.lastWaypointGPS,
             huntedConfig = scenarioData.huntedConfig,

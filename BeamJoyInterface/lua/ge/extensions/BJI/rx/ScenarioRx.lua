@@ -97,18 +97,18 @@ function ctrl.BusLinesSave(data)
     busLinesSaveCallbackFn = nil
 end
 
-local hunterSaveCallbackFn
+local hunterInfectedSaveCallbackFn
 ---@param callback fun(boolean)
-function ctrl.hunterSaveCallback(callback)
-    hunterSaveCallbackFn = callback
+function ctrl.hunterInfectedSaveCallback(callback)
+    hunterInfectedSaveCallbackFn = callback
 end
 
-function ctrl.HunterSave(data)
+function ctrl.HunterInfectedSave(data)
     local state = data[1]
-    if type(hunterSaveCallbackFn) == "function" then
-        hunterSaveCallbackFn(state)
+    if type(hunterInfectedSaveCallbackFn) == "function" then
+        hunterInfectedSaveCallbackFn(state)
     end
-    hunterSaveCallbackFn = nil
+    hunterInfectedSaveCallbackFn = nil
 end
 
 local derbySaveCallbackFn

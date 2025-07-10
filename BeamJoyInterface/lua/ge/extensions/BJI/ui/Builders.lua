@@ -278,6 +278,8 @@ EndTabBar = ui_imgui.EndTabBar or function() end
 BeginTabItem = ui_imgui.BeginTabItem or function(label) return false end
 --- call only if BeginTabItem == true
 EndTabItem = ui_imgui.EndTabItem or function() end
+---@param label string
+SetTabItemClosed = ui_imgui.SetTabItemClosed or function(label) end
 local childLevel = 0
 ---@param id string
 ---@param data {size: point?, outsideSize: boolean?, border: boolean?, flags: integer[]?, bgColor: vec4?}?

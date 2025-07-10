@@ -12,7 +12,7 @@ local function menuRace(ctxt, elems)
             :filter(function(race) return race.enabled and race.places > 1 end)
 
         if #rawRaces == 0 then
-            errorMessage = BJI.Managers.Lang.get("menu.vote.race.noRace")
+            errorMessage = BJI.Managers.Lang.get("menu.scenario.race.noRace")
         elseif potentialPlayers < minParticipants then
             errorMessage = BJI.Managers.Lang.get("errors.missingPlayers")
                 :var({ amount = minParticipants - potentialPlayers })
@@ -22,7 +22,7 @@ local function menuRace(ctxt, elems)
             table.insert(elems, {
                 type = "custom",
                 render = function()
-                    Text(BJI.Managers.Lang.get("menu.vote.race.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    Text(BJI.Managers.Lang.get("menu.scenario.race.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
                     TooltipText(errorMessage)
                 end
             })
@@ -35,7 +35,7 @@ local function menuRace(ctxt, elems)
                 -- sub elems
                 table.insert(elems, {
                     type = "menu",
-                    label = BJI.Managers.Lang.get("menu.vote.race.title"),
+                    label = BJI.Managers.Lang.get("menu.scenario.race.title"),
                     elems = rawRaces:map(function(race)
                         return {
                             type = "item",
@@ -65,9 +65,9 @@ local function menuRace(ctxt, elems)
                 -- selection window
                 table.insert(elems, {
                     type = "item",
-                    label = BJI.Managers.Lang.get("menu.vote.race.title"),
+                    label = BJI.Managers.Lang.get("menu.scenario.race.title"),
                     onClick = function()
-                        BJI.Windows.Selection.open("menu.vote.race.title", rawRaces
+                        BJI.Windows.Selection.open("menu.scenario.race.title", rawRaces
                             :map(function(race)
                                 return {
                                     label = string.var("{1} ({2}{3})", {
@@ -106,12 +106,12 @@ end
 ---@param ctxt TickContext
 ---@param elems table
 local function menuHunter(ctxt, elems)
-    if BJI.Managers.Context.Scenario.Data.Hunter then
+    if BJI.Managers.Context.Scenario.Data.HunterInfected then
         local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS
         local errorMessage = nil
-        if not BJI.Managers.Context.Scenario.Data.Hunter or
-            not BJI.Managers.Context.Scenario.Data.Hunter.enabled then
+        if not BJI.Managers.Context.Scenario.Data.HunterInfected or
+            not BJI.Managers.Context.Scenario.Data.HunterInfected.enabledHunter then
             errorMessage = BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
         elseif potentialPlayers < minimumParticipants then
             errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({

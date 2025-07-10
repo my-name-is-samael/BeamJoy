@@ -401,10 +401,6 @@
           "title": "Carte",
           "custom": "custom"
         },
-        "race": {
-          "title": "Course",
-          "noRace": "Aucune course disponible"
-        },
         "speed": {
           "title": "Speed"
         }
@@ -440,11 +436,20 @@
           "start": "Commencer un Speed",
           "stop": "Arrêter le Speed"
         },
-        "raceStop": "Arrêter la Course",
+        "race": {
+          "title": "Course",
+          "noRace": "Aucune course disponible",
+          "stop": "Arrêter la Course"
+        },
         "hunter": {
           "start": "Commencer un Hunter",
           "stop": "Arrêter le Hunter",
           "modeDisabled": "désactivé"
+        },
+        "infected": {
+          "start": "Démarrer Infectés",
+          "stop": "Arrêter Infectés",
+          "modeDisabled": "Désactivé"
         },
         "derby": {
           "start": "Commencer un Destruction Derby",
@@ -475,7 +480,8 @@
         "races": "Courses",
         "raceCreate": "Créer une Course",
         "raceDeleteModal": "Es-tu sûr de vouloir supprimer la course \"{raceName}\"",
-        "hunter": "Hunter ({visibility}, {amount} points de passage)",
+        "hunter": "Hunter ({state})",
+        "infected": "Infectés ({state})",
         "derby": "Arènes de Derby ({amount})"
       },
       "config": {
@@ -1450,35 +1456,6 @@
       }
     },
     "hunter": {
-      "edit": {
-        "title": "Éditeur du Hunter",
-        "targetName": "Cible {index}",
-        "hunterPositionName": "Chasseur {index}",
-        "huntedPositionName": "Fugitif {index}",
-        "waypoints": "Points de passage",
-        "hunters": "Chasseurs",
-        "hunted": "Fugitif",
-        "enabled": "Activé",
-        "radius": "Rayon",
-        "missingPoints": "{amount} points manquant",
-        "saveErrorToast": "Échec de l'enregistrement des données de Hunter, veuillez réessayer ou contacter l'administrateur",
-        "buttons": {
-          "refreshMarkers": "Rafraîchir les marqueurs",
-          "toggleModeVisibility": "Basculer la visibilité du mode",
-          "showHunterStartPosition": "Afficher la position de départ du chasseur",
-          "setHunterStartPositionHere": "Définir la position de départ du chasseur ici",
-          "deleteHunterStartPosition": "Supprimer la position de départ du chasseur",
-          "addHunterStartPositionHere": "Ajouter une position de départ du chasseur ici",
-          "showHuntedStartPosition": "Afficher la position de départ du fugitif",
-          "setHuntedStartPositionHere": "Définir la position de départ du fugitif ici",
-          "deleteHuntedStartPosition": "Supprimer la position de départ du fugitif",
-          "addHuntedStartPositionHere": "Ajouter une position de départ du fugitif ici",
-          "addWaypointHere": "Ajouter un point de passage ici",
-          "showWaypoint": "Afficher le point de passage",
-          "setWaypointHere": "Définir le point de passage ici",
-          "deleteWaypoint": "Supprimer le point de passage"
-        }
-      },
       "settings": {
         "title": "Paramètres du Hunter",
         "huntedWaypoints": "Points de passage du fugitif",
@@ -1624,6 +1601,81 @@
       "flashTag": "Touché !",
       "title": "Jeu du Loup - Lobby de {playerName}",
       "taggerMark": "Loup"
+    },
+    "hunterInfectedEditor": {
+      "title": "Éditeur Hunter/Infectés",
+      "enabled": "Mode soumis au vote",
+      "buttons": {
+        "refreshMarkers": "Rafraîchir les marqueurs",
+        "toggleModeVisibility": "Basculer la visibilité du mode"
+      },
+      "errors": {
+        "missingPoints": "Il manque {amount} point(s)",
+        "saveErrorToast": "Échec de la sauvegarde, réessayez ou contactez l’administrateur"
+      },
+      "hunter": {
+        "title": "Chasseur",
+        "fields": {
+          "hunters": "Chasseurs",
+          "hunted": "Fugitifs",
+          "waypoints": "Points de passage",
+          "radius": "Rayon"
+        },
+        "buttons": {
+          "showHunterStartPosition": "Afficher la position de départ des chasseurs",
+          "setHunterStartPositionHere": "Définir ici la position de départ des chasseurs",
+          "deleteHunterStartPosition": "Supprimer la position de départ des chasseurs",
+          "addHunterStartPositionHere": "Ajouter ici une position de départ pour un chasseur",
+          "showHuntedStartPosition": "Afficher la position de départ des fugitifs",
+          "setHuntedStartPositionHere": "Définir ici la position de départ des fugitifs",
+          "deleteHuntedStartPosition": "Supprimer la position de départ des fugitifs",
+          "addHuntedStartPositionHere": "Ajouter ici une position de départ pour un fugitif",
+          "addWaypointHere": "Ajouter ici un point de passage",
+          "showWaypoint": "Afficher le point de passage",
+          "setWaypointHere": "Définir un point de passage ici",
+          "deleteWaypoint": "Supprimer le point de passage"
+        },
+        "tags": {
+          "waypointName": "Point de passage {index}",
+          "hunterName": "Chasseur {index}",
+          "huntedName": "Fugitif {index}"
+        }
+      },
+      "infected": {
+        "title": "Infectés",
+        "fields": {
+          "survivors": "Survivants",
+          "infected": "Infectés"
+        },
+        "buttons": {
+          "showSurvivorStartPosition": "Afficher la position de départ d’un survivant",
+          "setSurvivorStartPositionHere": "Définir ici la position de départ d’un survivant",
+          "deleteSurvivorStartPosition": "Supprimer la position de départ d’un survivant",
+          "addSurvivorStartPositionHere": "Ajouter ici une position de départ pour un survivant",
+          "showInfectedStartPosition": "Afficher la position de départ d’un infecté",
+          "setInfectedStartPositionHere": "Définir ici la position de départ d’un infecté",
+          "deleteInfectedStartPosition": "Supprimer la position de départ d’un infecté",
+          "addInfectedStartPositionHere": "Ajouter ici une position de départ pour un infecté"
+        },
+        "tags": {
+          "survivorName": "Survivant {index}",
+          "infectedName": "Infecté {index}"
+        }
+      }
+    },
+    "infected": {
+      "title": "Jeu des Infectés",
+      "infected": "Infectés",
+      "survivors": "Survivants",
+      "remainingSurvivors": "{amount} survivants restants",
+      "preparation": {
+        "endAfterLastSurvivorInfected": "Infection du dernier survivant",
+        "endAfterLastSurvivorInfectedTooltip": "Le jeu se termine après l’infection du dernier survivant, sinon il se termine quand il n’en reste qu’un",
+        "config": "Véhicule",
+        "enableColors": "Utiliser les couleurs des véhicules",
+        "survivorsColor": "Couleur des survivants",
+        "infectedColor": "Couleur des infectés"
+      }
     }
   }
 }

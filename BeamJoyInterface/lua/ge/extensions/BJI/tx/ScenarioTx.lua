@@ -137,9 +137,9 @@ return function(TX)
 
     ---@param hunterData table
     ---@param callback fun(boolean)
-    function scenario.HunterSave(hunterData, callback)
-        BJI.Rx.ctrls.SCENARIO.hunterSaveCallback(callback)
-        TX._send(event.EVENT, event.TX.HUNTER_SAVE, { hunterData })
+    function scenario.HunterInfectedSave(hunterData, callback)
+        BJI.Rx.ctrls.SCENARIO.hunterInfectedSaveCallback(callback)
+        TX._send(event.EVENT, event.TX.HUNTER_INFECTED_SAVE, { hunterData })
     end
 
     ---@param clientEvent string
