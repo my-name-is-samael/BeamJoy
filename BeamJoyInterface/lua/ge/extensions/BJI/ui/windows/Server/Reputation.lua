@@ -5,6 +5,7 @@ local categories = Table({
     { category = "race",     keys = Table({ "RaceParticipationReward", "RaceWinnerReward", "RaceSoloReward", "RaceRecordReward" }) },
     { category = "speed",    keys = Table({ "SpeedReward" }) },
     { category = "hunter",   keys = Table({ "HunterParticipationReward", "HunterWinnerReward" }) },
+    { category = "infected",   keys = Table({ "InfectedParticipationReward", "InfectedWinnerReward" }) },
     { category = "derby",    keys = Table({ "DerbyParticipationReward", "DerbyWinnerReward" }) },
     { category = "tag",      keys = Table({ "TagDuoReward" }) },
 })

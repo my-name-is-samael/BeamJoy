@@ -199,6 +199,9 @@ local function onGridTimeout()
             BJCTournament.editPlayerScore(BJCPlayers.Players[pid].playerName, #BJCTournament.activities, p.score)
         end)
     end
+    M.participants:forEach(function(_, pid)
+        BJCPlayers.reward(pid, BJCConfig.Data.Reputation.InfectedParticipationReward)
+    end)
 end
 
 local function startGridTimeout()
@@ -342,6 +345,11 @@ local function onGameEnd()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.INFECTED)
 
     BJCAsync.delayTask(stop, BJCConfig.Data.Infected.EndTimeout)
+
+    M.participants:forEach(function(p, pid)
+        BJCPlayers.reward(pid, math.ceil(math.scale(p.score, #M.participants + 1, 1,
+            0, BJCConfig.Data.Reputation.InfectedWinnerReward, true)))
+    end)
 end
 
 local function onInfection(infectedID, survivorID)

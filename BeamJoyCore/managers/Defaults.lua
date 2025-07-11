@@ -110,7 +110,9 @@ local function config()
             HunterWinnerReward = 100,
             DerbyParticipationReward = 20,
             DerbyWinnerReward = 200,
-            TagDuoReward = 7,
+            TagDuoReward = 10,
+            InfectedParticipationReward = 20,
+            InfectedWinnerReward = 200,
         },
         Race = {
             RaceSoloTimeBroadcast = false,
