@@ -33,7 +33,7 @@ BJI = {
     CONSTANTS = require("ge/extensions/utils/Constants"),
     Utils = {},
     Managers = {},
-    ---@type BJIWindow[]
+    ---@type table<string, BJIWindow>
     Windows = {},
     Physics = {
         physmult = 1,
