@@ -464,7 +464,7 @@ local function onVehicleDeleted(playerID, vehID)
                 return p.originalInfected or p.infectionTime
             end) or table.length(M.participants) < M.MINIMUM_PARTICIPANTS() then
             BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
-                gamemode = "chat.events.gamemodes.hunter",
+                gamemode = "chat.events.gamemodes.infected",
                 reason = "chat.events.gamemodeStopReasons.notEnoughParticipants",
             })
             stop()
@@ -494,10 +494,10 @@ end
 local function onStop()
     if M.state then
         if M.state == M.STATES.GAME then
-            BJCTx.player.flash(BJCTx.ALL_PLAYERS, "hunter.draw")
+            BJCTx.player.flash(BJCTx.ALL_PLAYERS, "infected.gameOver")
         end
         BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
-            gamemode = "chat.events.gamemodes.hunter",
+            gamemode = "chat.events.gamemodes.infected",
             reason = "chat.events.gamemodeStopReasons.moderation",
         })
         stop()
