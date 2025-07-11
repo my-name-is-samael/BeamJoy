@@ -78,7 +78,7 @@ local function finalizeCommunication(id)
                     playerName = ctxt.sender.playerName,
                 }),
                 logTag)
-            if BJCCore.Data.Debug and table.length(ctxt.data) > 0 then
+            if BJCCore.Data.Debug then
                 PrintObj(ctxt.data)
             end
 
@@ -98,6 +98,7 @@ end
 
 function _BJCRxEvent(senderID, dataSent)
     local data = JSON.parse(dataSent) or {}
+    if type(data) ~= "table" then data = {data} end
     local err = checkSenderAndData(senderID, data)
     if err then
         logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)
@@ -125,6 +126,7 @@ end
 
 function _BJCRxEventParts(senderID, dataSent)
     local data = JSON.parse(dataSent) or {}
+    if type(data) ~= "table" then data = {data} end
     local err = checkSenderAndData(senderID, data)
     if err then
         logAndToastError(BJCPlayers.Players[senderID] and senderID, err.key, err.data)

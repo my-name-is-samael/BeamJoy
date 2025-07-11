@@ -186,8 +186,8 @@ local function config()
             maxTime = 60 * 60 * 24 * 365, -- 1 year
         },
         CEN = {
-            Console = true,
-            Editor = true,
+            Console = false,
+            Editor = false,
             NodeGrabber = true,
         }
     }

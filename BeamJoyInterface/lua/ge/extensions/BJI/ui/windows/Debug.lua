@@ -89,7 +89,7 @@ local function drawContentString(obj, key)
         SameLine()
         Text(string.var("(table, {1} child.ren)", { table.length(obj) }))
         Indent()
-        Table(obj):map(function(v, k)
+        table.map(obj, function(v, k)
             return { k = k, v = v }
         end):sort(function(a, b)
             return tostring(a.k):lower() < tostring(b.k):lower()
@@ -109,7 +109,7 @@ local function drawContentTree(obj, key)
     if type(obj) == "table" then
         local opened = not key and true or BeginTree(tostring(key) .. "")
         if opened then
-            Table(obj):map(function(v, k)
+            table.map(obj, function(v, k)
                 return { k = k, v = v }
             end):sort(function(a, b)
                 return tostring(a.k):lower() < tostring(b.k):lower()

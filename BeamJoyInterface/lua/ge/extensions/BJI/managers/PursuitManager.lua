@@ -493,6 +493,7 @@ end
 
 ---@param mpVeh BJIMPVehicle
 local function onVehSpawned(mpVeh)
+    if not mpVeh.isVehicle then return end
     local ctxt = BJI_Tick.getContext()
     if BJI_Scenario.isServerScenarioInProgress() or
         ctxt.players[ctxt.user.playerID].isGhost then

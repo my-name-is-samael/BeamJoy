@@ -16,7 +16,6 @@ C.EVENTS = {
     CACHE = {
         EVENT = "BJCCache",
         RX = {
-            INVALIDATE = "invalidate",
             SEND = "send",
         },
         TX = {

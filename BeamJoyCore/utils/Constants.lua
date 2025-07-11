@@ -6,7 +6,6 @@ BJC_EVENTS = {
     CACHE = {
         EVENT = "BJCCache",
         TX = {
-            INVALIDATE = "invalidate",
             SEND = "send",
         },
         RX = {

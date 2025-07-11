@@ -63,6 +63,8 @@ local function getTargetMap()
     }
 end
 
+---@param ctxt BJCContext
+---@param cacheType string
 local function getCache(ctxt, cacheType)
     local target = getTargetMap()[cacheType]
     if not target or (target.permission and not BJCPerm.hasPermission(ctxt.senderID, target.permission)) then
