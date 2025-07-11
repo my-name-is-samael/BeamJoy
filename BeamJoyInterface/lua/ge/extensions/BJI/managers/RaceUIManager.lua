@@ -197,6 +197,11 @@ local function clear()
     M.clearWaypoint()
 end
 
+local function postLayoutUpdate()
+    drawLap()
+    drawWaypoint()
+end
+
 M.setLap = setLap
 M.clearLap = clearLap
 
@@ -209,6 +214,8 @@ M.setRaceTime = setRaceTime
 M.clearRaceTime = clearRaceTime
 
 M.clear = clear
+
+M.postLayoutUpdate = postLayoutUpdate
 
 -- init hotlapping app
 extensions.load({ 'core_hotlapping' })

@@ -57,6 +57,7 @@ local M = {
         NG_VEHICLE_GROUP_SPAWNED = "ngVehicleGroupSpawned",
         NG_PURSUIT_ACTION = "ngPursuitAction",
         NG_PURSUIT_MODE_UPDATE = "ngPursuitModeUpdate",
+        NG_UI_LAYOUT_LOADED = "ngUILayoutLoaded",
 
         -- tech events (async)
 
@@ -91,6 +92,7 @@ M.SYNC_EVENTS = Table({
     M.EVENTS.NG_VEHICLE_GROUP_SPAWNED,
     M.EVENTS.NG_PURSUIT_ACTION,
     M.EVENTS.NG_PURSUIT_MODE_UPDATE,
+    M.EVENTS.NG_UI_LAYOUT_LOADED,
 
     M.EVENTS.VEHICLE_INITIALIZED,
 })

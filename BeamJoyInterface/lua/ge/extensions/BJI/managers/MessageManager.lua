@@ -3,6 +3,13 @@ local M = {
     _name = "Message",
 
     flashQueue = Table(),
+    currentFlash = {
+        ---@type string?
+        msg = nil,
+        ---@type integer?
+        timeEnd = nil,
+        big = false,
+    },
 
     realtimeData = {
         context = nil,
@@ -14,9 +21,17 @@ local function _clearFlash()
     guihooks.trigger('ScenarioFlashMessageReset')
 end
 
-local function _flash(msg)
+---@param msg string
+---@param delaySec integer
+---@param big boolean
+local function _flash(msg, delaySec, big)
     _clearFlash()
-    guihooks.trigger('ScenarioFlashMessage', { msg })
+    guihooks.trigger('ScenarioFlashMessage', { { msg, delaySec, nil, big } })
+    M.currentFlash = {
+        msg = msg,
+        timeEnd = GetCurrentTimeMillis() + delaySec * 1000,
+        big = big,
+    }
 end
 
 local function _getNextAvailableTime()
@@ -39,7 +54,6 @@ end
 local function flash(key, msg, delaySec, big, targetTime, callback, sound)
     msg = tostring(msg)
     delaySec = tonumber(delaySec) or 3
-    if big == nil then big = false end
     targetTime = targetTime or _getNextAvailableTime()
 
     M.flashQueue:forEach(function(f, i)
@@ -57,7 +71,7 @@ local function flash(key, msg, delaySec, big, targetTime, callback, sound)
         time = targetTime,
         msg = msg,
         delay = delaySec,
-        big = big,
+        big = big == true,
         callback = callback,
         sound = sound,
     })
@@ -72,6 +86,11 @@ end
 ---@param key string
 local function cancelFlash(key)
     M.flashQueue = M.flashQueue:filter(function(f)
+        if f.key == key then
+            if M.currentFlash.msg == f.msg then
+                M.currentFlash = {}
+            end
+        end
         return f.key ~= key
     end)
 end
@@ -132,7 +151,7 @@ local function renderTick(ctxt)
     local el = M.flashQueue[msgIndices[1]]
     if el then
         if #el.msg > 0 then
-            _flash({ el.msg, el.delay, nil, el.big })
+            _flash(el.msg, el.delay, el.big)
         end
         if el.sound then
             BJI.Managers.Sound.play(el.sound)
@@ -164,6 +183,19 @@ local function message(msg)
     guihooks.trigger('Message', { ttl = 1, msg = msg, category = "" })
 end
 
+local function postLayoutUpdate()
+    local now = GetCurrentTimeMillis()
+    if M.currentFlash.timeEnd and M.currentFlash.timeEnd > now then
+        local remainingSec = math.round((M.currentFlash.timeEnd - now) / 1000)
+        if remainingSec > 0 then
+            _flash(M.currentFlash.msg, remainingSec, M.currentFlash.big)
+        end
+    end
+    if M.realtimeData.msg and #M.realtimeData.msg > 0 then
+        realtimeDisplay(M.realtimeData.context, M.realtimeData.msg)
+    end
+end
+
 M.flash = flash
 M.flashCountdown = flashCountdown
 M.cancelFlash = cancelFlash
@@ -172,6 +204,8 @@ M.realtimeDisplay = realtimeDisplay
 M.stopRealtimeDisplay = stopRealtimeDisplay
 
 M.message = message
+
+M.postLayoutUpdate = postLayoutUpdate
 
 M.renderTick = renderTick
 

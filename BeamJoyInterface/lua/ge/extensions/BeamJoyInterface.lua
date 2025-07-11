@@ -154,6 +154,7 @@ local function bindNGHooks()
         { M,        "onVehicleGroupSpawned",     BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
         { M,        "trackAIAllVeh",             BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
         { M,        "onTrafficVehicleAdded",     BJI.Managers.Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
+        { M,        "onUILayoutLoaded",          BJI.Managers.Events.EVENTS.NG_UI_LAYOUT_LOADED },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
             BJI.Managers.Events.trigger(hook[3], ...)
