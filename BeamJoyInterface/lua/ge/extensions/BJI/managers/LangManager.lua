@@ -7,23 +7,23 @@ local M = {
 }
 
 local function onLoad()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.LANG, function(cacheData)
-        BJI.Managers.Lang.Langs = cacheData.langs
-        table.sort(BJI.Managers.Lang.Langs, function(a, b) return a:lower() < b:lower() end)
-        BJI.Managers.Lang.Messages = cacheData.messages
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.LANG, function(cacheData)
+        BJI_Lang.Langs = cacheData.langs
+        table.sort(BJI_Lang.Langs, function(a, b) return a:lower() < b:lower() end)
+        BJI_Lang.Messages = cacheData.messages
 
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.LANG_CHANGED)
+        BJI_Events.trigger(BJI_Events.EVENTS.LANG_CHANGED)
     end)
 
     local lang = Lua:getSelectedLanguage()
     if lang and type(lang) == "string" and lang:find("_") then
         lang = lang:split2("_")[1]:lower()
-        BJI.Managers.Async.task(
+        BJI_Async.task(
             function()
-                return BJI.Managers.Cache.areBaseCachesFirstLoaded()
+                return BJI_Cache.areBaseCachesFirstLoaded()
             end,
             function()
-                BJI.Tx.player.lang(lang)
+                BJI_Tx_player.lang(lang)
             end,
             "BJILangInit"
         )

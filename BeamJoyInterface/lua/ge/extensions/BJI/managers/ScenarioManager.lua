@@ -58,26 +58,26 @@ local function initScenarii()
 
     M.CurrentScenario = M.TYPES.FREEROAM
     if _curr().onLoad then
-        _curr().onLoad(BJI.Managers.Tick.getContext())
+        _curr().onLoad(BJI_Tick.getContext())
     end
 end
 
 ---@param mpVeh BJIMPVehicle
 local function onVehicleSpawned(mpVeh)
-    BJI.Managers.Reputation.vehicleResetted()
+    BJI_Reputation.vehicleResetted()
     if _curr().onVehicleSpawned then
         _curr().onVehicleSpawned(mpVeh)
     end
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID == -1 or BJI.Managers.AI.isAIVehicle(gameVehID) or
-        table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
-            BJI.Managers.Veh.getType(gameVehID)) then
+    if gameVehID == -1 or BJI_AI.isAIVehicle(gameVehID) or
+        table.includes({ BJI_Veh.TYPES.TRAILER, BJI_Veh.TYPES.PROP },
+            BJI_Veh.getType(gameVehID)) then
         return
     end
 
-    BJI.Managers.Reputation.vehicleResetted()
+    BJI_Reputation.vehicleResetted()
     if _curr().onVehicleResetted then
         _curr().onVehicleResetted(gameVehID)
     end
@@ -108,14 +108,14 @@ local function onGarageRepair()
 end
 
 local function onDropPlayerAtCamera()
-    BJI.Managers.Reputation.vehicleTeleported()
+    BJI_Reputation.vehicleTeleported()
     if _curr().onDropPlayerAtCamera then
         _curr().onDropPlayerAtCamera()
     end
 end
 
 local function onDropPlayerAtCameraNoReset()
-    BJI.Managers.Reputation.vehicleTeleported()
+    BJI_Reputation.vehicleTeleported()
     if _curr().onDropPlayerAtCameraNoReset then
         _curr().onDropPlayerAtCameraNoReset()
     end
@@ -124,7 +124,7 @@ end
 ---@param targetID integer
 ---@param forced boolean?
 local function tryTeleportToPlayer(targetID, forced)
-    BJI.Managers.Reputation.vehicleTeleported()
+    BJI_Reputation.vehicleTeleported()
     if _curr().tryTeleportToPlayer then
         _curr().tryTeleportToPlayer(targetID, forced)
     end
@@ -133,7 +133,7 @@ end
 ---@param pos vec3
 ---@param saveHome boolean?
 local function tryTeleportToPos(pos, saveHome)
-    BJI.Managers.Reputation.vehicleTeleported()
+    BJI_Reputation.vehicleTeleported()
     if _curr().tryTeleportToPos then
         _curr().tryTeleportToPos(pos, saveHome)
     end
@@ -172,13 +172,13 @@ end
 
 ---@param gameVehID integer
 local function saveHome(gameVehID)
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
         if not _curr().saveHome or not _curr().saveHome(ctxt) then
             local canReset = _curr().canReset and _curr().canReset()
             local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
             if not canReset and not canRecover then
-                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotResetNow"), 3)
+                BJI_Toast.error(BJI_Lang.get("errors.cannotResetNow"), 3)
             end
         end
     end
@@ -186,13 +186,13 @@ end
 
 ---@param gameVehID integer
 local function loadHome(gameVehID)
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
         if not _curr().loadHome or not _curr().loadHome(ctxt) then
             local canReset = _curr().canReset and _curr().canReset()
             local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
             if not canReset and not canRecover then
-                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.cannotResetNow"), 3)
+                BJI_Toast.error(BJI_Lang.get("errors.cannotResetNow"), 3)
             end
         end
     end
@@ -307,7 +307,7 @@ end
 ---@return table<integer, table> buttons
 local function getPlayerListActions(player, ctxt)
     if _curr().getPlayerListActions then
-        return _curr().getPlayerListActions(player, ctxt or BJI.Managers.Tick.getContext())
+        return _curr().getPlayerListActions(player, ctxt or BJI_Tick.getContext())
     else
         return {}
     end
@@ -352,9 +352,9 @@ end
 ---@return integer
 local function getCollisionsType(ctxt)
     if _curr().getCollisionsType then
-        return _curr().getCollisionsType(ctxt or BJI.Managers.Tick.getContext())
+        return _curr().getCollisionsType(ctxt or BJI_Tick.getContext())
     else
-        return BJI.Managers.Collisions.TYPES.GHOSTS
+        return BJI_Collisions.TYPES.GHOSTS
     end
 end
 
@@ -385,7 +385,7 @@ local function renderTick(ctxt)
             LogError(string.var("Error during scenario render tick : {1}", { err }))
             tickErrorProcess.countRender = tickErrorProcess.countRender + 1
             if tickErrorProcess.countRender >= 20 then
-                BJI.Managers.Toast.error("Continuous error during scenario render tick, backup to Freeroam")
+                BJI_Toast.error("Continuous error during scenario render tick, backup to Freeroam")
                 tickErrorProcess.countRender = 0
                 M.switchScenario(M.TYPES.FREEROAM)
             end
@@ -403,7 +403,7 @@ local function fastTick(ctxt)
             LogError(string.var("Error during scenario fast tick : {1}", { err }))
             tickErrorProcess.countFast = tickErrorProcess.countFast + 1
             if tickErrorProcess.countFast >= 20 then
-                BJI.Managers.Toast.error("Continuous error during scenario fast tick, backup to Freeroam")
+                BJI_Toast.error("Continuous error during scenario fast tick, backup to Freeroam")
                 tickErrorProcess.countFast = 0
                 M.switchScenario(M.TYPES.FREEROAM)
             end
@@ -421,7 +421,7 @@ local function slowTick(ctxt)
             LogError(string.var("Error during scenario slow tick : {1}", { err }))
             tickErrorProcess.countSlow = tickErrorProcess.countSlow + 1
             if tickErrorProcess.countSlow >= 5 then
-                BJI.Managers.Toast.error("Continuous error during scenario slow tick, backup to Freeroam")
+                BJI_Toast.error("Continuous error during scenario slow tick, backup to Freeroam")
                 tickErrorProcess.countSlow = 0
                 M.switchScenario(M.TYPES.FREEROAM)
             end
@@ -451,9 +451,9 @@ local function switchScenario(newType, ctxt)
         return
     end
 
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
     if not M.scenarii[newType].canChangeTo(ctxt) then
-        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.scenarioUnavailable"))
+        BJI_Toast.error(BJI_Lang.get("errors.scenarioUnavailable"))
         return
     end
 
@@ -462,7 +462,7 @@ local function switchScenario(newType, ctxt)
     if _curr().onUnload then
         status, err = pcall(_curr().onUnload, ctxt)
         if not status then
-            BJI.Managers.Toast.error("Error unloading scenario")
+            BJI_Toast.error("Error unloading scenario")
             error(err)
         end
     end
@@ -470,18 +470,18 @@ local function switchScenario(newType, ctxt)
     if _curr().onLoad then
         status, err = pcall(_curr().onLoad, ctxt)
         if not status then
-            BJI.Managers.Toast.error("Error loading scenario")
+            BJI_Toast.error("Error loading scenario")
             M.CurrentScenario = previousScenario
             error(err)
         end
     end
 
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, {
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_CHANGED, {
         previousScenario = previousScenario,
         newScenario = newType,
         type = M.solo[newType] and "solo" or M.multi[newType] and "multi" or "other",
     })
-    BJI.Managers.Restrictions.update()
+    BJI_Restrictions.update()
 end
 
 local function isFreeroam()
@@ -515,15 +515,15 @@ local function onLoad()
 
     -- init cache handlers
     table.forEach({
-        [BJI.Managers.Cache.CACHES.RACE] = M.TYPES.RACE_MULTI,
-        [BJI.Managers.Cache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
-        [BJI.Managers.Cache.CACHES.SPEED] = M.TYPES.SPEED,
-        [BJI.Managers.Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
-        [BJI.Managers.Cache.CACHES.INFECTED] = M.TYPES.INFECTED,
-        [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
-        [BJI.Managers.Cache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
+        [BJI_Cache.CACHES.RACE] = M.TYPES.RACE_MULTI,
+        [BJI_Cache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
+        [BJI_Cache.CACHES.SPEED] = M.TYPES.SPEED,
+        [BJI_Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
+        [BJI_Cache.CACHES.INFECTED] = M.TYPES.INFECTED,
+        [BJI_Cache.CACHES.DERBY] = M.TYPES.DERBY,
+        [BJI_Cache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
     }, function(scenarioType, cacheName)
-        BJI.Managers.Cache.addRxHandler(tostring(cacheName), function(cacheData)
+        BJI_Cache.addRxHandler(tostring(cacheName), function(cacheData)
             local sc = M.get(scenarioType)
             if type(sc.rxData) == "function" then
                 local ok, err = pcall(sc.rxData, cacheData)
@@ -535,15 +535,15 @@ local function onLoad()
         end)
     end)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehicleSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, onDropPlayerAtCamera, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
+    BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehicleSpawned, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, onDropPlayerAtCamera, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
         onDropPlayerAtCameraNoReset, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 M.updateVehicles = updateVehicles

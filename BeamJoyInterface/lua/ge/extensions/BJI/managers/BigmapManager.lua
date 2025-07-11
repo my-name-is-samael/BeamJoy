@@ -11,8 +11,8 @@ local M = {
 
 -- remove missions from bigmap
 local function getRawPoiListByLevel(level)
-    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.BIG_MAP) then
-        BJI.Managers.UI.hideGameMenu()
+    if BJI_Restrictions.getState(BJI_Restrictions.OTHER.BIG_MAP) then
+        BJI_UI.hideGameMenu()
     end
     local status, list, generation = pcall(M.baseFunctions.getRawPoiListByLevel, level)
     if status then
@@ -27,15 +27,15 @@ local function getRawPoiListByLevel(level)
         return list, generation
     else
         local err = list
-        BJI.Managers.Toast.error("Error retrieving POIs for current map")
+        BJI_Toast.error("Error retrieving POIs for current map")
         LogError(err)
         return {}, 0
     end
 end
 
 local function formatPoiForBigmap(poi)
-    if BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.BIG_MAP) then
-        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.unavailableDuringScenario"))
+    if BJI_Restrictions.getState(BJI_Restrictions.OTHER.BIG_MAP) then
+        BJI_Toast.error(BJI_Lang.get("errors.unavailableDuringScenario"))
         LogWarn("getRawPoiListByLevel")
     end
 
@@ -56,14 +56,14 @@ end
 
 local function updateQuickTravelState()
     local function _update()
-        M.quickTravel = BJI.Managers.Scenario.canQuickTravel()
+        M.quickTravel = BJI_Scenario.canQuickTravel()
     end
 
-    if BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
+    if BJI_Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then
         _update()
     else
-        BJI.Managers.Async.task(function()
-            return BJI.Managers.Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
+        BJI_Async.task(function()
+            return BJI_Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY
         end, _update)
     end
 end
@@ -81,14 +81,14 @@ local function onLoad()
         M.baseFunctions.formatPoiForBigmap = extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap
         extensions.freeroam_bigMapPoiProvider.formatPoiForBigmap = formatPoiForBigmap
     end
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
     }, function(_, data)
-        if data.event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.BJC then
+        if data.event ~= BJI_Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI_Cache.CACHES.BJC then
             updateQuickTravelState()
         end
     end, M._name)

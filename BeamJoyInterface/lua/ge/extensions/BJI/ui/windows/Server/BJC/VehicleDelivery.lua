@@ -13,10 +13,10 @@ return function(ctxt, labels, cache)
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = cache.disableInputs or #cache.vehicleDelivery.modelsCombo <= 1 }) then
             cache.disableInputs = true
-            table.insert(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist,
+            table.insert(BJI_Context.BJC.VehicleDelivery.ModelBlacklist,
                 cache.vehicleDelivery.selectedModel)
-            BJI.Tx.config.bjc("VehicleDelivery.ModelBlacklist",
-                BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist)
+            BJI_Tx_config.bjc("VehicleDelivery.ModelBlacklist",
+                BJI_Context.BJC.VehicleDelivery.ModelBlacklist)
         end
         TooltipText(labels.vehicleDelivery.add)
         SameLine()
@@ -30,10 +30,10 @@ return function(ctxt, labels, cache)
             if IconButton("removeVehDeliveryBlackListModel-" .. v.model, BJI.Utils.Icon.ICONS.delete_forever,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = cache.disableInputs }) then
                 cache.disableInputs = true
-                table.remove(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist,
-                    table.indexOf(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist, v.model))
-                BJI.Tx.config.bjc("VehicleDelivery.ModelBlacklist",
-                    BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist)
+                table.remove(BJI_Context.BJC.VehicleDelivery.ModelBlacklist,
+                    table.indexOf(BJI_Context.BJC.VehicleDelivery.ModelBlacklist, v.model))
+                BJI_Tx_config.bjc("VehicleDelivery.ModelBlacklist",
+                    BJI_Context.BJC.VehicleDelivery.ModelBlacklist)
             end
             TooltipText(labels.vehicleDelivery.remove)
             SameLine()

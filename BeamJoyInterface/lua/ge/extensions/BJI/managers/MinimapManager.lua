@@ -10,8 +10,8 @@ local function toggleVehicle(data)
         return
     end
 
-    local veh = BJI.Managers.Veh.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
-    if not veh or BJI.Managers.AI.isAIVehicle(veh:getID()) then
+    local veh = BJI_Veh.getVehicleObject(data.veh and data.veh:getID() or data.gameVehID)
+    if not veh or BJI_AI.isAIVehicle(veh:getID()) then
         error("Invalid vehicle")
         return
     end

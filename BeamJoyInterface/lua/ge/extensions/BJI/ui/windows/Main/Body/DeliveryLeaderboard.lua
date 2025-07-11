@@ -8,7 +8,7 @@ local function draw(ctxt, showRacesLeaderboardButtonFn)
             { label = "##delivery-leaderboard-races" },
         }) then
         TableNewRow()
-        state = BeginTree(BJI.Managers.Lang.get("delivery.leaderboard.title"))
+        state = BeginTree(BJI_Lang.get("delivery.leaderboard.title"))
         TableNextColumn()
         if showRacesLeaderboardButtonFn then
             showRacesLeaderboardButtonFn()
@@ -20,7 +20,7 @@ local function draw(ctxt, showRacesLeaderboardButtonFn)
                     { label = "##delivery-leaderboard-playernames" },
                     { label = "##delivery-leaderboard-scores" }
                 }) then
-                for i, lb in ipairs(BJI.Managers.Context.Scenario.Data.DeliveryLeaderboard) do
+                for i, lb in ipairs(BJI_Context.Scenario.Data.DeliveryLeaderboard) do
                     TableNewRow()
                     Text(string.var("#{1} {2} :", { i, lb.playerName }),
                         {
@@ -29,7 +29,7 @@ local function draw(ctxt, showRacesLeaderboardButtonFn)
                         })
                     TableNextColumn()
                     Text(
-                        string.var("{1} {2}", { lb.delivery, BJI.Managers.Lang.get("delivery.leaderboard.delivered") }),
+                        string.var("{1} {2}", { lb.delivery, BJI_Lang.get("delivery.leaderboard.delivered") }),
                         {
                             color = lb.playerName == ctxt.user.playerName and
                                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT

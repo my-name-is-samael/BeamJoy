@@ -12,16 +12,16 @@ local function drawServerBroadcasts(labels, cache)
         TableNewRow()
         Text(labels.server.broadcasts.delay)
         TableNextColumn()
-        nextValue = SliderIntPrecision("serverBroadcastsDelay", BJI.Managers.Context.BJC.Server.Broadcasts.delay, 30,
+        nextValue = SliderIntPrecision("serverBroadcastsDelay", BJI_Context.BJC.Server.Broadcasts.delay, 30,
             3600, {
                 step = 1,
                 stepFast = 5,
-                formatRender = tostring(BJI.Managers.Context.BJC.Server.Broadcasts.delay) .. " - " ..
+                formatRender = tostring(BJI_Context.BJC.Server.Broadcasts.delay) .. " - " ..
                     cache.server.broadcasts.prettyBrodcastsDelay
             })
         if nextValue then
-            BJI.Managers.Context.BJC.Server.Broadcasts.delay = nextValue
-            cache.server.broadcasts.prettyBrodcastsDelay = BJI.Utils.UI.PrettyDelay(BJI.Managers.Context.BJC.Server
+            BJI_Context.BJC.Server.Broadcasts.delay = nextValue
+            cache.server.broadcasts.prettyBrodcastsDelay = BJI.Utils.UI.PrettyDelay(BJI_Context.BJC.Server
                 .Broadcasts.delay)
         end
 
@@ -40,41 +40,41 @@ local function drawServerBroadcasts(labels, cache)
             { label = "##bjiserverbjcserverbroadcasts2-labels" },
             { label = "##bjiserverbjcserverbroadcasts2-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
         }) then
-        table.forEach(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang],
+        table.forEach(BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang],
             function(broad, i)
                 TableNewRow()
                 Text(labels.server.broadcasts.broadcast .. " " .. tostring(i))
                 TableNextColumn()
                 if IconButton("deleteServerBroadcastsMessage", BJI.Utils.Icon.ICONS.delete_forever,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                    table.remove(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], i)
+                    table.remove(BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], i)
                     cache.server.broadcasts.langs:find(
                         function(el) return el.value == cache.server.broadcasts.selectedLang end,
                         function(el)
                             el.label = string.format("%s (%d)", el.value:upper(),
-                                #BJI.Managers.Context.BJC.Server.Broadcasts[el.value])
+                                #BJI_Context.BJC.Server.Broadcasts[el.value])
                         end)
                 end
                 TooltipText(labels.buttons.remove)
                 SameLine()
                 nextValue = InputText("serverBroadcastsMessage" .. i, broad, { size = 200 })
                 if nextValue then
-                    BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][i] = nextValue
+                    BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][i] = nextValue
                 end
             end)
 
         EndTable()
     end
 
-    iLastMessage = #BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang]
-    lastMessage = BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][iLastMessage]
+    iLastMessage = #BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang]
+    lastMessage = BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang][iLastMessage]
     if IconButton("addServerBroadcastsMessage", BJI.Utils.Icon.ICONS.addListItem,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = lastMessage and #lastMessage == 0 }) then
-        table.insert(BJI.Managers.Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], "")
+        table.insert(BJI_Context.BJC.Server.Broadcasts[cache.server.broadcasts.selectedLang], "")
         cache.server.broadcasts.langs:find(function(el) return el.value == cache.server.broadcasts.selectedLang end,
             function(el)
                 el.label = string.format("%s (%d)", el.value:upper(),
-                    #BJI.Managers.Context.BJC.Server.Broadcasts[el.value])
+                    #BJI_Context.BJC.Server.Broadcasts[el.value])
             end)
     end
     TooltipText(labels.buttons.add)
@@ -83,7 +83,7 @@ local function drawServerBroadcasts(labels, cache)
     if IconButton("saveServerBroadcasts", BJI.Utils.Icon.ICONS.save,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = cache.disableInputs }) then
         cache.disableInputs = true
-        local data = table.clone(BJI.Managers.Context.BJC.Server.Broadcasts)
+        local data = table.clone(BJI_Context.BJC.Server.Broadcasts)
         -- remove empty messages
         for k, langBroads in pairs(data) do
             if k ~= "delay" then
@@ -94,7 +94,7 @@ local function drawServerBroadcasts(labels, cache)
                 end
             end
         end
-        BJI.Tx.config.bjc("Server.Broadcasts", data)
+        BJI_Tx_config.bjc("Server.Broadcasts", data)
     end
     TooltipText(labels.buttons.save)
     Unindent(); Unindent()
@@ -108,12 +108,12 @@ local function drawServerWelcomeMessages(labels, cache)
             { label = "##bjiserverbjcserverwelcomemessages-labels" },
             { label = "##bjiserverbjcserverwelcomemessages-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
         }) then
-        Table(BJI.Managers.Context.BJC.Server.WelcomeMessage):forEach(function(msg, lang)
+        Table(BJI_Context.BJC.Server.WelcomeMessage):forEach(function(msg, lang)
             TableNewRow()
             Text(labels.server.welcomeMessage.message:var({ lang = tostring(lang):upper() }))
             TableNextColumn()
             nextValue = InputText("serverWelcomeMessage" .. lang, msg, { size = 200 })
-            if nextValue then BJI.Managers.Context.BJC.Server.WelcomeMessage[lang] = nextValue end
+            if nextValue then BJI_Context.BJC.Server.WelcomeMessage[lang] = nextValue end
         end)
 
         EndTable()
@@ -121,53 +121,53 @@ local function drawServerWelcomeMessages(labels, cache)
     if IconButton("saveServerWelcomeMessage", BJI.Utils.Icon.ICONS.save,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = cache.disableInputs }) then
         cache.disableInputs = true
-        local data = table.clone(BJI.Managers.Context.BJC.Server.WelcomeMessage)
+        local data = table.clone(BJI_Context.BJC.Server.WelcomeMessage)
         for lang, msg in pairs(data) do
             if #msg == 0 then
                 data[lang] = nil
             end
         end
-        BJI.Tx.config.bjc("Server.WelcomeMessage", data)
+        BJI_Tx_config.bjc("Server.WelcomeMessage", data)
     end
     TooltipText(labels.buttons.save)
     Unindent(); Unindent()
 end
 
 return function(ctxt, labels, cache)
-    if #BJI.Managers.Lang.Langs > 1 then
-        BJI.Managers.Lang.drawSelector({
+    if #BJI_Lang.Langs > 1 then
+        BJI_Lang.drawSelector({
             label = labels.server.lang,
-            selected = BJI.Managers.Context.BJC.Server.Lang,
+            selected = BJI_Context.BJC.Server.Lang,
             onChange = function(newLang)
-                BJI.Tx.config.bjc("Server.Lang", newLang)
+                BJI_Tx_config.bjc("Server.Lang", newLang)
             end
         })
     else
         Text(labels.server.lang)
         SameLine()
-        Text(BJI.Managers.Context.BJC.Server.Lang:upper())
+        Text(BJI_Context.BJC.Server.Lang:upper())
     end
 
     Text(labels.server.allowMods)
     SameLine()
-    if IconButton("toggleAllowClientMods", BJI.Managers.Context.BJC.Server.AllowClientMods and
+    if IconButton("toggleAllowClientMods", BJI_Context.BJC.Server.AllowClientMods and
             BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
-            { bgLess = true, btnStyle = BJI.Managers.Context.BJC.Server.AllowClientMods and
+            { bgLess = true, btnStyle = BJI_Context.BJC.Server.AllowClientMods and
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 disabled = cache.disableInputs }) then
         cache.disableInputs = true
-        BJI.Tx.config.bjc("Server.AllowClientMods", not BJI.Managers.Context.BJC.Server.AllowClientMods)
+        BJI_Tx_config.bjc("Server.AllowClientMods", not BJI_Context.BJC.Server.AllowClientMods)
     end
 
     Text(labels.server.driftBigBroadcast)
     SameLine()
-    if IconButton("toggleDriftBigBroadcast", BJI.Managers.Context.BJC.Server.DriftBigBroadcast and
+    if IconButton("toggleDriftBigBroadcast", BJI_Context.BJC.Server.DriftBigBroadcast and
             BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
-            { bgLess = true, btnStyle = BJI.Managers.Context.BJC.Server.DriftBigBroadcast and
+            { bgLess = true, btnStyle = BJI_Context.BJC.Server.DriftBigBroadcast and
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 disabled = cache.disableInputs }) then
         cache.disableInputs = true
-        BJI.Tx.config.bjc("Server.DriftBigBroadcast", not BJI.Managers.Context.BJC.Server.DriftBigBroadcast)
+        BJI_Tx_config.bjc("Server.DriftBigBroadcast", not BJI_Context.BJC.Server.DriftBigBroadcast)
     end
 
     drawServerBroadcasts(labels, cache)

@@ -78,7 +78,7 @@ local function areBaseCachesFirstLoaded()
     end)
 
     if loaded then
-        BJI.Managers.UI.applyLoading(false, function()
+        BJI_UI.applyLoading(false, function()
             M._firstInit = true
         end)
     end
@@ -89,7 +89,7 @@ end
 local function _tryRequestCaches(cachesToRequest)
     ---@type tablelib<string>
     local finalCaches = cachesToRequest:filter(function(cacheType)
-        return not M.CACHE_PERMISSIONS[cacheType] or BJI.Managers.Perm.hasPermission(M.CACHE_PERMISSIONS[cacheType])
+        return not M.CACHE_PERMISSIONS[cacheType] or BJI_Perm.hasPermission(M.CACHE_PERMISSIONS[cacheType])
     end)
 
     if finalCaches:length() > 0 then
@@ -97,11 +97,11 @@ local function _tryRequestCaches(cachesToRequest)
             M._states[cacheType] = M.CACHE_STATES.PROCESSING
         end)
         LogDebug(string.var("Requesting caches : {1}", { finalCaches:join(", ") }), M._name)
-        BJI.Tx.cache.require(finalCaches)
+        BJI_Tx_cache.require(finalCaches)
 
         -- softlock prevention
         finalCaches:forEach(function(c)
-            BJI.Managers.Async.delayTask(function()
+            BJI_Async.delayTask(function()
                 if M._states[c] == M.CACHE_STATES.PROCESSING then
                     M._states[c] = M.CACHE_STATES.EMPTY
                 end
@@ -119,7 +119,7 @@ end
 local function handleRx(cacheType, cacheData, cacheHash)
     LogDebug(string.var("Received cache {1}", { cacheType }), M._name)
 
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CACHE_LOADED, {
+    BJI_Events.trigger(BJI_Events.EVENTS.CACHE_LOADED, {
         cache = cacheType,
         hash = cacheHash,
     })
@@ -184,16 +184,16 @@ M.onLoad = function()
         M.CACHES.LANG
     }
     M.CACHE_PERMISSIONS = {
-        [M.CACHES.DELIVERIES] = BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO,
+        [M.CACHES.DELIVERIES] = BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO,
 
-        [M.CACHES.CORE] = BJI.Managers.Perm.PERMISSIONS.SET_CORE,
-        [M.CACHES.MAPS] = BJI.Managers.Perm.PERMISSIONS.VOTE_MAP,
+        [M.CACHES.CORE] = BJI_Perm.PERMISSIONS.SET_CORE,
+        [M.CACHES.MAPS] = BJI_Perm.PERMISSIONS.VOTE_MAP,
     }
     for _, cacheType in pairs(M.CACHES) do
         M._states[cacheType] = M.CACHE_STATES.EMPTY
     end
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 
 return M

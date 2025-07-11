@@ -8,14 +8,14 @@ return function(TX)
     ---@param raceID integer
     ---@param callback fun(raceData: table|false)
     function scenario.RaceDetails(raceID, callback)
-        BJI.Rx.ctrls.SCENARIO.raceDetailsCallback(callback)
+        BJI_Rx_SCENARIO.raceDetailsCallback(callback)
         TX._send(event.EVENT, event.TX.RACE_DETAILS, { raceID })
     end
 
     ---@param raceData table
     ---@param callback fun(raceID: integer|false)
     function scenario.RaceSave(raceData, callback)
-        BJI.Rx.ctrls.SCENARIO.raceSaveCallback(callback)
+        BJI_Rx_SCENARIO.raceSaveCallback(callback)
         TX._send(event.EVENT, event.TX.RACE_SAVE, { raceData })
     end
 
@@ -50,21 +50,21 @@ return function(TX)
     ---@param energyStations table[]
     ---@param callback fun(boolean)
     function scenario.EnergyStationsSave(energyStations, callback)
-        BJI.Rx.ctrls.SCENARIO.energyStationsSaveCallback(callback)
+        BJI_Rx_SCENARIO.energyStationsSaveCallback(callback)
         TX._send(event.EVENT, event.TX.ENERGY_STATIONS_SAVE, { energyStations })
     end
 
     ---@param garages table[]
     ---@param callback fun(boolean)
     function scenario.GaragesSave(garages, callback)
-        BJI.Rx.ctrls.SCENARIO.garagesSaveCallback(callback)
+        BJI_Rx_SCENARIO.garagesSaveCallback(callback)
         TX._send(event.EVENT, event.TX.GARAGES_SAVE, { garages })
     end
 
     ---@param positions table[]
     ---@param callback fun(boolean)
     function scenario.DeliverySave(positions, callback)
-        BJI.Rx.ctrls.SCENARIO.deliverySaveCallback(callback)
+        BJI_Rx_SCENARIO.deliverySaveCallback(callback)
         TX._send(event.EVENT, event.TX.DELIVERY_SAVE, { positions })
     end
 
@@ -111,7 +111,7 @@ return function(TX)
     ---@param busLines table[]
     ---@param callback fun(boolean)
     function scenario.BusLinesSave(busLines, callback)
-        BJI.Rx.ctrls.SCENARIO.busLinesSaveCallback(callback)
+        BJI_Rx_SCENARIO.busLinesSaveCallback(callback)
         TX._send(event.EVENT, event.TX.BUS_LINES_SAVE, { busLines })
     end
 
@@ -138,7 +138,7 @@ return function(TX)
     ---@param hunterData table
     ---@param callback fun(boolean)
     function scenario.HunterInfectedSave(hunterData, callback)
-        BJI.Rx.ctrls.SCENARIO.hunterInfectedSaveCallback(callback)
+        BJI_Rx_SCENARIO.hunterInfectedSaveCallback(callback)
         TX._send(event.EVENT, event.TX.HUNTER_INFECTED_SAVE, { hunterData })
     end
 
@@ -175,7 +175,7 @@ return function(TX)
     ---@param arenas table[]
     ---@param callback fun(boolean)
     function scenario.DerbySave(arenas, callback)
-        BJI.Rx.ctrls.SCENARIO.derbySaveCallback(callback)
+        BJI_Rx_SCENARIO.derbySaveCallback(callback)
         TX._send(event.EVENT, event.TX.DERBY_SAVE, { arenas })
     end
 

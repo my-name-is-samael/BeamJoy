@@ -68,57 +68,57 @@ local W = {
 local label, color, remaining
 
 local function updateLabels()
-    W.labels.hunted = BJI.Managers.Lang.get("hunter.play.hunted") .. " :"
-    W.labels.hunters = BJI.Managers.Lang.get("hunter.play.hunters") .. " :"
+    W.labels.hunted = BJI_Lang.get("hunter.play.hunted") .. " :"
+    W.labels.hunters = BJI_Lang.get("hunter.play.hunters") .. " :"
 
-    W.labels.preparationTimeoutAboutToEnd = BJI.Managers.Lang.get("hunter.play.preparationTimeoutAboutToEnd")
-    W.labels.preparationTimeoutIn = BJI.Managers.Lang.get("hunter.play.preparationTimeoutIn")
-    W.labels.configChoose = BJI.Managers.Lang.get("hunter.play.configChoose") .. " :"
-    W.labels.readyMark = string.var("({1})", { BJI.Managers.Lang.get("hunter.play.readyMark") })
-    W.labels.notReadyMark = string.var("({1})", { BJI.Managers.Lang.get("hunter.play.notReadyMark") })
+    W.labels.preparationTimeoutAboutToEnd = BJI_Lang.get("hunter.play.preparationTimeoutAboutToEnd")
+    W.labels.preparationTimeoutIn = BJI_Lang.get("hunter.play.preparationTimeoutIn")
+    W.labels.configChoose = BJI_Lang.get("hunter.play.configChoose") .. " :"
+    W.labels.readyMark = string.var("({1})", { BJI_Lang.get("hunter.play.readyMark") })
+    W.labels.notReadyMark = string.var("({1})", { BJI_Lang.get("hunter.play.notReadyMark") })
 
-    W.labels.playStartIn = BJI.Managers.Lang.get("hunter.play.startIn")
-    W.labels.flashStartHunted = BJI.Managers.Lang.get("hunter.play.flashHuntedStart")
-    W.labels.flashStartHunter = BJI.Managers.Lang.get("hunter.play.flashHunterResume")
-    W.labels.huntedAboutToLoose = BJI.Managers.Lang.get("hunter.play.huntedAboutToLoose")
-    W.labels.huntedLooseIn = BJI.Managers.Lang.get("hunter.play.huntedLooseIn")
-    W.labels.hunterResumeIn = BJI.Managers.Lang.get("hunter.play.hunterResumeIn")
-    W.labels.waypoints = BJI.Managers.Lang.get("hunter.play.waypoints")
+    W.labels.playStartIn = BJI_Lang.get("hunter.play.startIn")
+    W.labels.flashStartHunted = BJI_Lang.get("hunter.play.flashHuntedStart")
+    W.labels.flashStartHunter = BJI_Lang.get("hunter.play.flashHunterResume")
+    W.labels.huntedAboutToLoose = BJI_Lang.get("hunter.play.huntedAboutToLoose")
+    W.labels.huntedLooseIn = BJI_Lang.get("hunter.play.huntedLooseIn")
+    W.labels.hunterResumeIn = BJI_Lang.get("hunter.play.hunterResumeIn")
+    W.labels.waypoints = BJI_Lang.get("hunter.play.waypoints")
 
-    W.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
-    W.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
-    W.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
-    W.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
-    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
-    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
-    W.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
-    W.labels.buttons.setAsFugitive = BJI.Managers.Lang.get("hunter.play.setAsFugitive")
+    W.labels.buttons.join = BJI_Lang.get("common.buttons.join")
+    W.labels.buttons.spectate = BJI_Lang.get("common.buttons.spectate")
+    W.labels.buttons.markReady = BJI_Lang.get("common.buttons.markReady")
+    W.labels.buttons.forfeit = BJI_Lang.get("common.buttons.forfeit")
+    W.labels.buttons.spawn = BJI_Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI_Lang.get("common.buttons.replace")
+    W.labels.buttons.manualReset = BJI_Lang.get("common.buttons.manualReset")
+    W.labels.buttons.setAsFugitive = BJI_Lang.get("hunter.play.setAsFugitive")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.cache.showPreparation = W.scenario.state == W.scenario.STATES.PREPARATION
     W.cache.showGame = W.scenario.state == W.scenario.STATES.GAME
-    W.cache.disabledButtons = not BJI.Managers.Perm.canSpawnVehicle()
+    W.cache.disabledButtons = not BJI_Perm.canSpawnVehicle()
 
-    W.cache.isParticipant = not not W.scenario.participants[BJI.Managers.Context.User.playerID]
+    W.cache.isParticipant = not not W.scenario.participants[BJI_Context.User.playerID]
     W.cache.isHunted = W.cache.isParticipant and
-        W.scenario.participants[BJI.Managers.Context.User.playerID].hunted
+        W.scenario.participants[BJI_Context.User.playerID].hunted
 
     W.cache.showConfigs = false
     if W.cache.showPreparation then
         W.cache.preparationTimeoutTargetTime = W.scenario.preparationTimeout
-        W.cache.isReady = W.cache.isParticipant and W.scenario.participants[BJI.Managers.Context.User.playerID].ready
-        W.cache.showPreparationActions = BJI.Managers.Perm.canSpawnVehicle() and not W.cache.isReady and (
-            not BJI.Managers.Tournament.state or not BJI.Managers.Tournament.whitelist or
-            BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName)
+        W.cache.isReady = W.cache.isParticipant and W.scenario.participants[BJI_Context.User.playerID].ready
+        W.cache.showPreparationActions = BJI_Perm.canSpawnVehicle() and not W.cache.isReady and (
+            not BJI_Tournament.state or not BJI_Tournament.whitelist or
+            BJI_Tournament.whitelistPlayers:includes(ctxt.user.playerName)
         )
         W.cache.showConfigs = W.cache.isParticipant and not W.cache.isReady and
             not W.cache.isHunted and #W.scenario.settings.hunterConfigs > 1
         W.cache.showFugitiveAssignBtn = not W.cache.isReady and
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS
+            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS
                 .START_SERVER_SCENARIO)
     end
 
@@ -159,32 +159,32 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.TOURNAMENT_UPDATED,
         function(ctxt)
-            if W.scenario.participants[ctxt.user.playerID] and BJI.Managers.Tournament.whitelist and
-                not BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
+            if W.scenario.participants[ctxt.user.playerID] and BJI_Tournament.whitelist and
+                not BJI_Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
                 -- got out of whitelist
-                BJI.Tx.scenario.HunterUpdate(W.scenario.state == W.scenario.STATES.PREPARATION and
+                BJI_Tx_scenario.HunterUpdate(W.scenario.state == W.scenario.STATES.PREPARATION and
                     W.scenario.CLIENT_EVENTS.JOIN or W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeaveTournament"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param targetTime integer
@@ -215,7 +215,7 @@ local function drawHeaderPreparation(ctxt)
                 { btnStyle = W.cache.isParticipant and BJI.Utils.Style.BTN_PRESETS.ERROR or
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disabledButtons, big = true }) then
             W.cache.disabledButtons = true -- api request protection
-            BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            BJI_Tx_scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.JOIN)
         end
         TooltipText(W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join)
         if ctxt.isOwner and not W.cache.isReady then
@@ -224,7 +224,7 @@ local function drawHeaderPreparation(ctxt)
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, big = true,
                         disabled = not ctxt.isOwner or W.cache.disabledButtons }) then
                 W.cache.disabledButtons = true -- api request protection
-                BJI.Tx.scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
+                BJI_Tx_scenario.HunterUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
             end
             TooltipText(W.labels.buttons.markReady)
         end
@@ -243,8 +243,8 @@ local function drawHeaderGame(ctxt)
                 if IconButton("leaveHunter", BJI.Utils.Icon.ICONS.exit_to_app,
                         { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                     W.cache.disabledButtons = true
-                    BJI.Tx.scenario.HunterUpdate(
-                        W.cache.huntedID == BJI.Managers.Context.User.playerID and
+                    BJI_Tx_scenario.HunterUpdate(
+                        W.cache.huntedID == BJI_Context.User.playerID and
                         W.scenario.CLIENT_EVENTS.ELIMINATED or
                         W.scenario.CLIENT_EVENTS.LEAVE
                     )
@@ -298,7 +298,7 @@ local function drawHeaderGame(ctxt)
                 if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
                         { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.scenario.resetLock }) then
-                    BJI.Managers.Veh.recoverInPlace()
+                    BJI_Veh.recoverInPlace()
                 end
                 TooltipText(string.var("{1} ({2})", {
                     W.labels.buttons.manualReset,
@@ -357,7 +357,7 @@ local function drawBodyPreparation(ctxt)
             if Button("forceFugitive" .. p.playerName, W.labels.buttons.setAsFugitive,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disabledButtons }) then
                 W.cache.disabledButtons = true
-                BJI.Tx.scenario.HunterForceFugitive(p.playerID)
+                BJI_Tx_scenario.HunterForceFugitive(p.playerID)
             end
         end
         if i == 1 or i == #W.cache.playersList then
@@ -403,7 +403,7 @@ W.onUnload = onUnload
 W.header = drawHeader
 W.body = drawBody
 W.getState = function()
-    return BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER)
+    return BJI_Scenario.is(BJI_Scenario.TYPES.HUNTER)
 end
 
 return W

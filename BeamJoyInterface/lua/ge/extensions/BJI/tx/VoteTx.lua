@@ -35,7 +35,7 @@ return function(TX)
     ---@param isVote boolean
     ---@param data any
     function vote.ScenarioStart(scenario, isVote, data)
-        if not table.includes(BJI.Managers.Votes.SCENARIO_TYPES, scenario) then
+        if not table.includes(BJI_Votes.SCENARIO_TYPES, scenario) then
             LogError("Invalid scenario type " .. scenario)
             return
         end

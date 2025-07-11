@@ -32,12 +32,12 @@ end
 
 ---@param ctxt TickContext
 local function canChangeTo(ctxt)
-    return BJI.Managers.Scenario.isFreeroam() and
-        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.DELIVERIES) and
-        BJI.Managers.Context.Scenario.Data.Deliveries and
-        #BJI.Managers.Context.Scenario.Data.Deliveries > 1 and
+    return BJI_Scenario.isFreeroam() and
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
+        BJI_Context.Scenario.Data.Deliveries and
+        #BJI_Context.Scenario.Data.Deliveries > 1 and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID)
+        not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
 
 ---@param ctxt TickContext
@@ -47,7 +47,7 @@ local function initPositions(ctxt)
     end
 
     local targets = {}
-    for _, position in ipairs(BJI.Managers.Context.Scenario.Data.Deliveries) do
+    for _, position in ipairs(BJI_Context.Scenario.Data.Deliveries) do
         -- local distance = BJIGPS.getRouteLength({ ctxt.veh.position, position.pos }) -- costs a lot
         local distance = ctxt.veh.position:distance(position.pos)
         if distance > 0 then
@@ -72,73 +72,73 @@ local function initPositions(ctxt)
 end
 
 local function initDelivery()
-    BJI.Managers.GPS.prependWaypoint({
-        key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+    BJI_GPS.prependWaypoint({
+        key = BJI_GPS.KEYS.DELIVERY_TARGET,
         pos = S.targetPosition.pos,
         radius = S.targetPosition.radius,
         clearable = false
     })
-    S.baseDistance = BJI.Managers.GPS.getCurrentRouteLength()
-    BJI.Managers.RaceWaypoint.addWaypoint({
+    S.baseDistance = BJI_GPS.getCurrentRouteLength()
+    BJI_RaceWaypoint.addWaypoint({
         name = "BJIVehicleDelivery",
         pos = S.targetPosition.pos,
         radius = S.targetPosition.radius,
-        color = BJI.Managers.RaceWaypoint.COLORS.BLUE
+        color = BJI_RaceWaypoint.COLORS.BLUE
     })
 end
 
 local function onLoad(ctxt)
     reset()
-    BJI.Windows.VehSelector.tryClose()
+    BJI_Win_VehSelector.tryClose()
 
     local init = false
     if ctxt.isOwner then
         initPositions(ctxt)
 
         if S.targetPosition then
-            BJI.Managers.GPS.reset()
-            BJI.Managers.RaceWaypoint.resetAll()
+            BJI_GPS.reset()
+            BJI_RaceWaypoint.resetAll()
 
             initDelivery()
-            BJI.Tx.scenario.DeliveryPackageStart()
-            BJI.Managers.Message.flash("BJIDeliveryPackageStart", BJI.Managers.Lang.get("packageDelivery.flashStart"), 3,
+            BJI_Tx_scenario.DeliveryPackageStart()
+            BJI_Message.flash("BJIDeliveryPackageStart", BJI_Lang.get("packageDelivery.flashStart"), 3,
                 false)
             init = true
         end
     end
     if not init then
-        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM, ctxt)
     end
 end
 
 local function onUnload(ctxt)
-    BJI.Managers.GPS.reset()
-    BJI.Managers.RaceWaypoint.resetAll()
+    BJI_GPS.reset()
+    BJI_RaceWaypoint.resetAll()
 end
 
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
-    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
 local function onDeliveryEnded()
-    BJI.Tx.scenario.DeliveryPackageFail()
-    BJI.Managers.Message.flash("BJIDeliveryPackageFail", BJI.Managers.Lang.get("packageDelivery.flashEnd"), 3, false)
+    BJI_Tx_scenario.DeliveryPackageFail()
+    BJI_Message.flash("BJIDeliveryPackageFail", BJI_Lang.get("packageDelivery.flashEnd"), 3, false)
     reset()
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJI.Managers.Context.User.currentVehicle or
-        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+    if gameVehID ~= BJI_Context.User.currentVehicle or
+        not BJI_Veh.isVehicleOwn(gameVehID) then
         return
     elseif S.nextResetGarage then
         if S.tanksSaved then
             for tankName, tank in pairs(S.tanksSaved) do
                 local fuel = tank.currentEnergy
-                BJI.Managers.Veh.setFuel(tankName, fuel)
+                BJI_Veh.setFuel(tankName, fuel)
             end
             S.tanksSaved = nil
         end
@@ -151,9 +151,9 @@ end
 
 local function onGarageRepair()
     S.nextResetGarage = true
-    Table(BJI.Managers.Context.User.vehicles)
+    Table(BJI_Context.User.vehicles)
         :find(function(v)
-            return v.gameVehID == BJI.Managers.Context.User.currentVehicle
+            return v.gameVehID == BJI_Context.User.currentVehicle
         end, function(v)
             S.tanksSaved = table.clone(v.tanks)
         end)
@@ -169,29 +169,29 @@ local function drawUI(ctxt)
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
         S.onStopDelivery()
     end
-    TooltipText(BJI.Managers.Lang.get("menu.scenario.packageDelivery.stop"))
+    TooltipText(BJI_Lang.get("menu.scenario.packageDelivery.stop"))
     SameLine()
-    Text(BJI.Managers.Lang.get("packageDelivery.title"))
+    Text(BJI_Lang.get("packageDelivery.title"))
     if S.checkTargetTime then
         remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
         if remainingSec > 0 then
             SameLine()
-            Text(string.var("({1})", { BJI.Managers.Lang.get("packageDelivery.depositIn"):var({
+            Text(string.var("({1})", { BJI_Lang.get("packageDelivery.depositIn"):var({
                 delay = remainingSec
             }) }), { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
         end
     end
 
-    Text(BJI.Managers.Lang.get("packageDelivery.currentStreak")
+    Text(BJI_Lang.get("packageDelivery.currentStreak")
         :var({ streak = S.streak }))
-    TooltipText(BJI.Managers.Lang.get("packageDelivery.streakTooltip"))
+    TooltipText(BJI_Lang.get("packageDelivery.streakTooltip"))
 
     if S.distance then
         ProgressBar(1 - math.max(S.distance / S.baseDistance, 0),
             { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
         TooltipText(string.var("{1}: {2}", {
-            BJI.Managers.Lang.get("delivery.currentDelivery"),
-            BJI.Managers.Lang.get("delivery.distanceLeft")
+            BJI_Lang.get("delivery.currentDelivery"),
+            BJI_Lang.get("delivery.distanceLeft")
                 :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
         }))
     end
@@ -203,7 +203,7 @@ local function onTargetReached(ctxt)
         return
     end
 
-    BJI.Tx.scenario.DeliveryPackageSuccess()
+    BJI_Tx_scenario.DeliveryPackageSuccess()
     initPositions(ctxt)
     if not S.targetPosition then
         S.onStopDelivery()
@@ -222,7 +222,7 @@ local function slowTick(ctxt)
         return
     end
 
-    S.distance = BJI.Managers.GPS.getCurrentRouteLength()
+    S.distance = BJI_GPS.getCurrentRouteLength()
     if S.distance > S.baseDistance then
         S.baseDistance = S.distance
     end
@@ -233,22 +233,22 @@ local function slowTick(ctxt)
             local streak = S.streak + 1
             local msg
             if streak == 1 then
-                msg = BJI.Managers.Lang.get("packageDelivery.flashFirstPackage")
+                msg = BJI_Lang.get("packageDelivery.flashFirstPackage")
             else
-                msg = BJI.Managers.Lang.get("packageDelivery.flashPackageStreak"):var({ streak = streak })
+                msg = BJI_Lang.get("packageDelivery.flashPackageStreak"):var({ streak = streak })
             end
             S.checkTargetTime = ctxt.now + 3100
-            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false, msg, nil,
+            BJI_Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false, msg, nil,
                 onTargetReached)
         end
     else
         if S.checkTargetTime then
-            BJI.Managers.Message.cancelFlash("BJIDeliveryTarget")
+            BJI_Message.cancelFlash("BJIDeliveryTarget")
             S.checkTargetTime = nil
         end
-        if #BJI.Managers.GPS.targets == 0 then
-            BJI.Managers.GPS.prependWaypoint({
-                key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+        if #BJI_GPS.targets == 0 then
+            BJI_GPS.prependWaypoint({
+                key = BJI_GPS.KEYS.DELIVERY_TARGET,
                 pos = S.targetPosition.pos,
                 radius = S.targetPosition.radius,
                 clearable = false
@@ -260,7 +260,7 @@ end
 local function getPlayerListActions(player, ctxt)
     actions = {}
 
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 

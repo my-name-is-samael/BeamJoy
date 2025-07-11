@@ -33,45 +33,45 @@ local W = {
 local invalidName, nextValue
 
 local function onClose()
-    BJI.Managers.WaypointEdit.reset()
+    BJI_WaypointEdit.reset()
     W.changed = false
     W.valid = true
 end
 
 local function reloadMarkers()
-    BJI.Managers.WaypointEdit.setWaypoints(Table(W.cache.stations)
+    BJI_WaypointEdit.setWaypoints(Table(W.cache.stations)
         :map(function(s)
             return {
                 name = s.name,
                 pos = s.pos,
                 radius = s.radius,
-                type = BJI.Managers.WaypointEdit.TYPES.SPHERE,
+                type = BJI_WaypointEdit.TYPES.SPHERE,
             }
         end))
 end
 
 local function updateLabels()
-    W.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
+    W.labels.vSeparator = BJI_Lang.get("common.vSeparator")
 
-    W.labels.title = BJI.Managers.Lang.get("energyStations.edit.title")
+    W.labels.title = BJI_Lang.get("energyStations.edit.title")
     W.labels.energyTypes = Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):reduce(function(res, energyType)
-        res[energyType] = BJI.Managers.Lang.get(string.var("energy.energyTypes.{1}", { energyType }))
+        res[energyType] = BJI_Lang.get(string.var("energy.energyTypes.{1}", { energyType }))
         return res
     end, Table())
 
-    W.labels.name = BJI.Managers.Lang.get("energyStations.edit.name")
-    W.labels.types = BJI.Managers.Lang.get("energyStations.edit.types")
-    W.labels.radius = BJI.Managers.Lang.get("energyStations.edit.radius")
+    W.labels.name = BJI_Lang.get("energyStations.edit.name")
+    W.labels.types = BJI_Lang.get("energyStations.edit.types")
+    W.labels.radius = BJI_Lang.get("energyStations.edit.radius")
 
-    W.labels.buttons.refreshMarkers = BJI.Managers.Lang.get("energyStations.edit.buttons.refreshMarkers")
-    W.labels.buttons.addStationHere = BJI.Managers.Lang.get("energyStations.edit.buttons.addStationHere")
-    W.labels.buttons.showStation = BJI.Managers.Lang.get("energyStations.edit.buttons.showStation")
-    W.labels.buttons.setStationHere = BJI.Managers.Lang.get("energyStations.edit.buttons.setStationHere")
-    W.labels.buttons.deleteStation = BJI.Managers.Lang.get("energyStations.edit.buttons.deleteStation")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("errors.mustBeFreecaming")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
+    W.labels.buttons.refreshMarkers = BJI_Lang.get("energyStations.edit.buttons.refreshMarkers")
+    W.labels.buttons.addStationHere = BJI_Lang.get("energyStations.edit.buttons.addStationHere")
+    W.labels.buttons.showStation = BJI_Lang.get("energyStations.edit.buttons.showStation")
+    W.labels.buttons.setStationHere = BJI_Lang.get("energyStations.edit.buttons.setStationHere")
+    W.labels.buttons.deleteStation = BJI_Lang.get("energyStations.edit.buttons.deleteStation")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
+    W.labels.buttons.errorMustBeFreecaming = BJI_Lang.get("errors.mustBeFreecaming")
+    W.labels.buttons.errorInvalidData = BJI_Lang.get("errors.someDataAreInvalid")
 end
 
 local function updateCache()
@@ -89,20 +89,20 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.STATIONS then
+            if data.cache == BJI_Cache.CACHES.STATIONS then
                 updateCache()
             end
         end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
-    BJI.Managers.WaypointEdit.reset()
+    listeners:forEach(BJI_Events.removeListener)
+    BJI_WaypointEdit.reset()
 end
 
 local function validateStations()
@@ -115,7 +115,7 @@ end
 
 local function save()
     W.cache.disableInputs = true
-    BJI.Tx.scenario.EnergyStationsSave(W.cache.stations:map(function(s)
+    BJI_Tx_scenario.EnergyStationsSave(W.cache.stations:map(function(s)
         return math.roundPositionRotation({
             name = s.name,
             types = table.clone(s.types),
@@ -126,7 +126,7 @@ local function save()
         if result then
             W.changed = false
         else
-            BJI.Managers.Toast.error(BJI.Managers.Lang.get("energyStations.edit.saveErrorToast"))
+            BJI_Toast.error(BJI_Lang.get("energyStations.edit.saveErrorToast"))
         end
         W.cache.disableInputs = false
     end)
@@ -143,19 +143,19 @@ local function header(ctxt)
     SameLine()
     if IconButton("createStation", BJI.Utils.Icon.ICONS.add_location,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
-                disabled = W.cache.disableInputs or ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
+                disabled = W.cache.disableInputs or ctxt.camera ~= BJI_Cam.CAMERAS.FREE }) then
         table.insert(W.cache.stations, {
             name = "",
             types = Table(),
             radius = 2.5,
-            pos = BJI.Managers.Cam.getPositionRotation().pos,
+            pos = BJI_Cam.getPositionRotation().pos,
         })
         W.changed = true
         reloadMarkers()
         validateStations()
     end
     TooltipText(W.labels.buttons.addStationHere ..
-        (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+        (ctxt.camera ~= BJI_Cam.CAMERAS.FREE and
             (" (" .. W.labels.buttons.errorMustBeFreecaming .. ")") or ""))
 
     Text(Table(BJI.CONSTANTS.ENERGY_STATION_TYPES):map(function(energyType)
@@ -177,23 +177,23 @@ local function body(ctxt)
             TableNextColumn()
             if IconButton("goToStation-" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop,
                     { disabled = W.cache.disableInputs }) then
-                if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                    BJI.Managers.Cam.toggleFreeCam()
+                if ctxt.camera ~= BJI_Cam.CAMERAS.FREE then
+                    BJI_Cam.toggleFreeCam()
                 end
-                BJI.Managers.Cam.setPositionRotation(s.pos)
+                BJI_Cam.setPositionRotation(s.pos)
             end
             TooltipText(W.labels.buttons.showStation)
             SameLine()
             if IconButton("moveStation-" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
-                        ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
-                s.pos = BJI.Managers.Cam.getPositionRotation().pos
+                        ctxt.camera ~= BJI_Cam.CAMERAS.FREE }) then
+                s.pos = BJI_Cam.getPositionRotation().pos
                 W.changed = true
                 reloadMarkers()
                 validateStations()
             end
             TooltipText(W.labels.buttons.setStationHere ..
-                (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+                (ctxt.camera ~= BJI_Cam.CAMERAS.FREE and
                     " (" .. W.labels.buttons.errorMustBeFreecaming .. ")" or ""))
             SameLine()
             if IconButton("deleteStation-" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -265,7 +265,7 @@ end
 local function footer(ctxt)
     if IconButton("closeEnergyStations", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Windows.ScenarioEditor.onClose()
+        BJI_Win_ScenarioEditor.onClose()
     end
     if W.changed then
         SameLine()
@@ -280,7 +280,7 @@ local function footer(ctxt)
 end
 
 local function open()
-    W.cache.stations = Table(BJI.Managers.Context.Scenario.Data.EnergyStations)
+    W.cache.stations = Table(BJI_Context.Scenario.Data.EnergyStations)
         :map(function(s)
             return {
                 name = s.name,
@@ -291,7 +291,7 @@ local function open()
         end)
     validateStations()
     reloadMarkers()
-    BJI.Windows.ScenarioEditor.view = W
+    BJI_Win_ScenarioEditor.view = W
 end
 
 W.onLoad = onLoad

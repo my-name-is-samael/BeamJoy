@@ -28,31 +28,31 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
-    W.labels.amountPBs = BJI.Managers.Lang.get("races.leaderboard.amountPBs") .. " :"
-    W.labels.columnRace = BJI.Managers.Lang.get("races.leaderboard.race")
-    W.labels.columnPB = BJI.Managers.Lang.get("races.leaderboard.pb")
-    W.labels.columnRecord = BJI.Managers.Lang.get("races.leaderboard.record")
-    W.labels.buttons.removeAllPBs = BJI.Managers.Lang.get("races.leaderboard.removeAllPBsButton")
-    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.vSeparator = BJI_Lang.get("common.vSeparator")
+    W.labels.amountPBs = BJI_Lang.get("races.leaderboard.amountPBs") .. " :"
+    W.labels.columnRace = BJI_Lang.get("races.leaderboard.race")
+    W.labels.columnPB = BJI_Lang.get("races.leaderboard.pb")
+    W.labels.columnRecord = BJI_Lang.get("races.leaderboard.record")
+    W.labels.buttons.removeAllPBs = BJI_Lang.get("races.leaderboard.removeAllPBsButton")
+    W.labels.buttons.remove = BJI_Lang.get("common.buttons.remove")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.data.amountPBs = 0
-    table.forEach(BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB) or {},
+    table.forEach(BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_PB) or {},
         ---@param mapPBs table<string, MapRacePBWP[]>
         function(mapPBs)
             W.data.amountPBs = W.data.amountPBs + table.length(mapPBs)
         end)
 
-    W.data.leaderboard = Table(BJI.Managers.Context.Scenario.Data.Races):values()
+    W.data.leaderboard = Table(BJI_Context.Scenario.Data.Races):values()
         :filter(function(race)
             return type(race) == "table"
         end):map(function(race)
-            local _, pb = BJI.Managers.RaceWaypoint.getPB(race.hash)
+            local _, pb = BJI_RaceWaypoint.getPB(race.hash)
             return {
                 id = race.id,
                 name = race.name,
@@ -62,7 +62,7 @@ local function updateCache(ctxt)
                 pb = pb and BJI.Utils.UI.RaceDelay(pb) or nil,
                 record = race.record and BJI.Utils.UI.RaceDelay(race.record.time) or nil,
                 recordTooltip = race.record and string.var("{1} - {2}", { race.record.playerName,
-                    BJI.Managers.Veh.getModelLabel(race.record.model) }) or nil,
+                    BJI_Veh.getModelLabel(race.record.model) }) or nil,
             }
         end):sort(function(a, b)
             if a.name:lower():startswith(b.name:lower()) then
@@ -77,30 +77,30 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
     end, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.RACE_NEW_PB,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.RACE_NEW_PB,
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt, data)
-        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.RACES then
+        if data._event ~= BJI_Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI_Cache.CACHES.RACES then
             updateCache(ctxt)
         end
     end, W.name .. "Cache"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function header()
@@ -113,12 +113,12 @@ local function header()
         SameLine()
         if IconButton("btnRemoveAllPbs", BJI.Utils.Icon.ICONS.delete_forever,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-            BJI.Managers.Popup.createModal(
-                BJI.Managers.Lang.get("races.leaderboard.removeAllPBsModal"), {
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
-                        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, {})
-                        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RACE_NEW_PB, {})
+            BJI_Popup.createModal(
+                BJI_Lang.get("races.leaderboard.removeAllPBsModal"), {
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
+                        BJI_LocalStorage.set(BJI_LocalStorage.VALUES.RACES_PB, {})
+                        BJI_Events.trigger(BJI_Events.EVENTS.RACE_NEW_PB, {})
                     end),
                 })
         end
@@ -141,18 +141,18 @@ local function body()
                 if el.pb then
                     if IconButton("remove-pb-" .. tostring(el.id), BJI.Utils.Icon.ICONS.delete_forever,
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                        BJI.Managers.Popup.createModal(
-                            string.var(BJI.Managers.Lang.get("races.leaderboard.removePBModal"),
+                        BJI_Popup.createModal(
+                            string.var(BJI_Lang.get("races.leaderboard.removePBModal"),
                                 { raceName = el.name }), {
-                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                BJI_Popup.createButton(BJI_Lang.get(
                                     "common.buttons.cancel"
                                 )),
-                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                BJI_Popup.createButton(BJI_Lang.get(
                                     "common.buttons.confirm"
                                 ), function()
-                                    BJI.Managers.RaceWaypoint.setPB(el.hash)
-                                    BJI.Managers.Events.trigger(
-                                        BJI.Managers.Events.EVENTS.RACE_NEW_PB, {
+                                    BJI_RaceWaypoint.setPB(el.hash)
+                                    BJI_Events.trigger(
+                                        BJI_Events.EVENTS.RACE_NEW_PB, {
                                             raceName = el.name,
                                             raceID = el.id,
                                             raceHash = el.hash,

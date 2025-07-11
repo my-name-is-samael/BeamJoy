@@ -110,17 +110,17 @@ end
 -- remove all non existing/updated races from PBs
 local function sanitizeMapRacesPBs()
     local mapName = GetMapName()
-    if not mapName or not BJI.Managers.Context.Scenario.Data.Races then
-        BJI.Managers.Async.removeTask("MapRacesPBSanitizer")
-        BJI.Managers.Async.delayTask(sanitizeMapRacesPBs, 500, "MapRacesPBSanitizer")
+    if not mapName or not BJI_Context.Scenario.Data.Races then
+        BJI_Async.removeTask("MapRacesPBSanitizer")
+        BJI_Async.delayTask(sanitizeMapRacesPBs, 500, "MapRacesPBSanitizer")
         LogDebug("LocalStorage Races PBs sanitizer waiting for map and races : looping...")
         return
-    elseif mapName ~= BJI.Managers.Context.Scenario.Data.Races.mapName then
+    elseif mapName ~= BJI_Context.Scenario.Data.Races.mapName then
         LogError("LocalStorage Races PBs sanitizer : current map not matching races map, skipping...")
         return
     end
     local pbRaces = M.data.values[M.VALUES.RACES_PB.key][mapName]
-    local srvRaces = BJI.Managers.Context.Scenario.Data.Races
+    local srvRaces = BJI_Context.Scenario.Data.Races
     local changes = false
     if #srvRaces > 0 then
         if not pbRaces then
@@ -149,7 +149,7 @@ end
 local listeners = Table()
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function onLoad()
@@ -192,15 +192,15 @@ local function onLoad()
         end)
     end
 
-    BJI.Managers.Async.task(function()
-        return not not BJI.Managers.Context.Scenario.Data.Races
+    BJI_Async.task(function()
+        return not not BJI_Context.Scenario.Data.Races
     end, sanitizeMapRacesPBs)
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if table.includes({ BJI.Managers.Cache.CACHES.RACES }, data.cache) then
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if table.includes({ BJI_Cache.CACHES.RACES }, data.cache) then
             sanitizeMapRacesPBs()
         end
     end, M._name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name))
 end
 
 ---@param key LocalStorageElement

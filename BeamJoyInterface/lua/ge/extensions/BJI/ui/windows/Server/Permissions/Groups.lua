@@ -2,7 +2,7 @@
 local group, opened, nextValue, readOnly, newPerms
 
 local function isLevelAssignedToAnotherGroup(groupName, level)
-    return not not Table(BJI.Managers.Perm.Groups)
+    return not not Table(BJI_Perm.Groups)
         :find(function(g, k) return k ~= groupName and g.level == level end)
 end
 
@@ -36,7 +36,7 @@ local function drawGroupData(labels, cache, gkey, group)
             end
             if nextValue > 0 and nextValue < 100 then
                 group.level = nextValue
-                BJI.Tx.config.permissionsGroup(gkey, "level", group.vehicleCap)
+                BJI_Tx_config.permissionsGroup(gkey, "level", group.vehicleCap)
             end
         end
 
@@ -46,7 +46,7 @@ local function drawGroupData(labels, cache, gkey, group)
         nextValue = InputInt("groupVehicleCap" .. gkey, group.vehicleCap, { min = -1, disabled = readOnly })
         if nextValue then
             group.vehicleCap = nextValue
-            BJI.Tx.config.permissionsGroup(gkey, "vehicleCap", group.vehicleCap)
+            BJI_Tx_config.permissionsGroup(gkey, "vehicleCap", group.vehicleCap)
         end
 
         TableNewRow()
@@ -56,7 +56,7 @@ local function drawGroupData(labels, cache, gkey, group)
                 { disabled = readOnly, bgLess = true, btnStyle = group.staff and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             group.staff = not group.staff
-            BJI.Tx.config.permissionsGroup(gkey, "staff", group.staff)
+            BJI_Tx_config.permissionsGroup(gkey, "staff", group.staff)
         end
 
         TableNewRow()
@@ -66,7 +66,7 @@ local function drawGroupData(labels, cache, gkey, group)
                 { disabled = readOnly, bgLess = true, btnStyle = group.banned and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             group.banned = not group.banned
-            BJI.Tx.config.permissionsGroup(gkey, "banned", group.banned)
+            BJI_Tx_config.permissionsGroup(gkey, "banned", group.banned)
         end
 
         TableNewRow()
@@ -76,7 +76,7 @@ local function drawGroupData(labels, cache, gkey, group)
                 { disabled = readOnly, bgLess = true, btnStyle = group.muted and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             group.muted = not group.muted
-            BJI.Tx.config.permissionsGroup(gkey, "muted", group.muted)
+            BJI_Tx_config.permissionsGroup(gkey, "muted", group.muted)
         end
 
         TableNewRow()
@@ -86,7 +86,7 @@ local function drawGroupData(labels, cache, gkey, group)
                 { disabled = readOnly, bgLess = true, btnStyle = group.whitelisted and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             group.whitelisted = not group.whitelisted
-            BJI.Tx.config.permissionsGroup(gkey, "whitelisted", group.whitelisted)
+            BJI_Tx_config.permissionsGroup(gkey, "whitelisted", group.whitelisted)
         end
 
         TableNewRow()
@@ -97,7 +97,7 @@ local function drawGroupData(labels, cache, gkey, group)
                     { disabled = readOnly or cache.disableInputs,
                         btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 cache.disableInputs = true
-                BJI.Tx.config.permissionsGroupSpecific(gkey, permName, false)
+                BJI_Tx_config.permissionsGroupSpecific(gkey, permName, false)
             end
             SameLine()
             Text("- " .. permName)
@@ -110,7 +110,7 @@ local function drawGroupData(labels, cache, gkey, group)
                 { disabled = readOnly or cache.disableInputs or not cache.groupsPermissionsInputs[gkey],
                     btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             cache.disableInputs = true
-            BJI.Tx.config.permissionsGroupSpecific(gkey, cache.groupsPermissionsInputs[gkey], true)
+            BJI_Tx_config.permissionsGroupSpecific(gkey, cache.groupsPermissionsInputs[gkey], true)
             cache.groupsPermissionsInputs[gkey] = nil
         end
         TooltipText(labels.add)
@@ -156,13 +156,13 @@ local function drawNewGroup(labels, cache)
     end
     if IconButton("addNewGroup", BJI.Utils.Icon.ICONS.add, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = cache.disableInputs or #cache.newGroup.label < 4 or
-                Table(BJI.Managers.Perm.Groups):any(function(g, k)
+                Table(BJI_Perm.Groups):any(function(g, k)
                     return k == cache.newGroup.label or g.level == cache.newGroup.level
                 end) }) then
         if not isLevelAssignedToAnotherGroup(cache.newGroup.label,
                 cache.newGroup.level) then
             cache.disableInputs = true
-            BJI.Tx.config.permissionsGroup(cache.newGroup.label, "level",
+            BJI_Tx_config.permissionsGroup(cache.newGroup.label, "level",
                 cache.newGroup.level)
             cache.newGroup.label = ""
             cache.newGroup.level = 1
@@ -174,7 +174,7 @@ end
 
 return function(labels, cache)
     cache.orderedGroups:forEach(function(gkey, i)
-        group = BJI.Managers.Perm.Groups[gkey]
+        group = BJI_Perm.Groups[gkey]
         opened = BeginTree(labels.groups[gkey], {
             color = cache.selfGroup == group.level and
                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
@@ -187,14 +187,14 @@ return function(labels, cache)
             if IconButton("deleteGroup" .. gkey,
                     BJI.Utils.Icon.ICONS.delete_forever, { disabled = cache.disableInputs,
                         btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Popup.createModal(
-                    BJI.Managers.Lang.get("serverConfig.permissions.deleteModal")
+                BJI_Popup.createModal(
+                    BJI_Lang.get("serverConfig.permissions.deleteModal")
                     :var({ groupName = gkey }), {
-                        BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                        BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                        BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                        BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"),
                             function()
                                 cache.disableInputs = true
-                                BJI.Tx.config.permissionsGroup(gkey, "level")
+                                BJI_Tx_config.permissionsGroup(gkey, "level")
                             end),
                     })
             end

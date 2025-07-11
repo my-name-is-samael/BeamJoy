@@ -66,33 +66,33 @@ local W = {
 }
 
 local function updateLabels()
-    W.labels.arenaName = BJI.Managers.Lang.get("derby.play.arenaName")
-    W.labels.places = BJI.Managers.Lang.get("derby.settings.places")
+    W.labels.arenaName = BJI_Lang.get("derby.play.arenaName")
+    W.labels.places = BJI_Lang.get("derby.settings.places")
 
-    W.labels.preparationTimeoutAboutToEnd = BJI.Managers.Lang.get("derby.play.preparationTimeoutAboutToEnd")
-    W.labels.preparationTimeoutIn = BJI.Managers.Lang.get("derby.play.preparationTimeoutIn")
-    W.labels.readyMark = string.var(" ({1})", { BJI.Managers.Lang.get("derby.play.readyMark") })
-    W.labels.notReadyMark = string.var(" ({1})", { BJI.Managers.Lang.get("derby.play.notReadyMark") })
+    W.labels.preparationTimeoutAboutToEnd = BJI_Lang.get("derby.play.preparationTimeoutAboutToEnd")
+    W.labels.preparationTimeoutIn = BJI_Lang.get("derby.play.preparationTimeoutIn")
+    W.labels.readyMark = string.var(" ({1})", { BJI_Lang.get("derby.play.readyMark") })
+    W.labels.notReadyMark = string.var(" ({1})", { BJI_Lang.get("derby.play.notReadyMark") })
 
-    W.labels.startsIn = BJI.Managers.Lang.get("derby.play.gameStartsIn")
-    W.labels.flashStart = BJI.Managers.Lang.get("derby.play.flashStart")
-    W.labels.resetIn = BJI.Managers.Lang.get("derby.play.resetIn")
-    W.labels.eliminatedIn = BJI.Managers.Lang.get("derby.play.eliminatedIn")
-    W.labels.amountLives = BJI.Managers.Lang.get("derby.play.amountLives")
-    W.labels.amountLife = BJI.Managers.Lang.get("derby.play.amountLife")
+    W.labels.startsIn = BJI_Lang.get("derby.play.gameStartsIn")
+    W.labels.flashStart = BJI_Lang.get("derby.play.flashStart")
+    W.labels.resetIn = BJI_Lang.get("derby.play.resetIn")
+    W.labels.eliminatedIn = BJI_Lang.get("derby.play.eliminatedIn")
+    W.labels.amountLives = BJI_Lang.get("derby.play.amountLives")
+    W.labels.amountLife = BJI_Lang.get("derby.play.amountLife")
 
-    W.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
-    W.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
-    W.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
-    W.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
-    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
-    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
-    W.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
+    W.labels.buttons.join = BJI_Lang.get("common.buttons.join")
+    W.labels.buttons.spectate = BJI_Lang.get("common.buttons.spectate")
+    W.labels.buttons.markReady = BJI_Lang.get("common.buttons.markReady")
+    W.labels.buttons.forfeit = BJI_Lang.get("common.buttons.forfeit")
+    W.labels.buttons.spawn = BJI_Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI_Lang.get("common.buttons.replace")
+    W.labels.buttons.manualReset = BJI_Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
     W.cache.showPreparation = W.scenario.state == W.scenario.STATES.PREPARATION
     W.cache.showGame = W.scenario.state == W.scenario.STATES.GAME
 
@@ -102,15 +102,15 @@ local function updateCache(ctxt)
 
     W.cache.arenaName = W.labels.arenaName:var({ name = W.scenario.baseArena.name })
     W.cache.places = W.labels.places:var({ places = #W.scenario.baseArena.startPositions })
-    W.cache.disableButtons = not BJI.Managers.Perm.canSpawnVehicle()
+    W.cache.disableButtons = not BJI_Perm.canSpawnVehicle()
 
     local participant = W.scenario.getParticipant()
     W.cache.preparationTimeout = W.scenario.preparationTimeout
     W.cache.isParticipant = participant ~= nil
     W.cache.isReady = participant and participant.ready
-    W.cache.showPreparationActions = BJI.Managers.Perm.canSpawnVehicle() and not W.cache.isReady and (
-        not BJI.Managers.Tournament.state or not BJI.Managers.Tournament.whitelist or
-        BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName)
+    W.cache.showPreparationActions = BJI_Perm.canSpawnVehicle() and not W.cache.isReady and (
+        not BJI_Tournament.state or not BJI_Tournament.whitelist or
+        BJI_Tournament.whitelistPlayers:includes(ctxt.user.playerName)
     )
     W.cache.showReadyBtn = W.cache.isParticipant and not W.cache.isReady
     W.cache.preparationParticipants = Table()
@@ -119,7 +119,7 @@ local function updateCache(ctxt)
         W.cache.preparationParticipants = Table(W.scenario.participants):map(function(p)
             return {
                 name = ctxt.players[p.playerID].playerName,
-                nameColor = p.playerID == BJI.Managers.Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                nameColor = p.playerID == BJI_Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                     BJI.Utils.Style.TEXT_COLORS.DEFAULT,
                 nameSuffix = p.ready and W.labels.readyMark or W.labels.notReadyMark,
                 suffixColor = p.ready and BJI.Utils.Style.TEXT_COLORS.SUCCESS or BJI.Utils.Style.TEXT_COLORS.DEFAULT,
@@ -144,9 +144,9 @@ local function updateCache(ctxt)
         ---@param p BJIDerbyParticipant
         W.cache.gameLeaderboard = Table(W.scenario.participants):map(function(p)
             local name, nameColor = ctxt.players[p.playerID].playerName,
-                p.playerID == BJI.Managers.Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
+                p.playerID == BJI_Context.User.playerID and BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
                 BJI.Utils.Style.TEXT_COLORS.DEFAULT
-            local suffix, suffixColor = "", p.playerID == BJI.Managers.Context.User.playerID and
+            local suffix, suffixColor = "", p.playerID == BJI_Context.User.playerID and
                 BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
             if p.eliminationTime then
                 suffix = BJI.Utils.UI.RaceDelay(p.eliminationTime)
@@ -157,7 +157,7 @@ local function updateCache(ctxt)
                 })
             end
             return {
-                focusDisabled = BJI.Managers.Context.User.currentVehicle == p.gameVehID or
+                focusDisabled = BJI_Context.User.currentVehicle == p.gameVehID or
                     W.scenario.isEliminated(p.playerID),
                 gameVehID = p.gameVehID,
                 name = name,
@@ -171,47 +171,47 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.DERBY)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
     end, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
+        BJI_Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.PERMISSION_CHANGED,
         function(ctxt)
-            if W.cache.showGame and not BJI.Managers.Perm.canSpawnVehicle() then
+            if W.cache.showGame and not BJI_Perm.canSpawnVehicle() then
                 -- permission loss
-                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
+                BJI_Tx_scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeave"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.TOURNAMENT_UPDATED,
         function(ctxt)
-            if W.scenario.getParticipant() and BJI.Managers.Tournament.whitelist and
-                not BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
+            if W.scenario.getParticipant() and BJI_Tournament.whitelist and
+                not BJI_Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
                 -- got out of whitelist
-                BJI.Tx.scenario.DerbyUpdate(W.scenario.state == W.scenario.STATES.PREPARATION and
+                BJI_Tx_scenario.DerbyUpdate(W.scenario.state == W.scenario.STATES.PREPARATION and
                     W.scenario.CLIENT_EVENTS.JOIN or W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeaveTournament"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param targetTime integer
@@ -241,7 +241,7 @@ local function drawHeaderPreparation(ctxt)
                 { big = true, btnStyle = W.cache.isParticipant and BJI.Utils.Style.BTN_PRESETS.ERROR or
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableButtons }) then
             W.cache.disableButtons = true
-            BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            BJI_Tx_scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.JOIN)
         end
         TooltipText(W.cache.isParticipant and W.labels.buttons.spectate or W.labels.buttons.join)
         if W.cache.showReadyBtn then
@@ -250,7 +250,7 @@ local function drawHeaderPreparation(ctxt)
                     { big = true, style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.isOwner or W.cache.disableButtons }) then
                 W.cache.disableButtons = true
-                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
+                BJI_Tx_scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)
             end
             TooltipText(W.labels.buttons.markReady)
         end
@@ -267,8 +267,8 @@ local function drawHeaderGame(ctxt)
             if IconButton("leaveDerby", BJI.Utils.Icon.ICONS.exit_to_app,
                     { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 W.cache.disableButtons = true
-                BJI.Tx.scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
-                BJI.Tx.player.explodeVehicle(W.scenario.getParticipant().gameVehID)
+                BJI_Tx_scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.LEAVE, ctxt.now - W.cache.startTime)
+                BJI_Tx_player.explodeVehicle(W.scenario.getParticipant().gameVehID)
             end
             TooltipText(W.labels.buttons.forfeit)
             SameLine()
@@ -290,7 +290,7 @@ local function drawHeaderGame(ctxt)
         if W.cache.showManualResetBtn then
             if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
                     { big = true, disabled = W.scenario.resetLock, btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                BJI.Managers.Veh.loadHome()
+                BJI_Veh.loadHome()
             end
             TooltipText(string.var("{1} ({2})", {
                 W.labels.buttons.manualReset,
@@ -345,7 +345,7 @@ local function body(ctxt)
                 if W.cache.showFocusBtn then
                     if IconButton("focus" .. tostring(el.gameVehID), BJI.Utils.Icon.ICONS.visibility,
                             { disabled = el.focusDisabled }) then
-                        BJI.Managers.Veh.focusVehicle(el.gameVehID)
+                        BJI_Veh.focusVehicle(el.gameVehID)
                     end
                     SameLine()
                 end
@@ -363,8 +363,8 @@ W.onUnload = onUnload
 W.header = header
 W.body = body
 W.getState = function()
-    return BJI.Managers.Cache.areBaseCachesFirstLoaded() and
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY)
+    return BJI_Cache.areBaseCachesFirstLoaded() and
+        BJI_Scenario.is(BJI_Scenario.TYPES.DERBY)
 end
 
 return W

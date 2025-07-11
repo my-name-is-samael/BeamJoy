@@ -135,7 +135,7 @@ BeginMenu = function(label)
         if menuLevel == 1 then
             SetWindowFontScale(1)
         else
-            scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+            scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
             SetWindowFontScale(scale)
         end
     end
@@ -290,7 +290,7 @@ BeginChild = function(id, data)
         return false
     end
     data = data or {}
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
     if data.size then
         if data.size.x < -1 then                              -- substract from avail space
             data.size = ImVec2(GetContentRegionAvail().x + data.size.x, data.size.y)
@@ -337,7 +337,7 @@ EndChild = function()
 
     childLevel = childLevel - 1
     if childLevel % 2 == 0 then
-        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
         SetWindowFontScale(scale)
     else
         SetWindowFontScale(1)
@@ -413,7 +413,7 @@ end
 BeginTooltip = function()
     val2 = ui_imgui.BeginTooltip()
     if val2 then
-        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
         SetWindowFontScale(scale)
     end
     return val2
@@ -568,7 +568,7 @@ end
 
 ---@param name string
 SetupWindow = function(name)
-    BJI.Managers.Context.GUI.setupWindow(name)
+    BJI_Context.GUI.setupWindow(name)
 end
 ---@param title string
 ---@param openPtr {[0]: boolean}? window not closeable if nil
@@ -585,7 +585,7 @@ local baseFlagsWindow = Table({
 ---@param title string
 ---@param data BJIWindow
 RenderWindow = function(ctxt, title, data)
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
     data.flags = data.flags or {}
 
     SetupWindow(data.name)
@@ -693,17 +693,17 @@ Button = function(id, label, data)
         elseif data.width < -1 then
             data.width = data.width + GetContentRegionAvail().x
         end
-        scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+        scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
         val2 = ImVec2(data.width, 23 * scale)
     end
 
     data.sound = not data.noSound and
-        (data.sound or BJI.Managers.Sound.SOUNDS.BIGMAP_HOVER) or nil
+        (data.sound or BJI_Sound.SOUNDS.BIGMAP_HOVER) or nil
 
     val3 = ui_imgui.Button(string.var("{1}##{2}", { label, id }), val2)
 
     if val3 and data.sound then
-        BJI.Managers.Sound.play(data.sound)
+        BJI_Sound.play(data.sound)
     end
 
     PopStyleColor(4)
@@ -877,7 +877,7 @@ InputTextMultiline = function(id, value, data)
     val1 = StrPtr(value, data.size)
     val2 = table.length(value:split2("\n"))
     val2 = val2 >= 2 and val2 or 2
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
 
     data.width = data.width or -1
     if data.width < -1 then
@@ -981,7 +981,7 @@ end
 ---@param floatPercent number 0-1
 ---@param data {width: integer?, height: integer?, text: string?, color: vec4?}?
 ProgressBar = function(floatPercent, data)
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
     data = data or {}
     if data.width then
         val1 = tonumber(data.width)
@@ -1024,7 +1024,7 @@ Icon = function(icon, data)
     val1 = ImVec2(BJI.Utils.UI.GetIconSize(data.big), 0)
     val1.y = val1.x
 
-    BJI.Managers.Context.GUI.uiIconImage(BJI.Utils.Icon.GetIcon(icon), val1, data.color, data.borderColor, nil)
+    BJI_Context.GUI.uiIconImage(BJI.Utils.Icon.GetIcon(icon), val1, data.color, data.borderColor, nil)
 end
 
 ---@param id string
@@ -1061,13 +1061,13 @@ IconButton = function(id, icon, data)
     val2.y = val2.x
 
     data.sound = not data.noSound and
-        (data.sound or BJI.Managers.Sound.SOUNDS.BIGMAP_HOVER) or nil
+        (data.sound or BJI_Sound.SOUNDS.BIGMAP_HOVER) or nil
 
-    val3 = BJI.Managers.Context.GUI.uiIconImageButton(BJI.Utils.Icon.GetIcon(icon), val2, val1[4], nil, val1[1],
+    val3 = BJI_Context.GUI.uiIconImageButton(BJI.Utils.Icon.GetIcon(icon), val2, val1[4], nil, val1[1],
         id, nil, nil, data.onRelease == true)
 
     if val3 and data.sound then
-        BJI.Managers.Sound.play(data.sound)
+        BJI_Sound.play(data.sound)
     end
 
     PopStyleColor(2)
@@ -1133,7 +1133,7 @@ local baseFlagsSlider = Table({
 ---@return integer? changed
 SliderInt = function(id, value, min, max, data)
     data = data or {}
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
 
     if data.disabled then
         val1 = table.clone(BJI.Utils.Style.INPUT_PRESETS.DISABLED)
@@ -1179,7 +1179,7 @@ end
 ---@return number? changed
 SliderFloat = function(id, value, min, max, data)
     data = data or {}
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
 
     if data.disabled then
         val1 = table.clone(BJI.Utils.Style.INPUT_PRESETS.DISABLED)
@@ -1237,7 +1237,7 @@ SliderIntPrecision = function(id, value, min, max, data)
     if not sliderPrecisionStates.int[id] then
         val1 = SliderInt(id, value, min, max, data)
         if max - min > 20 then
-            TooltipText(BJI.Managers.Lang.get("common.precisionInputTooltip"))
+            TooltipText(BJI_Lang.get("common.precisionInputTooltip"))
             if IsItemClicked(BJI.Utils.Style.MOUSE_BUTTONS.RIGHT) then
                 sliderPrecisionStates.int[id] = true
             end
@@ -1254,7 +1254,7 @@ SliderIntPrecision = function(id, value, min, max, data)
             inputStyle = data.inputStyle,
             btnStyle = data.btnStyle,
         })
-        TooltipText(BJI.Managers.Lang.get("common.precisionInputTooltip"))
+        TooltipText(BJI_Lang.get("common.precisionInputTooltip"))
         if IsItemClicked(BJI.Utils.Style.MOUSE_BUTTONS.RIGHT) then
             sliderPrecisionStates.int[id] = nil
         end
@@ -1272,7 +1272,7 @@ end
 SliderFloatPrecision = function(id, value, min, max, data)
     if not sliderPrecisionStates.float[id] then
         val1 = SliderFloat(id, value, min, max, data)
-        TooltipText(BJI.Managers.Lang.get("common.precisionInputTooltip"))
+        TooltipText(BJI_Lang.get("common.precisionInputTooltip"))
         if IsItemClicked(BJI.Utils.Style.MOUSE_BUTTONS.RIGHT) then
             sliderPrecisionStates.float[id] = true
         end
@@ -1289,7 +1289,7 @@ SliderFloatPrecision = function(id, value, min, max, data)
             btnStyle = data.btnStyle,
             precision = data.precision,
         })
-        TooltipText(BJI.Managers.Lang.get("common.precisionInputTooltip"))
+        TooltipText(BJI_Lang.get("common.precisionInputTooltip"))
         if IsItemClicked(BJI.Utils.Style.MOUSE_BUTTONS.RIGHT) then
             sliderPrecisionStates.float[id] = nil
         end

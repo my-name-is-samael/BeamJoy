@@ -3,7 +3,7 @@ local vk, remainingTime, delayLabel
 
 return function(ctxt, cache)
     if not vk then
-        vk = BJI.Managers.Votes.Kick
+        vk = BJI_Votes.Kick
     end
 
     Text(cache.creator, ctxt.user.playerID == vk.creatorID and
@@ -26,7 +26,7 @@ return function(ctxt, cache)
                 big = true, btnStyle = vk.selfVoted and BJI.Utils.Style.BTN_PRESETS.ERROR or
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
         cache.disableButtons = true
-        BJI.Tx.vote.KickVote()
+        BJI_Tx_vote.KickVote()
         vk.selfVoted = not vk.selfVoted
         vk.amountVotes = vk.amountVotes + (vk.selfVoted and 1 or -1)
     end
@@ -37,7 +37,7 @@ return function(ctxt, cache)
                 disabled = cache.disableButtons, big = true,
                 btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             cache.disableButtons = true
-            BJI.Tx.vote.KickStop()
+            BJI_Tx_vote.KickStop()
         end
         TooltipText(cache.buttons.stop)
     end

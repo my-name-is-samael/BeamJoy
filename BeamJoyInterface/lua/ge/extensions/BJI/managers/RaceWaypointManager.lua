@@ -455,8 +455,8 @@ local function getPB(raceHash)
         dump(raceHash)
         return
     end
-    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)
-        [GetMapName() or BJI.Managers.Context.UI.mapName]
+    local pbs = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_PB)
+        [GetMapName() or BJI_Context.UI.mapName]
     if pbs then
         local pb = pbs[raceHash]
         if pb and table.maxn(pb) == 0 then
@@ -485,14 +485,14 @@ local function setPB(raceHash, newPb)
         dump(newPb)
         return
     end
-    local pbs = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.VALUES.RACES_PB)
-    local mapPbs = pbs[GetMapName() or BJI.Managers.Context.UI.mapName]
+    local pbs = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_PB)
+    local mapPbs = pbs[GetMapName() or BJI_Context.UI.mapName]
     if not mapPbs then
         mapPbs = {}
-        pbs[GetMapName() or BJI.Managers.Context.UI.mapName] = mapPbs
+        pbs[GetMapName() or BJI_Context.UI.mapName] = mapPbs
     end
     mapPbs[raceHash] = newPb
-    BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.VALUES.RACES_PB, pbs)
+    BJI_LocalStorage.set(BJI_LocalStorage.VALUES.RACES_PB, pbs)
 end
 
 M.resetAll = resetAll
@@ -509,7 +509,7 @@ M.getPB = getPB
 M.setPB = setPB
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 M.renderTick = renderTick
 

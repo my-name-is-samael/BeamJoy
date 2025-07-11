@@ -20,7 +20,7 @@ local scale
 ---@param text string
 ---@return integer
 function U.GetTextWidth(text)
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
     return math.round(ui_imgui.CalcTextSize(text and tostring(text) or "").x * scale)
 end
 
@@ -44,14 +44,14 @@ end
 ---@param content any
 ---@return integer
 function U.GetComboWidthByContent(content)
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
     return U.GetTextWidth(tostring(content)) + U.MARGINS.INPUT * 2 + U.SIZES.COMBO_BUTTON * scale
 end
 
 ---@param big boolean?
 ---@return integer
 function U.GetIconSize(big)
-    scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
+    scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE) or 1
     return math.round((big and 32 or 20) * scale)
 end
 
@@ -85,14 +85,14 @@ function U.PrettyDelay(secs)
     end
 
     if months > 1 then
-        local monthLabel = BJI.Managers.Lang.get("common.time.months")
+        local monthLabel = BJI_Lang.get("common.time.months")
         return string.var("{months} {monthLabel}", { months = months, monthLabel = monthLabel })
     elseif months == 1 then
-        local monthLabel = BJI.Managers.Lang.get("common.time.month")
-        local dayLabel = BJI.Managers.Lang.get("common.time.day")
-        local andLabel = BJI.Managers.Lang.get("common.time.and")
+        local monthLabel = BJI_Lang.get("common.time.month")
+        local dayLabel = BJI_Lang.get("common.time.day")
+        local andLabel = BJI_Lang.get("common.time.and")
         if days > 1 then
-            dayLabel = BJI.Managers.Lang.get("common.time.days")
+            dayLabel = BJI_Lang.get("common.time.days")
         end
         if days > 0 then
             return string.var("{months} {monthLabel} {andLabel} {days} {dayLabel}",
@@ -103,14 +103,14 @@ function U.PrettyDelay(secs)
     end
 
     if days > 1 then
-        local dayLabel = BJI.Managers.Lang.get("common.time.days")
+        local dayLabel = BJI_Lang.get("common.time.days")
         return string.var("{days} {dayLabel}", { days = days, dayLabel = dayLabel })
     elseif days == 1 then
-        local dayLabel = BJI.Managers.Lang.get("common.time.day")
-        local hourLabel = BJI.Managers.Lang.get("common.time.hour")
-        local andLabel = BJI.Managers.Lang.get("common.time.and")
+        local dayLabel = BJI_Lang.get("common.time.day")
+        local hourLabel = BJI_Lang.get("common.time.hour")
+        local andLabel = BJI_Lang.get("common.time.and")
         if hours > 1 then
-            hourLabel = BJI.Managers.Lang.get("common.time.hours")
+            hourLabel = BJI_Lang.get("common.time.hours")
         end
         if hours > 0 then
             return string.var("{days} {dayLabel} {andLabel} {hours} {hourLabel}",
@@ -121,14 +121,14 @@ function U.PrettyDelay(secs)
     end
 
     if hours > 1 then
-        local hourLabel = BJI.Managers.Lang.get("common.time.hours")
+        local hourLabel = BJI_Lang.get("common.time.hours")
         return string.var("{hours} {hourLabel}", { hours = hours, hourLabel = hourLabel })
     elseif hours == 1 then
-        local hourLabel = BJI.Managers.Lang.get("common.time.hour")
-        local minuteLabel = BJI.Managers.Lang.get("common.time.minute")
-        local andLabel = BJI.Managers.Lang.get("common.time.and")
+        local hourLabel = BJI_Lang.get("common.time.hour")
+        local minuteLabel = BJI_Lang.get("common.time.minute")
+        local andLabel = BJI_Lang.get("common.time.and")
         if mins > 1 then
-            minuteLabel = BJI.Managers.Lang.get("common.time.minutes")
+            minuteLabel = BJI_Lang.get("common.time.minutes")
         end
         if mins > 0 then
             return string.var("{hours} {hourLabel} {andLabel} {mins} {minuteLabel}",
@@ -139,12 +139,12 @@ function U.PrettyDelay(secs)
     end
 
     if mins > 1 then
-        local minLabel = BJI.Managers.Lang.get("common.time.minutes")
+        local minLabel = BJI_Lang.get("common.time.minutes")
         return string.var("{mins} {minLabel}", { mins = mins, minLabel = minLabel })
     elseif mins == 1 then
-        local minLabel = BJI.Managers.Lang.get("common.time.minute")
-        local secLabel = BJI.Managers.Lang.get("common.time.second")
-        local andLabel = BJI.Managers.Lang.get("common.time.and")
+        local minLabel = BJI_Lang.get("common.time.minute")
+        local secLabel = BJI_Lang.get("common.time.second")
+        local andLabel = BJI_Lang.get("common.time.and")
         if secs > 0 then
             return string.var("{mins} {minLabel} {andLabel} {secs} {secLabel}",
                 { mins = mins, minLabel = minLabel, andLabel = andLabel, secs = secs, secLabel = secLabel })
@@ -153,9 +153,9 @@ function U.PrettyDelay(secs)
         end
     end
 
-    local secondLabel = BJI.Managers.Lang.get("common.time.second")
+    local secondLabel = BJI_Lang.get("common.time.second")
     if secs > 1 then
-        secondLabel = BJI.Managers.Lang.get("common.time.seconds")
+        secondLabel = BJI_Lang.get("common.time.seconds")
     end
     return string.var("{secs} {secondLabel}", { secs = secs, secondLabel = secondLabel })
 end
@@ -259,7 +259,7 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, disabled)
 
     local res, drawn
     if showMonth then
-        if Button(id .. "M1M", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.month"),
+        if Button(id .. "M1M", "-1" .. BJI_Lang.get("common.durationModifiers.month"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
             res = math.clamp(value - (60 * 60 * 24 * 30), min, max)
         end
@@ -267,7 +267,7 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, disabled)
     end
     if showDay then
         if drawn then SameLine() end
-        if Button(id .. "M1d", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.day"),
+        if Button(id .. "M1d", "-1" .. BJI_Lang.get("common.durationModifiers.day"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
             res = math.clamp(value - (60 * 60 * 24), min, max)
         end
@@ -275,39 +275,39 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, disabled)
     end
     if showHour then
         if drawn then SameLine() end
-        if Button(id .. "M1h", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.hour"),
+        if Button(id .. "M1h", "-1" .. BJI_Lang.get("common.durationModifiers.hour"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
             res = math.clamp(value - (60 * 60), min, max)
         end
         drawn = true
     end
     if drawn then SameLine() end
-    if Button(id .. "M1m", "-1" .. BJI.Managers.Lang.get("common.durationModifiers.minute"),
+    if Button(id .. "M1m", "-1" .. BJI_Lang.get("common.durationModifiers.minute"),
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = disabled }) then
         res = math.clamp(value - 60, min, max)
     end
     SameLine()
-    if Button(id .. "P1m", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.minute"),
+    if Button(id .. "P1m", "+1" .. BJI_Lang.get("common.durationModifiers.minute"),
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
         res = math.clamp(value + 60, min, max)
     end
     if showHour then
         SameLine()
-        if Button(id .. "P1h", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.hour"),
+        if Button(id .. "P1h", "+1" .. BJI_Lang.get("common.durationModifiers.hour"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
             res = math.clamp(value + (60 * 60), min, max)
         end
     end
     if showDay then
         SameLine()
-        if Button(id .. "P1d", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.day"),
+        if Button(id .. "P1d", "+1" .. BJI_Lang.get("common.durationModifiers.day"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
             res = math.clamp(value + (60 * 60 * 24), min, max)
         end
     end
     if showMonth then
         SameLine()
-        if Button(id .. "P1M", "+1" .. BJI.Managers.Lang.get("common.durationModifiers.month"),
+        if Button(id .. "P1M", "+1" .. BJI_Lang.get("common.durationModifiers.month"),
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = disabled }) then
             res = math.clamp(value + (60 * 60 * 24 * 30), min, max)
         end
@@ -317,7 +317,7 @@ function U.DrawLineDurationModifiers(id, value, min, max, resetValue, disabled)
             btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = disabled }) then
         res = resetValue
     end
-    TooltipText(BJI.Managers.Lang.get("common.buttons.reset"))
+    TooltipText(BJI_Lang.get("common.buttons.reset"))
     return res
 end
 
@@ -326,32 +326,32 @@ end
 ---@param disabled? boolean
 function U.DrawTimePlayPauseButtons(id, withUpdate, disabled)
     if IconButton(id .. "-pause", BJI.Utils.Icon.ICONS.pause, {
-            btnStyle = not BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or
+            btnStyle = not BJI_Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.ERROR or
                 BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = disabled,
-            bgLess = not BJI.Managers.Env.Data.timePlay,
+            bgLess = not BJI_Env.Data.timePlay,
         }) then
-        local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-        if hasRight and withUpdate and BJI.Managers.Env.Data.timePlay then
-            BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
-            BJI.Tx.config.env("timePlay", BJI.Managers.Env.Data.timePlay)
+        local hasRight = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+        if hasRight and withUpdate and BJI_Env.Data.timePlay then
+            BJI_Env.Data.timePlay = not BJI_Env.Data.timePlay
+            BJI_Tx_config.env("timePlay", BJI_Env.Data.timePlay)
         end
     end
-    TooltipText(BJI.Managers.Lang.get("common.buttons.stop"))
+    TooltipText(BJI_Lang.get("common.buttons.stop"))
     SameLine()
     if IconButton(id .. "-play", BJI.Utils.Icon.ICONS.play, {
-            btnStyle = BJI.Managers.Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
+            btnStyle = BJI_Env.Data.timePlay and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                 BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = disabled,
-            bgLess = BJI.Managers.Env.Data.timePlay,
+            bgLess = BJI_Env.Data.timePlay,
         }) then
-        local hasRight = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
-        if hasRight and withUpdate and not BJI.Managers.Env.Data.timePlay then
-            BJI.Managers.Env.Data.timePlay = not BJI.Managers.Env.Data.timePlay
-            BJI.Tx.config.env("timePlay", BJI.Managers.Env.Data.timePlay)
+        local hasRight = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET)
+        if hasRight and withUpdate and not BJI_Env.Data.timePlay then
+            BJI_Env.Data.timePlay = not BJI_Env.Data.timePlay
+            BJI_Tx_config.env("timePlay", BJI_Env.Data.timePlay)
         end
     end
-    TooltipText(BJI.Managers.Lang.get("common.buttons.play"))
+    TooltipText(BJI_Lang.get("common.buttons.play"))
 end
 
 function U.AddPlayerActionVoteKick(actions, playerID)
@@ -359,9 +359,9 @@ function U.AddPlayerActionVoteKick(actions, playerID)
         id = string.var("voteKick{1}", { playerID }),
         icon = BJI.Utils.Icon.ICONS.event_busy,
         style = BJI.Utils.Style.BTN_PRESETS.ERROR,
-        tooltip = BJI.Managers.Lang.get("playersBlock.buttons.voteKick"),
+        tooltip = BJI_Lang.get("playersBlock.buttons.voteKick"),
         onClick = function()
-            BJI.Managers.Votes.Kick.start(playerID)
+            BJI_Votes.Kick.start(playerID)
         end
     })
 end

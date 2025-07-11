@@ -25,13 +25,13 @@ return function(ctxt, labels)
             Text(labels.hunter.keys[el.key])
             TooltipText(labels.hunter.keys[el.key .. "Tooltip"])
             TableNextColumn()
-            value = BJI.Managers.Context.BJC.Hunter[el.key] * (el.multiplier or 1)
+            value = BJI_Context.BJC.Hunter[el.key] * (el.multiplier or 1)
             if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = el.default == value }) then
                 value = el.default
-                BJI.Managers.Context.BJC.Hunter[el.key] = value / (el.multiplier or 1)
-                BJI.Tx.config.bjc("Hunter." .. el.key, BJI.Managers.Context.BJC.Hunter[el.key])
+                BJI_Context.BJC.Hunter[el.key] = value / (el.multiplier or 1)
+                BJI_Tx_config.bjc("Hunter." .. el.key, BJI_Context.BJC.Hunter[el.key])
             end
             TooltipText(labels.buttons.reset)
             SameLine()
@@ -40,8 +40,8 @@ return function(ctxt, labels)
             TooltipText(labels.hunter.keys[el.key .. "Tooltip"])
             if nextValue then
                 value = nextValue
-                BJI.Managers.Context.BJC.Hunter[el.key] = value / (el.multiplier or 1)
-                BJI.Tx.config.bjc("Hunter." .. el.key, BJI.Managers.Context.BJC.Hunter[el.key])
+                BJI_Context.BJC.Hunter[el.key] = value / (el.multiplier or 1)
+                BJI_Tx_config.bjc("Hunter." .. el.key, BJI_Context.BJC.Hunter[el.key])
             end
         end)
 

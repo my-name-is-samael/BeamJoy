@@ -7,7 +7,7 @@ local M = {
 }
 
 local function updateVehicles()
-    BJI.Managers.Veh.getAllVehicleConfigs(false, false, true)
+    BJI_Veh.getAllVehicleConfigs(false, false, true)
 end
 
 local function initNGFunctionsWrappers()
@@ -29,9 +29,9 @@ local function initNGFunctionsWrappers()
     }
 
     local function stopProcess()
-        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.modManagementDisabled"))
+        BJI_Toast.error(BJI_Lang.get("errors.modManagementDisabled"))
         guihooks.trigger("app:waiting", false)
-        BJI.Managers.UI.hideGameMenu()
+        BJI_UI.hideGameMenu()
     end
 
     Table({
@@ -62,13 +62,13 @@ local function onUnload()
 end
 
 local function onLoad()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 
 local function update(state)
     if table.length(M.baseFunctions) == 0 then
-        BJI.Managers.Async.task(function()
+        BJI_Async.task(function()
             return table.length(M.baseFunctions) > 0
         end, function()
             update(state)
@@ -78,18 +78,18 @@ local function update(state)
 
     if not state and M.state then
         -- disabling
-        BJI.Managers.UI.applyLoading(true, function()
+        BJI_UI.applyLoading(true, function()
             local previousCam, previousFov
-            if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
-                previousCam = BJI.Managers.Cam.getPositionRotation(true)
-                previousFov = BJI.Managers.Cam.getFOV()
+            if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.FREE then
+                previousCam = BJI_Cam.getPositionRotation(true)
+                previousFov = BJI_Cam.getFOV()
             end
 
             local mods = extensions.core_modmanager.getMods()
             for name, mod in pairs(mods) do
                 local fileName = mod.fullpath:split2("/")
                 fileName = fileName[#fileName]
-                if not table.includes(BJI.Managers.Context.BJC.Server.ClientMods, mod.fileName) and
+                if not table.includes(BJI_Context.BJC.Server.ClientMods, mod.fileName) and
                     not name:find("^multiplayer") then
                     LogError(string.var("Disabling user mod {1}", { name }))
                     extensions.core_modmanager.deactivateMod(name, true)
@@ -99,12 +99,12 @@ local function update(state)
                 updateVehicles()
             end
             if previousCam then
-                BJI.Managers.Async.delayTask(function()
-                    BJI.Managers.Cam.setPositionRotation(previousCam.pos, previousCam.rot)
-                    BJI.Managers.Cam.setFOV(previousFov)
+                BJI_Async.delayTask(function()
+                    BJI_Cam.setPositionRotation(previousCam.pos, previousCam.rot)
+                    BJI_Cam.setFOV(previousFov)
                 end, 200, "BJIModsDisablingCameraRestore")
             end
-            BJI.Managers.UI.applyLoading(false)
+            BJI_UI.applyLoading(false)
         end)
     end
 

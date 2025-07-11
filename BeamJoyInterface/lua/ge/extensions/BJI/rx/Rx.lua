@@ -9,6 +9,7 @@ local RX = {
 for k, v in pairs(BJI.CONSTANTS.EVENTS) do
     if type(v) == "table" and type(v.RX) == "table" and table.length(v.RX) > 0 then
         RX.ctrls[k] = require("ge/extensions/BJI/rx/" .. k:capitalizeWords():gsub(" ", "") .. "Rx")
+        _G["BJI_Rx_"..k] = RX.ctrls[k] -- quick access
     end
 end
 for _, ctrl in pairs(RX.ctrls) do
@@ -79,7 +80,7 @@ local function tryFinalizingEvent(id)
     end
 
     retrievingEvents[id] = nil
-    BJI.Managers.Async.removeTask(string.var("BJIRxEventTimeout-{1}", { id }))
+    BJI_Async.removeTask(string.var("BJIRxEventTimeout-{1}", { id }))
 end
 
 local function retrieveEvent(rawData)
@@ -111,7 +112,7 @@ local function retrieveEvent(rawData)
         tryFinalizingEvent(data.id)
     end
     if retrievingEvents[data.id] then
-        BJI.Managers.Async.delayTask(function()
+        BJI_Async.delayTask(function()
             retrievingEvents[data.id] = nil
         end, 30000, string.var("BJIRxEventTimeout-{1}", { data.id }))
     end
@@ -140,7 +141,7 @@ local function retrieveEventPart(rawData)
     end
     tryFinalizingEvent(data.id)
     if retrievingEvents[data.id] then
-        BJI.Managers.Async.delayTask(function()
+        BJI_Async.delayTask(function()
             retrievingEvents[data.id] = nil
         end, 30000, string.var("BJIRxEventTimeout-{1}", { data.id }))
     end

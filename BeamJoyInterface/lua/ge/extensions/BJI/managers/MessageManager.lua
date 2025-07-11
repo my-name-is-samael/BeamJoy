@@ -120,9 +120,9 @@ local function flashCountdown(key, targetTimeMs, big, zeroLabel, max, callback, 
             local sound = nil
             if countdownSounds and i <= 3 then
                 if i == 0 then
-                    sound = BJI.Managers.Sound.SOUNDS.RACE_START
+                    sound = BJI_Sound.SOUNDS.RACE_START
                 else
-                    sound = BJI.Managers.Sound.SOUNDS.RACE_COUNTDOWN
+                    sound = BJI_Sound.SOUNDS.RACE_COUNTDOWN
                 end
             end
             M.flash(key, label, i == 0 and 2 or 1, big, time, i == 0 and callback or nil, sound)
@@ -154,7 +154,7 @@ local function renderTick(ctxt)
             _flash(el.msg, el.delay, el.big)
         end
         if el.sound then
-            BJI.Managers.Sound.play(el.sound)
+            BJI_Sound.play(el.sound)
         end
         if type(el.callback) == "function" then
             el.callback(ctxt)

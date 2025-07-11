@@ -60,7 +60,7 @@ function ctrl.GaragesSave(data)
 end
 
 function ctrl.DeliveryStop()
-    BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY)
+    BJI_Scenario.get(BJI_Scenario.TYPES.VEHICLE_DELIVERY)
         .onStopDelivery()
 end
 
@@ -80,7 +80,7 @@ end
 
 function ctrl.DeliveryPackageSuccess(data)
     local streak = data[1]
-    BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.PACKAGE_DELIVERY).rxStreak(streak)
+    BJI_Scenario.get(BJI_Scenario.TYPES.PACKAGE_DELIVERY).rxStreak(streak)
 end
 
 local busLinesSaveCallbackFn
@@ -127,7 +127,7 @@ end
 
 ---@param data BJPursuitPayload
 function ctrl.PursuitData(data)
-    BJI.Managers.Pursuit.rxData(data)
+    BJI_Pursuit.rxData(data)
 end
 
 return ctrl

@@ -7,7 +7,7 @@ return function(TX)
 
     ---@param callback fun(players: table)
     function database.playersGet(callback)
-        BJI.Rx.ctrls.DATABASE.playersGetCallback(callback)
+        BJI_Rx_DATABASE.playersGetCallback(callback)
         TX._send(event.EVENT, event.TX.PLAYERS_GET)
     end
 

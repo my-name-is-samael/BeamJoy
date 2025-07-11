@@ -29,22 +29,22 @@ local listeners = Table()
 W.onLoad = function()
     if W.view.onLoad then W.view.onLoad() end
 
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
     }, function()
-        if not BJI.Managers.Scenario.isFreeroam() or
-            not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) then
+        if not BJI_Scenario.isFreeroam() or
+            not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) then
             W.onClose()
         end
     end, W.name))
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_EDITOR_UPDATED)
 end
 W.onUnload = function()
     if W.view and W.view.onUnload then W.view.onUnload() end
-    listeners:forEach(BJI.Managers.Events.removeListener)
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED)
+    listeners:forEach(BJI_Events.removeListener)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_EDITOR_UPDATED)
 end
 W.header = function(ctxt) if W.view.header then W.view.header(ctxt) end end
 W.body = function(ctxt) W.view.body(ctxt) end
@@ -53,6 +53,6 @@ W.footer = function(ctxt) if W.view.footer then W.view.footer(ctxt) end end
 W.footerLines = function(ctxt)
     return (W.view and type(W.view.footerLines) == "function") and W.view.footerLines(ctxt) or 1
 end
-W.getState = function() return W.view ~= nil and BJI.Managers.Scenario.isFreeroam() end
+W.getState = function() return W.view ~= nil and BJI_Scenario.isFreeroam() end
 
 return W

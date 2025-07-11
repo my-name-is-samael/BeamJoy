@@ -22,8 +22,8 @@ end
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
-    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
 end
 
 -- player vehicle spawn hook
@@ -108,7 +108,7 @@ local function doShowNametag(vehData)
 end
 
 local function getCollisionsType(ctxt)
-    return BJI.Managers.Collisions.TYPES.GHOSTS
+    return BJI_Collisions.TYPES.GHOSTS
 end
 
 -- player list contextual actions getter

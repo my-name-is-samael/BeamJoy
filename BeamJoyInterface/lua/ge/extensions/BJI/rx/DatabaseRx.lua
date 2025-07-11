@@ -17,7 +17,7 @@ function ctrl.playersGet(data)
 end
 
 function ctrl.playersUpdated()
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.DATABASE_PLAYERS_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.DATABASE_PLAYERS_UPDATED)
 end
 
 return ctrl

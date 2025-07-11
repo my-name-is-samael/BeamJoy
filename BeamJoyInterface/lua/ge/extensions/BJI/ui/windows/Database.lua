@@ -5,12 +5,12 @@ local W = {
 
     TABS = Table({
         {
-            permission = BJI.Managers.Perm.PERMISSIONS.DATABASE_PLAYERS,
+            permission = BJI_Perm.PERMISSIONS.DATABASE_PLAYERS,
             labelKey = "players",
             subWindow = require("ge/extensions/BJI/ui/windows/Database/Players"),
         },
         {
-            permission = BJI.Managers.Perm.PERMISSIONS.DATABASE_VEHICLES,
+            permission = BJI_Perm.PERMISSIONS.DATABASE_VEHICLES,
             labelKey = "vehicles",
             subWindow = require("ge/extensions/BJI/ui/windows/Database/Vehicles"),
         },
@@ -32,30 +32,30 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.players = BJI.Managers.Lang.get("database.players.title")
-    W.labels.vehicles = BJI.Managers.Lang.get("database.vehicles.title")
-    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.players = BJI_Lang.get("database.players.title")
+    W.labels.vehicles = BJI_Lang.get("database.vehicles.title")
+    W.labels.close = BJI_Lang.get("common.buttons.close")
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, function()
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.PERMISSION_CHANGED, function()
         if not W.TABS:any(function(t)
-                return not t.permission or BJI.Managers.Perm.hasPermission(t.permission)
+                return not t.permission or BJI_Perm.hasPermission(t.permission)
             end) then
             onClose()
         end
     end, W.name))
 
-    if not W.tab or (W.tab.permission and not BJI.Managers.Perm.hasPermission(W.tab.permission)) then
+    if not W.tab or (W.tab.permission and not BJI_Perm.hasPermission(W.tab.permission)) then
         if W.tab then
             W.tab.subWindow.onUnload()
         end
         W.tab = W.TABS:find(function(t)
-            return not t.permission or BJI.Managers.Perm.hasPermission(t.permission)
+            return not t.permission or BJI_Perm.hasPermission(t.permission)
         end)
         if W.tab then
             W.tab.subWindow.onLoad()
@@ -70,7 +70,7 @@ local function onUnload()
         W.tab.subWindow.onUnload()
     end
     W.tab = nil
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function updateTab(newTab)
@@ -88,7 +88,7 @@ end
 local function header(ctxt)
     if BeginTabBar("BJIDatabaseTabs") then
         W.TABS:filter(function(t)
-            return BJI.Managers.Perm.hasPermission(t.permission)
+            return BJI_Perm.hasPermission(t.permission)
         end):forEach(function(tab)
             if BeginTabItem(W.labels[tab.labelKey]) then
                 updateTab(tab)

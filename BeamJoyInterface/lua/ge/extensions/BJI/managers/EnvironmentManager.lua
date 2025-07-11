@@ -310,8 +310,8 @@ local function forceUpdate()
 end
 
 local function slowTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 and
-        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+    if BJI_Context.WorldReadyState == 2 and
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.ENVIRONMENT) then
         _tryApplyTime()
         _tryApplySun()
         _tryApplyWeather()
@@ -321,7 +321,7 @@ local function slowTick(ctxt)
 end
 
 local function fastTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 then
+    if BJI_Context.WorldReadyState == 2 then
         -- disable pause on multiplayer
         if bullettime:getPause() then
             --_be:toggleEnabled()
@@ -329,7 +329,7 @@ local function fastTick(ctxt)
         end
 
         -- applying environment
-        if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+        if BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.ENVIRONMENT) then
             _tryApplySimSpeed()
             _tryApplyGravity()
         end
@@ -339,10 +339,10 @@ end
 ---@param ctxt TickContext
 local function checkFreecamFog(ctxt)
     local isFlightCam = table.includes({
-        BJI.Managers.Cam.CAMERAS.FREE,
-        BJI.Managers.Cam.CAMERAS.BIG_MAP,
+        BJI_Cam.CAMERAS.FREE,
+        BJI_Cam.CAMERAS.BIG_MAP,
     }, ctxt.camera)
-    local camPos = BJI.Managers.Cam.getPositionRotation().pos
+    local camPos = BJI_Cam.getPositionRotation().pos
     local waterLevel = M.cachedWorldObjects.WaterPlane and
         tonumber(tostring(M.cachedWorldObjects.WaterPlane.position):split2(", ")[10]) or 0
     local elevation = camPos.z - waterLevel
@@ -384,8 +384,8 @@ local lastRenderTick = nil
 local lastToD = nil
 ---@param ctxt TickContext
 local function renderTick(ctxt)
-    if BJI.Managers.Context.WorldReadyState == 2 and
-        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.ENVIRONMENT) then
+    if BJI_Context.WorldReadyState == 2 and
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.ENVIRONMENT) then
         if M.Data.controlSun and M.Data.timePlay then -- ToD auto-update
             if lastRenderTick then
                 local delta = ctxt.now - lastRenderTick
@@ -433,7 +433,7 @@ local function onUnload()
 end
 
 local function onLoad()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.ENVIRONMENT, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.ENVIRONMENT, function(cacheData)
         local previous = table.clone(M.Data)
         for k, v in pairs(cacheData) do
             M.Data[k] = v
@@ -460,21 +460,21 @@ local function onLoad()
 
         if table.length(keysChanged) > 0 then
             M.forceUpdate()
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ENV_CHANGED, {
+            BJI_Events.trigger(BJI_Events.EVENTS.ENV_CHANGED, {
                 keys = keysChanged
             })
         end
     end)
 
-    BJI.Managers.Async.task(function()
-        return BJI.Managers.Context.WorldReadyState == 2
+    BJI_Async.task(function()
+        return BJI_Context.WorldReadyState == 2
     end, cacheWorldObjects)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 local function getTime()

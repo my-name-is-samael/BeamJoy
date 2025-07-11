@@ -23,35 +23,35 @@ local W = {
 }
 
 local function updateLabels()
-    W.labels.andJoin = BJI.Managers.Lang.get("common.and")
+    W.labels.andJoin = BJI_Lang.get("common.and")
 
-    Table(BJI.Managers.Veh.FUEL_TYPES):forEach(function(energyType)
-        W.labels.stationNames[energyType] = BJI.Managers.Lang.get(string.var("energy.stationNames.{1}", { energyType }))
-        W.labels.tankNames[energyType] = BJI.Managers.Lang.get(string.var("energy.tankNames.{1}", { energyType }))
-        W.labels.energyUnits[energyType] = BJI.Managers.Lang.get(string.var("energy.energyUnits.{1}", { energyType }))
+    Table(BJI_Veh.FUEL_TYPES):forEach(function(energyType)
+        W.labels.stationNames[energyType] = BJI_Lang.get(string.var("energy.stationNames.{1}", { energyType }))
+        W.labels.tankNames[energyType] = BJI_Lang.get(string.var("energy.tankNames.{1}", { energyType }))
+        W.labels.energyUnits[energyType] = BJI_Lang.get(string.var("energy.energyUnits.{1}", { energyType }))
     end)
-    W.labels.garage = BJI.Managers.Lang.get("garages.garage")
-    W.labels.noRefuelScenario = BJI.Managers.Lang.get("energyStations.noRefuelScenario")
-    W.labels.noRepairScenario = BJI.Managers.Lang.get("garages.noRepairScenario")
-    W.labels.damagedWarning = BJI.Managers.Lang.get("garages.damagedWarning")
-    W.labels.vehiclePristine = BJI.Managers.Lang.get("garages.vehiclePristine")
-    W.labels.tanksAmount = BJI.Managers.Lang.get("energyStations.tanksAmount")
+    W.labels.garage = BJI_Lang.get("garages.garage")
+    W.labels.noRefuelScenario = BJI_Lang.get("energyStations.noRefuelScenario")
+    W.labels.noRepairScenario = BJI_Lang.get("garages.noRepairScenario")
+    W.labels.damagedWarning = BJI_Lang.get("garages.damagedWarning")
+    W.labels.vehiclePristine = BJI_Lang.get("garages.vehiclePristine")
+    W.labels.tanksAmount = BJI_Lang.get("energyStations.tanksAmount")
 
-    W.labels.repair = BJI.Managers.Lang.get("garages.repairBtn")
-    W.labels.refill = BJI.Managers.Lang.get("energyStations.refill")
+    W.labels.repair = BJI_Lang.get("garages.repairBtn")
+    W.labels.refill = BJI_Lang.get("energyStations.refill")
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateLabels, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param ctxt TickContext
@@ -60,8 +60,8 @@ local function commonDrawEnergyLines(ctxt, station)
     if not ctxt.vehData.tanks then return end
 
     local function drawEnergyLine(energyType, energyData)
-        local qty = BJI.Managers.Veh.jouleToReadableUnit(energyData.currentEnergy, energyType)
-        local max = BJI.Managers.Veh.jouleToReadableUnit(energyData.maxEnergy, energyType)
+        local qty = BJI_Veh.jouleToReadableUnit(energyData.currentEnergy, energyType)
+        local max = BJI_Veh.jouleToReadableUnit(energyData.maxEnergy, energyType)
         Text(string.var("{1} : {2}{4}/{3}{4}", {
             W.labels.tankNames[energyType],
             math.round(qty, 2),
@@ -80,7 +80,7 @@ local function commonDrawEnergyLines(ctxt, station)
                 BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = energyData.currentEnergy / energyData.maxEnergy > .95 }) then
-            BJI.Managers.Stations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
+            BJI_Stations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
         end
         TooltipText(W.labels.refill)
 
@@ -135,7 +135,7 @@ local function drawGarage(ctxt, garage)
         return
     end
 
-    if not BJI.Managers.Scenario.canRefuelAtStation() then
+    if not BJI_Scenario.canRefuelAtStation() then
         Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
         SameLine()
         Text(W.labels.noRefuelScenario)
@@ -143,7 +143,7 @@ local function drawGarage(ctxt, garage)
         commonDrawEnergyLines(ctxt, garage)
     end
 
-    if not BJI.Managers.Scenario.canRepairAtGarage() then
+    if not BJI_Scenario.canRepairAtGarage() then
         Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
         SameLine()
         Text(W.labels.noRepairScenario)
@@ -153,7 +153,7 @@ local function drawGarage(ctxt, garage)
         SameLine()
         if IconButton("repairVehicle", BJI.Utils.Icon.ICONS.build,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI.Managers.Stations.tryRepair(ctxt)
+            BJI_Stations.tryRepair(ctxt)
         end
         TooltipText(W.labels.repair)
     else
@@ -168,7 +168,7 @@ local function drawEnergyStation(ctxt, station)
         return
     end
 
-    if not BJI.Managers.Scenario.canRefuelAtStation() then
+    if not BJI_Scenario.canRefuelAtStation() then
         Icon(BJI.Utils.Icon.ICONS.block, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
         SameLine()
         Text(W.labels.noRefuelScenario)
@@ -181,7 +181,7 @@ local function header(ctxt)
     if not ctxt.vehData then return end
 
     ---@type table<string, any>
-    local station = BJI.Managers.Stations.station
+    local station = BJI_Stations.station
     if station then
         if station.isEnergy then
             local stationEnergyNames = {}
@@ -206,7 +206,7 @@ local function body(ctxt)
     if not ctxt.vehData then return end
 
     ---@type BJIStation?
-    local station = BJI.Managers.Stations.station
+    local station = BJI_Stations.station
     if station then
         if station.isEnergy then
             drawEnergyStation(ctxt, station)
@@ -221,10 +221,10 @@ W.onUnload = onUnload
 W.header = header
 W.body = body
 W.getState = function()
-    return BJI.Managers.Perm.canSpawnVehicle() and
-        not BJI.Windows.ScenarioEditor.getState() and
-        BJI.Managers.Stations.station and
-        not BJI.Managers.Stations.stationProcess
+    return BJI_Perm.canSpawnVehicle() and
+        not BJI_Win_ScenarioEditor.getState() and
+        BJI_Stations.station and
+        not BJI_Stations.stationProcess
 end
 
 return W

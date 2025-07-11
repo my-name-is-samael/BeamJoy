@@ -100,48 +100,48 @@ local showLapCol, firstPlayerCurrentLap, firstPlayerCurrentWp, player, lapDiff, 
 gridTimeoutRemaining, showReadyCooldown, color, remainingStart, remainingDNF
 
 local function updateLabels()
-    W.cache.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
-    W.cache.labels.unknown = BJI.Managers.Lang.get("common.unknown")
+    W.cache.labels.vSeparator = BJI_Lang.get("common.vSeparator")
+    W.cache.labels.unknown = BJI_Lang.get("common.unknown")
 
-    W.cache.labels.byAuthor = BJI.Managers.Lang.get("races.play.by"):var({ author = W.scenario.raceAuthor })
+    W.cache.labels.byAuthor = BJI_Lang.get("races.play.by"):var({ author = W.scenario.raceAuthor })
     W.cache.labels.lap = string.var("({1})", {
         W.scenario.settings.laps == 1 and
-        BJI.Managers.Lang.get("races.settings.lap"):var({ lap = W.scenario.settings.laps }) or
-        BJI.Managers.Lang.get("races.settings.laps"):var({ laps = W.scenario.settings.laps })
+        BJI_Lang.get("races.settings.lap"):var({ lap = W.scenario.settings.laps }) or
+        BJI_Lang.get("races.settings.laps"):var({ laps = W.scenario.settings.laps })
     })
-    W.cache.labels.record = BJI.Managers.Lang.get("races.play.record") .. " :"
-    W.cache.labels.pb = BJI.Managers.Lang.get("races.leaderboard.pb") .. " :"
-    W.cache.labels.gameStartsIn = BJI.Managers.Lang.get("races.play.gameStartsIn")
-    W.cache.labels.flashCountdownZero = BJI.Managers.Lang.get("races.play.flashCountdownZero")
-    W.cache.labels.eliminatedIn = BJI.Managers.Lang.get("races.play.eliminatedIn")
-    W.cache.labels.eliminated = BJI.Managers.Lang.get("races.play.eliminatedTime")
+    W.cache.labels.record = BJI_Lang.get("races.play.record") .. " :"
+    W.cache.labels.pb = BJI_Lang.get("races.leaderboard.pb") .. " :"
+    W.cache.labels.gameStartsIn = BJI_Lang.get("races.play.gameStartsIn")
+    W.cache.labels.flashCountdownZero = BJI_Lang.get("races.play.flashCountdownZero")
+    W.cache.labels.eliminatedIn = BJI_Lang.get("races.play.eliminatedIn")
+    W.cache.labels.eliminated = BJI_Lang.get("races.play.eliminatedTime")
 
-    W.cache.labels.wpCounter = BJI.Managers.Lang.get("races.play.WP")
-    W.cache.labels.lapCounter = BJI.Managers.Lang.get("races.play.Lap")
-    W.cache.labels.wpDifference = BJI.Managers.Lang.get("races.play.wpDifference")
+    W.cache.labels.wpCounter = BJI_Lang.get("races.play.WP")
+    W.cache.labels.lapCounter = BJI_Lang.get("races.play.Lap")
+    W.cache.labels.wpDifference = BJI_Lang.get("races.play.wpDifference")
 
-    W.cache.labels.gridTimeout = BJI.Managers.Lang.get("races.play.timeout")
-    W.cache.labels.gridAboutToTimeout = BJI.Managers.Lang.get("races.play.aboutToTimeout")
-    W.cache.labels.placesRemaining = BJI.Managers.Lang.get("races.play.placesRemaining")
-    W.cache.labels.markReadyCooldown = BJI.Managers.Lang.get("races.play.canMarkReadyIn")
-    W.cache.labels.chooseYourVehicle = BJI.Managers.Lang.get("races.play.joinFlash")
-    W.cache.labels.waitingForPlayers = BJI.Managers.Lang.get("races.play.waitingForOtherPlayers")
-    W.cache.labels.players = string.var("{1}:", { BJI.Managers.Lang.get("races.play.players") })
-    W.cache.labels.playerReady = BJI.Managers.Lang.get("races.play.playerReady")
-    W.cache.labels.playerNotReady = BJI.Managers.Lang.get("races.play.playerNotReady")
+    W.cache.labels.gridTimeout = BJI_Lang.get("races.play.timeout")
+    W.cache.labels.gridAboutToTimeout = BJI_Lang.get("races.play.aboutToTimeout")
+    W.cache.labels.placesRemaining = BJI_Lang.get("races.play.placesRemaining")
+    W.cache.labels.markReadyCooldown = BJI_Lang.get("races.play.canMarkReadyIn")
+    W.cache.labels.chooseYourVehicle = BJI_Lang.get("races.play.joinFlash")
+    W.cache.labels.waitingForPlayers = BJI_Lang.get("races.play.waitingForOtherPlayers")
+    W.cache.labels.players = string.var("{1}:", { BJI_Lang.get("races.play.players") })
+    W.cache.labels.playerReady = BJI_Lang.get("races.play.playerReady")
+    W.cache.labels.playerNotReady = BJI_Lang.get("races.play.playerNotReady")
 
-    W.cache.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
-    W.cache.labels.buttons.spectate = BJI.Managers.Lang.get("common.buttons.spectate")
-    W.cache.labels.buttons.markReady = BJI.Managers.Lang.get("common.buttons.markReady")
-    W.cache.labels.buttons.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
-    W.cache.labels.buttons.show = BJI.Managers.Lang.get("common.buttons.show")
-    W.cache.labels.launchedRespawn = BJI.Managers.Lang.get("races.play.launchedRespawn")
-    W.cache.labels.buttons.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
+    W.cache.labels.buttons.join = BJI_Lang.get("common.buttons.join")
+    W.cache.labels.buttons.spectate = BJI_Lang.get("common.buttons.spectate")
+    W.cache.labels.buttons.markReady = BJI_Lang.get("common.buttons.markReady")
+    W.cache.labels.buttons.forfeit = BJI_Lang.get("common.buttons.forfeit")
+    W.cache.labels.buttons.show = BJI_Lang.get("common.buttons.show")
+    W.cache.labels.launchedRespawn = BJI_Lang.get("races.play.launchedRespawn")
+    W.cache.labels.buttons.manualReset = BJI_Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     if not W.scenario.state then
         return -- race ends
@@ -155,12 +155,12 @@ local function updateCache(ctxt)
         BJI.Utils.UI.RaceDelay(W.scenario.record.time) or ""
     W.cache.data.recordTooltip = W.cache.data.showRecord and string.var("{1} - {2}", {
         W.scenario.record.playerName,
-        BJI.Managers.Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model
+        BJI_Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model
     }) or ""
     W.cache.data.recordColor = (W.cache.data.showRecord and
             W.scenario.record.playerName == ctxt.user.playerName) and
         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
-    local _, pbTime = BJI.Managers.RaceWaypoint.getPB(W.scenario.raceHash)
+    local _, pbTime = BJI_RaceWaypoint.getPB(W.scenario.raceHash)
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
     W.cache.data.showForfeitBtn = W.scenario.isRaceStarted(ctxt) and not W.scenario.isRaceFinished() and
@@ -183,7 +183,7 @@ local function updateCache(ctxt)
     W.cache.data.wpCounter = W.cache.data.showWpCounter and string.var("{1}/{2}", {
         W.cache.labels.wpCounter:var({
             wp = Table(leaderboard):reduce(function(acc, lb)
-                return BJI.Managers.Context.isSelf(lb.playerID) and lb.wp or acc
+                return BJI_Context.isSelf(lb.playerID) and lb.wp or acc
             end, 0)
         }),
         wpPerLap,
@@ -196,10 +196,10 @@ local function updateCache(ctxt)
     if W.cache.data.grid.show then
         local gridData = W.scenario.grid
         W.cache.data.showChooseYourVehicleLabel = table.includes(gridData.participants,
-            BJI.Managers.Context.User.playerID)
-        W.cache.data.grid.showJoinLeaveBtn = not table.includes(gridData.ready, BJI.Managers.Context.User.playerID) and
-            BJI.Managers.Perm.canSpawnVehicle() and BJI.Managers.Tournament.canJoinActivity()
-        W.cache.data.grid.isParticipant = table.includes(gridData.participants, BJI.Managers.Context.User.playerID)
+            BJI_Context.User.playerID)
+        W.cache.data.grid.showJoinLeaveBtn = not table.includes(gridData.ready, BJI_Context.User.playerID) and
+            BJI_Perm.canSpawnVehicle() and BJI_Tournament.canJoinActivity()
+        W.cache.data.grid.isParticipant = table.includes(gridData.participants, BJI_Context.User.playerID)
         W.cache.data.grid.showRemainingPlaces = W.cache.data.grid.showJoinLeaveBtn and
             not W.cache.data.grid.isParticipant
         W.cache.data.grid.remainingPlacesStr = W.cache.data.grid.showRemainingPlaces and
@@ -207,7 +207,7 @@ local function updateCache(ctxt)
                 places = math.max(#W.scenario.grid.startPositions - #W.scenario.grid.participants, 0)
             }) or ""
         W.cache.data.grid.showReadyBtn = W.cache.data.grid.showJoinLeaveBtn and
-            not W.cache.data.grid.showRemainingPlaces and BJI.Managers.Veh.isCurrentVehicleOwn()
+            not W.cache.data.grid.showRemainingPlaces and BJI_Veh.isCurrentVehicleOwn()
         W.cache.data.grid.readyCooldownTime = gridData.readyTime
         W.cache.data.grid.participantsList = Table(gridData.participants):map(function(pid)
             local readyState = table.includes(gridData.ready, pid)
@@ -275,57 +275,57 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
     end, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
-        BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
-        BJI.Managers.Events.EVENTS.RACE_NEW_PB,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PLAYER_CONNECT,
+        BJI_Events.EVENTS.PLAYER_DISCONNECT,
+        BJI_Events.EVENTS.VEHICLE_SPAWNED,
+        BJI_Events.EVENTS.RACE_NEW_PB,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
     }, updateCache, W.name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJI.Managers.Cache.CACHES.RACES then
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if data.cache == BJI_Cache.CACHES.RACES then
             updateCache(ctxt)
         end
     end, W.name .. "Cache"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.PERMISSION_CHANGED,
         function()
             if W.scenario.isRaceOrCountdownStarted() and
                 W.scenario.isParticipant() and
-                not BJI.Managers.Perm.canSpawnVehicle() then
+                not BJI_Perm.canSpawnVehicle() then
                 -- permission loss
-                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
+                BJI_Tx_scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeave"))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.TOURNAMENT_UPDATED,
         function(ctxt)
-            if W.scenario.isParticipant() and BJI.Managers.Tournament.whitelist and
-                not BJI.Managers.Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
+            if W.scenario.isParticipant() and BJI_Tournament.whitelist and
+                not BJI_Tournament.whitelistPlayers:includes(ctxt.user.playerName) then
                 -- got out of whitelist
-                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.state == W.scenario.STATES.GRID and
+                BJI_Tx_scenario.RaceMultiUpdate(W.scenario.state == W.scenario.STATES.GRID and
                     W.scenario.CLIENT_EVENTS.JOIN or W.scenario.CLIENT_EVENTS.LEAVE)
             end
         end, W.name .. "AutoLeaveTournament"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param time integer
@@ -385,7 +385,7 @@ local function header(ctxt)
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, big = true,
                             disabled = W.cache.data.disableButtons }) then
                     W.cache.data.disableButtons = true
-                    BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
+                    BJI_Tx_scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.LEAVE)
                 end
                 TooltipText(W.cache.labels.buttons.forfeit)
             end
@@ -395,7 +395,7 @@ local function header(ctxt)
                     if IconButton("manualLaunchedRespawn", BJI.Utils.Icon.ICONS.vertical_align_top,
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, big = true,
                                 disabled = W.scenario.resetLock }) then
-                        BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
+                        BJI_Scenario.saveHome(ctxt.veh.gameVehicleID)
                     end
                     TooltipText(string.format("%s (%s)",
                         W.cache.labels.launchedRespawn,
@@ -406,7 +406,7 @@ local function header(ctxt)
                 if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             big = true, disabled = W.scenario.resetLock }) then
-                    BJI.Managers.Scenario.loadHome(ctxt.veh.gameVehicleID)
+                    BJI_Scenario.loadHome(ctxt.veh.gameVehicleID)
                 end
                 TooltipText(string.format("%s (%s)",
                     W.cache.labels.buttons.manualReset,
@@ -483,7 +483,7 @@ local function drawGrid(ctxt)
                 { disabled = W.cache.data.disableButtons, btnStyle = W.cache.data.grid.isParticipant and
                     BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS, big = true }) then
             W.cache.data.disableButtons = true
-            BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.JOIN)
+            BJI_Tx_scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.JOIN)
         end
         TooltipText(W.cache.data.grid.isParticipant and W.cache.labels.buttons.spectate or W.cache.labels.buttons.join)
         if W.cache.data.grid.showRemainingPlaces then
@@ -496,7 +496,7 @@ local function drawGrid(ctxt)
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, big = true,
                         disabled = W.cache.data.disableButtons or showReadyCooldown }) then
                 W.cache.data.disableButtons = true
-                BJI.Tx.scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.READY)
+                BJI_Tx_scenario.RaceMultiUpdate(W.scenario.CLIENT_EVENTS.READY)
             end
             TooltipText(W.cache.labels.buttons.markReady)
             if showReadyCooldown then
@@ -539,8 +539,8 @@ local function drawRace(ctxt)
             TableNewRow()
             if W.cache.data.race.showSpectateBtn and not el.done then
                 if IconButton("spectate-" .. el.playerName, BJI.Utils.Icon.ICONS.visibility) then
-                    BJI.Managers.Veh.focus(el.playerID)
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.ORBIT)
+                    BJI_Veh.focus(el.playerID)
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.ORBIT)
                 end
                 TooltipText(W.cache.labels.buttons.show)
             end

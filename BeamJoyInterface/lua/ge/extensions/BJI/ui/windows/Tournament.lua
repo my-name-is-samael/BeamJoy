@@ -4,38 +4,38 @@ local W = {
     minSize = ImVec2(450, 300),
 
     ACTIVITIES_FILTERS = Table({
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.RACE_SOLO] = function()
-            return table.length(BJI.Managers.Context.Scenario.Data.Races) > 0
+        [BJI_Tournament.ACTIVITIES_TYPES.RACE_SOLO] = function()
+            return table.length(BJI_Context.Scenario.Data.Races) > 0
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.RACE] = function()
-            return table.filter(BJI.Managers.Context.Scenario.Data.Races,
+        [BJI_Tournament.ACTIVITIES_TYPES.RACE] = function()
+            return table.filter(BJI_Context.Scenario.Data.Races,
                     function(r) return r.places > 1 end):length() > 0 and
-                BJI.Managers.Context.Players:length() >=
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
+                BJI_Context.Players:length() >=
+                BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.SPEED] = function()
-            return BJI.Managers.Context.Players:length() >=
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
+        [BJI_Tournament.ACTIVITIES_TYPES.SPEED] = function()
+            return BJI_Context.Players:length() >=
+                BJI_Scenario.get(BJI_Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.HUNTER] = function()
-            return BJI.Managers.Context.Scenario.Data.HunterInfected and
-                BJI.Managers.Context.Scenario.Data.HunterInfected.enabledHunter and
-                BJI.Managers.Context.Players:length() >=
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
+        [BJI_Tournament.ACTIVITIES_TYPES.HUNTER] = function()
+            return BJI_Context.Scenario.Data.HunterInfected and
+                BJI_Context.Scenario.Data.HunterInfected.enabledHunter and
+                BJI_Context.Players:length() >=
+                BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER)
                 .MINIMUM_PARTICIPANTS
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.INFECTED] = function()
-            return BJI.Managers.Context.Scenario.Data.HunterInfected and
-                BJI.Managers.Context.Scenario.Data.HunterInfected.enabledInfected and
-                BJI.Managers.Context.Players:length() >=
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.INFECTED)
+        [BJI_Tournament.ACTIVITIES_TYPES.INFECTED] = function()
+            return BJI_Context.Scenario.Data.HunterInfected and
+                BJI_Context.Scenario.Data.HunterInfected.enabledInfected and
+                BJI_Context.Players:length() >=
+                BJI_Scenario.get(BJI_Scenario.TYPES.INFECTED)
                 .MINIMUM_PARTICIPANTS
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.DERBY] = function()
-            return table.filter(BJI.Managers.Context.Scenario.Data.Derby,
+        [BJI_Tournament.ACTIVITIES_TYPES.DERBY] = function()
+            return table.filter(BJI_Context.Scenario.Data.Derby,
                     function(a) return a.enabled end):length() > 0 and
-                BJI.Managers.Context.Players:length() >=
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
+                BJI_Context.Players:length() >=
+                BJI_Scenario.get(BJI_Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         end,
     }),
 
@@ -117,34 +117,34 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("tournament.title")
-    W.labels.state = BJI.Managers.Lang.get("tournament.state")
-    W.labels.whitelist = BJI.Managers.Lang.get("tournament.whitelist")
-    W.labels.activityTimeoutIn = BJI.Managers.Lang.get("tournament.activityTimeoutIn")
-    W.labels.activityAboutToTimeout = BJI.Managers.Lang.get("tournament.activityAboutToTimeout")
-    W.labels.total = BJI.Managers.Lang.get("tournament.total")
-    W.labels.noParticipant = BJI.Managers.Lang.get("tournament.noParticipant")
-    W.labels.zeroScoreTooltip = BJI.Managers.Lang.get("tournament.zeroScoreTooltip")
-    W.labels.startActivity.title = BJI.Managers.Lang.get("tournament.startActivity")
-    W.labels.startActivity.track = BJI.Managers.Lang.get("tournament.track")
-    W.labels.startActivity.arena = BJI.Managers.Lang.get("tournament.arena")
-    W.labels.startActivity.duration = BJI.Managers.Lang.get("tournament.duration")
+    W.labels.title = BJI_Lang.get("tournament.title")
+    W.labels.state = BJI_Lang.get("tournament.state")
+    W.labels.whitelist = BJI_Lang.get("tournament.whitelist")
+    W.labels.activityTimeoutIn = BJI_Lang.get("tournament.activityTimeoutIn")
+    W.labels.activityAboutToTimeout = BJI_Lang.get("tournament.activityAboutToTimeout")
+    W.labels.total = BJI_Lang.get("tournament.total")
+    W.labels.noParticipant = BJI_Lang.get("tournament.noParticipant")
+    W.labels.zeroScoreTooltip = BJI_Lang.get("tournament.zeroScoreTooltip")
+    W.labels.startActivity.title = BJI_Lang.get("tournament.startActivity")
+    W.labels.startActivity.track = BJI_Lang.get("tournament.track")
+    W.labels.startActivity.arena = BJI_Lang.get("tournament.arena")
+    W.labels.startActivity.duration = BJI_Lang.get("tournament.duration")
 
-    W.labels.buttons.edit = BJI.Managers.Lang.get("common.buttons.edit")
-    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.buttons.confirm = BJI.Managers.Lang.get("common.buttons.confirm")
-    W.labels.buttons.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
-    W.labels.buttons.join = BJI.Managers.Lang.get("common.buttons.join")
-    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
-    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
-    W.labels.buttons.endSoloActivity = BJI.Managers.Lang.get("tournament.buttons.endSoloActivity")
-    W.labels.buttons.endTournament = BJI.Managers.Lang.get("tournament.buttons.endTournament")
-    W.labels.buttons.endTournamentTooltip = BJI.Managers.Lang.get("tournament.buttons.endTournamentTooltip")
-    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("tournament.buttons.errorMustHaveVehicle")
+    W.labels.buttons.edit = BJI_Lang.get("common.buttons.edit")
+    W.labels.buttons.remove = BJI_Lang.get("common.buttons.remove")
+    W.labels.buttons.confirm = BJI_Lang.get("common.buttons.confirm")
+    W.labels.buttons.cancel = BJI_Lang.get("common.buttons.cancel")
+    W.labels.buttons.join = BJI_Lang.get("common.buttons.join")
+    W.labels.buttons.add = BJI_Lang.get("common.buttons.add")
+    W.labels.buttons.start = BJI_Lang.get("common.buttons.start")
+    W.labels.buttons.resetAll = BJI_Lang.get("common.buttons.resetAll")
+    W.labels.buttons.endSoloActivity = BJI_Lang.get("tournament.buttons.endSoloActivity")
+    W.labels.buttons.endTournament = BJI_Lang.get("tournament.buttons.endTournament")
+    W.labels.buttons.endTournamentTooltip = BJI_Lang.get("tournament.buttons.endTournamentTooltip")
+    W.labels.buttons.errorMustHaveVehicle = BJI_Lang.get("tournament.buttons.errorMustHaveVehicle")
 
     Table(W.manager.ACTIVITIES_TYPES):forEach(function(type)
-        W.labels.activities[type] = BJI.Managers.Lang.get("tournament.activities." .. type, type)
+        W.labels.activities[type] = BJI_Lang.get("tournament.activities." .. type, type)
     end)
 end
 
@@ -152,16 +152,16 @@ end
 ---@return boolean
 local function canAddOrRemovePlayer(staff)
     if staff then
-        if not BJI.Managers.Scenario.isServerScenarioInProgress() then
+        if not BJI_Scenario.isServerScenarioInProgress() then
             return true
-        elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI) then
-            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+        elseif BJI_Scenario.is(BJI_Scenario.TYPES.RACE_MULTI) then
+            scenario = BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI)
             return scenario.state == scenario.STATES.GRID
-        elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.HUNTER) then
-            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
+        elseif BJI_Scenario.is(BJI_Scenario.TYPES.HUNTER) then
+            scenario = BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER)
             return scenario.state == scenario.STATES.PREPARATION
-        elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
-            scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY)
+        elseif BJI_Scenario.is(BJI_Scenario.TYPES.DERBY) then
+            scenario = BJI_Scenario.get(BJI_Scenario.TYPES.DERBY)
             return scenario.state == scenario.STATES.PREPARATION
         end
     end
@@ -203,9 +203,9 @@ local previousActivitiesAmount = 0
 local function updateData()
     if not W.getState() then return end
 
-    W.manager = BJI.Managers.Tournament
-    staff = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
-    inFreeroam = BJI.Managers.Scenario.isFreeroam()
+    W.manager = BJI_Tournament
+    staff = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO)
+    inFreeroam = BJI_Scenario.isFreeroam()
     showPlayersModeration = canAddOrRemovePlayer(staff)
 
     if W.manager.state then
@@ -222,10 +222,10 @@ local function updateData()
     W.cache.showPlayersCombo = staff and showPlayersModeration
     W.cache.playersCombo = Table()
     if W.cache.showPlayersCombo then
-        W.cache.playersCombo = BJI.Managers.Context.Players:filter(function(p)
+        W.cache.playersCombo = BJI_Context.Players:filter(function(p)
                 return not W.manager.players:any(function(p2)
                     return p.playerName == p2.playerName
-                end) and BJI.Managers.Perm.canSpawnVehicle(p.playerID)
+                end) and BJI_Perm.canSpawnVehicle(p.playerID)
             end):map(function(p)
                 return {
                     value = p.playerName,
@@ -269,7 +269,7 @@ local function updateData()
         if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.arena end
-            W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Derby):filter(function(a)
+            W.cache.startActivitySecCombo = Table(BJI_Context.Scenario.Data.Derby):filter(function(a)
                 return a.enabled
             end):map(function(arena, i)
                 return {
@@ -286,14 +286,14 @@ local function updateData()
             W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.track end
-            W.cache.startActivitySecCombo = Table(BJI.Managers.Context.Scenario.Data.Races):filter(function(r)
+            W.cache.startActivitySecCombo = Table(BJI_Context.Scenario.Data.Races):filter(function(r)
                 return W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
                     r.places > 1
             end):map(function(r, i)
                 local label = r.name
                 if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
                     label = label .. string.var(" ({1})",
-                        { BJI.Managers.Lang.get("races.preparation.places"):var({ places = r.places }) })
+                        { BJI_Lang.get("races.preparation.places"):var({ places = r.places }) })
                 end
                 return {
                     value = i,
@@ -338,12 +338,12 @@ local function updateData()
             name = a.name,
             raceID = a.raceID,
             isSoloActivityInProgress = soloActInProgress,
-            soloRaceName = a.raceID and (Table(BJI.Managers.Context.Scenario.Data.Races)
+            soloRaceName = a.raceID and (Table(BJI_Context.Scenario.Data.Races)
                 :find(function(r) return r.id == a.raceID end) or { name = "INVALID" }).name or nil,
             targetTime = a.targetTime,
             showJoinSoloRace = W.manager.state and soloActInProgress and a.raceID and
                 (not W.manager.whitelist or W.manager.whitelistPlayers
-                    :includes(BJI.Managers.Context.User.playerName))
+                    :includes(BJI_Context.User.playerName))
         }
     end)
     W.cache.tournamentData.columnsConfig = Table({
@@ -363,7 +363,7 @@ local function updateData()
         cells = Table({
             { -- name column
                 playerName = p.playerName,
-                color = p.playerName == BJI.Managers.Context.User.playerName and
+                color = p.playerName == BJI_Context.User.playerName and
                     BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
             }
         })
@@ -392,7 +392,7 @@ local function updateData()
                 custom = custom,
                 edit = staff and W.cache.inputs[p.playerName] and W.cache.inputs[p.playerName][i],
                 canEdit = staff and (i < #W.cache.tournamentData.activities or
-                    BJI.Managers.Scenario.isFreeroam()),
+                    BJI_Scenario.isFreeroam()),
             })
         end)
         cells:insert({})                -- spacer
@@ -403,27 +403,27 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.manager = BJI.Managers.Tournament
+    W.manager = BJI_Tournament
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateData()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.PLAYER_CONNECT,
-        BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.PLAYER_CONNECT,
+        BJI_Events.EVENTS.PLAYER_DISCONNECT,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateData, W.name .. "Data"))
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
     }, function(_, data)
         if table.includes({
-                BJI.Managers.Cache.CACHES.RACES,
-                BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA,
-                BJI.Managers.Cache.CACHES.DERBY_DATA,
+                BJI_Cache.CACHES.RACES,
+                BJI_Cache.CACHES.HUNTER_INFECTED_DATA,
+                BJI_Cache.CACHES.DERBY_DATA,
             }, data.cache) then
             updateData()
         end
@@ -431,7 +431,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param ctxt TickContext
@@ -451,7 +451,7 @@ local function header(ctxt)
                     W.cache.disableToggleBtns, btnStyle = W.manager.state and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             W.cache.disableInputs = true
-            BJI.Tx.tournament.toggle(not W.manager.state)
+            BJI_Tx_tournament.toggle(not W.manager.state)
         end
         TableNextColumn()
         Text(W.labels.whitelist)
@@ -461,7 +461,7 @@ local function header(ctxt)
                     W.cache.disableToggleBtns, btnStyle = W.manager.whitelist and
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             W.cache.disableInputs = true
-            BJI.Tx.tournament.toggleWhitelist(not W.manager.whitelist)
+            BJI_Tx_tournament.toggleWhitelist(not W.manager.whitelist)
         end
 
         EndTable()
@@ -481,7 +481,7 @@ local function drawTournamentData(ctxt)
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, bgLess = true,
                                 disabled = W.cache.disableInputs }) then
                         W.cache.disableInputs = true
-                        BJI.Tx.tournament.endSoloActivity()
+                        BJI_Tx_tournament.endSoloActivity()
                     end
                     TooltipText(W.labels.buttons.endSoloActivity)
                 else
@@ -489,7 +489,7 @@ local function drawTournamentData(ctxt)
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true,
                                 disabled = W.cache.disableInputs }) then
                         W.cache.disableInputs = true
-                        BJI.Tx.tournament.removeActivity(i)
+                        BJI_Tx_tournament.removeActivity(i)
                     end
                     TooltipText(W.labels.buttons.remove)
                 end
@@ -501,9 +501,9 @@ local function drawTournamentData(ctxt)
                 SameLine()
                 if IconButton("joinActivity", BJI.Utils.Icon.ICONS.videogame_asset,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner }) then
-                    Table(BJI.Managers.Context.Scenario.Data.Races)
+                    Table(BJI_Context.Scenario.Data.Races)
                         :find(function(r) return r.id == a.raceID end, function(race)
-                            BJI.Windows.RaceSettings.open({
+                            BJI_Win_RaceSettings.open({
                                 multi = false,
                                 raceID = race.id,
                                 raceName = race.name,
@@ -545,7 +545,7 @@ local function drawTournamentData(ctxt)
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, bgLess = true,
                             disabled = W.cache.disableInputs }) then
                     W.cache.disableInputs = true
-                    BJI.Tx.tournament.removePlayer(cells[1].playerName)
+                    BJI_Tx_tournament.removePlayer(cells[1].playerName)
                 end
                 TooltipText(W.labels.buttons.remove)
                 SameLine()
@@ -573,7 +573,7 @@ local function drawTournamentData(ctxt)
                                     btnStyle = W.cache.inputs[cells[1].playerName][iCell - 1] == 0 and
                                         BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
                             W.cache.disableInputs = true
-                            BJI.Tx.tournament.editScore(cells[1].playerName, iCell - 1,
+                            BJI_Tx_tournament.editScore(cells[1].playerName, iCell - 1,
                                 W.cache.inputs[cells[1].playerName][iCell - 1])
                             cells[iCell].score = W.cache.inputs[cells[1].playerName][iCell - 1] ~= 0 and
                                 W.cache.inputs[cells[1].playerName][iCell - 1] or nil
@@ -631,7 +631,7 @@ local function drawAddPlayerCombo(ctxt)
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
                     not W.cache.selectedPlayer or #W.cache.selectedPlayer == 0 }) then
             W.cache.disableInputs = true
-            BJI.Tx.tournament.togglePlayer(W.cache.selectedPlayer, true)
+            BJI_Tx_tournament.togglePlayer(W.cache.selectedPlayer, true)
         end
         TooltipText(W.labels.buttons.add)
         SameLine()
@@ -692,13 +692,13 @@ local function drawStartActivity(ctxt)
             if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
                 W.cache.disableInputs = true
                 W.cache.showStartActivity = false
-                BJI.Tx.tournament.addSoloRace(W.cache.selectedStartActivitySec,
+                BJI_Tx_tournament.addSoloRace(W.cache.selectedStartActivitySec,
                     W.cache.startActivityDuration)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
-                Table(BJI.Managers.Context.Scenario.Data.Races):find(function(r)
+                Table(BJI_Context.Scenario.Data.Races):find(function(r)
                     return r.id == W.cache.selectedStartActivitySec and r.places > 1
                 end, function(race)
-                    BJI.Windows.RaceSettings.open({
+                    BJI_Win_RaceSettings.open({
                         multi = true,
                         raceID = race.id,
                         raceName = race.name,
@@ -715,13 +715,13 @@ local function drawStartActivity(ctxt)
                     })
                 end)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.SPEED then
-                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.SPEED, false)
+                BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.SPEED, false)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.HUNTER then
-                BJI.Windows.HunterSettings.open()
+                BJI_Win_HunterSettings.open()
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.INFECTED then
-                BJI.Windows.InfectedSettings.open()
+                BJI_Win_InfectedSettings.open()
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
-                BJI.Windows.DerbySettings.open(W.cache.selectedStartActivitySec)
+                BJI_Win_DerbySettings.open(W.cache.selectedStartActivitySec)
             end
         end
     end
@@ -749,14 +749,14 @@ local function body(ctxt)
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs or
                     (#W.manager.players == 0 and #W.manager.activities == 0) }) then
             W.cache.disableInputs = true
-            BJI.Tx.tournament.clear()
+            BJI_Tx_tournament.clear()
         end
         SameLine()
         if Button("endTournament", W.labels.buttons.endTournament,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
                     not W.manager.state or #W.manager.activities == 0 }) then
             W.cache.disableInputs = true
-            BJI.Tx.tournament.endTournament()
+            BJI_Tx_tournament.endTournament()
         end
         TooltipText(W.labels.buttons.endTournamentTooltip)
 
@@ -765,8 +765,8 @@ local function body(ctxt)
 end
 
 local function open()
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-        not BJI.Managers.Tournament.state then
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+        not BJI_Tournament.state then
         W.manualShow = true
     end
 end
@@ -777,7 +777,7 @@ W.header = header
 W.body = body
 W.open = open
 W.getState = function()
-    return W.manualShow or BJI.Managers.Tournament.state
+    return W.manualShow or BJI_Tournament.state
 end
 
 W.updateData = updateData

@@ -40,7 +40,7 @@ local function drawPlayers(cache, ctxt)
         SameLine()
         Text(player.nameSuffix, { color = playerColor })
 
-        actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
+        actions = BJI_Scenario.getPlayerListActions(player, ctxt)
         if #actions > 0 then
             for _, action in ipairs(actions) do
                 SameLine()

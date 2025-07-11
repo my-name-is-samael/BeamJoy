@@ -6,8 +6,8 @@ local M = {
 }
 
 local function menuTimePresets(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
-        BJI.Managers.Env.Data.controlSun then
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
+        BJI_Env.Data.controlSun then
         local elems = {
             {
                 type = "custom",
@@ -17,13 +17,13 @@ local function menuTimePresets(ctxt)
             }
         }
         require("ge/extensions/utils/EnvironmentUtils").timePresets():forEach(function(preset)
-            local disabled = not BJI.Managers.Env.Data.timePlay and
-                math.round(BJI.Managers.Env.Data.ToD, 3) == math.round(preset.ToD, 3)
+            local disabled = not BJI_Env.Data.timePlay and
+                math.round(BJI_Env.Data.ToD, 3) == math.round(preset.ToD, 3)
             table.insert(elems, {
                 type = "custom",
                 render = function()
                     local onClick = function()
-                        BJI.Tx.config.env("ToD", preset.ToD)
+                        BJI_Tx_config.env("ToD", preset.ToD)
                     end
                     if IconButton(string.var("timePreset{1}Button", { preset.label }), preset.icon, {
                             btnStyle = disabled and BJI.Utils.Style.BTN_PRESETS.DISABLED or
@@ -34,7 +34,7 @@ local function menuTimePresets(ctxt)
                     end
                     SameLine()
                     if Button(string.var("timePreset{1}Label", { preset.label }),
-                            BJI.Managers.Lang.get(string.var("presets.time.{1}", { preset.label })),
+                            BJI_Lang.get(string.var("presets.time.{1}", { preset.label })),
                             { disabled = disabled }) then
                         onClick()
                     end
@@ -43,21 +43,21 @@ local function menuTimePresets(ctxt)
         end)
         table.insert(M.cache.elems, {
             type = "menu",
-            label = BJI.Managers.Lang.get("menu.edit.time"),
+            label = BJI_Lang.get("menu.edit.time"),
             elems = elems,
         })
     end
 end
 
 local function menuWeatherPresets(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
-        BJI.Managers.Env.Data.controlWeather then
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT_PRESET) and
+        BJI_Env.Data.controlWeather then
         local elems = {}
         local order = Table({ "clear", "cloud", "lightrain", "rain", "lightsnow", "snow" })
-        Table(BJI.Managers.Env.Data.presets):map(function(icon, preset)
+        Table(BJI_Env.Data.presets):map(function(icon, preset)
             return {
                 key = preset,
-                label = BJI.Managers.Lang.get(string.var("presets.weather.{1}", { preset }),
+                label = BJI_Lang.get(string.var("presets.weather.{1}", { preset }),
                     tostring(preset)),
                 icon = icon,
             }
@@ -73,9 +73,9 @@ local function menuWeatherPresets(ctxt)
             end
             return a.label < b.label
         end):forEach(function(preset)
-            local disabled = preset.key == BJI.Managers.Env.Data.preset
+            local disabled = preset.key == BJI_Env.Data.preset
             local onClick = function()
-                BJI.Tx.config.envPreset(preset.key)
+                BJI_Tx_config.envPreset(preset.key)
             end
             table.insert(elems, {
                 type = "custom",
@@ -98,7 +98,7 @@ local function menuWeatherPresets(ctxt)
         if #elems > 0 then
             table.insert(M.cache.elems, {
                 type = "menu",
-                label = BJI.Managers.Lang.get("menu.edit.weather"),
+                label = BJI_Lang.get("menu.edit.weather"),
                 elems = elems,
             })
         end
@@ -106,76 +106,76 @@ local function menuWeatherPresets(ctxt)
 end
 
 local function menuGravityPresets(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) and BJI.Managers.Env.Data.controlGravity then
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT) and BJI_Env.Data.controlGravity then
         local elems = {}
         require("ge/extensions/utils/EnvironmentUtils").gravityPresets():forEach(function(preset)
             local value = math.round(preset.value, 3)
-            local disabled = value == math.round(BJI.Managers.Env.Data.gravityRate, 3)
+            local disabled = value == math.round(BJI_Env.Data.gravityRate, 3)
             table.insert(elems, {
                 type = "item",
                 label = string.var("{1} ({2})", {
-                    BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { preset.key })),
+                    BJI_Lang.get(string.var("presets.gravity.{1}", { preset.key })),
                     value,
                 }),
                 disabled = disabled,
                 active = disabled,
                 checked = disabled,
                 onClick = function()
-                    BJI.Tx.config.env("gravityRate", value)
+                    BJI_Tx_config.env("gravityRate", value)
                 end
             })
         end)
         table.insert(M.cache.elems, {
             type = "menu",
-            label = BJI.Managers.Lang.get("menu.edit.gravity"),
+            label = BJI_Lang.get("menu.edit.gravity"),
             elems = elems,
         })
     end
 end
 
 local function menuSpeedPresets(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) then
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT) then
         local elems = {}
         require("ge/extensions/utils/EnvironmentUtils").speedPresets():forEach(function(preset)
             local value = math.round(preset.value, 3)
-            local disabled = value == math.round(BJI.Managers.Env.Data.simSpeed, 3)
+            local disabled = value == math.round(BJI_Env.Data.simSpeed, 3)
             table.insert(elems, {
                 type = "item",
                 label = string.var("{1} (x{2})", {
-                    BJI.Managers.Lang.get(string.var("presets.speed.{1}", { preset.key })),
+                    BJI_Lang.get(string.var("presets.speed.{1}", { preset.key })),
                     value,
                 }),
                 disabled = disabled,
                 active = disabled,
                 checked = disabled,
                 onClick = function()
-                    BJI.Tx.config.env("simSpeed", value)
+                    BJI_Tx_config.env("simSpeed", value)
                 end
             })
         end)
         table.insert(M.cache.elems, {
             type = "menu",
-            label = BJI.Managers.Lang.get("menu.edit.speed"),
+            label = BJI_Lang.get("menu.edit.speed"),
             elems = elems,
         })
     end
 end
 
 local function menuSwitchMap(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP) and
-        BJI.Managers.Context.Maps then
-        local customMapLabel = BJI.Managers.Lang.get("menu.edit.mapCustom")
-        local rawMaps = Table(BJI.Managers.Context.Maps)
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SWITCH_MAP) and
+        BJI_Context.Maps then
+        local customMapLabel = BJI_Lang.get("menu.edit.mapCustom")
+        local rawMaps = Table(BJI_Context.Maps)
             :filter(function(map) return map.enabled end)
 
         if rawMaps:length() > 1 then
-            if rawMaps:length() <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+            if rawMaps:length() <= BJI_Win_Selection.LIMIT_ELEMS_THRESHOLD then
                 -- sub elems
                 table.insert(M.cache.elems, {
                     type = "menu",
-                    label = BJI.Managers.Lang.get("menu.edit.map"),
+                    label = BJI_Lang.get("menu.edit.map"),
                     elems = rawMaps:map(function(map, mapName)
-                        local disabled = mapName == BJI.Managers.Context.UI.mapName
+                        local disabled = mapName == BJI_Context.UI.mapName
                         return {
                             type = "item",
                             label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or map.label,
@@ -183,7 +183,7 @@ local function menuSwitchMap(ctxt)
                             active = disabled,
                             checked = disabled,
                             onClick = function()
-                                BJI.Tx.config.switchMap(mapName)
+                                BJI_Tx_config.switchMap(mapName)
                             end
                         }
                     end):sort(function(a, b) return a.label < b.label end)
@@ -192,10 +192,10 @@ local function menuSwitchMap(ctxt)
                 -- selection window
                 table.insert(M.cache.elems, {
                     type = "item",
-                    label = BJI.Managers.Lang.get("menu.edit.map"),
+                    label = BJI_Lang.get("menu.edit.map"),
                     onClick = function()
-                        BJI.Windows.Selection.open("menu.edit.map", rawMaps
-                            :filter(function(_, mapName) return mapName ~= BJI.Managers.Context.UI.mapName end)
+                        BJI_Win_Selection.open("menu.edit.map", rawMaps
+                            :filter(function(_, mapName) return mapName ~= BJI_Context.UI.mapName end)
                             :map(function(map, mapName)
                                 return {
                                     label = map.custom and string.var("{1} ({2})", { map.label, customMapLabel }) or
@@ -204,8 +204,8 @@ local function menuSwitchMap(ctxt)
                                 }
                             end):values():sort(function(a, b) return a.label < b.label end) or {}, nil,
                             function(mapName)
-                                BJI.Tx.config.switchMap(mapName)
-                            end, { BJI.Managers.Perm.PERMISSIONS.SWITCH_MAP })
+                                BJI_Tx_config.switchMap(mapName)
+                            end, { BJI_Perm.PERMISSIONS.SWITCH_MAP })
                     end,
                 })
             end
@@ -214,17 +214,17 @@ local function menuSwitchMap(ctxt)
 end
 
 local function menuFreeroamSettings(ctxt)
-    if BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BJC) and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) then
+    if BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.BJC) and
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_CONFIG) then
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.freeroamSettings"),
-            active = BJI.Windows.FreeroamSettings.show,
+            label = BJI_Lang.get("menu.edit.freeroamSettings"),
+            active = BJI_Win_FreeroamSettings.show,
             onClick = function()
-                if BJI.Windows.FreeroamSettings.show then
-                    BJI.Windows.FreeroamSettings.onClose()
+                if BJI_Win_FreeroamSettings.show then
+                    BJI_Win_FreeroamSettings.onClose()
                 else
-                    BJI.Windows.FreeroamSettings.open()
+                    BJI_Win_FreeroamSettings.open()
                 end
             end,
         })
@@ -232,22 +232,22 @@ local function menuFreeroamSettings(ctxt)
 end
 
 local function menuEnergyStations(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.EnergyStations then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.EnergyStations then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local stationsEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.STATIONS
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.STATIONS
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.energyStations")
-                :var({ amount = table.length(BJI.Managers.Context.Scenario.Data.EnergyStations) }),
+            label = BJI_Lang.get("menu.edit.energyStations")
+                :var({ amount = table.length(BJI_Context.Scenario.Data.EnergyStations) }),
             active = editorOpen and stationsEditorOpen,
             disabled = editorOpen and not stationsEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.STATIONS.open()
+                    BJI_Win_ScenarioEditor.SCENARIOS.STATIONS.open()
                 end
             end,
         })
@@ -255,22 +255,22 @@ local function menuEnergyStations(ctxt)
 end
 
 local function menuGarages(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Garages then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.Garages then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local garagesEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.GARAGES
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.GARAGES
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.garages")
-                :var({ amount = #BJI.Managers.Context.Scenario.Data.Garages }),
+            label = BJI_Lang.get("menu.edit.garages")
+                :var({ amount = #BJI_Context.Scenario.Data.Garages }),
             active = editorOpen and garagesEditorOpen,
             disabled = editorOpen and not garagesEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.GARAGES.open()
+                    BJI_Win_ScenarioEditor.SCENARIOS.GARAGES.open()
                 end
             end,
         })
@@ -278,22 +278,22 @@ local function menuGarages(ctxt)
 end
 
 local function menuDeliveries(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Deliveries then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.Deliveries then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local deliveriesEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.DELIVERIES
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.DELIVERIES
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.deliveries")
-                :var({ amount = #BJI.Managers.Context.Scenario.Data.Deliveries }),
+            label = BJI_Lang.get("menu.edit.deliveries")
+                :var({ amount = #BJI_Context.Scenario.Data.Deliveries }),
             active = editorOpen and deliveriesEditorOpen,
             disabled = editorOpen and not deliveriesEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.DELIVERIES.open()
+                    BJI_Win_ScenarioEditor.SCENARIOS.DELIVERIES.open()
                 end
             end,
         })
@@ -301,22 +301,22 @@ local function menuDeliveries(ctxt)
 end
 
 local function menuBusLines(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.BusLines then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.BusLines then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local busEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.BUS_LINES
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.BUS_LINES
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.buslines")
-                :var({ amount = #BJI.Managers.Context.Scenario.Data.BusLines }),
+            label = BJI_Lang.get("menu.edit.buslines")
+                :var({ amount = #BJI_Context.Scenario.Data.BusLines }),
             active = editorOpen and busEditorOpen,
             disabled = editorOpen and not busEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.BUS_LINES.open()
+                    BJI_Win_ScenarioEditor.SCENARIOS.BUS_LINES.open()
                 end
             end,
         })
@@ -324,31 +324,31 @@ local function menuBusLines(ctxt)
 end
 
 local function menuRaces(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Races then
-        local rawRaces = Table(BJI.Managers.Context.Scenario.Data.Races)
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.Races then
+        local rawRaces = Table(BJI_Context.Scenario.Data.Races)
             :filter(function(r) return type(r) == "table" end):values()
-        local label = string.var("{1} ({2})", { BJI.Managers.Lang.get("menu.edit.races"), #rawRaces })
-        if BJI.Windows.ScenarioEditor.getState() then
+        local label = string.var("{1} ({2})", { BJI_Lang.get("menu.edit.races"), #rawRaces })
+        if BJI_Win_ScenarioEditor.getState() then
             -- editor already open
-            local isEditorRace = BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.RACE
+            local isEditorRace = BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.RACE
             table.insert(M.cache.elems, {
                 type = "item",
                 label = label,
                 active = isEditorRace,
                 disabled = not isEditorRace,
-                onClick = BJI.Windows.ScenarioEditor.onClose,
+                onClick = BJI_Win_ScenarioEditor.onClose,
             })
         else
-            if #rawRaces + 1 <= BJI.Windows.Selection.LIMIT_ELEMS_THRESHOLD then
+            if #rawRaces + 1 <= BJI_Win_Selection.LIMIT_ELEMS_THRESHOLD then
                 table.insert(M.cache.elems, {
                     type = "menu",
                     label = label,
                     elems = Table({
                         {
                             type = "item",
-                            label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
-                            onClick = BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID,
+                            label = BJI_Lang.get("menu.edit.raceCreate"),
+                            onClick = BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID,
                         }
                     }):addAll(rawRaces:map(function(race)
                         return {
@@ -357,42 +357,42 @@ local function menuRaces(ctxt)
                                 if IconButton("toggle-" .. tostring(race.id), race.enabled and BJI.Utils.Icon.ICONS.visibility or
                                         BJI.Utils.Icon.ICONS.visibility_off, { btnStyle = race.enabled and
                                             BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                                    BJI.Tx.scenario.RaceToggle(race.id, not race.enabled)
+                                    BJI_Tx_scenario.RaceToggle(race.id, not race.enabled)
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.toggle"))
+                                TooltipText(BJI_Lang.get("common.buttons.toggle"))
 
                                 SameLine()
                                 if IconButton("editRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.mode_edit,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                    BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.edit"))
+                                TooltipText(BJI_Lang.get("common.buttons.edit"))
 
                                 SameLine()
                                 if IconButton("copyRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.content_copy,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                    BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.duplicate"))
+                                TooltipText(BJI_Lang.get("common.buttons.duplicate"))
 
                                 SameLine()
                                 if IconButton("deleteRace-" .. tostring(race.id), BJI.Utils.Icon.ICONS.delete_forever,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                                    BJI.Managers.Popup.createModal(
-                                        BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                    BJI_Popup.createModal(
+                                        BJI_Lang.get("menu.edit.raceDeleteModal")
                                         :var({ raceName = race.name }), {
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                            BJI_Popup.createButton(BJI_Lang.get(
                                                 "common.buttons.cancel"
                                             )),
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                            BJI_Popup.createButton(BJI_Lang.get(
                                                     "common.buttons.confirm"
                                                 ),
                                                 function()
-                                                    BJI.Tx.scenario.RaceDelete(race.id)
+                                                    BJI_Tx_scenario.RaceDelete(race.id)
                                                 end)
                                         })
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.delete"))
+                                TooltipText(BJI_Lang.get("common.buttons.delete"))
 
                                 SameLine()
                                 Text(race.name)
@@ -406,8 +406,8 @@ local function menuRaces(ctxt)
                     type = "item",
                     label = label,
                     onClick = function()
-                        BJI.Windows.Selection.open("menu.edit.races", Table({ {
-                            label = BJI.Managers.Lang.get("menu.edit.raceCreate"),
+                        BJI_Win_Selection.open("menu.edit.races", Table({ {
+                            label = BJI_Lang.get("menu.edit.raceCreate"),
                             value = nil,
                         } }):addAll(rawRaces:map(function(r)
                             return {
@@ -420,50 +420,50 @@ local function menuRaces(ctxt)
                                 SameLine()
                                 if IconButton("createRace", BJI.Utils.Icon.ICONS.add,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID()
+                                    BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID()
                                     onClose()
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.create"))
+                                TooltipText(BJI_Lang.get("common.buttons.create"))
                                 return
                             end
                             rawRaces:find(function(r) return r.id == raceID end, function(race)
                                 SameLine()
                                 if IconButton("editRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.mode_edit,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
+                                    BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID(race.id)
                                     onClose()
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.edit"))
+                                TooltipText(BJI_Lang.get("common.buttons.edit"))
 
                                 SameLine()
                                 if IconButton("copyRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.content_copy,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                                    BJI.Windows.ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
+                                    BJI_Win_ScenarioEditor.SCENARIOS.RACE.openWithID(race.id, true)
                                     onClose()
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.duplicate"))
+                                TooltipText(BJI_Lang.get("common.buttons.duplicate"))
 
                                 SameLine()
                                 if IconButton("deleteRace-" .. tostring(raceID), BJI.Utils.Icon.ICONS.delete_forever,
                                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                                    BJI.Managers.Popup.createModal(
-                                        BJI.Managers.Lang.get("menu.edit.raceDeleteModal")
+                                    BJI_Popup.createModal(
+                                        BJI_Lang.get("menu.edit.raceDeleteModal")
                                         :var({ raceName = race.name }),
                                         {
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                            BJI_Popup.createButton(BJI_Lang.get(
                                                 "common.buttons.cancel"
                                             )),
-                                            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get(
+                                            BJI_Popup.createButton(BJI_Lang.get(
                                                 "common.buttons.confirm"
                                             ), function()
-                                                BJI.Tx.scenario.RaceDelete(race.id)
+                                                BJI_Tx_scenario.RaceDelete(race.id)
                                                 onClose()
                                             end),
                                         })
                                 end
-                                TooltipText(BJI.Managers.Lang.get("common.buttons.delete"))
+                                TooltipText(BJI_Lang.get("common.buttons.delete"))
                             end)
-                        end, nil, { BJI.Managers.Perm.PERMISSIONS.SCENARIO })
+                        end, nil, { BJI_Perm.PERMISSIONS.SCENARIO })
                     end,
                 })
             end
@@ -472,40 +472,40 @@ local function menuRaces(ctxt)
 end
 
 local function menuHunterInfected(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.HunterInfected then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.HunterInfected then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local hunterEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.HUNTER_INFECTED
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.hunter"):var({
-                state = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.HunterInfected
+            label = BJI_Lang.get("menu.edit.hunter"):var({
+                state = BJI_Lang.get(BJI_Context.Scenario.Data.HunterInfected
                     .enabledHunter and "common.enabled" or "common.disabled"),
             }),
             active = editorOpen and hunterEditorOpen,
             disabled = editorOpen and not hunterEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(1)
+                    BJI_Win_ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(1)
                 end
             end,
         })
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.infected"):var({
-                state = BJI.Managers.Lang.get(BJI.Managers.Context.Scenario.Data.HunterInfected
+            label = BJI_Lang.get("menu.edit.infected"):var({
+                state = BJI_Lang.get(BJI_Context.Scenario.Data.HunterInfected
                     .enabledInfected and "common.enabled" or "common.disabled"),
             }),
             active = editorOpen and hunterEditorOpen,
             disabled = editorOpen and not hunterEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(2)
+                    BJI_Win_ScenarioEditor.SCENARIOS.HUNTER_INFECTED.open(2)
                 end
             end,
         })
@@ -513,22 +513,22 @@ local function menuHunterInfected(ctxt)
 end
 
 local function menuDerby(ctxt)
-    if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SCENARIO) and
-        BJI.Managers.Context.Scenario.Data.Derby then
-        local editorOpen = BJI.Windows.ScenarioEditor.getState()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
+        BJI_Context.Scenario.Data.Derby then
+        local editorOpen = BJI_Win_ScenarioEditor.getState()
         local derbyEditorOpen = editorOpen and
-            BJI.Windows.ScenarioEditor.view == BJI.Windows.ScenarioEditor.SCENARIOS.DERBY
+            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.DERBY
         table.insert(M.cache.elems, {
             type = "item",
-            label = BJI.Managers.Lang.get("menu.edit.derby")
-                :var({ amount = #BJI.Managers.Context.Scenario.Data.Derby }),
+            label = BJI_Lang.get("menu.edit.derby")
+                :var({ amount = #BJI_Context.Scenario.Data.Derby }),
             active = editorOpen and derbyEditorOpen,
             disabled = editorOpen and not derbyEditorOpen,
             onClick = function()
                 if editorOpen then
-                    BJI.Windows.ScenarioEditor.onClose()
+                    BJI_Win_ScenarioEditor.onClose()
                 else
-                    BJI.Windows.ScenarioEditor.SCENARIOS.DERBY.open()
+                    BJI_Win_ScenarioEditor.SCENARIOS.DERBY.open()
                 end
             end
         })
@@ -537,9 +537,9 @@ end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
     M.cache = {
-        label = BJI.Managers.Lang.get("menu.edit.title"),
+        label = BJI_Lang.get("menu.edit.title"),
         elems = {},
     }
 
@@ -548,14 +548,14 @@ local function updateCache(ctxt)
     menuGravityPresets(ctxt)
     menuSpeedPresets(ctxt)
 
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
+    if BJI_Scenario.is(BJI_Scenario.TYPES.FREEROAM) then
         menuSwitchMap(ctxt)
     end
 
     table.insert(M.cache.elems, { type = "separator" })
     menuFreeroamSettings(ctxt)
 
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) then
+    if BJI_Scenario.is(BJI_Scenario.TYPES.FREEROAM) then
         -- scenario editors
         menuEnergyStations(ctxt)
         menuGarages(ctxt)
@@ -572,27 +572,27 @@ end
 local listeners = Table()
 function M.onLoad()
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_EDITOR_UPDATED,
-        BJI.Managers.Events.EVENTS.ENV_CHANGED,
-        BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_EDITOR_UPDATED,
+        BJI_Events.EVENTS.ENV_CHANGED,
+        BJI_Events.EVENTS.WINDOW_VISIBILITY_TOGGLED,
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST
     }, updateCache, "MainMenuEdit"))
 
     ---@param data {cache: string}
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({
-                BJI.Managers.Cache.CACHES.BJC,
-                BJI.Managers.Cache.CACHES.MAPS,
-                BJI.Managers.Cache.CACHES.STATIONS,
-                BJI.Managers.Cache.CACHES.RACES,
-                BJI.Managers.Cache.CACHES.DELIVERIES,
-                BJI.Managers.Cache.CACHES.BUS_LINES,
-                BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA,
-                BJI.Managers.Cache.CACHES.DERBY_DATA,
+                BJI_Cache.CACHES.BJC,
+                BJI_Cache.CACHES.MAPS,
+                BJI_Cache.CACHES.STATIONS,
+                BJI_Cache.CACHES.RACES,
+                BJI_Cache.CACHES.DELIVERIES,
+                BJI_Cache.CACHES.BUS_LINES,
+                BJI_Cache.CACHES.HUNTER_INFECTED_DATA,
+                BJI_Cache.CACHES.DERBY_DATA,
             }, data.cache) then
             updateCache(ctxt)
         end
@@ -600,7 +600,7 @@ function M.onLoad()
 end
 
 function M.onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param ctxt TickContext

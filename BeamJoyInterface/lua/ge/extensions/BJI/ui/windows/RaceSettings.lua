@@ -90,39 +90,39 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.unknown = BJI.Managers.Lang.get("common.unknown")
+    W.labels.unknown = BJI_Lang.get("common.unknown")
 
     W.labels.title = W.settings.multi and
-        BJI.Managers.Lang.get("races.preparation.multiplayer") or
-        BJI.Managers.Lang.get("races.preparation.singleplayer")
-    W.labels.raceName = string.var("{1} \"{2}\"", { BJI.Managers.Lang.get("races.play.race"), W.settings.raceName })
+        BJI_Lang.get("races.preparation.multiplayer") or
+        BJI_Lang.get("races.preparation.singleplayer")
+    W.labels.raceName = string.var("{1} \"{2}\"", { BJI_Lang.get("races.play.race"), W.settings.raceName })
 
-    W.labels.laps = BJI.Managers.Lang.get("races.edit.laps")
-    W.labels.manyLapsWarning = BJI.Managers.Lang.get("races.settings.manyLapsWarning")
+    W.labels.laps = BJI_Lang.get("races.edit.laps")
+    W.labels.manyLapsWarning = BJI_Lang.get("races.settings.manyLapsWarning")
 
-    W.labels.respawnStrategies.title = BJI.Managers.Lang.get("races.settings.respawnStrategies.title")
-    W.labels.respawnStrategies.all = BJI.Managers.Lang.get("races.settings.respawnStrategies.all")
-    W.labels.respawnStrategies.norespawn = BJI.Managers.Lang.get("races.settings.respawnStrategies.norespawn")
-    W.labels.respawnStrategies.lastcheckpoint = BJI.Managers.Lang.get(
+    W.labels.respawnStrategies.title = BJI_Lang.get("races.settings.respawnStrategies.title")
+    W.labels.respawnStrategies.all = BJI_Lang.get("races.settings.respawnStrategies.all")
+    W.labels.respawnStrategies.norespawn = BJI_Lang.get("races.settings.respawnStrategies.norespawn")
+    W.labels.respawnStrategies.lastcheckpoint = BJI_Lang.get(
         "races.settings.respawnStrategies.lastcheckpoint")
-    W.labels.respawnStrategies.stand = BJI.Managers.Lang.get("races.settings.respawnStrategies.stand")
+    W.labels.respawnStrategies.stand = BJI_Lang.get("races.settings.respawnStrategies.stand")
 
-    W.labels.collisions = BJI.Managers.Lang.get("races.settings.collisions")
+    W.labels.collisions = BJI_Lang.get("races.settings.collisions")
 
-    W.labels.vehicle.title = BJI.Managers.Lang.get("races.settings.vehicles.playerVehicle")
-    W.labels.vehicle.all = BJI.Managers.Lang.get("races.settings.vehicles.all")
-    W.labels.vehicle.currentModel = BJI.Managers.Lang.get("races.settings.vehicles.currentModel")
-    W.labels.vehicle.currentConfig = BJI.Managers.Lang.get("races.settings.vehicles.currentConfig")
-    W.labels.vehicle.vehicleProtected = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
-    W.labels.vehicle.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+    W.labels.vehicle.title = BJI_Lang.get("races.settings.vehicles.playerVehicle")
+    W.labels.vehicle.all = BJI_Lang.get("races.settings.vehicles.all")
+    W.labels.vehicle.currentModel = BJI_Lang.get("races.settings.vehicles.currentModel")
+    W.labels.vehicle.currentConfig = BJI_Lang.get("races.settings.vehicles.currentConfig")
+    W.labels.vehicle.vehicleProtected = BJI_Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.vehicle.selfProtected = BJI_Lang.get("vehicleSelector.selfProtected")
 
-    W.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
-    W.labels.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
-    W.labels.startRace = BJI.Managers.Lang.get("common.buttons.start")
+    W.labels.cancel = BJI_Lang.get("common.buttons.cancel")
+    W.labels.startVote = BJI_Lang.get("common.buttons.startVote")
+    W.labels.startRace = BJI_Lang.get("common.buttons.start")
 end
 
 local function updateCache()
-    ctxt = BJI.Managers.Tick.getContext()
+    ctxt = BJI_Tick.getContext()
 
     W.data.currentVeh.model = nil
     W.data.currentVeh.modelLabel = nil
@@ -133,19 +133,19 @@ local function updateCache()
     W.data.showStartBtn = false
 
     -- autoclose checks
-    if W.show and (not BJI.Managers.Scenario.isFreeroam() or (
-            not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) and
-            not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-            not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO)
+    if W.show and (not BJI_Scenario.isFreeroam() or (
+            not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) and
+            not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+            not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
         )) then
         onClose()
         return
     elseif not W.settings.multi and not ctxt.isOwner then
         onClose()
         return
-    elseif W.settings.multi and BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS then
+    elseif W.settings.multi and BJI_Perm.getCountPlayersCanSpawnVehicle() < BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS then
         -- when a player leaves then there are not enough players to start
-        BJI.Managers.Toast.warning(BJI.Managers.Lang.get("races.preparation.notEnoughPlayers"))
+        BJI_Toast.warning(BJI_Lang.get("races.preparation.notEnoughPlayers"))
         onClose()
         return
     end
@@ -172,7 +172,7 @@ local function updateCache()
             value = W.VEHICLE_MODES.ALL,
             label = W.labels.vehicle.all,
         })
-        if ctxt.veh and ctxt.veh.isVehicle and not BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+        if ctxt.veh and ctxt.veh.isVehicle and not BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) then
             table.insert(W.data.comboVehicle, {
                 value = W.VEHICLE_MODES.MODEL,
                 label = W.labels.vehicle.currentModel,
@@ -201,11 +201,11 @@ local function updateCache()
     -- current veh
     if ctxt.veh then
         W.data.currentVeh.model = ctxt.veh.jbeam
-        W.data.currentVeh.modelLabel = BJI.Managers.Veh.getModelLabel(W.data.currentVeh.model) or
+        W.data.currentVeh.modelLabel = BJI_Veh.getModelLabel(W.data.currentVeh.model) or
             W.labels.unknown
 
-        W.data.currentVeh.config = BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
-        configLabel = BJI.Managers.Veh.getCurrentConfigLabel()
+        W.data.currentVeh.config = BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
+        configLabel = BJI_Veh.getCurrentConfigLabel()
         W.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
             { W.data.currentVeh.modelLabel, configLabel }) or W.labels.unknown
     else
@@ -215,38 +215,38 @@ local function updateCache()
         W.data.currentVeh.configLabel = nil
     end
 
-    W.data.showVoteBtn = W.settings.multi and not BJI.Managers.Tournament.state and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
-    W.data.showStartBtn = (W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
-        (not W.settings.multi and BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO))
+    W.data.showVoteBtn = W.settings.multi and not BJI_Tournament.state and
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    W.data.showStartBtn = (W.settings.multi and BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO)) or
+        (not W.settings.multi and BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO))
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels,
         W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
-        BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED,
-        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.VEHICLE_SPAWNED,
+        BJI_Events.EVENTS.NG_VEHICLE_REPLACED,
+        BJI_Events.EVENTS.VEHICLE_REMOVED,
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.CONFIG_PROTECTION_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJI.Managers.Cache.CACHES.RACES or data.cache == BJI.Managers.Cache.CACHES.PLAYERS then
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if data.cache == BJI_Cache.CACHES.RACES or data.cache == BJI_Cache.CACHES.PLAYERS then
             updateCache()
         end
     end, W.name .. "Cache"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function drawHeader()
@@ -335,7 +335,7 @@ local function drawFooter(ctxt)
         if IconButton("voteRaceStart", BJI.Utils.Icon.ICONS.event_available,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             local settings = getPayloadSettings()
-            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.RACE, true, {
+            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, true, {
                 raceID = W.settings.raceID,
                 laps = settings.laps,
                 model = settings.model,
@@ -353,7 +353,7 @@ local function drawFooter(ctxt)
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             if W.settings.multi then
                 local settings = getPayloadSettings()
-                BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.RACE, false, {
+                BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, false, {
                     raceID = W.settings.raceID,
                     laps = settings.laps,
                     model = settings.model,
@@ -363,10 +363,10 @@ local function drawFooter(ctxt)
                 })
                 onClose()
             else
-                BJI.Tx.scenario.RaceDetails(W.settings.raceID, function(raceData)
+                BJI_Tx_scenario.RaceDetails(W.settings.raceID, function(raceData)
                     if raceData then
-                        if BJI.Managers.Scenario.isFreeroam() then
-                            BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO).initRace(
+                        if BJI_Scenario.isFreeroam() then
+                            BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO).initRace(
                                 ctxt,
                                 {
                                     laps = raceData.loopable and W.settings.laps or nil,
@@ -377,7 +377,7 @@ local function drawFooter(ctxt)
                         end
                         onClose()
                     else
-                        BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.invalidData"))
+                        BJI_Toast.error(BJI_Lang.get("errors.invalidData"))
                     end
                 end)
             end
@@ -400,10 +400,10 @@ local function open(raceSettings)
     W.data.respawnStrategySelected = W.settings.defaultRespawnStrategy or W.data.respawnStrategySelected
     W.data.vehicleSelected = W.data.vehicleSelected or W.VEHICLE_MODES.ALL
 
-    if BJI.Managers.Scenario.isFreeroam() and
-        (BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) or
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO)) then
+    if BJI_Scenario.isFreeroam() and
+        (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) or
+            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)) then
         if W.show then
             --if already open, update data
             updateLabels()

@@ -27,15 +27,15 @@ local W = {
 local nextValue
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get(W.title, W.title)
-    W.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
-    W.labels.valid = BJI.Managers.Lang.get("common.buttons.confirm")
+    W.labels.title = BJI_Lang.get(W.title, W.title)
+    W.labels.cancel = BJI_Lang.get("common.buttons.cancel")
+    W.labels.valid = BJI_Lang.get("common.buttons.confirm")
 end
 
 local listeners = Table()
 local function onClose()
     W.show = false
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     listeners:clear()
     W.title = ""
     W.elems = Table()
@@ -69,19 +69,19 @@ local function open(titleKey, elems, footerRender, callback, permissions)
     W.show = true
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateLabels, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SCENARIO_CHANGED, onClose, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.SCENARIO_CHANGED, onClose, W.name))
 
     permissions = Table(permissions)
     if #permissions > 0 then
-        listeners:insert(BJI.Managers.Events.addListener(
-            BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+        listeners:insert(BJI_Events.addListener(
+            BJI_Events.EVENTS.PERMISSION_CHANGED,
             function()
-                if permissions:any(function(p) return not BJI.Managers.Perm.hasPermission(p) end) then
+                if permissions:any(function(p) return not BJI_Perm.hasPermission(p) end) then
                     onClose()
                 end
             end, W.name))

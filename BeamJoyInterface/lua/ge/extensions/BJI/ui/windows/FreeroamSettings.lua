@@ -44,9 +44,9 @@ local nextValue
 
 local function onClose()
     if W.changed then
-        BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("freeroamSettings.cancelModal"), {
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+        BJI_Popup.createModal(BJI_Lang.get("freeroamSettings.cancelModal"), {
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
                 W.data = Table()
                 W.changed = false
                 W.show = false
@@ -58,37 +58,37 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.vehicleSpawning = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.vehicleSpawning") })
-    W.labels.quickTravel = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.quickTravel") })
-    W.labels.nametags = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.nametags") })
-    W.labels.allowUnicycle = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.allowUnicycle") })
-    W.labels.resetDelay = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.resetDelay") })
-    W.labels.resetDelayTooltip = BJI.Managers.Lang.get("freeroamSettings.resetDelayTooltip")
-    W.labels.teleportDelay = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.teleportDelay") })
-    W.labels.teleportDelayTooltip = BJI.Managers.Lang.get("freeroamSettings.teleportDelayTooltip")
-    W.labels.driftGood = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.driftGood") })
-    W.labels.driftBig = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.driftBig") })
-    W.labels.preserveEnergy = string.var("{1}:", { BJI.Managers.Lang.get("freeroamSettings.preserveEnergy") })
+    W.labels.vehicleSpawning = string.var("{1}:", { BJI_Lang.get("freeroamSettings.vehicleSpawning") })
+    W.labels.quickTravel = string.var("{1}:", { BJI_Lang.get("freeroamSettings.quickTravel") })
+    W.labels.nametags = string.var("{1}:", { BJI_Lang.get("freeroamSettings.nametags") })
+    W.labels.allowUnicycle = string.var("{1}:", { BJI_Lang.get("freeroamSettings.allowUnicycle") })
+    W.labels.resetDelay = string.var("{1}:", { BJI_Lang.get("freeroamSettings.resetDelay") })
+    W.labels.resetDelayTooltip = BJI_Lang.get("freeroamSettings.resetDelayTooltip")
+    W.labels.teleportDelay = string.var("{1}:", { BJI_Lang.get("freeroamSettings.teleportDelay") })
+    W.labels.teleportDelayTooltip = BJI_Lang.get("freeroamSettings.teleportDelayTooltip")
+    W.labels.driftGood = string.var("{1}:", { BJI_Lang.get("freeroamSettings.driftGood") })
+    W.labels.driftBig = string.var("{1}:", { BJI_Lang.get("freeroamSettings.driftBig") })
+    W.labels.preserveEnergy = string.var("{1}:", { BJI_Lang.get("freeroamSettings.preserveEnergy") })
     W.labels.emergencyRefuelDuration = string.var("{1}:",
-        { BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelDuration") })
-    W.labels.emergencyRefuelDurationTooltip = BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelDurationTooltip")
+        { BJI_Lang.get("freeroamSettings.emergencyRefuelDuration") })
+    W.labels.emergencyRefuelDurationTooltip = BJI_Lang.get("freeroamSettings.emergencyRefuelDurationTooltip")
     W.labels.emergencyRefuelPercent = string.var("{1}:",
-        { BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelPercent") })
-    W.labels.emergencyRefuelPercentTooltip = BJI.Managers.Lang.get("freeroamSettings.emergencyRefuelPercentTooltip")
+        { BJI_Lang.get("freeroamSettings.emergencyRefuelPercent") })
+    W.labels.emergencyRefuelPercentTooltip = BJI_Lang.get("freeroamSettings.emergencyRefuelPercentTooltip")
 
-    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
-    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.reset = BJI_Lang.get("common.buttons.reset")
+    W.labels.buttons.resetAll = BJI_Lang.get("common.buttons.resetAll")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
 end
 
 local function updateChanged()
-    W.changed = not table.compare(W.data, BJI.Managers.Context.BJC.Freeroam)
+    W.changed = not table.compare(W.data, BJI_Context.BJC.Freeroam)
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.cache.config = Table({
         {
@@ -177,37 +177,37 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
     end, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt, data)
-        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.BJC then
+        if data._event ~= BJI_Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI_Cache.CACHES.BJC then
             updateCache(ctxt)
         end
     end, W.name .. "Cache"))
 
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
     }, function()
-        if not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CONFIG) then
+        if not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_CONFIG) then
             onClose()
         end
     end, W.name .. "AutoClose"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     W.data = Table()
     W.changed = false
 end
@@ -220,7 +220,7 @@ local function body(ctxt)
             { label = "##freeroam-settings-buttons" },
         }) then
         W.cache.config:filter(function(conf)
-            return not conf.minGroup or BJI.Managers.Perm.hasMinimumGroup(conf.minGroup)
+            return not conf.minGroup or BJI_Perm.hasMinimumGroup(conf.minGroup)
         end):forEach(function(conf)
             TableNewRow()
             Text(conf.label)
@@ -247,10 +247,10 @@ local function body(ctxt)
                 end
             end
             TableNextColumn()
-            if W.data[conf.keyData] ~= BJI.Managers.Context.BJC.Freeroam[conf.keyData] then
+            if W.data[conf.keyData] ~= BJI_Context.BJC.Freeroam[conf.keyData] then
                 if IconButton("reset" .. conf.keyData, BJI.Utils.Icon.ICONS.refresh,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                    W.data[conf.keyData] = BJI.Managers.Context.BJC.Freeroam[conf.keyData]
+                    W.data[conf.keyData] = BJI_Context.BJC.Freeroam[conf.keyData]
                     updateChanged()
                 end
                 TooltipText(W.labels.buttons.reset)
@@ -283,8 +283,8 @@ local function footer(ctxt)
                 acc[conf.keyData] = W.data[conf.keyData]
                 return acc
             end, Table())
-                :filter(function(v, k) return v ~= BJI.Managers.Context.BJC.Freeroam[k] end)
-                :forEach(function(v, k) BJI.Tx.config.bjc(string.var("Freeroam.{1}", { k }), v) end)
+                :filter(function(v, k) return v ~= BJI_Context.BJC.Freeroam[k] end)
+                :forEach(function(v, k) BJI_Tx_config.bjc(string.var("Freeroam.{1}", { k }), v) end)
             W.changed = false
         end
         TooltipText(W.labels.buttons.save)
@@ -292,7 +292,7 @@ local function footer(ctxt)
 end
 
 local function open()
-    W.data = table.clone(BJI.Managers.Context.BJC.Freeroam)
+    W.data = table.clone(BJI_Context.BJC.Freeroam)
     W.show = true
 end
 

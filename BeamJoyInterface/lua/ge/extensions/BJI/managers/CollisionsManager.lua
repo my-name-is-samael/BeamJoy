@@ -40,7 +40,7 @@ end
 ---@param gameVehID integer
 ---@return number?
 local function getVehAlpha(gameVehID)
-    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+    local veh = BJI_Veh.getVehicleObject(gameVehID)
     if not veh then
         return
     end
@@ -68,8 +68,8 @@ end
 
 ---@param gameVehID integer
 local function forceUpdateVeh(gameVehID)
-    local ctxt = BJI.Managers.Tick.getContext()
-    local veh = BJI.Managers.Veh.getVehicleObject(gameVehID)
+    local ctxt = BJI_Tick.getContext()
+    local veh = BJI_Veh.getVehicleObject(gameVehID)
     if veh then
         local isGhost = M.type == M.TYPES.DISABLED or
             M.ghosts[gameVehID] ~= nil or
@@ -108,7 +108,7 @@ local function removeGhost(ctxt, gameVehID, veh)
     M.ghosts[gameVehID] = nil
     if veh then
         veh:queueLuaCommand("obj:setGhostEnabled(false)")
-        ctxt = ctxt or BJI.Managers.Tick.getContext()
+        ctxt = ctxt or BJI_Tick.getContext()
         setAlpha(ctxt, veh, M.playerAlpha)
     end
 end
@@ -152,7 +152,7 @@ local function onVehReset(gameVehID)
         return
     end
 
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     if M.type == M.TYPES.GHOSTS and not M.permaGhosts[gameVehID] then
         if vehData.ghostType and not vehData.mpVeh.isAi then
             addGhost(ctxt, gameVehID, vehData.mpVeh.veh)
@@ -171,8 +171,8 @@ local function onVehSpawned(mpVeh)
     removeGhost(nil, mpVeh.gameVehicleID)
     M.vehsCaches[mpVeh.gameVehicleID] = {
         ghostType = mpVeh.jbeam ~= "unicycle" and
-            not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
-                BJI.Managers.Veh.getType(mpVeh.jbeam)),
+            not table.includes({ BJI_Veh.TYPES.TRAILER, BJI_Veh.TYPES.PROP },
+                BJI_Veh.getType(mpVeh.jbeam)),
         mpVeh = mpVeh,
     }
     -- recover reset event
@@ -182,7 +182,7 @@ end
 ---@param oldGameVehID integer
 ---@param newGameVehID integer
 local function onVehSwitched(oldGameVehID, newGameVehID)
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     if M.type == M.TYPES.GHOSTS then
         -- previous vehicle actions
         if oldGameVehID ~= -1 and (M.ghosts[oldGameVehID] or M.permaGhosts[oldGameVehID]) then
@@ -222,12 +222,12 @@ local function fastTick(ctxt)
                 M.ghosts[gameVehID] = nil
                 return
             end
-            selfPos = BJI.Managers.Veh.getPositionRotation(M.vehsCaches[gameVehID].mpVeh.veh)
+            selfPos = BJI_Veh.getPositionRotation(M.vehsCaches[gameVehID].mpVeh.veh)
             if not selfPos then return end
             if not M.vehsCaches:filter(function(_, vid)
                     return vid ~= gameVehID and not M.ghosts[vid] and not M.permaGhosts[vid]
                 end):any(function(vehData)
-                    targetPos = BJI.Managers.Veh.getPositionRotation(vehData.mpVeh.veh)
+                    targetPos = BJI_Veh.getPositionRotation(vehData.mpVeh.veh)
                     if not targetPos then return false end
                     return selfPos:distance(targetPos) <
                         getGhostDistance(M.vehsCaches[gameVehID].mpVeh.veh, vehData.mpVeh.veh)
@@ -267,12 +267,12 @@ local function onPlayerScenarioChanged(ctxt, event)
 end
 
 local function onLoad()
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
+    BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
     }, function(ctxt)
         -- check scenario type changed
-        local nextType = BJI.Managers.Scenario.getCollisionsType(ctxt)
+        local nextType = BJI_Scenario.getCollisionsType(ctxt)
         if nextType ~= M.type then
             local previousType = M.type
             M.type = nextType
@@ -280,12 +280,12 @@ local function onLoad()
         end
     end, M._name)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawned, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDestroyed, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PLAYER_SCENARIO_CHANGED, onPlayerScenarioChanged, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawned, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehSwitched, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDestroyed, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.PLAYER_SCENARIO_CHANGED, onPlayerScenarioChanged, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 M.onLoad = onLoad

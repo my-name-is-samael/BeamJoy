@@ -9,7 +9,7 @@ local fields = Table({
         min = 5,
         max = function()
             return
-                BJI.Managers.Context.BJC.Race.GridTimeout - 1
+                BJI_Context.BJC.Race.GridTimeout - 1
         end,
         renderFormat = "%ds",
         default = 10
@@ -42,14 +42,14 @@ return function(ctxt, labels)
             Text(labels.race.keys[el.key])
             TooltipText(labels.race.keys[el.key .. "Tooltip"])
             TableNextColumn()
-            value = BJI.Managers.Context.BJC.Race[el.key]
+            value = BJI_Context.BJC.Race[el.key]
             if el.type == "bool" then
                 if IconButton(el.key, not not value and
                         BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
                         { bgLess = true, btnStyle = not not value and
                             BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                    BJI.Managers.Context.BJC.Race[el.key] = not value
-                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
+                    BJI_Context.BJC.Race[el.key] = not value
+                    BJI_Tx_config.bjc("Race." .. el.key, BJI_Context.BJC.Race[el.key])
                 end
                 TooltipText(labels.race.keys[el.key .. "Tooltip"])
             else
@@ -58,8 +58,8 @@ return function(ctxt, labels)
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = el.default == value }) then
                     value = el.default
-                    BJI.Managers.Context.BJC.Race[el.key] = value / (el.multiplier or 1)
-                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
+                    BJI_Context.BJC.Race[el.key] = value / (el.multiplier or 1)
+                    BJI_Tx_config.bjc("Race." .. el.key, BJI_Context.BJC.Race[el.key])
                 end
                 TooltipText(labels.buttons.reset)
                 SameLine()
@@ -70,8 +70,8 @@ return function(ctxt, labels)
                 TooltipText(labels.race.keys[el.key .. "Tooltip"])
                 if nextValue then
                     value = nextValue
-                    BJI.Managers.Context.BJC.Race[el.key] = nextValue / (el.multiplier or 1)
-                    BJI.Tx.config.bjc("Race." .. el.key, BJI.Managers.Context.BJC.Race[el.key])
+                    BJI_Context.BJC.Race[el.key] = nextValue / (el.multiplier or 1)
+                    BJI_Tx_config.bjc("Race." .. el.key, BJI_Context.BJC.Race[el.key])
                 end
             end
         end)

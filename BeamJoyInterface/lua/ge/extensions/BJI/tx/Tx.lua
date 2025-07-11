@@ -50,7 +50,8 @@ end):forEach(function(managerPath)
     local ok, m = pcall(require, managerPath)
     if ok then
         local res = m(TX)
-        TX[res._name] = res
+        _G["BJI_Tx_" .. res._name] = res -- quick access
+        TX[res._name] = res              -- object tree access
     else
         LogError(string.var("Error loading Tx {1} : {2}", { managerPath, m }))
     end

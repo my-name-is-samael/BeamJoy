@@ -17,7 +17,7 @@ local function drawWaitingPlayers(cache)
             SameLine()
             if IconButton("demotewaiting" .. player.playerName, BJI.Utils.Icon.ICONS.person,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
+                BJI_Tx_moderation.setGroup(player.playerName, player.demoteGroup)
             end
             TooltipText(string.var(cache.labels.players.moderation.buttons.demoteTo,
                 { group = player.demoteLabel }))
@@ -26,7 +26,7 @@ local function drawWaitingPlayers(cache)
             SameLine()
             if IconButton("promotewaiting" .. player.playerName, BJI.Utils.Icon.ICONS.person_add,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
+                BJI_Tx_moderation.setGroup(player.playerName, player.promoteGroup)
             end
             TooltipText(string.var(cache.labels.players.moderation.buttons.promoteTo,
                 { group = player.promoteLabel }))
@@ -42,20 +42,20 @@ end
 ---@return table
 local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
     -- base actions
-    actions = BJI.Managers.Scenario.getPlayerListActions(player, ctxt)
+    actions = BJI_Scenario.getPlayerListActions(player, ctxt)
 
     -- VEHICLES DELETE
     if player.vehiclesCount > 0 and
-        BJI.Managers.Scenario.isFreeroam() and
+        BJI_Scenario.isFreeroam() and
         (player.self or (player.isGroupLower and not player.staff and
-            BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.DELETE_VEHICLE))) then
+            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.DELETE_VEHICLE))) then
         table.insert(actions, {
             id = string.var("deleteVehicles{1}", { player.playerID }),
             icon = BJI.Utils.Icon.ICONS.directions_car,
             style = BJI.Utils.Style.BTN_PRESETS.ERROR,
             tooltip = cache.labels.players.moderation.buttons.deleteAllVehicles,
             onClick = function()
-                BJI.Tx.moderation.deleteVehicle(player.playerID, -1)
+                BJI_Tx_moderation.deleteVehicle(player.playerID, -1)
             end,
         })
     end
@@ -63,31 +63,31 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
     -- line moderation actions
     if not player.self and player.isGroupLower and not player.staff then
         if not isAccordionOpen then
-            if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.MUTE) then
+            if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.MUTE) then
                 table.insert(actions, {
                     id = string.var("toggleMute{1}", { player.playerID }),
                     icon = player.muted and BJI.Utils.Icon.ICONS.speaker_notes_off or BJI.Utils.Icon.ICONS.speaker_notes,
                     style = player.muted and BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     tooltip = cache.labels.players.moderation.buttons.mute,
                     onClick = function()
-                        BJI.Tx.moderation.mute(player.playerName)
+                        BJI_Tx_moderation.mute(player.playerName)
                     end,
                 })
             end
 
-            if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.KICK) then
+            if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.KICK) then
                 table.insert(actions, {
                     id = string.var("kick{1}", { player.playerID }),
                     label = cache.labels.players.moderation.buttons.kick,
                     style = BJI.Utils.Style.BTN_PRESETS.ERROR,
                     onClick = function()
-                        BJI.Managers.Popup.createModal(
-                            BJI.Managers.Lang.get("moderationBlock.kickModal")
+                        BJI_Popup.createModal(
+                            BJI_Lang.get("moderationBlock.kickModal")
                             :var({ playerName = player.playerName }), {
-                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                                BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                                BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                                BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"),
                                     function()
-                                        BJI.Tx.moderation.kick(player.playerID)
+                                        BJI_Tx_moderation.kick(player.playerID)
                                     end),
                             })
                     end,
@@ -97,26 +97,26 @@ local function getHeaderActions(player, isAccordionOpen, ctxt, cache)
     end
 
     if player.isGroupLower and not player.staff then
-        if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.FREEZE_PLAYERS) then
+        if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.FREEZE_PLAYERS) then
             table.insert(actions, {
                 id = string.var("toggleFreeze{1}", { player.playerID }),
                 icon = BJI.Utils.Icon.ICONS.ac_unit,
                 style = player.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = cache.labels.players.moderation.buttons.freeze,
                 onClick = function()
-                    BJI.Tx.moderation.freeze(player.playerID)
+                    BJI_Tx_moderation.freeze(player.playerID)
                 end,
             })
         end
 
-        if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.ENGINE_PLAYERS) then
+        if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.ENGINE_PLAYERS) then
             table.insert(actions, {
                 id = string.var("toggleEngine{1}", { player.playerID }),
                 icon = BJI.Utils.Icon.ICONS.cogs,
                 style = player.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 tooltip = cache.labels.players.moderation.buttons.engine,
                 onClick = function()
-                    BJI.Tx.moderation.engine(player.playerID)
+                    BJI_Tx_moderation.engine(player.playerID)
                 end,
             })
         end
@@ -133,7 +133,7 @@ local function drawModeration(player, ctxt, cache)
         if player.demoteGroup then
             if IconButton("demote" .. player.playerName, BJI.Utils.Icon.ICONS.person,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Tx.moderation.setGroup(player.playerName, player.demoteGroup)
+                BJI_Tx_moderation.setGroup(player.playerName, player.demoteGroup)
             end
             TooltipText(string.var(cache.labels.players.moderation.buttons.demoteTo,
                 { group = player.demoteLabel }))
@@ -144,7 +144,7 @@ local function drawModeration(player, ctxt, cache)
         if player.promoteGroup then
             if IconButton("promote" .. player.playerName, BJI.Utils.Icon.ICONS.person_add,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                BJI.Tx.moderation.setGroup(player.playerName, player.promoteGroup)
+                BJI_Tx_moderation.setGroup(player.playerName, player.promoteGroup)
             end
             TooltipText(string.var(cache.labels.players.moderation.buttons.promoteTo,
                 { group = player.promoteLabel }))
@@ -171,7 +171,7 @@ local function drawModeration(player, ctxt, cache)
                 BJI.Utils.Icon.ICONS.speaker_notes_off or BJI.Utils.Icon.ICONS.speaker_notes,
                 { btnStyle = player.muted and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                     BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-            BJI.Tx.moderation.mute(player.playerName, inputs.muteReason)
+            BJI_Tx_moderation.mute(player.playerName, inputs.muteReason)
             inputs.muteReason = ""
         end
         TooltipText(cache.labels.players.moderation.buttons.mute)
@@ -195,13 +195,13 @@ local function drawModeration(player, ctxt, cache)
         TableNextColumn()
         if Button("kick-" .. player.playerName, cache.labels.players.moderation.buttons.kick,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-            BJI.Managers.Popup.createModal(
-                BJI.Managers.Lang.get("moderationBlock.kickModal")
+            BJI_Popup.createModal(
+                BJI_Lang.get("moderationBlock.kickModal")
                 :var({ playerName = player.playerName }), {
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"),
                         function()
-                            BJI.Tx.moderation.kick(player.playerID, inputs.kickReason)
+                            BJI_Tx_moderation.kick(player.playerID, inputs.kickReason)
                             inputs.kickReason = ""
                         end),
                 })
@@ -227,13 +227,13 @@ local function drawModeration(player, ctxt, cache)
         if cache.data.players.canBan then
             if IconButton("ban-" .. player.playerName, BJI.Utils.Icon.ICONS.gavel,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Popup.createModal(
-                    BJI.Managers.Lang.get("moderationBlock.banModal")
+                BJI_Popup.createModal(
+                    BJI_Lang.get("moderationBlock.banModal")
                     :var({ playerName = player.playerName }), {
-                        BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                        BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                        BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                        BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"),
                             function()
-                                BJI.Tx.moderation.ban(player.playerName, inputs.banReason)
+                                BJI_Tx_moderation.ban(player.playerName, inputs.banReason)
                                 inputs.banReason = ""
                             end),
                     })
@@ -257,13 +257,13 @@ local function drawModeration(player, ctxt, cache)
         TableNextColumn()
         if IconButton("tempBan-" .. player.playerName, BJI.Utils.Icon.ICONS.av_timer,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-            BJI.Managers.Popup.createModal(
-                BJI.Managers.Lang.get("moderationBlock.tempBanModal")
+            BJI_Popup.createModal(
+                BJI_Lang.get("moderationBlock.tempBanModal")
                 :var({ playerName = player.playerName }), {
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"),
                         function()
-                            BJI.Tx.moderation.tempban(player.playerName,
+                            BJI_Tx_moderation.tempban(player.playerName,
                                 inputs.tempBanDuration,
                                 player.banReason)
                         end),
@@ -274,10 +274,10 @@ local function drawModeration(player, ctxt, cache)
         EndTable()
     end
 
-    if BJI.Managers.Context.BJC.TempBan then
-        min, max = BJI.Managers.Context.BJC.TempBan.minTime, BJI.Managers.Context.BJC.TempBan.maxTime
+    if BJI_Context.BJC.TempBan then
+        min, max = BJI_Context.BJC.TempBan.minTime, BJI_Context.BJC.TempBan.maxTime
         nextValue = BJI.Utils.UI.DrawLineDurationModifiers("tempBanDuration" .. tostring(player.playerID),
-            inputs.tempBanDuration, min, max, BJI.Managers.Context.BJC.TempBan.minTime)
+            inputs.tempBanDuration, min, max, BJI_Context.BJC.TempBan.minTime)
         if nextValue then
             inputs.tempBanDuration = nextValue
         end
@@ -310,7 +310,7 @@ local function drawListVehicles(player, cache)
                     if IconButton("focus-" .. player.playerName .. "-" .. tostring(vehID),
                             BJI.Utils.Icon.ICONS.cameraFocusOnVehicle2,
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.INFO }) then
-                        BJI.Managers.Veh.focusVehicle(vehicle.finalGameVehID)
+                        BJI_Veh.focusVehicle(vehicle.finalGameVehID)
                     end
                     TooltipText(cache.labels.players.moderation.buttons.show)
                     SameLine()
@@ -318,28 +318,28 @@ local function drawListVehicles(player, cache)
                 if IconButton("toggleFreeze-" .. player.playerName .. "-" .. tostring(vehID),
                         BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
                             btnStyle = vehicle.freeze and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                    BJI.Tx.moderation.freeze(player.playerID, vehID)
+                    BJI_Tx_moderation.freeze(player.playerID, vehID)
                 end
                 TooltipText(cache.labels.players.moderation.buttons.freeze)
                 SameLine()
                 if IconButton("toggleEngine-" .. player.playerName .. "-" .. tostring(vehID),
                         BJI.Utils.Icon.ICONS.ac_unit, { disabled = not vehicle.finalGameVehID,
                             btnStyle = vehicle.engine and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                    BJI.Tx.moderation.engine(player.playerID, vehID)
+                    BJI_Tx_moderation.engine(player.playerID, vehID)
                 end
                 TooltipText(cache.labels.players.moderation.buttons.engine)
                 SameLine()
                 if IconButton("delete-" .. player.playerName .. "-" .. tostring(vehID),
                         BJI.Utils.Icon.ICONS.delete_forever, { disabled = not vehicle.finalGameVehID,
                             btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                    BJI.Tx.moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
+                    BJI_Tx_moderation.deleteVehicle(player.playerID, vehicle.gameVehID)
                 end
                 TooltipText(cache.labels.players.moderation.buttons.delete)
                 SameLine()
                 if IconButton("explode-" .. player.playerName .. "-" .. tostring(vehID),
                         BJI.Utils.Icon.ICONS.whatshot,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                    BJI.Tx.player.explodeVehicle(vehicle.gameVehID)
+                    BJI_Tx_player.explodeVehicle(vehicle.gameVehID)
                 end
                 TooltipText(cache.labels.players.moderation.buttons.explode)
             end
@@ -414,7 +414,7 @@ end
 ---@param ctxt TickContext
 ---@param cache table
 local function drawListPlayers(ctxt, cache)
-    canFocus = not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH)
+    canFocus = not BJI_Restrictions.getState(BJI_Restrictions.OTHER.VEHICLE_SWITCH)
 
     Text(cache.labels.players.moderation.list)
     Table(cache.data.players.list):forEach(function(player)

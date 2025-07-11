@@ -36,8 +36,8 @@ local function renderTick(ctxt)
             local newLevel = M.getReputationLevel(M.reputation)
             if newLevel > lastLevel then
                 -- ON LEVEL UP
-                BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.LEVEL_UP)
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.LEVEL_UP, {
+                BJI_Sound.play(BJI_Sound.SOUNDS.LEVEL_UP)
+                BJI_Events.trigger(BJI_Events.EVENTS.LEVEL_UP, {
                     level = newLevel
                 })
             end
@@ -74,7 +74,7 @@ local function slowTick(ctxt)
             M.kmReward.distance = M.kmReward.distance + drove
             if M.kmReward.distance >= 1000 then
                 M.kmReward.distance = M.kmReward.distance - 1000
-                BJI.Tx.player.KmReward()
+                BJI_Tx_player.KmReward()
             end
         end
         M.kmReward.lastPos = ctxt.veh.position
@@ -106,7 +106,7 @@ M.vehicleTeleported = onResetOrTeleport
 M.onGarageRepair = onGarageRepair
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 M.renderTick = renderTick
 

@@ -104,30 +104,30 @@ local M = {
 ---@return string[]
 local function getRestrictions(ctxt)
     local restrictions = Table()
-    if not BJI.Managers.Context.BJC.CEN then
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
-        restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+    if not BJI_Context.BJC.CEN then
+        restrictions:addAll(BJI_Restrictions.CEN.CONSOLE)
+        restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
+        restrictions:addAll(BJI_Restrictions.CEN.NODEGRABBER)
     else
-        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-            not BJI.Managers.Context.BJC.CEN.Console then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.CONSOLE)
+        if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI_Context.BJC.CEN.Console then
+            restrictions:addAll(BJI_Restrictions.CEN.CONSOLE)
         end
-        if not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-            not BJI.Managers.Context.BJC.CEN.Editor then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.EDITOR)
+        if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI_Context.BJC.CEN.Editor then
+            restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
         end
-        if not BJI.Managers.Scenario.isFreeroam() or
-            (not BJI.Managers.Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI.Managers.Context.BJC.CEN.NodeGrabber) then
-            restrictions:addAll(BJI.Managers.Restrictions.CEN.NODEGRABBER)
+        if not BJI_Scenario.isFreeroam() or
+            (not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+                not BJI_Context.BJC.CEN.NodeGrabber) then
+            restrictions:addAll(BJI_Restrictions.CEN.NODEGRABBER)
         end
     end
     return restrictions
 end
 
 local function loadUser()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.USER, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.USER, function(cacheData)
         local previous = table.clone(M.User) or {}
 
         M.User.playerID = cacheData.playerID
@@ -154,9 +154,9 @@ local function loadUser()
                 M.User.vehicles[vehID] = nil
             end
         end
-        BJI.Managers.Scenario.updateVehicles()
+        BJI_Scenario.updateVehicles()
 
-        BJI.Managers.Reputation.updateReputationSmooth(cacheData.reputation)
+        BJI_Reputation.updateReputationSmooth(cacheData.reputation)
 
         M.UserStats = cacheData.stats
 
@@ -169,7 +169,7 @@ local function loadUser()
                 table.find(M.User.vehicles, function(_, vehID)
                     return not previous.vehicles[vehID]
                 end, function(veh)
-                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED, {
+                    BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_SPAWNED, {
                         self = true,
                         playerID = M.User.playerID,
                         vehID = veh.vehID,
@@ -182,7 +182,7 @@ local function loadUser()
                 table.find(previous.vehicles, function(_, vehID)
                     return not M.User.vehicles[vehID]
                 end, function(veh)
-                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLE_REMOVED, {
+                    BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_REMOVED, {
                         self = true,
                         playerID = M.User.playerID,
                         vehID = veh.vehID,
@@ -194,14 +194,14 @@ local function loadUser()
         end
 
         if previous.group ~= M.User.group then
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
+            BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
         end
     end)
 end
 
 local previousPlayersScenarios = Table()
 local function loadPlayers()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.PLAYERS, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.PLAYERS, function(cacheData)
         ---@type tablelib<integer, BJIPlayer> playerID index
         local previousPlayers = M.Players:clone()
         Table(cacheData):forEach(function(p)
@@ -212,7 +212,7 @@ local function loadPlayers()
                     banReason = "",
                     tempBanDuration = M.BJC.TempBan and M.BJC.TempBan.minTime or 0, -- input for mods+
                     hideNametag = false,                                            -- future use ?
-                    tagName = BJI.Managers.Nametags.getPlayerTagName(p.playerName),
+                    tagName = BJI_Nametags.getPlayerTagName(p.playerName),
                 }, p)
             else
                 table.assign(M.Players[p.playerID], p)
@@ -235,7 +235,7 @@ local function loadPlayers()
                 M.Players:find(function(_, playerID)
                     return not previousPlayers[playerID]
                 end, function(player)
-                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_CONNECT, {
+                    BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_CONNECT, {
                         playerID = player.playerID,
                         playerName = player.playerName,
                     })
@@ -245,18 +245,18 @@ local function loadPlayers()
                 previousPlayers:find(function(_, playerID)
                     return not M.Players[playerID]
                 end, function(player)
-                    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_DISCONNECT, {
+                    BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_DISCONNECT, {
                         playerID = player.playerID,
                         playerName = player.playerName,
                     })
                 end)
             end
-            BJI.Managers.Restrictions.update()
+            BJI_Restrictions.update()
         end
         M.Players:forEach(function(p, pid)
             if p.isGhost ~= previousPlayersScenarios[pid] then
                 previousPlayersScenarios[pid] = p.isGhost
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PLAYER_SCENARIO_CHANGED, { playerID = pid })
+                BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_SCENARIO_CHANGED, { playerID = pid })
             end
         end)
     end)
@@ -265,9 +265,9 @@ end
 local previousUI = {}
 local function loadUI()
     -- env data for UI
-    previousUI.gravityRate = BJI.Managers.Env.Data.gravityRate
-    previousUI.simSpeed = BJI.Managers.Env.Data.simSpeed
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.ENVIRONMENT, function(cacheData)
+    previousUI.gravityRate = BJI_Env.Data.gravityRate
+    previousUI.simSpeed = BJI_Env.Data.simSpeed
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.ENVIRONMENT, function(cacheData)
         local presetsUtils = require("ge/extensions/utils/EnvironmentUtils")
 
         M.UI.gravity = {
@@ -281,8 +281,8 @@ local function loadUI()
                 end
             end
             if previousUI.gravityRate ~= cacheData.gravityRate and M.UI.gravity.key then
-                local label = BJI.Managers.Lang.get(string.var("presets.gravity.{1}", { M.UI.gravity.key }))
-                BJI.Managers.Toast.info(string.var(BJI.Managers.Lang.get("presets.gravity.toastChanged"),
+                local label = BJI_Lang.get(string.var("presets.gravity.{1}", { M.UI.gravity.key }))
+                BJI_Toast.info(string.var(BJI_Lang.get("presets.gravity.toastChanged"),
                     { gravity = label }))
             end
         end
@@ -297,8 +297,8 @@ local function loadUI()
             end
         end
         if previousUI.simSpeed ~= cacheData.simSpeed and M.UI.speed.key then
-            local label = BJI.Managers.Lang.get(string.var("presets.speed.{1}", { M.UI.speed.key }))
-            BJI.Managers.Toast.info(string.var(BJI.Managers.Lang.get("presets.speed.toastChanged"),
+            local label = BJI_Lang.get(string.var("presets.speed.{1}", { M.UI.speed.key }))
+            BJI_Toast.info(string.var(BJI_Lang.get("presets.speed.toastChanged"),
                 { speed = label }))
         end
 
@@ -307,7 +307,7 @@ local function loadUI()
     end)
 
     -- map data for UI
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.MAP, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.MAP, function(cacheData)
         M.UI.mapName = cacheData.name
         M.UI.mapLabel = cacheData.label
     end)
@@ -315,7 +315,7 @@ end
 
 local function loadConfig()
     -- core data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.CORE, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.CORE, function(cacheData)
         local previous = table.clone(M.Core) or {}
         M.Core = cacheData
 
@@ -330,18 +330,18 @@ local function loadConfig()
             end
         end
         if table.length(keyChanged) > 0 then
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CORE_CHANGED, keyChanged)
+            BJI_Events.trigger(BJI_Events.EVENTS.CORE_CHANGED, keyChanged)
         end
     end)
 
     -- bjc data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.BJC, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.BJC, function(cacheData)
         local permissionChanged = false
 
         M.BJC.CEN = cacheData.CEN
-        BJI.Managers.Restrictions.update()
+        BJI_Restrictions.update()
 
-        if BJI.Managers.Scenario.isFreeroam() and (
+        if BJI_Scenario.isFreeroam() and (
                 not M.BJC.Freeroam or
                 M.BJC.Freeroam.VehicleSpawning ~= cacheData.Freeroam.VehicleSpawning or
                 M.BJC.Freeroam.AllowUnicycle ~= cacheData.Freeroam.AllowUnicycle
@@ -351,10 +351,10 @@ local function loadConfig()
         M.BJC.Freeroam = cacheData.Freeroam
 
         M.BJC.Server = cacheData.Server
-        BJI.Managers.Mods.update(M.BJC.Server.AllowClientMods)
+        BJI_Mods.update(M.BJC.Server.AllowClientMods)
         BJI.Utils.Style.LoadTheme(M.BJC.Server.Theme)
         if M.BJC.Server.Broadcasts then
-            for _, lang in ipairs(BJI.Managers.Lang.Langs) do
+            for _, lang in ipairs(BJI_Lang.Langs) do
                 if not M.BJC.Server.Broadcasts[lang] then
                     M.BJC.Server.Broadcasts[lang] = {}
                 end
@@ -414,13 +414,13 @@ local function loadConfig()
         end
 
         if permissionChanged then
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED)
+            BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
         end
     end)
 end
 
 local function loadDatabase()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.DATABASE_VEHICLES, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DATABASE_VEHICLES, function(cacheData)
         if not M.Database then
             M.Database = {}
         end
@@ -430,14 +430,14 @@ local function loadDatabase()
 end
 
 local function loadMaps()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.MAPS, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.MAPS, function(cacheData)
         M.Maps = cacheData
     end)
 end
 
 local function loadScenarii()
     -- races data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.RACES, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.RACES, function(cacheData)
         M.Scenario.Data.Races = cacheData
         if M.Scenario.Data.Races and #M.Scenario.Data.Races > 0 then
             for _, r in ipairs(M.Scenario.Data.Races) do
@@ -468,7 +468,7 @@ local function loadScenarii()
     end)
 
     -- deliveries data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.DELIVERIES, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DELIVERIES, function(cacheData)
         M.Scenario.Data.Deliveries = cacheData.Deliveries
         if M.Scenario.Data.Deliveries and #M.Scenario.Data.Deliveries > 0 then
             for _, position in ipairs(M.Scenario.Data.Deliveries) do
@@ -480,7 +480,7 @@ local function loadScenarii()
     end)
 
     -- bus lines
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.BUS_LINES, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.BUS_LINES, function(cacheData)
         M.Scenario.Data.BusLines = cacheData.BusLines
         if M.Scenario.Data.BusLines and #M.Scenario.Data.BusLines > 0 then
             for _, line in ipairs(M.Scenario.Data.BusLines) do
@@ -493,17 +493,17 @@ local function loadScenarii()
     end)
 
     -- hunter/infected data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
         M.Scenario.Data.HunterInfected = cacheData
     end)
 
     -- derby data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.DERBY_DATA, function(cacheData)
-        BJI.Managers.Context.Scenario.Data.Derby = cacheData
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DERBY_DATA, function(cacheData)
+        BJI_Context.Scenario.Data.Derby = cacheData
     end)
 
     -- stations data
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.STATIONS, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.STATIONS, function(cacheData)
         M.Scenario.Data.EnergyStations = cacheData.EnergyStations
         if M.Scenario.Data.EnergyStations and #M.Scenario.Data.EnergyStations > 0 then
             for _, station in ipairs(M.Scenario.Data.EnergyStations) do
@@ -516,19 +516,19 @@ end
 
 ---@param mpVeh BJIMPVehicle
 local function onVehSpawn(mpVeh)
-    BJI.Managers.Async.task(function()
+    BJI_Async.task(function()
         return M.Players[mpVeh.ownerID] and M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
     end, function()
         local v = M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
         v.finalGameVehID = mpVeh.gameVehicleID
         v.isAi = mpVeh.isAi
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.VEHICLES_UPDATED)
+        BJI_Events.trigger(BJI_Events.EVENTS.VEHICLES_UPDATED)
     end)
 end
 
 local listeners = Table()
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 local function onLoad()
     loadUser()
@@ -539,8 +539,8 @@ local function onLoad()
     loadMaps()
     loadScenarii()
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawn, M._name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawn, M._name))
 end
 
 local function isSelf(playerID)

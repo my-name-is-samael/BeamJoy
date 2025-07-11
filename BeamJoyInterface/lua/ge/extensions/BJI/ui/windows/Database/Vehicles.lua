@@ -21,19 +21,19 @@ local W = {
 local nextValue
 
 local function updateLabels()
-    W.labels.description = BJI.Managers.Lang.get("database.vehicles.blacklistDescription")
-    W.labels.title = BJI.Managers.Lang.get("database.vehicles.blacklistedModels") .. " :"
-    W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
+    W.labels.description = BJI_Lang.get("database.vehicles.blacklistDescription")
+    W.labels.title = BJI_Lang.get("database.vehicles.blacklistedModels") .. " :"
+    W.labels.add = BJI_Lang.get("common.buttons.add")
+    W.labels.remove = BJI_Lang.get("common.buttons.remove")
 end
 
 local function updateCache()
     W.cache.disableInputs = false
-    W.cache.blacklist = Table(BJI.Managers.Context.Database.Vehicles.ModelBlacklist):clone():sort()
+    W.cache.blacklist = Table(BJI_Context.Database.Vehicles.ModelBlacklist):clone():sort()
 
     W.cache.blackListDisplay = Table()
     W.cache.modelsCombo = Table()
-    local res = Table(BJI.Managers.Veh.getAllVehicleLabels(true))
+    local res = Table(BJI_Veh.getAllVehicleLabels(true))
         :reduce(function(res, label, model)
             if W.cache.blacklist:includes(model) then
                 res.models:insert({ model = model, label = label })
@@ -56,19 +56,19 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.DATABASE_VEHICLES then
+            if data.cache == BJI_Cache.CACHES.DATABASE_VEHICLES then
                 updateCache()
             end
         end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     W.cache.modelsCombo = Table()
     W.cache.selectedModel = nil
 end
@@ -82,7 +82,7 @@ local function header(ctxt)
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableInputs or not W.cache.selectedModel }) then
         W.cache.disableInputs = true
-        BJI.Tx.database.vehicle(W.cache.selectedModel, true)
+        BJI_Tx_database.vehicle(W.cache.selectedModel, true)
     end
     SameLine()
     nextValue = Combo("addBlacklistedModelList", W.cache.selectedModel, W.cache.modelsCombo)
@@ -95,7 +95,7 @@ local function body(data)
         if IconButton("removeBlacklisted-" .. el.model, BJI.Utils.Icon.ICONS.delete_forever,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
             W.cache.disableInputs = true
-            BJI.Tx.database.vehicle(el.model, false)
+            BJI_Tx_database.vehicle(el.model, false)
         end
         TooltipText(W.labels.remove)
         SameLine()

@@ -51,12 +51,12 @@ local W = {
 local value, disabled, text, short, nextValue
 
 local function updateLabels()
-    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.reset = BJI_Lang.get("common.buttons.reset")
 
-    W.labels.vehicle.automaticLights = BJI.Managers.Lang.get("userSettings.vehicles.automaticLights") .. ":"
-    W.labels.vehicle.automaticLightsTooltip = BJI.Managers.Lang.get("userSettings.vehicles.automaticLightsTooltip")
+    W.labels.vehicle.automaticLights = BJI_Lang.get("userSettings.vehicles.automaticLights") .. ":"
+    W.labels.vehicle.automaticLightsTooltip = BJI_Lang.get("userSettings.vehicles.automaticLightsTooltip")
 
-    W.labels.nametags.preview = BJI.Managers.Lang.get("userSettings.nametags.preview") .. ":"
+    W.labels.nametags.preview = BJI_Lang.get("userSettings.nametags.preview") .. ":"
     W.labels.nametags.hide = MPTranslate("ui.options.multiplayer.nameTags") .. ":"
     W.labels.nametags.showDistance = MPTranslate("ui.options.multiplayer.nameTagShowDistance") .. ":"
     W.labels.nametags.fade = MPTranslate("ui.options.multiplayer.nametagFade") .. ":"
@@ -72,31 +72,31 @@ local function updateLabels()
     W.labels.nametags.nametagLengthTooltip = MPTranslate("ui.options.multiplayer.nametagCharLimit.tooltip")
     W.labels.nametags.showSpecs = MPTranslate("ui.options.multiplayer.showSpectators") .. ":"
     W.labels.nametags.showSpecsTooltip = MPTranslate("ui.options.multiplayer.showSpectators.tooltip")
-    W.labels.nametags.colorsPlayerText = BJI.Managers.Lang.get("userSettings.nametags.colors.player.text") .. ":"
-    W.labels.nametags.colorsPlayerBg = BJI.Managers.Lang.get("userSettings.nametags.colors.player.bg") .. ":"
-    W.labels.nametags.colorsIdleText = BJI.Managers.Lang.get("userSettings.nametags.colors.idle.text") .. ":"
-    W.labels.nametags.colorsIdleBg = BJI.Managers.Lang.get("userSettings.nametags.colors.idle.bg") .. ":"
-    W.labels.nametags.colorsSpecText = BJI.Managers.Lang.get("userSettings.nametags.colors.spec.text") .. ":"
-    W.labels.nametags.colorsSpecBg = BJI.Managers.Lang.get("userSettings.nametags.colors.spec.bg") .. ":"
+    W.labels.nametags.colorsPlayerText = BJI_Lang.get("userSettings.nametags.colors.player.text") .. ":"
+    W.labels.nametags.colorsPlayerBg = BJI_Lang.get("userSettings.nametags.colors.player.bg") .. ":"
+    W.labels.nametags.colorsIdleText = BJI_Lang.get("userSettings.nametags.colors.idle.text") .. ":"
+    W.labels.nametags.colorsIdleBg = BJI_Lang.get("userSettings.nametags.colors.idle.bg") .. ":"
+    W.labels.nametags.colorsSpecText = BJI_Lang.get("userSettings.nametags.colors.spec.text") .. ":"
+    W.labels.nametags.colorsSpecBg = BJI_Lang.get("userSettings.nametags.colors.spec.bg") .. ":"
 
-    W.labels.freecam.smooth = BJI.Managers.Lang.get("userSettings.freecam.smoothed") .. ":"
-    W.labels.freecam.fov = BJI.Managers.Lang.get("userSettings.freecam.fov") .. ":"
-    W.labels.freecam.speed = BJI.Managers.Lang.get("userSettings.freecam.speed") .. ":"
+    W.labels.freecam.smooth = BJI_Lang.get("userSettings.freecam.smoothed") .. ":"
+    W.labels.freecam.fov = BJI_Lang.get("userSettings.freecam.fov") .. ":"
+    W.labels.freecam.speed = BJI_Lang.get("userSettings.freecam.speed") .. ":"
 
-    W.labels.stats.delivery = BJI.Managers.Lang.get("userSettings.stats.delivery") .. ":"
-    W.labels.stats.race = BJI.Managers.Lang.get("userSettings.stats.race") .. ":"
-    W.labels.stats.bus = BJI.Managers.Lang.get("userSettings.stats.bus") .. ":"
+    W.labels.stats.delivery = BJI_Lang.get("userSettings.stats.delivery") .. ":"
+    W.labels.stats.race = BJI_Lang.get("userSettings.stats.race") .. ":"
+    W.labels.stats.bus = BJI_Lang.get("userSettings.stats.bus") .. ":"
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(
-        BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name .. "Labels")
+    listeners:insert(BJI_Events.addListener(
+        BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name .. "Labels")
     )
 end
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 
@@ -109,10 +109,10 @@ local function drawVehicleSettings(ctxt)
         Text(W.labels.vehicle.automaticLights)
         TooltipText(W.labels.vehicle.automaticLightsTooltip)
         TableNextColumn()
-        value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
+        value = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS)
         if IconButton("automaticLightsToggle", value and BJI.Utils.Icon.ICONS.brightness_high or BJI.Utils.Icon.ICONS.brightness_low,
                 { btnStyle = value and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS, not value)
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.AUTOMATIC_LIGHTS, not value)
         end
 
         EndTable()
@@ -131,8 +131,8 @@ local nametagsFields = {
             SameLine()
             text = " Joel123"
             if BeginChild("UserSettingsNametagsBasePreview", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1):vec4() })
             end
             EndChild()
         end
@@ -193,8 +193,8 @@ local nametagsFields = {
             SameLine()
             text = " Joel123"
             if BeginChild("UserSettingsNametagsDontFullyHidePreview", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(value and .3 or 1):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(value and .3 or 1):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(value and .3 or 1):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(value and .3 or 1):vec4() })
             end
             EndChild()
         end
@@ -213,8 +213,8 @@ local nametagsFields = {
             SameLine()
             text = value and " StarryNeb..." or " StarryNebulaSkyx0"
             if BeginChild("UserSettingsNametagsShortenBasePreview", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1):vec4() })
             end
             EndChild()
         end
@@ -241,8 +241,8 @@ local nametagsFields = {
             if #short < #text then short = string.var("{1}...", { short }) end
             text = " " .. short
             if BeginChild("UserSettingsNametagsShortenPrecisePreview", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1):vec4() })
             end
             EndChild()
         end
@@ -259,7 +259,7 @@ local nametagsFields = {
 }
 local nametagsBeamjoyFields = {
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_TEXT,
         label = "colorsPlayerText",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -271,14 +271,14 @@ local nametagsBeamjoyFields = {
             SameLine()
             text = " Joel123"
             if BeginChild("UserSettingsNametagsPlayerColors", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1):vec4() })
             end
             EndChild()
         end,
     },
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_PLAYER_BG,
         label = "colorsPlayerBg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -286,7 +286,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_TEXT,
         label = "colorsIdleText",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -298,14 +298,14 @@ local nametagsBeamjoyFields = {
             SameLine()
             text = " Joel123"
             if BeginChild("UserSettingsNametagsIdleColors", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1, false, true):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1, false, true):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1, false, true):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1, false, true):vec4() })
             end
             EndChild()
         end,
     },
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_IDLE_BG,
         label = "colorsIdleBg",
         condition = function()
             return not settings.getValue("hideNameTags", false)
@@ -313,7 +313,7 @@ local nametagsBeamjoyFields = {
         type = "color",
     },
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_TEXT,
         label = "colorsSpecText",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -326,14 +326,14 @@ local nametagsBeamjoyFields = {
             SameLine()
             text = " Joel123"
             if BeginChild("UserSettingsNametagsSpecColors", { size = CalcTextSize(text),
-                    bgColor = BJI.Managers.Nametags.getNametagBgColor(1, true):vec4() }) then
-                Text(text, { color = BJI.Managers.Nametags.getNametagColor(1, true):vec4() })
+                    bgColor = BJI_Nametags.getNametagBgColor(1, true):vec4() }) then
+                Text(text, { color = BJI_Nametags.getNametagColor(1, true):vec4() })
             end
             EndChild()
         end,
     },
     {
-        key = BJI.Managers.LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG,
+        key = BJI_LocalStorage.GLOBAL_VALUES.NAMETAGS_COLOR_SPEC_BG,
         label = "colorsSpecBg",
         condition = function()
             return not settings.getValue("hideNameTags", false) and
@@ -413,7 +413,7 @@ local function drawNametagsSettings(ctxt)
         end
 
         for _, nbf in ipairs(nametagsBeamjoyFields) do
-            value = BJI.Managers.LocalStorage.get(nbf.key)
+            value = BJI_LocalStorage.get(nbf.key)
             disabled = nbf.condition ~= nil and not nbf.condition()
             TableNewRow()
             Text(W.labels.nametags[nbf.label], {
@@ -431,13 +431,13 @@ local function drawNametagsSettings(ctxt)
                     value = BJI.Utils.ShapeDrawer.Color(
                         nbf.key.default.r, nbf.key.default.g,
                         nbf.key.default.b, nbf.key.default.a)
-                    BJI.Managers.LocalStorage.set(nbf.key, value)
+                    BJI_LocalStorage.set(nbf.key, value)
                 end
                 SameLine()
                 nextValue = ColorPicker(nbf.label, value:vec4(), { disabled = disabled })
                 if nextValue then
                     value = BJI.Utils.ShapeDrawer.Color():fromVec4(nextValue)
-                    BJI.Managers.LocalStorage.set(nbf.key, value)
+                    BJI_LocalStorage.set(nbf.key, value)
                 end
             end
             TableNextColumn()
@@ -458,26 +458,26 @@ local function drawFreecamSettings(ctxt)
         TableNewRow()
         Text(W.labels.freecam.smooth)
         TableNextColumn()
-        value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
+        value = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
         if IconButton("toggleSmooth", value and BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel, {
                 btnStyle = value and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
                 bgLess = true,
             }) then
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH, not value)
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH, not value)
         end
 
         -- fov
         TableNewRow()
         Text(W.labels.freecam.fov)
         TableNextColumn()
-        value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV)
-        disabled = value == BJI.Managers.Cam.DEFAULT_FREECAM_FOV
+        value = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV)
+        disabled = value == BJI_Cam.DEFAULT_FREECAM_FOV
         if IconButton("camfovReset", BJI.Utils.Icon.ICONS.refresh,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = disabled }) then
-            value = BJI.Managers.Cam.DEFAULT_FREECAM_FOV
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, value)
-            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.setFOV(value)
+            value = BJI_Cam.DEFAULT_FREECAM_FOV
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV, value)
+            if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.setFOV(value)
                 ui_message({ txt = "ui.camera.fov", context = { degrees = value } }, 2, "cameramode")
             end
         end
@@ -491,9 +491,9 @@ local function drawFreecamSettings(ctxt)
         })
         if nextValue then
             value = nextValue
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_FOV, value)
-            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.setFOV(value)
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV, value)
+            if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.setFOV(value)
                 ui_message({ txt = "ui.camera.fov", context = { degrees = value } }, 2, "cameramode")
             end
         end
@@ -502,14 +502,14 @@ local function drawFreecamSettings(ctxt)
         TableNewRow()
         Text(W.labels.freecam.speed)
         TableNextColumn()
-        value = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED)
-        disabled = value == BJI.Managers.Cam.DEFAULT_FREECAM_SPEED
+        value = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED)
+        disabled = value == BJI_Cam.DEFAULT_FREECAM_SPEED
         if IconButton("camspeedReset", BJI.Utils.Icon.ICONS.refresh,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = disabled }) then
-            value = BJI.Managers.Cam.DEFAULT_FREECAM_SPEED
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, value)
-            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.setSpeed(value)
+            value = BJI_Cam.DEFAULT_FREECAM_SPEED
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, value)
+            if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.setSpeed(value)
                 ui_message({ txt = "ui.camera.speed", context = { speed = value } }, 1, "cameraspeed")
             end
         end
@@ -518,9 +518,9 @@ local function drawFreecamSettings(ctxt)
         nextValue = SliderFloatPrecision("camspeed", value, 2, 100, { step = .5, stepFast = 5, precision = 1 })
         if nextValue then
             value = nextValue
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, value)
-            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.setSpeed(value)
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, value)
+            if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.setSpeed(value)
                 ui_message({ txt = "ui.camera.speed", context = { speed = value } }, 1, "cameraspeed")
             end
         end
@@ -534,11 +534,11 @@ local function drawUserStats(ctxt)
     Icon(BJI.Utils.Icon.ICONS.show_chart, { big = true })
     if BeginTable("UserSettingsStats", { { label = "##stats-labels" }, { label = "##stats-actions", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } } }) then
         for _, k in ipairs({ "delivery", "race", "bus" }) do
-            if BJI.Managers.Context.UserStats[k] then
+            if BJI_Context.UserStats[k] then
                 TableNewRow()
                 Text(W.labels.stats[k])
                 TableNextColumn()
-                Text(tostring(BJI.Managers.Context.UserStats[k] or 0))
+                Text(tostring(BJI_Context.UserStats[k] or 0))
             end
         end
 

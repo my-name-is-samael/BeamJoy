@@ -154,9 +154,9 @@ local function processSlowTick()
         }
     end):values():forEach(function(el2, i, tab)
         asyncEventName = string.var("SlowTick-{1}", { el2.id })
-        BJI.Managers.Async.removeTask(asyncEventName)
-        BJI.Managers.Async.delayTask(function()
-            ctxtTmp = BJI.Managers.Tick.getContext(true)
+        BJI_Async.removeTask(asyncEventName)
+        BJI_Async.delayTask(function()
+            ctxtTmp = BJI_Tick.getContext(true)
             el2.callback(ctxtTmp)
             if BJI.Bench.STATE == 1 then
                 BJI.Bench.add(tostring(el2.id), "slow_tick", GetCurrentTimeMillis() - ctxtTmp.now)
@@ -266,7 +266,7 @@ M.removeListener = removeListener
 M.trigger = trigger
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 M.renderTick = renderTick
 

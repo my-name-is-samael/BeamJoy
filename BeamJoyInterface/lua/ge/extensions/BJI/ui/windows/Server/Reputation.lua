@@ -24,14 +24,14 @@ local nextValue
 
 local function updateLabels()
     categories:forEach(function(c)
-        W.labels.categories[c.category] = BJI.Managers.Lang.get("serverConfig.reputation.categories." ..
+        W.labels.categories[c.category] = BJI_Lang.get("serverConfig.reputation.categories." ..
             tostring(c.category))
     end)
-    Table(BJI.Managers.Context.BJC.Reputation):keys()
+    Table(BJI_Context.BJC.Reputation):keys()
         :forEach(function(k)
             W.labels.keys[k] = string.var("{1} :",
-                { BJI.Managers.Lang.get(string.var("serverConfig.reputation.{1}", { k })) })
-            W.labels.tooltips[k] = BJI.Managers.Lang.get(string.var("serverConfig.reputation.{1}Tooltip", { k }), "")
+                { BJI_Lang.get(string.var("serverConfig.reputation.{1}", { k })) })
+            W.labels.tooltips[k] = BJI_Lang.get(string.var("serverConfig.reputation.{1}Tooltip", { k }), "")
             if #W.labels.tooltips[k] == 0 then
                 W.labels.tooltips[k] = nil
             end
@@ -41,10 +41,10 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 end
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function body(ctxt)
@@ -63,12 +63,12 @@ local function body(ctxt)
                 TooltipText(W.labels.tooltips[k])
                 Unindent()
                 TableNextColumn()
-                nextValue = InputInt(tostring(k), BJI.Managers.Context.BJC.Reputation[k],
+                nextValue = InputInt(tostring(k), BJI_Context.BJC.Reputation[k],
                     { min = 0, step = 1 })
                 TooltipText(W.labels.tooltips[k])
                 if nextValue then
-                    BJI.Managers.Context.BJC.Reputation[k] = nextValue
-                    BJI.Tx.config.bjc(string.var("Reputation.{1}", { k }), BJI.Managers.Context.BJC.Reputation[k])
+                    BJI_Context.BJC.Reputation[k] = nextValue
+                    BJI_Tx_config.bjc(string.var("Reputation.{1}", { k }), BJI_Context.BJC.Reputation[k])
                 end
             end)
         end)

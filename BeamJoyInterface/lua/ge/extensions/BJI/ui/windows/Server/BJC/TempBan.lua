@@ -57,17 +57,17 @@ return function(ctxt, labels, cache)
         if IconButton("tempBanSave", BJI.Utils.Icon.ICONS.save, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = cache.disableInputs or invalidRange }) then
             cache.disableInputs = true
-            BJI.Tx.config.bjc("TempBan.minTime", cache.tempban.minTime)
-            BJI.Tx.config.bjc("TempBan.maxTime", cache.tempban.maxTime)
+            BJI_Tx_config.bjc("TempBan.minTime", cache.tempban.minTime)
+            BJI_Tx_config.bjc("TempBan.maxTime", cache.tempban.maxTime)
         end
         TooltipText(labels.buttons.save)
         SameLine()
         if IconButton("tempBanReset", BJI.Utils.Icon.ICONS.refresh,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = cache.disableInputs or
-                    (BJI.Managers.Context.BJC.TempBan.minTime == cache.tempban.minTime and
-                        BJI.Managers.Context.BJC.TempBan.maxTime == cache.tempban.maxTime) }) then
-            cache.tempban.minTime = BJI.Managers.Context.BJC.TempBan.minTime
-            cache.tempban.maxTime = BJI.Managers.Context.BJC.TempBan.maxTime
+                    (BJI_Context.BJC.TempBan.minTime == cache.tempban.minTime and
+                        BJI_Context.BJC.TempBan.maxTime == cache.tempban.maxTime) }) then
+            cache.tempban.minTime = BJI_Context.BJC.TempBan.minTime
+            cache.tempban.maxTime = BJI_Context.BJC.TempBan.maxTime
             cache.tempban.minTimePretty = BJI.Utils.UI.PrettyDelay(cache.tempban.minTime)
             cache.tempban.maxTimePretty = BJI.Utils.UI.PrettyDelay(cache.tempban.maxTime)
         end

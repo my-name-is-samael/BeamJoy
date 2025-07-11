@@ -29,41 +29,41 @@ local other, taggerMark, actions
 ---@param ctxt TickContext
 ---@return boolean
 local function canChangeTo(ctxt)
-    return BJI.Managers.Scenario.isFreeroam() and
+    return BJI_Scenario.isFreeroam() and
         ctxt.isOwner and
-        not BJI.Managers.Veh.isUnicycle(ctxt.veh.gameVehicleID)
+        not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
 
 ---@param ctxt TickContext
 local function onLoad(ctxt)
     S.resetLock = false
-    BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.RaceWaypoint.resetAll()
-    BJI.Managers.WaypointEdit.reset()
-    BJI.Managers.GPS.reset()
-    BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
-    BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
+    BJI_Win_VehSelector.tryClose()
+    BJI_RaceWaypoint.resetAll()
+    BJI_WaypointEdit.reset()
+    BJI_GPS.reset()
+    BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.BIG_MAP)
+    BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.FREE)
 end
 
 ---@param ctxt TickContext
 local function onUnload(ctxt)
-    BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
-    BJI.Managers.Message.stopRealtimeDisplay()
+    BJI_Message.cancelFlash("BJITagDuoTaggedReset")
+    BJI_Message.stopRealtimeDisplay()
     S.playerVehs = Table()
 
-    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
-    BJI.Managers.Cam.removeRestrictedCamera(BJI.Managers.Cam.CAMERAS.FREE)
-    BJI.Managers.GPS.reset()
+    BJI_Cam.removeRestrictedCamera(BJI_Cam.CAMERAS.BIG_MAP)
+    BJI_Cam.removeRestrictedCamera(BJI_Cam.CAMERAS.FREE)
+    BJI_GPS.reset()
 end
 
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
-    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
+        :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+        :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+        :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
 ---@return boolean
@@ -78,26 +78,26 @@ end
 
 ---@return boolean
 local function isTagger()
-    return S.selfLobby ~= nil and S.selfLobby.players[BJI.Managers.Context.User.playerID].tagger
+    return S.selfLobby ~= nil and S.selfLobby.players[BJI_Context.User.playerID].tagger
 end
 
 local function onVehicleResetted(gameVehID)
-    if S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID == gameVehID and isChasing() and not isTagger() then
-        BJI.Managers.Veh.freeze(true, gameVehID)
+    if S.selfLobby.players[BJI_Context.User.playerID].gameVehID == gameVehID and isChasing() and not isTagger() then
+        BJI_Veh.freeze(true, gameVehID)
         S.resetLock = true
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
-        BJI.Managers.Message.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, false, "FLEE !", nil,
+        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+        BJI_Message.flashCountdown("BJITagDuoTaggedReset", GetCurrentTimeMillis() + 5100, false, "FLEE !", nil,
             function()
-                BJI.Managers.Veh.freeze(false, gameVehID)
+                BJI_Veh.freeze(false, gameVehID)
                 S.resetLock = false
-                BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+                BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
             end, false)
     end
 end
 
 local function onVehicleDestroyed(gameVehID)
-    if S.selfLobby and S.selfLobby.players[BJI.Managers.Context.User.playerID].gameVehID == gameVehID then
-        BJI.Tx.scenario.TagDuoLeave()
+    if S.selfLobby and S.selfLobby.players[BJI_Context.User.playerID].gameVehID == gameVehID then
+        BJI_Tx_scenario.TagDuoLeave()
     end
 end
 
@@ -105,7 +105,7 @@ end
 ---@return boolean, BJIColor?, BJIColor?
 local function doShowNametag(vehData)
     if not S.waitForPlayers and
-        BJI.Managers.Context.User.playerID ~= vehData.ownerID and
+        BJI_Context.User.playerID ~= vehData.ownerID and
         S.selfLobby.players[vehData.ownerID] then
         return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(1, .33, .33, .5)
     end
@@ -115,7 +115,7 @@ end
 local function getPlayerListActions(player, ctxt)
     actions = {}
 
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
@@ -133,11 +133,11 @@ local function drawUI(ctxt)
 
     if IconButton("leaveTagDuo", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Tx.scenario.TagDuoLeave()
+        BJI_Tx_scenario.TagDuoLeave()
     end
-    TooltipText(BJI.Managers.Lang.get("menu.scenario.tagduo.leave"))
+    TooltipText(BJI_Lang.get("menu.scenario.tagduo.leave"))
     SameLine()
-    Text(string.var(BJI.Managers.Lang.get("tagduo.title"),
+    Text(string.var(BJI_Lang.get("tagduo.title"),
             { playerName = ctxt.players[S.selfLobby.host].playerName }),
         {
             color = S.selfLobby.host == ctxt.user.playerID and
@@ -145,16 +145,16 @@ local function drawUI(ctxt)
         })
 
     if S.waitForPlayers then
-        Text(BJI.Managers.Lang.get("tagduo.flashWaitingForPlayer"))
+        Text(BJI_Lang.get("tagduo.flashWaitingForPlayer"))
     elseif S.waitForSpread then
-        Text(BJI.Managers.Lang.get("tagduo.flashWaitForSpread"))
+        Text(BJI_Lang.get("tagduo.flashWaitForSpread"))
     elseif S.selfLobby.players[ctxt.user.playerID].tagger then
-        Text(BJI.Managers.Lang.get("tagduo.flashChase"))
+        Text(BJI_Lang.get("tagduo.flashChase"))
     else
-        Text(BJI.Managers.Lang.get("tagduo.flashFlee"))
+        Text(BJI_Lang.get("tagduo.flashFlee"))
     end
 
-    taggerMark = string.var("({1})", { BJI.Managers.Lang.get("tagduo.taggerMark") })
+    taggerMark = string.var("({1})", { BJI_Lang.get("tagduo.taggerMark") })
     Text(ctxt.user.playerName, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
     if S.selfLobby.players[ctxt.user.playerID].tagger then
         SameLine()
@@ -176,7 +176,7 @@ local function getVehsDistance()
         return -1
     end
     local vehsPos = S.playerVehs:map(function(v)
-        return BJI.Managers.Veh.getPositionRotation(v)
+        return BJI_Veh.getPositionRotation(v)
     end):values()
     if #vehsPos < 2 then
         error("Invalid vehicles")
@@ -186,21 +186,21 @@ end
 
 local function renderTick(ctxt)
     if S.waitForPlayers then
-        BJI.Managers.Message.realtimeDisplay("tagduo", BJI.Managers.Lang.get("tagduo.flashWaitingForPlayer"))
+        BJI_Message.realtimeDisplay("tagduo", BJI_Lang.get("tagduo.flashWaitingForPlayer"))
     elseif S.waitForSpread then
-        BJI.Managers.Message.realtimeDisplay("tagduo", BJI.Managers.Lang.get("tagduo.flashWaitForSpread"))
+        BJI_Message.realtimeDisplay("tagduo", BJI_Lang.get("tagduo.flashWaitForSpread"))
     else
-        if BJI.Managers.Message.realtimeData.context then
-            BJI.Managers.Message.stopRealtimeDisplay()
+        if BJI_Message.realtimeData.context then
+            BJI_Message.stopRealtimeDisplay()
         end
 
         -- check tag distance
         if not S.eventLock and S.selfLobby.players[ctxt.user.playerID].tagger and getVehsDistance() < S.minDistance then
             S.eventLock = true
-            BJI.Managers.GPS.removeByKey(BJI.Managers.GPS.KEYS.PLAYER)
-            BJI.Tx.scenario.TagDuoUpdate(S.selfLobbyIndex, S.CLIENT_EVENTS.TAG)
+            BJI_GPS.removeByKey(BJI_GPS.KEYS.PLAYER)
+            BJI_Tx_scenario.TagDuoUpdate(S.selfLobbyIndex, S.CLIENT_EVENTS.TAG)
             local timeout = ctxt.now + 5000
-            BJI.Managers.Async.task(function(ctxt2)
+            BJI_Async.task(function(ctxt2)
                 return ctxt2.now >= timeout or (S.selfLobby ~= nil and not S.selfLobby.players[ctxt.user.playerID].ready)
             end, function()
                 S.eventLock = false
@@ -213,9 +213,9 @@ local function fastTick(ctxt)
     if not S.eventLock and not S.waitForPlayers and S.waitForSpread and
         not S.selfLobby.players[ctxt.user.playerID].ready and getVehsDistance() >= S.minDistance * 10 then
         S.eventLock = true
-        BJI.Tx.scenario.TagDuoUpdate(S.selfLobbyIndex, S.CLIENT_EVENTS.READY)
+        BJI_Tx_scenario.TagDuoUpdate(S.selfLobbyIndex, S.CLIENT_EVENTS.READY)
         local timeout = ctxt.now + 5000
-        BJI.Managers.Async.task(function(ctxt2)
+        BJI_Async.task(function(ctxt2)
             return ctxt2.now >= timeout or (S.selfLobby ~= nil and S.selfLobby.players[ctxt.user.playerID].ready)
         end, function()
             S.eventLock = false
@@ -246,24 +246,24 @@ local function onDataUpdate(ctxt, newLobby)
 
     if previousReadyCount == 2 and readyCount < 2 then -- TAG or LEFT
         -- cancel reset process
-        BJI.Managers.Message.cancelFlash("BJITagDuoTaggedReset")
-        BJI.Managers.Veh.freeze(false, S.selfLobby.players[ctxt.user.playerID].gameVehID)
+        BJI_Message.cancelFlash("BJITagDuoTaggedReset")
+        BJI_Veh.freeze(false, S.selfLobby.players[ctxt.user.playerID].gameVehID)
 
-        BJI.Managers.Message.flash("BJITagDuoTagged", BJI.Managers.Lang.get("tagduo.flashTag"), 3)
+        BJI_Message.flash("BJITagDuoTagged", BJI_Lang.get("tagduo.flashTag"), 3)
     elseif previousReadyCount < 2 and readyCount == 2 then -- START CHASE
-        BJI.Managers.Message.stopRealtimeDisplay()
+        BJI_Message.stopRealtimeDisplay()
         local msg
         if tagger == ctxt.user.playerID then
-            msg = BJI.Managers.Lang.get("tagduo.flashChase")
+            msg = BJI_Lang.get("tagduo.flashChase")
         else
-            msg = BJI.Managers.Lang.get("tagduo.flashFlee")
+            msg = BJI_Lang.get("tagduo.flashFlee")
         end
-        BJI.Managers.Message.flash("BJITagDuoStartChase", msg, 3, false, ctxt.now)
+        BJI_Message.flash("BJITagDuoStartChase", msg, 3, false, ctxt.now)
         if newLobby.players[ctxt.user.playerID].tagger then
             Table(newLobby.players):find(function(_, pid) return pid ~= ctxt.user.playerID end, function(_, pid)
                 if ctxt.players[pid] then
-                    BJI.Managers.GPS.prependWaypoint({
-                        key = BJI.Managers.GPS.KEYS.PLAYER,
+                    BJI_GPS.prependWaypoint({
+                        key = BJI_GPS.KEYS.PLAYER,
                         radius = 0,
                         playerName = ctxt.players[pid].playerName,
                         clearable = false
@@ -284,13 +284,13 @@ local function initVehsAndMinDistance(newLobby)
 
     if S.playerVehs:length() < 2 then
         S.playerVehs = Table(newLobby.players):map(function(p)
-            return BJI.Managers.Veh.getVehicleObject(p.gameVehID)
+            return BJI_Veh.getVehicleObject(p.gameVehID)
         end):values()
     end
 
     S.minDistance = math.round(
         Table(newLobby.players):map(function(p)
-            local veh = BJI.Managers.Veh.getVehicleObject(p.gameVehID)
+            local veh = BJI_Veh.getVehicleObject(p.gameVehID)
             if not veh then
                 return 2
             end
@@ -303,7 +303,7 @@ end
 
 ---@param data {lobbies: BJTagDuoLobby[]}
 local function rxData(data)
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     S.lobbies = data.lobbies
 
     if not Table(data.lobbies):find(function(l) return l.players[ctxt.user.playerID] end, function(l, foundIndex)
@@ -324,17 +324,17 @@ local function rxData(data)
 
             if not S.selfLobby then
                 S.selfLobby = l
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.TAG_DUO, ctxt)
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.TAG_DUO, ctxt)
             else
                 onDataUpdate(ctxt, l)
             end
         end) and S.selfLobby then
         S.selfLobbyIndex = nil
         S.selfLobby = nil
-        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM, ctxt)
     end
 
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 S.canChangeTo = canChangeTo

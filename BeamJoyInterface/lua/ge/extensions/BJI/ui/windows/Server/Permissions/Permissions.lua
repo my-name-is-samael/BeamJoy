@@ -7,19 +7,19 @@ return function(labels, cache)
             { label = "##permissions-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
         }) then
         labels.permissionsNames:forEach(function(permName)
-            permLevel = BJI.Managers.Perm.Permissions[permName]
+            permLevel = BJI_Perm.Permissions[permName]
             TableNewRow()
             Text(permName .. " :")
             TableNextColumn()
             cache.orderedGroups:forEach(function(gkey, i)
                 if i > 1 then SameLine() end
-                group = BJI.Managers.Perm.Groups[gkey]
+                group = BJI_Perm.Groups[gkey]
                 if Button(permName .. "-" .. gkey, labels.groups[gkey], { disabled = cache.readOnlyGroups:includes(gkey) or
                         cache.readOnlyPermissions:includes(permName), btnStyle = permLevel <= group.level and
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS or nil }) then
                     if permLevel ~= group.level then
-                        BJI.Managers.Perm.Permissions[permName] = group.level
-                        BJI.Tx.config.permissions(permName, group.level)
+                        BJI_Perm.Permissions[permName] = group.level
+                        BJI_Tx_config.permissions(permName, group.level)
                     end
                 end
             end)

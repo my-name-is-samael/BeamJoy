@@ -3,7 +3,7 @@ local mgr, remainingTime
 
 return function(ctxt, cache)
     if not mgr then
-        mgr = BJI.Managers.Votes.Scenario
+        mgr = BJI_Votes.Scenario
     end
 
     Text(cache.hasStarted)
@@ -28,7 +28,7 @@ return function(ctxt, cache)
                     big = true, btnStyle = mgr.selfVoted and BJI.Utils.Style.BTN_PRESETS.ERROR or
                     BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
             cache.disableButtons = true
-            BJI.Tx.vote.ScenarioVote()
+            BJI_Tx_vote.ScenarioVote()
         end
         TooltipText(mgr.isVote and
             (mgr.selfVoted and cache.buttons.unvote or cache.buttons.vote) or
@@ -41,7 +41,7 @@ return function(ctxt, cache)
         if IconButton("stopPrepRace", BJI.Utils.Icon.ICONS.cancel, { disabled = cache.disableButtons,
                 big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
             cache.disableButtons = true
-            BJI.Tx.vote.ScenarioStop()
+            BJI_Tx_vote.ScenarioStop()
         end
         TooltipText(cache.buttons.stop)
     end

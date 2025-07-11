@@ -99,76 +99,76 @@ local W = {
 }
 
 local function onClose()
-    BJI.Managers.WaypointEdit.reset()
+    BJI_WaypointEdit.reset()
     W.changed = false
     W.valid = true
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("hunterInfectedEditor.title")
-    W.labels.enabled = BJI.Managers.Lang.get("hunterInfectedEditor.enabled")
-    W.labels.buttons.refreshMarkers = BJI.Managers.Lang.get("hunterInfectedEditor.buttons.refreshMarkers")
-    W.labels.buttons.toggleModeVisibility = BJI.Managers.Lang.get("hunterInfectedEditor.buttons.toggleModeVisibility")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.errors.missingPoints = BJI.Managers.Lang.get("hunterInfectedEditor.errors.missingPoints")
-    W.labels.errors.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
-    W.labels.errors.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
+    W.labels.title = BJI_Lang.get("hunterInfectedEditor.title")
+    W.labels.enabled = BJI_Lang.get("hunterInfectedEditor.enabled")
+    W.labels.buttons.refreshMarkers = BJI_Lang.get("hunterInfectedEditor.buttons.refreshMarkers")
+    W.labels.buttons.toggleModeVisibility = BJI_Lang.get("hunterInfectedEditor.buttons.toggleModeVisibility")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
+    W.labels.errors.missingPoints = BJI_Lang.get("hunterInfectedEditor.errors.missingPoints")
+    W.labels.errors.errorMustHaveVehicle = BJI_Lang.get("errors.mustHaveVehicle")
+    W.labels.errors.errorInvalidData = BJI_Lang.get("errors.someDataAreInvalid")
 
     -- hunter
-    W.labels.hunter.title = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.title")
-    W.labels.hunter.fields.hunters = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.fields.hunters")
-    W.labels.hunter.fields.hunted = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.fields.hunted")
-    W.labels.hunter.fields.waypoints = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.fields.waypoints")
-    W.labels.hunter.fields.radius = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.fields.radius")
-    W.labels.hunter.buttons.showHunterStartPosition = BJI.Managers.Lang.get(
+    W.labels.hunter.title = BJI_Lang.get("hunterInfectedEditor.hunter.title")
+    W.labels.hunter.fields.hunters = BJI_Lang.get("hunterInfectedEditor.hunter.fields.hunters")
+    W.labels.hunter.fields.hunted = BJI_Lang.get("hunterInfectedEditor.hunter.fields.hunted")
+    W.labels.hunter.fields.waypoints = BJI_Lang.get("hunterInfectedEditor.hunter.fields.waypoints")
+    W.labels.hunter.fields.radius = BJI_Lang.get("hunterInfectedEditor.hunter.fields.radius")
+    W.labels.hunter.buttons.showHunterStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.showHunterStartPosition")
-    W.labels.hunter.buttons.setHunterStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.setHunterStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.setHunterStartPositionHere")
-    W.labels.hunter.buttons.deleteHunterStartPosition = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.deleteHunterStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.deleteHunterStartPosition")
-    W.labels.hunter.buttons.addHunterStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.addHunterStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.addHunterStartPositionHere")
-    W.labels.hunter.buttons.showHuntedStartPosition = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.showHuntedStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.showHuntedStartPosition")
-    W.labels.hunter.buttons.setHuntedStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.setHuntedStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.setHuntedStartPositionHere")
-    W.labels.hunter.buttons.deleteHuntedStartPosition = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.deleteHuntedStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.deleteHuntedStartPosition")
-    W.labels.hunter.buttons.addHuntedStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.addHuntedStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.addHuntedStartPositionHere")
-    W.labels.hunter.buttons.addWaypointHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.addWaypointHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.addWaypointHere")
-    W.labels.hunter.buttons.showWaypoint = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.buttons.showWaypoint")
-    W.labels.hunter.buttons.setWaypointHere = BJI.Managers.Lang.get(
+    W.labels.hunter.buttons.showWaypoint = BJI_Lang.get("hunterInfectedEditor.hunter.buttons.showWaypoint")
+    W.labels.hunter.buttons.setWaypointHere = BJI_Lang.get(
         "hunterInfectedEditor.hunter.buttons.setWaypointHere")
-    W.labels.hunter.buttons.deleteWaypoint = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.buttons.deleteWaypoint")
-    W.labels.hunter.tags.waypointName = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.tags.waypointName")
-    W.labels.hunter.tags.hunterName = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.tags.hunterName")
-    W.labels.hunter.tags.huntedName = BJI.Managers.Lang.get("hunterInfectedEditor.hunter.tags.huntedName")
+    W.labels.hunter.buttons.deleteWaypoint = BJI_Lang.get("hunterInfectedEditor.hunter.buttons.deleteWaypoint")
+    W.labels.hunter.tags.waypointName = BJI_Lang.get("hunterInfectedEditor.hunter.tags.waypointName")
+    W.labels.hunter.tags.hunterName = BJI_Lang.get("hunterInfectedEditor.hunter.tags.hunterName")
+    W.labels.hunter.tags.huntedName = BJI_Lang.get("hunterInfectedEditor.hunter.tags.huntedName")
 
     -- infected
-    W.labels.infected.title = BJI.Managers.Lang.get("hunterInfectedEditor.infected.title")
-    W.labels.infected.fields.survivors = BJI.Managers.Lang.get("hunterInfectedEditor.infected.fields.survivors")
-    W.labels.infected.fields.infected = BJI.Managers.Lang.get("hunterInfectedEditor.infected.fields.infected")
-    W.labels.infected.buttons.showSurvivorStartPosition = BJI.Managers.Lang.get(
+    W.labels.infected.title = BJI_Lang.get("hunterInfectedEditor.infected.title")
+    W.labels.infected.fields.survivors = BJI_Lang.get("hunterInfectedEditor.infected.fields.survivors")
+    W.labels.infected.fields.infected = BJI_Lang.get("hunterInfectedEditor.infected.fields.infected")
+    W.labels.infected.buttons.showSurvivorStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.showSurvivorStartPosition")
-    W.labels.infected.buttons.setSurvivorStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.setSurvivorStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.setSurvivorStartPositionHere")
-    W.labels.infected.buttons.deleteSurvivorStartPosition = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.deleteSurvivorStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.deleteSurvivorStartPosition")
-    W.labels.infected.buttons.addSurvivorStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.addSurvivorStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.addSurvivorStartPositionHere")
-    W.labels.infected.buttons.showInfectedStartPosition = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.showInfectedStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.showInfectedStartPosition")
-    W.labels.infected.buttons.setInfectedStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.setInfectedStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.setInfectedStartPositionHere")
-    W.labels.infected.buttons.deleteInfectedStartPosition = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.deleteInfectedStartPosition = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.deleteInfectedStartPosition")
-    W.labels.infected.buttons.addInfectedStartPositionHere = BJI.Managers.Lang.get(
+    W.labels.infected.buttons.addInfectedStartPositionHere = BJI_Lang.get(
         "hunterInfectedEditor.infected.buttons.addInfectedStartPositionHere")
-    W.labels.infected.tags.survivorName = BJI.Managers.Lang.get("hunterInfectedEditor.infected.tags.survivorName")
-    W.labels.infected.tags.infectedName = BJI.Managers.Lang.get("hunterInfectedEditor.infected.tags.infectedName")
+    W.labels.infected.tags.survivorName = BJI_Lang.get("hunterInfectedEditor.infected.tags.survivorName")
+    W.labels.infected.tags.infectedName = BJI_Lang.get("hunterInfectedEditor.infected.tags.infectedName")
 end
 
 local function updateEnabled()
@@ -221,7 +221,7 @@ local function reloadMarkers()
 end
 
 local function updateCache()
-    local data = BJI.Managers.Context.Scenario.Data.HunterInfected
+    local data = BJI_Context.Scenario.Data.HunterInfected
     W.data.enabledHunter = data.enabledHunter
     W.data.enabledInfected = data.enabledInfected
     W.data.waypoints = Table(data.waypoints):map(function(target)
@@ -245,24 +245,24 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA then
+            if data.cache == BJI_Cache.CACHES.HUNTER_INFECTED_DATA then
                 updateCache()
             end
         end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function save()
     W.disableButtons = true
-    BJI.Tx.scenario.HunterInfectedSave({
+    BJI_Tx_scenario.HunterInfectedSave({
         enabledHunter = W.data.enabledHunter,
         enabledInfected = W.data.enabledInfected,
         waypoints = W.data.waypoints:map(function(target)
@@ -281,7 +281,7 @@ local function save()
         if result then
             W.changed = false
         else
-            BJI.Managers.Toast.error(BJI.Managers.Lang.get("hunterInfectedEditor.errors.saveErrorToast"))
+            BJI_Toast.error(BJI_Lang.get("hunterInfectedEditor.errors.saveErrorToast"))
         end
         W.disableButtons = false
     end)
@@ -325,7 +325,7 @@ end
 local function footer(ctxt)
     if IconButton("closeEdit", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Windows.ScenarioEditor.onClose()
+        BJI_Win_ScenarioEditor.onClose()
     end
     TooltipText(W.labels.buttons.close)
     if W.changed then
@@ -344,7 +344,7 @@ end
 local function open(tabIndex)
     W.tab = tabIndex or W.tab or 1
     W.tabOpenInit = false
-    BJI.Windows.ScenarioEditor.view = W
+    BJI_Win_ScenarioEditor.view = W
 end
 
 -- children scope methods

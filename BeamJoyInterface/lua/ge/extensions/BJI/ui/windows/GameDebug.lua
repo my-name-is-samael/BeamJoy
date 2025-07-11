@@ -28,28 +28,28 @@ local vehicles, pos, rot, val
 W.body = function(ctxt)
     SetWindowFontScale(1)
     Text("BeamJoy v" .. BJI.VERSION)
-    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE or not ctxt.veh then
-        val = BJI.Managers.Cam.getPositionRotation()
+    if ctxt.camera == BJI_Cam.CAMERAS.FREE or not ctxt.veh then
+        val = BJI_Cam.getPositionRotation()
         pos, rot = val.pos, val.rot or quat()
     else
         pos, rot = ctxt.veh.position, ctxt.veh.rotation
     end
     Text(string.format("pX:%.3f | pY:%.3f | pZ:%.3f | rX:%.3f | rY:%.3f | rZ:%.3f | rW:%.3f",
         pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, rot.w))
-    vehicles = BJI.Managers.Veh.getMPVehicles(nil, true)
+    vehicles = BJI_Veh.getMPVehicles(nil, true)
     Text(string.format("P:%d | E:%d (V:%d, T:%d, P:%d, AI:%d)",
         ctxt.players:length(), vehicles:length(),
         vehicles:filter(function(v) return not v.isAi and v.isVehicle end):length(),
         vehicles:filter(function(v)
-            return not v.isAi and not v.isVehicle and v.type == BJI.Managers.Veh.TYPES.TRAILER
+            return not v.isAi and not v.isVehicle and v.type == BJI_Veh.TYPES.TRAILER
         end):length(),
         vehicles:filter(function(v)
-            return not v.isAi and not v.isVehicle and v.type == BJI.Managers.Veh.TYPES.PROP
+            return not v.isAi and not v.isVehicle and v.type == BJI_Veh.TYPES.PROP
         end):length(),
         vehicles:filter(function(v) return v.isAi end):length()
     ))
-    Text(string.format("C:%i | T:%i | M:%s", BJI.Managers.Collisions.getState(ctxt) and 1 or 0,
-        BJI.Managers.Nametags.getState() and 1 or 0, getCurrentLevelIdentifier()))
+    Text(string.format("C:%i | T:%i | M:%s", BJI_Collisions.getState(ctxt) and 1 or 0,
+        BJI_Nametags.getState() and 1 or 0, getCurrentLevelIdentifier()))
 end
 
 W.getState = function() return extensions.core_metrics.currentMode == 2 end

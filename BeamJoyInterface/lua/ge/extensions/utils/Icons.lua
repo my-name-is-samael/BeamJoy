@@ -1402,7 +1402,7 @@ U.ICONS = {
 U.ICONS_FLAT = Table(U.ICONS):values():sort(function(a, b) return a:lower() < b:lower() end)
 
 function U.GetIcon(icon)
-    local res = BJI.Managers.Context.GUI.icons[icon]
+    local res = BJI_Context.GUI.icons[icon]
     if not res then
         LogError(string.var("Invalid icon '{1}'", { icon }))
         return

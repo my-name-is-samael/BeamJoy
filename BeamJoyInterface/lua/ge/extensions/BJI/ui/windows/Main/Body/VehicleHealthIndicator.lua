@@ -17,14 +17,14 @@ local cache = newCache()
 local function updateCache(ctxt)
     cache = newCache()
 
-    cache.damageThreshold = BJI.Managers.Context.VehiclePristineThreshold
+    cache.damageThreshold = BJI_Context.VehiclePristineThreshold
     cache.showGPSButton = ctxt.isOwner and
-        BJI.Managers.Scenario.canRepairAtGarage() and
-        BJI.Managers.Context.Scenario.Data.Garages and
-        #BJI.Managers.Context.Scenario.Data.Garages > 0 and
-        (not BJI.Managers.Stations.station or BJI.Managers.Stations.station.isEnergy)
+        BJI_Scenario.canRepairAtGarage() and
+        BJI_Context.Scenario.Data.Garages and
+        #BJI_Context.Scenario.Data.Garages > 0 and
+        (not BJI_Stations.station or BJI_Stations.station.isEnergy)
 
-    cache.labels.damageWarning = BJI.Managers.Lang.get("garages.damagedWarning")
+    cache.labels.damageWarning = BJI_Lang.get("garages.damagedWarning")
 end
 
 ---@param ctxt TickContext
@@ -44,12 +44,12 @@ local function draw(ctxt)
         Text(cache.labels.damageWarning)
         TableNextColumn()
         if cache.showGPSButton then
-            if IconButton("setRouteGarage", #BJI.Managers.GPS.targets > 0 and
+            if IconButton("setRouteGarage", #BJI_GPS.targets > 0 and
                     BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true }) then
                 garages = {}
-                for _, garage in ipairs(BJI.Managers.Context.Scenario.Data.Garages) do
-                    distance = BJI.Managers.GPS.getRouteLength({
+                for _, garage in ipairs(BJI_Context.Scenario.Data.Garages) do
+                    distance = BJI_GPS.getRouteLength({
                         ctxt.veh.position,
                         garage.pos
                     })
@@ -62,14 +62,14 @@ local function draw(ctxt)
                     table.sort(garages, function(a, b)
                         return a.distance < b.distance
                     end)
-                    BJI.Managers.GPS.prependWaypoint({
-                        key = BJI.Managers.GPS.KEYS.STATION,
+                    BJI_GPS.prependWaypoint({
+                        key = BJI_GPS.KEYS.STATION,
                         pos = garages[1].garage.pos,
                         radius = garages[1].garage.radius
                     })
                 end
             end
-            TooltipText(BJI.Managers.Lang.get("common.buttons.setGPS"))
+            TooltipText(BJI_Lang.get("common.buttons.setGPS"))
         end
 
         EndTable()

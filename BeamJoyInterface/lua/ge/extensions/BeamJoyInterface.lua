@@ -62,11 +62,12 @@ local function initManagers()
     end):forEach(function(managerPath)
         local ok, m = pcall(require, managerPath)
         if ok then
+            _G["BJI_" .. m._name] = m -- quick access
             if not BJI.Managers[m._name] then
-                BJI.Managers[m._name] = m
-                LogInfo(string.var("BJI.Managers.{1} loaded", { m._name }))
+                BJI.Managers[m._name] = m -- object tree access
+                LogInfo(string.var("BJI_{1} loaded", { m._name }))
             else
-                LogWarn(string.var("BJI.Managers.{1} already loaded", { m._name }))
+                LogWarn(string.var("BJI_{1} already loaded", { m._name }))
             end
         else
             LogError(string.var("Error loading manager {1} : {2}", { managerPath, m }))
@@ -88,7 +89,7 @@ local M = {
 }
 
 local function _initGUI()
-    require("ge/extensions/editor/api/gui").initialize(BJI.Managers.Context.GUI)
+    require("ge/extensions/editor/api/gui").initialize(BJI_Context.GUI)
 end
 
 function M.onExtensionLoaded()
@@ -100,7 +101,7 @@ function M.onExtensionLoaded()
         if type(manager.onLoad) == "function" then
             local ok, err = pcall(manager.onLoad)
             if not ok then
-                LogError(string.var("Error executing onLoad in BJI.Managers.{1} : {2}", { manager._name, err }), BJI.tag)
+                LogError(string.var("Error executing onLoad in BJI_{1} : {2}", { manager._name, err }), BJI.tag)
             end
         end
     end)
@@ -113,51 +114,51 @@ M.onInit = function()
 end
 
 M.onWorldReadyState = function(state)
-    BJI.Managers.Context.WorldReadyState = state
+    BJI_Context.WorldReadyState = state
 end
 
 M.onPreRender = function() end
 M.onUpdate = function(dtReal, dtSim, dtRaw)
-    if not BJI.CLIENT_READY and BJI.Managers.Context.WorldReadyState == 2 and
+    if not BJI.CLIENT_READY and BJI_Context.WorldReadyState == 2 and
         ui_imgui.GetIO().Framerate > 5 then
-        BJI.Managers.UI.applyLoading(true) -- loading stops when base caches are loaded (CacheManager)
+        BJI_UI.applyLoading(true) -- loading stops when base caches are loaded (CacheManager)
         BJI.CLIENT_READY = true
-        BJI.Tx.player.connected()
-        BJI.Managers.Async.task(function()
-            return BJI.Managers.Cache.areBaseCachesFirstLoaded()
+        BJI_Tx_player.connected()
+        BJI_Async.task(function()
+            return BJI_Cache.areBaseCachesFirstLoaded()
         end, function()
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ON_POST_LOAD)
+            BJI_Events.trigger(BJI_Events.EVENTS.ON_POST_LOAD)
         end)
     end
 
     BJI.dt.real = dtReal
     BJI.dt.sim = dtSim
     BJI.dt.raw = dtRaw
-    BJI.Managers.Tick.client()
+    BJI_Tick.client()
 end
 
 local function bindNGHooks()
     Table({
-        { commands, "dropPlayerAtCamera",        BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA },
-        { commands, "dropPlayerAtCameraNoReset", BJI.Managers.Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET },
-        { M,        "onVehicleSpawned",          BJI.Managers.Events.EVENTS.NG_VEHICLE_SPAWNED },
-        { M,        "onVehicleSwitched",         BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED },
-        { M,        "onVehicleResetted",         BJI.Managers.Events.EVENTS.NG_VEHICLE_RESETTED },
-        { M,        "onVehicleReplaced",         BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED },
-        { M,        "onVehicleDestroyed",        BJI.Managers.Events.EVENTS.NG_VEHICLE_DESTROYED },
-        { M,        "onDriftCompletedScored",    BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
-        { M,        "onPursuitAction",           BJI.Managers.Events.EVENTS.NG_PURSUIT_ACTION },
-        { M,        "onPursuitModeUpdate",       BJI.Managers.Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
-        { M,        "onAiModeChange",            BJI.Managers.Events.EVENTS.NG_AI_MODE_CHANGE },
-        { M,        "onTrafficStarted",          BJI.Managers.Events.EVENTS.NG_TRAFFIC_STARTED },
-        { M,        "onTrafficStopped",          BJI.Managers.Events.EVENTS.NG_TRAFFIC_STOPPED },
-        { M,        "onVehicleGroupSpawned",     BJI.Managers.Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
-        { M,        "trackAIAllVeh",             BJI.Managers.Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
-        { M,        "onTrafficVehicleAdded",     BJI.Managers.Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
-        { M,        "onUILayoutLoaded",          BJI.Managers.Events.EVENTS.NG_UI_LAYOUT_LOADED },
+        { commands, "dropPlayerAtCamera",        BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA },
+        { commands, "dropPlayerAtCameraNoReset", BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET },
+        { M,        "onVehicleSpawned",          BJI_Events.EVENTS.NG_VEHICLE_SPAWNED },
+        { M,        "onVehicleSwitched",         BJI_Events.EVENTS.NG_VEHICLE_SWITCHED },
+        { M,        "onVehicleResetted",         BJI_Events.EVENTS.NG_VEHICLE_RESETTED },
+        { M,        "onVehicleReplaced",         BJI_Events.EVENTS.NG_VEHICLE_REPLACED },
+        { M,        "onVehicleDestroyed",        BJI_Events.EVENTS.NG_VEHICLE_DESTROYED },
+        { M,        "onDriftCompletedScored",    BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
+        { M,        "onPursuitAction",           BJI_Events.EVENTS.NG_PURSUIT_ACTION },
+        { M,        "onPursuitModeUpdate",       BJI_Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
+        { M,        "onAiModeChange",            BJI_Events.EVENTS.NG_AI_MODE_CHANGE },
+        { M,        "onTrafficStarted",          BJI_Events.EVENTS.NG_TRAFFIC_STARTED },
+        { M,        "onTrafficStopped",          BJI_Events.EVENTS.NG_TRAFFIC_STOPPED },
+        { M,        "onVehicleGroupSpawned",     BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
+        { M,        "trackAIAllVeh",             BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
+        { M,        "onTrafficVehicleAdded",     BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
+        { M,        "onUILayoutLoaded",          BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
-            BJI.Managers.Events.trigger(hook[3], ...)
+            BJI_Events.trigger(hook[3], ...)
         end
     end)
 end
@@ -168,7 +169,7 @@ M.setPhysicsSpeed = function(val)
 end
 
 function M.onExtensionUnloaded()
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.ON_UNLOAD)
+    BJI_Events.trigger(BJI_Events.EVENTS.ON_UNLOAD)
     LogInfo(string.var("BJI v{1} Extension Unloaded", { BJI.VERSION }), BJI.tag)
 
     BJI = nil

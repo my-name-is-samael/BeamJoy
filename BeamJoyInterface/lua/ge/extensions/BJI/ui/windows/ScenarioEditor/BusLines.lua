@@ -43,16 +43,16 @@ local W = {
 local opened, nextValue, validName
 
 local function onClose()
-    BJI.Managers.WaypointEdit.reset()
+    BJI_WaypointEdit.reset()
     W.markersLine = nil
     W.changed = false
     W.valid = true
 end
 
 local function reloadMarkers(iLine)
-    BJI.Managers.WaypointEdit.reset()
+    BJI_WaypointEdit.reset()
     if W.cache.lines[iLine] then
-        BJI.Managers.WaypointEdit.setWaypointsWithSegments(
+        BJI_WaypointEdit.setWaypointsWithSegments(
             W.cache.lines[iLine].stops:reduce(function(res, stop, iStop, stops)
                 local color -- default color for start and finish (blue)
                 if iStop > 1 and (iStop < #stops or W.cache.lines[iLine].loopable) then
@@ -66,13 +66,13 @@ local function reloadMarkers(iLine)
                     pos = stop.pos,
                     radius = stop.radius,
                     color = color,
-                    type = BJI.Managers.WaypointEdit.TYPES.CYLINDER,
+                    type = BJI_WaypointEdit.TYPES.CYLINDER,
                 })
                 res:insert({
                     pos = stop.pos,
                     rot = stop.rot,
                     color = BJI.Utils.ShapeDrawer.Color(1, 1, 0, .5),
-                    type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+                    type = BJI_WaypointEdit.TYPES.ARROW,
                 })
                 return res
             end, Table()), false)
@@ -81,31 +81,31 @@ local function reloadMarkers(iLine)
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("buslines.edit.title")
-    W.labels.line = BJI.Managers.Lang.get("buslines.edit.line")
-    W.labels.lineName = BJI.Managers.Lang.get("buslines.edit.lineName")
-    W.labels.loopable = BJI.Managers.Lang.get("buslines.edit.loopable")
-    W.labels.stops = BJI.Managers.Lang.get("buslines.edit.stops")
-    W.labels.stop = BJI.Managers.Lang.get("buslines.edit.stop")
-    W.labels.stopName = BJI.Managers.Lang.get("buslines.edit.stopName")
-    W.labels.stopRadius = BJI.Managers.Lang.get("buslines.edit.stopRadius")
-    W.labels.stopsMinimumError = BJI.Managers.Lang.get("buslines.edit.stopsMinimumError")
+    W.labels.title = BJI_Lang.get("buslines.edit.title")
+    W.labels.line = BJI_Lang.get("buslines.edit.line")
+    W.labels.lineName = BJI_Lang.get("buslines.edit.lineName")
+    W.labels.loopable = BJI_Lang.get("buslines.edit.loopable")
+    W.labels.stops = BJI_Lang.get("buslines.edit.stops")
+    W.labels.stop = BJI_Lang.get("buslines.edit.stop")
+    W.labels.stopName = BJI_Lang.get("buslines.edit.stopName")
+    W.labels.stopRadius = BJI_Lang.get("buslines.edit.stopRadius")
+    W.labels.stopsMinimumError = BJI_Lang.get("buslines.edit.stopsMinimumError")
 
-    W.labels.buttons.showLine = BJI.Managers.Lang.get("buslines.edit.buttons.showLine")
-    W.labels.buttons.deleteLine = BJI.Managers.Lang.get("buslines.edit.buttons.deleteLine")
-    W.labels.buttons.spawnBus = BJI.Managers.Lang.get("buslines.edit.buttons.spawnBus")
-    W.labels.buttons.addBusLine = BJI.Managers.Lang.get("buslines.edit.buttons.addBusLine")
-    W.labels.buttons.showStop = BJI.Managers.Lang.get("buslines.edit.buttons.showStop")
-    W.labels.buttons.setStopHere = BJI.Managers.Lang.get("buslines.edit.buttons.setStopHere")
-    W.labels.buttons.deleteStop = BJI.Managers.Lang.get("buslines.edit.buttons.deleteStop")
-    W.labels.buttons.toggleLoopable = BJI.Managers.Lang.get("buslines.edit.buttons.toggleLoopable")
-    W.labels.buttons.addStopHere = BJI.Managers.Lang.get("buslines.edit.buttons.addStopHere")
-    W.labels.buttons.moveUp = BJI.Managers.Lang.get("common.buttons.moveUp")
-    W.labels.buttons.moveDown = BJI.Managers.Lang.get("common.buttons.moveDown")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorNeedABus = BJI.Managers.Lang.get("buslines.edit.buttons.errorNeedABus")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
+    W.labels.buttons.showLine = BJI_Lang.get("buslines.edit.buttons.showLine")
+    W.labels.buttons.deleteLine = BJI_Lang.get("buslines.edit.buttons.deleteLine")
+    W.labels.buttons.spawnBus = BJI_Lang.get("buslines.edit.buttons.spawnBus")
+    W.labels.buttons.addBusLine = BJI_Lang.get("buslines.edit.buttons.addBusLine")
+    W.labels.buttons.showStop = BJI_Lang.get("buslines.edit.buttons.showStop")
+    W.labels.buttons.setStopHere = BJI_Lang.get("buslines.edit.buttons.setStopHere")
+    W.labels.buttons.deleteStop = BJI_Lang.get("buslines.edit.buttons.deleteStop")
+    W.labels.buttons.toggleLoopable = BJI_Lang.get("buslines.edit.buttons.toggleLoopable")
+    W.labels.buttons.addStopHere = BJI_Lang.get("buslines.edit.buttons.addStopHere")
+    W.labels.buttons.moveUp = BJI_Lang.get("common.buttons.moveUp")
+    W.labels.buttons.moveDown = BJI_Lang.get("common.buttons.moveDown")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
+    W.labels.buttons.errorNeedABus = BJI_Lang.get("buslines.edit.buttons.errorNeedABus")
+    W.labels.buttons.errorInvalidData = BJI_Lang.get("errors.someDataAreInvalid")
 end
 
 local function validateBuslines()
@@ -117,7 +117,7 @@ local function validateBuslines()
 end
 
 local function updateCache()
-    W.cache.lines = Table(BJI.Managers.Context.Scenario.Data.BusLines)
+    W.cache.lines = Table(BJI_Context.Scenario.Data.BusLines)
         :map(function(bl)
             return {
                 name = bl.name,
@@ -138,24 +138,24 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.BUS_LINES then
+            if data.cache == BJI_Cache.CACHES.BUS_LINES then
                 updateCache()
             end
         end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function save()
     W.cache.disableButtons = true
-    BJI.Tx.scenario.BusLinesSave(W.cache.lines:map(function(line)
+    BJI_Tx_scenario.BusLinesSave(W.cache.lines:map(function(line)
         return {
             name = line.name,
             loopable = line.loopable,
@@ -176,13 +176,13 @@ local function save()
                     radius = stop.radius
                 }
             end),
-            distance = BJI.Managers.GPS.getRouteLength(line.stops:map(function(stop) return vec3(stop.pos) end))
+            distance = BJI_GPS.getRouteLength(line.stops:map(function(stop) return vec3(stop.pos) end))
         }
     end), function(result)
         if result then
             W.changed = false
         else
-            BJI.Managers.Toast.error(BJI.Managers.Lang.get("buslines.edit.saveErrorToast"))
+            BJI_Toast.error(BJI_Lang.get("buslines.edit.saveErrorToast"))
         end
         W.cache.disableButtons = false
     end)
@@ -196,11 +196,11 @@ local function header(ctxt)
         if IconButton("spawnBus", BJI.Utils.Icon.ICONS.directions_bus,
                 { btnStyle = not ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.WARNING }) then
             if ctxt.veh then
-                BJI.Managers.Veh.replaceOrSpawnVehicle("citybus")
+                BJI_Veh.replaceOrSpawnVehicle("citybus")
             else
-                local camPosRot = BJI.Managers.Cam.getPositionRotation(false)
+                local camPosRot = BJI_Cam.getPositionRotation(false)
                 camPosRot.rot = camPosRot.rot * quat(0, 0, 1, 0) -- invert forward
-                BJI.Managers.Veh.replaceOrSpawnVehicle("citybus", nil, camPosRot)
+                BJI_Veh.replaceOrSpawnVehicle("citybus", nil, camPosRot)
             end
         end
         TooltipText(W.labels.buttons.spawnBus)
@@ -208,7 +208,7 @@ local function header(ctxt)
     SameLine()
     if IconButton("createBusLine", BJI.Utils.Icon.ICONS.add, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
             disabled = W.cache.disableButtons or not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or
-                ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
         W.cache.lines:insert({
             name = "",
             loopable = false,
@@ -226,7 +226,7 @@ local function header(ctxt)
         validateBuslines()
     end
     TooltipText(W.labels.buttons.addBusLine ..
-        ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+        ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
             " (" .. W.labels.buttons.errorNeedABus .. ")" or ""))
 end
 
@@ -271,10 +271,10 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
     SameLine()
     if IconButton(string.format("goToBusStop-%d-%d", iLine, iStop), BJI.Utils.Icon.ICONS.pin_drop,
             { disabled = not ctxt.isOwner or ctxt.veh.jbeam ~= "citybus" }) then
-        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-            BJI.Managers.Cam.toggleFreeCam()
+        if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+            BJI_Cam.toggleFreeCam()
         end
-        BJI.Managers.Veh.setPositionRotation(stop.pos, stop.rot)
+        BJI_Veh.setPositionRotation(stop.pos, stop.rot)
     end
     TooltipText(W.labels.buttons.showStop ..
         ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus") and
@@ -282,7 +282,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
     SameLine()
     if IconButton(string.format("moveBusStopHere-%d-%d", iLine, iStop), BJI.Utils.Icon.ICONS.edit_location,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableButtons or
-                not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
         stop.pos = ctxt.veh.position
         stop.rot = ctxt.veh.rotation
         W.changed = true
@@ -290,7 +290,7 @@ local function drawStop(ctxt, iLine, bline, iStop, stop)
         validateBuslines()
     end
     TooltipText(W.labels.buttons.setStopHere ..
-        ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+        ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
             " (" .. W.labels.buttons.errorNeedABus .. ")" or ""))
     if iStop > 2 then
         SameLine()
@@ -382,7 +382,7 @@ local function drawLine(ctxt, iLine, bline)
         TableNextColumn()
         if IconButton("addStop" .. tostring(iLine), BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableButtons or
-                    not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             table.insert(bline.stops, {
                 name = "",
                 pos = ctxt.veh.position,
@@ -394,7 +394,7 @@ local function drawLine(ctxt, iLine, bline)
             validateBuslines()
         end
         TooltipText(W.labels.buttons.addStopHere ..
-            ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.veh.jbeam ~= "citybus" or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. W.labels.buttons.errorNeedABus .. ")" or ""))
 
         bline.stops:forEach(function(stop, iStop)
@@ -422,7 +422,7 @@ local function body(ctxt)
             table.remove(W.cache.lines, iLine)
             W.changed = true
             if W.markersLine == iLine then
-                BJI.Managers.WaypointEdit.reset()
+                BJI_WaypointEdit.reset()
                 W.markersLine = nil
             end
             validateBuslines()
@@ -448,7 +448,7 @@ end
 local function footer(ctxt)
     if IconButton("closeBusEdit", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Windows.ScenarioEditor.onClose()
+        BJI_Win_ScenarioEditor.onClose()
     end
     TooltipText(W.labels.buttons.close)
     if W.changed then
@@ -464,7 +464,7 @@ local function footer(ctxt)
 end
 
 local function open()
-    BJI.Windows.ScenarioEditor.view = W
+    BJI_Win_ScenarioEditor.view = W
 end
 
 W.onLoad = onLoad

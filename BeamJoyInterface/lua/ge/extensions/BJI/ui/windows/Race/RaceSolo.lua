@@ -26,7 +26,7 @@ local W = {
             showManualResetBtn = false,
             showLaunchedRespawnBtn = false,
             ---@type boolean
-            showAll = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
+            showAll = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA),
             showBtnShowAll = false,
             bodyData = Table(),
             showRaceTimer = false,
@@ -69,35 +69,35 @@ local W = {
 local loop, currentTime, remainingStart, remainingDNF
 
 local function updateLabels()
-    W.cache.labels.vSeparator = BJI.Managers.Lang.get("common.vSeparator")
+    W.cache.labels.vSeparator = BJI_Lang.get("common.vSeparator")
 
-    W.cache.labels.byAuthor = BJI.Managers.Lang.get("races.play.by"):var({ author = W.scenario.raceAuthor })
+    W.cache.labels.byAuthor = BJI_Lang.get("races.play.by"):var({ author = W.scenario.raceAuthor })
     W.cache.labels.lap = string.var("({1})", {
         W.scenario.settings.laps == 1 and
-        BJI.Managers.Lang.get("races.settings.lap"):var({ lap = W.scenario.settings.laps }) or
-        BJI.Managers.Lang.get("races.settings.laps"):var({ laps = W.scenario.settings.laps })
+        BJI_Lang.get("races.settings.lap"):var({ lap = W.scenario.settings.laps }) or
+        BJI_Lang.get("races.settings.laps"):var({ laps = W.scenario.settings.laps })
     })
-    W.cache.labels.record = BJI.Managers.Lang.get("races.play.record") .. " :"
-    W.cache.labels.pb = BJI.Managers.Lang.get("races.leaderboard.pb") .. " :"
-    W.cache.labels.gameStartsIn = BJI.Managers.Lang.get("races.play.gameStartsIn")
-    W.cache.labels.flashCountdownZero = BJI.Managers.Lang.get("races.play.flashCountdownZero")
-    W.cache.labels.eliminatedIn = BJI.Managers.Lang.get("races.play.eliminatedIn")
-    W.cache.labels.eliminated = BJI.Managers.Lang.get("races.play.flashDnfOut")
-    W.cache.labels.showAll = BJI.Managers.Lang.get("races.play.showAllData")
+    W.cache.labels.record = BJI_Lang.get("races.play.record") .. " :"
+    W.cache.labels.pb = BJI_Lang.get("races.leaderboard.pb") .. " :"
+    W.cache.labels.gameStartsIn = BJI_Lang.get("races.play.gameStartsIn")
+    W.cache.labels.flashCountdownZero = BJI_Lang.get("races.play.flashCountdownZero")
+    W.cache.labels.eliminatedIn = BJI_Lang.get("races.play.eliminatedIn")
+    W.cache.labels.eliminated = BJI_Lang.get("races.play.flashDnfOut")
+    W.cache.labels.showAll = BJI_Lang.get("races.play.showAllData")
 
-    W.cache.labels.wpCounter = BJI.Managers.Lang.get("races.play.WP")
-    W.cache.labels.lapCounter = BJI.Managers.Lang.get("races.play.Lap")
+    W.cache.labels.wpCounter = BJI_Lang.get("races.play.WP")
+    W.cache.labels.lapCounter = BJI_Lang.get("races.play.Lap")
 
-    W.cache.labels.loop = BJI.Managers.Lang.get("common.buttons.loop")
-    W.cache.labels.forfeit = BJI.Managers.Lang.get("common.buttons.forfeit")
-    W.cache.labels.restart = BJI.Managers.Lang.get("common.buttons.restart")
-    W.cache.labels.launchedRespawn = BJI.Managers.Lang.get("races.play.launchedRespawn")
-    W.cache.labels.manualReset = BJI.Managers.Lang.get("common.buttons.manualReset")
+    W.cache.labels.loop = BJI_Lang.get("common.buttons.loop")
+    W.cache.labels.forfeit = BJI_Lang.get("common.buttons.forfeit")
+    W.cache.labels.restart = BJI_Lang.get("common.buttons.restart")
+    W.cache.labels.launchedRespawn = BJI_Lang.get("races.play.launchedRespawn")
+    W.cache.labels.manualReset = BJI_Lang.get("common.buttons.manualReset")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     -- header
     W.cache.data.showRecord = not not W.scenario.record
@@ -105,14 +105,14 @@ local function updateCache(ctxt)
         BJI.Utils.UI.RaceDelay(W.scenario.record.time) or ""
     W.cache.data.recordTooltip = W.cache.data.showRecord and string.var("{1} - {2}", {
         W.scenario.record.playerName,
-        BJI.Managers.Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model
+        BJI_Veh.getModelLabel(W.scenario.record.model) or W.scenario.record.model
     }) or ""
     W.cache.data.recordColor = (W.cache.data.showRecord and
             W.scenario.record.playerName == ctxt.user.playerName) and
         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or nil
     local _, pbTime
     if not W.scenario.testing then
-        _, pbTime = BJI.Managers.RaceWaypoint.getPB(W.scenario.raceHash)
+        _, pbTime = BJI_RaceWaypoint.getPB(W.scenario.raceHash)
     end
     W.cache.data.showPb = pbTime and (not W.scenario.record or W.scenario.record.time ~= pbTime)
     W.cache.data.pbTime = W.cache.data.showPb and BJI.Utils.UI.RaceDelay(pbTime or 0) or ""
@@ -239,44 +239,44 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateLabels()
         updateCache(ctxt)
     end, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.RACE_NEW_PB,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.RACE_NEW_PB,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
     }, updateCache, W.name))
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED, function(ctxt, data)
-        if data.cache == BJI.Managers.Cache.CACHES.RACES then
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
+        if data.cache == BJI_Cache.CACHES.RACES then
             updateCache(ctxt)
         end
     end, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.PERMISSION_CHANGED,
         function()
-            if not BJI.Managers.Perm.canSpawnVehicle() then
+            if not BJI_Perm.canSpawnVehicle() then
                 -- permission loss
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
             end
         end, W.name))
 
     if not W.cache.data.showAll then
-        BJI.Windows.Race.maxSize = ImVec2(350, 320)
+        BJI_Win_Race.maxSize = ImVec2(350, 320)
     end
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param time integer
@@ -369,19 +369,19 @@ local function header(ctxt)
         }) then
         TableNewRow()
         if W.cache.data.showLoopBtn then
-            loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES
+            loop = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES
                 .SCENARIO_SOLO_RACE_LOOP)
             if IconButton("toggleRaceLoop", BJI.Utils.Icon.ICONS.all_inclusive,
                     { btnStyle = loop and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                         BJI.Utils.Style.BTN_PRESETS.ERROR, big = true }) then
-                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
+                BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_SOLO_RACE_LOOP, not loop)
             end
             TooltipText(W.cache.labels.loop)
             SameLine()
         end
         if IconButton("leaveRace", BJI.Utils.Icon.ICONS.exit_to_app,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, big = true }) then
-            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM, ctxt)
+            BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM, ctxt)
         end
         TooltipText(W.cache.labels.forfeit)
         if W.cache.data.showRestartBtn then
@@ -398,7 +398,7 @@ local function header(ctxt)
                 if IconButton("manualLaunchedRespawn", BJI.Utils.Icon.ICONS.vertical_align_top,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, big = true,
                             disabled = W.scenario.resetLock }) then
-                    BJI.Managers.Scenario.saveHome(ctxt.veh.gameVehicleID)
+                    BJI_Scenario.saveHome(ctxt.veh.gameVehicleID)
                 end
                 TooltipText(string.format("%s (%s)", W.cache.labels.launchedRespawn,
                     extensions.core_input_bindings.getControlForAction("saveHome"):capitalizeWords()))
@@ -407,7 +407,7 @@ local function header(ctxt)
             if IconButton("manualReset", BJI.Utils.Icon.ICONS.build,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         big = true, disabled = W.scenario.resetLock }) then
-                BJI.Managers.Scenario.loadHome(ctxt.veh.gameVehicleID)
+                BJI_Scenario.loadHome(ctxt.veh.gameVehicleID)
             end
             TooltipText(string.format("%s (%s)", W.cache.labels.manualReset,
                 extensions.core_input_bindings.getControlForAction("loadHome"):capitalizeWords()
@@ -437,10 +437,10 @@ local function header(ctxt)
                     { bgLess = true, btnStyle = W.cache.data.showAll and
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 W.cache.data.showAll = not W.cache.data.showAll
-                BJI.Managers.LocalStorage.set(
-                    BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
+                BJI_LocalStorage.set(
+                    BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_RACE_SHOW_ALL_DATA,
                     W.cache.data.showAll)
-                BJI.Windows.Race.maxSize = W.cache.data.showAll and ImVec2(350, 800) or ImVec2(350, 320)
+                BJI_Win_Race.maxSize = W.cache.data.showAll and ImVec2(350, 800) or ImVec2(350, 320)
                 updateCache(ctxt)
             end
         end

@@ -118,82 +118,82 @@ local W = {
 local tryDisabled, tryErrorTooltip, nextValue, vehpos, opened, invalidData
 
 local function onClose()
-    BJI.Managers.WaypointEdit.reset() -- remove edit markers
+    BJI_WaypointEdit.reset() -- remove edit markers
     W.raceData = resetData()          -- reset data
 end
 
 local function updateLabels()
-    W.labels.missing = BJI.Managers.Lang.get("errors.missing")
+    W.labels.missing = BJI_Lang.get("errors.missing")
 
-    W.labels.tools.title = BJI.Managers.Lang.get("races.tools.title")
-    W.labels.tools.rotation = BJI.Managers.Lang.get("races.tools.rotation")
-    W.labels.tools.reverse = BJI.Managers.Lang.get("races.tools.reverse")
+    W.labels.tools.title = BJI_Lang.get("races.tools.title")
+    W.labels.tools.rotation = BJI_Lang.get("races.tools.rotation")
+    W.labels.tools.reverse = BJI_Lang.get("races.tools.reverse")
 
-    W.labels.editTitle = BJI.Managers.Lang.get("races.edit.title")
-    W.labels.name = BJI.Managers.Lang.get("races.edit.name")
-    W.labels.nameTooltip = BJI.Managers.Lang.get("races.edit.nameTooltip")
-    W.labels.author = BJI.Managers.Lang.get("races.edit.author") .. " :"
-    W.labels.enabled = BJI.Managers.Lang.get("races.edit.enabled")
-    W.labels.previewPosition = BJI.Managers.Lang.get("races.edit.previewPosition")
-    W.labels.previewPositionTooltip = BJI.Managers.Lang.get("races.edit.previewPositionTooltip")
-    W.labels.loopable = BJI.Managers.Lang.get("races.edit.loopable")
-    W.labels.laps = BJI.Managers.Lang.get("races.edit.laps")
-    W.labels.lapsTooltip = BJI.Managers.Lang.get("races.edit.lapsTooltip")
-    W.labels.startPositions = string.var("{1}:", { BJI.Managers.Lang.get("races.edit.startPositions") })
-    W.labels.startPosition = BJI.Managers.Lang.get("races.edit.startPositionLabel")
-    W.labels.startPositionTooltip = BJI.Managers.Lang.get("races.edit.startPositionsNameTooltip")
-    W.labels.stepFinishWarning = BJI.Managers.Lang.get("races.edit.stepsFinishWarning")
-    W.labels.steps = BJI.Managers.Lang.get("races.edit.steps") .. " :"
-    W.labels.step = BJI.Managers.Lang.get("races.edit.step") .. " "
-    W.labels.waypoint = BJI.Managers.Lang.get("races.edit.waypoint")
-    W.labels.branch = BJI.Managers.Lang.get("races.edit.branch") .. " "
-    W.labels.wpName = BJI.Managers.Lang.get("races.edit.wpName")
-    W.labels.radius = BJI.Managers.Lang.get("races.edit.radius")
-    W.labels.size = BJI.Managers.Lang.get("races.edit.size")
-    W.labels.bottomHeight = BJI.Managers.Lang.get("races.edit.bottomHeight")
-    W.labels.parent = BJI.Managers.Lang.get("races.edit.parent")
-    W.labels.parentStartTooltip = BJI.Managers.Lang.get("races.edit.parentStartTooltip")
-    W.labels.noChild = BJI.Managers.Lang.get("races.edit.errors.noChild")
+    W.labels.editTitle = BJI_Lang.get("races.edit.title")
+    W.labels.name = BJI_Lang.get("races.edit.name")
+    W.labels.nameTooltip = BJI_Lang.get("races.edit.nameTooltip")
+    W.labels.author = BJI_Lang.get("races.edit.author") .. " :"
+    W.labels.enabled = BJI_Lang.get("races.edit.enabled")
+    W.labels.previewPosition = BJI_Lang.get("races.edit.previewPosition")
+    W.labels.previewPositionTooltip = BJI_Lang.get("races.edit.previewPositionTooltip")
+    W.labels.loopable = BJI_Lang.get("races.edit.loopable")
+    W.labels.laps = BJI_Lang.get("races.edit.laps")
+    W.labels.lapsTooltip = BJI_Lang.get("races.edit.lapsTooltip")
+    W.labels.startPositions = string.var("{1}:", { BJI_Lang.get("races.edit.startPositions") })
+    W.labels.startPosition = BJI_Lang.get("races.edit.startPositionLabel")
+    W.labels.startPositionTooltip = BJI_Lang.get("races.edit.startPositionsNameTooltip")
+    W.labels.stepFinishWarning = BJI_Lang.get("races.edit.stepsFinishWarning")
+    W.labels.steps = BJI_Lang.get("races.edit.steps") .. " :"
+    W.labels.step = BJI_Lang.get("races.edit.step") .. " "
+    W.labels.waypoint = BJI_Lang.get("races.edit.waypoint")
+    W.labels.branch = BJI_Lang.get("races.edit.branch") .. " "
+    W.labels.wpName = BJI_Lang.get("races.edit.wpName")
+    W.labels.radius = BJI_Lang.get("races.edit.radius")
+    W.labels.size = BJI_Lang.get("races.edit.size")
+    W.labels.bottomHeight = BJI_Lang.get("races.edit.bottomHeight")
+    W.labels.parent = BJI_Lang.get("races.edit.parent")
+    W.labels.parentStartTooltip = BJI_Lang.get("races.edit.parentStartTooltip")
+    W.labels.noChild = BJI_Lang.get("races.edit.errors.noChild")
 
-    W.labels.buttons.refreshMarkers = BJI.Managers.Lang.get("races.edit.buttons.refreshMarkers")
-    W.labels.buttons.rotateLeft = BJI.Managers.Lang.get("races.edit.buttons.rotateLeft")
-    W.labels.buttons.rotateRight = BJI.Managers.Lang.get("races.edit.buttons.rotateRight")
-    W.labels.buttons.rotate180 = BJI.Managers.Lang.get("races.edit.buttons.rotate180")
-    W.labels.buttons.reverseAllSteps = BJI.Managers.Lang.get("races.edit.buttons.reverseAllSteps")
-    W.labels.buttons.toggleRaceVisibility = BJI.Managers.Lang.get("races.edit.buttons.toggleRaceVisibility")
-    W.labels.buttons.showPreviewPosition = BJI.Managers.Lang.get("races.edit.buttons.showPreviewPosition")
-    W.labels.buttons.setPreviewPositionHere = BJI.Managers.Lang.get("races.edit.buttons.setPreviewPositionHere")
-    W.labels.buttons.toggleLoopable = BJI.Managers.Lang.get("races.edit.buttons.toggleLoopable")
-    W.labels.buttons.addStartPositionHere = BJI.Managers.Lang.get("races.edit.buttons.addStartPositionHere")
-    W.labels.buttons.moveUp = BJI.Managers.Lang.get("common.buttons.moveUp")
-    W.labels.buttons.moveDown = BJI.Managers.Lang.get("common.buttons.moveDown")
-    W.labels.buttons.showStartPosition = BJI.Managers.Lang.get("races.edit.buttons.showStartPosition")
-    W.labels.buttons.setStartPositionHere = BJI.Managers.Lang.get("races.edit.buttons.setStartPositionHere")
-    W.labels.buttons.deleteStartPosition = BJI.Managers.Lang.get("races.edit.buttons.deleteStartPosition")
-    W.labels.buttons.addRaceStepHere = BJI.Managers.Lang.get("races.edit.buttons.addRaceStepHere")
-    W.labels.buttons.deleteStep = BJI.Managers.Lang.get("races.edit.buttons.deleteStep")
-    W.labels.buttons.addBranchHere = BJI.Managers.Lang.get("races.edit.buttons.addBranchHere")
-    W.labels.buttons.showWaypoint = BJI.Managers.Lang.get("races.edit.buttons.showWaypoint")
-    W.labels.buttons.setWaypointHere = BJI.Managers.Lang.get("races.edit.buttons.setWaypointHere")
-    W.labels.buttons.toggleStandWaypoint = BJI.Managers.Lang.get("races.edit.buttons.toggleStandWaypoint")
-    W.labels.buttons.deleteWaypoint = BJI.Managers.Lang.get("races.edit.buttons.deleteWaypoint")
-    W.labels.buttons.removeParent = BJI.Managers.Lang.get("races.edit.buttons.removeParent")
-    W.labels.buttons.addParent = BJI.Managers.Lang.get("races.edit.buttons.addParent")
-    W.labels.buttons.tryRace = BJI.Managers.Lang.get("races.edit.buttons.tryRace")
-    W.labels.buttons.errorMustHaveVehicle = BJI.Managers.Lang.get("errors.mustHaveVehicle")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
-    W.labels.buttons.leave = BJI.Managers.Lang.get("common.buttons.leave")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.refreshMarkers = BJI_Lang.get("races.edit.buttons.refreshMarkers")
+    W.labels.buttons.rotateLeft = BJI_Lang.get("races.edit.buttons.rotateLeft")
+    W.labels.buttons.rotateRight = BJI_Lang.get("races.edit.buttons.rotateRight")
+    W.labels.buttons.rotate180 = BJI_Lang.get("races.edit.buttons.rotate180")
+    W.labels.buttons.reverseAllSteps = BJI_Lang.get("races.edit.buttons.reverseAllSteps")
+    W.labels.buttons.toggleRaceVisibility = BJI_Lang.get("races.edit.buttons.toggleRaceVisibility")
+    W.labels.buttons.showPreviewPosition = BJI_Lang.get("races.edit.buttons.showPreviewPosition")
+    W.labels.buttons.setPreviewPositionHere = BJI_Lang.get("races.edit.buttons.setPreviewPositionHere")
+    W.labels.buttons.toggleLoopable = BJI_Lang.get("races.edit.buttons.toggleLoopable")
+    W.labels.buttons.addStartPositionHere = BJI_Lang.get("races.edit.buttons.addStartPositionHere")
+    W.labels.buttons.moveUp = BJI_Lang.get("common.buttons.moveUp")
+    W.labels.buttons.moveDown = BJI_Lang.get("common.buttons.moveDown")
+    W.labels.buttons.showStartPosition = BJI_Lang.get("races.edit.buttons.showStartPosition")
+    W.labels.buttons.setStartPositionHere = BJI_Lang.get("races.edit.buttons.setStartPositionHere")
+    W.labels.buttons.deleteStartPosition = BJI_Lang.get("races.edit.buttons.deleteStartPosition")
+    W.labels.buttons.addRaceStepHere = BJI_Lang.get("races.edit.buttons.addRaceStepHere")
+    W.labels.buttons.deleteStep = BJI_Lang.get("races.edit.buttons.deleteStep")
+    W.labels.buttons.addBranchHere = BJI_Lang.get("races.edit.buttons.addBranchHere")
+    W.labels.buttons.showWaypoint = BJI_Lang.get("races.edit.buttons.showWaypoint")
+    W.labels.buttons.setWaypointHere = BJI_Lang.get("races.edit.buttons.setWaypointHere")
+    W.labels.buttons.toggleStandWaypoint = BJI_Lang.get("races.edit.buttons.toggleStandWaypoint")
+    W.labels.buttons.deleteWaypoint = BJI_Lang.get("races.edit.buttons.deleteWaypoint")
+    W.labels.buttons.removeParent = BJI_Lang.get("races.edit.buttons.removeParent")
+    W.labels.buttons.addParent = BJI_Lang.get("races.edit.buttons.addParent")
+    W.labels.buttons.tryRace = BJI_Lang.get("races.edit.buttons.tryRace")
+    W.labels.buttons.errorMustHaveVehicle = BJI_Lang.get("errors.mustHaveVehicle")
+    W.labels.buttons.errorInvalidData = BJI_Lang.get("errors.someDataAreInvalid")
+    W.labels.buttons.leave = BJI_Lang.get("common.buttons.leave")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 --- find parent in steps before currStep
@@ -230,7 +230,7 @@ local function validateRace()
     W.cache.validSave = true
     W.cache.validTry = true
 
-    W.cache.invalid.name = #W.raceData.name == 0 or Table(BJI.Managers.Context.Scenario.Data.Races)
+    W.cache.invalid.name = #W.raceData.name == 0 or Table(BJI_Context.Scenario.Data.Races)
         :any(function(r) return r.id ~= W.raceData.id and r.name == W.raceData.name:trim() end)
     W.cache.invalid.previewPosition = not W.raceData.previewPosition
     W.cache.invalid.startPositionsCount = #W.raceData.startPositions == 0
@@ -295,16 +295,16 @@ local function updateMarkers()
     local finishColor = BJI.Utils.ShapeDrawer.Color(.66, .66, 1, .5)
     local standColor = BJI.Utils.ShapeDrawer.Color(1, .66, 0, .5)
 
-    BJI.Managers.WaypointEdit.setWaypointsWithSegments(W.raceData.startPositions:map(function(p, i)
+    BJI_WaypointEdit.setWaypointsWithSegments(W.raceData.startPositions:map(function(p, i)
         return { -- START POSITIONS
-            name = BJI.Managers.Lang.get("races.edit.startPositionLabel"):var({ index = i }),
+            name = BJI_Lang.get("races.edit.startPositionLabel"):var({ index = i }),
             pos = p.pos,
             rot = p.rot,
             radius = 2,
             color = startPositionColor,
             textColor = startPositionColor,
             textBg = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5),
-            type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+            type = BJI_WaypointEdit.TYPES.ARROW,
         }
     end):addAll(W.raceData.steps:map(function(step, iStep)
         return step:map(function(wp)
@@ -320,8 +320,8 @@ local function updateMarkers()
                     (iStep == #W.raceData.steps and finishColor or cpColor),
                 parents = table.clone(wp.parents),
                 finish = iStep == #W.raceData.steps,
-                type = wp.stand and BJI.Managers.WaypointEdit.TYPES.CYLINDER or
-                    BJI.Managers.WaypointEdit.TYPES.RACE_GATE,
+                type = wp.stand and BJI_WaypointEdit.TYPES.CYLINDER or
+                    BJI_WaypointEdit.TYPES.RACE_GATE,
             }
         end)
     end):reduce(function(res, step)
@@ -417,14 +417,14 @@ local function saveRace(callback)
         end
 
         W.cache.disableInputs = true
-        BJI.Tx.scenario.RaceSave(race, function(result)
+        BJI_Tx_scenario.RaceSave(race, function(result)
             if result then
                 W.raceData.id = result
                 W.raceData.changed = false
                 W.raceData.hasRecord = W.raceData.hasRecord and W.raceData.keepRecord
                 W.raceData.keepRecord = true
             else
-                BJI.Managers.Toast.error(BJI.Managers.Lang.get("races.edit.saveErrorToast"))
+                BJI_Toast.error(BJI_Lang.get("races.edit.saveErrorToast"))
             end
             W.cache.disableInputs = false
             if type(callback) == "function" then callback(result or nil) end
@@ -432,9 +432,9 @@ local function saveRace(callback)
     end
 
     if W.raceData.hasRecord and not W.raceData.keepRecord then
-        BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("races.edit.hasRecordConfirm"), {
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), _finalSave),
+        BJI_Popup.createModal(BJI_Lang.get("races.edit.hasRecordConfirm"), {
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), _finalSave),
         })
     else
         _finalSave()
@@ -449,7 +449,7 @@ local function tryRace(ctxt)
     local saved, laps = table.clone(W.raceData), W.tryLaps
 
     local function launch()
-        BJI.Managers.RaceWaypoint.resetAll()
+        BJI_RaceWaypoint.resetAll()
         W.scenarioSolo.initRace(
             ctxt,
             {
@@ -556,10 +556,10 @@ local function reverseRace()
         updateMarkers()
         validateRace()
     end
-    BJI.Managers.Popup.createModal(
-        BJI.Managers.Lang.get("races.edit.reverseConfirm"), {
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), _process),
+    BJI_Popup.createModal(
+        BJI_Lang.get("races.edit.reverseConfirm"), {
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), _process),
         })
 end
 
@@ -584,7 +584,7 @@ local function drawTools(ctxt)
             SameLine()
             if IconButton("rotate" .. tostring(r.value), r.icon,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                BJI.Managers.Veh.setPositionRotation(vehpos.pos + vec3(0, 0, .1),
+                BJI_Veh.setPositionRotation(vehpos.pos + vec3(0, 0, .1),
                     vehpos.rot - quat(0, 0, math.round(r.value / 360, 8), 0),
                     { safe = false })
             end
@@ -597,7 +597,7 @@ local function drawTools(ctxt)
         if IconButton("rotate180", BJI.Utils.Icon.ICONS.tb_bank,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
             vehpos.rot = vehpos.rot * quat(0, 0, 1, 0)
-            BJI.Managers.Veh.setPositionRotation(vehpos.pos, vehpos.rot)
+            BJI_Veh.setPositionRotation(vehpos.pos, vehpos.rot)
         end
         TooltipText(W.labels.buttons.rotate180)
     end
@@ -653,7 +653,7 @@ local function drawPreviewPosition(ctxt)
             BJI.Utils.Icon.ICONS.edit_location or BJI.Utils.Icon.ICONS.add_location,
             { btnStyle = W.raceData.previewPosition and BJI.Utils.Style.BTN_PRESETS.WARNING or
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs }) then
-        W.raceData.previewPosition = BJI.Managers.Cam.getPositionRotation(true)
+        W.raceData.previewPosition = BJI_Cam.getPositionRotation(true)
         W.raceData.changed = true
         validateRace()
     end
@@ -661,10 +661,10 @@ local function drawPreviewPosition(ctxt)
     if W.raceData.previewPosition then
         SameLine()
         if IconButton("goToPreviewPos", BJI.Utils.Icon.ICONS.pin_drop) then
-            if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.toggleFreeCam()
+            if ctxt.camera ~= BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.toggleFreeCam()
             end
-            BJI.Managers.Cam.setPositionRotation(W.raceData.previewPosition.pos, W.raceData.previewPosition.rot)
+            BJI_Cam.setPositionRotation(W.raceData.previewPosition.pos, W.raceData.previewPosition.rot)
         end
         TooltipText(W.labels.buttons.showPreviewPosition)
     end
@@ -697,7 +697,7 @@ local function drawStartPositions(ctxt)
         SameLine()
         if IconButton("addStartPos", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             W.raceData.startPositions:insert(math.roundPositionRotation({
                 pos = ctxt.veh.position,
                 rot = ctxt.veh.rotation,
@@ -708,7 +708,7 @@ local function drawStartPositions(ctxt)
             validateRace()
         end
         TooltipText(W.labels.buttons.addStartPositionHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
     end
     if W.cache.invalid.startPositionsCount then
@@ -751,15 +751,15 @@ local function drawStartPositions(ctxt)
                 SameLine()
                 if IconButton("goToStartPos" .. tostring(iSp), BJI.Utils.Icon.ICONS.pin_drop) then
                     if ctxt.isOwner then
-                        BJI.Managers.Veh.setPositionRotation(sp.pos, sp.rot, { saveHome = true })
-                        if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                            BJI.Managers.Cam.toggleFreeCam()
+                        BJI_Veh.setPositionRotation(sp.pos, sp.rot, { saveHome = true })
+                        if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                            BJI_Cam.toggleFreeCam()
                         end
                     else
-                        if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                            BJI.Managers.Cam.toggleFreeCam()
+                        if ctxt.camera ~= BJI_Cam.CAMERAS.FREE then
+                            BJI_Cam.toggleFreeCam()
                         end
-                        BJI.Managers.Cam.setPositionRotation(sp.pos, sp.rot)
+                        BJI_Cam.setPositionRotation(sp.pos, sp.rot)
                     end
                 end
                 TooltipText(W.labels.buttons.showStartPosition)
@@ -767,7 +767,7 @@ local function drawStartPositions(ctxt)
                 if IconButton("moveStartPos" .. tostring(iSp), BJI.Utils.Icon.ICONS.edit_location,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                             disabled = W.cache.disableInputs or not ctxt.veh or
-                                ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                                ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                     table.assign(sp, math.roundPositionRotation({
                         pos = ctxt.veh.position,
                         rot = ctxt.veh.rotation,
@@ -778,7 +778,7 @@ local function drawStartPositions(ctxt)
                     validateRace()
                 end
                 TooltipText(W.labels.buttons.setStartPositionHere ..
-                    ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                    ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                         (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
                 SameLine()
                 if IconButton("deleteStartPos" .. tostring(iSp), BJI.Utils.Icon.ICONS.delete_forever,
@@ -808,22 +808,22 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
     SameLine()
     if IconButton(string.format("goToWP-%d-%d", iStep, iWp), BJI.Utils.Icon.ICONS.pin_drop) then
         if ctxt.isOwner then
-            BJI.Managers.Veh.setPositionRotation(wp.pos, wp.rot, { saveHome = true })
-            if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.toggleFreeCam()
+            BJI_Veh.setPositionRotation(wp.pos, wp.rot, { saveHome = true })
+            if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.toggleFreeCam()
             end
         else
-            if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                BJI.Managers.Cam.toggleFreeCam()
+            if ctxt.camera ~= BJI_Cam.CAMERAS.FREE then
+                BJI_Cam.toggleFreeCam()
             end
-            BJI.Managers.Cam.setPositionRotation(wp.pos, wp.rot)
+            BJI_Cam.setPositionRotation(wp.pos, wp.rot)
         end
     end
     TooltipText(W.labels.buttons.showWaypoint)
     SameLine()
     if IconButton(string.format("moveWP-%d-%d", iStep, iWp), BJI.Utils.Icon.ICONS.edit_location,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
-                not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
         table.assign(wp, math.roundPositionRotation({
             pos = ctxt.veh.position,
             rot = ctxt.veh.rotation,
@@ -834,7 +834,7 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
         validateRace()
     end
     TooltipText(W.labels.buttons.setWaypointHere ..
-        ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+        ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
             (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
     SameLine()
     if IconButton(string.format("toggleStandWP-%d-%d", iStep, iWp), BJI.Utils.Icon.ICONS.local_gas_station,
@@ -1062,11 +1062,11 @@ local function drawStep(ctxt, iStep, step)
     if IconButton("addStepBranchTop" .. tostring(iStep), BJI.Utils.Icon.ICONS.fg_sideways,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.cache.disableInputs or not ctxt.veh or
-                    ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
         addStepBranch(ctxt, iStep, step)
     end
     TooltipText(W.labels.buttons.addBranchHere ..
-        ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+        ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
             (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
 
     Indent(); Indent()
@@ -1077,11 +1077,11 @@ local function drawStep(ctxt, iStep, step)
         if IconButton("addStepBranchBottom" .. tostring(iStep), BJI.Utils.Icon.ICONS.fg_sideways,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = W.cache.disableInputs or not ctxt.veh or
-                        ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             addStepBranch(ctxt, iStep, step)
         end
         TooltipText(W.labels.buttons.addBranchHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
     end
     Unindent(); Unindent()
@@ -1126,11 +1126,11 @@ local function drawSteps(ctxt)
         SameLine()
         if IconButton("addRaceStepTop", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             addNewStep(ctxt)
         end
         TooltipText(W.labels.buttons.addRaceStepHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or "")
         )
     end
@@ -1146,11 +1146,11 @@ local function drawSteps(ctxt)
             if IconButton("addRaceStepBottom", BJI.Utils.Icon.ICONS.add_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = W.cache.disableInputs or not ctxt.veh or
-                            ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                            ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 addNewStep(ctxt)
             end
             TooltipText(W.labels.buttons.addRaceStepHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     (" (" .. W.labels.buttons.errorMustHaveVehicle .. ")") or ""))
         end
         EndTree()
@@ -1229,7 +1229,7 @@ local function footer(ctxt)
 
     if IconButton("leaveRaceEditor", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Windows.ScenarioEditor.onClose()
+        BJI_Win_ScenarioEditor.onClose()
     end
     TooltipText(W.labels.buttons.leave)
     if W.raceData.changed or not W.raceData.id then
@@ -1246,14 +1246,14 @@ local function footer(ctxt)
 end
 
 local function openWithData(raceData, tryLaps)
-    W.scenarioSolo = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.RACE_SOLO)
+    W.scenarioSolo = BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO)
     table.assign(W.raceData, raceData)
     W.raceData.steps = Table(W.raceData.steps)
     W.raceData.startPositions = Table(W.raceData.startPositions)
     W.tryLaps = tryLaps or 1
     updateMarkers()
     validateRace()
-    BJI.Windows.ScenarioEditor.view = W
+    BJI_Win_ScenarioEditor.view = W
 end
 
 ---@param raceID? integer
@@ -1262,7 +1262,7 @@ local function openWithID(raceID, isCopy)
     local res = {
         changed = false,
         id = nil,
-        author = BJI.Managers.Context.User.playerName,
+        author = BJI_Context.User.playerName,
         name = "",
         previewPosition = nil,
         steps = {},
@@ -1275,7 +1275,7 @@ local function openWithID(raceID, isCopy)
     }
     if raceID then
         -- ID existing => edition / duplication
-        BJI.Tx.scenario.RaceDetails(raceID, function(raceData)
+        BJI_Tx_scenario.RaceDetails(raceID, function(raceData)
             if raceData then
                 if isCopy then
                     -- duplication
@@ -1304,7 +1304,7 @@ local function openWithID(raceID, isCopy)
 
                 W.openWithData(res)
             else
-                BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.invalidData"))
+                BJI_Toast.error(BJI_Lang.get("errors.invalidData"))
             end
         end)
     else

@@ -31,7 +31,7 @@ local function register(w)
     M.windows:insert(w)
     M.showStates[w.name] = false
 
-    BJI.Managers.Context.GUI.registerWindow(w.name, w.size or w.minSize)
+    BJI_Context.GUI.registerWindow(w.name, w.size or w.minSize)
     return w
 end
 
@@ -53,7 +53,7 @@ local state
 
 ---@param ctxt TickContext
 local function renderTick(ctxt)
-    if not BJI.CLIENT_READY or not BJI.Managers.Cache.areBaseCachesFirstLoaded() or
+    if not BJI.CLIENT_READY or not BJI_Cache.areBaseCachesFirstLoaded() or
         not BJI.Utils.Style.BJIThemeLoaded then
         return
     end
@@ -67,22 +67,22 @@ local function renderTick(ctxt)
         if (M.showStates[w.name] and not state) or not MPGameNetwork.launcherConnected() then
             windowSubFnCall(ctxt, w, "onUnload")
             M.showStates[w.name] = false
-            BJI.Managers.Context.GUI.hideWindow(w.name)
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+            BJI_Context.GUI.hideWindow(w.name)
+            BJI_Events.trigger(BJI_Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
                 name = w.name,
                 state = false,
             })
         elseif not M.showStates[w.name] and state then
             windowSubFnCall(ctxt, w, "onLoad")
             M.showStates[w.name] = true
-            BJI.Managers.Context.GUI.showWindow(w.name)
-            BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
+            BJI_Context.GUI.showWindow(w.name)
+            BJI_Events.trigger(BJI_Events.EVENTS.WINDOW_VISIBILITY_TOGGLED, {
                 name = w.name,
                 state = true,
             })
         end
 
-        val1 = w.name and BJI.Managers.Lang.get(string.var("windows.{1}", { w.name }), w.name) or nil
+        val1 = w.name and BJI_Lang.get(string.var("windows.{1}", { w.name }), w.name) or nil
         if not val1 then
             LogError(string.var("Invalid name for window {1}", { w.name }))
         elseif M.showStates[w.name] then
@@ -103,7 +103,7 @@ local function onUnload()
             end
             M.showStates[w.name] = nil
             M.windows[w.name] = nil
-            BJI.Managers.Context.GUI.hideWindow(w.name)
+            BJI_Context.GUI.hideWindow(w.name)
         end)
 end
 
@@ -116,14 +116,15 @@ local function onLoad()
     end):forEach(function(windowPath)
         val1, val2 = pcall(require, windowPath)
         if val1 then
-            BJI.Windows[val2.name] = register(val2)
-            LogInfo(string.var("BJI.Windows.{1} loaded", { val2.name }))
+            _G["BJI_Win_" .. val2.name] = register(val2) -- quick access
+            BJI.Windows[val2.name] = _G["BJI_Win_" .. val2.name] -- object tree access
+            LogInfo(string.var("BJI_Win_{1} loaded", { val2.name }))
         else
             LogError(string.var("Error loading window \"{1}\" : {2}", { windowPath, val2 }))
         end
     end)
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
 end
 
 M.onLoad = onLoad

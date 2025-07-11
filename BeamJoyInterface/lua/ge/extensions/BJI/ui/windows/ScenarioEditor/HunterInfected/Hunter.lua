@@ -8,12 +8,12 @@ local huntedColor = BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5)
 local bgColor = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5)
 ---@param parent table
 W.reloadMarkers = function(parent)
-    BJI.Managers.WaypointEdit.setWaypoints(parent.data.waypoints:map(function(target, i)
+    BJI_WaypointEdit.setWaypoints(parent.data.waypoints:map(function(target, i)
         return {
             name = parent.labels.hunter.tags.waypointName:var({ index = i }),
             pos = target.pos,
             radius = target.radius,
-            type = BJI.Managers.WaypointEdit.TYPES.CYLINDER,
+            type = BJI_WaypointEdit.TYPES.CYLINDER,
         }
     end):addAll(parent.data.majorPositions:map(function(hunter, i)
         return {
@@ -24,7 +24,7 @@ W.reloadMarkers = function(parent)
             color = hunterColor,
             textColor = hunterColor,
             textBg = bgColor,
-            type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+            type = BJI_WaypointEdit.TYPES.ARROW,
         }
     end)):addAll(parent.data.minorPositions:map(function(hunted, i)
         return {
@@ -35,7 +35,7 @@ W.reloadMarkers = function(parent)
             color = huntedColor,
             textColor = huntedColor,
             textBg = bgColor,
-            type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+            type = BJI_WaypointEdit.TYPES.ARROW,
         }
     end)))
 end
@@ -53,13 +53,13 @@ local function drawHuntersPoints(parent, ctxt)
             TableNextColumn()
             if IconButton("goToHunter" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
-                    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
+                    if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                        BJI_Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(hunterPoint.pos, hunterPoint.rot, { safe = false })
+                    BJI_Veh.setPositionRotation(hunterPoint.pos, hunterPoint.rot, { safe = false })
                 else
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                    BJI.Managers.Cam.setPositionRotation(hunterPoint.pos + vec3(0, 0, 1),
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+                    BJI_Cam.setPositionRotation(hunterPoint.pos + vec3(0, 0, 1),
                         hunterPoint.rot * quat(0, 0, 1, 0))
                 end
             end
@@ -67,7 +67,7 @@ local function drawHuntersPoints(parent, ctxt)
             SameLine()
             if IconButton("moveHunter" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = parent.disableButtons or
-                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 parent.data.majorPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -77,7 +77,7 @@ local function drawHuntersPoints(parent, ctxt)
                 parent.validateData()
             end
             TooltipText(parent.labels.hunter.buttons.setHunterStartPositionHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
             SameLine()
             if IconButton("deleteHunter" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -108,13 +108,13 @@ local function drawHuntedPoints(parent, ctxt)
             TableNextColumn()
             if IconButton("goToHunted" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
-                    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
+                    if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                        BJI_Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(huntedPoint.pos, huntedPoint.rot, { safe = false })
+                    BJI_Veh.setPositionRotation(huntedPoint.pos, huntedPoint.rot, { safe = false })
                 else
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                    BJI.Managers.Cam.setPositionRotation(huntedPoint.pos + vec3(0, 0, 1),
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+                    BJI_Cam.setPositionRotation(huntedPoint.pos + vec3(0, 0, 1),
                         huntedPoint.rot * quat(0, 0, 1, 0))
                 end
             end
@@ -122,7 +122,7 @@ local function drawHuntedPoints(parent, ctxt)
             SameLine()
             if IconButton("moveHunted" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = parent.disableButtons or
-                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 parent.data.minorPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -132,7 +132,7 @@ local function drawHuntedPoints(parent, ctxt)
                 parent.validateData()
             end
             TooltipText(parent.labels.hunter.buttons.setHuntedStartPositionHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
             SameLine()
             if IconButton("deleteHunted" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -162,27 +162,27 @@ local function drawWaypoints(parent, ctxt)
             TableNextColumn()
             if IconButton("gotoWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
-                    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
+                    if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                        BJI_Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(waypoint.pos, ctxt.veh.rotation, { safe = false })
+                    BJI_Veh.setPositionRotation(waypoint.pos, ctxt.veh.rotation, { safe = false })
                 else
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                    BJI.Managers.Cam.setPositionRotation(waypoint.pos + vec3(0, 0, 1))
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+                    BJI_Cam.setPositionRotation(waypoint.pos + vec3(0, 0, 1))
                 end
             end
             TooltipText(parent.labels.hunter.buttons.showWaypoint)
             SameLine()
             if IconButton("moveWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = parent.disableButtons or
-                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 waypoint.pos = ctxt.veh.position
                 parent.changed = true
                 W.reloadMarkers(parent)
                 parent.validateData()
             end
             TooltipText(parent.labels.hunter.buttons.setWaypointHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
             SameLine()
             if IconButton("deleteWaypoint" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -239,7 +239,7 @@ W.body = function(parent, ctxt)
         SameLine()
         if IconButton("addHunterPosition", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = parent.disableButtons or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             parent.data.majorPositions:insert(math.roundPositionRotation({
                 pos = ctxt.veh.position,
                 rot = ctxt.veh.rotation,
@@ -250,7 +250,7 @@ W.body = function(parent, ctxt)
             parent.validateData()
         end
         TooltipText(parent.labels.hunter.buttons.addHunterStartPositionHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
     end
     if #parent.data.majorPositions < 5 then
@@ -270,7 +270,7 @@ W.body = function(parent, ctxt)
         SameLine()
         if IconButton("addHuntedPosition", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = parent.disableButtons or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             parent.data.minorPositions:insert(math.roundPositionRotation({
                 pos = ctxt.veh.position,
                 rot = ctxt.veh.rotation,
@@ -281,7 +281,7 @@ W.body = function(parent, ctxt)
             parent.validateData()
         end
         TooltipText(parent.labels.hunter.buttons.addHuntedStartPositionHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
     end
     if #parent.data.minorPositions < 2 then
@@ -301,7 +301,7 @@ W.body = function(parent, ctxt)
         SameLine()
         if IconButton("addWaypoint", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = parent.disableButtons or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             parent.data.waypoints:insert({
                 pos = ctxt.veh.position,
                 radius = 2,
@@ -312,7 +312,7 @@ W.body = function(parent, ctxt)
             parent.validateData()
         end
         TooltipText(parent.labels.hunter.buttons.addWaypointHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
     end
     if #parent.data.waypoints < 2 then

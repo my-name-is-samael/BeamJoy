@@ -46,25 +46,25 @@ local function reset()
 end
 
 local function canChangeTo(ctxt)
-    return BJI.Managers.Scenario.isFreeroam() and
-        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.DELIVERIES) and
-        BJI.Managers.Context.Scenario.Data.Deliveries and
-        #BJI.Managers.Context.Scenario.Data.Deliveries > 1
+    return BJI_Scenario.isFreeroam() and
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
+        BJI_Context.Scenario.Data.Deliveries and
+        #BJI_Context.Scenario.Data.Deliveries > 1
 end
 
 local function initVehicle()
-    local models = BJI.Managers.Veh.getAllVehicleConfigs()
-    for _, name in ipairs(BJI.Managers.Context.BJC.VehicleDelivery.ModelBlacklist) do
+    local models = BJI_Veh.getAllVehicleConfigs()
+    for _, name in ipairs(BJI_Context.BJC.VehicleDelivery.ModelBlacklist) do
         models[name] = nil
     end
     if table.length(models) == 0 then
-        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
         return
     end
     local model = table.random(models)
     if model then
         S.model = model.key
-        S.modelLabel = BJI.Managers.Veh.getModelLabel(S.model)
+        S.modelLabel = BJI_Veh.getModelLabel(S.model)
 
         -- config
         local config
@@ -72,8 +72,8 @@ local function initVehicle()
             config = table.random(model.configs)
         end
         if config then
-            local configFile = BJI.Managers.Veh.getConfigByModelAndKey(model.key, config.key)
-            S.config = BJI.Managers.Veh.getFullConfig(configFile)
+            local configFile = BJI_Veh.getConfigByModelAndKey(model.key, config.key)
+            S.config = BJI_Veh.getFullConfig(configFile)
             S.configLabel = config.label
         end
 
@@ -88,10 +88,10 @@ local function initVehicle()
 end
 
 local function initPositions()
-    S.startPosition = table.random(BJI.Managers.Context.Scenario.Data.Deliveries)
+    S.startPosition = table.random(BJI_Context.Scenario.Data.Deliveries)
 
     local targets = {}
-    for _, position in ipairs(BJI.Managers.Context.Scenario.Data.Deliveries) do
+    for _, position in ipairs(BJI_Context.Scenario.Data.Deliveries) do
         -- local distance = BJIGPS.getRouteLength({ M.startPosition.pos, position.pos }) -- costs a lot
         local distance = math.horizontalDistance(S.startPosition.pos, position.pos)
         if position ~= S.startPosition and distance > 0 then
@@ -117,11 +117,11 @@ end
 
 local function initDelivery()
     if not table.includes({
-            BJI.Managers.Cam.CAMERAS.FREE,
-            BJI.Managers.Cam.CAMERAS.EXTERNAL,
-            BJI.Managers.Cam.CAMERAS.BIG_MAP
-        }, BJI.Managers.Cam.getCamera()) then
-        S.previousCamera = BJI.Managers.Cam.getCamera()
+            BJI_Cam.CAMERAS.FREE,
+            BJI_Cam.CAMERAS.EXTERNAL,
+            BJI_Cam.CAMERAS.BIG_MAP
+        }, BJI_Cam.getCamera()) then
+        S.previousCamera = BJI_Cam.getCamera()
     end
 
     if S.paints then
@@ -132,88 +132,88 @@ local function initDelivery()
         S.config.paints[2] = S.paints[2]
         S.config.paints[3] = S.paints[3]
     end
-    BJI.Managers.Veh.replaceOrSpawnVehicle(S.model, S.config, S.startPosition)
+    BJI_Veh.replaceOrSpawnVehicle(S.model, S.config, S.startPosition)
     if S.previousCamera then
-        BJI.Managers.Async.delayTask(function()
-            BJI.Managers.Cam.setCamera(S.previousCamera, false)
+        BJI_Async.delayTask(function()
+            BJI_Cam.setCamera(S.previousCamera, false)
         end, 100, "BJIVehDeliveryCamera")
     end
 
-    BJI.Managers.GPS.prependWaypoint({
-        key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+    BJI_GPS.prependWaypoint({
+        key = BJI_GPS.KEYS.DELIVERY_TARGET,
         pos = S.targetPosition.pos,
         radius = S.targetPosition.radius,
         clearable = false
     })
-    S.baseDistance = BJI.Managers.GPS.getCurrentRouteLength()
-    BJI.Managers.RaceWaypoint.addWaypoint({
+    S.baseDistance = BJI_GPS.getCurrentRouteLength()
+    BJI_RaceWaypoint.addWaypoint({
         name = "BJIVehicleDelivery",
         pos = S.targetPosition.pos,
         radius = S.targetPosition.radius,
-        color = BJI.Managers.RaceWaypoint.COLORS.BLUE
+        color = BJI_RaceWaypoint.COLORS.BLUE
     })
 end
 
 ---@param ctxt TickContext
 local function onLoad(ctxt)
-    BJI.Tx.scenario.DeliveryVehicleStart()
+    BJI_Tx_scenario.DeliveryVehicleStart()
     S.gameVehID = ctxt.veh.gameVehicleID
-    BJI.Managers.Message.flash("BJIDeliveryVehicleStart",
-        BJI.Managers.Lang.get("vehicleDelivery.flashStart"), 5, false)
+    BJI_Message.flash("BJIDeliveryVehicleStart",
+        BJI_Lang.get("vehicleDelivery.flashStart"), 5, false)
 end
 
 ---@param ctxt TickContext
 local function onUnload(ctxt)
-    BJI.Managers.GPS.reset()
-    BJI.Managers.RaceWaypoint.resetAll()
+    BJI_GPS.reset()
+    BJI_RaceWaypoint.resetAll()
 end
 
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
-    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
+        :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+        :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
 local function start()
     reset()
-    BJI.Windows.VehSelector.tryClose()
+    BJI_Win_VehSelector.tryClose()
 
-    BJI.Managers.UI.applyLoading(true, function()
+    BJI_UI.applyLoading(true, function()
         initPositions()
         initVehicle()
         if S.startPosition and S.targetPosition and S.model then
-            BJI.Managers.GPS.reset()
-            BJI.Managers.RaceWaypoint.resetAll()
+            BJI_GPS.reset()
+            BJI_RaceWaypoint.resetAll()
             initDelivery()
-            BJI.Managers.Veh.waitForVehicleSpawn(function(ctxt)
+            BJI_Veh.waitForVehicleSpawn(function(ctxt)
                 S.nextResetExempt = true
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
-                BJI.Managers.UI.applyLoading(false)
-                BJI.Managers.Async.delayTask(function()
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
+                BJI_UI.applyLoading(false)
+                BJI_Async.delayTask(function()
                     S.nextResetExempt = false
                 end, 1000, "BJIVehDeliveryStartResetExempt")
             end)
         else
-            BJI.Managers.UI.applyLoading(false)
-            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+            BJI_UI.applyLoading(false)
+            BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
         end
     end)
 end
 
 local function onDeliveryFailed()
-    BJI.Tx.scenario.DeliveryVehicleFail()
-    BJI.Managers.Message.flash("BJIDeliveryFail", BJI.Managers.Lang.get("vehicleDelivery.flashFail"), 3, false,
+    BJI_Tx_scenario.DeliveryVehicleFail()
+    BJI_Message.flash("BJIDeliveryFail", BJI_Lang.get("vehicleDelivery.flashFail"), 3, false,
         GetCurrentTime())
     reset()
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 local function onVehicleResetted(gameVehID)
     if gameVehID ~= S.gameVehID or
-        not BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        not BJI_Veh.isVehicleOwn(gameVehID) then
         return
     end
 
@@ -231,39 +231,39 @@ end
 
 ---@param ctxt TickContext
 local function drawUI(ctxt)
-    loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
+    loop = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP)
     if IconButton("stopVehicleDelivery", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
         onStopDelivery()
     end
-    TooltipText(BJI.Managers.Lang.get("menu.scenario.vehicleDelivery.stop"))
+    TooltipText(BJI_Lang.get("menu.scenario.vehicleDelivery.stop"))
     SameLine()
     if IconButton("vehicleDeliveryLoop", BJI.Utils.Icon.ICONS.all_inclusive,
             { btnStyle = loop and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
-        BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
+        BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP,
             not loop)
     end
-    TooltipText(BJI.Managers.Lang.get("common.buttons.loop"))
+    TooltipText(BJI_Lang.get("common.buttons.loop"))
     SameLine()
-    Text(BJI.Managers.Lang.get("vehicleDelivery.title"))
+    Text(BJI_Lang.get("vehicleDelivery.title"))
     if S.checkTargetTime then
         remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
         if remainingSec > 0 then
             SameLine()
-            Text(string.var("({1})", { BJI.Managers.Lang.get("vehicleDelivery.deliveredIn"):var({
+            Text(string.var("({1})", { BJI_Lang.get("vehicleDelivery.deliveredIn"):var({
                 delay = remainingSec
             }) }), { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
         end
     end
 
     Text(string.var("{1}: {2}{3}", {
-        BJI.Managers.Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
+        BJI_Lang.get("vehicleDelivery.vehicle"), S.modelLabel, S.configLabel and
     string.var(" {1}", { S.configLabel }) or "",
     }))
 
     damages = ctxt.veh and tonumber(ctxt.veh.veh.damageState)
-    if damages and damages > BJI.Managers.Context.VehiclePristineThreshold then
-        Text(BJI.Managers.Lang.get("vehicleDelivery.damagedWarning"),
+    if damages and damages > BJI_Context.VehiclePristineThreshold then
+        Text(BJI_Lang.get("vehicleDelivery.damagedWarning"),
             { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
     end
 
@@ -271,8 +271,8 @@ local function drawUI(ctxt)
         ProgressBar(1 - math.max(S.distance / S.baseDistance, 0),
             { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
         TooltipText(string.var("{1}: {2}", {
-            BJI.Managers.Lang.get("delivery.currentDelivery"),
-            BJI.Managers.Lang.get("delivery.distanceLeft")
+            BJI_Lang.get("delivery.currentDelivery"),
+            BJI_Lang.get("delivery.distanceLeft")
                 :var({ distance = BJI.Utils.UI.PrettyDistance(S.distance) })
         }))
     end
@@ -287,19 +287,19 @@ local function onTargetReached(ctxt)
 
     local damages = ctxt.veh and tonumber(ctxt.veh.veh.damageState)
     local pristine = damages and
-        damages <= BJI.Managers.Context.VehiclePristineThreshold
-    BJI.Tx.scenario.DeliveryVehicleSuccess(pristine)
+        damages <= BJI_Context.VehiclePristineThreshold
+    BJI_Tx_scenario.DeliveryVehicleSuccess(pristine)
 
-    if BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
-        BJI.Managers.Async.delayTask(function()
-            if BJI.Managers.Scenario.isFreeroam() then
+    if BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_VEHICLE_DELIVERY_LOOP) then
+        BJI_Async.delayTask(function()
+            if BJI_Scenario.isFreeroam() then
                 S.start()
             end
         end, 3000, "BJIVehDeliveryLoop")
     end
 
     reset()
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 ---@param ctxt TickContext
@@ -309,7 +309,7 @@ local function slowTick(ctxt)
         return
     end
 
-    S.distance = BJI.Managers.GPS.getCurrentRouteLength()
+    S.distance = BJI_GPS.getCurrentRouteLength()
     if S.distance > S.baseDistance then
         S.baseDistance = S.distance
     end
@@ -318,19 +318,19 @@ local function slowTick(ctxt)
     if distance < S.targetPosition.radius then
         if not S.checkTargetTime then
             S.checkTargetTime = ctxt.now + 3100
-            BJI.Managers.Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false,
-                BJI.Managers.Lang.get("vehicleDelivery.flashSuccess"),
+            BJI_Message.flashCountdown("BJIDeliveryTarget", S.checkTargetTime, false,
+                BJI_Lang.get("vehicleDelivery.flashSuccess"),
                 nil,
                 onTargetReached)
         end
     else
         if S.checkTargetTime then
-            BJI.Managers.Message.cancelFlash("BJIDeliveryTarget")
+            BJI_Message.cancelFlash("BJIDeliveryTarget")
             S.checkTargetTime = nil
         end
-        if #BJI.Managers.GPS.targets == 0 then
-            BJI.Managers.GPS.prependWaypoint({
-                key = BJI.Managers.GPS.KEYS.DELIVERY_TARGET,
+        if #BJI_GPS.targets == 0 then
+            BJI_GPS.prependWaypoint({
+                key = BJI_GPS.KEYS.DELIVERY_TARGET,
                 pos = S.targetPosition.pos,
                 radius = S.targetPosition.radius,
                 clearable = false
@@ -342,7 +342,7 @@ end
 local function getPlayerListActions(player, ctxt)
     actions = {}
 
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 

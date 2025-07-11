@@ -97,17 +97,17 @@ W.header = function()
             TableNextColumn()
             ShowHelpMarker("Example helpmarker")
             SameLine()
-            local scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+            local scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
             Text(string.format("Zoom : %.2f", scale))
             SameLine()
             if IconButton("zoomout", BJI.Utils.Icon.ICONS.zoom_out, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
                 scale = scale - .25
-                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
+                BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
             end
             SameLine()
             if IconButton("zoomin", BJI.Utils.Icon.ICONS.zoom_in, { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
                 scale = scale + .25
-                BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
+                BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE, scale)
             end
 
             EndTable()

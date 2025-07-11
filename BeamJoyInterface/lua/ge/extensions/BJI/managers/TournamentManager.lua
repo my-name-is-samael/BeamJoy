@@ -26,7 +26,7 @@ local function isSoloRaceInProgress()
 end
 
 local function onLoad()
-    BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.TOURNAMENT, function(cacheData)
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.TOURNAMENT, function(cacheData)
         local wasEnabled = M.state
         local wasRaceSolo = M.state and isSoloRaceInProgress()
 
@@ -35,7 +35,7 @@ local function onLoad()
         M.players = Table(cacheData.players)
         M.activities:forEach(function(activity)
             if activity.targetTime then
-                activity.targetTime = BJI.Managers.Tick.applyTimeOffset(activity.targetTime)
+                activity.targetTime = BJI_Tick.applyTimeOffset(activity.targetTime)
             end
         end)
         M.whitelist = cacheData.whitelist == true
@@ -43,30 +43,30 @@ local function onLoad()
 
         if not wasEnabled and M.state then
             -- on activation
-            if not BJI.Managers.Scenario.isFreeroam() then
+            if not BJI_Scenario.isFreeroam() then
                 -- force stop scenario
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
             end
         end
-        if wasRaceSolo and BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) then
+        if wasRaceSolo and BJI_Scenario.is(BJI_Scenario.TYPES.RACE_SOLO) then
             if not M.state or not isSoloRaceInProgress() then
                 -- force stop race event
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
-            elseif M.whitelist and not M.whitelistPlayers:includes(BJI.Managers.Context.User.playerName) then
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
+            elseif M.whitelist and not M.whitelistPlayers:includes(BJI_Context.User.playerName) then
                 -- got out of whitelist
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
             end
         end
 
-        BJI.Windows.Tournament.updateData()
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED)
+        BJI_Win_Tournament.updateData()
+        BJI_Events.trigger(BJI_Events.EVENTS.TOURNAMENT_UPDATED)
     end)
 end
 
 ---@return boolean
 local function canJoinActivity()
     return not M.state or not M.whitelist or
-        M.whitelistPlayers:includes(BJI.Managers.Context.User.playerName)
+        M.whitelistPlayers:includes(BJI_Context.User.playerName)
 end
 
 M.onLoad = onLoad

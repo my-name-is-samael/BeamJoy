@@ -26,10 +26,10 @@ local function draw(ctxt)
     menuEdit.draw(ctxt)
     menuConfig.draw(ctxt)
 
-    RenderMenuDropdown(BJI.Managers.Lang.get("menu.about.title"), {
+    RenderMenuDropdown(BJI_Lang.get("menu.about.title"), {
         { type = "item", label = string.var("BeamJoy v{1}", { BJI.VERSION }) },
-        { type = "item", label = BJI.Managers.Lang.get("menu.about.createdBy"):var({ author = "TontonSamael" }) },
-        { type = "item", label = string.var("{1} : {2}", { BJI.Managers.Lang.get("menu.about.computerTime"), math.floor(ctxt.now / 1000) }) },
+        { type = "item", label = BJI_Lang.get("menu.about.createdBy"):var({ author = "TontonSamael" }) },
+        { type = "item", label = string.var("{1} : {2}", { BJI_Lang.get("menu.about.computerTime"), math.floor(ctxt.now / 1000) }) },
     })
 end
 

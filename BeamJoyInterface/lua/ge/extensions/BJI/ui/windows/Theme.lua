@@ -30,10 +30,10 @@ local value, default, changed, typeLabels, nextValue
 
 local function onClose(ctxt)
     if W.changed then
-        BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("themeEditor.cancelModal"), {
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
-                BJI.Utils.Style.LoadTheme(BJI.Managers.Context.BJC.Server.Theme)
+        BJI_Popup.createModal(BJI_Lang.get("themeEditor.cancelModal"), {
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
+                BJI.Utils.Style.LoadTheme(BJI_Context.BJC.Server.Theme)
                 W.show = false
             end),
         })
@@ -44,10 +44,10 @@ end
 
 local function updateLabels()
     Table({ "Fields", "Text", "Button", "Input" }):forEach(function(cat)
-        W.labels.categoriesTitles[cat] = BJI.Managers.Lang.get(string.var("themeEditor.{1}.title", { cat }))
+        W.labels.categoriesTitles[cat] = BJI_Lang.get(string.var("themeEditor.{1}.title", { cat }))
         W.labels.categoriesPresets[cat] = {}
         Table(W.data[cat]):forEach(function(_, key)
-            W.labels.categoriesPresets[cat][key] = BJI.Managers.Lang.get(
+            W.labels.categoriesPresets[cat][key] = BJI_Lang.get(
                 string.var("themeEditor.{1}.{2}", { cat, key })
             )
         end)
@@ -56,34 +56,34 @@ local function updateLabels()
     W.labels.categoriesElements.Button = {}
     Table(W.BUTTON_ELEMENTS)
         :forEach(function(key)
-            W.labels.categoriesElements.Button[key] = BJI.Managers.Lang.get(
+            W.labels.categoriesElements.Button[key] = BJI_Lang.get(
                 string.var("themeEditor.Button.{1}", { key }))
         end)
 
     W.labels.categoriesElements.Input = {}
     Table(W.INPUT_ELEMENTS)
         :forEach(function(key)
-            W.labels.categoriesElements.Input[key] = BJI.Managers.Lang.get(
+            W.labels.categoriesElements.Input[key] = BJI_Lang.get(
                 string.var("themeEditor.Input.{1}", { key }))
         end)
 
-    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
-    W.labels.buttons.resetToFactory = BJI.Managers.Lang.get("themeEditor.resetAllTooltip")
-    W.labels.buttons.resetAll = BJI.Managers.Lang.get("common.buttons.resetAll")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
+    W.labels.buttons.reset = BJI_Lang.get("common.buttons.reset")
+    W.labels.buttons.resetToFactory = BJI_Lang.get("themeEditor.resetAllTooltip")
+    W.labels.buttons.resetAll = BJI_Lang.get("common.buttons.resetAll")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(
-        BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name)
+    listeners:insert(BJI_Events.addListener(
+        BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name)
     )
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if W.saveProcess and data.cache == BJI.Managers.Cache.CACHES.BJC then
+            if W.saveProcess and data.cache == BJI_Cache.CACHES.BJC then
                 W.open()
                 W.changed = false
                 W.saveProcess = false
@@ -91,19 +91,19 @@ local function onLoad()
         end, W.name))
 end
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function updateTheme()
     BJI.Utils.Style.LoadTheme(W.data)
-    if table.compare(W.data, BJI.Managers.Context.BJC.Server.Theme, true) then
+    if table.compare(W.data, BJI_Context.BJC.Server.Theme, true) then
         W.changed = false
     end
 end
 
 local function save()
     W.saveProcess = true
-    BJI.Tx.config.bjc("Server.Theme", W.data)
+    BJI_Tx_config.bjc("Server.Theme", W.data)
 end
 
 local function compareColorToDefault(color, default)
@@ -138,10 +138,10 @@ local function drawThemeCategory(cat)
                     updateTheme()
                 end
                 TableNextColumn()
-                if not table.compare(W.data[cat][el.k], BJI.Managers.Context.BJC.Server.Theme[cat][el.k]) then
+                if not table.compare(W.data[cat][el.k], BJI_Context.BJC.Server.Theme[cat][el.k]) then
                     W.changed = true
                     if IconButton(cat .. "-" .. el.k .. "-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                        W.data[cat][el.k] = table.clone(BJI.Managers.Context.BJC.Server.Theme[cat][el.k])
+                        W.data[cat][el.k] = table.clone(BJI_Context.BJC.Server.Theme[cat][el.k])
                         updateTheme()
                     end
                     TooltipText(W.labels.buttons.reset)
@@ -185,7 +185,7 @@ local function drawButtonsPresets()
                     -- other sections
                     Range(1, 4):forEach(function(i)
                         value = el.v[i]
-                        default = BJI.Managers.Context.BJC.Server.Theme.Button[el.k][i]
+                        default = BJI_Context.BJC.Server.Theme.Button[el.k][i]
                         if i < 4 then
                             changed = not compareColorToDefault(value, default)
                         else
@@ -278,7 +278,7 @@ local function drawInputsPresets()
 
                     Range(1, 6):filter(function(i) return i ~= 2 end):forEach(function(i)
                         value = el.v[i]
-                        default = BJI.Managers.Context.BJC.Server.Theme.Input[el.k][i]
+                        default = BJI_Context.BJC.Server.Theme.Input[el.k][i]
                         changed = not compareColorToDefault(value, default)
                         if changed then
                             W.changed = true
@@ -304,7 +304,7 @@ local function drawInputsPresets()
 
                     -- Override Text Color
                     value = el.v[2]
-                    default = BJI.Managers.Context.BJC.Server.Theme.Input[el.k][2]
+                    default = BJI_Context.BJC.Server.Theme.Input[el.k][2]
                     if value and default then
                         changed = not compareColorToDefault(value, default)
                     else
@@ -373,11 +373,11 @@ local function drawFooter(ctxt)
     TooltipText(W.labels.buttons.close)
     SameLine()
     if IconButton("theme-resetAll", BJI.Utils.Icon.ICONS.delete_forever, { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("themeEditor.resetAllModal"), {
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-            BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
+        BJI_Popup.createModal(BJI_Lang.get("themeEditor.resetAllModal"), {
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
                 W.saveProcess = true
-                BJI.Tx.config.bjc("Server.Theme")
+                BJI_Tx_config.bjc("Server.Theme")
             end)
         })
     end
@@ -385,7 +385,7 @@ local function drawFooter(ctxt)
     if W.changed then
         SameLine()
         if IconButton("theme-reset", BJI.Utils.Icon.ICONS.refresh, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-            W.data = table.clone(BJI.Managers.Context.BJC.Server.Theme)
+            W.data = table.clone(BJI_Context.BJC.Server.Theme)
             W.changed = false
             updateTheme()
         end
@@ -399,7 +399,7 @@ local function drawFooter(ctxt)
 end
 
 local function open()
-    W.data = Table(BJI.Managers.Context.BJC.Server.Theme):clone()
+    W.data = Table(BJI_Context.BJC.Server.Theme):clone()
     W.show = true
 end
 

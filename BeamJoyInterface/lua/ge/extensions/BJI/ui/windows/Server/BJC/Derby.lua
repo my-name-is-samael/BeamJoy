@@ -20,13 +20,13 @@ return function(ctxt, labels)
             Text(labels.derby.keys[el.key])
             TooltipText(labels.derby.keys[el.key .. "Tooltip"])
             TableNextColumn()
-            value = BJI.Managers.Context.BJC.Derby[el.key] * (el.multiplier or 1)
+            value = BJI_Context.BJC.Derby[el.key] * (el.multiplier or 1)
             if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = el.default == value }) then
                 value = el.default
-                BJI.Managers.Context.BJC.Derby[el.key] = value / (el.multiplier or 1)
-                BJI.Tx.config.bjc("Derby." .. el.key, BJI.Managers.Context.BJC.Derby[el.key])
+                BJI_Context.BJC.Derby[el.key] = value / (el.multiplier or 1)
+                BJI_Tx_config.bjc("Derby." .. el.key, BJI_Context.BJC.Derby[el.key])
             end
             TooltipText(labels.buttons.reset)
             SameLine()
@@ -35,8 +35,8 @@ return function(ctxt, labels)
             TooltipText(labels.derby.keys[el.key .. "Tooltip"])
             if nextValue then
                 value = nextValue
-                BJI.Managers.Context.BJC.Derby[el.key] = value / (el.multiplier or 1)
-                BJI.Tx.config.bjc("Derby." .. el.key, BJI.Managers.Context.BJC.Derby[el.key])
+                BJI_Context.BJC.Derby[el.key] = value / (el.multiplier or 1)
+                BJI_Tx_config.bjc("Derby." .. el.key, BJI_Context.BJC.Derby[el.key])
             end
         end)
 

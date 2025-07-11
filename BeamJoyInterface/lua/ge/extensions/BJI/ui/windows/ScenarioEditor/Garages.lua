@@ -29,37 +29,37 @@ local W = {
 local nextValue, invalidName
 
 local function onClose()
-    BJI.Managers.WaypointEdit.reset()
+    BJI_WaypointEdit.reset()
     W.changed = false
     W.valid = true
 end
 
 local function reloadMarkers()
-    BJI.Managers.WaypointEdit.setWaypoints(Table(W.cache.garages)
+    BJI_WaypointEdit.setWaypoints(Table(W.cache.garages)
         :map(function(g)
             return {
                 name = g.name,
                 pos = g.pos,
                 radius = g.radius,
-                type = BJI.Managers.WaypointEdit.TYPES.SPHERE
+                type = BJI_WaypointEdit.TYPES.SPHERE
             }
         end))
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("garages.edit.title")
-    W.labels.name = BJI.Managers.Lang.get("garages.edit.name")
-    W.labels.radius = BJI.Managers.Lang.get("garages.edit.radius")
+    W.labels.title = BJI_Lang.get("garages.edit.title")
+    W.labels.name = BJI_Lang.get("garages.edit.name")
+    W.labels.radius = BJI_Lang.get("garages.edit.radius")
 
-    W.labels.buttons.refreshMarkers = BJI.Managers.Lang.get("garages.edit.buttons.refreshMarkers")
-    W.labels.buttons.addGarageHere = BJI.Managers.Lang.get("garages.edit.buttons.addGarageHere")
-    W.labels.buttons.showGarage = BJI.Managers.Lang.get("garages.edit.buttons.showGarage")
-    W.labels.buttons.setGarageHere = BJI.Managers.Lang.get("garages.edit.buttons.setGarageHere")
-    W.labels.buttons.deleteGarage = BJI.Managers.Lang.get("garages.edit.buttons.deleteGarage")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.buttons.errorMustBeFreecaming = BJI.Managers.Lang.get("errors.mustBeFreecaming")
-    W.labels.buttons.errorInvalidData = BJI.Managers.Lang.get("errors.someDataAreInvalid")
+    W.labels.buttons.refreshMarkers = BJI_Lang.get("garages.edit.buttons.refreshMarkers")
+    W.labels.buttons.addGarageHere = BJI_Lang.get("garages.edit.buttons.addGarageHere")
+    W.labels.buttons.showGarage = BJI_Lang.get("garages.edit.buttons.showGarage")
+    W.labels.buttons.setGarageHere = BJI_Lang.get("garages.edit.buttons.setGarageHere")
+    W.labels.buttons.deleteGarage = BJI_Lang.get("garages.edit.buttons.deleteGarage")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.save = BJI_Lang.get("common.buttons.save")
+    W.labels.buttons.errorMustBeFreecaming = BJI_Lang.get("errors.mustBeFreecaming")
+    W.labels.buttons.errorInvalidData = BJI_Lang.get("errors.someDataAreInvalid")
 end
 
 local function validateGarages()
@@ -71,7 +71,7 @@ local function validateGarages()
 end
 
 local function updateCache()
-    W.cache.garages = Table(BJI.Managers.Context.Scenario.Data.Garages)
+    W.cache.garages = Table(BJI_Context.Scenario.Data.Garages)
         :map(function(g)
             return {
                 name = g.name,
@@ -86,25 +86,25 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.STATIONS then
+            if data.cache == BJI_Cache.CACHES.STATIONS then
                 updateCache()
             end
         end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
-    BJI.Managers.WaypointEdit.reset()
+    listeners:forEach(BJI_Events.removeListener)
+    BJI_WaypointEdit.reset()
 end
 
 local function save()
     W.cache.disableInputs = true
-    BJI.Tx.scenario.GaragesSave(W.cache.garages:map(function(g)
+    BJI_Tx_scenario.GaragesSave(W.cache.garages:map(function(g)
         return math.roundPositionRotation({
             name = g.name,
             radius = g.radius,
@@ -114,7 +114,7 @@ local function save()
         if result then
             W.changed = false
         else
-            BJI.Managers.Toast.error(BJI.Managers.Lang.get("garages.edit.saveErrorToast"))
+            BJI_Toast.error(BJI_Lang.get("garages.edit.saveErrorToast"))
         end
         W.cache.disableInputs = false
     end)
@@ -130,18 +130,18 @@ local function header(ctxt)
     SameLine()
     if IconButton("createGarage", BJI.Utils.Icon.ICONS.add_location,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.cache.disableInputs or
-                ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
+                ctxt.camera ~= BJI_Cam.CAMERAS.FREE }) then
         W.cache.garages:insert({
             name = "",
             radius = 5,
-            pos = BJI.Managers.Cam.getPositionRotation().pos,
+            pos = BJI_Cam.getPositionRotation().pos,
         })
         W.changed = true
         reloadMarkers()
         validateGarages()
     end
     TooltipText(W.labels.buttons.addGarageHere ..
-        (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+        (ctxt.camera ~= BJI_Cam.CAMERAS.FREE and
             (" (" .. W.labels.buttons.errorMustBeFreecaming .. ")") or ""))
 end
 
@@ -155,22 +155,22 @@ local function body(ctxt)
             Icon(BJI.Utils.Icon.ICONS.build)
             TableNextColumn()
             if IconButton("goToGarage" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
-                if ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE then
-                    BJI.Managers.Cam.toggleFreeCam()
+                if ctxt.camera ~= BJI_Cam.CAMERAS.FREE then
+                    BJI_Cam.toggleFreeCam()
                 end
-                BJI.Managers.Cam.setPositionRotation(g.pos)
+                BJI_Cam.setPositionRotation(g.pos)
             end
             TooltipText(W.labels.buttons.showGarage)
             SameLine()
             if IconButton("moveGarage" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
-                        ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE }) then
-                g.pos = BJI.Managers.Cam.getPositionRotation().pos
+                        ctxt.camera ~= BJI_Cam.CAMERAS.FREE }) then
+                g.pos = BJI_Cam.getPositionRotation().pos
                 W.changed = true
                 reloadMarkers()
             end
             TooltipText(W.labels.buttons.setGarageHere ..
-                (ctxt.camera ~= BJI.Managers.Cam.CAMERAS.FREE and
+                (ctxt.camera ~= BJI_Cam.CAMERAS.FREE and
                     " (" .. W.labels.buttons.errorMustBeFreecaming .. ")" or ""))
             SameLine()
             if IconButton("deleteGarage" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -217,7 +217,7 @@ end
 local function footer(ctxt)
     if IconButton("closeGaragesEdit", BJI.Utils.Icon.ICONS.exit_to_app,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-        BJI.Windows.ScenarioEditor.onClose()
+        BJI_Win_ScenarioEditor.onClose()
     end
     TooltipText(W.labels.buttons.close)
     if W.changed then
@@ -233,7 +233,7 @@ local function footer(ctxt)
 end
 
 local function open()
-    BJI.Windows.ScenarioEditor.view = W
+    BJI_Win_ScenarioEditor.view = W
 end
 
 W.onLoad = onLoad

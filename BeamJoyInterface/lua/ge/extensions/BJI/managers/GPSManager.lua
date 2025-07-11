@@ -112,7 +112,7 @@ local function renderTargets()
         core_groundMarkers.setPath(M.targets:map(function(t, i) return t.pos end),
             { color = color })
     end
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.GPS_CHANGED)
+    BJI_Events.trigger(BJI_Events.EVENTS.GPS_CHANGED)
 end
 
 local function reset()
@@ -153,7 +153,7 @@ local function _insertWaypoint(index, previousIndex, target)
     M.targets:insert(index, target)
 
     renderTargets()
-    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
+    BJI_Sound.play(BJI_Sound.SOUNDS.INFO_OPEN)
 end
 
 local function createPlayerWaypoint(playerName, radius, callback, prepend)
@@ -169,7 +169,7 @@ local function createPlayerWaypoint(playerName, radius, callback, prepend)
         return
     end
 
-    targetPlayer = BJI.Managers.Context.Players:find(function(p)
+    targetPlayer = BJI_Context.Players:find(function(p)
         return p.playerName == playerName
     end)
     if not targetPlayer or not targetPlayer.currentVehicle then
@@ -177,7 +177,7 @@ local function createPlayerWaypoint(playerName, radius, callback, prepend)
         return
     end
 
-    veh = BJI.Managers.Veh.getMPVehicle(targetPlayer.currentVehicle)
+    veh = BJI_Veh.getMPVehicle(targetPlayer.currentVehicle)
     if not veh then
         LogError("Invalid waypoint player vehicle")
         return
@@ -206,7 +206,7 @@ local function createVehicleWaypoint(gameVehID, radius, callback, prepend)
         return
     end
 
-    veh = BJI.Managers.Veh.getMPVehicle(gameVehID)
+    veh = BJI_Veh.getMPVehicle(gameVehID)
     if not veh then
         LogError("Invalid waypoint vehicle (veh not found)")
         return
@@ -390,7 +390,7 @@ local function checkTargetReached(ctxt)
         if distance < target.radius then
             M.targets:remove(1)
             renderTargets()
-            BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
+            BJI_Sound.play(BJI_Sound.SOUNDS.INFO_OPEN)
             ok, err = pcall(target.callback, ctxt)
             if not ok then
                 LogError(string.var("Error executing GPS callback: {1}", { err }))
@@ -401,7 +401,7 @@ end
 
 local function _onLastTargetReached()
     renderTargets()
-    BJI.Managers.Sound.play(BJI.Managers.Sound.SOUNDS.INFO_OPEN)
+    BJI_Sound.play(BJI_Sound.SOUNDS.INFO_OPEN)
 end
 
 local function deleteAndCheckLast(i)
@@ -423,7 +423,7 @@ local function updateTargets()
                     return deleteAndCheckLast(i)
                 end
 
-                targetPlayer = BJI.Managers.Context.Players:find(function(p)
+                targetPlayer = BJI_Context.Players:find(function(p)
                     return p.playerName == t.playerName
                 end)
                 if not targetPlayer or not targetPlayer.currentVehicle then
@@ -431,7 +431,7 @@ local function updateTargets()
                     return deleteAndCheckLast(i)
                 end
 
-                veh = BJI.Managers.Veh.getMPVehicle(targetPlayer.currentVehicle)
+                veh = BJI_Veh.getMPVehicle(targetPlayer.currentVehicle)
                 if veh then
                     t.pos = veh.position
                     renderTargets()
@@ -447,7 +447,7 @@ local function updateTargets()
                     return deleteAndCheckLast(i)
                 end
 
-                veh = BJI.Managers.Veh.getMPVehicle(t.gameVehID)
+                veh = BJI_Veh.getMPVehicle(t.gameVehID)
                 if veh then
                     t.pos = veh.position
                     renderTargets()
@@ -480,8 +480,8 @@ local function onLoad()
         freeroam_bigMapMode.navigateToMission = navigateToMission
     end
 
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 M.isClearable = isClearable

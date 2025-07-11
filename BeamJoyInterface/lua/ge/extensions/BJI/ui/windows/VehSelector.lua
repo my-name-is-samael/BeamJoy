@@ -101,34 +101,34 @@ local function updateCacheVehicles()
 end
 
 local function updateCacheLabels()
-    W.labels.previousVeh = BJI.Managers.Lang.get("vehicleSelector.previousVeh")
-    W.labels.setAsDefault = BJI.Managers.Lang.get("vehicleSelector.setAsDefault")
-    W.labels.loadDefault = BJI.Managers.Lang.get("vehicleSelector.defaultVeh")
-    W.labels.cloneCurrent = BJI.Managers.Lang.get("vehicleSelector.cloneCurrent")
-    W.labels.resetAll = BJI.Managers.Lang.get("vehicleSelector.resetAll")
-    W.labels.removeCurrent = BJI.Managers.Lang.get("vehicleSelector.deleteCurrent")
-    W.labels.removeOthers = BJI.Managers.Lang.get("vehicleSelector.deleteOthers")
-    W.labels.noVeh = BJI.Managers.Lang.get("vehicleSelector.noVeh")
-    W.labels.notAllowed = BJI.Managers.Lang.get("vehicleSelector.notAllowed")
-    W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
-    W.labels.invalidVeh = BJI.Managers.Lang.get("vehicleSelector.invalidVeh")
-    W.labels.filterTooltip = BJI.Managers.Lang.get("vehicleSelector.filterTooltip")
-    W.labels.noMatch = BJI.Managers.Lang.get("vehicleSelector.noMatch")
+    W.labels.previousVeh = BJI_Lang.get("vehicleSelector.previousVeh")
+    W.labels.setAsDefault = BJI_Lang.get("vehicleSelector.setAsDefault")
+    W.labels.loadDefault = BJI_Lang.get("vehicleSelector.defaultVeh")
+    W.labels.cloneCurrent = BJI_Lang.get("vehicleSelector.cloneCurrent")
+    W.labels.resetAll = BJI_Lang.get("vehicleSelector.resetAll")
+    W.labels.removeCurrent = BJI_Lang.get("vehicleSelector.deleteCurrent")
+    W.labels.removeOthers = BJI_Lang.get("vehicleSelector.deleteOthers")
+    W.labels.noVeh = BJI_Lang.get("vehicleSelector.noVeh")
+    W.labels.notAllowed = BJI_Lang.get("vehicleSelector.notAllowed")
+    W.labels.protectedVehicle = BJI_Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.invalidVeh = BJI_Lang.get("vehicleSelector.invalidVeh")
+    W.labels.filterTooltip = BJI_Lang.get("vehicleSelector.filterTooltip")
+    W.labels.noMatch = BJI_Lang.get("vehicleSelector.noMatch")
 
-    W.labels.openVehSelector = BJI.Managers.Lang.get("vehicleSelector.openVehSelector")
-    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.show = BJI.Managers.Lang.get("common.buttons.show")
-    W.labels.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
-    W.labels.replace = BJI.Managers.Lang.get("common.buttons.replace")
-    W.labels.random = BJI.Managers.Lang.get("common.random")
-    W.labels.applyPaint = BJI.Managers.Lang.get("vehicleSelector.applyPaint")
-    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.openVehSelector = BJI_Lang.get("vehicleSelector.openVehSelector")
+    W.labels.remove = BJI_Lang.get("common.buttons.remove")
+    W.labels.show = BJI_Lang.get("common.buttons.show")
+    W.labels.spawn = BJI_Lang.get("common.buttons.spawn")
+    W.labels.replace = BJI_Lang.get("common.buttons.replace")
+    W.labels.random = BJI_Lang.get("common.random")
+    W.labels.applyPaint = BJI_Lang.get("vehicleSelector.applyPaint")
+    W.labels.close = BJI_Lang.get("common.buttons.close")
 
-    W.labels.cars = BJI.Managers.Lang.get("vehicleSelector.cars")
-    W.labels.trucks = BJI.Managers.Lang.get("vehicleSelector.trucks")
-    W.labels.trailers = BJI.Managers.Lang.get("vehicleSelector.trailers")
-    W.labels.props = BJI.Managers.Lang.get("vehicleSelector.props")
-    W.labels.paints = BJI.Managers.Lang.get("vehicleSelector.paints")
+    W.labels.cars = BJI_Lang.get("vehicleSelector.cars")
+    W.labels.trucks = BJI_Lang.get("vehicleSelector.trucks")
+    W.labels.trailers = BJI_Lang.get("vehicleSelector.trailers")
+    W.labels.props = BJI_Lang.get("vehicleSelector.props")
+    W.labels.paints = BJI_Lang.get("vehicleSelector.paints")
 end
 
 ---@param baseColor number[]
@@ -144,11 +144,11 @@ local function paintToIconStyle(baseColor)
 end
 
 local function updateCachePaints()
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     W.cache.paints = Table()
 
     if ctxt.isOwner then
-        W.cache.paints = ctxt.veh and table.map(BJI.Managers.Veh.getAllPaintsForModel(ctxt.veh.jbeam),
+        W.cache.paints = ctxt.veh and table.map(BJI_Veh.getAllPaintsForModel(ctxt.veh.jbeam),
             function(paintData, paintLabel)
                 return {
                     label = paintLabel,
@@ -162,8 +162,8 @@ local function updateCachePaints()
 end
 
 local function isValidVeh(model)
-    return not table.includes({ BJI.Managers.Veh.TYPES.TRAILER, BJI.Managers.Veh.TYPES.PROP },
-        BJI.Managers.Veh.getType(model))
+    return not table.includes({ BJI_Veh.TYPES.TRAILER, BJI_Veh.TYPES.PROP },
+        BJI_Veh.getType(model))
 end
 
 local function isVehicleInCache(model)
@@ -174,12 +174,12 @@ local function isVehicleInCache(model)
 end
 
 local function isVehTypeAllowed(vehType)
-    if vehType == BJI.Managers.Veh.TYPES.TRAILER and
-        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_TRAILERS) then
+    if vehType == BJI_Veh.TYPES.TRAILER and
+        not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SPAWN_TRAILERS) then
         return false
     end
-    if vehType == BJI.Managers.Veh.TYPES.PROP and
-        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SPAWN_PROPS) then
+    if vehType == BJI_Veh.TYPES.PROP and
+        not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SPAWN_PROPS) then
         return false
     end
     return true
@@ -187,18 +187,18 @@ end
 
 ---@param ctxt? TickContext
 local function updateButtonsStates(ctxt)
-    ctxt = type(ctxt) == "table" and ctxt or BJI.Managers.Tick.getContext()
+    ctxt = type(ctxt) == "table" and ctxt or BJI_Tick.getContext()
 
-    local canSpawnOrReplace = BJI.Managers.Perm.canSpawnVehicle() and
+    local canSpawnOrReplace = BJI_Perm.canSpawnVehicle() and
         (ctxt.group.vehicleCap == -1 or (not ctxt.isOwner and
-            BJI.Managers.Veh.getSelfVehiclesCount() < ctxt.group.vehicleCap)) and
-        (ctxt.isOwner and BJI.Managers.Scenario.canReplaceVehicle() or BJI.Managers.Scenario.canSpawnNewVehicle())
-    local currentVehTypeAllowed = ctxt.veh and isVehTypeAllowed(BJI.Managers.Veh.getType(ctxt.veh.jbeam))
-    local currentVehBlacklisted = ctxt.veh and BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) and
-        not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
+            BJI_Veh.getSelfVehiclesCount() < ctxt.group.vehicleCap)) and
+        (ctxt.isOwner and BJI_Scenario.canReplaceVehicle() or BJI_Scenario.canSpawnNewVehicle())
+    local currentVehTypeAllowed = ctxt.veh and isVehTypeAllowed(BJI_Veh.getType(ctxt.veh.jbeam))
+    local currentVehBlacklisted = ctxt.veh and BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) and
+        not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST)
     local vehCapNotReached = ctxt.group.vehicleCap == -1 or
-        ctxt.group.vehicleCap > BJI.Managers.Veh.getSelfVehiclesCount()
-    local canClone = ctxt.veh and BJI.Managers.Scenario.canSpawnNewVehicle() and vehCapNotReached and
+        ctxt.group.vehicleCap > BJI_Veh.getSelfVehiclesCount()
+    local canClone = ctxt.veh and BJI_Scenario.canSpawnNewVehicle() and vehCapNotReached and
         currentVehTypeAllowed and not currentVehBlacklisted
 
     local currentVehIsProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
@@ -230,7 +230,7 @@ local function updateButtonsStates(ctxt)
         W.headerBtns.setAsDefaultTooltip = nil
     end
 
-    local defaultVeh = BJI.Managers.Veh.getDefaultModelAndConfig()
+    local defaultVeh = BJI_Veh.getDefaultModelAndConfig()
     W.headerBtns.loadDefaultDisabled = not defaultVeh or not canSpawnOrReplace or
         not isVehicleInCache(defaultVeh.model)
     if W.headerBtns.loadDefaultDisabled then
@@ -242,7 +242,7 @@ local function updateButtonsStates(ctxt)
             W.headerBtns.loadDefaultTooltip = W.labels.invalidVeh
         end
     elseif defaultVeh then
-        W.headerBtns.loadDefaultTooltip = BJI.Managers.Veh.getModelLabel(defaultVeh.model)
+        W.headerBtns.loadDefaultTooltip = BJI_Veh.getModelLabel(defaultVeh.model)
     end
 
     W.headerBtns.cloneCurrentDisabled = not ctxt.veh or not canSpawnOrReplace or not canClone or currentVehIsProtected
@@ -258,7 +258,7 @@ local function updateButtonsStates(ctxt)
         W.headerBtns.cloneCurrentTooltip = nil
     end
 
-    W.headerBtns.resetAllDisabled = not BJI.Managers.Scenario.isFreeroam()
+    W.headerBtns.resetAllDisabled = not BJI_Scenario.isFreeroam()
     if W.headerBtns.resetAllDisabled then
         W.headerBtns.resetAllTooltip = W.labels.notAllowed
     else
@@ -266,12 +266,12 @@ local function updateButtonsStates(ctxt)
     end
 
     if ctxt.isOwner then
-        W.headerBtns.removeCurrentDisabled = not BJI.Managers.Scenario.canDeleteVehicle()
+        W.headerBtns.removeCurrentDisabled = not BJI_Scenario.canDeleteVehicle()
         if W.headerBtns.removeCurrentDisabled then
             W.headerBtns.removeCurrentTooltip = W.labels.notAllowed
         end
     else
-        W.headerBtns.removeCurrentDisabled = not ctxt.veh or not BJI.Managers.Scenario.canDeleteOtherPlayersVehicle()
+        W.headerBtns.removeCurrentDisabled = not ctxt.veh or not BJI_Scenario.canDeleteOtherPlayersVehicle()
         if W.headerBtns.removeCurrentDisabled then
             if not ctxt.veh then
                 W.headerBtns.removeCurrentTooltip = W.labels.noVeh
@@ -285,9 +285,9 @@ local function updateButtonsStates(ctxt)
     end
 
     W.headerBtns.removeOthersDisabled = table.length(ctxt.user.vehicles) <= (ctxt.isOwner and 1 or 0) or
-        not BJI.Managers.Scenario.canDeleteOtherVehicles()
+        not BJI_Scenario.canDeleteOtherVehicles()
     if W.headerBtns.removeOthersDisabled then
-        if not BJI.Managers.Scenario.canDeleteOtherVehicles() then
+        if not BJI_Scenario.canDeleteOtherVehicles() then
             W.headerBtns.removeOthersTooltip = W.labels.notAllowed
         else
             W.headerBtns.removeOthersTooltip = W.labels.noVeh
@@ -302,7 +302,7 @@ local function drawHeader(ctxt)
     if Button("loadPrevious", W.labels.previousVeh,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                 disabled = W.headerBtns.loadPreviousDisabled }) then
-        BJI.Managers.Scenario.tryReplaceOrSpawn(ctxt.user.previousVehConfig.model, ctxt.user.previousVehConfig)
+        BJI_Scenario.tryReplaceOrSpawn(ctxt.user.previousVehConfig.model, ctxt.user.previousVehConfig)
         extensions.hook("trackNewVeh")
     end
     TooltipText(W.headerBtns.loadPreviousTooltip)
@@ -325,9 +325,9 @@ local function drawHeader(ctxt)
         if Button("loadDefault", W.labels.loadDefault,
                 { disabled = W.headerBtns.loadDefaultDisabled,
                     width = width }) then
-            local defaultVeh = BJI.Managers.Veh.getDefaultModelAndConfig()
+            local defaultVeh = BJI_Veh.getDefaultModelAndConfig()
             if defaultVeh then
-                BJI.Managers.Scenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
+                BJI_Scenario.tryReplaceOrSpawn(defaultVeh.model, defaultVeh.config)
                 extensions.hook("trackNewVeh")
             end
         end
@@ -336,7 +336,7 @@ local function drawHeader(ctxt)
         if Button("cloneCurrent", W.labels.cloneCurrent,
                 { disabled = W.headerBtns.cloneCurrentDisabled,
                     width = width }) then
-            BJI.Managers.Scenario.trySpawnNew(ctxt.veh.jbeam, ctxt.veh.veh.partConfig)
+            BJI_Scenario.trySpawnNew(ctxt.veh.jbeam, ctxt.veh.veh.partConfig)
             extensions.hook("trackNewVeh")
         end
         TooltipText(W.headerBtns.cloneCurrentTooltip)
@@ -355,12 +355,12 @@ local function drawHeader(ctxt)
                     disabled = W.headerBtns.removeCurrentDisabled,
                     width = width }) then
             if ctxt.isOwner then
-                BJI.Managers.Veh.deleteCurrentOwnVehicle()
+                BJI_Veh.deleteCurrentOwnVehicle()
             else
-                BJI.Managers.Popup.createModal(BJI.Managers.Lang.get("vehicleSelector.deleteOtherPlayerVehicleModal"), {
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.cancel")),
-                    BJI.Managers.Popup.createButton(BJI.Managers.Lang.get("common.buttons.confirm"), function()
-                        BJI.Managers.Veh.deleteOtherPlayerVehicle()
+                BJI_Popup.createModal(BJI_Lang.get("vehicleSelector.deleteOtherPlayerVehicleModal"), {
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                    BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
+                        BJI_Veh.deleteOtherPlayerVehicle()
                         extensions.hook("trackNewVeh")
                     end),
                 })
@@ -372,7 +372,7 @@ local function drawHeader(ctxt)
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR,
                     disabled = W.headerBtns.removeOthersDisabled,
                     width = width }) then
-            BJI.Managers.Veh.deleteOtherOwnVehicles()
+            BJI_Veh.deleteOtherOwnVehicles()
             extensions.hook("trackNewVeh")
         end
         TooltipText(W.headerBtns.removeOthersTooltip)
@@ -384,10 +384,10 @@ local function drawHeader(ctxt)
     if #W.models.cars + #W.models.trucks +
         #W.models.trailers + #W.models.props > 0 then
         Separator()
-        if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
+        if not BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.VEHICLE_SELECTOR) then
             if IconButton("openVehSelectorUI", BJI.Utils.Icon.ICONS.open_in_new) then
                 if W.onClose then
-                    BJI.Windows.VehSelector.tryClose()
+                    BJI_Win_VehSelector.tryClose()
                 end
                 core_vehicles.openSelectorUI()
             end
@@ -425,7 +425,7 @@ local function drawConfig(modelKey, config)
         if IconButton(string.var("spawnNew-{1}-{2}", { modelKey, config.key }),
                 BJI.Utils.Icon.ICONS.add,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI.Managers.Scenario.trySpawnNew(modelKey, config.key)
+            BJI_Scenario.trySpawnNew(modelKey, config.key)
         end
         TooltipText(W.labels.spawn)
         drawn = true
@@ -436,7 +436,7 @@ local function drawConfig(modelKey, config)
         end
         if IconButton(string.var("replace-{1}-{2}", { modelKey, config.key }),
                 BJI.Utils.Icon.ICONS.carSensors, { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-            BJI.Managers.Scenario.tryReplaceOrSpawn(modelKey, config.key)
+            BJI_Scenario.tryReplaceOrSpawn(modelKey, config.key)
         end
         TooltipText(W.labels.replace)
     end
@@ -497,7 +497,7 @@ local function drawModel(model)
         if IsItemHovered() then
             local img = getModelImage(model.preview)
             if img then
-                scale = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.UI_SCALE)
+                scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
                 finalPreviewSize = ImVec2(previewSize.x * scale, previewSize.y * scale)
                 BeginTooltip()
                 Image(img.texId, finalPreviewSize)
@@ -512,7 +512,7 @@ local function drawModel(model)
             if not limitReached then
                 if IconButton(string.var("spawnNew-{1}", { model.key }), BJI.Utils.Icon.ICONS.add,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-                    BJI.Managers.Scenario.trySpawnNew(model.key, #model.configs == 1 and
+                    BJI_Scenario.trySpawnNew(model.key, #model.configs == 1 and
                         model.configs[1].key or nil)
                 end
                 TooltipText(W.labels.spawn)
@@ -524,7 +524,7 @@ local function drawModel(model)
                 end
                 if IconButton(string.var("replace-{1}", { model.key }), BJI.Utils.Icon.ICONS.carSensors,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
-                    BJI.Managers.Scenario.tryReplaceOrSpawn(model.key,
+                    BJI_Scenario.tryReplaceOrSpawn(model.key,
                         #model.configs == 1 and model.configs[1].key or nil)
                 end
                 TooltipText(W.labels.replace)
@@ -538,7 +538,7 @@ local function drawModel(model)
             if IconButton(string.var("spawnRandom-{1}", { model.key }), BJI.Utils.Icon.ICONS.casino,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
                 local config = table.random(model.configs) or {}
-                BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
+                BJI_Scenario.tryReplaceOrSpawn(model.key, config.key)
             end
             TooltipText(W.labels.random)
         end
@@ -614,7 +614,7 @@ local function drawType(vehs, label, name, icon)
                     local model = table.random(vehs) or {}
                     local config = table.random(model.configs) or {}
                     if model.key and config.key then
-                        BJI.Managers.Scenario.tryReplaceOrSpawn(model.key, config.key)
+                        BJI_Scenario.tryReplaceOrSpawn(model.key, config.key)
                     end
                 end
                 TooltipText(W.labels.random)
@@ -655,7 +655,7 @@ end
 
 ---@param paints { label: string, paint: { baseColor: number[] }, style: vec4[] }[]
 local function drawPaints(paints)
-    if not BJI.Managers.Veh.isCurrentVehicleOwn() then
+    if not BJI_Veh.isCurrentVehicleOwn() then
         return
     end
 
@@ -673,7 +673,7 @@ local function drawPaints(paints)
                 end
                 if IconButton(string.var("applyPaint-{1}-{2}", { i, j }),
                         BJI.Utils.Icon.ICONS.format_color_fill, { btnStyle = paintData.style }) then
-                    BJI.Managers.Scenario.tryPaint(j, paintData.paint)
+                    BJI_Scenario.tryPaint(j, paintData.paint)
                 end
                 TooltipText(W.labels.applyPaint:var({ position = j }))
             end)
@@ -686,7 +686,7 @@ end
 ---@param ctxt TickContext
 local function drawBody(ctxt)
     ownVeh = ctxt.isOwner
-    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= BJI.Managers.Veh.getSelfVehiclesCount()
+    limitReached = ctxt.group.vehicleCap > -1 and ctxt.group.vehicleCap <= BJI_Veh.getSelfVehiclesCount()
 
     vehsDrew = false
 
@@ -719,7 +719,7 @@ local function drawBody(ctxt)
             Separator()
         end
 
-        opened = BeginTree(BJI.Managers.Lang.get("vehicleSelector.paints"))
+        opened = BeginTree(BJI_Lang.get("vehicleSelector.paints"))
         SameLine()
         Icon(BJI.Utils.Icon.ICONS.style)
         if opened then
@@ -782,7 +782,7 @@ end
 
 local function updateBaseModels()
     ---@type table<string, table>
-    local models = BJI.Managers.Scenario.getModelList()
+    local models = BJI_Scenario.getModelList()
 
     if type(models) ~= "table" then
         -- autoclose
@@ -851,57 +851,57 @@ end
 local listeners = Table()
 local function onLoad()
     updateBaseModels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CONFIG_SAVED,
-        BJI.Managers.Events.EVENTS.CONFIG_REMOVED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CONFIG_SAVED,
+        BJI_Events.EVENTS.CONFIG_REMOVED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateBaseModels, W.name .. "Models"))
 
     updateCacheLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt)
         updateCacheLabels()
         updateButtonsStates(ctxt)
     end, W.name .. "Labels"))
 
     updateCachePaints()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
-        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.VEHICLE_SPAWNED,
+        BJI_Events.EVENTS.VEHICLE_REMOVED,
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCachePaints, W.name .. "Paints"))
 
-    listeners:insert(BJI.Managers.Events.addListener({
-            BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-            BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
+    listeners:insert(BJI_Events.addListener({
+            BJI_Events.EVENTS.PERMISSION_CHANGED,
+            BJI_Events.EVENTS.PURSUIT_UPDATE,
         },
         function()
-            if not BJI.Managers.Perm.canSpawnVehicle() or
-                BJI.Managers.Pursuit.getState() then
+            if not BJI_Perm.canSpawnVehicle() or
+                BJI_Pursuit.getState() then
                 tryClose(true)
             end
         end, W.name .. "AutoClose"))
 
     updateButtonsStates()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.VEHICLE_REMOVED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPAWNED,
-        BJI.Managers.Events.EVENTS.VEHICLES_UPDATED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-        BJI.Managers.Events.EVENTS.NG_VEHICLE_REPLACED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.VEHICLE_REMOVED,
+        BJI_Events.EVENTS.VEHICLE_SPAWNED,
+        BJI_Events.EVENTS.VEHICLES_UPDATED,
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI_Events.EVENTS.NG_VEHICLE_REPLACED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateButtonsStates, W.name .. "ButtonsStates"))
 end
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 W.onLoad = onLoad
@@ -913,7 +913,7 @@ W.footer = drawFooter
 W.getFooterLines = getFooterLines
 -- M.onClose -- dynamically generated
 W.getState = function()
-    return W.show and BJI.Managers.Perm.canSpawnVehicle()
+    return W.show and BJI_Perm.canSpawnVehicle()
 end
 
 W.open = open

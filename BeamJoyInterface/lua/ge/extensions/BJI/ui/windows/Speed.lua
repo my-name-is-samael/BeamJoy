@@ -24,16 +24,16 @@ local W = {
 local remaining, lb, color
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("speed.title")
-    W.labels.speedUnit = BJI.Managers.Lang.get("speed.speedUnit")
-    W.labels.minimumSpeed = BJI.Managers.Lang.get("speed.minimumSpeed")
-    W.labels.counterWarning = BJI.Managers.Lang.get("speed.counterWarning")
-    W.labels.leaderboard = BJI.Managers.Lang.get("speed.leaderboard")
+    W.labels.title = BJI_Lang.get("speed.title")
+    W.labels.speedUnit = BJI_Lang.get("speed.speedUnit")
+    W.labels.minimumSpeed = BJI_Lang.get("speed.minimumSpeed")
+    W.labels.counterWarning = BJI_Lang.get("speed.counterWarning")
+    W.labels.leaderboard = BJI_Lang.get("speed.leaderboard")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.cache.minSpeed = W.labels.minimumSpeed:var({
         speed = string.var("{1}{2}", { W.scenario.minSpeed, W.labels.speedUnit }) })
@@ -43,7 +43,7 @@ local function updateCache(ctxt)
             local lb = W.scenario.leaderboard[i]
             if lb then
                 acc[i] = {
-                    player = BJI.Managers.Context.Players[lb.playerID],
+                    player = BJI_Context.Players[lb.playerID],
                     self = lb.playerID == ctxt.user.playerID,
                     speed = lb.speed,
                     time = lb.time
@@ -55,23 +55,23 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.SPEED)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.SPEED)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateLabels, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function drawHeader(ctxt)
@@ -119,7 +119,7 @@ W.onUnload = onUnload
 W.header = drawHeader
 W.body = drawBody
 W.getState = function()
-    return BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.SPEED)
+    return BJI_Scenario.is(BJI_Scenario.TYPES.SPEED)
 end
 
 return W

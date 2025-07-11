@@ -53,52 +53,52 @@ local FORMATTING_CODES = {
 local FAVORITE_NAME_OFFLINE_SUFFIX = "[OFFLINE]"
 
 local function updateLabels()
-    W.labelsCore.formatting.title = BJI.Managers.Lang.get("serverConfig.core.formattingHints.title")
+    W.labelsCore.formatting.title = BJI_Lang.get("serverConfig.core.formattingHints.title")
     Range(1, math.max(#FORMATTING_CODES[1], #FORMATTING_CODES[2], #FORMATTING_CODES[3]))
         :forEach(function(i)
             Range(1, 3):forEach(function(j)
                 if FORMATTING_CODES[j][i] then
-                    W.labelsCore.formatting[FORMATTING_CODES[j][i].key] = BJI.Managers.Lang.get(string.var(
+                    W.labelsCore.formatting[FORMATTING_CODES[j][i].key] = BJI_Lang.get(string.var(
                         "serverConfig.core.formattingHints.{1}", { FORMATTING_CODES[j][i].key }))
                 end
             end)
         end)
 
-    W.labelsCore.title = BJI.Managers.Lang.get("serverConfig.core.title") .. " :"
-    W.labelsCore.previewTooltip = BJI.Managers.Lang.get("serverConfig.core.previewTooltip")
-    Table(BJI.Managers.Context.Core):keys():forEach(function(k)
-        W.labelsCore.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}", { k })) .. " :"
-        local tooltip = BJI.Managers.Lang.get(string.var("serverConfig.core.{1}Tooltip", { k }), "")
+    W.labelsCore.title = BJI_Lang.get("serverConfig.core.title") .. " :"
+    W.labelsCore.previewTooltip = BJI_Lang.get("serverConfig.core.previewTooltip")
+    Table(BJI_Context.Core):keys():forEach(function(k)
+        W.labelsCore.keys[k] = BJI_Lang.get(string.var("serverConfig.core.{1}", { k })) .. " :"
+        local tooltip = BJI_Lang.get(string.var("serverConfig.core.{1}Tooltip", { k }), "")
         if #tooltip > 0 then
             W.labelsCore.keys[k .. "Tooltip"] = tooltip
         end
     end)
 
-    W.labelsCen.title = BJI.Managers.Lang.get("serverConfig.cen.title") .. " :"
-    W.labelsCen.titleTooltip = BJI.Managers.Lang.get("serverConfig.cen.tooltip")
-    Table(BJI.Managers.Context.BJC.CEN):keys():forEach(function(k)
-        W.labelsCen.keys[k] = BJI.Managers.Lang.get(string.var("serverConfig.cen.{1}", { k })) .. " :"
+    W.labelsCen.title = BJI_Lang.get("serverConfig.cen.title") .. " :"
+    W.labelsCen.titleTooltip = BJI_Lang.get("serverConfig.cen.tooltip")
+    Table(BJI_Context.BJC.CEN):keys():forEach(function(k)
+        W.labelsCen.keys[k] = BJI_Lang.get(string.var("serverConfig.cen.{1}", { k })) .. " :"
     end)
 end
 
 local function updateCache()
-    W.showCore = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CORE)
-    W.showCEN = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_CEN)
+    W.showCore = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_CORE)
+    W.showCEN = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_CEN)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
     }, updateCache, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function renderFormattingCode(el)
@@ -230,14 +230,14 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            nextValue = InputText("coreName", BJI.Managers.Context.Core.Name,
+            nextValue = InputText("coreName", BJI_Context.Core.Name,
                 { size = 250 })
             if nextValue then
-                BJI.Managers.Context.Core.Name = nextValue
-                BJI.Tx.config.core("Name", BJI.Managers.Context.Core.Name)
+                BJI_Context.Core.Name = nextValue
+                BJI_Tx_config.core("Name", BJI_Context.Core.Name)
             end
-            if isContainingColors(BJI.Managers.Context.Core.Name) then
-                drawCoreTextPreview(BJI.Managers.Context.Core.Name, "Name")
+            if isContainingColors(BJI_Context.Core.Name) then
+                drawCoreTextPreview(BJI_Context.Core.Name, "Name")
             end
         end
     },
@@ -248,14 +248,14 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            nextValue = InputTextMultiline("coreDescription", BJI.Managers.Context.Core.Description,
+            nextValue = InputTextMultiline("coreDescription", BJI_Context.Core.Description,
                 { size = 1000 })
             if nextValue then
-                BJI.Managers.Context.Core.Description = nextValue
-                BJI.Tx.config.core("Description", BJI.Managers.Context.Core.Description)
+                BJI_Context.Core.Description = nextValue
+                BJI_Tx_config.core("Description", BJI_Context.Core.Description)
             end
-            if isContainingColors(BJI.Managers.Context.Core.Description) then
-                drawCoreTextPreview(BJI.Managers.Context.Core.Description:gsub("\n", "%^p"),
+            if isContainingColors(BJI_Context.Core.Description) then
+                drawCoreTextPreview(BJI_Context.Core.Description:gsub("\n", "%^p"),
                     "Description")
             end
         end
@@ -267,11 +267,11 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            nextValue = InputInt("coreMaxPlayers", BJI.Managers.Context.Core.MaxPlayers,
+            nextValue = InputInt("coreMaxPlayers", BJI_Context.Core.MaxPlayers,
                 { min = 1, step = 1 })
             if nextValue then
-                BJI.Managers.Context.Core.MaxPlayers = nextValue
-                BJI.Tx.config.core("MaxPlayers", BJI.Managers.Context.Core.MaxPlayers)
+                BJI_Context.Core.MaxPlayers = nextValue
+                BJI_Tx_config.core("MaxPlayers", BJI_Context.Core.MaxPlayers)
             end
         end
     },
@@ -282,11 +282,11 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            if IconButton("corePrivate", BJI.Managers.Context.Core.Private and BJI.Utils.Icon.ICONS.check_circle or
-                    BJI.Utils.Icon.ICONS.cancel, { bgLess = true, btnStyle = BJI.Managers.Context.Core.Private and
+            if IconButton("corePrivate", BJI_Context.Core.Private and BJI.Utils.Icon.ICONS.check_circle or
+                    BJI.Utils.Icon.ICONS.cancel, { bgLess = true, btnStyle = BJI_Context.Core.Private and
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Context.Core.Private = not BJI.Managers.Context.Core.Private
-                BJI.Tx.config.core("Private", BJI.Managers.Context.Core.Private)
+                BJI_Context.Core.Private = not BJI_Context.Core.Private
+                BJI_Tx_config.core("Private", BJI_Context.Core.Private)
             end
         end
     },
@@ -297,11 +297,11 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            if IconButton("coreDebug", BJI.Managers.Context.Core.Debug and BJI.Utils.Icon.ICONS.check_circle or
-                    BJI.Utils.Icon.ICONS.cancel, { bgLess = true, btnStyle = BJI.Managers.Context.Core.Debug and
+            if IconButton("coreDebug", BJI_Context.Core.Debug and BJI.Utils.Icon.ICONS.check_circle or
+                    BJI.Utils.Icon.ICONS.cancel, { bgLess = true, btnStyle = BJI_Context.Core.Debug and
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Context.Core.Debug = not BJI.Managers.Context.Core.Debug
-                BJI.Tx.config.core("Debug", BJI.Managers.Context.Core.Debug)
+                BJI_Context.Core.Debug = not BJI_Context.Core.Debug
+                BJI_Tx_config.core("Debug", BJI_Context.Core.Debug)
             end
         end
     },
@@ -312,13 +312,13 @@ local CORE_CONFIG = Table({
             Text(label)
             TooltipText(tooltip)
             TableNextColumn()
-            if IconButton("coreInformationPacket", BJI.Managers.Context.Core.InformationPacket and
+            if IconButton("coreInformationPacket", BJI_Context.Core.InformationPacket and
                     BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel, { bgLess = true,
-                        btnStyle = BJI.Managers.Context.Core.InformationPacket and
+                        btnStyle = BJI_Context.Core.InformationPacket and
                             BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Context.Core.InformationPacket = not BJI.Managers.Context.Core
+                BJI_Context.Core.InformationPacket = not BJI_Context.Core
                     .InformationPacket
-                BJI.Tx.config.core("InformationPacket", BJI.Managers.Context.Core.InformationPacket)
+                BJI_Tx_config.core("InformationPacket", BJI_Context.Core.InformationPacket)
             end
         end
     }
@@ -334,7 +334,7 @@ local function drawCoreConfig(ctxt)
             { label = "##core-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
         }) then
         CORE_CONFIG:forEach(function(conf)
-            if BJI.Managers.Context.Core[conf.key] ~= nil then
+            if BJI_Context.Core[conf.key] ~= nil then
                 conf.render(W.labelsCore.keys[conf.key], W.labelsCore.keys[conf.key .. "Tooltip"])
             end
         end)
@@ -353,15 +353,15 @@ local function drawCEN(ctxt)
             { label = "##cen-labels" },
             { label = "##cen-inputs", flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
         }) then
-        for k, v in pairs(BJI.Managers.Context.BJC.CEN) do
+        for k, v in pairs(BJI_Context.BJC.CEN) do
             TableNewRow()
             Text(W.labelsCen.keys[k])
             TableNextColumn()
             if IconButton("cen-" .. k, v and BJI.Utils.Icon.ICONS.check_circle or BJI.Utils.Icon.ICONS.cancel,
                     { bgLess = true, btnStyle = v and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
                         BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                BJI.Managers.Context.BJC.CEN[k] = not v
-                BJI.Tx.config.bjc("CEN." .. k, BJI.Managers.Context.BJC.CEN[k])
+                BJI_Context.BJC.CEN[k] = not v
+                BJI_Tx_config.bjc("CEN." .. k, BJI_Context.BJC.CEN[k])
             end
         end
 

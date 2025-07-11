@@ -28,43 +28,43 @@ local W = {
 local nextValue, map
 
 local function updateLabels()
-    W.labels.newMapTitle = BJI.Managers.Lang.get("serverConfig.maps.new.title")
-    W.labels.newMapName = BJI.Managers.Lang.get("serverConfig.maps.new.name") .. ":"
-    W.labels.newMapNameTooltip = BJI.Managers.Lang.get("serverConfig.maps.new.nameTooltip")
-    W.labels.mapLabel = BJI.Managers.Lang.get("serverConfig.maps.label") .. " :"
-    W.labels.mapArchive = BJI.Managers.Lang.get("serverConfig.maps.archive") .. " :"
-    W.labels.mapCustom = BJI.Managers.Lang.get("votemap.targetMapCustom")
+    W.labels.newMapTitle = BJI_Lang.get("serverConfig.maps.new.title")
+    W.labels.newMapName = BJI_Lang.get("serverConfig.maps.new.name") .. ":"
+    W.labels.newMapNameTooltip = BJI_Lang.get("serverConfig.maps.new.nameTooltip")
+    W.labels.mapLabel = BJI_Lang.get("serverConfig.maps.label") .. " :"
+    W.labels.mapArchive = BJI_Lang.get("serverConfig.maps.archive") .. " :"
+    W.labels.mapCustom = BJI_Lang.get("votemap.targetMapCustom")
 
-    W.labels.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.save = BJI.Managers.Lang.get("common.buttons.save")
-    W.labels.reset = BJI.Managers.Lang.get("common.buttons.reset")
+    W.labels.add = BJI_Lang.get("common.buttons.add")
+    W.labels.remove = BJI_Lang.get("common.buttons.remove")
+    W.labels.save = BJI_Lang.get("common.buttons.save")
+    W.labels.reset = BJI_Lang.get("common.buttons.reset")
 end
 
 local function updateCache()
     W.disableInputs = false
 
-    W.maps = Table(BJI.Managers.Context.Maps):clone()
+    W.maps = Table(BJI_Context.Maps):clone()
     W.mapsOrder = W.maps:keys():sort()
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
     }, function(_, data)
-        if data.cache == BJI.Managers.Cache.CACHES.MAPS then
+        if data.cache == BJI_Cache.CACHES.MAPS then
             updateCache()
         end
     end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 local function drawMapsList(ctxt)
@@ -81,18 +81,18 @@ local function drawMapsList(ctxt)
             if IconButton("map-state-" .. mapName, map.enabled and
                     BJI.Utils.Icon.ICONS.visibility or BJI.Utils.Icon.ICONS.visibility_off,
                     { btnStyle = map.enabled and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR,
-                        disabled = W.disableInputs or BJI.Managers.Context.UI.mapName == mapName }) then
+                        disabled = W.disableInputs or BJI_Context.UI.mapName == mapName }) then
                 W.disableInputs = true
-                BJI.Tx.config.mapState(mapName, not map.enabled)
+                BJI_Tx_config.mapState(mapName, not map.enabled)
                 map.enabled = not map.enabled
             end
-            if not table.compare(map, BJI.Managers.Context.Maps[mapName]) then
+            if not table.compare(map, BJI_Context.Maps[mapName]) then
                 SameLine()
                 if IconButton("map-save-" .. mapName, BJI.Utils.Icon.ICONS.save,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                             disabled = W.disableInputs or #map.label == 0 or (map.custom and #map.archive == 0) }) then
                     W.disableInputs = true
-                    BJI.Tx.config.maps(mapName, map.label, map.custom and map.archive or nil)
+                    BJI_Tx_config.maps(mapName, map.label, map.custom and map.archive or nil)
                 end
                 TooltipText(W.labels.save)
             end
@@ -100,9 +100,9 @@ local function drawMapsList(ctxt)
                 SameLine()
                 if IconButton("map-delete-" .. mapName, BJI.Utils.Icon.ICONS.delete_forever,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR,
-                            disabled = W.disableInputs or mapName == BJI.Managers.Context.UI.mapName }) then
+                            disabled = W.disableInputs or mapName == BJI_Context.UI.mapName }) then
                     W.disableInputs = true
-                    BJI.Tx.config.maps(mapName)
+                    BJI_Tx_config.maps(mapName)
                 end
                 TooltipText(W.labels.remove)
             end
@@ -114,8 +114,8 @@ local function drawMapsList(ctxt)
             TableNextColumn()
             if IconButton("map-label-reset-" .. mapName, BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                        disabled = W.disableInputs or map.label == BJI.Managers.Context.Maps[mapName].label }) then
-                map.label = BJI.Managers.Context.Maps[mapName].label
+                        disabled = W.disableInputs or map.label == BJI_Context.Maps[mapName].label }) then
+                map.label = BJI_Context.Maps[mapName].label
             end
             TooltipText(W.labels.reset)
             SameLine()
@@ -135,8 +135,8 @@ local function drawMapsList(ctxt)
                 TableNextColumn()
                 if IconButton("map-archive-reset-" .. mapName, BJI.Utils.Icon.ICONS.refresh,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                            disabled = W.disableInputs or map.archive == BJI.Managers.Context.Maps[mapName].archive }) then
-                    map.archive = BJI.Managers.Context.Maps[mapName].archive
+                            disabled = W.disableInputs or map.archive == BJI_Context.Maps[mapName].archive }) then
+                    map.archive = BJI_Context.Maps[mapName].archive
                 end
                 TooltipText(W.labels.reset)
                 SameLine()
@@ -160,9 +160,9 @@ local function drawNewMap(ctxt)
     if IconButton("addNewMap", BJI.Utils.Icon.ICONS.save,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = W.disableInputs or
                 #W.newMap.name == 0 or #W.newMap.label == 0 or #W.newMap.archive == 0 or
-                BJI.Managers.Context.Maps[W.newMap.name] ~= nil }) then
+                BJI_Context.Maps[W.newMap.name] ~= nil }) then
         W.disableInputs = true
-        BJI.Tx.config.maps(W.newMap.name, W.newMap.label, W.newMap.archive)
+        BJI_Tx_config.maps(W.newMap.name, W.newMap.label, W.newMap.archive)
         W.newMap.name = ""
         W.newMap.label = ""
         W.newMap.archive = ""
@@ -179,7 +179,7 @@ local function drawNewMap(ctxt)
         TableNextColumn()
         nextValue = InputText("newMapName", W.newMap.name,
             {
-                inputStyle = (#W.newMap.name == 0 or BJI.Managers.Context.Maps[W.newMap.name] ~= nil) and
+                inputStyle = (#W.newMap.name == 0 or BJI_Context.Maps[W.newMap.name] ~= nil) and
                     BJI.Utils.Style.INPUT_PRESETS.ERROR or nil,
                 disabled = W.disableInputs
             })

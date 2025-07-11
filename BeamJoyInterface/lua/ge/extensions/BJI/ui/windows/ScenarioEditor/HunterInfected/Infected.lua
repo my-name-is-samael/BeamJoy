@@ -8,7 +8,7 @@ local infectedColor = BJI.Utils.ShapeDrawer.Color(1, 0, 0, .5)
 local bgColor = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5)
 ---@param parent table
 W.reloadMarkers = function(parent)
-    BJI.Managers.WaypointEdit.setWaypoints(parent.data.majorPositions:map(function(survivor, i)
+    BJI_WaypointEdit.setWaypoints(parent.data.majorPositions:map(function(survivor, i)
         return {
             name = parent.labels.infected.tags.survivorName:var({ index = i }),
             pos = survivor.pos,
@@ -17,7 +17,7 @@ W.reloadMarkers = function(parent)
             color = survivorColor,
             textColor = survivorColor,
             textBg = bgColor,
-            type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+            type = BJI_WaypointEdit.TYPES.ARROW,
         }
     end):addAll(parent.data.minorPositions:map(function(infected, i)
         return {
@@ -28,7 +28,7 @@ W.reloadMarkers = function(parent)
             color = infectedColor,
             textColor = infectedColor,
             textBg = bgColor,
-            type = BJI.Managers.WaypointEdit.TYPES.ARROW,
+            type = BJI_WaypointEdit.TYPES.ARROW,
         }
     end)))
 end
@@ -46,13 +46,13 @@ local function drawSurvivorsPoints(parent, ctxt)
             TableNextColumn()
             if IconButton("goToSurvivor" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
-                    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
+                    if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                        BJI_Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(survivorPoint.pos, survivorPoint.rot, { safe = false })
+                    BJI_Veh.setPositionRotation(survivorPoint.pos, survivorPoint.rot, { safe = false })
                 else
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                    BJI.Managers.Cam.setPositionRotation(survivorPoint.pos + vec3(0, 0, 1),
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+                    BJI_Cam.setPositionRotation(survivorPoint.pos + vec3(0, 0, 1),
                         survivorPoint.rot * quat(0, 0, 1, 0))
                 end
             end
@@ -60,7 +60,7 @@ local function drawSurvivorsPoints(parent, ctxt)
             SameLine()
             if IconButton("moveSurvivor" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = parent.disableButtons or
-                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 parent.data.majorPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -70,7 +70,7 @@ local function drawSurvivorsPoints(parent, ctxt)
                 parent.validateData()
             end
             TooltipText(parent.labels.infected.buttons.setSurvivorStartPositionHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
             SameLine()
             if IconButton("deleteSurvivor" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -101,13 +101,13 @@ local function drawInfectedPoints(parent, ctxt)
             TableNextColumn()
             if IconButton("goToInfected" .. tostring(i), BJI.Utils.Icon.ICONS.pin_drop) then
                 if ctxt.isOwner then
-                    if ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE then
-                        BJI.Managers.Cam.toggleFreeCam()
+                    if ctxt.camera == BJI_Cam.CAMERAS.FREE then
+                        BJI_Cam.toggleFreeCam()
                     end
-                    BJI.Managers.Veh.setPositionRotation(infectedPoint.pos, infectedPoint.rot, { safe = false })
+                    BJI_Veh.setPositionRotation(infectedPoint.pos, infectedPoint.rot, { safe = false })
                 else
-                    BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.FREE)
-                    BJI.Managers.Cam.setPositionRotation(infectedPoint.pos + vec3(0, 0, 1),
+                    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+                    BJI_Cam.setPositionRotation(infectedPoint.pos + vec3(0, 0, 1),
                         infectedPoint.rot * quat(0, 0, 1, 0))
                 end
             end
@@ -115,7 +115,7 @@ local function drawInfectedPoints(parent, ctxt)
             SameLine()
             if IconButton("moveInfected" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = parent.disableButtons or
-                        not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                        not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
                 parent.data.minorPositions[i] = math.roundPositionRotation({
                     pos = ctxt.veh.position,
                     rot = ctxt.veh.rotation,
@@ -125,7 +125,7 @@ local function drawInfectedPoints(parent, ctxt)
                 parent.validateData()
             end
             TooltipText(parent.labels.infected.buttons.setInfectedStartPositionHere ..
-                ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+                ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                     " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
             SameLine()
             if IconButton("deleteInfected" .. tostring(i), BJI.Utils.Icon.ICONS.delete_forever,
@@ -169,7 +169,7 @@ W.body = function(parent, ctxt)
         SameLine()
         if IconButton("addSurvivorPosition", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = parent.disableButtons or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             parent.data.majorPositions:insert(math.roundPositionRotation({
                 pos = ctxt.veh.position,
                 rot = ctxt.veh.rotation,
@@ -180,7 +180,7 @@ W.body = function(parent, ctxt)
             parent.validateData()
         end
         TooltipText(parent.labels.infected.buttons.addSurvivorStartPositionHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
     end
     if #parent.data.majorPositions < 5 then
@@ -200,7 +200,7 @@ W.body = function(parent, ctxt)
         SameLine()
         if IconButton("addInfectedPosition", BJI.Utils.Icon.ICONS.add_location,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = parent.disableButtons or
-                    not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE }) then
+                    not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE }) then
             parent.data.minorPositions:insert(math.roundPositionRotation({
                 pos = ctxt.veh.position,
                 rot = ctxt.veh.rotation,
@@ -211,7 +211,7 @@ W.body = function(parent, ctxt)
             parent.validateData()
         end
         TooltipText(parent.labels.infected.buttons.addInfectedStartPositionHere ..
-            ((not ctxt.veh or ctxt.camera == BJI.Managers.Cam.CAMERAS.FREE) and
+            ((not ctxt.veh or ctxt.camera == BJI_Cam.CAMERAS.FREE) and
                 " (" .. parent.labels.errors.errorMustHaveVehicle .. ")" or ""))
     end
     if #parent.data.minorPositions < 2 then

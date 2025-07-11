@@ -71,7 +71,7 @@ end
 
 local previous = Table()
 local function update()
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     res = M._baseRestrictions:clone()
         :addAll(M.AI.CHANGE_MODE, true)
     for _, m in pairs(BJI.Managers) do
@@ -87,9 +87,9 @@ local function update()
 
     if not ctxt.isOwner then
         res:addAll(M.RESETS.ONLY_RECOVER, true)
-    elseif BJI.Managers.Scenario.canReset() then
+    elseif BJI_Scenario.canReset() then
         -- no restriction to add
-    elseif BJI.Managers.Scenario.canRecoverVehicle() then
+    elseif BJI_Scenario.canRecoverVehicle() then
         res:addAll(M.RESETS.ONLY_RECOVER, true)
     else
         res:addAll(M.RESETS.SCENARIO, true)
@@ -108,13 +108,13 @@ local function update()
             extensions.ui_console.hide()
         end
 
-        BJI.Managers.GameState.updateMenuItems(
+        BJI_GameState.updateMenuItems(
             not getState(M._SCENARIO_DRIVEN.VEHICLE_SELECTOR),
             not getState(M._SCENARIO_DRIVEN.VEHICLE_PARTS_SELECTOR),
             not getState(M.OTHER.BIG_MAP)
         )
 
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.RESTRICTIONS_UPDATE)
+        BJI_Events.trigger(BJI_Events.EVENTS.RESTRICTIONS_UPDATE)
     end
 end
 
@@ -122,10 +122,10 @@ local function onLoad()
     extensions.core_input_actionFilter.setGroup(M._tag, {})
     extensions.core_input_actionFilter.addAction(0, M._tag, false)
 
-    BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.PURSUIT_UPDATE,
+    BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.PURSUIT_UPDATE,
     }, update, M._name)
 end
 

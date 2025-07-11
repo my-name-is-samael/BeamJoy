@@ -53,43 +53,43 @@ local nextValue, tooltip
 
 local function onClose()
     W.show = false
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 local function updateLabels()
-    W.labels.endAfterLastSurvivorInfected = BJI.Managers.Lang.get("infected.settings.endAfterLastSurvivorInfected")
-    W.labels.endAfterLastSurvivorInfectedTooltip = BJI.Managers.Lang.get(
+    W.labels.endAfterLastSurvivorInfected = BJI_Lang.get("infected.settings.endAfterLastSurvivorInfected")
+    W.labels.endAfterLastSurvivorInfectedTooltip = BJI_Lang.get(
         "infected.settings.endAfterLastSurvivorInfectedTooltip")
-    W.labels.config = BJI.Managers.Lang.get("infected.settings.config")
-    W.labels.enableColors = BJI.Managers.Lang.get("infected.settings.enableColors")
-    W.labels.survivorsColor = BJI.Managers.Lang.get("infected.settings.survivorsColor")
-    W.labels.infectedColor = BJI.Managers.Lang.get("infected.settings.infectedColor")
+    W.labels.config = BJI_Lang.get("infected.settings.config")
+    W.labels.enableColors = BJI_Lang.get("infected.settings.enableColors")
+    W.labels.survivorsColor = BJI_Lang.get("infected.settings.survivorsColor")
+    W.labels.infectedColor = BJI_Lang.get("infected.settings.infectedColor")
 
-    W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
-    W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+    W.labels.protectedVehicle = BJI_Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.selfProtected = BJI_Lang.get("vehicleSelector.selfProtected")
 
-    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
-    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
-    W.labels.buttons.set = BJI.Managers.Lang.get("common.buttons.set")
-    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.buttons.reset = BJI.Managers.Lang.get("common.buttons.reset")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
-    W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
+    W.labels.buttons.spawn = BJI_Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI_Lang.get("common.buttons.replace")
+    W.labels.buttons.set = BJI_Lang.get("common.buttons.set")
+    W.labels.buttons.remove = BJI_Lang.get("common.buttons.remove")
+    W.labels.buttons.add = BJI_Lang.get("common.buttons.add")
+    W.labels.buttons.reset = BJI_Lang.get("common.buttons.reset")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.startVote = BJI_Lang.get("common.buttons.startVote")
+    W.labels.buttons.start = BJI_Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
-    W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
+    W.data.canSpawnNewVeh = BJI_Perm.canSpawnNewVehicle()
 
-    W.data.showVoteBtn = not BJI.Managers.Tournament.state and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
-    W.data.showStartBtn = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
+    W.data.showVoteBtn = not BJI_Tournament.state and
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    W.data.showStartBtn = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO)
 
     if not W.data.survivorsColor or not W.data.survivorsColor.vec4 then
         W.data.survivorsColor = BJI.Utils.ShapeDrawer.Color(.33, 1, .33)
@@ -102,46 +102,46 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI_Events.EVENTS.CONFIG_PROTECTION_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
     -- autoclose handler
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
     }, function(ctxt, data)
         local mustClose, msg = false, ""
-        if data._event == BJI.Managers.Events.EVENTS.CACHE_LOADED and
+        if data._event == BJI_Events.EVENTS.CACHE_LOADED and
             (
-                data.cache == BJI.Managers.Cache.CACHES.PLAYERS or
-                data.cache == BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA
+                data.cache == BJI_Cache.CACHES.PLAYERS or
+                data.cache == BJI_Cache.CACHES.HUNTER_INFECTED_DATA
             ) then
-            if BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() <
-                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.INFECTED).MINIMUM_PARTICIPANTS then
-                mustClose, msg = true, BJI.Managers.Lang.get("hunter.settings.notEnoughPlayers")
-            elseif not BJI.Managers.Context.Scenario.Data.HunterInfected.enabledInfected then
-                mustClose, msg = true, BJI.Managers.Lang.get("menu.scenario.infected.modeDisabled")
+            if BJI_Perm.getCountPlayersCanSpawnVehicle() <
+                BJI_Scenario.get(BJI_Scenario.TYPES.INFECTED).MINIMUM_PARTICIPANTS then
+                mustClose, msg = true, BJI_Lang.get("hunter.settings.notEnoughPlayers")
+            elseif not BJI_Context.Scenario.Data.HunterInfected.enabledInfected then
+                mustClose, msg = true, BJI_Lang.get("menu.scenario.infected.modeDisabled")
             end
         else
-            if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) or
-                (not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-                    not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
+            if not BJI_Scenario.is(BJI_Scenario.TYPES.FREEROAM) or
+                (not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+                    not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
                 mustClose = true
             end
         end
         if mustClose then
             if msg then
-                BJI.Managers.Toast.warning(msg)
+                BJI_Toast.warning(msg)
             end
             onClose()
         end
@@ -149,14 +149,14 @@ local function onLoad()
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param ctxt TickContext
 ---@return ClientVehicleConfig?
 local function getConfig(ctxt)
     if not ctxt.veh then return end
-    return BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
+    return BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
 end
 
 ---@param ctxt TickContext
@@ -185,15 +185,15 @@ local function drawBody(ctxt)
                     { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
                         not W.data.canSpawnNewVeh }) then
-                BJI.Managers.Veh.replaceOrSpawnVehicle(W.data.config.model,
+                BJI_Veh.replaceOrSpawnVehicle(W.data.config.model,
                     W.data.config.key or W.data.config)
             end
             TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
             SameLine()
             if IconButton("refreshConfig", BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = not ctxt.veh }) then
-                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                if BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI_Toast.error(BJI_Lang.get("errors.toastModelBlacklisted"))
                 else
                     W.data.config = getConfig(ctxt)
                 end
@@ -213,8 +213,8 @@ local function drawBody(ctxt)
             if IconButton("addConfig", BJI.Utils.Icon.ICONS.add,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected }) then
-                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                if BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI_Toast.error(BJI_Lang.get("errors.toastModelBlacklisted"))
                 else
                     W.data.config = getConfig(ctxt)
                 end
@@ -274,7 +274,7 @@ end
 
 ---@param isVote boolean
 local function start(isVote)
-    BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.INFECTED, isVote, {
+    BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.INFECTED, isVote, {
         endAfterLastSurvivorInfected = W.data.endAfterLastSurvivorInfected,
         config = W.data.config,
         enableColors = W.data.enableColors,
@@ -312,7 +312,7 @@ end
 
 local function open()
     W.show = true
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 W.onLoad = onLoad

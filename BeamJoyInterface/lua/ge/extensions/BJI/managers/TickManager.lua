@@ -27,11 +27,11 @@ local lastServerData = nil
 ---@param slow? boolean
 ---@return TickContext
 local function getContext(slow)
-    local veh = BJI.Managers.Context.User.currentVehicle and
-        BJI.Managers.Veh.getMPVehicle(BJI.Managers.Context.User.currentVehicle) or nil
+    local veh = BJI_Context.User.currentVehicle and
+        BJI_Veh.getMPVehicle(BJI_Context.User.currentVehicle) or nil
     local vehData
     if veh and veh.isLocal then
-        for _, v in pairs(BJI.Managers.Context.User.vehicles) do
+        for _, v in pairs(BJI_Context.User.vehicles) do
             if veh and v.gameVehID == veh.gameVehicleID then
                 vehData = v
                 break
@@ -40,13 +40,13 @@ local function getContext(slow)
     end
     local ctxt = {
         now = GetCurrentTimeMillis(),
-        user = BJI.Managers.Context.User,
-        group = BJI.Managers.Perm.Groups[BJI.Managers.Context.User.group],
-        players = BJI.Managers.Context.Players,
+        user = BJI_Context.User,
+        group = BJI_Perm.Groups[BJI_Context.User.group],
+        players = BJI_Context.Players,
         veh = veh,
         isOwner = veh and veh.isLocal,
         vehData = vehData,
-        camera = BJI.Managers.Cam.getCamera(),
+        camera = BJI_Cam.getCamera(),
     }
     if slow and lastServerData then
         return table.assign(ctxt, lastServerData)
@@ -59,7 +59,7 @@ local lastFastTickTime = 0
 local function processFastTick(ctxt)
     if ctxt.now >= lastFastTickTime + 250 then
         lastFastTickTime = ctxt.now
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.FAST_TICK, ctxt)
+        BJI_Events.trigger(BJI_Events.EVENTS.FAST_TICK, ctxt)
     end
 end
 
@@ -67,7 +67,7 @@ end
 local ctxt, start
 -- ClientTick (each render tick)
 local function client()
-    if BJI.Managers.Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
+    if BJI_Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
         ctxt = getContext()
         Table(BJI.Managers):forEach(function(m)
             if m.renderTick then
@@ -92,11 +92,11 @@ local function server(serverData)
     end
 
     if serverData.ToD then
-        BJI.Managers.Env.tryApplyTimeFromServer(serverData.ToD)
+        BJI_Env.tryApplyTimeFromServer(serverData.ToD)
     end
 
     lastServerData = serverData
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SLOW_TICK)
+    BJI_Events.trigger(BJI_Events.EVENTS.SLOW_TICK)
 end
 
 local function getAvgOffsetMs()

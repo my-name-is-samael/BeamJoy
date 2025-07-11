@@ -44,28 +44,28 @@ local W = {
 local nextValue
 
 local function updateLabels()
-    W.labels.loading = BJI.Managers.Lang.get("common.loading")
-    W.labels.unknown = BJI.Managers.Lang.get("common.unknown")
-    W.labels.yes = BJI.Managers.Lang.get("common.yes")
-    W.labels.no = BJI.Managers.Lang.get("common.no")
+    W.labels.loading = BJI_Lang.get("common.loading")
+    W.labels.unknown = BJI_Lang.get("common.unknown")
+    W.labels.yes = BJI_Lang.get("common.yes")
+    W.labels.no = BJI_Lang.get("common.no")
 
-    W.labels.playerName = BJI.Managers.Lang.get("database.players.playerName")
-    W.labels.group = BJI.Managers.Lang.get("database.players.group")
-    W.labels.lastKickReason = BJI.Managers.Lang.get("database.players.lastKickReason")
-    W.labels.banned = BJI.Managers.Lang.get("database.players.banned")
-    W.labels.tempBanEndsIn = BJI.Managers.Lang.get("database.players.tempBanEndsIn")
-    W.labels.banReason = BJI.Managers.Lang.get("database.players.banReason")
-    W.labels.lastBanReason = BJI.Managers.Lang.get("database.players.lastBanReason")
-    W.labels.muted = BJI.Managers.Lang.get("database.players.muted")
-    W.labels.muteReason = BJI.Managers.Lang.get("database.players.muteReason")
-    W.labels.lastMuteReason = BJI.Managers.Lang.get("database.players.lastMuteReason")
+    W.labels.playerName = BJI_Lang.get("database.players.playerName")
+    W.labels.group = BJI_Lang.get("database.players.group")
+    W.labels.lastKickReason = BJI_Lang.get("database.players.lastKickReason")
+    W.labels.banned = BJI_Lang.get("database.players.banned")
+    W.labels.tempBanEndsIn = BJI_Lang.get("database.players.tempBanEndsIn")
+    W.labels.banReason = BJI_Lang.get("database.players.banReason")
+    W.labels.lastBanReason = BJI_Lang.get("database.players.lastBanReason")
+    W.labels.muted = BJI_Lang.get("database.players.muted")
+    W.labels.muteReason = BJI_Lang.get("database.players.muteReason")
+    W.labels.lastMuteReason = BJI_Lang.get("database.players.lastMuteReason")
 
-    W.labels.groups = Table(BJI.Managers.Perm.Groups):map(function(_, gkey)
-        return BJI.Managers.Lang.get(string.var("groups.{1}", { gkey }), tostring(gkey))
+    W.labels.groups = Table(BJI_Perm.Groups):map(function(_, gkey)
+        return BJI_Lang.get(string.var("groups.{1}", { gkey }), tostring(gkey))
     end)
 
-    W.labels.buttons.refresh = BJI.Managers.Lang.get("common.buttons.refresh")
-    W.labels.buttons.mute = BJI.Managers.Lang.get("moderationBlock.buttons.mute")
+    W.labels.buttons.refresh = BJI_Lang.get("common.buttons.refresh")
+    W.labels.buttons.mute = BJI_Lang.get("moderationBlock.buttons.mute")
 end
 
 ---@param ctxt TickContext
@@ -86,7 +86,7 @@ local function updatePlayerView(ctxt, beammp)
 end
 
 local function updateGroupsCombo(ctxt)
-    W.cache.groupsCombo = Table(BJI.Managers.Perm.Groups)
+    W.cache.groupsCombo = Table(BJI_Perm.Groups)
         :filter(function(g)
             return g.level < ctxt.group.level
         end):map(function(g, gkey)
@@ -98,19 +98,19 @@ local function updateGroupsCombo(ctxt)
             if not a.value or not b.value then
                 return not a.value
             end
-            return BJI.Managers.Perm.Groups[a.value].level < BJI.Managers.Perm.Groups[b.value].level
+            return BJI_Perm.Groups[a.value].level < BJI_Perm.Groups[b.value].level
         end)
 end
 
 ---@param players table[]
 local function updateCache(players, force)
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
 
     W.cache.disableInputs = false
 
     W.cache.players = Table(players)
         :map(function(p)
-            local pGroup = BJI.Managers.Perm.Groups[p.group]
+            local pGroup = BJI_Perm.Groups[p.group]
             local pLevel = pGroup and pGroup.level or 0
             return table.assign(p, {
                 readOnly = p.playerName == ctxt.user.playerName or pLevel >= ctxt.group.level,
@@ -141,7 +141,7 @@ local function updateCache(players, force)
 end
 
 local function requestPlayersDatabase(force)
-    BJI.Tx.database.playersGet(function(players)
+    BJI_Tx_database.playersGet(function(players)
         if players then
             updateCache(players, force)
         end
@@ -151,20 +151,20 @@ end
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     requestPlayersDatabase()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.DATABASE_PLAYERS_UPDATED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.DATABASE_PLAYERS_UPDATED,
     }, requestPlayersDatabase, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.PERMISSION_CHANGED, function()
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.PERMISSION_CHANGED, function()
         requestPlayersDatabase(true)
     end, W.name))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     W.cache.players = Table()
     W.cache.playersCombo = Table()
     W.cache.selectedPlayer = nil
@@ -220,7 +220,7 @@ local function body(ctxt)
             if nextValue then
                 W.cache.disableInputs = true
                 W.cache.selectedGroup = nextValue
-                BJI.Tx.moderation.setGroup(W.cache.currentPlayer.playerName, W.cache.selectedGroup)
+                BJI_Tx_moderation.setGroup(W.cache.currentPlayer.playerName, W.cache.selectedGroup)
             end
         end
 
@@ -241,9 +241,9 @@ local function body(ctxt)
                         BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 W.cache.disableInputs = true
                 if W.cache.currentPlayer.banned or W.cache.currentPlayer.tempBanUntil then
-                    BJI.Tx.moderation.unban(W.cache.currentPlayer.playerName)
+                    BJI_Tx_moderation.unban(W.cache.currentPlayer.playerName)
                 else
-                    BJI.Tx.moderation.ban(W.cache.currentPlayer.playerName, W.cache.currentPlayer.inputBanReason)
+                    BJI_Tx_moderation.ban(W.cache.currentPlayer.playerName, W.cache.currentPlayer.inputBanReason)
                 end
             end
         end
@@ -251,7 +251,7 @@ local function body(ctxt)
             SameLine()
             Text(W.labels.tempBanEndsIn:var({
                 secs = BJI.Utils.UI.PrettyDelay(
-                    BJI.Managers.Tick.applyTimeOffset(W.cache.currentPlayer.tempBanUntil) -
+                    BJI_Tick.applyTimeOffset(W.cache.currentPlayer.tempBanUntil) -
                     math.floor(ctxt.now / 1000)
                 )
             }))
@@ -292,7 +292,7 @@ local function body(ctxt)
                     { disabled = W.cache.disableInputs, btnStyle = W.cache.currentPlayer.muted == true and
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 W.cache.disableInputs = true
-                BJI.Tx.moderation.mute(W.cache.currentPlayer.playerName, W.cache.currentPlayer
+                BJI_Tx_moderation.mute(W.cache.currentPlayer.playerName, W.cache.currentPlayer
                     .inputMuteReason)
             end
             TooltipText(W.labels.buttons.mute)

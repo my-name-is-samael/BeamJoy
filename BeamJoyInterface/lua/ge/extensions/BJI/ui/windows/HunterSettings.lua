@@ -54,89 +54,89 @@ local nextValue, tooltip
 
 local function onClose()
     W.show = false
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("hunter.settings.title")
-    W.labels.huntedWaypoints = BJI.Managers.Lang.get("hunter.settings.huntedWaypoints")
-    W.labels.huntedWaypointsTooltip = BJI.Managers.Lang.get("hunter.settings.huntedWaypointsTooltip")
-    W.labels.huntedConfig = BJI.Managers.Lang.get("hunter.settings.huntedConfig")
-    W.labels.huntedConfigTooltip = BJI.Managers.Lang.get("hunter.settings.huntedConfigTooltip")
-    W.labels.hunterConfigs = BJI.Managers.Lang.get("hunter.settings.hunterConfigs")
-    W.labels.hunterConfigsTooltip = BJI.Managers.Lang.get("hunter.settings.hunterConfigsTooltip")
-    W.labels.lastWaypointGPS = BJI.Managers.Lang.get("hunter.settings.lastWaypointGPS")
-    W.labels.lastWaypointGPSTooltip = BJI.Managers.Lang.get("hunter.settings.lastWaypointGPSTooltip")
-    W.labels.specificConfig = BJI.Managers.Lang.get("hunter.settings.specificConfig")
+    W.labels.title = BJI_Lang.get("hunter.settings.title")
+    W.labels.huntedWaypoints = BJI_Lang.get("hunter.settings.huntedWaypoints")
+    W.labels.huntedWaypointsTooltip = BJI_Lang.get("hunter.settings.huntedWaypointsTooltip")
+    W.labels.huntedConfig = BJI_Lang.get("hunter.settings.huntedConfig")
+    W.labels.huntedConfigTooltip = BJI_Lang.get("hunter.settings.huntedConfigTooltip")
+    W.labels.hunterConfigs = BJI_Lang.get("hunter.settings.hunterConfigs")
+    W.labels.hunterConfigsTooltip = BJI_Lang.get("hunter.settings.hunterConfigsTooltip")
+    W.labels.lastWaypointGPS = BJI_Lang.get("hunter.settings.lastWaypointGPS")
+    W.labels.lastWaypointGPSTooltip = BJI_Lang.get("hunter.settings.lastWaypointGPSTooltip")
+    W.labels.specificConfig = BJI_Lang.get("hunter.settings.specificConfig")
 
-    W.labels.protectedVehicle = BJI.Managers.Lang.get("vehicleSelector.protectedVehicle")
-    W.labels.selfProtected = BJI.Managers.Lang.get("vehicleSelector.selfProtected")
+    W.labels.protectedVehicle = BJI_Lang.get("vehicleSelector.protectedVehicle")
+    W.labels.selfProtected = BJI_Lang.get("vehicleSelector.selfProtected")
 
-    W.labels.buttons.spawn = BJI.Managers.Lang.get("common.buttons.spawn")
-    W.labels.buttons.replace = BJI.Managers.Lang.get("common.buttons.replace")
-    W.labels.buttons.set = BJI.Managers.Lang.get("common.buttons.set")
-    W.labels.buttons.remove = BJI.Managers.Lang.get("common.buttons.remove")
-    W.labels.buttons.add = BJI.Managers.Lang.get("common.buttons.add")
-    W.labels.buttons.close = BJI.Managers.Lang.get("common.buttons.close")
-    W.labels.buttons.startVote = BJI.Managers.Lang.get("common.buttons.startVote")
-    W.labels.buttons.start = BJI.Managers.Lang.get("common.buttons.start")
+    W.labels.buttons.spawn = BJI_Lang.get("common.buttons.spawn")
+    W.labels.buttons.replace = BJI_Lang.get("common.buttons.replace")
+    W.labels.buttons.set = BJI_Lang.get("common.buttons.set")
+    W.labels.buttons.remove = BJI_Lang.get("common.buttons.remove")
+    W.labels.buttons.add = BJI_Lang.get("common.buttons.add")
+    W.labels.buttons.close = BJI_Lang.get("common.buttons.close")
+    W.labels.buttons.startVote = BJI_Lang.get("common.buttons.startVote")
+    W.labels.buttons.start = BJI_Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
     W.data.currentVehProtected = ctxt.veh and not ctxt.isOwner and ctxt.veh.protected
     W.data.selfProtected = ctxt.isOwner and settings.getValue("protectConfigFromClone", false) == true
-    W.data.canSpawnNewVeh = BJI.Managers.Perm.canSpawnNewVehicle()
+    W.data.canSpawnNewVeh = BJI_Perm.canSpawnNewVehicle()
 
-    W.data.showVoteBtn = not BJI.Managers.Tournament.state and
-        BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
-    W.data.showStartBtn = BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO)
+    W.data.showVoteBtn = not BJI_Tournament.state and
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)
+    W.data.showStartBtn = BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO)
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.UI_SCALE_CHANGED,
-        BJI.Managers.Events.EVENTS.VEHICLE_SPEC_CHANGED,
-        BJI.Managers.Events.EVENTS.CONFIG_PROTECTION_UPDATED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.TOURNAMENT_UPDATED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.UI_SCALE_CHANGED,
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
+        BJI_Events.EVENTS.CONFIG_PROTECTION_UPDATED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.TOURNAMENT_UPDATED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateCache, W.name .. "Cache"))
 
     -- autoclose handler
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
     }, function(ctxt, data)
         local mustClose, msg = false, ""
-        if data._event == BJI.Managers.Events.EVENTS.CACHE_LOADED and
+        if data._event == BJI_Events.EVENTS.CACHE_LOADED and
             (
-                data.cache == BJI.Managers.Cache.CACHES.PLAYERS or
-                data.cache == BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA
+                data.cache == BJI_Cache.CACHES.PLAYERS or
+                data.cache == BJI_Cache.CACHES.HUNTER_INFECTED_DATA
             ) then
-            if BJI.Managers.Perm.getCountPlayersCanSpawnVehicle() < BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS then
-                mustClose, msg = true, BJI.Managers.Lang.get("hunter.settings.notEnoughPlayers")
-            elseif not BJI.Managers.Context.Scenario.Data.HunterInfected.enabledHunter then
-                mustClose, msg = true, BJI.Managers.Lang.get("menu.scenario.hunter.modeDisabled")
+            if BJI_Perm.getCountPlayersCanSpawnVehicle() < BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS then
+                mustClose, msg = true, BJI_Lang.get("hunter.settings.notEnoughPlayers")
+            elseif not BJI_Context.Scenario.Data.HunterInfected.enabledHunter then
+                mustClose, msg = true, BJI_Lang.get("menu.scenario.hunter.modeDisabled")
             end
         else
-            if not BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.FREEROAM) or
-                (not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_SERVER_SCENARIO) and
-                    not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
+            if not BJI_Scenario.is(BJI_Scenario.TYPES.FREEROAM) or
+                (not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+                    not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO)) then
                 mustClose = true
             end
         end
         if mustClose then
             if msg then
-                BJI.Managers.Toast.warning(msg)
+                BJI_Toast.warning(msg)
             end
             onClose()
         end
@@ -144,7 +144,7 @@ local function onLoad()
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
 end
 
 ---@param ctxt TickContext
@@ -156,7 +156,7 @@ end
 ---@return ClientVehicleConfig?
 local function getConfig(ctxt)
     if not ctxt.veh then return end
-    return BJI.Managers.Veh.getFullConfig(ctxt.veh.veh.partConfig)
+    return BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
 end
 
 ---@param ctxt TickContext
@@ -182,15 +182,15 @@ local function drawBody(ctxt)
                     { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
                         not W.data.canSpawnNewVeh }) then
-                BJI.Managers.Veh.replaceOrSpawnVehicle(W.data.huntedConfig.model,
+                BJI_Veh.replaceOrSpawnVehicle(W.data.huntedConfig.model,
                     W.data.huntedConfig.key or W.data.huntedConfig)
             end
             TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
             SameLine()
             if IconButton("refreshHuntedConfig", BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = not ctxt.veh }) then
-                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                if BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI_Toast.error(BJI_Lang.get("errors.toastModelBlacklisted"))
                 else
                     W.data.huntedConfig = getConfig(ctxt)
                 end
@@ -210,8 +210,8 @@ local function drawBody(ctxt)
             if IconButton("addHuntedConfig", BJI.Utils.Icon.ICONS.add,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.veh or W.data.currentVehProtected or W.data.selfProtected }) then
-                if BJI.Managers.Veh.isModelBlacklisted(ctxt.veh.jbeam) then
-                    BJI.Managers.Toast.error(BJI.Managers.Lang.get("errors.toastModelBlacklisted"))
+                if BJI_Veh.isModelBlacklisted(ctxt.veh.jbeam) then
+                    BJI_Toast.error(BJI_Lang.get("errors.toastModelBlacklisted"))
                 else
                     W.data.huntedConfig = getConfig(ctxt)
                 end
@@ -235,7 +235,7 @@ local function drawBody(ctxt)
                     { btnStyle = ctxt.isOwner and BJI.Utils.Style.BTN_PRESETS.WARNING or
                         BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner and
                         not W.data.canSpawnNewVeh }) then
-                BJI.Managers.Veh.replaceOrSpawnVehicle(config.model, config.key or config)
+                BJI_Veh.replaceOrSpawnVehicle(config.model, config.key or config)
             end
             TooltipText(ctxt.isOwner and W.labels.buttons.replace or W.labels.buttons.spawn)
             SameLine()
@@ -256,7 +256,7 @@ local function drawBody(ctxt)
                         return newConf.model == c.model and
                             table.compare(newConf.parts, c.parts)
                     end) then
-                    BJI.Managers.Toast.error(BJI.Managers.Lang.get(
+                    BJI_Toast.error(BJI_Lang.get(
                         "hunter.settings.toastConfigAlreadySaved"))
                 else
                     W.data.hunterConfigs:insert(newConf)
@@ -297,7 +297,7 @@ local function drawFooter(ctxt)
         SameLine()
         if IconButton("startVoteHunter", BJI.Utils.Icon.ICONS.event_available,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.HUNTER, true, {
+            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.HUNTER, true, {
                 waypoints = W.data.waypoints,
                 huntedConfig = W.data.huntedConfig,
                 hunterConfigs = W.data.hunterConfigs,
@@ -311,7 +311,7 @@ local function drawFooter(ctxt)
         SameLine()
         if IconButton("startHunter", BJI.Utils.Icon.ICONS.videogame_asset,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.HUNTER, false, {
+            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.HUNTER, false, {
                 waypoints = W.data.waypoints,
                 huntedConfig = W.data.huntedConfig,
                 hunterConfigs = W.data.hunterConfigs,
@@ -325,7 +325,7 @@ end
 
 local function open()
     W.show = true
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 W.onLoad = onLoad

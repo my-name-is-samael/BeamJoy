@@ -21,18 +21,18 @@ return function(ctxt, labels)
             TableNextColumn()
             if IconButton(el.key .. "reset", BJI.Utils.Icon.ICONS.refresh,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                disabled = el.default == BJI.Managers.Context.BJC.Speed[el.key] }) then
-                BJI.Managers.Context.BJC.Speed[el.key] = el.default
-                BJI.Tx.config.bjc("Speed." .. el.key, el.default)
+                disabled = el.default == BJI_Context.BJC.Speed[el.key] }) then
+                BJI_Context.BJC.Speed[el.key] = el.default
+                BJI_Tx_config.bjc("Speed." .. el.key, el.default)
             end
             TooltipText(labels.buttons.reset)
             SameLine()
-            nextValue = SliderIntPrecision(el.key, BJI.Managers.Context.BJC.Speed[el.key], el.min, el.max,
+            nextValue = SliderIntPrecision(el.key, BJI_Context.BJC.Speed[el.key], el.min, el.max,
                 { formatRender = el.renderFormat })
             TooltipText(labels.speed.keys[el.key .. "Tooltip"])
             if nextValue then
-                BJI.Managers.Context.BJC.Speed[el.key] = nextValue
-                BJI.Tx.config.bjc("Speed." .. el.key, BJI.Managers.Context.BJC.Speed[el.key])
+                BJI_Context.BJC.Speed[el.key] = nextValue
+                BJI_Tx_config.bjc("Speed." .. el.key, BJI_Context.BJC.Speed[el.key])
             end
         end)
 

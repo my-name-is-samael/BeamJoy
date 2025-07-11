@@ -171,7 +171,7 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
         diffRace = nil
     end
 
-    BJI.Managers.Async.removeTask("BJIRaceUIRaceTimeClear")
+    BJI_Async.removeTask("BJIRaceUIRaceTimeClear")
 
     if diffCheckpoint then
         guihooks.trigger("RaceCheckpointComparison", { timeOut = timeoutMS, time = diffCheckpoint / 1000 })
@@ -181,7 +181,7 @@ local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
     end
 
     if (diffCheckpoint or diffRace) and type(timeoutMS) == "number" and timeoutMS > 0 then
-        BJI.Managers.Async.delayTask(M.clearRaceTime, timeoutMS, "BJIRaceUIRaceTimeClear")
+        BJI_Async.delayTask(M.clearRaceTime, timeoutMS, "BJIRaceUIRaceTimeClear")
     end
 end
 

@@ -14,16 +14,16 @@ local function onDriftCompletedScored(data)
         return
     end
 
-    local ctxt = BJI.Managers.Tick.getContext()
-    if ctxt.isOwner and data.addedScore >= BJI.Managers.Context.BJC.Freeroam.DriftGood then
-        BJI.Tx.player.drift(data.addedScore)
+    local ctxt = BJI_Tick.getContext()
+    if ctxt.isOwner and data.addedScore >= BJI_Context.BJC.Freeroam.DriftGood then
+        BJI_Tx_player.drift(data.addedScore)
     end
 end
 
 ---@param oldGameVehID integer
 ---@param newGameVehID integer
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if BJI.Managers.Scenario.isFreeroam() and M.lastCached > 0 then
+    if BJI_Scenario.isFreeroam() and M.lastCached > 0 then
         -- if switch from vehicle to another, cancel score reward
         M.nextScoreCancel = true
     end
@@ -43,9 +43,9 @@ local function fastTick(ctxt)
 end
 
 M.onLoad = function()
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
-    BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.FAST_TICK, fastTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED, onDriftCompletedScored, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 return M

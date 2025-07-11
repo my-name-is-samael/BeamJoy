@@ -41,23 +41,23 @@ end
 reset()
 
 local function canChangeTo(ctxt)
-    return BJI.Managers.Scenario.isFreeroam() and
-        BJI.Managers.Cache.isFirstLoaded(BJI.Managers.Cache.CACHES.BUS_LINES) and
-        BJI.Managers.Context.Scenario.Data.BusLines and
-        #BJI.Managers.Context.Scenario.Data.BusLines > 0 and
+    return BJI_Scenario.isFreeroam() and
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.BUS_LINES) and
+        BJI_Context.Scenario.Data.BusLines and
+        #BJI_Context.Scenario.Data.BusLines > 0 and
         S.config
 end
 
 local function initCornerMarkers()
-    S.cornerMarkers = BJI.Managers.WorldObject.createGroup("BJIBusMarkers")
+    S.cornerMarkers = BJI_WorldObject.createGroup("BJIBusMarkers")
     if not S.cornerMarkers then
-        BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
         error("Unable to create BJI bus markers tree")
     end
     for _, name in ipairs({ "BJIBusMarker1", "BJIBusMarker2", "BJIBusMarker3", "BJIBusMarker4" }) do
         local marker = scenetree.findObject(name)
         if not marker then
-            marker = BJI.Managers.WorldObject.createCornerMarker(name)
+            marker = BJI_WorldObject.createCornerMarker(name)
             S.cornerMarkers:addObject(marker.obj)
         end
     end
@@ -76,7 +76,7 @@ local function updateCornerMarkers(ctxt, stop)
     local yVec, xVec = tr * vec3(0, 1, 0), tr * vec3(1, 0, 0)
     local d = ctxt.veh.veh:getInitialLength() / 2 + wpRadius / 2
     local w = ctxt.veh.veh:getInitialWidth() / 2 + wpRadius / 2
-    BJI.Managers.WorldObject.getGroupChildren(S.cornerMarkers)
+    BJI_WorldObject.getGroupChildren(S.cornerMarkers)
         :forEach(function(marker, i)
             if i == 1 then
                 pos = (tpos - xVec * d + yVec * w)
@@ -101,12 +101,12 @@ local function updateTarget(ctxt)
     local next = S.line.stops[S.nextStop]
 
     updateCornerMarkers(ctxt, next)
-    BJI.Managers.BusUI.nextStop(S.nextStop)
-    BJI.Managers.BusUI.requestStop(true)
+    BJI_BusUI.nextStop(S.nextStop)
+    BJI_BusUI.requestStop(true)
 
-    BJI.Managers.GPS.reset()
-    BJI.Managers.GPS.prependWaypoint({
-        key = BJI.Managers.GPS.KEYS.BUS_STOP,
+    BJI_GPS.reset()
+    BJI_GPS.prependWaypoint({
+        key = BJI_GPS.KEYS.BUS_STOP,
         pos = next.pos,
         radius = next.radius,
         clearable = false,
@@ -114,16 +114,16 @@ local function updateTarget(ctxt)
 end
 
 local function onLoad(ctxt)
-    BJI.Windows.VehSelector.tryClose()
-    BJI.Managers.GPS.reset()
-    BJI.Managers.RaceWaypoint.resetAll()
+    BJI_Win_VehSelector.tryClose()
+    BJI_GPS.reset()
+    BJI_RaceWaypoint.resetAll()
 
-    BJI.Tx.scenario.BusMissionStart()
+    BJI_Tx_scenario.BusMissionStart()
 end
 
 local function clearScenetreeObjects()
     if S.cornerMarkers then
-        BJI.Managers.WorldObject.unregister(S.cornerMarkers)
+        BJI_WorldObject.unregister(S.cornerMarkers)
         S.cornerMarkers = nil
     end
 end
@@ -131,15 +131,15 @@ end
 local function onUnload(ctxt)
     clearScenetreeObjects()
     reset()
-    BJI.Managers.GPS.reset()
-    BJI.Managers.BusUI.reset()
+    BJI_GPS.reset()
+    BJI_BusUI.reset()
 end
 
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
-    return Table():addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-        :addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
 ---@param ctxt TickContext
@@ -157,37 +157,37 @@ local function start(ctxt, lineData, model, config)
     for _, stop in ipairs(S.line.stops) do
         table.insert(points, vec3(stop.pos))
     end
-    S.line.totalDistance = BJI.Managers.GPS.getRouteLength(points)
+    S.line.totalDistance = BJI_GPS.getRouteLength(points)
 
-    BJI.Managers.UI.applyLoading(true, function()
+    BJI_UI.applyLoading(true, function()
         local startPosRot = S.line.stops[1]
-        BJI.Managers.Async.removeTask("BJIBusMissionInitVehicle")
-        BJI.Managers.Veh.replaceOrSpawnVehicle(model, S.config, startPosRot)
-        BJI.Managers.Veh.waitForVehicleSpawn(function()
-            BJI.Managers.Async.task(function(ctxt2)
+        BJI_Async.removeTask("BJIBusMissionInitVehicle")
+        BJI_Veh.replaceOrSpawnVehicle(model, S.config, startPosRot)
+        BJI_Veh.waitForVehicleSpawn(function()
+            BJI_Async.task(function(ctxt2)
                 return ctxt2.isOwner and ctxt2.veh.jbeam == model and
                     ctxt2.veh.veh.partConfig:find(string.var("/{1}.", { S.config })) ~= nil
             end, function(ctxt2)
                 initCornerMarkers()
                 updateTarget(ctxt2)
-                BJI.Managers.Message.flash("BJIBusMissionTarget", BJI.Managers.Lang.get("buslines.play.flashDriveNext"),
+                BJI_Message.flash("BJIBusMissionTarget", BJI_Lang.get("buslines.play.flashDriveNext"),
                     3, false)
-                BJI.Managers.Async.delayTask(function()
-                    BJI.Managers.BusUI.initBusMission(S.line.id, S.line.stops, S.nextStop)
-                    BJI.Managers.BusUI.requestStop(true)
+                BJI_Async.delayTask(function()
+                    BJI_BusUI.initBusMission(S.line.id, S.line.stops, S.nextStop)
+                    BJI_BusUI.requestStop(true)
                 end, 300, "BJIBusMissionInitBusUI")
 
-                BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.BUS_MISSION, ctxt)
-                BJI.Managers.UI.applyLoading(false)
+                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.BUS_MISSION, ctxt)
+                BJI_UI.applyLoading(false)
             end, "BJIBusMissionInitVehicle")
         end)
     end)
 end
 
 local function onMissionFailed()
-    BJI.Tx.scenario.BusMissionStop()
-    BJI.Managers.Message.flash("BJIBusMissionFailed", BJI.Managers.Lang.get("buslines.play.flashStopped"), 3, false)
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI_Tx_scenario.BusMissionStop()
+    BJI_Message.flash("BJIBusMissionFailed", BJI_Lang.get("buslines.play.flashStopped"), 3, false)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 local function onStopBusMission()
@@ -200,23 +200,23 @@ local function drawUI(ctxt)
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
         onStopBusMission()
     end
-    TooltipText(BJI.Managers.Lang.get("menu.scenario.busMission.stop"))
+    TooltipText(BJI_Lang.get("menu.scenario.busMission.stop"))
     if S.line.loopable then
         SameLine()
-        loop = BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
+        loop = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP)
         if IconButton("toggleBusLoop", BJI.Utils.Icon.ICONS.all_inclusive, { btnStyle = loop and
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
-            BJI.Managers.LocalStorage.set(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP, not loop)
         end
-        TooltipText(BJI.Managers.Lang.get("common.buttons.loop"))
+        TooltipText(BJI_Lang.get("common.buttons.loop"))
     end
     SameLine()
-    Text(BJI.Managers.Lang.get("buslines.play.title"))
+    Text(BJI_Lang.get("buslines.play.title"))
 
-    stopLabel = BJI.Managers.Lang.get("buslines.play.stopCount")
+    stopLabel = BJI_Lang.get("buslines.play.stopCount")
         :var({ current = S.nextStop - 1, total = #S.line.stops })
 
-    Text(BJI.Managers.Lang.get("buslines.play.line")
+    Text(BJI_Lang.get("buslines.play.line")
         :var({ name = S.line.name }))
     TooltipText(stopLabel)
 
@@ -227,29 +227,29 @@ end
 ---@param ctxt TickContext
 local function onTargetReached(ctxt)
     S.checkTargetProcess = false
-    local flashMsg = BJI.Managers.Lang.get("buslines.play.flashDriveNext")
+    local flashMsg = BJI_Lang.get("buslines.play.flashDriveNext")
     if S.nextStop == #S.line.stops then
-        BJI.Tx.scenario.BusMissionReward(S.line.id)
-        if S.line.loopable and BJI.Managers.LocalStorage.get(BJI.Managers.LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP) then
+        BJI_Tx_scenario.BusMissionReward(S.line.id)
+        if S.line.loopable and BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.SCENARIO_BUS_MISSION_LOOP) then
             -- trigger next loop
             S.nextStop = 1
             updateTarget(ctxt)
         else
             -- end of mission
-            BJI.Tx.scenario.BusMissionStop()
-            flashMsg = BJI.Managers.Lang.get("buslines.play.flashFinish")
-            BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+            BJI_Tx_scenario.BusMissionStop()
+            flashMsg = BJI_Lang.get("buslines.play.flashFinish")
+            BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
         end
     else
         S.nextStop = S.nextStop + 1
         updateTarget(ctxt)
     end
-    BJI.Managers.Message.flash("BJIBusMissionTarget", flashMsg, 3, false)
+    BJI_Message.flash("BJIBusMissionTarget", flashMsg, 3, false)
 end
 
 ---@param reached boolean
 local function updateCornerMarkersColor(reached)
-    BJI.Managers.WorldObject.getGroupChildren(S.cornerMarkers)
+    BJI_WorldObject.getGroupChildren(S.cornerMarkers)
         :forEach(function(marker)
             if reached then
                 marker:setField('instanceColor', 0, '0 1 0 1')
@@ -270,7 +270,7 @@ local function slowTick(ctxt)
     for i = S.nextStop, #S.line.stops do
         table.insert(points, vec3(S.line.stops[i].pos))
     end
-    local remainingDistance = BJI.Managers.GPS.getRouteLength(points)
+    local remainingDistance = BJI_GPS.getRouteLength(points)
     S.progression = 1 - (remainingDistance / S.line.totalDistance)
 
     local target = S.line.stops[S.nextStop]
@@ -283,19 +283,19 @@ local function slowTick(ctxt)
         -- core_vehicleBridge.getCachedVehicleData(id, 'dooropen') == 1
         if not S.checkTargetProcess then
             S.checkTargetProcess = true
-            BJI.Managers.Message.flashCountdown("BJIBusMissionTarget", ctxt.now + 5100, false, "", nil,
+            BJI_Message.flashCountdown("BJIBusMissionTarget", ctxt.now + 5100, false, "", nil,
                 onTargetReached)
             updateCornerMarkersColor(true)
         end
     else
         if S.checkTargetProcess then
-            BJI.Managers.Message.cancelFlash("BJIBusMissionTarget")
+            BJI_Message.cancelFlash("BJIBusMissionTarget")
             S.checkTargetProcess = false
             updateCornerMarkersColor(false)
         end
-        if #BJI.Managers.GPS.targets == 0 then
-            BJI.Managers.GPS.prependWaypoint({
-                key = BJI.Managers.GPS.KEYS.BUS_STOP,
+        if #BJI_GPS.targets == 0 then
+            BJI_GPS.prependWaypoint({
+                key = BJI_GPS.KEYS.BUS_STOP,
                 pos = target.pos,
                 radius = target.radius,
                 clearable = false,
@@ -309,7 +309,7 @@ end
 local function getPlayerListActions(player, ctxt)
     actions = {}
 
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 

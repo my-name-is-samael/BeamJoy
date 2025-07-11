@@ -60,73 +60,73 @@ local function stop()
     S.survivors = Table()
     S.closeSurvivors = {}
     S.resetLock = true
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.FREEROAM)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 ---@param ctxt TickContext
 local function onLoad(ctxt)
-    BJI.Windows.VehSelector.tryClose(true)
+    BJI_Win_VehSelector.tryClose(true)
     if ctxt.isOwner then
-        BJI.Managers.Veh.saveCurrentVehicle()
+        BJI_Veh.saveCurrentVehicle()
     end
     if not ctxt.isOwner or table.includes({
-            BJI.Managers.Cam.CAMERAS.FREE,
-            BJI.Managers.Cam.CAMERAS.BIG_MAP,
-            BJI.Managers.Cam.CAMERAS.EXTERNAL
+            BJI_Cam.CAMERAS.FREE,
+            BJI_Cam.CAMERAS.BIG_MAP,
+            BJI_Cam.CAMERAS.EXTERNAL
         }, ctxt.camera) then
-        S.previousCamera = BJI.Managers.Cam.CAMERAS.ORBIT
+        S.previousCamera = BJI_Cam.CAMERAS.ORBIT
     else
         S.previousCamera = ctxt.camera
     end
-    BJI.Managers.Veh.deleteAllOwnVehicles()
-    BJI.Managers.RaceWaypoint.resetAll()
-    BJI.Managers.GPS.reset()
-    BJI.Managers.Cam.addRestrictedCamera(BJI.Managers.Cam.CAMERAS.BIG_MAP)
+    BJI_Veh.deleteAllOwnVehicles()
+    BJI_RaceWaypoint.resetAll()
+    BJI_GPS.reset()
+    BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.BIG_MAP)
 end
 
 ---@param ctxt TickContext
 local function onUnload(ctxt)
-    BJI.Managers.Async.removeTask("BJIInfectedResetLockSafe")
-    BJI.Managers.Message.cancelFlash("BJIInfectedStart")
-    BJI.Managers.Async.removeTask("BJIInfectedStart")
-    BJI.Managers.Async.removeTask("BJIInfectedPrestart")
+    BJI_Async.removeTask("BJIInfectedResetLockSafe")
+    BJI_Message.cancelFlash("BJIInfectedStart")
+    BJI_Async.removeTask("BJIInfectedStart")
+    BJI_Async.removeTask("BJIInfectedPrestart")
 
-    BJI.Managers.Veh.getMPVehicles({ isAi = false }, true):forEach(function(v)
-        BJI.Managers.Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
+    BJI_Veh.getMPVehicles({ isAi = false }, true):forEach(function(v)
+        BJI_Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
     end)
 
-    BJI.Managers.GPS.reset()
+    BJI_GPS.reset()
     for _, veh in pairs(ctxt.user.vehicles) do
-        BJI.Managers.Veh.freeze(false, veh.gameVehID)
+        BJI_Veh.freeze(false, veh.gameVehID)
         break
     end
-    BJI.Managers.Cam.resetRestrictedCameras()
-    BJI.Managers.Cam.resetForceCamera(true)
-    if ctxt.camera == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-        BJI.Managers.Cam.setCamera(S.previousCamera or BJI.Managers.Cam.CAMERAS.ORBIT)
+    BJI_Cam.resetRestrictedCameras()
+    BJI_Cam.resetForceCamera(true)
+    if ctxt.camera == BJI_Cam.CAMERAS.EXTERNAL then
+        BJI_Cam.setCamera(S.previousCamera or BJI_Cam.CAMERAS.ORBIT)
     end
-    BJI.Windows.VehSelector.tryClose(true)
+    BJI_Win_VehSelector.tryClose(true)
 end
 
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
     participant = S.participants[ctxt.user.playerID]
-    local res = Table():addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    local res = Table():addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
     if S.state == S.STATES.PREPARATION then
         if participant then
-            res:addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.CAMERA_CHANGE, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+            res:addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+                :addAll(BJI_Restrictions.OTHER.CAMERA_CHANGE, true)
+                :addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+                :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+                :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
         end
     else
         if participant and not S.finished then
-            res:addAll(BJI.Managers.Restrictions.OTHER.FREE_CAM, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.VEHICLE_SWITCH, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.PHOTO_MODE, true)
-                :addAll(BJI.Managers.Restrictions.OTHER.BIG_MAP, true)
+            res:addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+                :addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+                :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+                :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
         end
     end
     return res
@@ -134,12 +134,12 @@ end
 
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
-    if BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.INFECTED) then
-        BJI.Managers.Veh.freeze(true, ctxt.veh.gameVehicleID)
-        BJI.Managers.Restrictions.update()
-        BJI.Managers.Cam.setCamera(BJI.Managers.Cam.CAMERAS.EXTERNAL)
-        if not BJI.Windows.VehSelector.show and not S.settings.enableColors then
-            BJI.Windows.VehSelector.open(false)
+    if BJI_Scenario.is(BJI_Scenario.TYPES.INFECTED) then
+        BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
+        BJI_Restrictions.update()
+        BJI_Cam.setCamera(BJI_Cam.CAMERAS.EXTERNAL)
+        if not BJI_Win_VehSelector.show and not S.settings.enableColors then
+            BJI_Win_VehSelector.open(false)
         end
     end
 end
@@ -147,35 +147,35 @@ end
 ---@param model string
 ---@param config table
 local function tryReplaceOrSpawn(model, config)
-    participant = S.participants[BJI.Managers.Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     if S.state == S.STATES.PREPARATION and participant and not participant.ready then
-        if table.length(BJI.Managers.Context.User.vehicles) > 0 and not BJI.Managers.Veh.isCurrentVehicleOwn() then
+        if table.length(BJI_Context.User.vehicles) > 0 and not BJI_Veh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
         local startPos = participant.originalInfected and
-            BJI.Managers.Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI.Managers.Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
-        BJI.Managers.Cam.resetForceCamera()
-        BJI.Managers.Veh.replaceOrSpawnVehicle(model, config, startPos)
-        BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+        BJI_Cam.resetForceCamera()
+        BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
+        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
 ---@param paintIndex integer
 ---@param paint NGPaint
 local function tryPaint(paintIndex, paint)
-    participant = S.participants[BJI.Managers.Context.User.playerID]
-    local veh = BJI.Managers.Veh.getCurrentVehicleOwn()
+    participant = S.participants[BJI_Context.User.playerID]
+    local veh = BJI_Veh.getCurrentVehicleOwn()
     if veh and S.state == S.STATES.PREPARATION and
         participant and not participant.ready and
         not S.settings.enableColors then
-        BJI.Managers.Veh.paintVehicle(veh, paintIndex, paint)
+        BJI_Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 
 local function canRecoverVehicle()
-    local ctxt = BJI.Managers.Tick.getContext()
+    local ctxt = BJI_Tick.getContext()
     participant = S.participants[ctxt.user.playerID]
     return S.state == S.STATES.GAME and participant and not S.resetLock and
         (participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) < ctxt.now
@@ -183,7 +183,7 @@ end
 
 ---@return table<string, table>?
 local function getModelList()
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local participant = S.participants[BJI_Context.User.playerID]
     if S.state ~= S.STATES.PREPARATION or not participant or participant.ready then
         return -- veh selector should not be opened
     end
@@ -196,9 +196,9 @@ local function getModelList()
         return {} -- only paints
     end
 
-    local models = BJI.Managers.Veh.getAllVehicleConfigs()
-    if #BJI.Managers.Context.Database.Vehicles.ModelBlacklist > 0 then
-        for _, model in ipairs(BJI.Managers.Context.Database.Vehicles.ModelBlacklist) do
+    local models = BJI_Veh.getAllVehicleConfigs()
+    if #BJI_Context.Database.Vehicles.ModelBlacklist > 0 then
+        for _, model in ipairs(BJI_Context.Database.Vehicles.ModelBlacklist) do
             models[model] = nil
         end
     end
@@ -207,16 +207,16 @@ end
 
 ---@return boolean
 local function canSpawnNewVehicle()
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local participant = S.participants[BJI_Context.User.playerID]
     return S.state == S.STATES.PREPARATION and participant and not participant.ready and
-        table.length(BJI.Managers.Context.User.vehicles) == 0
+        table.length(BJI_Context.User.vehicles) == 0
 end
 
 ---@return boolean
 local function canVehUpdate()
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local participant = S.participants[BJI_Context.User.playerID]
     if S.state ~= S.STATES.PREPARATION or not participant or participant.ready or
-        not BJI.Managers.Veh.isCurrentVehicleOwn() then
+        not BJI_Veh.isCurrentVehicleOwn() then
         return false
     end
 
@@ -244,93 +244,93 @@ end
 
 ---@param mpVeh BJIMPVehicle
 local function onVehicleSpawned(mpVeh)
-    participant = S.participants[BJI.Managers.Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     if mpVeh.isLocal and S.state == S.STATES.PREPARATION and participant and not participant.ready then
         local startPos = participant.originalInfected and
-            BJI.Managers.Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI.Managers.Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         if mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
-            BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI.Managers.Veh.waitForVehicleSpawn(postSpawn)
+            BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI_Veh.waitForVehicleSpawn(postSpawn)
         end
     end
 end
 
 ---@param gameVehID integer
 local function onVehicleResetted(gameVehID)
-    participant = S.participants[BJI.Managers.Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     if S.state == S.STATES.GAME and participant and (participant.originalInfected and
             S.infectedStartTime or S.survivorsStartTime) < GetCurrentTimeMillis() and
-        not S.finished and BJI.Managers.Veh.isVehicleOwn(gameVehID) then
+        not S.finished and BJI_Veh.isVehicleOwn(gameVehID) then
         S.resetLock = true
-        BJI.Managers.Restrictions.update()
+        BJI_Restrictions.update()
 
-        BJI.Managers.Async.delayTask(function()
+        BJI_Async.delayTask(function()
             S.resetLock = false
-            BJI.Managers.Restrictions.update()
+            BJI_Restrictions.update()
         end, 1000, "BJIInfectedResetLockSafe")
     end
 end
 
 local function initPreparation(data)
     S.settings.config = data.config
-    S.preparationTimeout = BJI.Managers.Tick.applyTimeOffset(data.preparationTimeout)
+    S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
     S.state = data.state
     S.participants = data.participants
-    BJI.Managers.Scenario.switchScenario(BJI.Managers.Scenario.TYPES.INFECTED)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.INFECTED)
 end
 
 ---@param participant BJIInfectedParticipant
 local function onJoinParticipants(participant)
-    local ownVeh = BJI.Managers.Veh.isCurrentVehicleOwn()
+    local ownVeh = BJI_Veh.isCurrentVehicleOwn()
     -- when forced config
     if ownVeh then
         -- moving actual vehicle
         local startPos = participant.originalInfected and
-            BJI.Managers.Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI.Managers.Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
-        BJI.Managers.Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+        BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
     else
         local model, config
         if S.settings.config then
             -- forced config
             model, config = S.settings.config.model, S.settings.config
         else
-            BJI.Managers.Message.flash("BJIInfectedChooseVehicle",
-                BJI.Managers.Lang.get("infected.play.flashChooseVehicle"),
+            BJI_Message.flash("BJIInfectedChooseVehicle",
+                BJI_Lang.get("infected.play.flashChooseVehicle"),
                 3, false)
-            BJI.Windows.VehSelector.open(false)
+            BJI_Win_VehSelector.open(false)
         end
         if config then
-            BJI.Managers.Async.task(function()
-                return BJI.Managers.VehSelectorUI.stateSelector
+            BJI_Async.task(function()
+                return BJI_VehSelectorUI.stateSelector
             end, function()
                 S.trySpawnNew(model, config)
             end, "BJIHunterForcedConfigSpawn")
         end
     end
-    BJI.Managers.Restrictions.update()
+    BJI_Restrictions.update()
 end
 
 local function onLeaveParticipants()
     if S.state == S.STATES.PREPARATION then
-        BJI.Windows.VehSelector.tryClose(true)
+        BJI_Win_VehSelector.tryClose(true)
     end
-    BJI.Managers.Veh.deleteAllOwnVehicles()
-    BJI.Managers.Restrictions.update()
+    BJI_Veh.deleteAllOwnVehicles()
+    BJI_Restrictions.update()
 end
 
 local function updatePreparation(data)
-    local wasParticipant = S.participants[BJI.Managers.Context.User.playerID]
+    local wasParticipant = S.participants[BJI_Context.User.playerID]
     local wasInfected = wasParticipant and wasParticipant.originalInfected
     S.participants = data.participants
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local participant = S.participants[BJI_Context.User.playerID]
     if not wasParticipant and participant then
         onJoinParticipants(participant)
     elseif wasParticipant and not participant then
         onLeaveParticipants()
-        BJI.Windows.VehSelector.tryClose(true)
+        BJI_Win_VehSelector.tryClose(true)
         S.waypoints = {}
     elseif wasParticipant and participant and
         wasInfected ~= participant.originalInfected then
@@ -343,7 +343,7 @@ local function initSurvivorsVehs()
     S.survivors = table.filter(S.participants, function(p)
         return not p.originalInfected
     end):reduce(function(res, p, pid)
-        local veh = BJI.Managers.Veh.getVehicleObject(p.gameVehID)
+        local veh = BJI_Veh.getVehicleObject(p.gameVehID)
         if veh then
             res[veh:getID()] = {
                 playerID = pid,
@@ -357,7 +357,7 @@ end
 local function tryApplyScenarioColor(participant)
     if S.settings.enableColors then
         local color = participant.originalInfected and S.settings.infectedColor or S.settings.survivorsColor
-        local veh = BJI.Managers.Veh.getVehicleObject(participant.gameVehID)
+        local veh = BJI_Veh.getVehicleObject(participant.gameVehID)
         if color and veh then
             ---@type NGPaint
             local ngColor = {
@@ -368,7 +368,7 @@ local function tryApplyScenarioColor(participant)
                 clearCoatRoughness = .5,
             }
             for i = 1, 3 do
-                BJI.Managers.Veh.paintVehicle(veh, i, ngColor)
+                BJI_Veh.paintVehicle(veh, i, ngColor)
             end
         end
     end
@@ -377,16 +377,16 @@ end
 ---@param participant BJIInfectedParticipant
 local function initGameParticipant(participant)
     local function preStart()
-        BJI.Managers.Cam.setCamera(S.previousCamera)
-        if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.EXTERNAL then
-            BJI.Managers.Cam.setCamera(S.previousCamera or BJI.Managers.Cam.CAMERAS.ORBIT)
+        BJI_Cam.setCamera(S.previousCamera)
+        if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.EXTERNAL then
+            BJI_Cam.setCamera(S.previousCamera or BJI_Cam.CAMERAS.ORBIT)
         end
 
         initSurvivorsVehs()
         if participant.originalInfected and S.survivors:length() == 1 then -- DEBUG should not append (min 3 players)
             S.survivors:find(TrueFn, function(p, vid)
-                BJI.Managers.GPS.prependWaypoint({
-                    key = BJI.Managers.GPS.KEYS.VEHICLE,
+                BJI_GPS.prependWaypoint({
+                    key = BJI_GPS.KEYS.VEHICLE,
                     gameVehID = vid,
                     radius = 0,
                     clearable = false,
@@ -397,16 +397,16 @@ local function initGameParticipant(participant)
     local function start()
         local flashKey = participant.originalInfected and "infected.play.flashInfectedStart" or
             "infected.play.flashSurvivorStart"
-        BJI.Managers.Message.flash("BJIInfectedStart", BJI.Managers.Lang.get(flashKey), 5, false)
-        BJI.Managers.Veh.freeze(false, participant.gameVehID)
+        BJI_Message.flash("BJIInfectedStart", BJI_Lang.get(flashKey), 5, false)
+        BJI_Veh.freeze(false, participant.gameVehID)
         S.resetLock = false
-        BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
     end
 
     local startTime = tonumber(participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) or 0
     if startTime > GetCurrentTimeMillis() then
-        BJI.Managers.Async.programTask(preStart, startTime - 3000, "BJIInfectedPrestart")
-        BJI.Managers.Message.flashCountdown("BJIInfectedStart", startTime, false, nil, 5, start, true)
+        BJI_Async.programTask(preStart, startTime - 3000, "BJIInfectedPrestart")
+        BJI_Message.flashCountdown("BJIInfectedStart", startTime, false, nil, 5, start, true)
     else
         preStart()
         start()
@@ -416,37 +416,37 @@ local function initGameParticipant(participant)
 end
 
 local function switchToRandomParticipant()
-    if S.participants[BJI.Managers.Context.User.playerID] then return end
+    if S.participants[BJI_Context.User.playerID] then return end
 
     local part = table.random(S.participants)
     if part then
-        BJI.Managers.Veh.focus(S.participants:indexOf(part) or 0)
+        BJI_Veh.focus(S.participants:indexOf(part) or 0)
     end
 end
 
 local function initGame(data)
     S.state = data.state
     S.participants = data.participants
-    S.survivorsStartTime = BJI.Managers.Tick.applyTimeOffset(data.survivorsStartTime)
-    S.infectedStartTime = BJI.Managers.Tick.applyTimeOffset(data.infectedStartTime)
+    S.survivorsStartTime = BJI_Tick.applyTimeOffset(data.survivorsStartTime)
+    S.infectedStartTime = BJI_Tick.applyTimeOffset(data.infectedStartTime)
 
-    local participant = S.participants[BJI.Managers.Context.User.playerID]
+    local participant = S.participants[BJI_Context.User.playerID]
 
     if participant then
-        BJI.Windows.VehSelector.tryClose(true)
+        BJI_Win_VehSelector.tryClose(true)
         initGameParticipant(participant)
     else
         -- spec start
-        if not BJI.Managers.Veh.getCurrentVehicle() then
+        if not BJI_Veh.getCurrentVehicle() then
             switchToRandomParticipant()
-            BJI.Managers.Cam.setCamera(S.previousCamera)
+            BJI_Cam.setCamera(S.previousCamera)
         end
     end
 
-    if BJI.Managers.Cam.getCamera() == BJI.Managers.Cam.CAMERAS.FREE then
-        BJI.Managers.Cam.toggleFreeCam()
+    if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.FREE then
+        BJI_Cam.toggleFreeCam()
     end
-    BJI.Managers.Restrictions.update()
+    BJI_Restrictions.update()
 end
 
 local function updateSurvivorsVehs()
@@ -459,13 +459,13 @@ local function updateSurvivorsVehs()
 end
 
 local function updateGame(data)
-    local wasParticipant = S.participants[BJI.Managers.Context.User.playerID]
+    local wasParticipant = S.participants[BJI_Context.User.playerID]
     local wasInfected = S.isInfected()
     local previousAmountSurvivors = table.filter(S.participants, function(p)
         return not p.originalInfected and not p.infectionTime
     end):length()
     S.participants = data.participants
-    participant = S.participants[BJI.Managers.Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     local isInfected = S.isInfected()
     local amountSurvivors = table.filter(S.participants, function(p)
         return not p.originalInfected and not p.infectionTime
@@ -473,10 +473,10 @@ local function updateGame(data)
     local wasFinished = S.finished
     S.finished = data.finished
 
-    if wasParticipant and not S.participants[BJI.Managers.Context.User.playerID] then
+    if wasParticipant and not S.participants[BJI_Context.User.playerID] then
         -- own vehicle deletion will trigger switch to another participant
         onLeaveParticipants()
-        BJI.Managers.Restrictions.update()
+        BJI_Restrictions.update()
     end
     if not wasInfected and isInfected then
         tryApplyScenarioColor(participant)
@@ -485,8 +485,8 @@ local function updateGame(data)
         updateSurvivorsVehs()
         if isInfected and S.survivors:length() == 1 then
             S.survivors:find(TrueFn, function(p, vid)
-                BJI.Managers.GPS.prependWaypoint({
-                    key = BJI.Managers.GPS.KEYS.VEHICLE,
+                BJI_GPS.prependWaypoint({
+                    key = BJI_GPS.KEYS.VEHICLE,
                     gameVehID = vid,
                     radius = 0,
                     clearable = false,
@@ -495,8 +495,8 @@ local function updateGame(data)
         end
     end
     if participant and not wasFinished and S.finished then
-        BJI.Managers.GPS.reset()
-        BJI.Managers.Restrictions.update()
+        BJI_GPS.reset()
+        BJI_Restrictions.update()
     end
 end
 
@@ -523,7 +523,7 @@ local function rxData(data)
     elseif S.state then
         S.stop()
     end
-    BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.SCENARIO_UPDATED)
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
 -- player list contextual actions getter
@@ -532,7 +532,7 @@ end
 local function getPlayerListActions(player, ctxt)
     actions = {}
 
-    if BJI.Managers.Votes.Kick.canStartVote(player.playerID) then
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
         BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
@@ -542,10 +542,10 @@ end
 -- large distance detection tick
 ---@param ctxt TickContext
 local function slowTick(ctxt)
-    participant = S.participants[BJI.Managers.Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     if ctxt.veh and participant and (participant.originalInfected or participant.infectionTime) then
         S.survivors:forEach(function(p, vid)
-            pos = BJI.Managers.Veh.getPositionRotation(p.veh)
+            pos = BJI_Veh.getPositionRotation(p.veh)
             if pos then
                 if ctxt.veh.position:distance(pos) > 50 then
                     S.closeSurvivors = table.filter(S.closeSurvivors, function(cvid) return cvid ~= vid end)
@@ -564,15 +564,15 @@ local function fastTick(ctxt)
         selfDiag = math.sqrt((ctxt.veh.veh:getInitialLength() / 2) ^ 2 + (ctxt.veh.veh:getInitialWidth() / 2) ^ 2)
         table.forEach(S.closeSurvivors, function(vid)
             if S.survivors[vid].lock then return end
-            pos = BJI.Managers.Veh.getPositionRotation(S.survivors[vid].veh)
+            pos = BJI_Veh.getPositionRotation(S.survivors[vid].veh)
             if pos then
                 diag = math.sqrt((S.survivors[vid].veh:getInitialLength() / 2) ^ 2 +
                     (S.survivors[vid].veh:getInitialWidth() / 2) ^ 2)
                 if pos:distance(ctxt.veh.position) < selfDiag + diag then
                     -- tagged
-                    BJI.Tx.scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
+                    BJI_Tx_scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
                     S.survivors[vid].lock = true
-                    BJI.Managers.Async.delayTask(function()
+                    BJI_Async.delayTask(function()
                         if S.survivors[vid] then
                             S.survivors[vid].lock = nil
                         end
@@ -586,7 +586,7 @@ end
 ---@param playerID integer?
 ---@return boolean
 local function isInfected(playerID)
-    participant = S.participants[playerID or BJI.Managers.Context.User.playerID]
+    participant = S.participants[playerID or BJI_Context.User.playerID]
     return participant and (participant.originalInfected or participant.infectionTime ~= nil)
 end
 
@@ -607,7 +607,7 @@ S.canPaintVehicle = canPaintVehicle
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 S.doShowNametag = doShowNametag
-S.getCollisionsType = function() return BJI.Managers.Collisions.TYPES.FORCED end
+S.getCollisionsType = function() return BJI_Collisions.TYPES.FORCED end
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted

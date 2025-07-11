@@ -32,18 +32,18 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.title = BJI.Managers.Lang.get("buslines.preparation.title")
-    W.labels.line = BJI.Managers.Lang.get("buslines.preparation.line")
-    W.labels.config = BJI.Managers.Lang.get("buslines.preparation.config")
-    W.labels.cancel = BJI.Managers.Lang.get("common.buttons.cancel")
-    W.labels.start = BJI.Managers.Lang.get("common.buttons.start")
+    W.labels.title = BJI_Lang.get("buslines.preparation.title")
+    W.labels.line = BJI_Lang.get("buslines.preparation.line")
+    W.labels.config = BJI_Lang.get("buslines.preparation.config")
+    W.labels.cancel = BJI_Lang.get("common.buttons.cancel")
+    W.labels.start = BJI_Lang.get("common.buttons.start")
 end
 
 ---@param ctxt? TickContext
 local function updateCache(ctxt)
-    ctxt = ctxt or BJI.Managers.Tick.getContext()
+    ctxt = ctxt or BJI_Tick.getContext()
 
-    W.data.linesCombo = Table(BJI.Managers.Context.Scenario.Data.BusLines)
+    W.data.linesCombo = Table(BJI_Context.Scenario.Data.BusLines)
         :map(function(line, i)
             return {
                 value = i,
@@ -62,12 +62,12 @@ local function updateCache(ctxt)
             W.scenario.BASE_MODEL
         }):addAll({}) -- add custom buses in the future
         :reduce(function(res, model)
-            res:addAll(Table(BJI.Managers.Veh.getAllConfigsForModel(model))
+            res:addAll(Table(BJI_Veh.getAllConfigsForModel(model))
                 :map(function(conf)
-                    local label = string.var("{1} {2}", { BJI.Managers.Veh.getModelLabel(model), conf.label })
+                    local label = string.var("{1} {2}", { BJI_Veh.getModelLabel(model), conf.label })
                     if conf.custom then
                         label = string.var("{1} ({2})",
-                            { label, BJI.Managers.Lang.get("buslines.preparation.customConfig") })
+                            { label, BJI_Lang.get("buslines.preparation.customConfig") })
                     end
                     return {
                         value = model .. ";" .. conf.key,
@@ -87,38 +87,38 @@ end
 
 local listeners = Table()
 local function onLoad()
-    W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.BUS_MISSION)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.BUS_MISSION)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.LANG_CHANGED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, updateLabels, W.name .. "Labels"))
 
     updateCache()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.CACHE_LOADED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.CACHE_LOADED,
+        BJI_Events.EVENTS.UI_UPDATE_REQUEST,
     }, function(ctxt, data)
-        if data._event ~= BJI.Managers.Events.EVENTS.CACHE_LOADED or
-            data.cache == BJI.Managers.Cache.CACHES.BUS_LINES then
+        if data._event ~= BJI_Events.EVENTS.CACHE_LOADED or
+            data.cache == BJI_Cache.CACHES.BUS_LINES then
             updateCache(ctxt)
         end
     end, W.name .. "Cache"))
 
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.SCENARIO_CHANGED,
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
     }, function()
-        if not BJI.Managers.Perm.canSpawnVehicle() or
-            not BJI.Managers.Scenario.isFreeroam() then
+        if not BJI_Perm.canSpawnVehicle() or
+            not BJI_Scenario.isFreeroam() then
             onClose()
         end
     end, W.name .. "AutoClose"))
 end
 
 local function onUnload()
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     W.data.configsCombo = Table()
     W.data.linesCombo = Table()
 end
@@ -160,7 +160,7 @@ end
 
 ---@param ctxt TickContext
 local function startMission(ctxt)
-    local line = BJI.Managers.Context.Scenario.Data.BusLines[W.data.lineSelected]
+    local line = BJI_Context.Scenario.Data.BusLines[W.data.lineSelected]
     local model, config = table.unpack(tostring(W.data.configSelected):split2(";"))
     W.scenario.start(ctxt, {
         id = W.data.lineSelected,

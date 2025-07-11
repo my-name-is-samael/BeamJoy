@@ -16,7 +16,7 @@ local W = {
 
 local function onLoad()
     W.maxSize = ImVec2(350, 800)
-    W.type = BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) and
+    W.type = BJI_Scenario.is(BJI_Scenario.TYPES.RACE_SOLO) and
         raceSolo or raceMulti
     W.type.onLoad()
 end
@@ -46,9 +46,9 @@ W.onUnload = onUnload
 W.header = header
 W.body = body
 W.getState = function()
-    return BJI.Managers.Cache.areBaseCachesFirstLoaded() and (
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_SOLO) or
-        BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.RACE_MULTI)
+    return BJI_Cache.areBaseCachesFirstLoaded() and (
+        BJI_Scenario.is(BJI_Scenario.TYPES.RACE_SOLO) or
+        BJI_Scenario.is(BJI_Scenario.TYPES.RACE_MULTI)
     )
 end
 

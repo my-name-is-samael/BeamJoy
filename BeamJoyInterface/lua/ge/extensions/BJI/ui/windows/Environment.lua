@@ -51,61 +51,61 @@ local function onClose()
 end
 
 local function updateLabels()
-    W.labels.sun = BJI.Managers.Lang.get("environment.sun")
-    W.labels.weather = BJI.Managers.Lang.get("environment.weather")
-    W.labels.gravity = BJI.Managers.Lang.get("environment.gravity")
-    W.labels.temperature = BJI.Managers.Lang.get("environment.temperature")
-    W.labels.speed = BJI.Managers.Lang.get("environment.speed")
-    W.labels.close = BJI.Managers.Lang.get("common.buttons.close")
+    W.labels.sun = BJI_Lang.get("environment.sun")
+    W.labels.weather = BJI_Lang.get("environment.weather")
+    W.labels.gravity = BJI_Lang.get("environment.gravity")
+    W.labels.temperature = BJI_Lang.get("environment.temperature")
+    W.labels.speed = BJI_Lang.get("environment.speed")
+    W.labels.close = BJI_Lang.get("common.buttons.close")
 end
 
 local function updateSharedCache()
-    W.sharedCache = table.clone(BJI.Managers.Env.Data)
+    W.sharedCache = table.clone(BJI_Env.Data)
 end
 
 local function tickSave()
-    if not table.compare(W.sharedCache, BJI.Managers.Env.Data, true) then
+    if not table.compare(W.sharedCache, BJI_Env.Data, true) then
         local function checkAndSend(cached, data, prefix)
             prefix = prefix or ""
             Table(cached):forEach(function(v, k)
                 if k == "fogColor" then
                     if not table.compare(v, data[k]) then
-                        BJI.Tx.config.env("fogColor", data[k])
+                        BJI_Tx_config.env("fogColor", data[k])
                     end
                 elseif type(v) == "table" and type(data[k]) == "table" then
                     checkAndSend(v, data[k], string.var("{1}{2}.", { prefix, k }))
                 elseif not table.includes({ "ToD", "shadowTexSizeInput" }, k) and v ~= data[k] then
-                    BJI.Tx.config.env(prefix .. tostring(k), data[k])
+                    BJI_Tx_config.env(prefix .. tostring(k), data[k])
                 end
             end)
         end
-        checkAndSend(W.sharedCache, BJI.Managers.Env.Data)
+        checkAndSend(W.sharedCache, BJI_Env.Data)
     end
 end
 
 local listeners = Table()
 local function onLoad()
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.PERMISSION_CHANGED,
+    listeners:insert(BJI_Events.addListener({
+        BJI_Events.EVENTS.PERMISSION_CHANGED,
     }, function()
-        if not BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.SET_ENVIRONMENT) then
+        if not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SET_ENVIRONMENT) then
             onClose()
         end
     end, W.name))
 
     updateSharedCache()
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.CACHE_LOADED,
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED,
         function(_, data)
-            if data.cache == BJI.Managers.Cache.CACHES.ENVIRONMENT then
+            if data.cache == BJI_Cache.CACHES.ENVIRONMENT then
                 updateSharedCache()
-                BJI.Managers.Env.ToDEdit = false
+                BJI_Env.ToDEdit = false
             end
         end, W.name))
 
-    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.SLOW_TICK, tickSave, W.name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, tickSave, W.name))
 
     if not W.tab or not W.TABS[W.tab] then
         W.tab = 1
@@ -119,7 +119,7 @@ local function onUnload()
     if W.TABS[W.tab] and W.TABS[W.tab].subWindow.onUnload then
         W.TABS[W.tab].subWindow.onUnload()
     end
-    listeners:forEach(BJI.Managers.Events.removeListener)
+    listeners:forEach(BJI_Events.removeListener)
     W.sharedCache = Table()
 end
 
