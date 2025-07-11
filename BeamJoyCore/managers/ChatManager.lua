@@ -13,6 +13,11 @@ local M = {
         count = 0,
         langsIndices = {},
     },
+
+    DISCORD_CHAT_HOOK_EVENTS_BLACKLIST = {
+        "chat.events.playerJoined",
+        "chat.events.playerLeft",
+    }
 }
 
 local function init()
@@ -110,6 +115,15 @@ local function sendChatEvent(eventKey, eventData, color)
         data = eventData,
         color = color or { .6, .6, .6, 1 }, -- RGBA (COLORS NOT WORKING YET IN THE CHAT)
     })
+
+    -- Discord ChatHook Mod integration (https://github.com/OfficialLambdax/BeamMP-ChatHook)
+    if not table.includes(M.DISCORD_CHAT_HOOK_EVENTS_BLACKLIST, eventKey) then
+        local discordMessage = BJCLang.getClientMessage(BJCConfig.Data.Server.DiscordChatHookLang, eventKey)
+            :var(table.map(eventData or {}, function(subKey)
+                return BJCLang.getClientMessage(BJCConfig.Data.Server.DiscordChatHookLang, subKey)
+            end))
+        MP.TriggerGlobalEvent("onScriptMessage", discordMessage, "BeamJoy")
+    end
 end
 
 local function onPlayerDisconnect(playerID, playerName)

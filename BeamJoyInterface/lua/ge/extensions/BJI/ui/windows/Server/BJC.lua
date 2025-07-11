@@ -5,12 +5,11 @@ local W = {
     ---@field labelKey string
     ---@field render fun(ctxt: TickContext, labels: table, cache: table?)
     ---@field permission string?
-    ---@field minimumGroup string?
 
     ---@type tablelib<integer, BJIServerAccordionConfig> index 1-N
-    ACCORDION = Table({
+    ACCORDIONS = Table({
         {
-            minimumGroup = BJI.CONSTANTS.GROUP_NAMES.OWNER,
+            permission = BJI_Perm.PERMISSIONS.SET_CORE,
             labelKey = "server",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/Server"),
         },
@@ -128,6 +127,8 @@ local W = {
         server = {
             title = "",
             lang = "",
+            discordChatHookLang = "",
+            discordChatHookLangTooltip = "",
             allowMods = "",
             driftBigBroadcast = "",
             broadcasts = {
@@ -272,6 +273,8 @@ local function updateLabels()
     W.labels.vehicleDelivery.remove = BJI_Lang.get("common.buttons.remove")
 
     W.labels.server.lang = BJI_Lang.get("serverConfig.bjc.server.lang") .. " :"
+    W.labels.server.discordChatHookLang = BJI_Lang.get("serverConfig.bjc.server.discordChatHookLang") .. " :"
+    W.labels.server.discordChatHookLangTooltip = BJI_Lang.get("serverConfig.bjc.server.discordChatHookLangTooltip")
     W.labels.server.allowMods = BJI_Lang.get("serverConfig.bjc.server.allowMods") .. " :"
     W.labels.server.driftBigBroadcast = BJI_Lang.get("serverConfig.bjc.server.driftBigBroadcast") .. " :"
     W.labels.server.broadcasts.title = BJI_Lang.get("serverConfig.bjc.server.broadcasts.title") .. " :"
@@ -353,7 +356,7 @@ local function updateCache()
 end
 
 local function initServer()
-    if BJI_Perm.hasMinimumGroup(W.ACCORDION[1].minimumGroup) then
+    if BJI_Perm.hasPermission(W.ACCORDIONS[1].permission) then
         W.cache.server.broadcasts.langs = Table(BJI_Lang.Langs)
             :map(function(l)
                 return {
@@ -372,11 +375,8 @@ end
 
 local function updateAccordions()
     ---@param accordionContent BJIServerAccordionConfig
-    W.filtered = W.ACCORDION:filter(function(accordionContent)
+    W.filtered = W.ACCORDIONS:filter(function(accordionContent)
         if accordionContent.permission and not BJI_Perm.hasPermission(accordionContent.permission) then
-            return false
-        end
-        if accordionContent.minimumGroup and not BJI_Perm.hasMinimumGroup(accordionContent.minimumGroup) then
             return false
         end
         return true

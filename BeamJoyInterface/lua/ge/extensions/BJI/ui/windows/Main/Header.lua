@@ -172,6 +172,7 @@ local function draw(ctxt)
         TableNewRow()
         if BJI_Cache.areBaseCachesFirstLoaded() and #BJI_Lang.Langs > 1 then
             BJI_Lang.drawSelector({
+                id = "userLang",
                 selected = ctxt.user.lang,
                 onChange = function(newLang)
                     BJI_Tx_player.lang(newLang)

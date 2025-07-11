@@ -6,6 +6,7 @@ local function config()
             Lang = "en",
             AllowClientMods = true,
             DriftBigBroadcast = false,
+            DiscordChatHookLang = "en",
             Broadcasts = {
                 delay = 120,
                 en = {}

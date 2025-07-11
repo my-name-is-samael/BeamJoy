@@ -71,7 +71,7 @@ local function getLangsList()
     return langs
 end
 
-local function _getMessage(lang, key)
+local function _getMessage(lang, key, skipError)
     if key:find(" ") then
         return key
     end
@@ -80,14 +80,18 @@ local function _getMessage(lang, key)
     for i = 1, #parts do
         obj = obj[parts[i]]
         if obj == nil then
-            LogError(M.getConsoleMessage("messages.missing"):var({ key = key }))
+            if not skipError then
+                LogError(M.getConsoleMessage("messages.missing"):var({ key = key }))
+            end
             return key
         end
     end
     if type(obj) == "string" then
         return obj
     else
-        LogError(M.getConsoleMessage("messages.invalidKey"):var({ key = key }))
+        if not skipError then
+            LogError(M.getConsoleMessage("messages.invalidKey"):var({ key = key }))
+        end
         return key
     end
 end
@@ -120,6 +124,16 @@ local function getServerMessage(targetLang, key)
     return message ~= compiledKey and message or key
 end
 
+local function getClientMessage(targetLang, key)
+    local lang = table.deepcopy(M.Langs[M.FallbackLang])
+    if table.includes(M.getLangsList(), targetLang) then
+        table.assign(lang, M.Langs[targetLang])
+    end
+    local compiledKey = "client." .. tostring(key)
+    local message = _getMessage(lang, compiledKey, true)
+    return message ~= compiledKey and message or key
+end
+
 local function getCache(playerID)
     return {
         langs = M.getLangsList(),
@@ -135,6 +149,7 @@ M.checkConsoleLang = checkConsoleLang
 M.getLangsList = getLangsList
 M.getConsoleMessage = getConsoleMessage
 M.getServerMessage = getServerMessage
+M.getClientMessage = getClientMessage
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 

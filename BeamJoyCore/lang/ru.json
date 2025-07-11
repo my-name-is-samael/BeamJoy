@@ -714,6 +714,8 @@
         "server": {
           "title": "Глобальные настройки",
           "lang": "Язык консоли сервера",
+          "discordChatHookLang": "Язык Discord ChatHook",
+          "discordChatHookLangTooltip": "для мода BeamMP-ChatHook",
           "allowMods": "Разрешить модификации игроков",
           "driftBigBroadcast": "Бродкаст «Большие заносы»",
           "broadcasts": {

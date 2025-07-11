@@ -136,16 +136,33 @@ end
 return function(ctxt, labels, cache)
     if #BJI_Lang.Langs > 1 then
         BJI_Lang.drawSelector({
+            id = "serverLang",
             label = labels.server.lang,
             selected = BJI_Context.BJC.Server.Lang,
             onChange = function(newLang)
                 BJI_Tx_config.bjc("Server.Lang", newLang)
             end
         })
+
+        BJI_Lang.drawSelector({
+            id = "discordChatHookLang",
+            label = labels.server.discordChatHookLang,
+            tooltip = labels.server.discordChatHookLangTooltip,
+            selected = BJI_Context.BJC.Server.DiscordChatHookLang,
+            onChange = function(newLang)
+                BJI_Tx_config.bjc("Server.DiscordChatHookLang", newLang)
+            end
+        })
     else
         Text(labels.server.lang)
         SameLine()
         Text(BJI_Context.BJC.Server.Lang:upper())
+
+        Text(labels.server.discordChatHookLang)
+        TooltipText(labels.server.discordChatHookLangTooltip)
+        SameLine()
+        Text(BJI_Context.BJC.Server.DiscordChatHookLang:upper())
+        TooltipText(labels.server.discordChatHookLangTooltip)
     end
 
     Text(labels.server.allowMods)

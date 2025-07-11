@@ -56,10 +56,10 @@ local function get(key, defaultValue)
     return tostring(val)
 end
 
+---@param data {id: string, label: string, tooltip: string?, selected: string, onChange: fun(newLang: string)}
 local function drawSelector(data)
     if not data then
-        LogError(M.get("errors.invalidData"), M._name)
-        return
+        return LogError(M.get("errors.invalidData"), M._name)
     end
 
     if data.label then
@@ -67,14 +67,16 @@ local function drawSelector(data)
     else
         Icon(BJI.Utils.Icon.ICONS.translate)
     end
+    if data.tooltip then TooltipText(data.tooltip) end
     for _, l in ipairs(M.Langs) do
         SameLine()
-        if Button(l, l:upper(), { btnStyle = data.selected == l and
+        if Button(data.id .. "-" .. l, l:upper(), { btnStyle = data.selected == l and
                 BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
             if data.selected ~= l and data.onChange then
                 data.onChange(l)
             end
         end
+        if data.tooltip then TooltipText(data.tooltip) end
     end
 end
 

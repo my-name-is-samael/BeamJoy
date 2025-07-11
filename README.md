@@ -322,9 +322,12 @@ If you want to calibrate this setting correctly on your server, I recommend the 
 - Check whether the shadow distance value works well under these conditions.
 
 ## Compatible Mods
-- Pretty much all modded vehicles with correct data
+- Pretty much all modded vehicles with correctly formed data
 - [Enhanced Interior Camera](https://www.beamng.com/resources/enhanced-interior-camera.24952/)
 - [Agent's Simplified Realistic Traffic Mod (EU + Yakuza)](https://www.beamng.com/threads/agents-simplified-realistic-traffic-mod-eu-yakuza.102034/)
+- [Discord ChatHook](https://github.com/OfficialLambdax/BeamMP-ChatHook) (all BeamJoy events are logged and translated with a configuration)
+
+_Please contact me or open a ticket to request a mod integration_
 
 ## Video tutorials
 

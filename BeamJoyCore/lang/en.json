@@ -842,6 +842,8 @@
         "server": {
           "title": "Global Settings",
           "lang": "Server Console Language",
+          "discordChatHookLang": "Discord ChatHook Language",
+          "discordChatHookLangTooltip": "for the BeamMP-ChatHook mod",
           "allowMods": "Allow Player Mods",
           "driftBigBroadcast": "Brodcast big drifts",
           "broadcasts": {

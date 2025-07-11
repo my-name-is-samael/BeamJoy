@@ -105,6 +105,7 @@ local function getCache(senderID)
     }
     if BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.OWNER) then
         data.Server.Lang = M.Data.Server.Lang
+        data.Server.DiscordChatHookLang = M.Data.Server.DiscordChatHookLang
         data.Server.DriftBigBroadcast = M.Data.Server.DriftBigBroadcast
         data.Server.Broadcasts = M.Data.Server.Broadcasts
         data.Server.WelcomeMessage = M.Data.Server.WelcomeMessage
@@ -169,11 +170,7 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
     elseif table.includes({ "Race", "Speed", "Hunter", "Infected", "Derby", "VehicleDelivery" }, parent) then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO)
     elseif parent == "Server" then
-        if table.includes({ "Lang", "AllowClientMods", "Theme" }, key) then
-            return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CORE)
-        elseif table.includes({ "DriftBigBroadcast", "Broadcasts", "WelcomeMessage" }, key) then
-            return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.OWNER)
-        end
+        return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CORE)
     end
     error({ key = "rx.errors.invalidKey", data = { key = parent .. "." .. key } })
 end
@@ -263,7 +260,7 @@ local function set(ctxt, key, value)
 
     if type(target) ~= type(value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
-    elseif not parent and key == "Lang" and not table.includes(BJCLang.getLangsList(), value) then
+    elseif parent == "Server" and key:endswith("Lang") and not table.includes(BJCLang.getLangsList(), value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     end
 
