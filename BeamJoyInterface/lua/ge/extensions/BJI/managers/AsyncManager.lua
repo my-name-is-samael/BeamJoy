@@ -2,11 +2,6 @@
 local M = {
     _name = "Async",
 
-    KEYS = { -- TODO REMOVE
-        BASE_CACHES_POST_INPUTS = "baseCachesPostInputs",
-        RESTRICTIONS_RESET_TIMER = "restrictionsResetTimer",
-        RESTRICTIONS_TELEPORT_TIMER = "restrictionsTeleportTimer",
-    },
     tasks = Table(),
     delayedTasks = Table(),
     delayedOrder = Table(),

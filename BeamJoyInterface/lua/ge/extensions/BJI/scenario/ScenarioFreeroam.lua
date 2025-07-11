@@ -23,6 +23,16 @@ local function onLoad(ctxt)
     S.teleport.restricted = false
 end
 
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local res = Table()
+    if not ctxt.isOwner then
+        res:addAll(BJI.Managers.Restrictions.OTHER.FUN_STUFF, true)
+    end
+    return res
+end
+
 local function tryApplyFreeze(gameVehID)
     local veh
     for _, v in pairs(BJI.Managers.Context.User.vehicles) do
@@ -147,6 +157,7 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
         tryApplyFreeze(newGameVehID)
         tryApplyEngineState(newGameVehID)
     end
+    BJI.Managers.Restrictions.update()
 end
 
 ---@return boolean
@@ -214,7 +225,7 @@ local function tryTeleportToPlayer(targetID, forced)
                 S.teleport.restricted = false
             end,
             BJI.Managers.Context.BJC.Freeroam.TeleportDelay * 1000,
-            BJI.Managers.Async.KEYS.RESTRICTIONS_TELEPORT_TIMER
+            "restrictionsTeleportTimer"
         )
     end
 end
@@ -406,6 +417,8 @@ end
 
 S.canChangeTo = TrueFn
 S.onLoad = onLoad
+
+S.getRestrictions = getRestrictions
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onVehicleResetted = onVehicleResetted

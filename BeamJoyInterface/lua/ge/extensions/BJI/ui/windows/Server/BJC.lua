@@ -51,6 +51,11 @@ local W = {
         },
         {
             permission = BJI.Managers.Perm.PERMISSIONS.SCENARIO,
+            labelKey = "infected",
+            render = require("ge/extensions/BJI/ui/windows/Server/BJC/Infected"),
+        },
+        {
+            permission = BJI.Managers.Perm.PERMISSIONS.SCENARIO,
             labelKey = "derby",
             render = require("ge/extensions/BJI/ui/windows/Server/BJC/Derby"),
         },
@@ -103,6 +108,10 @@ local W = {
             keys = {},
         },
         hunter = {
+            title = "",
+            keys = {},
+        },
+        infected = {
             title = "",
             keys = {},
         },
@@ -190,6 +199,7 @@ local function updateLabels()
     W.labels.race.title = BJI.Managers.Lang.get("serverConfig.bjc.race.title")
     W.labels.speed.title = BJI.Managers.Lang.get("serverConfig.bjc.speed.title")
     W.labels.hunter.title = BJI.Managers.Lang.get("serverConfig.bjc.hunter.title")
+    W.labels.infected.title = BJI.Managers.Lang.get("serverConfig.bjc.infected.title")
     W.labels.derby.title = BJI.Managers.Lang.get("serverConfig.bjc.derby.title")
     W.labels.vehicleDelivery.title = BJI.Managers.Lang.get("serverConfig.bjc.vehicleDelivery.title")
     W.labels.server.title = BJI.Managers.Lang.get("serverConfig.bjc.server.title")
@@ -237,6 +247,15 @@ local function updateLabels()
             "")
         if #W.labels.hunter.keys[k .. "Tooltip"] == 0 then
             W.labels.hunter.keys[k .. "Tooltip"] = nil
+        end
+    end)
+
+    Table(BJI.Managers.Context.BJC.Infected):forEach(function(_, k)
+        W.labels.infected.keys[k] = BJI.Managers.Lang.get("serverConfig.bjc.infected." .. k)
+        W.labels.infected.keys[k .. "Tooltip"] = BJI.Managers.Lang.get("serverConfig.bjc.infected." .. k .. "Tooltip",
+            "")
+        if #W.labels.infected.keys[k .. "Tooltip"] == 0 then
+            W.labels.infected.keys[k .. "Tooltip"] = nil
         end
     end)
 

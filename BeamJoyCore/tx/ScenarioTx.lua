@@ -3,7 +3,7 @@ local eventName = BJC_EVENTS.SCENARIO.EVENT
 BJCTx.scenario = {}
 
 ---@param targetID integer
----@param raceData table|false raceData or error -- TODO type BJCRace
+---@param raceData BJRace|false
 function BJCTx.scenario.RaceDetails(targetID, raceData)
     BJCTx.sendToPlayer(eventName, BJC_EVENTS.SCENARIO.TX.RACE_DETAILS, targetID, { raceData })
 end

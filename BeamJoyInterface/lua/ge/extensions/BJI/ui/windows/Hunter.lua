@@ -17,7 +17,7 @@ local W = {
         notReadyMark = "",
 
         playStartIn = "",
-        startFlashHunted = "",
+        flashStartHunted = "",
         flashStartHunter = "",
         huntedAboutToLoose = "",
         huntedLooseIn = "",
@@ -68,17 +68,17 @@ local W = {
 local label, color, remaining
 
 local function updateLabels()
-    W.labels.hunted = string.var("{1}:", { BJI.Managers.Lang.get("hunter.play.hunted") })
-    W.labels.hunters = string.var("{1}:", { BJI.Managers.Lang.get("hunter.play.hunters") })
+    W.labels.hunted = BJI.Managers.Lang.get("hunter.play.hunted") .. " :"
+    W.labels.hunters = BJI.Managers.Lang.get("hunter.play.hunters") .. " :"
 
     W.labels.preparationTimeoutAboutToEnd = BJI.Managers.Lang.get("hunter.play.preparationTimeoutAboutToEnd")
     W.labels.preparationTimeoutIn = BJI.Managers.Lang.get("hunter.play.preparationTimeoutIn")
-    W.labels.configChoose = string.var("{1}:", { BJI.Managers.Lang.get("hunter.play.configChoose") })
+    W.labels.configChoose = BJI.Managers.Lang.get("hunter.play.configChoose") .. " :"
     W.labels.readyMark = string.var("({1})", { BJI.Managers.Lang.get("hunter.play.readyMark") })
     W.labels.notReadyMark = string.var("({1})", { BJI.Managers.Lang.get("hunter.play.notReadyMark") })
 
     W.labels.playStartIn = BJI.Managers.Lang.get("hunter.play.startIn")
-    W.labels.startFlashHunted = BJI.Managers.Lang.get("hunter.play.flashHuntedStart")
+    W.labels.flashStartHunted = BJI.Managers.Lang.get("hunter.play.flashHuntedStart")
     W.labels.flashStartHunter = BJI.Managers.Lang.get("hunter.play.flashHunterResume")
     W.labels.huntedAboutToLoose = BJI.Managers.Lang.get("hunter.play.huntedAboutToLoose")
     W.labels.huntedLooseIn = BJI.Managers.Lang.get("hunter.play.huntedLooseIn")
@@ -139,6 +139,7 @@ local function updateCache(ctxt)
     W.cache.playersList = Table(W.scenario.participants)
         :map(function(p, playerID)
             return {
+                playerID = playerID,
                 playerName = ctxt.players[playerID].playerName,
                 self = playerID == ctxt.user.playerID,
                 readyLabel = p.ready and W.labels.readyMark or W.labels.notReadyMark,
@@ -161,10 +162,7 @@ local function onLoad()
     W.scenario = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
 
     updateLabels()
-    listeners:insert(BJI.Managers.Events.addListener({
-        BJI.Managers.Events.EVENTS.LANG_CHANGED,
-        BJI.Managers.Events.EVENTS.UI_UPDATE_REQUEST,
-    }, updateLabels, W.name .. "Labels"))
+    listeners:insert(BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.LANG_CHANGED, updateLabels, W.name))
 
     updateCache()
     listeners:insert(BJI.Managers.Events.addListener({
@@ -188,8 +186,6 @@ end
 local function onUnload()
     listeners:forEach(BJI.Managers.Events.removeListener)
 end
-
-local sh
 
 ---@param targetTime integer
 ---@param now integer
@@ -261,7 +257,7 @@ local function drawHeaderGame(ctxt)
                     if remaining > 0 then
                         label = W.labels.playStartIn:var({ delay = BJI.Utils.UI.PrettyDelay(remaining) })
                     else
-                        label = W.cache.isHunted and W.labels.startFlashHunted or W.labels.flashStartHunter
+                        label = W.cache.isHunted and W.labels.flashStartHunted or W.labels.flashStartHunter
                     end
                     color = remaining <= 3 and
                         BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or
@@ -361,7 +357,7 @@ local function drawBodyPreparation(ctxt)
             if Button("forceFugitive" .. p.playerName, W.labels.buttons.setAsFugitive,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disabledButtons }) then
                 W.cache.disabledButtons = true
-                BJI.Tx.scenario.HunterForceFugitive(p.playerName)
+                BJI.Tx.scenario.HunterForceFugitive(p.playerID)
             end
         end
         if i == 1 or i == #W.cache.playersList then

@@ -24,15 +24,19 @@ local W = {
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.HUNTER)
                 .MINIMUM_PARTICIPANTS
         end,
+        [BJI.Managers.Tournament.ACTIVITIES_TYPES.INFECTED] = function()
+            return BJI.Managers.Context.Scenario.Data.HunterInfected and
+                BJI.Managers.Context.Scenario.Data.HunterInfected.enabledInfected and
+                BJI.Managers.Context.Players:length() >=
+                BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.INFECTED)
+                .MINIMUM_PARTICIPANTS
+        end,
         [BJI.Managers.Tournament.ACTIVITIES_TYPES.DERBY] = function()
             return table.filter(BJI.Managers.Context.Scenario.Data.Derby,
                     function(a) return a.enabled end):length() > 0 and
                 BJI.Managers.Context.Players:length() >=
                 BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
         end,
-        [BJI.Managers.Tournament.ACTIVITIES_TYPES.TAG] = function()
-            return false -- TODO
-        end
     }),
 
     manualShow = false,
@@ -45,6 +49,7 @@ local W = {
         activityAboutToTimeout = "",
         total = "",
         noParticipant = "",
+        zeroScoreTooltip = "",
         activities = {},
         buttons = {
             edit = "",
@@ -119,6 +124,7 @@ local function updateLabels()
     W.labels.activityAboutToTimeout = BJI.Managers.Lang.get("tournament.activityAboutToTimeout")
     W.labels.total = BJI.Managers.Lang.get("tournament.total")
     W.labels.noParticipant = BJI.Managers.Lang.get("tournament.noParticipant")
+    W.labels.zeroScoreTooltip = BJI.Managers.Lang.get("tournament.zeroScoreTooltip")
     W.labels.startActivity.title = BJI.Managers.Lang.get("tournament.startActivity")
     W.labels.startActivity.track = BJI.Managers.Lang.get("tournament.track")
     W.labels.startActivity.arena = BJI.Managers.Lang.get("tournament.arena")
@@ -583,7 +589,7 @@ local function drawTournamentData(ctxt)
                                 max = #W.cache.tournamentData.players,
                                 width = 200
                             })
-                        TooltipText("Set to 0 to remove score") -- TODO i18n
+                        TooltipText(W.labels.zeroScoreTooltip)
                         if nextValue then W.cache.inputs[cells[1].playerName][iCell - 1] = nextValue end
                     else
                         if cells[iCell].canEdit then
@@ -712,10 +718,10 @@ local function drawStartActivity(ctxt)
                 BJI.Tx.vote.ScenarioStart(BJI.Managers.Votes.SCENARIO_TYPES.SPEED, false)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.HUNTER then
                 BJI.Windows.HunterSettings.open()
+            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.INFECTED then
+                BJI.Windows.InfectedSettings.open()
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
                 BJI.Windows.DerbySettings.open(W.cache.selectedStartActivitySec)
-            elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.TAG then
-                -- TODO start tag
             end
         end
     end

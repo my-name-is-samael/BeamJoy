@@ -43,7 +43,8 @@ function ctrl.RaceToggle(ctxt)
     local race = BJCScenarioData.getRace(raceID)
     if race then
         race.enabled = state
-        local raceID = BJCScenarioData.saveRace(race)
+        race.keepRecord = true ---@diagnostic disable-line polymorphism
+        BJCScenarioData.saveRace(race) ---@diagnostic disable-line polymorphism
     else
         error({ key = "rx.errors.invalidData" })
     end
@@ -319,8 +320,8 @@ function ctrl.HunterForceFugitive(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local playerName = ctxt.data[1]
-    BJCScenario.HunterManager.forceFugitive(playerName)
+    local playerID = ctxt.data[1]
+    BJCScenario.HunterManager.forceFugitive(playerID)
 end
 
 ---@param ctxt BJCContext
@@ -330,6 +331,34 @@ function ctrl.HunterStop(ctxt)
     end
 
     BJCScenario.HunterManager.stop()
+end
+
+---@param ctxt BJCContext
+function ctrl.InfectedUpdate(ctxt)
+    if not BJCPerm.canSpawnVehicle(ctxt.senderID) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    local event, data = ctxt.data[1], ctxt.data[2]
+    BJCScenario.InfectedManager.clientUpdate(ctxt.senderID, event, data)
+end
+
+function ctrl.InfectedForceInfected(ctxt)
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    local playerID = ctxt.data[1]
+    BJCScenario.InfectedManager.forceInfected(playerID)
+end
+
+---@param ctxt BJCContext
+function ctrl.InfectedStop(ctxt)
+    if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
+        error({ key = "rx.errors.insufficientPermissions" })
+    end
+
+    BJCScenario.InfectedManager.stop()
 end
 
 ---@param ctxt BJCContext

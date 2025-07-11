@@ -397,6 +397,10 @@ local function loadConfig()
             M.BJC.Hunter = cacheData.Hunter
         end
 
+        if cacheData.Infected then
+            M.BJC.Infected = cacheData.Infected
+        end
+
         if cacheData.Derby then
             M.BJC.Derby = cacheData.Derby
         end
@@ -488,7 +492,7 @@ local function loadScenarii()
         end
     end)
 
-    -- hunter data
+    -- hunter/infected data
     BJI.Managers.Cache.addRxHandler(BJI.Managers.Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
         M.Scenario.Data.HunterInfected = cacheData
     end)

@@ -1,3 +1,24 @@
+---@class _BJRace
+---@field id integer unique per map
+---@field hash string
+---@field name string unique per map
+---@field enabled boolean
+---@field loopable boolean
+---@field hasStand boolean
+---@field record {playerName: string, time: integer, model: string}?
+
+---@class BJRace: _BJRace
+---@field author string
+---@field previewPosition BJIPositionRotation
+---@field startPositions BJIPositionRotation[]
+---@field steps {name: string, pos: vec3, rot: quat, radius: number, stand: boolean?, zOffset: number?}[][]
+
+---@class BJRacePayload: BJRace
+---@field keepRecord boolean
+
+---@class BJRaceLight: _BJRace
+---@field places integer
+
 local M = {
     ENERGY_TYPES = {
         GASOLINE = "gasoline",
@@ -5,6 +26,7 @@ local M = {
         KEROSINE = "kerosine",
         ELECTRIC = "electricEnergy"
     },
+    ---@type BJRace[]
     Races = {},
     EnergyStations = {},
     Garages = {},
@@ -100,6 +122,7 @@ end
 -- CACHES
 
 local function getCacheRaces(senderID)
+    ---@type BJRaceLight[]
     local cache = {}
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
@@ -130,7 +153,7 @@ local function getCacheRaces(senderID)
             end
         end
     end
-    cache.mapName = BJCCore.getMap()
+    cache.mapName = BJCCore.getMap() ---@diagnostic disable-line custom field
 
     return cache, M.getCacheRacesHash()
 end
@@ -257,7 +280,7 @@ local function getRace(raceID)
     return nil
 end
 
----@param race table
+---@param race BJRacePayload
 ---@return integer raceID
 local function saveRace(race)
     local function checkParents(raceData, wpData, wpStep)
@@ -391,7 +414,7 @@ local function saveRace(race)
 
     race.enabled = race.enabled == true
 
-    -- removing unwanted values
+    -- removing payload temp values
     race.keepRecord = nil
 
     local raceID = BJCDao.scenario.Races.save(race)

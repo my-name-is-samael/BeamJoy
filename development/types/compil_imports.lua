@@ -119,6 +119,10 @@ BJI.Windows.Environment = require("ge/extensions/BJI/ui/windows/Environment")
 BJI.Windows.HunterSettings = require("ge/extensions/BJI/ui/windows/HunterSettings")
 ---@type BJIWindowHunter
 BJI.Windows.Hunter = require("ge/extensions/BJI/ui/windows/Hunter")
+---@type BJIWindowInfectedSettings
+BJI.Windows.InfectedSettings = require("ge/extensions/BJI/ui/windows/InfectedSettings")
+---@type BJIWindowInfected
+BJI.Windows.Infected = require("ge/extensions/BJI/ui/windows/Infected")
 ---@type BJIWindowDerbySettings
 BJI.Windows.DerbySettings = require("ge/extensions/BJI/ui/windows/DerbySettings")
 ---@type BJIWindowDerby
@@ -151,6 +155,7 @@ BJI.Managers.Scenario.TYPES.BUS_MISSION = "BUS_MISSION"
 BJI.Managers.Scenario.TYPES.SPEED = "SPEED"
 BJI.Managers.Scenario.TYPES.DELIVERY_MULTI = "DELIVERY_MULTI"
 BJI.Managers.Scenario.TYPES.HUNTER = "HUNTER"
+BJI.Managers.Scenario.TYPES.INFECTED = "INFECTED"
 BJI.Managers.Scenario.TYPES.DERBY = "DERBY"
 BJI.Managers.Scenario.TYPES.TAG_DUO = "TAG_DUO"
 
@@ -172,6 +177,8 @@ BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DELIVERY_MULTI] = req
     "ge/extensions/BJI/scenario/ScenarioDeliveryMulti")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.HUNTER] = require(
     "ge/extensions/BJI/scenario/ScenarioHunter")
+BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.INFECTED] = require(
+    "ge/extensions/BJI/scenario/ScenarioInfected")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.DERBY] = require(
     "ge/extensions/BJI/scenario/ScenarioDerby")
 BJI.Managers.Scenario.scenarii[BJI.Managers.Scenario.TYPES.TAG_DUO] = require(

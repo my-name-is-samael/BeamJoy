@@ -148,13 +148,28 @@ return function(TX)
         TX._send(event.EVENT, event.TX.HUNTER_UPDATE, { clientEvent, data })
     end
 
-    ---@param playerName string
-    function scenario.HunterForceFugitive(playerName)
-        TX._send(event.EVENT, event.TX.HUNTER_FORCE_FUGITIVE, { playerName })
+    ---@param playerID integer
+    function scenario.HunterForceFugitive(playerID)
+        TX._send(event.EVENT, event.TX.HUNTER_FORCE_FUGITIVE, { playerID })
     end
 
     function scenario.HunterStop()
         TX._send(event.EVENT, event.TX.HUNTER_STOP)
+    end
+
+    ---@param clientEvent string
+    ---@param data any
+    function scenario.InfectedUpdate(clientEvent, data)
+        TX._send(event.EVENT, event.TX.INFECTED_UPDATE, { clientEvent, data })
+    end
+
+    ---@param playerID integer
+    function scenario.InfectedForceInfected(playerID)
+        TX._send(event.EVENT, event.TX.INFECTED_FORCE_INFECTED, { playerID })
+    end
+
+    function scenario.InfectedStop()
+        TX._send(event.EVENT, event.TX.INFECTED_STOP)
     end
 
     ---@param arenas table[]

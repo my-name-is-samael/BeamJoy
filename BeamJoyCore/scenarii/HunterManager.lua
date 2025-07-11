@@ -1,10 +1,10 @@
 ---@class BJIHunterParticipant
 ---@field hunted boolean
 ---@field ready boolean
----@field startPosition?integer
----@field waypoint? integer
----@field gameVehID? integer
----@field eliminated? boolean
+---@field startPosition integer?
+---@field waypoint integer?
+---@field gameVehID integer?
+---@field eliminated boolean?
 
 ---@class BJCScenarioHunter: BJCScenario
 local M = {
@@ -30,7 +30,7 @@ local M = {
     },
 
     state = nil,
-    -- keep track of players joined participant to have valid hunted everytime
+    -- keep track of joined participants to have valid hunted everytime
     ---@type tablelib<integer, integer> index 1-N, value playerID
     joinOrder = Table(),
     ---@type tablelib<integer, BJIHunterParticipant> index playerID
@@ -47,6 +47,43 @@ local M = {
     hunterStartTime = nil,
     finished = false,
 }
+
+local function getCache()
+    return {
+        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
+        huntersRespawnDelay = BJCConfig.Data.Hunter.HuntersRespawnDelay,
+        huntedResetRevealDuration = BJCConfig.Data.Hunter.HuntedResetRevealDuration,
+        huntedRevealProximityDistance = BJCConfig.Data.Hunter.HuntedRevealProximityDistance,
+        huntedResetDistanceThreshold = BJCConfig.Data.Hunter.HuntedResetDistanceThreshold,
+        state = M.state,
+        participants = M.participants,
+        preparationTimeout = M.preparationTimeout,
+        huntedConfig = M.huntedConfig,
+        hunterConfigs = M.hunterConfigs,
+        waypoints = M.waypoints,
+        lastWaypointGPS = M.lastWaypointGPS,
+        huntedStartTime = M.huntedStartTime,
+        hunterStartTime = M.hunterStartTime,
+        finished = M.finished,
+    }, M.getCacheHash()
+end
+
+local function getCacheHash()
+    return Hash({
+        M.MINIMUM_PARTICIPANTS(),
+        M.state,
+        M.participants,
+        M.preparationTimeout,
+        M.huntedConfig,
+        M.hunterConfigs,
+        M.waypoints,
+        M.lastWaypointGPS,
+        M.huntedStartTime,
+        M.hunterStartTime,
+        M.finished,
+        BJCConfig.Data.Hunter,
+    })
+end
 
 local function cancelGridTimeout()
     BJCAsync.removeTask("BJCHunterGridTimeout")
@@ -68,43 +105,6 @@ local function stop()
     M.finished = false
 
     BJCScenario.CurrentScenario = nil
-end
-
-local function getCache()
-    return {
-        minimumParticipants = M.MINIMUM_PARTICIPANTS(),
-        huntedResetRevealDuration = BJCConfig.Data.Hunter.HuntedResetRevealDuration,
-        huntedRevealProximityDistance = BJCConfig.Data.Hunter.HuntedRevealProximityDistance,
-        huntedResetDistanceThreshold = BJCConfig.Data.Hunter.HuntedResetDistanceThreshold,
-        state = M.state,
-        participants = M.participants,
-        preparationTimeout = M.preparationTimeout,
-        huntedConfig = M.huntedConfig,
-        hunterConfigs = M.hunterConfigs,
-        waypoints = M.waypoints,
-        lastWaypointGPS = M.lastWaypointGPS,
-        huntedStartTime = M.huntedStartTime,
-        hunterStartTime = M.hunterStartTime,
-        huntersRespawnDelay = BJCConfig.Data.Hunter.HuntersRespawnDelay,
-        finished = M.finished,
-    }, M.getCacheHash()
-end
-
-local function getCacheHash()
-    return Hash({
-        M.MINIMUM_PARTICIPANTS(),
-        M.state,
-        M.participants,
-        M.preparationTimeout,
-        M.huntedConfig,
-        M.hunterConfigs,
-        M.waypoints,
-        M.lastWaypointGPS,
-        M.huntedStartTime,
-        M.hunterStartTime,
-        M.finished,
-        BJCConfig.Data.Hunter.HuntersRespawnDelay,
-    })
 end
 
 local function updateTournamentScores()
@@ -161,17 +161,6 @@ local function onGridTimeout()
         return
     end
 
-    if M.participants:any(function(p) return not p.ready end) then
-        BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "rx.errors.insufficientPlayers")
-        BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
-            gamemode = "chat.events.gamemodes.hunter",
-            reason = "chat.events.gamemodeStopReasons.timedout",
-        })
-        stop()
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
-        return
-    end
-
     -- start game
     M.state = M.STATES.GAME
     M.huntedStartTime = GetCurrentTime() + BJCConfig.Data.Hunter.HuntedStartDelay
@@ -189,6 +178,7 @@ local function startGridTimeout()
     BJCAsync.programTask(onGridTimeout, M.preparationTimeout, "BJCHunterGridTimeout")
 end
 
+---@param settings {waypoints: integer, lastWaypointGPS: boolean, huntedConfig: ClientVehicleConfig?, hunterConfigs: ClientVehicleConfig[]}
 local function start(settings)
     if not BJCScenarioData.HunterInfected.enabledHunter then
         error({ key = "rx.errors.invalidData" })
@@ -198,10 +188,10 @@ local function start(settings)
         error({ key = "rx.errors.invalidData" })
     else
         -- validate settings
-        settings.waypoints = tonumber(settings.waypoints)
         if not settings.hunterConfigs then
             error({ key = "rx.errors.invalidData" })
-        elseif not settings.waypoints or settings.waypoints < 1 then
+        elseif type(settings.waypoints) ~= "number" or
+            settings.waypoints < 1 then
             error({ key = "rx.errors.invalidData" })
         end
     end
@@ -240,7 +230,7 @@ end
 
 local function sanitizePreparationHunted()
     M.joinOrder = M.joinOrder:filter(function(playerID)
-        return not not M.participants[playerID]
+        return M.participants[playerID] ~= nil
     end)
     if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
         local wasHunted = M.participants[M.joinOrder[1]].hunted
@@ -375,28 +365,24 @@ local function onClientUpdate(senderID, event, data)
     end
 end
 
-local function forceFugitive(playerName)
+local function forceFugitive(playerID)
     if M.state ~= M.STATES.PREPARATION then
         error({ key = "rx.errors.invalidData" })
     end
 
-    local target = Table(BJCPlayers.Players):find(function(p)
-        return p.playerName == playerName
-    end)
-    local pos = target and M.joinOrder:indexOf(target.playerID) or nil
-    if not target or not pos or pos == 1 then
-        error({ key = "rx.errors.invalidPlayer", data = { playerName = playerName } })
+    local pos = M.joinOrder:indexOf(playerID)
+    if not pos or pos == 1 then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = playerID } })
     end
 
-    local previousHunterPosition = M.participants[target.playerID].startPosition
-    M.participants[target.playerID].hunted = true
-    M.participants[target.playerID].waypoint = 0
-    M.participants[target.playerID].ready = false
-    M.participants[target.playerID].startPosition = nil -- clear start position to generate a clean one
-    while not M.participants[target.playerID].startPosition or
-        M.participants[target.playerID].startPosition == M.participants[M.joinOrder[1]].startPosition do
+    M.participants[playerID].hunted = true
+    M.participants[playerID].waypoint = 0
+    M.participants[playerID].ready = false
+    M.participants[playerID].startPosition = nil -- clear start position to generate a clean one
+    while not M.participants[playerID].startPosition or
+        M.participants[playerID].startPosition == M.participants[M.joinOrder[1]].startPosition do
         -- only choose a new start pos to avoid swapped hunter getting spoiled
-        M.participants[target.playerID].startPosition = findFreeStartPosition(true)
+        M.participants[playerID].startPosition = findFreeStartPosition(true)
     end
 
     M.participants[M.joinOrder[1]].hunted = false
@@ -406,7 +392,7 @@ local function forceFugitive(playerName)
     M.participants[M.joinOrder[1]].startPosition = findFreeStartPosition(false)
 
     M.joinOrder:remove(pos)
-    M.joinOrder:insert(1, target.playerID)
+    M.joinOrder:insert(1, playerID)
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
 end
@@ -414,7 +400,14 @@ end
 ---@param player BJCPlayer
 local function onPlayerDisconnect(player)
     if M.state and M.participants[player.playerID] then
-        if M.state == M.STATES.GAME then
+        if M.state == M.STATES.PREPARATION then
+            M.joinOrder:remove(M.joinOrder:indexOf(player.playerID))
+            sanitizePreparationHunted()
+            if not M.participants:any(function(p) return p.ready end) and
+                not BJCAsync.exists("BJCHunterGridTimeout") then
+                startGridTimeout()
+            end
+        elseif M.state == M.STATES.GAME then
             if M.participants[player.playerID].hunted or
                 M.participants:length() < M.MINIMUM_PARTICIPANTS() then
                 BJCChat.sendChatEvent("chat.events.gamemodeStopped", {
@@ -423,16 +416,9 @@ local function onPlayerDisconnect(player)
                 })
                 stop()
             end
-        else
-            M.joinOrder:remove(M.joinOrder:indexOf(player.playerID))
-            sanitizePreparationHunted()
-            if not M.participants:any(function(p) return p.ready end) and
-                not BJCAsync.exists("BJCHunterGridTimeout") then
-                startGridTimeout()
-            end
         end
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
         M.participants[player.playerID] = nil
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
     end
 end
 

@@ -519,6 +519,7 @@ local function onLoad()
         [BJI.Managers.Cache.CACHES.DELIVERY_MULTI] = M.TYPES.DELIVERY_MULTI,
         [BJI.Managers.Cache.CACHES.SPEED] = M.TYPES.SPEED,
         [BJI.Managers.Cache.CACHES.HUNTER] = M.TYPES.HUNTER,
+        [BJI.Managers.Cache.CACHES.INFECTED] = M.TYPES.INFECTED,
         [BJI.Managers.Cache.CACHES.DERBY] = M.TYPES.DERBY,
         [BJI.Managers.Cache.CACHES.TAG_DUO] = M.TYPES.TAG_DUO,
     }, function(scenarioType, cacheName)

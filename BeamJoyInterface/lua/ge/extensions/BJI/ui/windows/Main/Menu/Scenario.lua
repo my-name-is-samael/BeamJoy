@@ -235,7 +235,6 @@ local function menuDeliveryMulti(ctxt)
     end
 end
 
--- later update TODO
 ---@param ctxt TickContext
 local function menuTagDuo(ctxt)
     if BJI.Managers.Perm.hasPermission(BJI.Managers.Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
@@ -390,6 +389,7 @@ local function updateCache(ctxt)
             local common = require("ge/extensions/BJI/ui/windows/Main/Menu/Common")
             common.menuRace(ctxt, M.cache.elems)
             common.menuHunter(ctxt, M.cache.elems)
+            common.menuInfected(ctxt, M.cache.elems)
             common.menuDerby(ctxt, M.cache.elems)
         end
     end
@@ -414,6 +414,12 @@ local function updateCache(ctxt)
                     type = "item",
                     label = BJI.Managers.Lang.get("menu.scenario.hunter.stop"),
                     onClick = BJI.Tx.scenario.HunterStop,
+                })
+            elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.INFECTED) then
+                table.insert(M.cache.elems, {
+                    type = "item",
+                    label = BJI.Managers.Lang.get("menu.scenario.infected.stop"),
+                    onClick = BJI.Tx.scenario.InfectedStop,
                 })
             elseif BJI.Managers.Scenario.is(BJI.Managers.Scenario.TYPES.DERBY) then
                 table.insert(M.cache.elems, {

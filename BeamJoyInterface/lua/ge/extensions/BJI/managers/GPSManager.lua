@@ -208,7 +208,7 @@ local function createVehicleWaypoint(gameVehID, radius, callback, prepend)
 
     veh = BJI.Managers.Veh.getMPVehicle(gameVehID)
     if not veh then
-        LogError("Invalid waypoint vehicle")
+        LogError("Invalid waypoint vehicle (veh not found)")
         return
     end
 
@@ -272,7 +272,7 @@ local function prependWaypoint(wp)
         end
     elseif wp.key == M.KEYS.VEHICLE then
         if not wp.gameVehID then
-            error("Invalid waypoint vehicle")
+            error("Invalid waypoint vehicle (no vid)")
         end
     elseif not wp.pos then
         error("Invalid waypoint")
@@ -304,11 +304,23 @@ end
 
 ---@param wp BJIGPSWp
 local function appendWaypoint(wp)
+    if wp.key == M.KEYS.PLAYER then
+        if not wp.playerName then
+            error("Invalid waypoint player name")
+        end
+    elseif wp.key == M.KEYS.VEHICLE then
+        if not wp.gameVehID then
+            error("Invalid waypoint vehicle (no vid)")
+        end
+    elseif not wp.pos then
+        error("Invalid waypoint")
+    end
+
     if wp.clearable == nil then wp.clearable = true end
     if wp.key == M.KEYS.PLAYER then
         wp.pos, wp.radius, existingIndex = createPlayerWaypoint(wp.playerName, wp.radius, wp.callback)
     elseif wp.key == M.KEYS.VEHICLE then
-        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(nil, wp.radius, wp.callback)
+        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(wp.gameVehID, wp.radius, wp.callback)
     else
         wp.pos, wp.radius, existingIndex = commonCreateWaypoint(wp.key, wp.pos, wp.radius, wp.callback)
     end

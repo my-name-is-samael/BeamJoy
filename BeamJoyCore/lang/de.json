@@ -197,6 +197,10 @@
       "huntersWinners": "Jäger haben gewonnen!",
       "draw": "Ziehen"
     },
+    "infected": {
+      "invalidInfected": "Keine Infizierten",
+      "gameOver": "Spiel beendet"
+    },
     "derby": {
       "winner": "{playerName} hat das Spiel gewonnen!",
       "draw": "Ziehen"
@@ -319,6 +323,7 @@
           "raceStart": "Rennen starten ",
           "speedStart": "Speed-Spiel starten",
           "hunterStart": "Hunter-Spiel wird gestartet",
+          "infectedStart": "startet ein Infiziert-Spiel",
           "derbyStart": "Derby-Match wird gestartet"
         },
         "vote": "{playerName} hat eine Abstimmung gestartet für {voteEvent}{suffix}",
@@ -330,6 +335,7 @@
           "race": "Rennen",
           "speed": "Speed-Spiel",
           "hunter": "Jägermodus",
+          "infected": "Infizierter Modus",
           "derby": "Destruction Derby",
           "delivery": "Gemeinsame Lieferung",
           "tagduo": "Fangen"
@@ -383,6 +389,8 @@
       "Database": "Datenbank",
       "HunterSettings": "Hunter-Spieleinstellungen",
       "Hunter": "Jägerspiel",
+      "InfectedSettings": "Infiziert-Spiel Einstellungen",
+      "Infected": "Infiziert-Spiel",
       "Theme": "Theme-Editor",
       "Derby": "Zerstörungsderby",
       "VehicleSelectorPreview": "Fahrzeugvorschau",
@@ -890,6 +898,23 @@
           "EndTimeout": "Enddauer",
           "EndTimeoutTooltip": "Zeit in Sekunden zwischen dem Ende des letzten Spielers und dem Ende des Modus"
         },
+        "infected": {
+          "title": "Infiziert-Spielmodus Einstellungen",
+          "PreparationTimeout": "Vorbereitungsdauer",
+          "PreparationTimeoutTooltip": "Zeit in Sekunden vor Spielbeginn",
+          "VoteTimeout": "Abstimmungsdauer",
+          "VoteTimeoutTooltip": "Dauer der Abstimmung in Sekunden",
+          "VoteThresholdRatio": "Abstimmungsschwelle",
+          "VoteThresholdRatioTooltip": "Erforderliches Verhältnis der Wähler zu allen Spielern auf dem Server, um das Spiel zu starten",
+          "GridTimeout": "Grid-Phase Timeout",
+          "GridTimeoutTooltip": "Timeout in Sekunden, damit Spieler beitreten, ein Fahrzeug wählen und sich bereit markieren. Wenn ein Spieler bereit ist, wird das Timeout entfernt.",
+          "InfectedStartDelay": "Startverzögerung für Infizierte",
+          "InfectedStartDelayTooltip": "Countdown in Sekunden für den infizierten Spieler",
+          "SurvivorsStartDelay": "Startverzögerung für Überlebende",
+          "SurvivorsStartDelayTooltip": "Countdown in Sekunden für Überlebende",
+          "EndTimeout": "Enddauer",
+          "EndTimeoutTooltip": "Zeit in Sekunden zwischen dem Auslöser und dem Ende des Modus"
+        },
         "derby": {
           "title": "Destruction Derby Einstellungen",
           "PreparationTimeout": "Vorbereitungsdauer",
@@ -1386,7 +1411,8 @@
       }
     },
     "ai": {
-      "toastCantSpawn": "Sie können keine KI-Fahrzeuge spawnen"
+      "toastCantSpawn": "Sie können keine KI-Fahrzeuge spawnen",
+      "policeDisabled": "Polizei-KI ist deaktiviert, standardmäßige Verkehrsfahrzeuge werden gespawnt..."
     },
     "speed": {
       "vote": {
@@ -1578,6 +1604,7 @@
       "arena": "Arena",
       "duration": "Dauer",
       "noParticipant": "Noch keine Teilnehmer",
+      "zeroScoreTooltip": "Auf 0 setzen, um Punkte zu entfernen",
       "buttons": {
         "endSoloActivity": "Solo-Aktivität beenden",
         "endTournament": "Turnier beenden",
@@ -1589,6 +1616,7 @@
         "race": "Rennen",
         "speed": "Geschwindigkeit",
         "hunter": "Jäger",
+        "infected": "Infiziert",
         "derby": "Derby",
         "tag": "Infiziert"
       }
@@ -1664,17 +1692,38 @@
       }
     },
     "infected": {
-      "title": "Infiziert-Spiel",
-      "infected": "Infizierte",
-      "survivors": "Überlebende",
-      "remainingSurvivors": "{amount} Überlebende übrig",
-      "preparation": {
-        "endAfterLastSurvivorInfected": "Letzte Infektion",
-        "endAfterLastSurvivorInfectedTooltip": "Das Spiel endet, nachdem der letzte Überlebende infiziert wurde. Andernfalls endet es, wenn nur noch ein Überlebender übrig ist.",
+      "settings": {
+        "endAfterLastSurvivorInfected": "Letzter Überlebender infiziert",
+        "endAfterLastSurvivorInfectedTooltip": "Wenn aktiviert, endet das Spiel nach der Infektion des letzten Überlebenden. Andernfalls endet es, wenn nur noch ein Überlebender übrig ist.",
         "config": "Fahrzeug",
-        "enableColors": "Fahrzeugfarben verwenden",
+        "enableColors": "Fahrzeugfarben",
         "survivorsColor": "Farbe der Überlebenden",
         "infectedColor": "Farbe der Infizierten"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} hat ein Infiziert-Spiel gestartet ({places} Plätze)",
+        "hasStartedVote": "{creatorName} hat eine Abstimmung zum Start eines Infiziert-Spiels gestartet ({places} Plätze)",
+        "timeout": "Das Spiel startet in {delay}",
+        "aboutToStart": "Das Spiel beginnt gleich",
+        "voteTimeout": "Die Abstimmung endet in {delay}",
+        "voteAboutToEnd": "Die Abstimmung endet gleich",
+        "currentVotes": "Aktuelle Stimmen"
+      },
+      "play": {
+        "flashChooseVehicle": "Wähle dein Fahrzeug",
+        "flashInfectedStart": "Infiziere die Überlebenden",
+        "flashSurvivorStart": "Vermeide die Infektion",
+        "preparationTimeoutIn": "Vorbereitung endet in {delay}",
+        "preparationTimeoutAboutToEnd": "Vorbereitungszeit endet gleich",
+        "startIn": "Du startest in {delay}",
+        "configChoose": "Wähle dein Fahrzeug",
+        "readyMark": "BEREIT",
+        "notReadyMark": "NICHT BEREIT",
+        "infected": "Infizierte",
+        "survivors": "Überlebende",
+        "setAsInfected": "Als infiziert festlegen",
+        "infectedAmount": "{amount} infiziert",
+        "remainingSurvivors": "{amount} Überlebende verbleibend"
       }
     }
   }

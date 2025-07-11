@@ -159,9 +159,7 @@ local function initNGFunctionsWrappers()
     extensions.gameplay_traffic.setupTrafficWaitForUi = function(withPolice)
         if not BJI.Managers.Restrictions.getState(BJI.Managers.Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
             if withPolice then
-                -- toast Police AI is disabled
-                -- TODO i18n
-                BJI.Managers.Toast.warning("Police AI is disabled, spawning standard traffic vehicles...")
+                BJI.Managers.Toast.warning(BJI.Managers.Lang.get("ai.policeDisabled"))
             end
             return M.baseFunctions.gameplay_traffic.setupTrafficWaitForUi(false) -- prevent AI police in traffic
         else

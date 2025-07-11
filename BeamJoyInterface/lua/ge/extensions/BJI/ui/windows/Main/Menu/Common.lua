@@ -147,6 +147,48 @@ end
 
 ---@param ctxt TickContext
 ---@param elems table
+local function menuInfected(ctxt, elems)
+    if BJI.Managers.Context.Scenario.Data.HunterInfected then
+        local potentialPlayers = BJI.Managers.Perm.getCountPlayersCanSpawnVehicle()
+        local minimumParticipants = BJI.Managers.Scenario.get(BJI.Managers.Scenario.TYPES.INFECTED).MINIMUM_PARTICIPANTS
+        local errorMessage = nil
+        if not BJI.Managers.Context.Scenario.Data.HunterInfected or
+            not BJI.Managers.Context.Scenario.Data.HunterInfected.enabledInfected then
+            errorMessage = BJI.Managers.Lang.get("menu.scenario.infected.modeDisabled")
+        elseif potentialPlayers < minimumParticipants then
+            errorMessage = BJI.Managers.Lang.get("errors.missingPlayers"):var({
+                amount = minimumParticipants - potentialPlayers
+            })
+        end
+
+        if errorMessage then
+            table.insert(elems, {
+                type = "custom",
+                render = function()
+                    Text(BJI.Managers.Lang.get("menu.scenario.infected.start"),
+                        { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    TooltipText(errorMessage)
+                end
+            })
+        else
+            table.insert(elems, {
+                type = "item",
+                label = BJI.Managers.Lang.get("menu.scenario.infected.start"),
+                active = BJI.Windows.InfectedSettings.show,
+                onClick = function()
+                    if BJI.Windows.InfectedSettings.show then
+                        BJI.Windows.InfectedSettings.onClose()
+                    else
+                        BJI.Windows.InfectedSettings.open()
+                    end
+                end,
+            })
+        end
+    end
+end
+
+---@param ctxt TickContext
+---@param elems table
 local function menuDerby(ctxt, elems)
     if BJI.Managers.Context.Scenario.Data.Derby then
         local rawArenas = Table(BJI.Managers.Context.Scenario.Data.Derby)
@@ -219,6 +261,7 @@ end
 
 C.menuRace = menuRace
 C.menuHunter = menuHunter
+C.menuInfected = menuInfected
 C.menuDerby = menuDerby
 
 return C

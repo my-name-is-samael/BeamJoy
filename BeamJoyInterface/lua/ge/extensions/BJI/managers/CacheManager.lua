@@ -23,6 +23,7 @@ local M = {
         SPEED = "speed",
         HUNTER_INFECTED_DATA = "hunterinfecteddata",
         HUNTER = "hunter",
+        INFECTED = "infected",
         DERBY_DATA = "derbydata",
         DERBY = "derby",
         TAG_DUO = "tagduo",

@@ -137,6 +137,15 @@ local function config()
             HuntedResetDistanceThreshold = 150,
             EndTimeout = 10,
         },
+        Infected = {
+            PreparationTimeout = 30,
+            VoteTimeout = 30,
+            VoteThresholdRatio = .51,
+            GridTimeout = 60,
+            SurvivorsStartDelay = 5,
+            InfectedStartDelay = 10,
+            EndTimeout = 10,
+        },
         Speed = {
             PreparationTimeout = 20,
             VoteTimeout = 30,

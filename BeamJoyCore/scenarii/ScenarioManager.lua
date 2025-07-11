@@ -36,6 +36,7 @@ local M = {
     RaceManager = require("scenarii/RaceManager"),
     SpeedManager = require("scenarii/SpeedManager"),
     HunterManager = require("scenarii/HunterManager"),
+    InfectedManager = require("scenarii/InfectedManager"),
     DerbyManager = require("scenarii/DerbyManager"),
 
     ---@type BJCScenario?

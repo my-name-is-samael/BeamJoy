@@ -14,6 +14,7 @@ local M = {
         RACE = "race",
         SPEED = "speed",
         HUNTER = "hunter",
+        INFECTED = "infected",
         DERBY = "derby",
         TAG = "tag",
     },

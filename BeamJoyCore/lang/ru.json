@@ -70,6 +70,10 @@
       "huntersWinners": "Охотники победили!",
       "draw": "Рисовать"
     },
+    "infected": {
+      "invalidInfected": "Нет заражённых",
+      "gameOver": "Игра окончена"
+    },
     "derby": {
       "winner": "{playerName} выиграл игру!",
       "draw": "Рисовать"
@@ -192,6 +196,7 @@
           "raceStart": "запуск гонки ",
           "speedStart": "запуск скоростной игры",
           "hunterStart": "запуск режима охоты",
+          "infectedStart": "запуск заражённой игры",
           "derbyStart": "запуск дерби"
         },
         "vote": "{playerName} начал голосование за {voteEvent}{suffix}",
@@ -203,6 +208,7 @@
           "race": "Гонка",
           "speed": "Скоростная игра",
           "hunter": "Охота",
+          "infected": "Режим заражения",
           "derby": "Дестракшн дерби",
           "delivery": "Совместная доставка",
           "tagduo": "Салки Дуо"
@@ -256,6 +262,8 @@
       "Database": "База данных",
       "HunterSettings": "Настройки игры Охотник",
       "Hunter": "Охотничья игра",
+      "InfectedSettings": "Настройки заражённой игры",
+      "Infected": "Заражённая игра",
       "Theme": "Редактор тем",
       "Derby": "Дерби Разрушения",
       "VehicleSelectorPreview": "Предпросмотр транспорта",
@@ -763,6 +771,23 @@
           "EndTimeout": "Конечная продолжительность",
           "EndTimeoutTooltip": "Время в секундах между последними игроками и завершением режима."
         },
+        "infected": {
+          "title": "Настройки режима заражения",
+          "PreparationTimeout": "Длительность подготовки",
+          "PreparationTimeoutTooltip": "Время в секундах до начала игры",
+          "VoteTimeout": "Время голосования",
+          "VoteTimeoutTooltip": "Длительность голосования в секундах",
+          "VoteThresholdRatio": "Порог голосов",
+          "VoteThresholdRatioTooltip": "Требуемая доля голосующих среди всех игроков сервера для запуска игры",
+          "GridTimeout": "Таймаут стадии выбора",
+          "GridTimeoutTooltip": "Время в секундах для входа, выбора транспорта и отметки готовности. Когда игрок готов — таймер снимается.",
+          "InfectedStartDelay": "Задержка старта заражённого",
+          "InfectedStartDelayTooltip": "Обратный отсчёт в секундах для заражённого игрока",
+          "SurvivorsStartDelay": "Задержка старта выживших",
+          "SurvivorsStartDelayTooltip": "Обратный отсчёт в секундах для выживших",
+          "EndTimeout": "Конечная длительность",
+          "EndTimeoutTooltip": "Время в секундах между триггером окончания и завершением режима"
+        },
         "derby": {
           "title": "Настройки Destruction Derby",
           "PreparationTimeout": "Время подготовки",
@@ -1259,7 +1284,8 @@
       }
     },
     "ai": {
-      "toastCantSpawn": "Вы не можете создавать машины ИИ."
+      "toastCantSpawn": "Вы не можете создавать машины ИИ.",
+      "policeDisabled": "ИИ полиции отключён, спавнятся стандартные транспортные средства..."
     },
     "speed": {
       "vote": {
@@ -1451,6 +1477,7 @@
       "arena": "Арена",
       "duration": "Продолжительность",
       "noParticipant": "Пока нет участников",
+      "zeroScoreTooltip": "Установите 0, чтобы убрать счёт",
       "buttons": {
         "endSoloActivity": "Завершить одиночную активность",
         "endTournament": "Завершить турнир",
@@ -1462,6 +1489,7 @@
         "race": "Гонка",
         "speed": "Скорость",
         "hunter": "Охотник",
+        "infected": "Заражённый",
         "derby": "Дерби",
         "tag": "Заражённый"
       }
@@ -1537,17 +1565,38 @@
       }
     },
     "infected": {
-      "title": "Режим Инфекции",
-      "infected": "Инфицированные",
-      "survivors": "Выжившие",
-      "remainingSurvivors": "Осталось {amount} выживших",
-      "preparation": {
-        "endAfterLastSurvivorInfected": "Завершение после последнего заражения",
-        "endAfterLastSurvivorInfectedTooltip": "Игра закончится после заражения последнего выжившего. Иначе — когда останется только один.",
+      "settings": {
+        "endAfterLastSurvivorInfected": "Инфекция последнего выжившего",
+        "endAfterLastSurvivorInfectedTooltip": "Если включено, игра завершится после заражения последнего выжившего. Иначе — при наличии одного выжившего.",
         "config": "Транспорт",
-        "enableColors": "Использовать цвета транспорта",
+        "enableColors": "Цвета транспорта",
         "survivorsColor": "Цвет выживших",
-        "infectedColor": "Цвет инфицированных"
+        "infectedColor": "Цвет заражённых"
+      },
+      "vote": {
+        "hasStarted": "{creatorName} запустил заражённую игру ({places} мест)",
+        "hasStartedVote": "{creatorName} начал голосование для запуска заражённой игры ({places} мест)",
+        "timeout": "Игра начнётся через {delay}",
+        "aboutToStart": "Игра скоро начнётся",
+        "voteTimeout": "Голосование завершится через {delay}",
+        "voteAboutToEnd": "Голосование скоро завершится",
+        "currentVotes": "Текущие голоса"
+      },
+      "play": {
+        "flashChooseVehicle": "Выберите транспорт",
+        "flashInfectedStart": "Заразите выживших",
+        "flashSurvivorStart": "Избегайте заражения",
+        "preparationTimeoutIn": "Подготовка завершится через {delay}",
+        "preparationTimeoutAboutToEnd": "Подготовка почти завершена",
+        "startIn": "Вы начнёте через {delay}",
+        "configChoose": "Выберите транспорт",
+        "readyMark": "ГОТОВ",
+        "notReadyMark": "НЕ ГОТОВ",
+        "infected": "Заражённые",
+        "survivors": "Выжившие",
+        "setAsInfected": "Назначить заражённым",
+        "infectedAmount": "{amount} заражённых",
+        "remainingSurvivors": "{amount} выживших осталось"
       }
     }
   }

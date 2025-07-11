@@ -1826,14 +1826,14 @@ M.onLoad = function()
     })
 
     extensions.util_screenshotCreator.startWork = function(...)
-        M.baseFunctions.saveConfigBaseFunction(...)
+        M.baseFunctions.util_screenshotCreator.saveConfigBaseFunction(...)
         BJI.Managers.Async.delayTask(function()
             M.getAllVehicleConfigs(false, false, true)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_SAVED)
         end, 3000, "BJIVehPostSaveConfig")
     end
     extensions.core_vehicle_partmgmt.removeLocal = function(...)
-        M.baseFunctions.removeConfigBaseFunction(...)
+        M.baseFunctions.core_vehicle_partmgmt.removeConfigBaseFunction(...)
         BJI.Managers.Async.delayTask(function()
             M.getAllVehicleConfigs(false, false, true)
             BJI.Managers.Events.trigger(BJI.Managers.Events.EVENTS.CONFIG_REMOVED)
@@ -1855,7 +1855,7 @@ M.onLoad = function()
                 end
             end, 1000, taskKey)
         end
-        M.baseFunctions.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
+        M.baseFunctions.core_vehicle_manager.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
     end
 
     BJI.Managers.Events.addListener(BJI.Managers.Events.EVENTS.ON_UNLOAD, onUnload, M._name)

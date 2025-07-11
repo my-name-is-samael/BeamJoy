@@ -272,8 +272,8 @@ M.Scenario = {
         RACE = "race",
         SPEED = "speed",
         HUNTER = "hunter",
-        DERBY = "derby",
         INFECTED = "infected",
+        DERBY = "derby",
     },
     ---@type string?
     type = nil,
@@ -304,20 +304,22 @@ end
 
 M.Scenario.getThreshold = function()
     if not M.Scenario.type then return 0 end
-    if M.Scenario.type == "race" then
+    if M.Scenario.type == M.Scenario.TYPES.RACE then
         return math.ceil(BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Race.VoteThresholdRatio)
-    elseif M.Scenario.type == "speed" then
+    elseif M.Scenario.type == M.Scenario.TYPES.SPEED then
         return BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS()
-    elseif M.Scenario.type == "hunter" then
+    elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
         return math.ceil(BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Hunter.VoteThresholdRatio)
-    elseif M.Scenario.type == "derby" then
+    elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+        return math.ceil(BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Infected.VoteThresholdRatio)
+    elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
         return math.ceil(BJCPerm.getCountPlayersCanSpawnVehicle() * BJCConfig.Data.Derby.VoteThresholdRatio)
     end
 end
 
 local function scenarioStartTimeout()
     if not M.Scenario.started() then return end
-    if M.Scenario.type == "race" then
+    if M.Scenario.type == M.Scenario.TYPES.RACE then
         if M.Scenario.isVote then
             if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
                 BJCChat.sendChatEvent("chat.events.voteAccepted", {
@@ -337,7 +339,7 @@ local function scenarioStartTimeout()
         else
             BJCScenario.RaceManager.start(M.Scenario.scenarioData.raceID, M.Scenario.scenarioData.settings)
         end
-    elseif M.Scenario.type == "speed" then
+    elseif M.Scenario.type == M.Scenario.TYPES.SPEED then
         if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
             if M.Scenario.isVote then
                 BJCChat.sendChatEvent("chat.events.voteAccepted", {
@@ -359,7 +361,7 @@ local function scenarioStartTimeout()
                 })
             end
         end
-    elseif M.Scenario.type == "hunter" then
+    elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
         if M.Scenario.isVote then
             if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
                 BJCChat.sendChatEvent("chat.events.voteAccepted", {
@@ -376,7 +378,24 @@ local function scenarioStartTimeout()
         else
             BJCScenario.HunterManager.start(M.Scenario.scenarioData)
         end
-    elseif M.Scenario.type == "derby" then
+    elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+        if M.Scenario.isVote then
+            if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
+                BJCChat.sendChatEvent("chat.events.voteAccepted", {
+                    voteEvent = "chat.events.voteEvents.infectedStart",
+                    suffix = "",
+                })
+                BJCScenario.InfectedManager.start(M.Scenario.scenarioData)
+            else
+                BJCChat.sendChatEvent("chat.events.voteDenied", {
+                    voteEvent = "chat.events.voteEvents.infectedStart",
+                    suffix = "",
+                })
+            end
+        else
+            BJCScenario.InfectedManager.start(M.Scenario.scenarioData)
+        end
+    elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
         if M.Scenario.isVote then
             if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
                 BJCChat.sendChatEvent("chat.events.voteAccepted", {
@@ -423,7 +442,7 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
     end
     scenarioData = scenarioData or {}
     M.Scenario.type = scenarioType
-    if scenarioType == "race" then
+    if scenarioType == M.Scenario.TYPES.RACE then
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
         end
@@ -462,7 +481,7 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
             M.Scenario.scenarioData.settings.laps = M.Scenario.scenarioData.settings.laps or 1
         end
         M.Scenario.voters = Table({ [creatorID] = true })
-    elseif M.Scenario.type == "speed" then
+    elseif M.Scenario.type == M.Scenario.TYPES.SPEED then
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.SpeedManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
         end
@@ -479,7 +498,7 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
                 gamemode = "chat.events.gamemodes.speed",
             })
         end
-    elseif M.Scenario.type == "hunter" then
+    elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.HunterManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
         elseif not BJCScenarioData.HunterInfected.enabledHunter then
@@ -487,8 +506,16 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
         end
         if isVote then
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Hunter.VoteTimeout
+            BJCChat.sendChatEvent("chat.events.vote", {
+                playerName = BJCPlayers.Players[creatorID].playerName,
+                voteEvent = "chat.events.voteEvents.hunterStart",
+                suffix = ""
+            })
         else
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Hunter.PreparationTimeout
+            BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
+                gamemode = "chat.events.gamemodes.hunter",
+            })
         end
         scenarioData.waypoints = scenarioData.waypoints or 1
         if scenarioData.lastWaypointGPS == nil then
@@ -502,14 +529,48 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
             hunterConfigs = scenarioData.hunterConfigs or {},
         }
         M.Scenario.voters = Table({ [creatorID] = true })
-    elseif M.Scenario.type == "derby" then
+    elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+        if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.InfectedManager.MINIMUM_PARTICIPANTS() then
+            error({ key = "rx.errors.insufficientPlayers" })
+        end
+        if isVote then
+            M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Infected.VoteTimeout
+            BJCChat.sendChatEvent("chat.events.vote", {
+                playerName = BJCPlayers.Players[creatorID].playerName,
+                voteEvent = "chat.events.voteEvents.infectedStart",
+                suffix = ""
+            })
+        else
+            M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Infected.PreparationTimeout
+            BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
+                gamemode = "chat.events.gamemodes.infected",
+            })
+        end
+        M.Scenario.scenarioData = {
+            places = #BJCScenarioData.HunterInfected.majorPositions + 1,
+            endAfterLastSurvivorInfected = scenarioData.endAfterLastSurvivorInfected,
+            config = scenarioData.config,
+            enableColors = scenarioData.enableColors,
+            survivorsColor = scenarioData.survivorsColor,
+            infectedColor = scenarioData.infectedColor,
+        }
+        M.Scenario.voters = Table({ [creatorID] = true })
+    elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.DerbyManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
         end
         if isVote then
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Derby.VoteTimeout
+            BJCChat.sendChatEvent("chat.events.vote", {
+                playerName = BJCPlayers.Players[creatorID].playerName,
+                voteEvent = "chat.events.voteEvents.derbyStart",
+                suffix = M.Scenario.scenarioData.arenaName
+            })
         else
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Derby.PreparationTimeout
+            BJCChat.sendChatEvent("chat.events.gamemodeStarted", {
+                gamemode = "chat.events.gamemodes.derby",
+            })
         end
         ---@type BJArena
         local arena = BJCScenarioData.Derby[scenarioData.arenaIndex]
@@ -543,12 +604,12 @@ end
 M.Scenario.vote = function(playerID, data)
     if not M.Scenario.started() then
         return
-    elseif M.Scenario.type == "speed" and not M.Scenario.isVote and
+    elseif M.Scenario.type == M.Scenario.TYPES.SPEED and not M.Scenario.isVote and
         not BJCPerm.canSpawnVehicle(playerID) then
         return
     end
 
-    if M.Scenario.type == "speed" then
+    if M.Scenario.type == M.Scenario.TYPES.SPEED then
         if M.Scenario.voters[playerID] then
             M.Scenario.voters[playerID] = nil
             BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
@@ -569,12 +630,14 @@ M.Scenario.vote = function(playerID, data)
             if M.Scenario.voters:length() == 0 then
                 -- no more voters
                 local voteEvent, suffix
-                if M.Scenario.type == "race" then
+                if M.Scenario.type == M.Scenario.TYPES.RACE then
                     voteEvent = "raceStart"
                     suffix = M.Scenario.scenarioData.raceName
-                elseif M.Scenario.type == "hunter" then
+                elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
                     voteEvent = "hunterStart"
-                elseif M.Scenario.type == "derby" then
+                elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+                    voteEvent = "infectedStart"
+                elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
                     voteEvent = "derbyStart"
                     suffix = M.Scenario.scenarioData.arenaName
                 end
@@ -586,15 +649,19 @@ M.Scenario.vote = function(playerID, data)
             else
                 -- check enough players connected
                 local shouldStop = false
-                if M.Scenario.type == "race" then
+                if M.Scenario.type == M.Scenario.TYPES.RACE then
                     if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.RaceManager.MINIMUM_PARTICIPANTS() then
                         shouldStop = true
                     end
-                elseif M.Scenario.type == "hunter" then
+                elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
                     if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.HunterManager.MINIMUM_PARTICIPANTS() then
                         shouldStop = true
                     end
-                elseif M.Scenario.type == "derby" then
+                elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+                    if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.InfectedManager.MINIMUM_PARTICIPANTS() then
+                        shouldStop = true
+                    end
+                elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
                     if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.DerbyManager.MINIMUM_PARTICIPANTS() then
                         shouldStop = true
                     end
@@ -619,13 +686,15 @@ end
 M.Scenario.stop = function(playerID)
     if M.Scenario.started() then
         local voteEvent, modeEvent, suffix
-        if M.Scenario.type == "race" then
+        if M.Scenario.type == M.Scenario.TYPES.RACE then
             voteEvent, modeEvent, suffix = "raceStart", "race", M.Scenario.scenarioData.raceName
-        elseif M.Scenario.type == "speed" then
+        elseif M.Scenario.type == M.Scenario.TYPES.SPEED then
             voteEvent, modeEvent = "speedStart", "speed"
-        elseif M.Scenario.type == "hunter" then
+        elseif M.Scenario.type == M.Scenario.TYPES.HUNTER then
             voteEvent, modeEvent = "hunterStart", "hunter"
-        elseif M.Scenario.type == "derby" then
+        elseif M.Scenario.type == M.Scenario.TYPES.INFECTED then
+            voteEvent, modeEvent = "infectedStart", "infected"
+        elseif M.Scenario.type == M.Scenario.TYPES.DERBY then
             voteEvent, modeEvent, suffix = "derbyStart", "derby", M.Scenario.scenarioData.arenaName
         end
 

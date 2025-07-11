@@ -32,9 +32,10 @@ local function save(parent, key, value)
     end
 
     local config = findAll()
-    if config[parent] then
-        config[parent][key] = value
+    if not config[parent] then
+        config[parent] = {}
     end
+    config[parent][key] = value
     BJCDao._saveFile(M._dbPath, config)
 end
 

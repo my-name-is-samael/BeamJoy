@@ -117,53 +117,9 @@ local function getCache(senderID)
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        if not data.Race then
-            data.Race = {}
-        end
-        data.Race.VoteThresholdRatio = M.Data.Race.VoteThresholdRatio
-        data.Race.PreparationTimeout = M.Data.Race.PreparationTimeout
-        data.Race.VoteTimeout = M.Data.Race.VoteTimeout
-        data.Race.VoteThresholdRatio = M.Data.Race.VoteThresholdRatio
-        data.Race.GridReadyTimeout = M.Data.Race.GridReadyTimeout
-        data.Race.GridTimeout = M.Data.Race.GridTimeout
-        data.Race.RaceCountdown = M.Data.Race.RaceCountdown
-        data.Race.FinishTimeout = M.Data.Race.FinishTimeout
-        data.Race.RaceEndTimeout = M.Data.Race.RaceEndTimeout
-        data.Race.RaceSoloTimeBroadcast = M.Data.Race.RaceSoloTimeBroadcast
-
-        data.Speed = {
-            PreparationTimeout = M.Data.Speed.PreparationTimeout,
-            VoteTimeout = M.Data.Speed.VoteTimeout,
-            BaseSpeed = M.Data.Speed.BaseSpeed,
-            StepSpeed = M.Data.Speed.StepSpeed,
-            StepDelay = M.Data.Speed.StepDelay,
-            EndTimeout = M.Data.Speed.EndTimeout,
-        }
-
-        data.Hunter = {
-            PreparationTimeout = M.Data.Hunter.PreparationTimeout,
-            VoteTimeout = M.Data.Hunter.VoteTimeout,
-            VoteThresholdRatio = M.Data.Hunter.VoteThresholdRatio,
-            GridTimeout = M.Data.Hunter.GridTimeout,
-            HuntedStartDelay = M.Data.Hunter.HuntedStartDelay,
-            HuntersStartDelay = M.Data.Hunter.HuntersStartDelay,
-            HuntedStuckTimeout = M.Data.Hunter.HuntedStuckTimeout,
-            HuntersRespawnDelay = M.Data.Hunter.HuntersRespawnDelay,
-            HuntedResetRevealDuration = M.Data.Hunter.HuntedResetRevealDuration,
-            HuntedRevealProximityDistance = M.Data.Hunter.HuntedRevealProximityDistance,
-            HuntedResetDistanceThreshold = M.Data.Hunter.HuntedResetDistanceThreshold,
-            EndTimeout = M.Data.Hunter.EndTimeout,
-        }
-
-        data.Derby = {
-            PreparationTimeout = M.Data.Derby.PreparationTimeout,
-            VoteTimeout = M.Data.Derby.VoteTimeout,
-            VoteThresholdRatio = M.Data.Derby.VoteThresholdRatio,
-            GridTimeout = M.Data.Derby.GridTimeout,
-            StartCountdown = M.Data.Derby.StartCountdown,
-            DestroyedTimeout = M.Data.Derby.DestroyedTimeout,
-            EndTimeout = M.Data.Derby.EndTimeout,
-        }
+        Table({"Race","Speed","Hunter","Infected","Derby"}):forEach(function(k)
+            data[k] = table.clone(M.Data[k])
+        end)
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) or
@@ -210,7 +166,7 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
         end
     elseif parent == "CEN" then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CEN)
-    elseif table.includes({ "Race", "Speed", "Hunter", "Derby", "VehicleDelivery" }, parent) then
+    elseif table.includes({ "Race", "Speed", "Hunter", "Infected", "Derby", "VehicleDelivery" }, parent) then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO)
     elseif parent == "Server" then
         if table.includes({ "Lang", "AllowClientMods", "Theme" }, key) then
@@ -219,7 +175,7 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
             return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.OWNER)
         end
     end
-    error({ key = "rx.errors.invalidKey", data = { key = key } })
+    error({ key = "rx.errors.invalidKey", data = { key = parent .. "." .. key } })
 end
 
 local function clampValue(parent, key, value)
@@ -250,17 +206,19 @@ local function clampValue(parent, key, value)
             return math.clamp(value, M.Data.TempBan.minTime or 0)
         end
     elseif parent == "Race" then
-        if table.includes({ "PreparationTimeout", "FinishTimeout", "RaceEndTimeout", "GridReadyTimeout" }, key) then
+        if table.includes({ "PreparationTimeout", "FinishTimeout",
+                "RaceEndTimeout", "GridReadyTimeout" }, key) then
             return math.clamp(value, 5)
         elseif table.includes({ "GridTimeout", "RaceCountdown" }, key) then
             return math.clamp(value, 10)
         elseif key == "VoteThresholdRatio" then
             return math.clamp(value, 0.01, 1)
         end
-    elseif table.includes({ "Hunter", "Derby" }, parent) then
+    elseif table.includes({ "Hunter", "Infected", "Derby" }, parent) then
         if key == "PreparationTimeout" then
             return math.clamp(value, 5, 180)
-        elseif table.includes({ "HuntedStartDelay", "HuntersStartDelay" }, key) then
+        elseif table.includes({ "HuntedStartDelay", "HuntersStartDelay",
+                "InfectedStartDelay", "SurvivorsStartDelay" }, key) then
             return math.clamp(value, 0, 60)
         elseif table.includes({ "HuntedStuckTimeout", "DestroyedTimeout" }, key) then
             return math.clamp(value, 3, 20)

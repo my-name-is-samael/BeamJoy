@@ -347,7 +347,7 @@ local function draw(ctxt)
         showTeleport = BJI.Managers.Context.BJC.Freeroam.TeleportDelay > 0
         if showReset or showTeleport then
             if showReset then
-                resetDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS.RESTRICTIONS_RESET_TIMER)
+                resetDelay = BJI.Managers.Async.getRemainingDelay("restrictionsResetTimer")
                 if resetDelay then
                     Text(cache.labels.resetCooldownLabel)
                     SameLine()
@@ -365,8 +365,7 @@ local function draw(ctxt)
             end
 
             if showTeleport then
-                teleportDelay = BJI.Managers.Async.getRemainingDelay(BJI.Managers.Async.KEYS
-                    .RESTRICTIONS_TELEPORT_TIMER)
+                teleportDelay = BJI.Managers.Async.getRemainingDelay("restrictionsTeleportTimer")
                 if teleportDelay then
                     Text(cache.labels.teleportCooldownLabel)
                     SameLine()

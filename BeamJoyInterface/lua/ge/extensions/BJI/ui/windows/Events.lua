@@ -87,6 +87,22 @@ local W = {
         showCancelBtn = false,
         disableButtons = false,
     },
+    infected = {
+        hasStarted = "",
+        settings = "",
+        votes = "",
+        timeAboutEnd = "",
+        timeout = "",
+        buttons = {
+            vote = "",
+            unvote = "",
+            stop = "",
+        },
+
+        showVoteBtn = false,
+        showCancelBtn = false,
+        disableButtons = false,
+    },
     derby = {
         hasStarted = "",
         settings = "",
@@ -140,6 +156,14 @@ local votes = Table({
                 BJI.Managers.Votes.Scenario.type == BJI.Managers.Votes.SCENARIO_TYPES.HUNTER
         end,
         cache = W.hunter
+    },
+    {
+        drawFn = require("ge/extensions/BJI/ui/windows/Events/VoteScenario/VoteScenarioGeneric"),
+        show = function()
+            return BJI.Managers.Votes.Scenario.started() and
+                BJI.Managers.Votes.Scenario.type == BJI.Managers.Votes.SCENARIO_TYPES.INFECTED
+        end,
+        cache = W.infected
     },
     {
         drawFn = require("ge/extensions/BJI/ui/windows/Events/VoteScenario/VoteScenarioGeneric"),
@@ -353,7 +377,56 @@ local function updateCaches(ctxt)
         W.hunter.buttons.stop = BJI.Managers.Lang.get("common.buttons.cancel")
     end
 
-    if votes[6].show() then -- derby
+    if votes[6].show() then -- infected
+        local creator = ctxt.players[BJI.Managers.Votes.Scenario.creatorID]
+        local creatorName = creator and creator.playerName or
+            BJI.Managers.Lang.get("common.defaultPlayerName")
+        W.infected.hasStarted = BJI.Managers.Lang.get(BJI.Managers.Votes.Scenario.isVote and
+                "infected.vote.hasStartedVote" or "infected.vote.hasStarted")
+            :var({ creatorName = creatorName, places = BJI.Managers.Votes.Scenario.scenarioData.places })
+
+        local settings = Table()
+        settings:insert(string.var("{1}: {2}", {
+            BJI.Managers.Lang.get("infected.settings.endAfterLastSurvivorInfected"),
+            BJI.Managers.Lang.get(BJI.Managers.Votes.Scenario.scenarioData.endAfterLastSurvivorInfected and
+                "common.enabled" or "common.disabled"),
+        }))
+        if BJI.Managers.Votes.Scenario.scenarioData.config then
+            settings:insert(string.var("{1}: {2}", {
+                BJI.Managers.Lang.get("infected.settings.config"),
+                BJI.Managers.Lang.get("common.enabled"),
+            }))
+        end
+        settings:insert(string.var("{1}: {2}", {
+            BJI.Managers.Lang.get("infected.settings.enableColors"),
+            BJI.Managers.Lang.get(BJI.Managers.Votes.Scenario.scenarioData.enableColors and
+                "common.enabled" or "common.disabled"),
+        }))
+        W.infected.settings = settings:join(", ")
+
+        W.infected.votes = nil
+        if BJI.Managers.Votes.Scenario.isVote then
+            W.infected.votes = string.var("{1}: {2}/{3}",
+                { BJI.Managers.Lang.get("infected.vote.currentVotes"),
+                    BJI.Managers.Votes.Scenario.amountVotes,
+                    BJI.Managers.Votes.Scenario.threshold })
+        end
+        W.infected.timeAboutEnd = BJI.Managers.Lang.get(BJI.Managers.Votes.Scenario.isVote and
+            "infected.vote.voteAboutToEnd" or "infected.vote.aboutToStart")
+        W.infected.timeout = BJI.Managers.Lang.get(BJI.Managers.Votes.Scenario.isVote and
+            "infected.vote.voteTimeout" or "infected.vote.timeout")
+
+        W.infected.showVoteBtn = BJI.Managers.Votes.Scenario.isVote
+        W.infected.showCancelBtn = BJI.Managers.Perm.isStaff() or
+            BJI.Managers.Votes.Scenario.creatorID == ctxt.user.playerID
+        W.infected.disableButtons = false
+
+        W.infected.buttons.vote = BJI.Managers.Lang.get("common.buttons.vote")
+        W.infected.buttons.unvote = BJI.Managers.Lang.get("common.buttons.unvote")
+        W.infected.buttons.stop = BJI.Managers.Lang.get("common.buttons.cancel")
+    end
+
+    if votes[7].show() then -- derby
         local creator = ctxt.players[BJI.Managers.Votes.Scenario.creatorID]
         local creatorName = creator and creator.playerName or
             BJI.Managers.Lang.get("common.defaultPlayerName")
