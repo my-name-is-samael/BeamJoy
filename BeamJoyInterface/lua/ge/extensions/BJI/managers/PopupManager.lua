@@ -10,11 +10,7 @@ local M = {
 }
 
 local function createCallback(fn)
-    local callbackName = string.var("_{1}{2}{3}", {
-        GetCurrentTimeMillis(),
-        math.random(100),
-        math.random(100),
-    })
+    local callbackName = "popup_" .. UUID()
     M.callbacks[callbackName] = function()
         if type(fn) == "function" then
             pcall(fn)

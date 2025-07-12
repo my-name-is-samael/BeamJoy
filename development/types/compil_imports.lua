@@ -84,6 +84,8 @@ BJI_Pursuit = require("ge/extensions/BJI/managers/PursuitManager")
 BJI_Minimap = require("ge/extensions/BJI/managers/MinimapManager")
 ---@type BJIManagerWorldObject
 BJI_WorldObject = require("ge/extensions/BJI/managers/WorldObjectManager")
+---@type BJIManagerInteractiveMarker
+BJI_InteractiveMarker = require("ge/extensions/BJI/managers/InteractiveMarkerManager")
 
 ---@type BJIWindowMain
 BJI_Win_Main = require("ge/extensions/BJI/ui/windows/Main")
@@ -232,8 +234,8 @@ BJI.Managers.Pursuit = require("ge/extensions/BJI/managers/PursuitManager")
 BJI.Managers.Minimap = require("ge/extensions/BJI/managers/MinimapManager")
 ---@type BJIManagerWorldObject
 BJI.Managers.WorldObject = require("ge/extensions/BJI/managers/WorldObjectManager")
-
--- OBJECT TREE ACCESSES
+---@type BJIManagerInteractiveMarker
+BJI.Managers.InteractiveMarker = require("ge/extensions/BJI/managers/InteractiveMarkerManager")
 
 ---@type BJIWindowMain
 BJI.Windows.Main = require("ge/extensions/BJI/ui/windows/Main")

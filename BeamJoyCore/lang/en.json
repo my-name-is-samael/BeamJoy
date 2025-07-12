@@ -1286,7 +1286,7 @@
       "noRefuelScenario": "You cannot refuel your vehicle in this scenario",
       "tanksAmount": "{amount} tanks",
       "emergencyRefuel": "Emergency refuel",
-      "refill": "Refill tank(s)",
+      "refill": "Refuel tank(s)",
       "edit": {
         "title": "Energy Stations Editor",
         "name": "Station name",

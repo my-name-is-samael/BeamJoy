@@ -172,7 +172,7 @@ local function draw(ctxt)
                     if IconButton("emergencyRefuel" .. energyType, energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
                             BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR }) then
-                        BJI_Stations.tryRefillVehicle(ctxt, { energyType })
+                        BJI_Stations.tryRefuel(ctxt, { energyType })
                     end
                     TooltipText(BJI_Lang.get("energyStations.emergencyRefuel"))
                 end

@@ -18,7 +18,7 @@ local W = {
         vehiclePristine = "",
         tanksAmount = "",
         repair = "",
-        refill = "",
+        refuel = "",
     },
 }
 
@@ -38,7 +38,7 @@ local function updateLabels()
     W.labels.tanksAmount = BJI_Lang.get("energyStations.tanksAmount")
 
     W.labels.repair = BJI_Lang.get("garages.repairBtn")
-    W.labels.refill = BJI_Lang.get("energyStations.refill")
+    W.labels.refuel = BJI_Lang.get("energyStations.refill")
 end
 
 local listeners = Table()
@@ -75,14 +75,14 @@ local function commonDrawEnergyLines(ctxt, station)
             }))
         end
         SameLine()
-        if IconButton(string.var("refill{1}", { energyType }),
+        if IconButton(string.var("refuel{1}", { energyType }),
                 energyType == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC and
                 BJI.Utils.Icon.ICONS.ev_station or BJI.Utils.Icon.ICONS.local_gas_station,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                     disabled = energyData.currentEnergy / energyData.maxEnergy > .95 }) then
-            BJI_Stations.tryRefillVehicle(ctxt, { energyType }, 100, 5)
+            BJI_Stations.tryRefuel(ctxt, { energyType }, 100, BJI_Stations.refuelBaseTime)
         end
-        TooltipText(W.labels.refill)
+        TooltipText(W.labels.refuel)
 
         ProgressBar(energyData.currentEnergy / energyData.maxEnergy)
     end

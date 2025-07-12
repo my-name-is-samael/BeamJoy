@@ -58,6 +58,13 @@ local function unregister(obj)
     obj:unregisterObject()
 end
 
+---@param obj table
+---@param color BJIColor
+local function setObjectInstanceColor(obj, color)
+    if not obj then return end
+    obj.instanceColor = ColorF(color.r, color.g, color.b, color.a):asLinear4F()
+end
+
 ---@param objName string
 ---@return table
 local function createCornerMarker(objName)
@@ -83,15 +90,35 @@ local function createCornerMarker(objName)
     return marker
 end
 
+---@param objName string
+---@param pos vec3
+---@param radius number
+---@param height number
+---@param color BJIColor
+local function createCylinderMarker(objName, pos, radius, height, color)
+    local marker = createObject("TSStatic")
+    marker:setField('shapeName', 0, 'art/shapes/interface/checkpoint_marker_base.dae')
+    marker:setPosition(pos)
+    marker.scale = vec3(radius * 2, radius * 2, height * 2)
+    marker.useInstanceRenderData = true
+    setObjectInstanceColor(obj, color)
+    marker:setField('canSave', 0, "0")
+    marker:setField('canSaveDynamicFields', 0, "1")
+    marker:registerObject(objName)
+    return marker
+end
+
 -- global functions
 
 M.findObject = findObject
 M.createGroup = createGroup
 M.getGroupChildren = getGroupChildren
 M.unregister = unregister
+M.setObjectInstanceColor = setObjectInstanceColor
 
 -- specific objects instances
 
 M.createCornerMarker = createCornerMarker
+M.createCylinderMarker = createCylinderMarker
 
 return M
