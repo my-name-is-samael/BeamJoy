@@ -69,14 +69,8 @@ local function validatePositions()
 end
 
 local function updateCache()
-    W.cache.positions = Table(BJI_Context.Scenario.Data.Deliveries)
-        :map(function(g)
-            return {
-                radius = g.radius,
-                pos = vec3(g.pos),
-                rot = quat(g.rot),
-            }
-        end)
+    W.cache.positions = Table(BJI_Scenario.Data.Deliveries)
+        :map(function(g) return math.tryParsePosRot(table.clone(g)) end)
     validatePositions()
     reloadMarkers()
 end

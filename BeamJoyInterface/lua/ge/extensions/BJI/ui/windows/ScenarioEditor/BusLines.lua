@@ -117,7 +117,7 @@ local function validateBuslines()
 end
 
 local function updateCache()
-    W.cache.lines = Table(BJI_Context.Scenario.Data.BusLines)
+    W.cache.lines = Table(BJI_Scenario.Data.BusLines)
         :map(function(bl)
             return {
                 name = bl.name,

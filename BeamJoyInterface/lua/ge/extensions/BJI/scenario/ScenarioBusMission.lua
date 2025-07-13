@@ -43,8 +43,8 @@ reset()
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.BUS_LINES) and
-        BJI_Context.Scenario.Data.BusLines and
-        #BJI_Context.Scenario.Data.BusLines > 0 and
+        BJI_Scenario.Data.BusLines and
+        #BJI_Scenario.Data.BusLines > 0 and
         S.config
 end
 

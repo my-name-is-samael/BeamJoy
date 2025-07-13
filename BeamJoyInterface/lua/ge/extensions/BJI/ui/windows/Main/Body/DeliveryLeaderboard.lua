@@ -20,7 +20,7 @@ local function draw(ctxt, showRacesLeaderboardButtonFn)
                     { label = "##delivery-leaderboard-playernames" },
                     { label = "##delivery-leaderboard-scores" }
                 }) then
-                for i, lb in ipairs(BJI_Context.Scenario.Data.DeliveryLeaderboard) do
+                for i, lb in ipairs(BJI_Scenario.Data.DeliveryLeaderboard) do
                     TableNewRow()
                     Text(string.var("#{1} {2} :", { i, lb.playerName }),
                         {

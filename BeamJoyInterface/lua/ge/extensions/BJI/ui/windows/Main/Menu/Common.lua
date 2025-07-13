@@ -3,12 +3,12 @@ local C = {}
 ---@param ctxt TickContext
 ---@param elems table
 local function menuRace(ctxt, elems)
-    if BJI_Context.Scenario.Data.Races then
+    if BJI_Scenario.Data.Races then
         local errorMessage = nil
         local minParticipants = (BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI) or {})
             .MINIMUM_PARTICIPANTS
         local potentialPlayers = BJI_Perm.getCountPlayersCanSpawnVehicle()
-        local rawRaces = Table(BJI_Context.Scenario.Data.Races)
+        local rawRaces = Table(BJI_Scenario.Data.Races)
             :filter(function(race) return race.enabled and race.places > 1 end)
 
         if #rawRaces == 0 then
@@ -22,7 +22,7 @@ local function menuRace(ctxt, elems)
             table.insert(elems, {
                 type = "custom",
                 render = function()
-                    Text(BJI_Lang.get("menu.scenario.race.title"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
+                    Text(BJI_Lang.get("menu.scenario.race.start"), { color = BJI.Utils.Style.TEXT_COLORS.DISABLED })
                     TooltipText(errorMessage)
                 end
             })
@@ -35,7 +35,7 @@ local function menuRace(ctxt, elems)
                 -- sub elems
                 table.insert(elems, {
                     type = "menu",
-                    label = BJI_Lang.get("menu.scenario.race.title"),
+                    label = BJI_Lang.get("menu.scenario.race.start"),
                     elems = rawRaces:map(function(race)
                         return {
                             type = "item",
@@ -65,9 +65,9 @@ local function menuRace(ctxt, elems)
                 -- selection window
                 table.insert(elems, {
                     type = "item",
-                    label = BJI_Lang.get("menu.scenario.race.title"),
+                    label = BJI_Lang.get("menu.scenario.race.start"),
                     onClick = function()
-                        BJI_Win_Selection.open("menu.scenario.race.title", rawRaces
+                        BJI_Win_Selection.open("menu.scenario.race.start", rawRaces
                             :map(function(race)
                                 return {
                                     label = string.var("{1} ({2}{3})", {
@@ -106,12 +106,12 @@ end
 ---@param ctxt TickContext
 ---@param elems table
 local function menuHunter(ctxt, elems)
-    if BJI_Context.Scenario.Data.HunterInfected then
+    if BJI_Scenario.Data.HunterInfected then
         local potentialPlayers = BJI_Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.HunterInfected or
-            not BJI_Context.Scenario.Data.HunterInfected.enabledHunter then
+        if not BJI_Scenario.Data.HunterInfected or
+            not BJI_Scenario.Data.HunterInfected.enabledHunter then
             errorMessage = BJI_Lang.get("menu.scenario.hunter.modeDisabled")
         elseif potentialPlayers < minimumParticipants then
             errorMessage = BJI_Lang.get("errors.missingPlayers"):var({
@@ -148,12 +148,12 @@ end
 ---@param ctxt TickContext
 ---@param elems table
 local function menuInfected(ctxt, elems)
-    if BJI_Context.Scenario.Data.HunterInfected then
+    if BJI_Scenario.Data.HunterInfected then
         local potentialPlayers = BJI_Perm.getCountPlayersCanSpawnVehicle()
         local minimumParticipants = BJI_Scenario.get(BJI_Scenario.TYPES.INFECTED).MINIMUM_PARTICIPANTS
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.HunterInfected or
-            not BJI_Context.Scenario.Data.HunterInfected.enabledInfected then
+        if not BJI_Scenario.Data.HunterInfected or
+            not BJI_Scenario.Data.HunterInfected.enabledInfected then
             errorMessage = BJI_Lang.get("menu.scenario.infected.modeDisabled")
         elseif potentialPlayers < minimumParticipants then
             errorMessage = BJI_Lang.get("errors.missingPlayers"):var({
@@ -190,8 +190,8 @@ end
 ---@param ctxt TickContext
 ---@param elems table
 local function menuDerby(ctxt, elems)
-    if BJI_Context.Scenario.Data.Derby then
-        local rawArenas = Table(BJI_Context.Scenario.Data.Derby)
+    if BJI_Scenario.Data.Derby then
+        local rawArenas = Table(BJI_Scenario.Data.Derby)
             :filter(function(arena) return arena.enabled end)
 
         local potentialPlayers = BJI_Perm.getCountPlayersCanSpawnVehicle()

@@ -808,7 +808,7 @@ local function slowTick(ctxt)
     end
 
     -- RECORD UPDATE
-    for _, race in ipairs(BJI_Context.Scenario.Data.Races) do
+    for _, race in ipairs(BJI_Scenario.Data.Races) do
         if race.id == S.settings.raceID and race.record and
             (not S.record or race.record.time ~= S.record.time) then
             S.record = race.record

@@ -445,7 +445,7 @@
           "stop": "Detener el juego de velocidad"
         },
         "race": {
-          "title": "Carrera",
+          "start": "Iniciar carrera",
           "noRace": "No hay carrera disponible",
           "stop": "Detener carrera"
         },
@@ -1282,10 +1282,7 @@
       "flashBatteryFilled": "Baterías cargadas",
       "flashTankFilled": "Tanque lleno",
       "flashTanksFilled": "Tanques llenos",
-      "noRefuelScenario": "No puede repostar su vehículo en este escenario.",
-      "tanksAmount": "{amount} tanques",
       "emergencyRefuel": "Repostaje de emergencia",
-      "refill": "Rellenar depósito(s)",
       "edit": {
         "title": "Editor de Estaciones de Energía",
         "name": "Nombre de la estación",
@@ -1303,11 +1300,7 @@
     },
     "garages": {
       "damagedWarning": "Tu vehículo está dañado",
-      "garage": "Cochera",
-      "repairBtn": "Reparación de vehículos",
       "flashVehicleRepaired": "Vehículo reparado",
-      "vehiclePristine": "Tu vehículo está en buen estado.",
-      "noRepairScenario": "No puedes reparar tu vehículo en este escenario.",
       "edit": {
         "title": "Editor de garajes",
         "name": "Nombre del garaje",
@@ -1731,6 +1724,41 @@
         "setAsInfected": "Establecer como infectado",
         "infectedAmount": "{amount} infectados",
         "remainingSurvivors": "{amount} sobrevivientes restantes"
+      }
+    },
+    "interactiveMarkers": {
+      "gasStation": {
+        "type": "Gasolinera",
+        "button": "Rellenar depósito(s)",
+        "alreadyFull": "Ya está lleno"
+      },
+      "electricStation": {
+        "type": "Estación de carga",
+        "button": "Cargar baterías",
+        "alreadyFull": "Ya está lleno"
+      },
+      "garage": {
+        "type": "Cochera",
+        "buttonRepair": "Reparación de vehículos",
+        "alreadyRepaired": "Ya está en buen estado",
+        "refuelNOS": "Repostar NOS",
+        "alreadyFull": "Ya está lleno"
+      },
+      "soloRace": {
+        "type": "Contrarreloj en solitario",
+        "button": "Abrir configuración"
+      },
+      "multiRace": {
+        "type": "Carrera en servidor",
+        "button": "Abrir configuración"
+      },
+      "busMission": {
+        "type": "Misión de autobús",
+        "button": "Abrir preparación"
+      },
+      "derby": {
+        "type": "Derbi en servidor",
+        "button": "Abrir configuración"
       }
     }
   }

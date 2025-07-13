@@ -34,8 +34,8 @@ end
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
-        BJI_Context.Scenario.Data.Deliveries and
-        #BJI_Context.Scenario.Data.Deliveries > 1 and
+        BJI_Scenario.Data.Deliveries and
+        #BJI_Scenario.Data.Deliveries > 1 and
         ctxt.isOwner and
         not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID)
 end
@@ -47,7 +47,7 @@ local function initPositions(ctxt)
     end
 
     local targets = {}
-    for _, position in ipairs(BJI_Context.Scenario.Data.Deliveries) do
+    for _, position in ipairs(BJI_Scenario.Data.Deliveries) do
         -- local distance = BJIGPS.getRouteLength({ ctxt.veh.position, position.pos }) -- costs a lot
         local distance = ctxt.veh.position:distance(position.pos)
         if distance > 0 then

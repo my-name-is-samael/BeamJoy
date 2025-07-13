@@ -445,7 +445,7 @@
           "stop": "Stoppen Sie das Geschwindigkeitsspiel"
         },
         "race": {
-          "title": "Wettrennen",
+          "start": "Rennen starten",
           "noRace": "Kein Rennen verfügbar",
           "stop": "Stoppen Sie das Rennen"
         },
@@ -1282,10 +1282,7 @@
       "flashBatteryFilled": "Batterien geladen",
       "flashTankFilled": "Tank gefüllt",
       "flashTanksFilled": "Tanks gefüllt",
-      "noRefuelScenario": "In diesem Szenario können Sie Ihr Fahrzeug nicht betanken",
-      "tanksAmount": "{amount} Tanks",
       "emergencyRefuel": "Notbetankung",
-      "refill": "Tank(en) auffüllen",
       "edit": {
         "title": "Herausgeber von Energiestationen",
         "name": "Stationsname",
@@ -1303,11 +1300,7 @@
     },
     "garages": {
       "damagedWarning": "Ihr Fahrzeug ist beschädigt",
-      "garage": "Garage",
-      "repairBtn": "Fahrzeug reparieren",
       "flashVehicleRepaired": "Fahrzeug repariert",
-      "vehiclePristine": "Ihr Fahrzeug ist in einem guten Zustand",
-      "noRepairScenario": "In diesem Szenario können Sie Ihr Fahrzeug nicht reparieren",
       "edit": {
         "title": "Garagen-Editor",
         "name": "Garagenname",
@@ -1731,6 +1724,41 @@
         "setAsInfected": "Als infiziert festlegen",
         "infectedAmount": "{amount} infiziert",
         "remainingSurvivors": "{amount} Überlebende verbleibend"
+      }
+    },
+    "interactiveMarkers": {
+      "gasStation": {
+        "type": "Tankstelle",
+        "button": "Tank(en) auffüllen",
+        "alreadyFull": "Bereits voll"
+      },
+      "electricStation": {
+        "type": "Ladestation",
+        "button": "Batterien aufladen",
+        "alreadyFull": "Bereits voll"
+      },
+      "garage": {
+        "type": "Garage",
+        "buttonRepair": "Fahrzeug reparieren",
+        "alreadyRepaired": "Bereits in gutem Zustand",
+        "refuelNOS": "NOS nachfüllen",
+        "alreadyFull": "Bereits voll"
+      },
+      "soloRace": {
+        "type": "Solo-Zeitrennen",
+        "button": "Einstellungen öffnen"
+      },
+      "multiRace": {
+        "type": "Server-Rennen",
+        "button": "Einstellungen öffnen"
+      },
+      "busMission": {
+        "type": "Busmission",
+        "button": "Vorbereitung öffnen"
+      },
+      "derby": {
+        "type": "Server-Derby",
+        "button": "Einstellungen öffnen"
       }
     }
   }

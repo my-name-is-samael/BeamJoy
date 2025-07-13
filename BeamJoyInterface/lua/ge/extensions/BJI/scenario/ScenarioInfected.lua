@@ -154,8 +154,8 @@ local function tryReplaceOrSpawn(model, config)
             return
         end
         local startPos = participant.originalInfected and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Cam.resetForceCamera()
         BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
         BJI_Veh.waitForVehicleSpawn(postSpawn)
@@ -247,8 +247,8 @@ local function onVehicleSpawned(mpVeh)
     participant = S.participants[BJI_Context.User.playerID]
     if mpVeh.isLocal and S.state == S.STATES.PREPARATION and participant and not participant.ready then
         local startPos = participant.originalInfected and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         if mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
@@ -288,8 +288,8 @@ local function onJoinParticipants(participant)
     if ownVeh then
         -- moving actual vehicle
         local startPos = participant.originalInfected and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
     else
         local model, config

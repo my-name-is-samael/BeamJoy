@@ -230,7 +230,7 @@ local function validateRace()
     W.cache.validSave = true
     W.cache.validTry = true
 
-    W.cache.invalid.name = #W.raceData.name == 0 or Table(BJI_Context.Scenario.Data.Races)
+    W.cache.invalid.name = #W.raceData.name == 0 or Table(BJI_Scenario.Data.Races)
         :any(function(r) return r.id ~= W.raceData.id and r.name == W.raceData.name:trim() end)
     W.cache.invalid.previewPosition = not W.raceData.previewPosition
     W.cache.invalid.startPositionsCount = #W.raceData.startPositions == 0

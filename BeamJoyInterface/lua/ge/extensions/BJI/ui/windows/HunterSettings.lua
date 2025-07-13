@@ -124,7 +124,7 @@ local function onLoad()
             ) then
             if BJI_Perm.getCountPlayersCanSpawnVehicle() < BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER).MINIMUM_PARTICIPANTS then
                 mustClose, msg = true, BJI_Lang.get("hunter.settings.notEnoughPlayers")
-            elseif not BJI_Context.Scenario.Data.HunterInfected.enabledHunter then
+            elseif not BJI_Scenario.Data.HunterInfected.enabledHunter then
                 mustClose, msg = true, BJI_Lang.get("menu.scenario.hunter.modeDisabled")
             end
         else

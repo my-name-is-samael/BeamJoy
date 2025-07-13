@@ -139,14 +139,14 @@ local function validateArenas()
 end
 
 local function updateCache()
-    W.cache.arenas = Table(BJI_Context.Scenario.Data.Derby)
+    W.cache.arenas = Table(BJI_Scenario.Data.Derby)
         :map(function(a)
             return {
                 name = a.name,
                 enabled = a.enabled,
-                previewPosition = math.tryParsePosRot(a.previewPosition),
+                previewPosition = math.tryParsePosRot(table.clone(a.previewPosition)),
                 startPositions = Table(a.startPositions):map(function(sp)
-                    return math.tryParsePosRot(sp)
+                    return math.tryParsePosRot(table.clone(sp))
                 end),
                 centerPosition = vec3(a.centerPosition),
                 radius = tonumber(a.radius) or 0

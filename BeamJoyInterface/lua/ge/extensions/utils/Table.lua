@@ -443,7 +443,7 @@ local baseSort = table.sort
 table.sort = function(tab, sortFn) ---@diagnostic disable-line
     tab = Table(tab)
     if tab:isObject() then
-        tab = Table(tab):values()
+        tab = table.values(tab)
     end
     local ok, err = pcall(baseSort, tab, sortFn)
     if not ok then

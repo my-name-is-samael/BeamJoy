@@ -22,8 +22,8 @@ local cache = newCache()
 local function updateCache(ctxt)
     cache = newCache()
 
-    if BJI_Context.Scenario.Data.EnergyStations then
-        for _, station in ipairs(BJI_Context.Scenario.Data.EnergyStations) do
+    if BJI_Stations.Data.EnergyStations then
+        for _, station in ipairs(BJI_Stations.Data.EnergyStations) do
             for _, energyType in ipairs(station.types) do
                 if not cache.stationsCounts[energyType] then
                     cache.stationsCounts[energyType] = 0
@@ -33,7 +33,7 @@ local function updateCache(ctxt)
         end
     end
 
-    cache.garagesCount = BJI_Context.Scenario.Data.Garages and #BJI_Context.Scenario.Data.Garages or 0
+    cache.garagesCount = BJI_Stations.Data.Garages and #BJI_Stations.Data.Garages or 0
 
     if ctxt.vehData and ctxt.vehData.tanks then
         local stationBtnEnabled = BJI_Scenario.canRefuelAtStation() and
@@ -129,7 +129,7 @@ local function draw(ctxt)
                         if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
                             -- Gas station energy types
                             stations = {}
-                            for _, station in ipairs(BJI_Context.Scenario.Data.EnergyStations) do
+                            for _, station in ipairs(BJI_Stations.Data.EnergyStations) do
                                 if table.includes(station.types, energyType) then
                                     distance = BJI_GPS.getRouteLength({ ctxt.veh.position, station
                                         .pos })
@@ -147,7 +147,7 @@ local function draw(ctxt)
                         else
                             -- Garage energy types
                             garages = {}
-                            for _, garage in ipairs(BJI_Context.Scenario.Data.Garages) do
+                            for _, garage in ipairs(BJI_Stations.Data.Garages) do
                                 distance = BJI_GPS.getRouteLength({ ctxt.veh.position, garage.pos })
                                 table.insert(garages, { garage = garage, distance = distance })
                             end

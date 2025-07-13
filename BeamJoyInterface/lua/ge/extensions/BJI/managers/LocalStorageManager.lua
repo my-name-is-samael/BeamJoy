@@ -110,17 +110,17 @@ end
 -- remove all non existing/updated races from PBs
 local function sanitizeMapRacesPBs()
     local mapName = GetMapName()
-    if not mapName or not BJI_Context.Scenario.Data.Races then
+    if not mapName or not BJI_Scenario.Data.Races then
         BJI_Async.removeTask("MapRacesPBSanitizer")
         BJI_Async.delayTask(sanitizeMapRacesPBs, 500, "MapRacesPBSanitizer")
         LogDebug("LocalStorage Races PBs sanitizer waiting for map and races : looping...")
         return
-    elseif mapName ~= BJI_Context.Scenario.Data.Races.mapName then
+    elseif mapName ~= BJI_Scenario.Data.RacesCurrentMap then
         LogError("LocalStorage Races PBs sanitizer : current map not matching races map, skipping...")
         return
     end
     local pbRaces = M.data.values[M.VALUES.RACES_PB.key][mapName]
-    local srvRaces = BJI_Context.Scenario.Data.Races
+    local srvRaces = BJI_Scenario.Data.Races
     local changes = false
     if #srvRaces > 0 then
         if not pbRaces then
@@ -193,7 +193,7 @@ local function onLoad()
     end
 
     BJI_Async.task(function()
-        return not not BJI_Context.Scenario.Data.Races
+        return not not BJI_Scenario.Data.Races
     end, sanitizeMapRacesPBs)
     listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({ BJI_Cache.CACHES.RACES }, data.cache) then

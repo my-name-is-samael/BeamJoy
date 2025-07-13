@@ -72,11 +72,11 @@ local function updateCacheRaces()
             BJI_Scenario.TYPES.RACE_SOLO,
             BJI_Scenario.TYPES.RACE_MULTI,
         }, function(type) return BJI_Scenario.is(type) end) and
-        BJI_Context.Scenario.Data.Races and
-        #BJI_Context.Scenario.Data.Races > 0
+        BJI_Scenario.Data.Races and
+        #BJI_Scenario.Data.Races > 0
 
     if cache.data.raceLeaderboard.show and
-        #table.filter(BJI_Context.Scenario.Data.Races, function(race) return race.record end):values() == 0 then
+        #table.filter(BJI_Scenario.Data.Races, function(race) return race.record end):values() == 0 then
         cache.data.raceLeaderboard.show = false
     end
 end
@@ -87,19 +87,19 @@ local function updateCache(ctxt)
 
     cache.data.showVehEnergy = ctxt.isOwner and
         BJI_Scenario.canRefuelAtStation() and
-        BJI_Context.Scenario.Data.EnergyStations
+        BJI_Stations.Data.EnergyStations
     cache.data.showVehDamages = ctxt.isOwner and
         BJI_Scenario.canRepairAtGarage() and
-        BJI_Context.Scenario.Data.Garages
+        BJI_Stations.Data.Garages
     cache.data.showDeliveryLeaderboard = table.some({
             BJI_Scenario.TYPES.FREEROAM,
             BJI_Scenario.TYPES.VEHICLE_DELIVERY,
             BJI_Scenario.TYPES.PACKAGE_DELIVERY,
             BJI_Scenario.TYPES.DELIVERY_MULTI,
         }, function(type) return BJI_Scenario.is(type) end) and
-        BJI_Context.Scenario.Data.Deliveries and
-        BJI_Context.Scenario.Data.DeliveryLeaderboard and
-        #BJI_Context.Scenario.Data.DeliveryLeaderboard > 0
+        BJI_Scenario.Data.Deliveries and
+        BJI_Scenario.Data.DeliveryLeaderboard and
+        #BJI_Scenario.Data.DeliveryLeaderboard > 0
 
     cache.data.scenarioUIFn = BJI_Scenario.getUIRenderFn()
 

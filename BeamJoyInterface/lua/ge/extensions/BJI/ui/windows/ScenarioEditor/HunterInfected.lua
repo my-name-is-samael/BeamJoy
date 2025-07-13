@@ -221,20 +221,20 @@ local function reloadMarkers()
 end
 
 local function updateCache()
-    local data = BJI_Context.Scenario.Data.HunterInfected
+    local data = BJI_Scenario.Data.HunterInfected
     W.data.enabledHunter = data.enabledHunter
     W.data.enabledInfected = data.enabledInfected
     W.data.waypoints = Table(data.waypoints):map(function(target)
-        return math.tryParsePosRot({
+        return math.tryParsePosRot(table.clone({
             pos = target.pos,
             radius = target.radius,
-        })
+        }))
     end)
     W.data.majorPositions = Table(data.majorPositions):map(function(majorPos)
-        return math.tryParsePosRot(majorPos)
+        return math.tryParsePosRot(table.clone(majorPos))
     end)
     W.data.minorPositions = Table(data.minorPositions):map(function(minorPos)
-        return math.tryParsePosRot(minorPos)
+        return math.tryParsePosRot(table.clone(minorPos))
     end)
 
     updateEnabled()

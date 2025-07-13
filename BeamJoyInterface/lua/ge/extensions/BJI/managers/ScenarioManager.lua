@@ -2,12 +2,290 @@
 local M = {
     _name = "Scenario",
 
+    Data = {
+        ---@type string?
+        RacesCurrentMap = nil,
+        ---@type tablelib<integer, BJRaceLight>
+        Races = {},
+        Deliveries = {},
+        DeliveryLeaderboard = {},
+        BusLines = {},
+        HunterInfected = {},
+        Derby = {},
+    },
+
+    ---@type table<string, tablelib<integer, string>>
+    markersIDs = {
+        [BJI_Cache.CACHES.RACES] = Table(),
+        [BJI_Cache.CACHES.BUS_LINES] = Table(),
+        [BJI_Cache.CACHES.DERBY_DATA] = Table(),
+    },
+
     TYPES = {},
     solo = {},
     multi = {},
     CurrentScenario = nil,
     scenarii = {},
 }
+
+-- DATA HANDLING
+
+---@param cacheType string?
+local function updateMarkers(cacheType)
+    local function getID(prefix, name, i)
+        return string.format("%s_%s_%d", prefix, name:gsub(" ", "_"), i)
+    end
+    local status
+    if not cacheType then
+        for _, ids in pairs(M.markersIDs) do
+            ids:forEach(BJI_InteractiveMarker.deleteMarker)
+            ids:clear()
+        end
+    elseif M.markersIDs[cacheType] then
+        M.markersIDs[cacheType]:forEach(BJI_InteractiveMarker.deleteMarker)
+        M.markersIDs[cacheType]:clear()
+    end
+
+    -- races
+    if not cacheType or cacheType == BJI_Cache.CACHES.RACES then
+        local previousPositions = Table()
+        Table(M.Data.Races):forEach(function(r, i)
+            local id = getID("race", r.name, i)
+            local pos
+            if not previousPositions:find(function(p)
+                    return p:distance(r.markerPos) < 20
+                end, function(p) pos = p end) then
+                pos = r.markerPos
+                previousPositions:insert(pos)
+            end
+            status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.RACE_MULTI.icon,
+                pos, 3, {
+                    color = BJI_InteractiveMarker.TYPES.RACE_MULTI.color,
+                    visibleFreeCam = true,
+                    visibleAnyVeh = true,
+                    visibleWalking = true,
+                    condition = function(ctxt)
+                        return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.RACE) and
+                            BJI_Scenario.isFreeroam() and BJI_Perm.canSpawnVehicle() and
+                            not BJI_Tournament.state
+                    end,
+                }, {
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Win_RaceSettings.getState() and
+                                ctxt.isOwner and ctxt.veh.isVehicle and
+                                BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.RACE_SOLO.icon,
+                        type = BJI_Lang.get("interactiveMarkers.soloRace.type"),
+                        label = r.name,
+                        buttonLabel = BJI_Lang.get("interactiveMarkers.soloRace.button"),
+                        callback = function(ctxt)
+                            BJI_Win_RaceSettings.open({
+                                multi = false,
+                                raceID = r.id,
+                                raceName = r.name,
+                                loopable = r.loopable,
+                                defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
+                                respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
+                                    :filter(function(rs)
+                                        return r.hasStand or
+                                            rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND
+                                    end)
+                                    :sort(function(a, b) return a.order < b.order end)
+                                    :map(function(el) return el.key end),
+                            })
+                        end
+                    },
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Win_RaceSettings.getState() and r.places > 1 and
+                                not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
+                                (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO_SCENARIO) or
+                                    BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.RACE_MULTI.icon,
+                        type = BJI_Lang.get("interactiveMarkers.multiRace.type"),
+                        label = r.name,
+                        buttonLabel = BJI_Lang.get("interactiveMarkers.multiRace.button"),
+                        callback = function(ctxt)
+                            BJI_Win_RaceSettings.open({
+                                multi = true,
+                                raceID = r.id,
+                                raceName = r.name,
+                                loopable = r.loopable,
+                                defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
+                                respawnStrategies = Table(BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES)
+                                    :filter(function(rs)
+                                        return r.hasStand or
+                                            rs ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND
+                                    end)
+                                    :sort(function(a, b) return a.order < b.order end)
+                                    :map(function(el) return el.key end),
+                            })
+                        end
+                    },
+                })
+            if status then
+                M.markersIDs[BJI_Cache.CACHES.RACES]:insert(id)
+            else
+                BJI_InteractiveMarker.deleteMarker(id)
+            end
+        end)
+    end
+
+    -- bus lines
+    if not cacheType or cacheType == BJI_Cache.CACHES.BUS_LINES then
+        Table(M.Data.BusLines):forEach(function(bl, i)
+            local id = getID("busmission", bl.name, i)
+            status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.BUS_MISSION.icon,
+                bl.stops[1].pos, bl.stops[1].radius * 2, {
+                    color = BJI_InteractiveMarker.TYPES.BUS_MISSION.color,
+                    visibleFreeCam = true,
+                    visibleAnyVeh = true,
+                    visibleWalking = true,
+                    condition = function(ctxt)
+                        return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.BUS_LINES) and
+                            BJI_Scenario.isFreeroam() and BJI_Perm.canSpawnVehicle() and
+                            not BJI_Tournament.state
+                    end,
+                }, {
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Win_BusMissionPreparation.getState() and
+                                BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.BUS_MISSION.icon,
+                        type = BJI_Lang.get("interactiveMarkers.busMission.type"),
+                        label = bl.name,
+                        buttonLabel = BJI_Lang.get("interactiveMarkers.busMission.button"),
+                        callback = function(ctxt)
+                            BJI_Win_BusMissionPreparation.show = true
+                            BJI_Win_BusMissionPreparation.data.lineSelected = i
+                        end
+                    },
+                })
+            if status then
+                M.markersIDs[BJI_Cache.CACHES.BUS_LINES]:insert(id)
+            else
+                BJI_InteractiveMarker.deleteMarker(id)
+            end
+        end)
+    end
+
+    -- derby arenas
+    if not cacheType or cacheType == BJI_Cache.CACHES.DERBY_DATA then
+        Table(M.Data.Derby):forEach(function(a, i)
+            local id = getID("derbyarena", a.name, i)
+            status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.DERBY_ARENA.icon,
+                a.centerPosition, 6, {
+                    color = BJI_InteractiveMarker.TYPES.DERBY_ARENA.color,
+                    visibleFreeCam = true,
+                    visibleAnyVeh = true,
+                    visibleWalking = true,
+                    condition = function(ctxt)
+                        return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DERBY) and
+                            BJI_Scenario.isFreeroam() and not BJI_Tournament.state and
+                            (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+                                BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
+                    end,
+                }, {
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Win_DerbySettings.getState()
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.DERBY_ARENA.icon,
+                        type = BJI_Lang.get("interactiveMarkers.derby.type"),
+                        label = string.format("%s (%s)", a.name,
+                            BJI_Lang.get("derby.settings.places"):var({ places = #a.startPositions })),
+                        buttonLabel = BJI_Lang.get("interactiveMarkers.derby.button"),
+                        callback = function(ctxt)
+                            BJI_Win_DerbySettings.open(i)
+                        end
+                    },
+                })
+            if status then
+                M.markersIDs[BJI_Cache.CACHES.DERBY_DATA]:insert(id)
+            else
+                BJI_InteractiveMarker.deleteMarker(id)
+            end
+        end)
+    end
+end
+
+local function initCacheHandlers()
+    -- races data
+    local _
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.RACES, function(cacheData)
+        M.Data.Races = table.map(cacheData, function(r)
+            if type(r) == "string" then return nil end -- mapName
+            _, r.markerPos = pcall(vec3, r.markerPos.x, r.markerPos.y, r.markerPos.z)
+            return _ and r or nil
+        end)
+        M.Data.RacesCurrentMap = cacheData.mapName
+        updateMarkers(BJI_Cache.CACHES.RACES)
+    end)
+
+    -- deliveries data
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DELIVERIES, function(cacheData)
+        M.Data.Deliveries = table.map(cacheData.Deliveries, function(d)
+            _, d.pos = pcall(vec3, d.pos.x, d.pos.y, d.pos.z)
+            _, d.rot = pcall(quat, d.rot.x, d.rot.y, d.rot.z, d.rot.w)
+            return d
+        end)
+        M.Data.DeliveryLeaderboard = cacheData.DeliveryLeaderboard
+    end)
+
+    -- bus lines
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.BUS_LINES, function(cacheData)
+        M.Data.BusLines = table.map(cacheData, function(bl)
+            for _, stop in ipairs(bl.stops) do
+                _, stop.pos = pcall(vec3, stop.pos.x, stop.pos.y, stop.pos.z)
+                _, stop.rot = pcall(quat, stop.rot.x, stop.rot.y, stop.rot.z, stop.rot.w)
+            end
+            return bl
+        end)
+        updateMarkers(BJI_Cache.CACHES.BUS_LINES)
+    end)
+
+    -- hunter/infected data
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
+        M.Data.HunterInfected = cacheData
+        M.Data.HunterInfected.majorPositions = table.map(M.Data.HunterInfected.majorPositions, function(p)
+            _, p.pos = pcall(vec3, p.pos.x, p.pos.y, p.pos.z)
+            _, p.rot = pcall(quat, p.rot.x, p.rot.y, p.rot.z, p.rot.w)
+            return p
+        end)
+        M.Data.HunterInfected.minorPositions = table.map(M.Data.HunterInfected.minorPositions, function(p)
+            _, p.pos = pcall(vec3, p.pos.x, p.pos.y, p.pos.z)
+            _, p.rot = pcall(quat, p.rot.x, p.rot.y, p.rot.z, p.rot.w)
+            return p
+        end)
+        M.Data.HunterInfected.waypoints = table.map(M.Data.HunterInfected.waypoints, function(p)
+            _, p.pos = pcall(vec3, p.pos.x, p.pos.y, p.pos.z)
+            return p
+        end)
+    end)
+
+    -- derby data
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DERBY_DATA, function(cacheData)
+        BJI_Scenario.Data.Derby = table.map(cacheData, function(a)
+            _, a.centerPosition = pcall(vec3, a.centerPosition.x, a.centerPosition.y, a.centerPosition.z)
+            _, a.previewPosition.pos = pcall(vec3, a.previewPosition.pos.x, a.previewPosition.pos.y,
+                a.previewPosition.pos.z)
+            _, a.previewPosition.rot = pcall(quat, a.previewPosition.rot.x, a.previewPosition.rot.y,
+                a.previewPosition.rot.z, a.previewPosition.rot.w)
+            for _, sp in ipairs(a.startPositions) do
+                _, sp.pos = pcall(vec3, sp.pos.x, sp.pos.y, sp.pos.z)
+                _, sp.rot = pcall(quat, sp.rot.x, sp.rot.y, sp.rot.z, sp.rot.w)
+            end
+            return a
+        end)
+        updateMarkers(BJI_Cache.CACHES.DERBY_DATA)
+    end)
+end
+
+-- LIVE STATE
 
 ---@return BJIScenario
 local function _curr()
@@ -511,6 +789,12 @@ local function get(type)
 end
 
 local function onLoad()
+    initCacheHandlers()
+
+    BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, function()
+        updateMarkers()
+    end, M._name)
+
     initScenarii()
 
     -- init cache handlers

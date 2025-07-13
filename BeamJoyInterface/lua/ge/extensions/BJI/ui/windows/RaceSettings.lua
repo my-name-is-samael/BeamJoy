@@ -393,7 +393,11 @@ local function open(raceSettings)
         return
     end
 
-    raceSettings.laps = raceSettings.laps or W.settings.laps or 1
+    if raceSettings.loopable then
+        raceSettings.laps = raceSettings.laps or W.settings.laps or 1
+    else
+        raceSettings.laps = 1
+    end
     raceSettings.collisions = raceSettings.collisions or W.settings.collisions
     W.settings = raceSettings
 

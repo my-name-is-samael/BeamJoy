@@ -193,8 +193,8 @@ local function tryReplaceOrSpawn(model, config)
             return
         end
         local startPos = participant.hunted and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Cam.resetForceCamera()
         BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
         BJI_Veh.waitForVehicleSpawn(postSpawn)
@@ -210,8 +210,8 @@ local function onVehicleSpawned(mpVeh)
     local participant = S.participants[BJI_Context.User.playerID]
     if mpVeh.isLocal and S.state == S.STATES.PREPARATION and participant and not participant.ready then
         local startPos = participant.hunted and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         if mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
@@ -365,7 +365,7 @@ local function onJoinParticipants(participant)
         -- generate waypoints to reach
         ---@param pos vec3
         local function findNextWaypoint(pos)
-            return Table(BJI_Context.Scenario.Data.HunterInfected.waypoints):map(function(wp)
+            return Table(BJI_Scenario.Data.HunterInfected.waypoints):map(function(wp)
                 return {
                     wp = {
                         pos = vec3(wp.pos),
@@ -378,10 +378,10 @@ local function onJoinParticipants(participant)
             end):map(function(el)
                 return el.wp
             end):filter(function(_, i)
-                return i <= math.ceil(#BJI_Context.Scenario.Data.HunterInfected.waypoints / 2)
+                return i <= math.ceil(#BJI_Scenario.Data.HunterInfected.waypoints / 2)
             end):random()
         end
-        local lastPos = BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition].pos
+        local lastPos = BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition].pos
         while #S.waypoints < S.settings.waypoints do
             if #S.waypoints > 0 then
                 lastPos = S.waypoints[#S.waypoints].pos
@@ -394,8 +394,8 @@ local function onJoinParticipants(participant)
     if ownVeh then
         -- moving actual vehicle
         local startPos = participant.hunted and
-            BJI_Context.Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Context.Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
+            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
+            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
     else
         local model, config

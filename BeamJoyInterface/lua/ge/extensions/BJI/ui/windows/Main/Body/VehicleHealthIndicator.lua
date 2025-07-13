@@ -20,8 +20,8 @@ local function updateCache(ctxt)
     cache.damageThreshold = BJI_Context.VehiclePristineThreshold
     cache.showGPSButton = ctxt.isOwner and
         BJI_Scenario.canRepairAtGarage() and
-        BJI_Context.Scenario.Data.Garages and
-        #BJI_Context.Scenario.Data.Garages > 0 and
+        BJI_Stations.Data.Garages and
+        #BJI_Stations.Data.Garages > 0 and
         (not BJI_Stations.station or BJI_Stations.station.isEnergy)
 
     cache.labels.damageWarning = BJI_Lang.get("garages.damagedWarning")
@@ -48,7 +48,7 @@ local function draw(ctxt)
                     BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true }) then
                 garages = {}
-                for _, garage in ipairs(BJI_Context.Scenario.Data.Garages) do
+                for _, garage in ipairs(BJI_Stations.Data.Garages) do
                     distance = BJI_GPS.getRouteLength({
                         ctxt.veh.position,
                         garage.pos

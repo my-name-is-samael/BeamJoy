@@ -10,9 +10,9 @@ local M = {
 local function menuSoloRace(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO) and
-        BJI_Context.Scenario.Data.Races and
+        BJI_Scenario.Data.Races and
         BJI_Scenario.isFreeroam() and BJI_Perm.canSpawnVehicle() then
-        local rawRaces = Table(BJI_Context.Scenario.Data.Races)
+        local rawRaces = Table(BJI_Scenario.Data.Races)
             :filter(function(race) return race.enabled end)
 
         local errorMessage = nil
@@ -53,7 +53,6 @@ local function menuSoloRace(ctxt)
                                     raceID = race.id,
                                     raceName = race.name,
                                     loopable = race.loopable,
-                                    laps = 1,
                                     defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key,
                                     respawnStrategies = respawnStrategies:filter(function(rs)
                                         return race.hasStand or
@@ -82,7 +81,6 @@ local function menuSoloRace(ctxt)
                                             raceID = race.id,
                                             raceName = race.name,
                                             loopable = race.loopable,
-                                            laps = 1,
                                             defaultRespawnStrategy = BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES
                                                 .LAST_CHECKPOINT.key,
                                             respawnStrategies = respawnStrategies:filter(function(rs)
@@ -113,8 +111,8 @@ local function menuVehicleDelivery(ctxt)
         BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) then
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.Deliveries or
-            #BJI_Context.Scenario.Data.Deliveries < 2 then
+        if not BJI_Scenario.Data.Deliveries or
+            #BJI_Scenario.Data.Deliveries < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.vehicleDelivery.noDelivery")
         end
 
@@ -152,8 +150,8 @@ local function menuPackageDelivery(ctxt)
         BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) then
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.Deliveries or
-            #BJI_Context.Scenario.Data.Deliveries < 2 then
+        if not BJI_Scenario.Data.Deliveries or
+            #BJI_Scenario.Data.Deliveries < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.packageDelivery.noDelivery")
         elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
@@ -196,8 +194,8 @@ local function menuDeliveryMulti(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI_Scenario.isFreeroam() then
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.Deliveries or
-            #BJI_Context.Scenario.Data.Deliveries < 2 then
+        if not BJI_Scenario.Data.Deliveries or
+            #BJI_Scenario.Data.Deliveries < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.deliveryMulti.noDelivery")
         elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
@@ -299,8 +297,8 @@ local function menuBusMission(ctxt)
         BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.BUS_LINES) then
         local errorMessage = nil
-        if not BJI_Context.Scenario.Data.BusLines or
-            #BJI_Context.Scenario.Data.BusLines == 0 then
+        if not BJI_Scenario.Data.BusLines or
+            #BJI_Scenario.Data.BusLines == 0 then
             errorMessage = BJI_Lang.get("menu.scenario.busMission.noBusMission")
         end
 

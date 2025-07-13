@@ -11,6 +11,8 @@ forward, base, tip
 ---@field fromRaw fun(self: BJIColor, rawColor: {r: number?, g: number?, b: number?, a: number?}): BJIColor -- self mutable
 ---@field fromVec4 fun(self: BJIColor, vec4, vec4): BJIColor -- self mutable
 ---@field vec4 fun(self: BJIColor): vec4
+---@field colorI ColorI
+---@field colorF ColorF
 ---@field compare fun(self: BJIColor, color2: BJIColor): boolean
 
 ---@param r number? 0-1
@@ -33,6 +35,12 @@ local function Color(r, g, b, a)
         end,
         vec4 = function(self)
             return ImVec4(self.r, self.g, self.b, self.a)
+        end,
+        colorI = function(self)
+            return ColorI(self.r * 255, self.g * 255, self.b * 255, self.a * 255)
+        end,
+        colorF = function(self)
+            return ColorF(self.r, self.g, self.b, self.a)
         end,
         compare = function(self, color2)
             if not color2 then return false end

@@ -6,6 +6,16 @@ local W = {
     },
     minSize = ImVec2(450, 850),
 
+    TYPES = {
+        STATIONS = "STATIONS",
+        GARAGES = "GARAGES",
+        DELIVERIES = "DELIVERIES",
+        BUS_LINES = "BUS_LINES",
+        RACE = "RACE",
+        HUNTER_INFECTED = "HUNTER_INFECTED",
+        DERBY = "DERBY",
+    },
+
     SCENARIOS = {
         STATIONS = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Stations"),
         GARAGES = require("ge/extensions/BJI/ui/windows/ScenarioEditor/Garages"),
@@ -54,5 +64,11 @@ W.footerLines = function(ctxt)
     return (W.view and type(W.view.footerLines) == "function") and W.view.footerLines(ctxt) or 1
 end
 W.getState = function() return W.view ~= nil and BJI_Scenario.isFreeroam() end
+
+---@param type string
+---@return boolean
+W.is = function(type)
+    return W.SCENARIOS[type] and W.view == W.SCENARIOS[type]
+end
 
 return W

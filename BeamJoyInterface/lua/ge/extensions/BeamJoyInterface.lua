@@ -62,7 +62,7 @@ local function initManagers()
     end):forEach(function(managerPath)
         local ok, m = pcall(require, managerPath)
         if ok then
-            _G["BJI_" .. m._name] = m -- quick access
+            _G["BJI_" .. m._name] = m     -- quick access
             if not BJI.Managers[m._name] then
                 BJI.Managers[m._name] = m -- object tree access
                 LogInfo(string.var("BJI_{1} loaded", { m._name }))
@@ -156,6 +156,7 @@ local function bindNGHooks()
         { M,        "trackAIAllVeh",             BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
         { M,        "onTrafficVehicleAdded",     BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
         { M,        "onUILayoutLoaded",          BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
+        { M,        "onBeamNGTrigger",           BJI_Events.EVENTS.NG_BEAMNG_TRIGGER },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
             BJI_Events.trigger(hook[3], ...)
@@ -177,15 +178,17 @@ end
 
 return M
 
--- hide/show ui apps
+--- hide/show ui apps
 -- guihooks.trigger('ShowApps', true/false)
-
--- core_vehicleBridge.executeAction(getPlayerVehicle(0), 'setOtherVehiclesAIMode', "chase")
 
 -- if stuck in loading screen during disconnect
 -- core_gamestate.requestExitLoadingScreen("serverConnection")
 
 --- Game functions we cannot hook onto (guess we are unlucky) :
---- core_repository.requestMyMods (on open mods menu > tab my mods)
---- core_vehicle_partmgmt.savedefault (on save default config)
---- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
+-- core_repository.requestMyMods (on open mods menu > tab my mods)
+-- core_vehicle_partmgmt.savedefault (on save default config)
+-- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
+
+--- screen fade
+-- ui_fadeScreen.start(fadeDurationSec) -- can be float
+-- ui_fadeScreen.stop(fadeDurationSec) -- can be float

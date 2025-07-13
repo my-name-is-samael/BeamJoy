@@ -1,3 +1,24 @@
+---@class ColorI
+---@field r integer 0-255
+---@field g integer 0-255
+---@field b integer 0-255
+---@field a integer 0-255
+---@field red integer 0-255
+---@field green integer 0-255
+---@field blue integer 0-255
+---@field alpha integer 0-255
+
+---@class ColorF
+---@field r number 0-1
+---@field g number 0-1
+---@field b number 0-1
+---@field a number 0-1
+---@field red number 0-1
+---@field green number 0-1
+---@field blue number 0-1
+---@field alpha number 0-1
+---@field asLinear4F fun(self: ColorF): number[]
+
 ---@class BJIManager
 ---@field _name string
 ---@field onLoad? fun()

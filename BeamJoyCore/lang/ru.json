@@ -318,7 +318,7 @@
           "stop": "Игра «Остановить скорость»"
         },
         "race": {
-          "title": "Раса",
+          "start": "Начать гонку",
           "noRace": "Нет доступных гонок",
           "stop": "Остановить гонку"
         },
@@ -1155,10 +1155,7 @@
       "flashBatteryFilled": "Батареи заряжены",
       "flashTankFilled": "Бак заполнен",
       "flashTanksFilled": "Баки заполнены",
-      "noRefuelScenario": "В этом сценарии вы не сможете заправить свой автомобиль.",
-      "tanksAmount": "{amount} баков",
       "emergencyRefuel": "Аварийная заправка",
-      "refill": "Заправить бак(и)",
       "edit": {
         "title": "Редактор энергетических станций",
         "name": "Название станции",
@@ -1176,11 +1173,7 @@
     },
     "garages": {
       "damagedWarning": "Ваш автомобиль поврежден",
-      "garage": "Гараж",
-      "repairBtn": "Ремонт автомобиля",
       "flashVehicleRepaired": "Автомобиль отремонтирован",
-      "vehiclePristine": "Ваш автомобиль в хорошем состоянии",
-      "noRepairScenario": "В этом случае вы не сможете отремонтировать свой автомобиль.",
       "edit": {
         "title": "Редактор гаражей",
         "name": "Название гаража",
@@ -1604,6 +1597,41 @@
         "setAsInfected": "Назначить заражённым",
         "infectedAmount": "{amount} заражённых",
         "remainingSurvivors": "{amount} выживших осталось"
+      }
+    },
+    "interactiveMarkers": {
+      "gasStation": {
+        "type": "АЗС",
+        "button": "Заправить бак(и)",
+        "alreadyFull": "Уже полон"
+      },
+      "electricStation": {
+        "type": "Зарядная станция",
+        "button": "Заряжайте аккумуляторы",
+        "alreadyFull": "Уже полон"
+      },
+      "garage": {
+        "type": "Гараж",
+        "buttonRepair": "Ремонт автомобиля",
+        "alreadyRepaired": "Уже в хорошем состоянии",
+        "refuelNOS": "Заправить NOS",
+        "alreadyFull": "Уже полон"
+      },
+      "soloRace": {
+        "type": "Одиночная гонка на время",
+        "button": "Открыть настройки"
+      },
+      "multiRace": {
+        "type": "Гонка на сервере",
+        "button": "Открыть настройки"
+      },
+      "busMission": {
+        "type": "Автобусная миссия",
+        "button": "Открыть подготовку"
+      },
+      "derby": {
+        "type": "Дерби на сервере",
+        "button": "Открыть настройки"
       }
     }
   }

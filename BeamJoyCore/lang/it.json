@@ -437,7 +437,7 @@
         },
         "busMission": {
           "start": "Inizia la missione sull'autobus",
-          "stop": "Ferma la missione dell'autobus",
+          "stop": "Interrompi la missione dell'autobus",
           "noBusMission": "Nessuna missione autobus disponibile"
         },
         "speed": {
@@ -445,18 +445,18 @@
           "stop": "Interrompi il gioco di velocità"
         },
         "race": {
-          "title": "Gara",
+          "start": "Avvia gara",
           "noRace": "Nessuna gara disponibile",
-          "stop": "Interrompere la corsa"
+          "stop": "Interrompere la gara"
         },
         "hunter": {
           "start": "Avvia cacciatore",
-          "stop": "Ferma Hunter",
+          "stop": "Interrompi cacciatore",
           "modeDisabled": "disabilitato"
         },
         "infected": {
           "start": "Avvia Infected",
-          "stop": "Ferma Infected",
+          "stop": "Interrompi Infected",
           "modeDisabled": "disabilitato"
         },
         "derby": {
@@ -1282,10 +1282,7 @@
       "flashBatteryFilled": "Batterie cariche",
       "flashTankFilled": "Serbatoio pieno",
       "flashTanksFilled": "Serbatoi riempiti",
-      "noRefuelScenario": "Non puoi fare rifornimento al tuo veicolo in questo scenario",
-      "tanksAmount": "{amount} serbatoi",
       "emergencyRefuel": "Rifornimento d'emergenza",
-      "refill": "Rifornisci serbatoio",
       "edit": {
         "title": "Redattore delle stazioni energetiche",
         "name": "Nome della stazione",
@@ -1303,11 +1300,7 @@
     },
     "garages": {
       "damagedWarning": "Il tuo veicolo è danneggiato",
-      "garage": "Garage",
-      "repairBtn": "Riparare il veicolo",
       "flashVehicleRepaired": "Veicolo riparato",
-      "vehiclePristine": "Il tuo veicolo è in buone condizioni",
-      "noRepairScenario": "Non è possibile riparare il veicolo in questo scenario",
       "edit": {
         "title": "Redattore di garage",
         "name": "Nome dell'officina",
@@ -1731,6 +1724,41 @@
         "setAsInfected": "Imposta come infetto",
         "infectedAmount": "{amount} infetti",
         "remainingSurvivors": "{amount} sopravvissuti rimanenti"
+      }
+    },
+    "interactiveMarkers": {
+      "gasStation": {
+        "type": "Stazione di servizio",
+        "button": "Rifornisci serbatoio",
+        "alreadyFull": "Già pieno"
+      },
+      "electricStation": {
+        "type": "Stazione di ricarica",
+        "button": "Caricare le batterie",
+        "alreadyFull": "Già pieno"
+      },
+      "garage": {
+        "type": "Garage",
+        "buttonRepair": "Riparare il veicolo",
+        "alreadyRepaired": "Già in buone condizioni",
+        "refuelNOS": "Rifornisci NOS",
+        "alreadyFull": "Già pieno"
+      },
+      "soloRace": {
+        "type": "Corsa a tempo in solitaria",
+        "button": "Apri impostazioni"
+      },
+      "multiRace": {
+        "type": "Gara del server",
+        "button": "Apri impostazioni"
+      },
+      "busMission": {
+        "type": "Missione autobus",
+        "button": "Apri preparazione"
+      },
+      "derby": {
+        "type": "Derby del server",
+        "button": "Apri impostazioni"
       }
     }
   }

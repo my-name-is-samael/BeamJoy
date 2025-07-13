@@ -435,85 +435,6 @@ local function loadMaps()
     end)
 end
 
-local function loadScenarii()
-    -- races data
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.RACES, function(cacheData)
-        M.Scenario.Data.Races = cacheData
-        if M.Scenario.Data.Races and #M.Scenario.Data.Races > 0 then
-            for _, r in ipairs(M.Scenario.Data.Races) do
-                -- previewPosition
-                local pp = r.previewPosition
-                if pp then
-                    _, pp.pos = pcall(vec3, pp.pos.x, pp.pos.y, pp.pos.z)
-                    _, pp.rot = pcall(quat, pp.rot.x, pp.rot.y, pp.rot.z, pp.rot.w)
-                end
-                -- race steps
-                if r.steps then
-                    for _, step in ipairs(r.steps) do
-                        for _, wp in ipairs(step) do
-                            _, wp.pos = pcall(vec3, wp.pos.x, wp.pos.y, wp.pos.z)
-                            _, wp.rot = pcall(quat, wp.rot.x, wp.rot.y, wp.rot.z, wp.rot.w)
-                        end
-                    end
-                end
-                -- startPositions
-                if r.startPositions then
-                    for _, sp in ipairs(r.startPositions) do
-                        _, sp.pos = pcall(vec3, sp.pos.x, sp.pos.y, sp.pos.z)
-                        _, sp.rot = pcall(quat, sp.rot.x, sp.rot.y, sp.rot.z, sp.rot.w)
-                    end
-                end
-            end
-        end
-    end)
-
-    -- deliveries data
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DELIVERIES, function(cacheData)
-        M.Scenario.Data.Deliveries = cacheData.Deliveries
-        if M.Scenario.Data.Deliveries and #M.Scenario.Data.Deliveries > 0 then
-            for _, position in ipairs(M.Scenario.Data.Deliveries) do
-                _, position.pos = pcall(vec3, position.pos.x, position.pos.y, position.pos.z)
-                _, position.rot = pcall(quat, position.rot.x, position.rot.y, position.rot.z, position.rot.w)
-            end
-        end
-        M.Scenario.Data.DeliveryLeaderboard = cacheData.DeliveryLeaderboard
-    end)
-
-    -- bus lines
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.BUS_LINES, function(cacheData)
-        M.Scenario.Data.BusLines = cacheData.BusLines
-        if M.Scenario.Data.BusLines and #M.Scenario.Data.BusLines > 0 then
-            for _, line in ipairs(M.Scenario.Data.BusLines) do
-                for _, stop in ipairs(line.stops) do
-                    _, stop.pos = pcall(vec3, stop.pos.x, stop.pos.y, stop.pos.z)
-                    _, stop.rot = pcall(quat, stop.rot.x, stop.rot.y, stop.rot.z, stop.rot.w)
-                end
-            end
-        end
-    end)
-
-    -- hunter/infected data
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.HUNTER_INFECTED_DATA, function(cacheData)
-        M.Scenario.Data.HunterInfected = cacheData
-    end)
-
-    -- derby data
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DERBY_DATA, function(cacheData)
-        BJI_Context.Scenario.Data.Derby = cacheData
-    end)
-
-    -- stations data
-    BJI_Cache.addRxHandler(BJI_Cache.CACHES.STATIONS, function(cacheData)
-        M.Scenario.Data.EnergyStations = cacheData.EnergyStations
-        if M.Scenario.Data.EnergyStations and #M.Scenario.Data.EnergyStations > 0 then
-            for _, station in ipairs(M.Scenario.Data.EnergyStations) do
-                _, station.pos = pcall(vec3, station.pos.x, station.pos.y, station.pos.z)
-            end
-        end
-        M.Scenario.Data.Garages = cacheData.Garages
-    end)
-end
-
 ---@param mpVeh BJIMPVehicle
 local function onVehSpawn(mpVeh)
     BJI_Async.task(function()
@@ -530,14 +451,13 @@ local listeners = Table()
 local function onUnload()
     listeners:forEach(BJI_Events.removeListener)
 end
-local function onLoad()
+M.onLoad = function()
     loadUser()
     loadPlayers()
     loadUI()
     loadConfig()
     loadDatabase()
     loadMaps()
-    loadScenarii()
 
     listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name))
     listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawn, M._name))
@@ -549,7 +469,5 @@ end
 
 M.isSelf = isSelf
 M.getRestrictions = getRestrictions
-
-M.onLoad = onLoad
 
 return M

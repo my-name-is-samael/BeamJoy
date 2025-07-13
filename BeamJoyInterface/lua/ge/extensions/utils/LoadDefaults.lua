@@ -42,13 +42,13 @@ color = color or function(r, g, b, a) return 0 end
 ---@param g number {0-1}
 ---@param b number {0-1}
 ---@param a number {0-1}
----@return {r: number, red: number, g: number, green: number, b: number, blue: number, a: number, alpha: number, asLinear4F: (fun(self): number[])}
+---@return ColorF
 ColorF = ColorF or function(r, g, b, a) return {} end
 ---@param r integer {0-255}
 ---@param g integer {0-255}
 ---@param b integer {0-255}
 ---@param a integer {0-255}
----@return {r: number, red: number, g: number, green: number, b: number, blue: number, a: number, alpha: number}
+---@return ColorI
 ColorI = ColorI or function(r, g, b, a) return {} end
 
 log = log or function(type, tag, msg) end

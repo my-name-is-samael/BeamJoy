@@ -89,8 +89,6 @@ BJI_InteractiveMarker = require("ge/extensions/BJI/managers/InteractiveMarkerMan
 
 ---@type BJIWindowMain
 BJI_Win_Main = require("ge/extensions/BJI/ui/windows/Main")
----@type BJIWindowStation
-BJI_Win_Station = require("ge/extensions/BJI/ui/windows/Station")
 ---@type BJIWindowUserSettings
 BJI_Win_UserSettings = require("ge/extensions/BJI/ui/windows/UserSettings")
 ---@type BJIWindowRacesLeaderboard
@@ -239,8 +237,6 @@ BJI.Managers.InteractiveMarker = require("ge/extensions/BJI/managers/Interactive
 
 ---@type BJIWindowMain
 BJI.Windows.Main = require("ge/extensions/BJI/ui/windows/Main")
----@type BJIWindowStation
-BJI.Windows.Station = require("ge/extensions/BJI/ui/windows/Station")
 ---@type BJIWindowUserSettings
 BJI.Windows.UserSettings = require("ge/extensions/BJI/ui/windows/UserSettings")
 ---@type BJIWindowRacesLeaderboard

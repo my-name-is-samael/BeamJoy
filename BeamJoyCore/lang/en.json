@@ -446,7 +446,7 @@
           "stop": "Stop Speed Game"
         },
         "race": {
-          "title": "Race",
+          "start": "Start Race",
           "noRace": "No race available",
           "stop": "Stop Race"
         },
@@ -1283,10 +1283,7 @@
       "flashBatteryFilled": "Batteries charged",
       "flashTankFilled": "Tank filled",
       "flashTanksFilled": "Tanks filled",
-      "noRefuelScenario": "You cannot refuel your vehicle in this scenario",
-      "tanksAmount": "{amount} tanks",
       "emergencyRefuel": "Emergency refuel",
-      "refill": "Refuel tank(s)",
       "edit": {
         "title": "Energy Stations Editor",
         "name": "Station name",
@@ -1304,11 +1301,7 @@
     },
     "garages": {
       "damagedWarning": "Your vehicle is damaged",
-      "garage": "Garage",
-      "repairBtn": "Repair Vehicle",
       "flashVehicleRepaired": "Vehicle repaired",
-      "vehiclePristine": "Your vehicle is in good shape",
-      "noRepairScenario": "You cannot repair your vehicle in this scenario",
       "edit": {
         "title": "Garages Editor",
         "name": "Garage name",
@@ -1732,6 +1725,41 @@
         "setAsInfected": "Set as infected",
         "infectedAmount": "{amount} infected",
         "remainingSurvivors": "{amount} survivors remaining"
+      }
+    },
+    "interactiveMarkers": {
+      "gasStation": {
+        "type": "Gas Station",
+        "button": "Refuel tank(s)",
+        "alreadyFull": "Already full"
+      },
+      "electricStation": {
+        "type": "Electric Station",
+        "button": "Charge batteries",
+        "alreadyFull": "Already full"
+      },
+      "garage": {
+        "type": "Garage",
+        "buttonRepair": "Repair vehicle",
+        "alreadyRepaired": "Already in good shape",
+        "refuelNOS": "Refuel NOS",
+        "alreadyFull": "Already full"
+      },
+      "soloRace": {
+        "type": "Solo Time Attack",
+        "button": "Open settings"
+      },
+      "multiRace": {
+        "type": "Server Race",
+        "button": "Open settings"
+      },
+      "busMission": {
+        "type": "Bus Mission",
+        "button": "Open preparation"
+      },
+      "derby": {
+        "type": "Server Derby",
+        "button": "Open settings"
       }
     }
   }

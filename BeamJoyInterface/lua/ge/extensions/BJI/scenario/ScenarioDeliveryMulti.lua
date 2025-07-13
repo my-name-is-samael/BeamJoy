@@ -51,8 +51,8 @@ local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         ctxt.isOwner and
         not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID) and
-        BJI_Context.Scenario.Data.Deliveries and
-        #BJI_Context.Scenario.Data.Deliveries > 1
+        BJI_Scenario.Data.Deliveries and
+        #BJI_Scenario.Data.Deliveries > 1
 end
 
 -- load hook

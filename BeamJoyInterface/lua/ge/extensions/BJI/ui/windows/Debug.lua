@@ -44,7 +44,7 @@ local function updateCacheAndFilter(ctxt)
         BJI.DEBUG = nil
         value = nil
     end
-    value = BJI.DEBUG
+    value = table.clone(BJI.DEBUG)
     if value and type(value) ~= "function" then
         filtered = #W.filter == 0 and value or applyFilter(value)
     end
@@ -130,7 +130,8 @@ local function drawContentTree(obj, key)
 end
 
 function W.body(ctxt)
-    if BJI.DEBUG ~= value then
+    if type(BJI.DEBUG) == "table" and not table.compare(BJI.DEBUG, value) or
+        BJI.DEBUG ~= value then
         updateCacheAndFilter(ctxt)
     end
     if not value then return end

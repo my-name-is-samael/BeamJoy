@@ -132,6 +132,12 @@ local function save()
     end)
 end
 
+local function getPosition()
+    local pos = BJI_Cam.getPositionRotation().pos + vec3(0, 0, 1)
+    local surfaceDiff = be:getSurfaceHeightBelow(pos)
+    return pos - vec3(0, 0, pos.z-surfaceDiff)
+end
+
 local function header(ctxt)
     Text(W.labels.title)
     SameLine()
@@ -148,7 +154,7 @@ local function header(ctxt)
             name = "",
             types = Table(),
             radius = 2.5,
-            pos = BJI_Cam.getPositionRotation().pos,
+            pos = getPosition(),
         })
         W.changed = true
         reloadMarkers()
@@ -187,7 +193,7 @@ local function body(ctxt)
             if IconButton("moveStation-" .. tostring(i), BJI.Utils.Icon.ICONS.edit_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING, disabled = W.cache.disableInputs or
                         ctxt.camera ~= BJI_Cam.CAMERAS.FREE }) then
-                s.pos = BJI_Cam.getPositionRotation().pos
+                s.pos = getPosition()
                 W.changed = true
                 reloadMarkers()
                 validateStations()
@@ -280,7 +286,7 @@ local function footer(ctxt)
 end
 
 local function open()
-    W.cache.stations = Table(BJI_Context.Scenario.Data.EnergyStations)
+    W.cache.stations = Table(BJI_Stations.Data.EnergyStations)
         :map(function(s)
             return {
                 name = s.name,

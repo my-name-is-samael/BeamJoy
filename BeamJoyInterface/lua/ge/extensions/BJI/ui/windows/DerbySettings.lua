@@ -141,13 +141,13 @@ end
 
 ---@param arenaIndex integer
 local function open(arenaIndex)
-    if not BJI_Context.Scenario.Data.Derby or
-        not BJI_Context.Scenario.Data.Derby[arenaIndex] then
+    if not BJI_Scenario.Data.Derby or
+        not BJI_Scenario.Data.Derby[arenaIndex] then
         return
     end
 
     W.data.arenaIndex = arenaIndex
-    W.data.arena = BJI_Context.Scenario.Data.Derby[arenaIndex]
+    W.data.arena = BJI_Scenario.Data.Derby[arenaIndex]
     if W.show then updateCache() end
     W.show = true
 end

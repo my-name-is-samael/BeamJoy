@@ -48,7 +48,7 @@ local function updateCache(ctxt)
             W.data.amountPBs = W.data.amountPBs + table.length(mapPBs)
         end)
 
-    W.data.leaderboard = Table(BJI_Context.Scenario.Data.Races):values()
+    W.data.leaderboard = Table(BJI_Scenario.Data.Races):values()
         :filter(function(race)
             return type(race) == "table"
         end):map(function(race)

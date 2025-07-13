@@ -18,6 +18,7 @@
 
 ---@class BJRaceLight: _BJRace
 ---@field places integer
+---@field markerPos vec3
 
 local M = {
     ENERGY_TYPES = {
@@ -148,6 +149,7 @@ local function getCacheRaces(senderID)
                         places = #race.startPositions,
                         record = record,
                         hash = race.hash,
+                        markerPos = race.startPositions[1].pos,
                     })
                 end
             end
@@ -189,9 +191,7 @@ local function getCacheStationsHash()
 end
 
 local function getCacheBusLines(senderID)
-    local cache = {
-        BusLines = table.deepcopy(M.BusLines),
-    }
+    local cache = table.deepcopy(M.BusLines)
 
     return cache, M.getCacheBusLinesHash()
 end

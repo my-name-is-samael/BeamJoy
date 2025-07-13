@@ -48,8 +48,8 @@ end
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
-        BJI_Context.Scenario.Data.Deliveries and
-        #BJI_Context.Scenario.Data.Deliveries > 1
+        BJI_Scenario.Data.Deliveries and
+        #BJI_Scenario.Data.Deliveries > 1
 end
 
 local function initVehicle()
@@ -88,10 +88,10 @@ local function initVehicle()
 end
 
 local function initPositions()
-    S.startPosition = table.random(BJI_Context.Scenario.Data.Deliveries)
+    S.startPosition = table.random(BJI_Scenario.Data.Deliveries)
 
     local targets = {}
-    for _, position in ipairs(BJI_Context.Scenario.Data.Deliveries) do
+    for _, position in ipairs(BJI_Scenario.Data.Deliveries) do
         -- local distance = BJIGPS.getRouteLength({ M.startPosition.pos, position.pos }) -- costs a lot
         local distance = math.horizontalDistance(S.startPosition.pos, position.pos)
         if position ~= S.startPosition and distance > 0 then

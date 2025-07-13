@@ -233,14 +233,14 @@ end
 
 local function menuEnergyStations(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.EnergyStations then
+        BJI_Stations.Data.EnergyStations then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local stationsEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.STATIONS
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.STATIONS)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.energyStations")
-                :var({ amount = table.length(BJI_Context.Scenario.Data.EnergyStations) }),
+                :var({ amount = table.length(BJI_Stations.Data.EnergyStations) }),
             active = editorOpen and stationsEditorOpen,
             disabled = editorOpen and not stationsEditorOpen,
             onClick = function()
@@ -256,14 +256,14 @@ end
 
 local function menuGarages(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.Garages then
+        BJI_Stations.Data.Garages then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local garagesEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.GARAGES
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.GARAGES)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.garages")
-                :var({ amount = #BJI_Context.Scenario.Data.Garages }),
+                :var({ amount = #BJI_Stations.Data.Garages }),
             active = editorOpen and garagesEditorOpen,
             disabled = editorOpen and not garagesEditorOpen,
             onClick = function()
@@ -279,14 +279,14 @@ end
 
 local function menuDeliveries(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.Deliveries then
+        BJI_Scenario.Data.Deliveries then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local deliveriesEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.DELIVERIES
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DELIVERIES)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.deliveries")
-                :var({ amount = #BJI_Context.Scenario.Data.Deliveries }),
+                :var({ amount = #BJI_Scenario.Data.Deliveries }),
             active = editorOpen and deliveriesEditorOpen,
             disabled = editorOpen and not deliveriesEditorOpen,
             onClick = function()
@@ -302,14 +302,14 @@ end
 
 local function menuBusLines(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.BusLines then
+        BJI_Scenario.Data.BusLines then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local busEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.BUS_LINES
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.BUS_LINES)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.buslines")
-                :var({ amount = #BJI_Context.Scenario.Data.BusLines }),
+                :var({ amount = #BJI_Scenario.Data.BusLines }),
             active = editorOpen and busEditorOpen,
             disabled = editorOpen and not busEditorOpen,
             onClick = function()
@@ -325,13 +325,13 @@ end
 
 local function menuRaces(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.Races then
-        local rawRaces = Table(BJI_Context.Scenario.Data.Races)
+        BJI_Scenario.Data.Races then
+        local rawRaces = Table(BJI_Scenario.Data.Races)
             :filter(function(r) return type(r) == "table" end):values()
         local label = string.var("{1} ({2})", { BJI_Lang.get("menu.edit.races"), #rawRaces })
         if BJI_Win_ScenarioEditor.getState() then
             -- editor already open
-            local isEditorRace = BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.RACE
+            local isEditorRace = BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.RACE)
             table.insert(M.cache.elems, {
                 type = "item",
                 label = label,
@@ -473,14 +473,14 @@ end
 
 local function menuHunterInfected(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.HunterInfected then
+        BJI_Scenario.Data.HunterInfected then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local hunterEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.HUNTER_INFECTED
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.HUNTER_INFECTED)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.hunter"):var({
-                state = BJI_Lang.get(BJI_Context.Scenario.Data.HunterInfected
+                state = BJI_Lang.get(BJI_Scenario.Data.HunterInfected
                     .enabledHunter and "common.enabled" or "common.disabled"),
             }),
             active = editorOpen and hunterEditorOpen,
@@ -496,7 +496,7 @@ local function menuHunterInfected(ctxt)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.infected"):var({
-                state = BJI_Lang.get(BJI_Context.Scenario.Data.HunterInfected
+                state = BJI_Lang.get(BJI_Scenario.Data.HunterInfected
                     .enabledInfected and "common.enabled" or "common.disabled"),
             }),
             active = editorOpen and hunterEditorOpen,
@@ -514,14 +514,14 @@ end
 
 local function menuDerby(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Context.Scenario.Data.Derby then
+        BJI_Scenario.Data.Derby then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local derbyEditorOpen = editorOpen and
-            BJI_Win_ScenarioEditor.view == BJI_Win_ScenarioEditor.SCENARIOS.DERBY
+            BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DERBY)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.derby")
-                :var({ amount = #BJI_Context.Scenario.Data.Derby }),
+                :var({ amount = #BJI_Scenario.Data.Derby }),
             active = editorOpen and derbyEditorOpen,
             disabled = editorOpen and not derbyEditorOpen,
             onClick = function()

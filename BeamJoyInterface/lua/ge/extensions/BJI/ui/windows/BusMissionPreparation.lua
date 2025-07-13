@@ -43,7 +43,7 @@ end
 local function updateCache(ctxt)
     ctxt = ctxt or BJI_Tick.getContext()
 
-    W.data.linesCombo = Table(BJI_Context.Scenario.Data.BusLines)
+    W.data.linesCombo = Table(BJI_Scenario.Data.BusLines)
         :map(function(line, i)
             return {
                 value = i,
@@ -160,7 +160,7 @@ end
 
 ---@param ctxt TickContext
 local function startMission(ctxt)
-    local line = BJI_Context.Scenario.Data.BusLines[W.data.lineSelected]
+    local line = BJI_Scenario.Data.BusLines[W.data.lineSelected]
     local model, config = table.unpack(tostring(W.data.configSelected):split2(";"))
     W.scenario.start(ctxt, {
         id = W.data.lineSelected,

@@ -5,10 +5,10 @@ local W = {
 
     ACTIVITIES_FILTERS = Table({
         [BJI_Tournament.ACTIVITIES_TYPES.RACE_SOLO] = function()
-            return table.length(BJI_Context.Scenario.Data.Races) > 0
+            return table.length(BJI_Scenario.Data.Races) > 0
         end,
         [BJI_Tournament.ACTIVITIES_TYPES.RACE] = function()
-            return table.filter(BJI_Context.Scenario.Data.Races,
+            return table.filter(BJI_Scenario.Data.Races,
                     function(r) return r.places > 1 end):length() > 0 and
                 BJI_Context.Players:length() >=
                 BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS
@@ -18,21 +18,21 @@ local W = {
                 BJI_Scenario.get(BJI_Scenario.TYPES.SPEED).MINIMUM_PARTICIPANTS
         end,
         [BJI_Tournament.ACTIVITIES_TYPES.HUNTER] = function()
-            return BJI_Context.Scenario.Data.HunterInfected and
-                BJI_Context.Scenario.Data.HunterInfected.enabledHunter and
+            return BJI_Scenario.Data.HunterInfected and
+                BJI_Scenario.Data.HunterInfected.enabledHunter and
                 BJI_Context.Players:length() >=
                 BJI_Scenario.get(BJI_Scenario.TYPES.HUNTER)
                 .MINIMUM_PARTICIPANTS
         end,
         [BJI_Tournament.ACTIVITIES_TYPES.INFECTED] = function()
-            return BJI_Context.Scenario.Data.HunterInfected and
-                BJI_Context.Scenario.Data.HunterInfected.enabledInfected and
+            return BJI_Scenario.Data.HunterInfected and
+                BJI_Scenario.Data.HunterInfected.enabledInfected and
                 BJI_Context.Players:length() >=
                 BJI_Scenario.get(BJI_Scenario.TYPES.INFECTED)
                 .MINIMUM_PARTICIPANTS
         end,
         [BJI_Tournament.ACTIVITIES_TYPES.DERBY] = function()
-            return table.filter(BJI_Context.Scenario.Data.Derby,
+            return table.filter(BJI_Scenario.Data.Derby,
                     function(a) return a.enabled end):length() > 0 and
                 BJI_Context.Players:length() >=
                 BJI_Scenario.get(BJI_Scenario.TYPES.DERBY).MINIMUM_PARTICIPANTS
@@ -269,7 +269,7 @@ local function updateData()
         if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.DERBY then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.arena end
-            W.cache.startActivitySecCombo = Table(BJI_Context.Scenario.Data.Derby):filter(function(a)
+            W.cache.startActivitySecCombo = Table(BJI_Scenario.Data.Derby):filter(function(a)
                 return a.enabled
             end):map(function(arena, i)
                 return {
@@ -286,7 +286,7 @@ local function updateData()
             W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
             W.cache.showStartActivitySec = true
             W.cache.startActivitySecLabel = function() return W.labels.startActivity.track end
-            W.cache.startActivitySecCombo = Table(BJI_Context.Scenario.Data.Races):filter(function(r)
+            W.cache.startActivitySecCombo = Table(BJI_Scenario.Data.Races):filter(function(r)
                 return W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
                     r.places > 1
             end):map(function(r, i)
@@ -338,7 +338,7 @@ local function updateData()
             name = a.name,
             raceID = a.raceID,
             isSoloActivityInProgress = soloActInProgress,
-            soloRaceName = a.raceID and (Table(BJI_Context.Scenario.Data.Races)
+            soloRaceName = a.raceID and (Table(BJI_Scenario.Data.Races)
                 :find(function(r) return r.id == a.raceID end) or { name = "INVALID" }).name or nil,
             targetTime = a.targetTime,
             showJoinSoloRace = W.manager.state and soloActInProgress and a.raceID and
@@ -501,7 +501,7 @@ local function drawTournamentData(ctxt)
                 SameLine()
                 if IconButton("joinActivity", BJI.Utils.Icon.ICONS.videogame_asset,
                         { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, disabled = not ctxt.isOwner }) then
-                    Table(BJI_Context.Scenario.Data.Races)
+                    Table(BJI_Scenario.Data.Races)
                         :find(function(r) return r.id == a.raceID end, function(race)
                             BJI_Win_RaceSettings.open({
                                 multi = false,
@@ -695,7 +695,7 @@ local function drawStartActivity(ctxt)
                 BJI_Tx_tournament.addSoloRace(W.cache.selectedStartActivitySec,
                     W.cache.startActivityDuration)
             elseif W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
-                Table(BJI_Context.Scenario.Data.Races):find(function(r)
+                Table(BJI_Scenario.Data.Races):find(function(r)
                     return r.id == W.cache.selectedStartActivitySec and r.places > 1
                 end, function(race)
                     BJI_Win_RaceSettings.open({
