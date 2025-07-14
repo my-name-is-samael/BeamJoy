@@ -1573,8 +1573,12 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
                 M.deleteVehicle(previousMpVeh.gameVehicleID)
             end
             if previousMpVeh.isLocal and M.getVehicleObject(previousMpVeh.gameVehicleID) then
-                -- if own vehicle and not deleted, resets currently pressed inputs
-                previousMpVeh.veh:queueLuaCommand("input.init()")
+                -- if own vehicle and not deleted, resets currently pressed inputs (except parkingbrake)
+                previousMpVeh.veh:queueLuaCommand([[
+                    local parkingbrake = input.state.parkingbrake.val
+                    input.init()
+                    input.state.parkingbrake.val = parkingbrake
+                ]])
             end
         end
     end

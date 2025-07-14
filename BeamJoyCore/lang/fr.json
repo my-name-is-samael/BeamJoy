@@ -1639,7 +1639,7 @@
       },
       "errors": {
         "missingPoints": "Il manque {amount} point(s)",
-        "saveErrorToast": "Échec de la sauvegarde, réessayez ou contactez l’administrateur"
+        "saveErrorToast": "Échec de la sauvegarde, réessayez ou contactez l'administrateur"
       },
       "hunter": {
         "title": "Chasseur",
@@ -1676,13 +1676,13 @@
           "infected": "Infectés"
         },
         "buttons": {
-          "showSurvivorStartPosition": "Afficher la position de départ d’un survivant",
-          "setSurvivorStartPositionHere": "Définir ici la position de départ d’un survivant",
-          "deleteSurvivorStartPosition": "Supprimer la position de départ d’un survivant",
+          "showSurvivorStartPosition": "Afficher la position de départ d'un survivant",
+          "setSurvivorStartPositionHere": "Définir ici la position de départ d'un survivant",
+          "deleteSurvivorStartPosition": "Supprimer la position de départ d'un survivant",
           "addSurvivorStartPositionHere": "Ajouter ici une position de départ pour un survivant",
-          "showInfectedStartPosition": "Afficher la position de départ d’un infecté",
-          "setInfectedStartPositionHere": "Définir ici la position de départ d’un infecté",
-          "deleteInfectedStartPosition": "Supprimer la position de départ d’un infecté",
+          "showInfectedStartPosition": "Afficher la position de départ d'un infecté",
+          "setInfectedStartPositionHere": "Définir ici la position de départ d'un infecté",
+          "deleteInfectedStartPosition": "Supprimer la position de départ d'un infecté",
           "addInfectedStartPositionHere": "Ajouter ici une position de départ pour un infecté"
         },
         "tags": {
@@ -1759,6 +1759,32 @@
       "derby": {
         "type": "Derby serveur",
         "button": "Ouvrir les paramètres"
+      }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Courses",
+        "busMissions": "Itinéraires de bus",
+        "derbyArenas": "Arènes de derby",
+        "garages": "Garages",
+        "gasStations": "Stations-service"
+      },
+      "activities": {
+        "race": "Course ({places} places)",
+        "busMission": "Itinéraire de bus ({distance})",
+        "derby": "Derby ({places} places)",
+        "garage": "Garage",
+        "gasStation": "Station-service ({energyTypes})",
+        "electricStation": "Borne(s) électrique"
+      },
+      "descriptions": {
+        "raceLoopable": "Un circuit en boucle fermé conçu pour la précision et le rythme. Idéal pour les courses compétitives avec des tours réguliers et un tracé bien défini.",
+        "raceSprint": "Une course linéaire d'un point à un autre. Pas de tours — juste une route dynamique qui récompense l'adaptabilité, le timing et une conduite propre.",
+        "busMission": "Prenez des passagers et conduisez-les en toute sécurité à travers la ville. Respectez l'horaire, évitez la circulation et terminez votre trajet pour gagner des récompenses. Arrêts : {stops}",
+        "derby": "Une arène chaotique où le but est de survivre. Écrasez, percutez et tenez bon dans ce carnage motorisé en plein contact.",
+        "garage": "Un garage complet pour restaurer la santé de votre véhicule ou faire le plein de nitro.",
+        "gasStation": "Station de carburant standard pour véhicules thermiques. Ravitaillement rapide pour rester en route.",
+        "electricStation": "Point de recharge pour véhicules électriques. Une énergie silencieuse et efficace pour maintenir des performances optimales."
       }
     }
   }

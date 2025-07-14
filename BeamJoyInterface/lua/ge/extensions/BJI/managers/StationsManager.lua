@@ -10,10 +10,10 @@ local M = {
     _name = "Stations",
 
     Data = {
-        ---@type {name: string, pos: vec3, radius: number, types: string[]}[]
-        EnergyStations = {},
-        ---@type {name: string, pos: vec3, radius: number}[]
-        Garages = {},
+        ---@type tablelib<integer, {name: string, pos: vec3, radius: number, types: string[]}> index 1-N
+        EnergyStations = Table(),
+        ---@type tablelib<integer, {name: string, pos: vec3, radius: number}> index 1-N
+        Garages = Table(),
     },
 
     markersIDs = Table(),
@@ -50,14 +50,7 @@ local function updateMarkers()
                 visibleAnyVeh = true,
                 condition = function(ctxt)
                     return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.GARAGES) and
-                        ctxt.veh and (
-                            BJI_Scenario.canRepairAtGarage() or (
-                                BJI_Scenario.canRefuelAtStation() and
-                                ctxt.vehData and table.any(ctxt.vehData.tanks, function(t)
-                                    return t.energyType == BJI_Veh.FUEL_TYPES.N2O
-                                end)
-                            )
-                        )
+                        BJI_Scenario.canRepairAtGarage() or BJI_Scenario.canRefuelAtStation()
                 end,
                 onEnter = function(ctxt)
                     if ctxt.isOwner then
@@ -132,10 +125,7 @@ local function updateMarkers()
                 visibleAnyVeh = true,
                 condition = function(ctxt)
                     return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.STATIONS) and
-                        BJI_Scenario.canRefuelAtStation() and ctxt.vehData and
-                        Table(ctxt.vehData.tanks):any(function(t)
-                            return table.includes(es.types, t.energyType)
-                        end)
+                        BJI_Scenario.canRefuelAtStation()
                 end,
                 onEnter = function(ctxt)
                     if ctxt.isOwner then

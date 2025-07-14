@@ -35,49 +35,12 @@ local M = {
     },
 
     routePlanner = require('/lua/ge/extensions/gameplay/route/route')(),
+
+    resetBypass = false,
 }
 --- gc prevention
 local color, pos, typeTarget, targetPlayer, veh, existingIndex, ok, err, target,
 targetIndex, length, wps, distance
-
-local function navigateToMission(poiID)
-    -- call default to have line animation on bigmap
-    M.baseFunctions.navigateToMission(poiID)
-
-    -- manually create waypoint
-    pos, typeTarget = nil, M.KEYS.MANUAL
-    for _, cluster in ipairs(gameplay_playmodeMarkers.getPlaymodeClusters()) do
-        if cluster.containedIdsLookup and cluster.containedIdsLookup[poiID] then
-            pos = gameplay_playmodeMarkers.getMarkerForCluster(cluster).pos
-            if cluster.elemData and cluster.elemData[1] and
-                cluster.elemData[1].type == M.KEYS.STATION then
-                typeTarget = M.KEYS.STATION
-            end
-        end
-    end
-    if not pos then
-        for _, poi in ipairs(extensions.gameplay_rawPois.getRawPoiListByLevel(getCurrentLevelIdentifier())) do
-            if poi.id == poiID and poi.markerInfo.bigmapMarker then
-                pos = poi.markerInfo.bigmapMarker.pos
-                if poi.data and poi.data.type == M.KEYS.STATION then
-                    typeTarget = M.KEYS.STATION
-                end
-            end
-        end
-    end
-
-    if pos then
-        M.prependWaypoint({ key = typeTarget, pos = pos })
-        extensions.hook("onNavigateToMission", poiID)
-    end
-end
-
-local function onUnload()
-    M.reset()
-    if M.baseFunctions.navigateToMission then
-        freeroam_bigMapMode.navigateToMission = M.baseFunctions.navigateToMission
-    end
-end
 
 local function isClearable()
     for _, t in ipairs(M.targets) do
@@ -105,11 +68,11 @@ local function getColor(t)
 end
 
 local function renderTargets()
-    core_groundMarkers.resetAll()
+    extensions.core_groundMarkers.resetAll()
     if M.targets[1] then
         color = getColor(M.targets[1])
-        core_groundMarkers.colorSets.blue.arrows = color
-        core_groundMarkers.setPath(M.targets:map(function(t, i) return t.pos end),
+        extensions.core_groundMarkers.colorSets.blue.arrows = color
+        M.baseFunctions.core_groundMarkers.setPath(M.targets:map(function(t, i) return t.pos end),
             { color = color })
     end
     BJI_Events.trigger(BJI_Events.EVENTS.GPS_CHANGED)
@@ -118,7 +81,9 @@ end
 local function reset()
     M.targets = Table()
     renderTargets()
-    gameplay_playmodeMarkers.clear()
+    extensions.gameplay_playmodeMarkers.clear()
+    M.resetBypass = true
+    extensions.freeroam_bigMapMode.setNavFocus()
     extensions.hook("onNavigateToMission", nil)
 end
 
@@ -126,7 +91,9 @@ local function clear()
     M.targets = M.targets:filter(function(t) return not t.clearable end)
     renderTargets()
     if #M.targets == 0 then
-        gameplay_playmodeMarkers.clear()
+        extensions.gameplay_playmodeMarkers.clear()
+        M.resetBypass = true
+        extensions.freeroam_bigMapMode.setNavFocus()
         extensions.hook("onNavigateToMission", nil)
     end
 end
@@ -345,7 +312,7 @@ local function appendWaypoint(wp)
 end
 
 local function getCurrentRouteLength()
-    return #M.targets > 0 and math.round(core_groundMarkers.getPathLength(), 3) or 0
+    return #M.targets > 0 and math.round(extensions.core_groundMarkers.getPathLength(), 3) or 0
 end
 
 ---@param points vec3[]
@@ -473,11 +440,62 @@ local function renderTick(ctxt)
     checkTargetReached(ctxt)
 end
 
+local function coreSetPath(wps, options)
+    if M.resetBypass then
+        M.resetBypass = false
+        return
+    end
+
+    if not wps then
+        return M.clear()
+    end
+
+    if type(wps) ~= "table" then
+        wps = { wps }
+    end
+
+    table.forEach(wps, function(pos)
+        local key, radius = M.KEYS.MANUAL, 3
+        BJI_Stations.Data.Garages:find(function(g)
+            return g.pos:distance(pos) < .1
+        end, function(g)
+            key = M.KEYS.STATION
+            radius = g.radius
+        end)
+
+        if key == M.KEYS.MANUAL then
+            BJI_Stations.Data.EnergyStations:find(function(es)
+                return es.pos:distance(pos) < .1
+            end, function(es)
+                key = M.KEYS.STATION
+                radius = es.radius
+            end)
+        end
+
+        M.appendWaypoint({
+            key = key,
+            pos = pos,
+            radius = radius,
+            clearable = true,
+        })
+    end)
+end
+
+local function onUnload()
+    M.reset()
+    RollBackNGFunctionsWrappers(M.baseFunctions)
+end
+
 local function onLoad()
     if freeroam_bigMapMode then
-        M.baseFunctions.navigateToMission = freeroam_bigMapMode.navigateToMission
+        extensions.load("core_groundMarkers", "gameplay_playmodeMarkers", "freeroam_bigMapMode")
+        M.baseFunctions = {
+            core_groundMarkers = {
+                setPath = extensions.core_groundMarkers.setPath
+            }
+        }
 
-        freeroam_bigMapMode.navigateToMission = navigateToMission
+        extensions.core_groundMarkers.setPath = coreSetPath
     end
 
     BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)

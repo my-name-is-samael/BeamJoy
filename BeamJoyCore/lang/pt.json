@@ -1760,6 +1760,32 @@
         "type": "Derby no servidor",
         "button": "Abrir configurações"
       }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Corridas",
+        "busMissions": "Missões de ônibus",
+        "derbyArenas": "Arenas de derby",
+        "garages": "Oficinas",
+        "gasStations": "Postos de gasolina"
+      },
+      "activities": {
+        "race": "Corrida ({places} vagas)",
+        "busMission": "Missão de ônibus ({distance})",
+        "derby": "Derby ({places} vagas)",
+        "garage": "Oficina",
+        "gasStation": "Posto de gasolina ({energyTypes})",
+        "electricStation": "Estação elétrica"
+      },
+      "descriptions": {
+        "raceLoopable": "Um circuito fechado construído para precisão e ritmo. Ideal para corridas competitivas com voltas consistentes e fluxo bem definido.",
+        "raceSprint": "Uma corrida linear de um ponto a outro. Sem voltas — apenas uma rota dinâmica que recompensa adaptabilidade, tempo e execução limpa.",
+        "busMission": "Pegue passageiros e leve-os com segurança pela cidade. Siga o horário, evite o trânsito e complete a rota para recompensas. Paradas: {stops}",
+        "derby": "Uma arena caótica onde o objetivo é sobreviver. Bata, colida e resista aos seus oponentes neste caos motorizado de contato total.",
+        "garage": "Oficina completa para restaurar o estado do seu veículo ou reabastecer o nitro.",
+        "gasStation": "Ponto padrão de abastecimento para veículos a combustão. Reabastecimento rápido para manter-se na estrada.",
+        "electricStation": "Estação de recarga para veículos elétricos. Potência silenciosa e eficiente para o melhor desempenho do seu EV."
+      }
     }
   }
 }

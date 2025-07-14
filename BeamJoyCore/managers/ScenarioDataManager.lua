@@ -19,6 +19,7 @@
 ---@class BJRaceLight: _BJRace
 ---@field places integer
 ---@field markerPos vec3
+---@field route vec3[]
 
 ---@class BJBusLine
 ---@field name string
@@ -131,13 +132,25 @@ end
 local function getCacheRaces(senderID)
     ---@type BJRaceLight[]
     local cache = {}
-    if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) or
+    if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) or
         BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-        BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO) then
+        BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
         if #M.Races > 0 then
             local editor = BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO)
             for _, race in ipairs(M.Races) do
                 if editor or race.enabled then
+                    local route = Table()
+                    if race.loopable then
+                        route:addAll(table.map(race.steps, function(step)
+                            return step[1].pos
+                        end))
+                        route:insert(race.steps[1][1].pos)
+                    else
+                        route:insert(race.startPositions[1].pos)
+                        route:addAll(table.map(race.steps, function(step)
+                            return step[1].pos
+                        end))
+                    end
                     local record = nil
                     if race.record then
                         record = {
@@ -156,6 +169,7 @@ local function getCacheRaces(senderID)
                         record = record,
                         hash = race.hash,
                         markerPos = race.startPositions[1].pos,
+                        route = route,
                     })
                 end
             end

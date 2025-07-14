@@ -1761,6 +1761,32 @@
         "type": "Server Derby",
         "button": "Open settings"
       }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Races",
+        "busMissions": "Bus Missions",
+        "derbyArenas": "Derby Arenas",
+        "garages": "Garages",
+        "gasStations": "Gas Stations"
+      },
+      "activities": {
+        "race": "Race ({places} places)",
+        "busMission": "Bus Mission ({distance})",
+        "derby": "Derby ({places} places)",
+        "garage": "Garage",
+        "gasStation": "Gas Station ({energyTypes})",
+        "electricStation": "Electric Station"
+      },
+      "descriptions": {
+        "raceLoopable": "A closed-loop circuit built for precision and pacing. Ideal for competitive racing with consistent laps and well-defined flow.",
+        "raceSprint": "A linear race from one location to another. No laps—just a dynamic route that rewards adaptability, timing, and clean execution.",
+        "busMission": "Pick up passengers and deliver them safely across town. Stay on schedule, navigate traffic, and complete your route for rewards. Stops: {stops}",
+        "derby": "A chaotic arena where survival is the goal. Smash, ram, and outlast your opponents in this full-contact motor mayhem.",
+        "garage": "A full-service garage to restore your vehicle's health or top off your nitrous reserves.",
+        "gasStation": "Standard fueling point for combustion-engine vehicles. Quick fill-ups to keep you on the road.",
+        "electricStation": "A recharge hub for electric vehicles. Efficient, silent power to keep your EV running at peak performance."
+      }
     }
   }
 }

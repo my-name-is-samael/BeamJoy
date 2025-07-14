@@ -5,15 +5,16 @@ local M = {
     Data = {
         ---@type string?
         RacesCurrentMap = nil,
-        ---@type tablelib<integer, BJRaceLight>
-        Races = {},
+        ---@type tablelib<integer, BJRaceLight> index 1-N
+        Races = Table(),
         ---@type tablelib<integer, {pos: vec3, rot: quat, radius: number}>
         Deliveries = {},
         DeliveryLeaderboard = {},
-        ---@type tablelib<integer, BJBusLine>
-        BusLines = {},
+        ---@type tablelib<integer, BJBusLine> index 1-N
+        BusLines = Table(),
         HunterInfected = {},
-        Derby = {},
+        ---@type tablelib<integer, BJArena>
+        Derby = Table(),
     },
 
     ---@type table<string, tablelib<integer, string>>
@@ -223,7 +224,11 @@ local function initCacheHandlers()
         M.Data.Races = table.map(cacheData, function(r)
             if type(r) == "string" then return nil end -- mapName
             _, r.markerPos = pcall(vec3, r.markerPos.x, r.markerPos.y, r.markerPos.z)
-            return _ and r or nil
+            r.route = table.map(r.route, function(pos)
+                _, pos = pcall(vec3, pos.x, pos.y, pos.z)
+                return _ and pos or vec3()
+            end)
+            return r
         end)
         M.Data.RacesCurrentMap = cacheData.mapName
         updateMarkers(BJI_Cache.CACHES.RACES)

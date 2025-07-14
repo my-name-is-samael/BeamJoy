@@ -1760,6 +1760,32 @@
         "type": "Server-Derby",
         "button": "Einstellungen öffnen"
       }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Rennen",
+        "busMissions": "Busmissionen",
+        "derbyArenas": "Derby-Arenen",
+        "garages": "Werkstätten",
+        "gasStations": "Tankstellen"
+      },
+      "activities": {
+        "race": "Rennen ({places} Plätze)",
+        "busMission": "Busmission ({distance})",
+        "derby": "Derby ({places} Plätze)",
+        "garage": "Werkstatt",
+        "gasStation": "Tankstelle ({energyTypes})",
+        "electricStation": "Ladestation"
+      },
+      "descriptions": {
+        "raceLoopable": "Ein Rundkurs, gebaut für Präzision und Tempo. Ideal für Wettbewerbsrennen mit gleichmäßigen Runden und klarem Streckenverlauf.",
+        "raceSprint": "Ein lineares Rennen von einem Ort zum anderen. Keine Runden - nur eine dynamische Strecke, die Anpassung, Timing und sauberes Fahren belohnt.",
+        "busMission": "Nimm Fahrgäste auf und bringe sie sicher durch die Stadt. Halte den Zeitplan ein, umfahre den Verkehr und beende deine Route für Belohnungen. Haltestellen: {stops}",
+        "derby": "Eine chaotische Arena, in der Überleben das Ziel ist. Rammen, crashen und durchhalten in diesem Vollkontakt-Motorspektakel.",
+        "garage": "Eine voll ausgestattete Werkstatt zur Wiederherstellung der Fahrzeuggesundheit oder zum Nachfüllen von NOS.",
+        "gasStation": "Standardtankstelle für Verbrennungsmotoren. Schnelle Tankstopps, um dich auf der Straße zu halten.",
+        "electricStation": "Eine Ladestation für Elektrofahrzeuge. Effizient, leise und leistungsstark - für optimale EV-Performance."
+      }
     }
   }
 }

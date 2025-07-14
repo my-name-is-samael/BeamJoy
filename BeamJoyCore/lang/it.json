@@ -1760,6 +1760,32 @@
         "type": "Derby del server",
         "button": "Apri impostazioni"
       }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Gare",
+        "busMissions": "Missioni bus",
+        "derbyArenas": "Arene derby",
+        "garages": "Officine",
+        "gasStations": "Stazioni di servizio"
+      },
+      "activities": {
+        "race": "Gara ({places} posti)",
+        "busMission": "Missione bus ({distance})",
+        "derby": "Derby ({places} posti)",
+        "garage": "Officina",
+        "gasStation": "Stazione di servizio ({energyTypes})",
+        "electricStation": "Stazione elettrica"
+      },
+      "descriptions": {
+        "raceLoopable": "Un circuito chiuso progettato per precisione e ritmo. Ideale per gare competitive con giri costanti e flusso ben definito.",
+        "raceSprint": "Una gara lineare da un punto all'altro. Nessun giro—solo un percorso dinamico che premia adattabilità, tempismo ed esecuzione pulita.",
+        "busMission": "Raccogli passeggeri e portali in sicurezza per la città. Rispetta l'orario, evita il traffico e completa il percorso per ottenere ricompense. Fermate: {stops}",
+        "derby": "Un'arena caotica dove l'obiettivo è sopravvivere. Scontri, urti e resistenza nel caos totale dei motori.",
+        "garage": "Officina completa per riparare il veicolo o ricaricare il NOS.",
+        "gasStation": "Punto di rifornimento standard per motori a combustione. Rifornimento rapido per rimanere in viaggio.",
+        "electricStation": "Centro di ricarica per veicoli elettrici. Energia silenziosa ed efficiente per massime prestazioni."
+      }
     }
   }
 }
