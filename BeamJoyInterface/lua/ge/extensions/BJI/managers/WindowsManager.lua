@@ -49,7 +49,7 @@ local function windowSubFnCall(ctxt, w, fnName)
 end
 
 --- gc prevention
-local state
+local state, ok, err
 
 ---@param ctxt TickContext
 local function renderTick(ctxt)
@@ -86,7 +86,10 @@ local function renderTick(ctxt)
         if not val1 then
             LogError(string.var("Invalid name for window {1}", { w.name }))
         elseif M.showStates[w.name] then
-            RenderWindow(ctxt, val1, w)
+            ok, err = pcall(RenderWindow, ctxt, val1, w)
+            if not ok then
+                LogError(string.var("Error rendering window \"{1}\" : {2}", { w.name, err }), M._name)
+            end
         end
         if BJI.Bench.STATE == 2 then
             BJI.Bench.saveGC(w.name)
@@ -116,7 +119,7 @@ local function onLoad()
     end):forEach(function(windowPath)
         val1, val2 = pcall(require, windowPath)
         if val1 then
-            _G["BJI_Win_" .. val2.name] = register(val2) -- quick access
+            _G["BJI_Win_" .. val2.name] = register(val2)         -- quick access
             BJI.Windows[val2.name] = _G["BJI_Win_" .. val2.name] -- object tree access
             LogInfo(string.var("BJI_Win_{1} loaded", { val2.name }))
         else

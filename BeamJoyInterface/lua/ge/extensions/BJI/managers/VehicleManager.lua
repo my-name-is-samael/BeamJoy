@@ -1183,7 +1183,7 @@ end
 
 ---@return string?
 local function getCurrentConfigKey()
-    local veh = M.getCurrentVehicle()
+    veh = M.getCurrentVehicle()
     if not veh or isConfigCustom() then
         return nil
     end
@@ -1194,10 +1194,8 @@ end
 
 ---@return string?
 local function getCurrentConfigLabel()
-    local veh = M.getCurrentVehicle()
-    if not veh then
-        return nil
-    end
+    veh = M.getCurrentVehicle()
+    if not veh then return end
     local configKey = getCurrentConfigKey()
 
     if configKey then
@@ -1206,7 +1204,7 @@ local function getCurrentConfigLabel()
         if data.configs and data.configs[configKey] then
             return data.configs[configKey].label
         end
-        return nil
+        return
     end
     return "Custom"
 end
@@ -1435,6 +1433,14 @@ end
 ---@param config? string|table
 ---@param posrot? BJIPositionRotation
 local function replaceOrSpawnVehicle(model, config, posrot)
+    if M.getCurrentModel() == "unicycle" then
+        -- replace walking case
+        M.deleteCurrentOwnVehicle()
+        return BJI_Async.delayTask(function()
+            M.replaceOrSpawnVehicle(model, config, posrot)
+        end, 100)
+    end
+
     local newVehicle = not M.isCurrentVehicleOwn()
 
     local opts = {}
@@ -1469,6 +1475,14 @@ end
 
 -- optionnal config and posrot
 local function spawnNewVehicle(model, config, posrot)
+    if M.getCurrentModel() == "unicycle" then
+        -- spawn veh when walking case
+        M.deleteCurrentOwnVehicle()
+        return BJI_Async.delayTask(function()
+            M.spawnNewVehicle(model, config, posrot)
+        end, 100)
+    end
+
     local opts = {}
     if config then
         opts.config = config
@@ -1558,7 +1572,10 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
             if previousMpVeh.jbeam == "unicycle" then
                 M.deleteVehicle(previousMpVeh.gameVehicleID)
             end
-            previousMpVeh.veh:queueLuaCommand("input.init()") -- resets currently pressed inputs
+            if previousMpVeh.isLocal and M.getVehicleObject(previousMpVeh.gameVehicleID) then
+                -- if own vehicle and not deleted, resets currently pressed inputs
+                previousMpVeh.veh:queueLuaCommand("input.init()")
+            end
         end
     end
 

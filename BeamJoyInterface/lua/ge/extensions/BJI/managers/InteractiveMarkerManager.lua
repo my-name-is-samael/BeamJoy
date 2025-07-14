@@ -197,7 +197,7 @@ local function renderTick(ctxt)
                 if not freeroam_bigMapMode.bigMapActive() then
                     interact = {}
                     el._marker:interactInPlayMode(cachedData, interact)
-                    if activeSpeed and #interact > 0 then
+                    if activeSpeed and not BJI_Prompt.process and #interact > 0 then
                         if not el._active then
                             el._active = true
                             if el.onEnter then el.onEnter(ctxt) end

@@ -148,8 +148,6 @@ local function onVehicleDeleted(playerID, vehID)
         return
     end
 
-    local isCurrent = player.vehicles[vehID] and
-        player.vehicles[vehID].vid == player.currentVehicle
     player.vehicles[vehID] = nil
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)

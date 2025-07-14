@@ -31,7 +31,7 @@
 ---@field currentVehicle? integer
 ---@field freeze boolean
 ---@field engine boolean
----@field vehicles BJCPlayerVehicle[]
+---@field vehicles table<integer, BJCPlayerVehicle> index serverVehID
 ---@field ai integer[]
 ---@field messages {time: integer, message: string}[]
 ---@field scenario string

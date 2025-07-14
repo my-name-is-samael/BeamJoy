@@ -50,7 +50,7 @@ local function sortDelayedTasks()
         return { key = k, time = el.time }
     end):sort(function(a, b)
         if a.time == b.time then
-            return a.key < b.key
+            return tostring(a.key) < tostring(b.key)
         end
         return a.time < b.time
     end):map(function(el)

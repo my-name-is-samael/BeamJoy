@@ -216,6 +216,13 @@ local function loadPlayers()
                 }, p)
             else
                 table.assign(M.Players[p.playerID], p)
+
+                -- remove obsolete vehicles
+                for vid in pairs(M.Players[p.playerID].vehicles) do
+                    if not cacheData[p.playerID].vehicles[vid] then
+                        M.Players[p.playerID].vehicles[vid] = nil
+                    end
+                end
             end
         end)
 

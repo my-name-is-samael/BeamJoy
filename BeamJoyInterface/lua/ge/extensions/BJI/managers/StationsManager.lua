@@ -50,7 +50,14 @@ local function updateMarkers()
                 visibleAnyVeh = true,
                 condition = function(ctxt)
                     return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.GARAGES) and
-                        (BJI_Scenario.canRefuelAtStation() or BJI_Scenario.canRepairAtGarage())
+                        ctxt.veh and (
+                            BJI_Scenario.canRepairAtGarage() or (
+                                BJI_Scenario.canRefuelAtStation() and
+                                ctxt.vehData and table.any(ctxt.vehData.tanks, function(t)
+                                    return t.energyType == BJI_Veh.FUEL_TYPES.N2O
+                                end)
+                            )
+                        )
                 end,
                 onEnter = function(ctxt)
                     if ctxt.isOwner then
@@ -117,7 +124,6 @@ local function updateMarkers()
 
     Table(M.Data.EnergyStations):forEach(function(es, i)
         local id = getID("energyStation", es.name, i)
-        local energyType = table.find(es.types, TrueFn)
         local isElectric = #es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC
         status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
             es.pos, es.radius, {
@@ -126,7 +132,7 @@ local function updateMarkers()
                 visibleAnyVeh = true,
                 condition = function(ctxt)
                     return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.STATIONS) and
-                        BJI_Scenario.canRefuelAtStation() and ctxt.veh and
+                        BJI_Scenario.canRefuelAtStation() and ctxt.vehData and
                         Table(ctxt.vehData.tanks):any(function(t)
                             return table.includes(es.types, t.energyType)
                         end)

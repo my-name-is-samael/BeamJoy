@@ -322,6 +322,53 @@ local function getPayloadSettings()
     }
 end
 
+local function startVote()
+    local settings = getPayloadSettings()
+    BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, true, {
+        raceID = W.settings.raceID,
+        laps = settings.laps,
+        model = settings.model,
+        config = settings.config,
+        respawnStrategy = settings.respawnStrategy,
+        collisions = settings.collisions,
+    })
+    onClose()
+end
+
+---@param ctxt TickContext
+local function start(ctxt)
+    if W.settings.multi then
+        local settings = getPayloadSettings()
+        BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, false, {
+            raceID = W.settings.raceID,
+            laps = settings.laps,
+            model = settings.model,
+            config = settings.config,
+            respawnStrategy = settings.respawnStrategy,
+            collisions = settings.collisions,
+        })
+        onClose()
+    else
+        BJI_Tx_scenario.RaceDetails(W.settings.raceID, function(raceData)
+            if raceData then
+                if BJI_Scenario.isFreeroam() then
+                    BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO).initRace(
+                        ctxt,
+                        {
+                            laps = raceData.loopable and W.settings.laps or nil,
+                            respawnStrategy = W.data.respawnStrategySelected,
+                        },
+                        raceData
+                    )
+                end
+                onClose()
+            else
+                BJI_Toast.error(BJI_Lang.get("errors.invalidData"))
+            end
+        end)
+    end
+end
+
 ---@param ctxt TickContext
 local function drawFooter(ctxt)
     if not W.settings then return end
@@ -334,16 +381,7 @@ local function drawFooter(ctxt)
         SameLine()
         if IconButton("voteRaceStart", BJI.Utils.Icon.ICONS.event_available,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            local settings = getPayloadSettings()
-            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, true, {
-                raceID = W.settings.raceID,
-                laps = settings.laps,
-                model = settings.model,
-                config = settings.config,
-                respawnStrategy = settings.respawnStrategy,
-                collisions = settings.collisions,
-            })
-            onClose()
+            startVote()
         end
         TooltipText(W.labels.startVote)
     end
@@ -351,46 +389,16 @@ local function drawFooter(ctxt)
         SameLine()
         if IconButton("raceStart", BJI.Utils.Icon.ICONS.videogame_asset,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            if W.settings.multi then
-                local settings = getPayloadSettings()
-                BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.RACE, false, {
-                    raceID = W.settings.raceID,
-                    laps = settings.laps,
-                    model = settings.model,
-                    config = settings.config,
-                    respawnStrategy = settings.respawnStrategy,
-                    collisions = settings.collisions,
-                })
-                onClose()
-            else
-                BJI_Tx_scenario.RaceDetails(W.settings.raceID, function(raceData)
-                    if raceData then
-                        if BJI_Scenario.isFreeroam() then
-                            BJI_Scenario.get(BJI_Scenario.TYPES.RACE_SOLO).initRace(
-                                ctxt,
-                                {
-                                    laps = raceData.loopable and W.settings.laps or nil,
-                                    respawnStrategy = W.data.respawnStrategySelected,
-                                },
-                                raceData
-                            )
-                        end
-                        onClose()
-                    else
-                        BJI_Toast.error(BJI_Lang.get("errors.invalidData"))
-                    end
-                end)
-            end
+            start(ctxt)
         end
         TooltipText(W.labels.startRace)
     end
 end
 
----@param raceSettings RaceSettings
-local function open(raceSettings)
+local function commonHandleSettings(raceSettings)
     if #raceSettings.respawnStrategies == 0 then
         LogError("No respawn strategies found")
-        return
+        return false
     end
 
     if raceSettings.loopable then
@@ -400,8 +408,18 @@ local function open(raceSettings)
     end
     raceSettings.collisions = raceSettings.collisions or W.settings.collisions
     W.settings = raceSettings
+    return true
+end
 
-    W.data.respawnStrategySelected = W.settings.defaultRespawnStrategy or W.data.respawnStrategySelected
+---@param raceSettings RaceSettings
+local function open(raceSettings)
+    if not commonHandleSettings(raceSettings) then
+        return
+    end
+
+    if not W.data.respawnStrategySelected then
+        W.data.respawnStrategySelected = W.settings.defaultRespawnStrategy
+    end
     W.data.vehicleSelected = W.data.vehicleSelected or W.VEHICLE_MODES.ALL
 
     if BJI_Scenario.isFreeroam() and
@@ -419,6 +437,189 @@ local function open(raceSettings)
     end
 end
 
+---@param raceSettings RaceSettings
+local function openPromptFlow(raceSettings)
+    if not commonHandleSettings(raceSettings) then
+        return
+    end
+    updateLabels()
+    updateCache()
+
+    local cancelButton = {
+        label = W.labels.cancel,
+    }
+    local settingsButton = {
+        icon = BJI_Prompt.quick.settings,
+        label = BJI_Lang.get("races.settings.title"),
+        needConfirm = true,
+        onClick = function()
+            open(raceSettings)
+        end,
+    }
+    updateLabels()
+    local buttons
+    local titlePrefix = string.format("%s (%s) - ",
+        BJI_Lang.get("races.settings.title"),
+        BJI_Lang.get(raceSettings.multi and
+            "interactiveMarkers.multiRace.type" or
+            "interactiveMarkers.soloRace.type"))
+    local steps = Table()
+    local stepOffset = 0
+
+    -- laps
+    if raceSettings.loopable then
+        buttons = Table()
+        for _, lapAmount in ipairs({ 1, 2, 3, 5, 10 }) do
+            buttons:insert(
+                {
+                    icon = BJI_Prompt.quick.lap,
+                    label = BJI_Lang.get("races.settings.lap" .. (lapAmount > 1 and "s" or ""))
+                        :var({ lap = lapAmount, laps = lapAmount }),
+                    onClick = function()
+                        W.settings.laps = lapAmount
+                    end,
+                    clickToStep = 2,
+                })
+        end
+        buttons:insert(settingsButton)
+        steps:insert({
+            title = string.format("%s%s", titlePrefix, W.labels.laps),
+            cancelButton = cancelButton,
+            buttons = buttons,
+        })
+    else
+        stepOffset = -1
+    end
+
+    -- respawn strategy
+    local function getIconByRespawnStrategy(key)
+        if key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+            return BJI_Prompt.quick.allResets
+        elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+            return BJI_Prompt.quick.lastCheckpoint
+        elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            return BJI_Prompt.quick.forbidden
+        elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+            return BJI_Prompt.quick.lastStand
+        end
+        return ""
+    end
+    buttons = table.map(raceSettings.respawnStrategies, function(rsKey)
+        return {
+            icon = getIconByRespawnStrategy(rsKey),
+            label = W.labels.respawnStrategies[rsKey],
+            needConfirm = not raceSettings.multi,
+            onClick = function(ctxt)
+                W.data.respawnStrategySelected = rsKey
+                if not raceSettings.multi then
+                    start(ctxt)
+                end
+            end,
+            clickToStep = raceSettings.multi and (3 + stepOffset) or nil,
+        }
+    end)
+    buttons:insert(settingsButton)
+    steps:insert({
+        title = string.format("%s%s", titlePrefix, W.labels.respawnStrategies.title),
+        cancelButton = cancelButton,
+        buttons = buttons,
+    })
+
+    if raceSettings.multi then
+        -- collisions
+        steps:insert({
+            title = string.format("%s%s", titlePrefix, W.labels.collisions),
+            cancelButton = cancelButton,
+            buttons = {
+                {
+                    icon = BJI_Prompt.quick.collisions,
+                    label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.enabled")),
+                    onClick = function(ctxt)
+                        W.settings.collisions = true
+                    end,
+                    clickToStep = 4 + stepOffset,
+                },
+                {
+                    icon = BJI_Prompt.quick.no_collisions,
+                    label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.disabled")),
+                    onClick = function(ctxt)
+                        W.settings.collisions = false
+                    end,
+                    clickToStep = 4 + stepOffset,
+                },
+                settingsButton,
+            },
+        })
+
+        -- vehicle
+        buttons = Table({
+            {
+                icon = BJI_Prompt.quick.all_models,
+                label = W.labels.vehicle.all,
+                onClick = function(ctxt)
+                    W.data.vehicleSelected = W.VEHICLE_MODES.ALL
+                end,
+                clickToStep = 5 + stepOffset,
+            }
+        })
+        ctxt = BJI_Tick.getContext()
+        if ctxt.veh and ctxt.veh.isVehicle then
+            buttons:insert({
+                icon = BJI_Prompt.quick.model,
+                label = string.format("%s (%s)", W.labels.vehicle.currentModel,
+                    ctxt.veh.jbeam),
+                onClick = function(ctxt)
+                    W.data.vehicleSelected = W.VEHICLE_MODES.MODEL
+                end,
+                clickToStep = 5 + stepOffset,
+            })
+            buttons:insert({
+                icon = BJI_Prompt.quick.config,
+                label = string.format("%s (%s)", W.labels.vehicle.currentConfig,
+                    BJI_Veh.getCurrentConfigLabel()),
+                disabled = ctxt.isOwner and W.data.selfProtected or W.data.currentVehicleProtected,
+                onClick = function(ctxt)
+                    W.data.vehicleSelected = W.VEHICLE_MODES.CONFIG
+                end,
+                clickToStep = 5 + stepOffset,
+            })
+        end
+        buttons:insert(settingsButton)
+        steps:insert({
+            title = string.format("%s%s", titlePrefix, W.labels.vehicle.title),
+            cancelButton = cancelButton,
+            buttons = buttons,
+        })
+
+        -- start vote or start race
+        buttons = Table()
+        if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
+            buttons:insert({
+                icon = BJI_Prompt.quick.vote,
+                label = W.labels.startVote,
+                needConfirm = true,
+                onClick = startVote,
+            })
+        end
+        if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+            buttons:insert({
+                icon = BJI_Prompt.quick.start,
+                label = W.labels.startRace,
+                needConfirm = true,
+                onClick = start,
+            })
+        end
+        buttons:insert(settingsButton)
+        steps:insert({
+            title = string.format("%s%s", titlePrefix, W.labels.startRace),
+            cancelButton = cancelButton,
+            buttons = buttons,
+        })
+    end
+
+    BJI_Prompt.createFlow(steps)
+end
+
 W.onLoad = onLoad
 W.onUnload = onUnload
 
@@ -428,6 +629,7 @@ W.footer = drawFooter
 
 W.onClose = onClose
 W.open = open
+W.openPromptFlow = openPromptFlow
 W.getState = function() return W.show end
 
 return W

@@ -81,7 +81,7 @@ local function updateMarkers(cacheType)
                         label = r.name,
                         buttonLabel = BJI_Lang.get("interactiveMarkers.soloRace.button"),
                         callback = function(ctxt)
-                            BJI_Win_RaceSettings.open({
+                            BJI_Win_RaceSettings.openPromptFlow({
                                 multi = false,
                                 raceID = r.id,
                                 raceName = r.name,
@@ -109,7 +109,7 @@ local function updateMarkers(cacheType)
                         label = r.name,
                         buttonLabel = BJI_Lang.get("interactiveMarkers.multiRace.button"),
                         callback = function(ctxt)
-                            BJI_Win_RaceSettings.open({
+                            BJI_Win_RaceSettings.openPromptFlow({
                                 multi = true,
                                 raceID = r.id,
                                 raceName = r.name,
