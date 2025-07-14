@@ -20,6 +20,12 @@
 ---@field places integer
 ---@field markerPos vec3
 
+---@class BJBusLine
+---@field name string
+---@field distance number
+---@field loopable boolean
+---@field stops {name: string, pos: vec3, rot:quat, radius: number}[]
+
 local M = {
     ENERGY_TYPES = {
         GASOLINE = "gasoline",

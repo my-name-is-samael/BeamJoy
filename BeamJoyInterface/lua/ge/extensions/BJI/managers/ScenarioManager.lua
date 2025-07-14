@@ -7,8 +7,10 @@ local M = {
         RacesCurrentMap = nil,
         ---@type tablelib<integer, BJRaceLight>
         Races = {},
+        ---@type tablelib<integer, {pos: vec3, rot: quat, radius: number}>
         Deliveries = {},
         DeliveryLeaderboard = {},
+        ---@type tablelib<integer, BJBusLine>
         BusLines = {},
         HunterInfected = {},
         Derby = {},
@@ -160,8 +162,7 @@ local function updateMarkers(cacheType)
                         label = bl.name,
                         buttonLabel = BJI_Lang.get("interactiveMarkers.busMission.button"),
                         callback = function(ctxt)
-                            BJI_Win_BusMissionPreparation.show = true
-                            BJI_Win_BusMissionPreparation.data.lineSelected = i
+                            BJI_Win_BusMissionPreparation.openPromptFlow(i)
                         end
                     },
                 })

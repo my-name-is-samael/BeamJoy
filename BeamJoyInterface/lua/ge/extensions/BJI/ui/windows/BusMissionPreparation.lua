@@ -12,6 +12,7 @@ local W = {
         title = "",
         line = "",
         config = "",
+        customConfig = "",
         cancel = "",
         start = "",
     },
@@ -35,6 +36,7 @@ local function updateLabels()
     W.labels.title = BJI_Lang.get("buslines.preparation.title")
     W.labels.line = BJI_Lang.get("buslines.preparation.line")
     W.labels.config = BJI_Lang.get("buslines.preparation.config")
+    W.labels.customConfig = BJI_Lang.get("buslines.preparation.customConfig")
     W.labels.cancel = BJI_Lang.get("common.buttons.cancel")
     W.labels.start = BJI_Lang.get("common.buttons.start")
 end
@@ -52,9 +54,11 @@ local function updateCache(ctxt)
         end):sort(function(a, b)
             return a.label < b.label
         end)
-    W.data.linesCombo:insert(1, {
-        label = "",
-    })
+    if #BJI_Scenario.Data.BusLines ~= 1 then
+        W.data.linesCombo:insert(1, {
+            label = "",
+        })
+    end
     W.data.lineSelected = W.data.linesCombo:find(function(line) return line.value == W.data.lineSelected end) and
         W.data.lineSelected or W.data.linesCombo[1].value
 
@@ -67,10 +71,13 @@ local function updateCache(ctxt)
                     local label = string.var("{1} {2}", { BJI_Veh.getModelLabel(model), conf.label })
                     if conf.custom then
                         label = string.var("{1} ({2})",
-                            { label, BJI_Lang.get("buslines.preparation.customConfig") })
+                            { label, W.labels.customConfig })
                     end
                     return {
-                        value = model .. ";" .. conf.key,
+                        value = {
+                            model = model,
+                            config = conf.key
+                        },
                         label = label,
                     }
                 end):values())
@@ -81,8 +88,17 @@ local function updateCache(ctxt)
     W.data.configsCombo:insert(1, {
         label = "",
     })
-    W.data.configSelected = W.data.configsCombo:any(function(conf) return conf.value == W.data.configSelected end) and
-        W.data.configSelected or W.data.configsCombo[1].value
+    if W.data.configSelected then
+        if not W.data.configsCombo:find(function(conf)
+                return conf.value and table.compare(conf.value, W.data.configSelected)
+            end, function(found)
+                W.data.configSelected = found.value
+            end) then
+            W.data.configSelected = W.data.configsCombo[1].value
+        end
+    else
+        W.data.configSelected = W.data.configsCombo[1].value
+    end
 end
 
 local listeners = Table()
@@ -161,13 +177,12 @@ end
 ---@param ctxt TickContext
 local function startMission(ctxt)
     local line = BJI_Scenario.Data.BusLines[W.data.lineSelected]
-    local model, config = table.unpack(tostring(W.data.configSelected):split2(";"))
     W.scenario.start(ctxt, {
         id = W.data.lineSelected,
         name = line.name,
         loopable = line.loopable,
         stops = line.stops,
-    }, model, config)
+    }, W.data.configSelected.model, W.data.configSelected.config)
     onClose()
 end
 
@@ -187,11 +202,95 @@ local function footer(ctxt)
     TooltipText(W.labels.start)
 end
 
+local function open()
+    W.show = true
+end
+
+---@param lineIndex integer?
+local function openPromptFlow(lineIndex)
+    W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.BUS_MISSION)
+    updateLabels()
+    updateCache()
+
+    local settingsButton = {
+        icon = BJI_Prompt.quick.settings,
+        label = W.labels.title,
+        needConfirm = true,
+        onClick = W.open,
+    }
+    local cancelButton = {
+        label = W.labels.cancel,
+    }
+    local buttons, titlePrefix
+    local steps = Table()
+
+    -- line
+    if lineIndex then
+        W.data.lineSelected = lineIndex
+        titlePrefix = string.format("%s (%s) - ",
+            W.labels.title,
+            BJI_Scenario.Data.BusLines[W.data.lineSelected].name)
+    else
+        titlePrefix = string.format("%s - ", W.labels.title)
+        buttons = BJI_Scenario.Data.BusLines:map(function(bl, i)
+            return {
+                icon = BJI_Prompt.quick.busline,
+                label = string.format("%s (%s)", bl.name,
+                    BJI.Utils.UI.PrettyDistance(bl.distance)),
+                onClick = function(ctxt, nextStep)
+                    W.data.lineSelected = i
+                    if not W.data.linesCombo[1].value then
+                        -- auto remove empty option on selection
+                        W.data.linesCombo:remove(1)
+                    end
+                    nextStep(2)
+                end,
+            }
+        end)
+        buttons:insert(settingsButton)
+        steps:insert({
+            id = 1,
+            title = string.format("%s%s", titlePrefix, W.labels.line),
+            cancelButton = cancelButton,
+            buttons = buttons,
+        })
+    end
+
+    --- vehicle
+    local configs = BJI_Veh.getAllConfigsForModel(W.scenario.BASE_MODEL)
+    buttons = Table({ "base", "city", "highway" }):map(function(configKey)
+        return {
+            icon = BJI_Prompt.quick.bus,
+            label = configs[configKey].label,
+            needConfirm = true,
+            onClick = function(ctxt, nextStep)
+                W.data.configSelected = {
+                    model = W.scenario.BASE_MODEL,
+                    config = configKey,
+                }
+                startMission(ctxt)
+            end,
+        }
+    end)
+    buttons:insert(settingsButton)
+    steps:insert({
+        id = 2,
+        title = string.format("%s%s", titlePrefix, W.labels.config),
+        cancelButton = cancelButton,
+        buttons = buttons,
+    })
+
+    BJI_Prompt.createFlow(steps)
+end
+
 W.onLoad = onLoad
 W.onUnload = onUnload
 W.body = body
 W.footer = footer
 W.onClose = onClose
 W.getState = function() return W.show end
+
+W.open = open
+W.openPromptFlow = openPromptFlow
 
 return W

@@ -8,27 +8,35 @@ local M = {
     active = false,
     process = false,
 
-    clickDelay = 0,
+    clickDelay = 10,
     processDelayOffset = 100,
 }
 M.quick = {
+    -- common
+
     previous = M.ICONS.undo,
     settings = M.ICONS.adjust,
     cancel = M.ICONS.abandon,
 
-    lap = M.ICONS.replay,
+    -- race icons
 
+    lap = M.ICONS.replay,
     allResets = M.ICONS.car,
     lastCheckpoint = M.ICONS.carsWrench,
     lastStand = M.ICONS.carDealer,
     forbidden = M.ICONS.circleSlashed,
-
     all_models = M.ICONS.cars,
     model = M.ICONS.car,
     config = M.ICONS.carStarred,
-
     collisions = M.ICONS.carOffroadSide,
     no_collisions = M.ICONS.carOffroadOutlineSide,
+
+    -- bus icons
+
+    busline = M.ICONS.routeComplex,
+    bus = M.ICONS.bus,
+
+    -- common scenarios end
 
     vote = M.ICONS.peopleOutline,
     start = M.ICONS.gamepad,
@@ -111,34 +119,37 @@ local function show(title, buttons, cancelButtonLabel, cancelCallback)
 end
 
 ---@class PromptFlowStepButton: PromptButton
----@field clickToStep integer?
+---@field onClick fun(ctxt: TickContext, nextStep: fun(idStep: integer))
 
 ---@class PromptFlowStep
+---@field id integer
 ---@field title string
----@field cancelButton {label: string, cancelCallback: fun(ctxt: TickContext)?}?
+---@field cancelButton {label: string, cancelCallback: fun(ctxt: TickContext, nextStep: fun(idStep: integer))?}?
 ---@field buttons PromptFlowStepButton[]
 
----@param steps PromptFlowStep
+---@param steps PromptFlowStep[]
 local function createFlow(steps)
+    if #steps == 0 then return LogError("Invalid prompt flow (empty)") end
     local showStep
-    showStep = function(index)
-        local step = steps[index]
+    showStep = function(id)
+        local step = table.find(steps, function(s) return s.id == id end)
         if step then
-            for _, btn in ipairs(step.buttons) do
-                if btn.clickToStep then
-                    local previousOnClick = btn.onClick
-                    btn.onClick = function(ctxt)
-                        if previousOnClick then
-                            previousOnClick(ctxt)
-                        end
-                        showStep(btn.clickToStep)
-                    end
-                end
-            end
-            M.show(step.title, step.buttons, step.cancelButton.label, step.cancelButton.cancelCallback)
+            M.show(step.title, table.map(step.buttons, function(btn)
+                return {
+                    label = btn.label,
+                    onClick = btn.onClick and function(ctxt)
+                        btn.onClick(ctxt, showStep)
+                    end,
+                    icon = btn.icon,
+                    disabled = btn.disabled,
+                    needConfirm = btn.needConfirm,
+                }
+            end), step.cancelButton.label, step.cancelButton.cancelCallback and function(ctxt)
+                step.cancelButton.cancelCallback(ctxt, showStep)
+            end)
         end
     end
-    showStep(1)
+    showStep(table.find(steps, TrueFn).id)
 end
 
 M.onLoad = function()

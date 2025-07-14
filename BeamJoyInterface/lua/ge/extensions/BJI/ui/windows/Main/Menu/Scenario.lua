@@ -315,9 +315,7 @@ local function menuBusMission(ctxt)
             table.insert(M.cache.elems, {
                 type = "item",
                 label = BJI_Lang.get("menu.scenario.busMission.start"),
-                onClick = function()
-                    BJI_Win_BusMissionPreparation.show = true
-                end,
+                onClick = BJI_Win_BusMissionPreparation.open,
             })
         end
     elseif BJI_Scenario.is(BJI_Scenario.TYPES.BUS_MISSION) and

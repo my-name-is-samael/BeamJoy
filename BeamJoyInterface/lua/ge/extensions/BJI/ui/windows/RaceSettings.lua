@@ -464,7 +464,6 @@ local function openPromptFlow(raceSettings)
             "interactiveMarkers.multiRace.type" or
             "interactiveMarkers.soloRace.type"))
     local steps = Table()
-    local stepOffset = 0
 
     -- laps
     if raceSettings.loopable then
@@ -475,20 +474,19 @@ local function openPromptFlow(raceSettings)
                     icon = BJI_Prompt.quick.lap,
                     label = BJI_Lang.get("races.settings.lap" .. (lapAmount > 1 and "s" or ""))
                         :var({ lap = lapAmount, laps = lapAmount }),
-                    onClick = function()
+                    onClick = function(ctxt, nextStep)
                         W.settings.laps = lapAmount
+                        nextStep(2)
                     end,
-                    clickToStep = 2,
                 })
         end
         buttons:insert(settingsButton)
         steps:insert({
+            id = 1,
             title = string.format("%s%s", titlePrefix, W.labels.laps),
             cancelButton = cancelButton,
             buttons = buttons,
         })
-    else
-        stepOffset = -1
     end
 
     -- respawn strategy
@@ -509,17 +507,19 @@ local function openPromptFlow(raceSettings)
             icon = getIconByRespawnStrategy(rsKey),
             label = W.labels.respawnStrategies[rsKey],
             needConfirm = not raceSettings.multi,
-            onClick = function(ctxt)
+            onClick = function(ctxt, nextStep)
                 W.data.respawnStrategySelected = rsKey
-                if not raceSettings.multi then
+                if raceSettings.multi then
+                    nextStep(3)
+                else
                     start(ctxt)
                 end
             end,
-            clickToStep = raceSettings.multi and (3 + stepOffset) or nil,
         }
     end)
     buttons:insert(settingsButton)
     steps:insert({
+        id = 2,
         title = string.format("%s%s", titlePrefix, W.labels.respawnStrategies.title),
         cancelButton = cancelButton,
         buttons = buttons,
@@ -528,24 +528,25 @@ local function openPromptFlow(raceSettings)
     if raceSettings.multi then
         -- collisions
         steps:insert({
+            id = 3,
             title = string.format("%s%s", titlePrefix, W.labels.collisions),
             cancelButton = cancelButton,
             buttons = {
                 {
                     icon = BJI_Prompt.quick.collisions,
                     label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.enabled")),
-                    onClick = function(ctxt)
+                    onClick = function(ctxt, nextStep)
                         W.settings.collisions = true
+                        nextStep(4)
                     end,
-                    clickToStep = 4 + stepOffset,
                 },
                 {
                     icon = BJI_Prompt.quick.no_collisions,
                     label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.disabled")),
-                    onClick = function(ctxt)
+                    onClick = function(ctxt, nextStep)
                         W.settings.collisions = false
+                        nextStep(4)
                     end,
-                    clickToStep = 4 + stepOffset,
                 },
                 settingsButton,
             },
@@ -556,10 +557,10 @@ local function openPromptFlow(raceSettings)
             {
                 icon = BJI_Prompt.quick.all_models,
                 label = W.labels.vehicle.all,
-                onClick = function(ctxt)
+                onClick = function(ctxt, nextStep)
                     W.data.vehicleSelected = W.VEHICLE_MODES.ALL
+                    nextStep(5)
                 end,
-                clickToStep = 5 + stepOffset,
             }
         })
         ctxt = BJI_Tick.getContext()
@@ -568,24 +569,25 @@ local function openPromptFlow(raceSettings)
                 icon = BJI_Prompt.quick.model,
                 label = string.format("%s (%s)", W.labels.vehicle.currentModel,
                     ctxt.veh.jbeam),
-                onClick = function(ctxt)
+                onClick = function(ctxt, nextStep)
                     W.data.vehicleSelected = W.VEHICLE_MODES.MODEL
+                    nextStep(5)
                 end,
-                clickToStep = 5 + stepOffset,
             })
             buttons:insert({
                 icon = BJI_Prompt.quick.config,
                 label = string.format("%s (%s)", W.labels.vehicle.currentConfig,
                     BJI_Veh.getCurrentConfigLabel()),
                 disabled = ctxt.isOwner and W.data.selfProtected or W.data.currentVehicleProtected,
-                onClick = function(ctxt)
+                onClick = function(ctxt, nextStep)
                     W.data.vehicleSelected = W.VEHICLE_MODES.CONFIG
+                    nextStep(5)
                 end,
-                clickToStep = 5 + stepOffset,
             })
         end
         buttons:insert(settingsButton)
         steps:insert({
+            id = 4,
             title = string.format("%s%s", titlePrefix, W.labels.vehicle.title),
             cancelButton = cancelButton,
             buttons = buttons,
@@ -611,6 +613,7 @@ local function openPromptFlow(raceSettings)
         end
         buttons:insert(settingsButton)
         steps:insert({
+            id = 5,
             title = string.format("%s%s", titlePrefix, W.labels.startRace),
             cancelButton = cancelButton,
             buttons = buttons,
