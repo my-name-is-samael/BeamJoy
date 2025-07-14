@@ -51,7 +51,7 @@ local W = {
     presets = require("ge/extensions/utils/VehiclePresets").getDerbyPresets(),
 }
 --- gc prevention
-local nextValue, tooltip, j
+local nextValue, tooltip
 
 local function onClose()
     W.show = false
@@ -139,17 +139,29 @@ local function onUnload()
     listeners:forEach(BJI_Events.removeListener)
 end
 
----@param arenaIndex integer
-local function open(arenaIndex)
-    if not BJI_Scenario.Data.Derby or
-        not BJI_Scenario.Data.Derby[arenaIndex] then
-        return
-    end
-
-    W.data.arenaIndex = arenaIndex
-    W.data.arena = BJI_Scenario.Data.Derby[arenaIndex]
-    if W.show then updateCache() end
-    W.show = true
+local function addPresetConfigs(preset)
+    W.data.configs:addAll(
+        Range(1, 5 - #W.data.configs)
+        :reduce(function(acc)
+            local i = nil
+            while not i do
+                i = math.random(#acc.configs)
+                if W.data.configs:find(function(c)
+                        return c.model == acc.configs[i].model and
+                            c.key == acc.configs[i].key
+                    end) then
+                    acc.configs:remove(i)
+                    i = nil
+                end
+            end
+            acc.gen:insert(acc.configs:remove(i))
+            return acc
+        end, { gen = Table(), configs = table.clone(preset.configs) }).gen
+        :map(function(gen)
+            return BJI_Veh.getFullConfig(BJI_Veh
+                .getConfigByModelAndKey(gen.model, gen.key))
+        end)
+    )
 end
 
 ---@param ctxt TickContext
@@ -171,28 +183,7 @@ local function header(ctxt)
             end
             if Button("derby-preset-" .. tostring(i), preset.label,
                     { disabled = #W.data.configs == 5 }) then
-                W.data.configs:addAll(
-                    Range(1, 5 - #W.data.configs)
-                    :reduce(function(acc)
-                        j = nil
-                        while not j do
-                            j = math.random(#acc.configs)
-                            if W.data.configs:find(function(c)
-                                    return c.model == acc.configs[j].model and
-                                        c.key == acc.configs[j].key
-                                end) then
-                                acc.configs:remove(j)
-                                j = nil
-                            end
-                        end
-                        acc.gen:insert(acc.configs:remove(j))
-                        return acc
-                    end, { gen = Table(), configs = table.clone(preset.configs) }).gen
-                    :map(function(gen)
-                        return BJI_Veh.getFullConfig(BJI_Veh
-                            .getConfigByModelAndKey(gen.model, gen.key))
-                    end)
-                )
+                addPresetConfigs(preset)
             end
         end)
 
@@ -202,7 +193,9 @@ end
 
 ---@param ctxt TickContext
 local function addCurrentConfig(ctxt)
-    local config = BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig) or {}
+    local config = ctxt.veh and ctxt.veh.isVehicle and
+        BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
+    if not config then return BJI_Toast.error(BJI_Lang.get("vehicleSelector.invalidVeh")) end
     ---@param c ClientVehicleConfig
     if W.data.configs:any(function(c)
             return table.compare(config.parts, c.parts)
@@ -270,6 +263,15 @@ local function body(ctxt)
     end
 end
 
+---@param isVote boolean?
+local function start(isVote)
+    BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.DERBY, isVote == true, {
+        arenaIndex = W.data.arenaIndex,
+        lives = W.data.lives,
+        configs = W.data.configs,
+    })
+end
+
 ---@param ctxt TickContext
 local function footer(ctxt)
     if IconButton("closeDerbySettings", BJI.Utils.Icon.ICONS.exit_to_app,
@@ -281,11 +283,7 @@ local function footer(ctxt)
         SameLine()
         if IconButton("startVoteDerby", BJI.Utils.Icon.ICONS.event_available,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.DERBY, true, {
-                arenaIndex = W.data.arenaIndex,
-                lives = W.data.lives,
-                configs = W.data.configs,
-            })
+            start(true)
             onClose()
         end
         TooltipText(W.labels.buttons.startVote)
@@ -294,24 +292,147 @@ local function footer(ctxt)
         SameLine()
         if IconButton("startDerby", BJI.Utils.Icon.ICONS.videogame_asset,
                 { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS }) then
-            BJI_Tx_vote.ScenarioStart(BJI_Votes.SCENARIO_TYPES.DERBY, false, {
-                arenaIndex = W.data.arenaIndex,
-                lives = W.data.lives,
-                configs = W.data.configs,
-            })
+            start()
             onClose()
         end
         TooltipText(W.labels.buttons.start)
     end
 end
 
+---@param arenaIndex integer
+local function open(arenaIndex)
+    if not BJI_Scenario.Data.Derby[arenaIndex] then return end
+
+    W.data.arenaIndex = arenaIndex
+    W.data.arena = BJI_Scenario.Data.Derby[arenaIndex]
+    if W.show then updateCache() end
+    W.show = true
+end
+
+local function openPromptFlow(arenaIndex)
+    if not BJI_Scenario.Data.Derby[arenaIndex] then return end
+    if W.show then W.onClose() end
+    W.data.arenaIndex = arenaIndex
+    W.data.arena = BJI_Scenario.Data.Derby[arenaIndex]
+    updateLabels()
+    updateCache()
+
+    local settingsButton = {
+        icon = BJI_Prompt.quickIcons.settings,
+        label = W.labels.title,
+        needConfirm = true,
+        onClick = function()
+            W.open(W.data.arenaIndex)
+        end,
+    }
+    local cancelButton = {
+        label = BJI_Lang.get("common.buttons.cancel"),
+    }
+    local buttons
+    local steps = Table()
+    local titlePrefix = string.format("%s (%s) - ", W.labels.title,
+        W.data.arena.name)
+
+    -- lives
+    buttons = Table({ 0, 1, 2, 3, 4, 5 }):map(function(l)
+        return {
+            icon = l > 0 and BJI_Prompt.quickIcons.derby_lives:var({ amount = l }) or
+                BJI_Prompt.quickIcons.forbidden,
+            label = BJI_Lang.get(l < 2 and "derby.play.amountLife" or
+                "derby.play.amountLives"):var({ amount = l }),
+            onClick = function(ctxt, nextStep)
+                W.data.lives = l
+                nextStep(2)
+            end,
+        }
+    end)
+    buttons:insert(settingsButton)
+    steps:insert({
+        id = 1,
+        title = string.format("%s%s", titlePrefix, W.labels.lives),
+        cancelButton = cancelButton,
+        buttons = buttons,
+    })
+
+    -- vehicle(s)
+    buttons = Table({
+        {
+            icon = BJI_Prompt.quickIcons.all_models,
+            label = BJI_Lang.get("races.settings.vehicles.all"),
+            onClick = function(ctxt, nextStep)
+                W.data.configs = Table()
+                nextStep(3)
+            end,
+        }
+    })
+    local ctxt = BJI_Tick.getContext()
+    if ctxt.veh and ctxt.veh.isVehicle then
+        buttons:insert({
+            icon = BJI_Prompt.quickIcons.config,
+            label = BJI_Lang.get("races.settings.vehicles.currentConfig"),
+            onClick = function(ctxt, nextStep)
+                W.data.configs = Table()
+                addCurrentConfig(ctxt)
+                nextStep(3)
+            end,
+        })
+    end
+    buttons:addAll(Table(W.presets):map(function(preset)
+        return {
+            icon = BJI_Prompt.quickIcons.all_models,
+            label = preset.label,
+            onClick = function(ctxt, nextStep)
+                addPresetConfigs(preset)
+                nextStep(3)
+            end,
+        }
+    end))
+    buttons:insert(settingsButton)
+    steps:insert({
+        id = 2,
+        title = string.format("%s%s", titlePrefix, W.labels.configs),
+        cancelButton = cancelButton,
+        buttons = buttons,
+    })
+
+    -- start vote or start derby
+    buttons = Table()
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
+        buttons:insert({
+            icon = BJI_Prompt.quickIcons.vote,
+            label = W.labels.buttons.startVote,
+            needConfirm = true,
+            onClick = function() start(true) end,
+        })
+    end
+    if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) then
+        buttons:insert({
+            icon = BJI_Prompt.quickIcons.start,
+            label = W.labels.buttons.start,
+            needConfirm = true,
+            onClick = function() start() end,
+        })
+    end
+    buttons:insert(settingsButton)
+    steps:insert({
+        id = 3,
+        title = string.format("%s%s", titlePrefix, W.labels.buttons.start),
+        cancelButton = cancelButton,
+        buttons = buttons,
+    })
+
+    BJI_Prompt.createFlow(steps)
+end
+
 W.onLoad = onLoad
 W.onUnload = onUnload
-W.open = open
 W.header = header
 W.body = body
 W.footer = footer
 W.onClose = onClose
 W.getState = function() return W.show end
+
+W.open = open
+W.openPromptFlow = openPromptFlow
 
 return W

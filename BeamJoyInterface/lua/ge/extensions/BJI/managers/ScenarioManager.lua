@@ -155,6 +155,7 @@ local function updateMarkers(cacheType)
                     {
                         condition = function(ctxt)
                             return not BJI_Win_BusMissionPreparation.getState() and
+                                not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
                                 BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
                         end,
                         icon = BJI_InteractiveMarker.TYPES.BUS_MISSION.icon,
@@ -193,7 +194,8 @@ local function updateMarkers(cacheType)
                 }, {
                     {
                         condition = function(ctxt)
-                            return not BJI_Win_DerbySettings.getState()
+                            return not BJI_Win_DerbySettings.getState() and
+                                not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started()
                         end,
                         icon = BJI_InteractiveMarker.TYPES.DERBY_ARENA.icon,
                         type = BJI_Lang.get("interactiveMarkers.derby.type"),
@@ -201,7 +203,7 @@ local function updateMarkers(cacheType)
                             BJI_Lang.get("derby.settings.places"):var({ places = #a.startPositions })),
                         buttonLabel = BJI_Lang.get("interactiveMarkers.derby.button"),
                         callback = function(ctxt)
-                            BJI_Win_DerbySettings.open(i)
+                            BJI_Win_DerbySettings.openPromptFlow(i)
                         end
                     },
                 })

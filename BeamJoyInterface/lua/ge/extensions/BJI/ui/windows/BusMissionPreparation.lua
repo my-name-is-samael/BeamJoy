@@ -208,12 +208,13 @@ end
 
 ---@param lineIndex integer?
 local function openPromptFlow(lineIndex)
+    if W.show then W.onClose() end
     W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.BUS_MISSION)
     updateLabels()
     updateCache()
 
     local settingsButton = {
-        icon = BJI_Prompt.quick.settings,
+        icon = BJI_Prompt.quickIcons.settings,
         label = W.labels.title,
         needConfirm = true,
         onClick = W.open,
@@ -234,7 +235,7 @@ local function openPromptFlow(lineIndex)
         titlePrefix = string.format("%s - ", W.labels.title)
         buttons = BJI_Scenario.Data.BusLines:map(function(bl, i)
             return {
-                icon = BJI_Prompt.quick.busline,
+                icon = BJI_Prompt.quickIcons.busline,
                 label = string.format("%s (%s)", bl.name,
                     BJI.Utils.UI.PrettyDistance(bl.distance)),
                 onClick = function(ctxt, nextStep)
@@ -260,7 +261,7 @@ local function openPromptFlow(lineIndex)
     local configs = BJI_Veh.getAllConfigsForModel(W.scenario.BASE_MODEL)
     buttons = Table({ "base", "city", "highway" }):map(function(configKey)
         return {
-            icon = BJI_Prompt.quick.bus,
+            icon = BJI_Prompt.quickIcons.bus,
             label = configs[configKey].label,
             needConfirm = true,
             onClick = function(ctxt, nextStep)

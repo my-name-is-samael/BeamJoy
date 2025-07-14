@@ -247,7 +247,7 @@ local function drawHeaderPreparation(ctxt)
         if W.cache.showReadyBtn then
             SameLine()
             if IconButton("readyDerby", BJI.Utils.Icon.ICONS.check,
-                    { big = true, style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                    { big = true, btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
                         disabled = not ctxt.isOwner or W.cache.disableButtons }) then
                 W.cache.disableButtons = true
                 BJI_Tx_scenario.DerbyUpdate(W.scenario.CLIENT_EVENTS.READY, ctxt.veh.gameVehicleID)

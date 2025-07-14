@@ -11,7 +11,7 @@ local M = {
     clickDelay = 10,
     processDelayOffset = 100,
 }
-M.quick = {
+M.quickIcons = {
     -- common
 
     previous = M.ICONS.undo,
@@ -35,6 +35,10 @@ M.quick = {
 
     busline = M.ICONS.routeComplex,
     bus = M.ICONS.bus,
+
+    -- derby
+
+    derby_lives = "carNumber{amount}",
 
     -- common scenarios end
 

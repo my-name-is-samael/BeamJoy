@@ -439,9 +439,8 @@ end
 
 ---@param raceSettings RaceSettings
 local function openPromptFlow(raceSettings)
-    if not commonHandleSettings(raceSettings) then
-        return
-    end
+    if W.show then W.onClose() end
+    if not commonHandleSettings(raceSettings) then return end
     updateLabels()
     updateCache()
 
@@ -449,7 +448,7 @@ local function openPromptFlow(raceSettings)
         label = W.labels.cancel,
     }
     local settingsButton = {
-        icon = BJI_Prompt.quick.settings,
+        icon = BJI_Prompt.quickIcons.settings,
         label = BJI_Lang.get("races.settings.title"),
         needConfirm = true,
         onClick = function()
@@ -471,7 +470,7 @@ local function openPromptFlow(raceSettings)
         for _, lapAmount in ipairs({ 1, 2, 3, 5, 10 }) do
             buttons:insert(
                 {
-                    icon = BJI_Prompt.quick.lap,
+                    icon = BJI_Prompt.quickIcons.lap,
                     label = BJI_Lang.get("races.settings.lap" .. (lapAmount > 1 and "s" or ""))
                         :var({ lap = lapAmount, laps = lapAmount }),
                     onClick = function(ctxt, nextStep)
@@ -492,13 +491,13 @@ local function openPromptFlow(raceSettings)
     -- respawn strategy
     local function getIconByRespawnStrategy(key)
         if key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-            return BJI_Prompt.quick.allResets
+            return BJI_Prompt.quickIcons.allResets
         elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
-            return BJI_Prompt.quick.lastCheckpoint
+            return BJI_Prompt.quickIcons.lastCheckpoint
         elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            return BJI_Prompt.quick.forbidden
+            return BJI_Prompt.quickIcons.forbidden
         elseif key == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
-            return BJI_Prompt.quick.lastStand
+            return BJI_Prompt.quickIcons.lastStand
         end
         return ""
     end
@@ -533,7 +532,7 @@ local function openPromptFlow(raceSettings)
             cancelButton = cancelButton,
             buttons = {
                 {
-                    icon = BJI_Prompt.quick.collisions,
+                    icon = BJI_Prompt.quickIcons.collisions,
                     label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.enabled")),
                     onClick = function(ctxt, nextStep)
                         W.settings.collisions = true
@@ -541,7 +540,7 @@ local function openPromptFlow(raceSettings)
                     end,
                 },
                 {
-                    icon = BJI_Prompt.quick.no_collisions,
+                    icon = BJI_Prompt.quickIcons.no_collisions,
                     label = string.format("%s %s", W.labels.collisions, BJI_Lang.get("common.disabled")),
                     onClick = function(ctxt, nextStep)
                         W.settings.collisions = false
@@ -555,7 +554,7 @@ local function openPromptFlow(raceSettings)
         -- vehicle
         buttons = Table({
             {
-                icon = BJI_Prompt.quick.all_models,
+                icon = BJI_Prompt.quickIcons.all_models,
                 label = W.labels.vehicle.all,
                 onClick = function(ctxt, nextStep)
                     W.data.vehicleSelected = W.VEHICLE_MODES.ALL
@@ -566,7 +565,7 @@ local function openPromptFlow(raceSettings)
         ctxt = BJI_Tick.getContext()
         if ctxt.veh and ctxt.veh.isVehicle then
             buttons:insert({
-                icon = BJI_Prompt.quick.model,
+                icon = BJI_Prompt.quickIcons.model,
                 label = string.format("%s (%s)", W.labels.vehicle.currentModel,
                     ctxt.veh.jbeam),
                 onClick = function(ctxt, nextStep)
@@ -575,7 +574,7 @@ local function openPromptFlow(raceSettings)
                 end,
             })
             buttons:insert({
-                icon = BJI_Prompt.quick.config,
+                icon = BJI_Prompt.quickIcons.config,
                 label = string.format("%s (%s)", W.labels.vehicle.currentConfig,
                     BJI_Veh.getCurrentConfigLabel()),
                 disabled = ctxt.isOwner and W.data.selfProtected or W.data.currentVehicleProtected,
@@ -597,7 +596,7 @@ local function openPromptFlow(raceSettings)
         buttons = Table()
         if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
             buttons:insert({
-                icon = BJI_Prompt.quick.vote,
+                icon = BJI_Prompt.quickIcons.vote,
                 label = W.labels.startVote,
                 needConfirm = true,
                 onClick = startVote,
@@ -605,7 +604,7 @@ local function openPromptFlow(raceSettings)
         end
         if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) then
             buttons:insert({
-                icon = BJI_Prompt.quick.start,
+                icon = BJI_Prompt.quickIcons.start,
                 label = W.labels.startRace,
                 needConfirm = true,
                 onClick = start,
