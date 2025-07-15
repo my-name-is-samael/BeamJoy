@@ -350,7 +350,7 @@ end
 ---@param ctxt TickContext
 ---@return boolean?
 local function saveHome(ctxt)
-    if S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
+    if not S.resetLock and S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
         not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
         if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
             if S.lastLaunchedCheckpoint and ctxt.now - S.lastLaunchedCheckpointTime > 1000 then
@@ -364,6 +364,9 @@ local function saveHome(ctxt)
         elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
             BJI_Veh.loadHome()
             return true
+        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+            BJI_Veh.recoverInPlace()
+            return true
         end
     end
 end
@@ -373,8 +376,7 @@ end
 local function loadHome(ctxt)
     if S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
         not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
-        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
-            S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJI_Veh.loadHome()
             return true
         end
@@ -533,7 +535,8 @@ local function onCheckpointReached(wp, remainingSteps)
                     BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
                     BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
                 }, S.settings.respawnStrategy) then
-                if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+                if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key or
+                    S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
                     BJI_Veh.saveHome({ pos = wp.pos, rot = wp.rot })
                     --[[BJI_Veh.getPosRotVel(nil, function(data)
                         S.lastLaunchedCheckpoint = data

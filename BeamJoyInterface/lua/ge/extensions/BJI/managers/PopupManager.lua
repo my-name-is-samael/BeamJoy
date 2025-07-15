@@ -43,7 +43,7 @@ local function createModal(text, buttons)
     local btns = {}
     for i, btn in ipairs(buttons) do
         local callbackName = createCallback(btn.onClick)
-        local cmd = string.var("BJI_Popup.callbacks.{1}()", { callbackName })
+        local cmd = string.var("BJI_Popup.callbacks[\"{1}\"]()", { callbackName })
         table.insert(btns, {
             action = tostring(i), -- mandatory
             text = btn.label,

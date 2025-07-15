@@ -425,7 +425,8 @@ local function onCheckpointReached(wp, remainingSteps)
 
         if not wp.stand and S.settings.respawnStrategy and
             S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key or
+                S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
                 BJI_Veh.saveHome({ pos = wp.pos, rot = wp.rot })
                 --[[BJI_Veh.getPosRotVel(nil, function(data)
                     S.lastLaunchedCheckpoint = data
@@ -706,7 +707,7 @@ end
 ---@param ctxt TickContext
 ---@return boolean?
 local function saveHome(ctxt)
-    if S.isRaceStarted(ctxt) and not S.isRaceFinished() then
+    if not S.resetLock and S.isRaceStarted(ctxt) and not S.isRaceFinished() then
         if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
             if S.lastLaunchedCheckpoint and ctxt.now - S.lastLaunchedCheckpointTime > 1000 then
                 BJI_Veh.setPosRotVel(S.lastLaunchedCheckpoint)
@@ -719,6 +720,9 @@ local function saveHome(ctxt)
         elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
             BJI_Veh.loadHome()
             return true
+        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+            BJI_Veh.recoverInPlace()
+            return true
         end
     end
 end
@@ -727,8 +731,7 @@ end
 ---@return boolean?
 local function loadHome(ctxt)
     if S.isRaceStarted(ctxt) and not S.isRaceFinished() then
-        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
-            S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
             BJI_Veh.loadHome()
             return true
         end
