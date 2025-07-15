@@ -2,7 +2,7 @@
 local M = {
     _name = "Nametags",
 
-    state = true,
+    state = false,
 
     labels = {
         staffTag = "",
@@ -21,7 +21,7 @@ local M = {
     _minDistanceShow = 10,
 }
 -- gc prevention
-local shorten, shortenLength, ownPos, scenarioShow, forcedTextColor, forcedBgColor, value,
+local ownPos, scenarioShow, forcedTextColor, forcedBgColor, value,
 isFreecaming, distance, alpha, showTag, showDist, label, owner, tag, isMyOwn, isMyCurrent,
 zOffset, ownerIsSpectating, ownerVeh, ownerIsTracting, showSpecs, tagPos, color, fadeoutDistance
 
@@ -98,7 +98,7 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
 
     Table(veh.spectators):keys()
         :filter(function(pid) return pid ~= veh.ownerID and (showMyself or pid ~= ctxt.user.playerID) end)
-        :map(function(pid) return BJI_Context.Players[pid] end)
+        :map(function(pid) return ctxt.players[pid] end)
     ---@param spec BJIPlayer
         :forEach(function(spec)
             label = spec.playerID == ctxt.user.playerID and M.labels.self or spec.tagName or spec.playerName
@@ -129,7 +129,7 @@ local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgCo
     if unicycle.ownerID == ctxt.user.playerID then
         label = M.labels.self
     else
-        owner = BJI_Context.Players[unicycle.ownerID]
+        owner = ctxt.players[unicycle.ownerID]
         label = owner.tagName
 
         if showTag then
@@ -165,8 +165,8 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
     isMyCurrent = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID
     isFreecaming = ctxt.camera == BJI_Cam.CAMERAS.FREE
     ownerIsSpectating = veh.spectators[veh.ownerID]
-    ownerVeh = BJI_Context.Players[veh.ownerID] and
-        BJI_Veh.getMPVehicle(BJI_Context.Players[veh.ownerID].currentVehicle,
+    ownerVeh = ctxt.players[veh.ownerID] and
+        BJI_Veh.getMPVehicle(ctxt.players[veh.ownerID].currentVehicle,
             veh.ownerID == ctxt.user.playerID) or nil
     ownerIsTracting = not ownerIsSpectating and
         ownerVeh and ownerVeh.ownerID == veh.ownerID and
@@ -199,12 +199,12 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrent),
                 false)
         end
-    elseif BJI_Context.Players[veh.ownerID] then
+    elseif ctxt.players[veh.ownerID] then
         if not ownerIsTracting or ownerIsSpectating then
             distance = ownPos:distance(vec3(veh.position))
             alpha = getAlphaByDistance(distance)
 
-            label = M.labels.trailer:var({ playerName = BJI_Context.Players[veh.ownerID].tagName })
+            label = M.labels.trailer:var({ playerName = ctxt.players[veh.ownerID].tagName })
             showDist = settings.getValue("nameTagShowDistance", true) and
                 (not isMyCurrent or isFreecaming) and
                 distance > M._minDistanceShow
@@ -267,7 +267,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 false)
             showSpecs = true
         end
-    elseif BJI_Context.Players[veh.ownerID] then
+    elseif ctxt.players[veh.ownerID] then
         distance = ownPos:distance(vec3(veh.position))
         alpha = getAlphaByDistance(distance)
 
@@ -276,7 +276,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             (not isMyCurrent or isFreecaming) and
             distance > M._minDistanceShow
 
-        owner = BJI_Context.Players[veh.ownerID]
+        owner = ctxt.players[veh.ownerID]
         label = owner.tagName
         if showTag then
             if BJI_Perm.isStaff(veh.ownerID) then
@@ -323,7 +323,7 @@ local function renderFugitive(ctxt, veh, ownPos)
     if veh.isAi then
         label = M.labels.fugitive
     else
-        owner = BJI_Context.Players[veh.ownerID]
+        owner = ctxt.players[veh.ownerID]
         label = owner.tagName
         if showTag then
             if BJI_Perm.isStaff(veh.ownerID) then
@@ -362,13 +362,14 @@ local function detectVisibilityEvent()
 end
 
 local function getState()
-    if not M.state or not M.labelsInit or
-        settings.getValue("hideNameTags", false) then
-        return false
-    end
-    if BJI_Scenario.isFreeroam() and
-        not BJI_Context.BJC.Freeroam.Nametags and
-        not BJI_Perm.isStaff() then
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        not M.state or not M.labelsInit or
+        settings.getValue("hideNameTags") == true or
+        (
+            BJI_Scenario.isFreeroam() and
+            not BJI_Context.BJC.Freeroam.Nametags and
+            not BJI_Perm.isStaff()
+        ) then
         return false
     end
     return true
@@ -428,10 +429,11 @@ local function updateLabels()
     M.labelsInit = true
 end
 
-local lastShorten, lastShortenLength = false, 0
+---@param playerName string
+---@param shorten boolean
+---@param shortenLength integer
+---@return string
 local function getPlayerTagName(playerName, shorten, shortenLength)
-    shorten = shorten or lastShorten
-    shortenLength = shortenLength or lastShortenLength
     if not shorten or shortenLength > #playerName then
         return tostring(playerName)
     else
@@ -439,16 +441,28 @@ local function getPlayerTagName(playerName, shorten, shortenLength)
     end
 end
 
+local changed, shorten, shortenLength
+local lastShorten, lastShortenLength = true, -1
 local function slowTick(ctxt)
-    if M.state then
-        shorten = settings.getValue("shortenNametags", false)
-        shortenLength = tonumber(settings.getValue("nametagCharLimit", 50))
-        if shorten ~= lastShorten or (shorten and shortenLength ~= lastShortenLength) then
-            BJI_Context.Players:forEach(function(p)
+    if M.getState() then
+        shorten = settings.getValue("shortenNametags", false) == true
+        shortenLength = tonumber(settings.getValue("nametagCharLimit")) or 50
+        changed = false
+        if lastShorten and not shorten then
+            ctxt.players:forEach(function(p)
+                p.tagName = p.playerName
+            end)
+            changed = true
+        elseif shorten and
+            (not lastShorten or lastShortenLength ~= shortenLength) then
+            ctxt.players:forEach(function(p)
                 p.tagName = getPlayerTagName(p.playerName, shorten, shortenLength)
             end)
+            changed = true
+        end
+        if changed then
             lastShorten = shorten
-            lastShortenLength = shortenLength or 0
+            lastShortenLength = shortenLength
         end
     end
 end
