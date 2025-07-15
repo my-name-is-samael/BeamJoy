@@ -5,6 +5,7 @@ local S = {
     _isSolo = false,
 
     MINIMUM_PARTICIPANTS = 2,
+    ALLOW_NODEGRABBER = false,
     STATES = {
         GRID = 1,     -- time when all players choose a vehicle
         RACE = 2,     -- time from countdown to last player finish
@@ -202,6 +203,14 @@ local function getRestrictions(ctxt)
         end
     end
     return res
+end
+
+---@param ctxt TickContext
+local function canUseNodegrabber(ctxt)
+    return S.ALLOW_NODEGRABBER and (
+        (ctxt.isOwner and S.isRaceStarted(ctxt)) or
+        S.isRaceFinished()
+    )
 end
 
 -- player list contextual actions getter
@@ -921,6 +930,7 @@ local function initRace(data)
             S.race.timers.lap = math.timer()
             S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
         end
+        BJI_Restrictions.update()
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
     end, S.race.startTime, "BJIRaceStartTime")
 end
@@ -970,6 +980,7 @@ end
 -- receive race data from backend
 local function rxData(data)
     S.MINIMUM_PARTICIPANTS = data.minimumParticipants
+    S.ALLOW_NODEGRABBER = data.allowNodegrabber
     if data.state then
         S.raceName = data.raceName
         S.raceHash = data.raceHash
@@ -1229,6 +1240,7 @@ S.onLoad = onLoad
 S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
+S.canUseNodegrabber = canUseNodegrabber
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn

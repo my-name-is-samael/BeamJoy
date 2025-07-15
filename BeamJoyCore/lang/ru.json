@@ -709,7 +709,9 @@
           "FinishTimeoutTooltip": "Время в секундах между тем, как игрок финиширует и станет зрителем.",
           "RaceEndTimeout": "Продолжительность окончания гонки",
           "RaceEndTimeoutTooltip": "Время в секундах между финишем последнего участника гонки и завершением гонки.",
-          "RaceSoloTimeBroadcast": "Трансляция одиночных времен"
+          "RaceSoloTimeBroadcast": "Трансляция одиночных времен",
+          "AllowNodeGrabberMulti": "Разрешить NodeGrabber",
+          "AllowNodeGrabberMultiTooltip": "Разрешить игрокам использовать NodeGrabber в многопользовательских гонках"
         },
         "server": {
           "title": "Глобальные настройки",

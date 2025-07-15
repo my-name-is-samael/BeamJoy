@@ -722,8 +722,10 @@ end
 
 local function getCache()
     return {
-        -- common
+        -- constants
         minimumParticipants = M.MINIMUM_PARTICIPANTS(),
+        allowNodegrabber = BJCConfig.Data.Race.AllowNodeGrabberMulti,
+        -- common
         state = M.state,
         raceName = M.baseRace and M.baseRace.name or nil,
         raceHash = M.baseRace and M.baseRace.hash or nil,
@@ -754,6 +756,7 @@ end
 local function getCacheHash()
     return Hash({
         M.MINIMUM_PARTICIPANTS(),
+        BJCConfig.Data.Race.AllowNodeGrabberMulti,
         M.state,
         M.grid,
         M.race,

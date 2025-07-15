@@ -837,7 +837,9 @@
           "FinishTimeoutTooltip": "Time in seconds between a player finishes and becomes a spectator",
           "RaceEndTimeout": "Race End Duration",
           "RaceEndTimeoutTooltip": "Time in seconds between the last race player finishes and the race ends",
-          "RaceSoloTimeBroadcast": "Broadcast solo time"
+          "RaceSoloTimeBroadcast": "Broadcast solo time",
+          "AllowNodeGrabberMulti": "Allow NodeGrabber",
+          "AllowNodeGrabberMultiTooltip": "Allow players to use the NodeGrabber in multiplayer races"
         },
         "server": {
           "title": "Global Settings",

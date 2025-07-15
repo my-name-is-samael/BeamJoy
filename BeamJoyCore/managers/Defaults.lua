@@ -126,6 +126,7 @@ local function config()
             RaceCountdown = 10,
             FinishTimeout = 5,
             RaceEndTimeout = 10,
+            AllowNodeGrabberMulti = false,
         },
         Hunter = {
             PreparationTimeout = 30,

@@ -836,7 +836,9 @@
           "FinishTimeoutTooltip": "Tiempo en segundos entre que un jugador termina y se convierte en espectador",
           "RaceEndTimeout": "Duración del final de la carrera",
           "RaceEndTimeoutTooltip": "Tiempo en segundos entre la última carrera que termina el jugador y el final de la carrera",
-          "RaceSoloTimeBroadcast": "Transmitir tiempos en solitario"
+          "RaceSoloTimeBroadcast": "Transmitir tiempos en solitario",
+          "AllowNodeGrabberMulti": "Permitir NodeGrabber",
+          "AllowNodeGrabberMultiTooltip": "Permitir que los jugadores usen el NodeGrabber en carreras multijugador"
         },
         "server": {
           "title": "Configuración global",

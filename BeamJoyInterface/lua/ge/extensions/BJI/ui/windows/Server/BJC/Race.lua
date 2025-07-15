@@ -1,5 +1,6 @@
 local fields = Table({
     { key = "RaceSoloTimeBroadcast", type = "bool", },
+    { key = "AllowNodeGrabberMulti", type = "bool", },
     { key = "PreparationTimeout",    type = "int",  min = 5,  max = 120, renderFormat = "%ds",  default = 10 },
     { key = "VoteTimeout",           type = "int",  min = 10, max = 120, renderFormat = "%ds",  default = 30 },
     { key = "VoteThresholdRatio",    type = "int",  min = 1,  max = 100, renderFormat = "%d%%", default = 51, multiplier = 100 },

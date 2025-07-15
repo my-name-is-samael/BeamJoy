@@ -836,7 +836,9 @@
           "FinishTimeoutTooltip": "Temps en secondes entre la fin de course d'un joueur et le passage au mode spectateur",
           "RaceEndTimeout": "Durée de Fin de Course",
           "RaceEndTimeoutTooltip": "Temps en secondes entre la fin de course du dernier joueur et le retour au freeroam",
-          "RaceSoloTimeBroadcast": "Diffuser les temps en solo"
+          "RaceSoloTimeBroadcast": "Diffuser les temps en solo",
+          "AllowNodeGrabberMulti": "Autoriser le NodeGrabber",
+          "AllowNodeGrabberMultiTooltip": "Autoriser les joueurs à utiliser le NodeGrabber dans les courses multijoueurs"
         },
         "server": {
           "title": "Paramètres globaux",
