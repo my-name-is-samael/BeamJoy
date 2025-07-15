@@ -1408,7 +1408,8 @@
         "stopCount": "Stop {current}/{total}",
         "flashStopped": "Bus Mission stopped !",
         "flashDriveNext": "Drive to next bus stop",
-        "flashFinish": "Well done !"
+        "flashFinish": "Well done !",
+        "stopValidatedIn": "Stop validated in {delay}"
       }
     },
     "ai": {

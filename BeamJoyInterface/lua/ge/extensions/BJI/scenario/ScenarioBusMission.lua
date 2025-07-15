@@ -16,13 +16,13 @@ local S = {
     nextStop = 2,
     progression = 0,
 
-    checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+    checkTargetProcess = nil, -- process to check player reached target and stayed in its radius
 
     ---@type table?
     cornerMarkers = nil,
 }
 --- gc prevention
-local actions, loop, stopLabel
+local actions, loop, stopLabel, remainingTime
 
 local function reset()
     S.config             = nil
@@ -36,7 +36,7 @@ local function reset()
     S.nextStop           = 2
     S.progression        = 0
 
-    S.checkTargetProcess = false
+    S.checkTargetProcess = nil
 end
 reset()
 
@@ -212,6 +212,13 @@ local function drawUI(ctxt)
     end
     SameLine()
     Text(BJI_Lang.get("buslines.play.title"))
+    remainingTime = S.checkTargetProcess and math.ceil((S.checkTargetProcess - ctxt.now) / 1000) or nil
+    if remainingTime and remainingTime > 0 then
+        SameLine()
+        Text(string.format("- %s", BJI_Lang.get("buslines.play.stopValidatedIn")
+                :var({ delay = BJI.Utils.UI.PrettyDelay(remainingTime) })),
+            { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    end
 
     stopLabel = BJI_Lang.get("buslines.play.stopCount")
         :var({ current = S.nextStop - 1, total = #S.line.stops })
@@ -226,7 +233,7 @@ end
 
 ---@param ctxt TickContext
 local function onTargetReached(ctxt)
-    S.checkTargetProcess = false
+    S.checkTargetProcess = nil
     local flashMsg = BJI_Lang.get("buslines.play.flashDriveNext")
     if S.nextStop == #S.line.stops then
         BJI_Tx_scenario.BusMissionReward(S.line.id)
@@ -282,15 +289,15 @@ local function slowTick(ctxt)
         -- core_vehicleBridge.getCachedVehicleData(id, 'kneel') == 1
         -- core_vehicleBridge.getCachedVehicleData(id, 'dooropen') == 1
         if not S.checkTargetProcess then
-            S.checkTargetProcess = true
-            BJI_Message.flashCountdown("BJIBusMissionTarget", ctxt.now + 5100, false, "", nil,
+            S.checkTargetProcess = ctxt.now + 5100
+            BJI_Message.flashCountdown("BJIBusMissionTarget", S.checkTargetProcess, false, nil, nil,
                 onTargetReached)
             updateCornerMarkersColor(true)
         end
     else
         if S.checkTargetProcess then
             BJI_Message.cancelFlash("BJIBusMissionTarget")
-            S.checkTargetProcess = false
+            S.checkTargetProcess = nil
             updateCornerMarkersColor(false)
         end
         if #BJI_GPS.targets == 0 then

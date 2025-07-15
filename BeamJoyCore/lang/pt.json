@@ -1407,7 +1407,8 @@
         "stopCount": "Parar {current}/{total}",
         "flashStopped": "Missão de ônibus parada!",
         "flashDriveNext": "Dirija até o próximo ponto de ônibus",
-        "flashFinish": "Bom trabalho !"
+        "flashFinish": "Bom trabalho !",
+        "stopValidatedIn": "Parada validada em {delay}"
       }
     },
     "ai": {

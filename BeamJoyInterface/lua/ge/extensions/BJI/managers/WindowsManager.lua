@@ -63,7 +63,7 @@ local function renderTick(ctxt)
         if BJI.Bench.STATE == 2 then
             BJI.Bench.startGC()
         end
-        state = extensions.ui_visibility.getImgui() and w.getState()
+        state = w.getState()
         if (M.showStates[w.name] and not state) or not MPGameNetwork.launcherConnected() then
             windowSubFnCall(ctxt, w, "onUnload")
             M.showStates[w.name] = false

@@ -43,17 +43,18 @@ local W = {
 local nextValue
 
 local function onClose()
+    local function _close()
+        W.data = Table()
+        W.changed = false
+        W.show = false
+    end
     if W.changed then
         BJI_Popup.createModal(BJI_Lang.get("freeroamSettings.cancelModal"), {
             BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
-            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), function()
-                W.data = Table()
-                W.changed = false
-                W.show = false
-            end),
+            BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), _close),
         })
     else
-        W.show = false
+        _close()
     end
 end
 
@@ -208,7 +209,6 @@ end
 
 local function onUnload()
     listeners:forEach(BJI_Events.removeListener)
-    W.data = Table()
     W.changed = false
 end
 

@@ -1407,7 +1407,8 @@
         "stopCount": "Stoppen Sie {current}/{total}",
         "flashStopped": "Busmission gestoppt!",
         "flashDriveNext": "Fahren Sie zur nächsten Bushaltestelle",
-        "flashFinish": "Gut gemacht !"
+        "flashFinish": "Gut gemacht !",
+        "stopValidatedIn": "Haltestelle bestätigt in {delay}"
       }
     },
     "ai": {

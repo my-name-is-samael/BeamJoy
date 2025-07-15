@@ -1407,7 +1407,8 @@
         "stopCount": "Detener {current}/{total}",
         "flashStopped": "¡La misión del autobús se detuvo!",
         "flashDriveNext": "Conduce hasta la siguiente parada de autobús.",
-        "flashFinish": "Bien hecho !"
+        "flashFinish": "Bien hecho !",
+        "stopValidatedIn": "Parada validada en {delay}"
       }
     },
     "ai": {

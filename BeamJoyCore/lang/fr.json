@@ -1407,7 +1407,8 @@
         "stopCount": "Arrêt {current}/{total}",
         "flashStopped": "Itinéraire de bus arrêté !",
         "flashDriveNext": "Conduisez jusqu'au prochain arrêt",
-        "flashFinish": "Bien joué !"
+        "flashFinish": "Bien joué !",
+        "stopValidatedIn": "Arrêt validé dans {delay}"
       }
     },
     "ai": {

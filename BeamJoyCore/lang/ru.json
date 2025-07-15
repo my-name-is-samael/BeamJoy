@@ -1280,7 +1280,8 @@
         "stopCount": "Остановить {current}/{total}",
         "flashStopped": "Автобусная миссия остановлена!",
         "flashDriveNext": "Доехать до следующей автобусной остановки",
-        "flashFinish": "Отличная работа !"
+        "flashFinish": "Отличная работа !",
+        "stopValidatedIn": "Остановка подтверждена через {delay}"
       }
     },
     "ai": {

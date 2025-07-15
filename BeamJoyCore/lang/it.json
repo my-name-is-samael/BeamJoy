@@ -1407,7 +1407,8 @@
         "stopCount": "Interrompi {current}/{total}",
         "flashStopped": "La missione dell'autobus si è fermata!",
         "flashDriveNext": "Guida fino alla prossima fermata dell'autobus",
-        "flashFinish": "Ben fatto !"
+        "flashFinish": "Ben fatto !",
+        "stopValidatedIn": "Fermata convalidata in {delay}"
       }
     },
     "ai": {
