@@ -1059,7 +1059,7 @@
         }
       },
       "cen": {
-        "title": "Console/Éditeur/NodeGrabber",
+        "title": "Console/Éditeur",
         "tooltip": "Les CEN sont toujours accessibles pour les Admins+",
         "Console": "Console",
         "Editor": "Éditeur"
