@@ -22,7 +22,6 @@ local M = {
     CEN = {
         CONSOLE = { "toggleConsoleNG" },
         EDITOR = { "editorToggle", "editorSafeModeToggle", "objectEditorToggle" },
-        NODEGRABBER = { "nodegrabberAction", "nodegrabberGrab", "nodegrabberRender", "nodegrabberStrength" },
     },
     OTHER = {
         VEHICLE_SWITCH = { "switch_next_vehicle", "switch_previous_vehicle", "switch_next_vehicle_multiseat" },
@@ -45,6 +44,7 @@ local M = {
         VEHICLE_PARTS_SELECTOR = { "parts_selector", "vehicledebugMenu" },
         AI_CONTROL = { "toggleTraffic" },
         WALKING = { "toggleWalkingMode" },
+        NODEGRABBER = { "nodegrabberAction", "nodegrabberGrab", "nodegrabberRender", "nodegrabberStrength" },
     },
     ENV = {
         TIME = { "slower_motion", "faster_motion", "toggle_slow_motion" },
@@ -83,6 +83,10 @@ local function update()
                 LogError(string.var("Error while getting restrictions from {1} : {2}", { m._name, data }))
             end
         end
+    end
+
+    if not BJI_Scenario.canUseNodegrabber(ctxt) then
+        res:addAll(M._SCENARIO_DRIVEN.NODEGRABBER, true)
     end
 
     if not ctxt.isOwner then

@@ -104,7 +104,7 @@ local function updateMarkers(cacheType)
                         condition = function(ctxt)
                             return not BJI_Win_RaceSettings.getState() and r.places > 1 and
                                 not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
-                                (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO_SCENARIO) or
+                                (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
                                     BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
                         end,
                         icon = BJI_InteractiveMarker.TYPES.RACE_MULTI.icon,
@@ -608,10 +608,19 @@ local function getPlayerListActions(player, ctxt)
     end
 end
 
+---@param ctxt TickContext
 ---@return boolean
-local function canQuickTravel()
+local function canQuickTravel(ctxt)
     if _curr().canQuickTravel then
-        return _curr().canQuickTravel()
+        return _curr().canQuickTravel(ctxt)
+    end
+    return false
+end
+
+---@param ctxt TickContext
+local function canUseNodegrabber(ctxt)
+    if _curr().canUseNodegrabber then
+        return _curr().canUseNodegrabber(ctxt)
     end
     return false
 end
@@ -875,6 +884,7 @@ M.canWalk = canWalk
 M.getModelList = getModelList
 M.getPlayerListActions = getPlayerListActions
 M.canQuickTravel = canQuickTravel
+M.canUseNodegrabber = canUseNodegrabber
 M.canShowNametags = canShowNametags
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs

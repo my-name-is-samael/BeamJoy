@@ -326,8 +326,8 @@ local function getMissionById(id)
 end
 
 local function updateQuickTravelState()
-    local function _update()
-        M.quickTravel = BJI_Scenario.canQuickTravel()
+    local function _update(ctxt)
+        M.quickTravel = BJI_Scenario.canQuickTravel(ctxt or BJI_Tick.getContext())
     end
 
     if BJI_Cache.areBaseCachesFirstLoaded() and BJI.CLIENT_READY then

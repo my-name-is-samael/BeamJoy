@@ -275,9 +275,16 @@ local function canShowNametags()
     return BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.Nametags == true
 end
 
-local function canQuickTravel()
+---@param ctxt TickContext
+local function canQuickTravel(ctxt)
     return BJI_Perm.isStaff() or
         (BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.QuickTravel)
+end
+
+---@param ctxt TickContext
+local function canUseNodegrabber(ctxt)
+    return BJI_Perm.isStaff() or
+        (BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.Nodegrabber)
 end
 
 local function canSpawnNewVehicle()
@@ -442,6 +449,7 @@ S.tryPaint = tryPaint
 S.canWalk = canWalk
 S.canShowNametags = canShowNametags
 S.canQuickTravel = canQuickTravel
+S.canUseNodegrabber = canUseNodegrabber
 S.canSpawnNewVehicle = canSpawnNewVehicle
 
 S.canRefuelAtStation = TrueFn

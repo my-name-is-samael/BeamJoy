@@ -107,7 +107,6 @@ local function getRestrictions(ctxt)
     if not BJI_Context.BJC.CEN then
         restrictions:addAll(BJI_Restrictions.CEN.CONSOLE)
         restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
-        restrictions:addAll(BJI_Restrictions.CEN.NODEGRABBER)
     else
         if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
             not BJI_Context.BJC.CEN.Console then
@@ -116,11 +115,6 @@ local function getRestrictions(ctxt)
         if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
             not BJI_Context.BJC.CEN.Editor then
             restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
-        end
-        if not BJI_Scenario.isFreeroam() or
-            (not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
-                not BJI_Context.BJC.CEN.NodeGrabber) then
-            restrictions:addAll(BJI_Restrictions.CEN.NODEGRABBER)
         end
     end
     return restrictions
@@ -346,7 +340,6 @@ local function loadConfig()
         local permissionChanged = false
 
         M.BJC.CEN = cacheData.CEN
-        BJI_Restrictions.update()
 
         if BJI_Scenario.isFreeroam() and (
                 not M.BJC.Freeroam or
@@ -356,6 +349,7 @@ local function loadConfig()
             permissionChanged = true
         end
         M.BJC.Freeroam = cacheData.Freeroam
+        BJI_Restrictions.update()
 
         M.BJC.Server = cacheData.Server
         BJI_Mods.update(M.BJC.Server.AllowClientMods)

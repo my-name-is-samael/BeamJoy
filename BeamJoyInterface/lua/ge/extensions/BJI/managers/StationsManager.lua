@@ -198,6 +198,7 @@ end
 local function getRestrictions(ctxt)
     if M.stationProcess then
         return Table():addAll(BJI_Restrictions.RESETS.ALL, true)
+            :addAll(BJI_Restrictions._SCENARIO_DRIVEN.NODEGRABBER, true)
             :addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
             :addAll(BJI_Restrictions.OTHER.CAMERA_CHANGE, true)
             :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)

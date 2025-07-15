@@ -85,6 +85,7 @@ local function config()
             TeleportDelay = 30,
             Nametags = true,
             QuickTravel = true,
+            Nodegrabber = true,
             DriftGood = 2000,
             DriftBig = 10000,
             PreserveEnergy = false,
@@ -188,7 +189,6 @@ local function config()
         CEN = {
             Console = false,
             Editor = false,
-            NodeGrabber = true,
         }
     }
 end

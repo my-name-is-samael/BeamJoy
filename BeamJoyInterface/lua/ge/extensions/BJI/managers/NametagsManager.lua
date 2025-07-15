@@ -429,11 +429,14 @@ local function updateLabels()
     M.labelsInit = true
 end
 
+local lastShorten, lastShortenLength = true, -1
 ---@param playerName string
----@param shorten boolean
----@param shortenLength integer
+---@param shorten boolean?
+---@param shortenLength integer?
 ---@return string
 local function getPlayerTagName(playerName, shorten, shortenLength)
+    if shorten == nil then shorten = lastShorten end
+    shortenLength = shortenLength or lastShortenLength
     if not shorten or shortenLength > #playerName then
         return tostring(playerName)
     else
@@ -442,7 +445,6 @@ local function getPlayerTagName(playerName, shorten, shortenLength)
 end
 
 local changed, shorten, shortenLength
-local lastShorten, lastShortenLength = true, -1
 local function slowTick(ctxt)
     if M.getState() then
         shorten = settings.getValue("shortenNametags", false) == true

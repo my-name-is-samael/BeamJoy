@@ -45,7 +45,6 @@ local function getCache(senderID)
     data.CEN = {
         Console = M.Data.CEN.Console,
         Editor = M.Data.CEN.Editor,
-        NodeGrabber = M.Data.CEN.NodeGrabber,
     }
 
     data.Freeroam = {
@@ -63,6 +62,7 @@ local function getCache(senderID)
             PreserveEnergy = M.Data.Freeroam.PreserveEnergy,
             EmergencyRefuelDuration = M.Data.Freeroam.EmergencyRefuelDuration,
             EmergencyRefuelPercent = M.Data.Freeroam.EmergencyRefuelPercent,
+            Nodegrabber = M.Data.Freeroam.Nodegrabber,
         })
     end
 
@@ -118,7 +118,7 @@ local function getCache(senderID)
     end
 
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) then
-        Table({"Race","Speed","Hunter","Infected","Derby"}):forEach(function(k)
+        Table({ "Race", "Speed", "Hunter", "Infected", "Derby" }):forEach(function(k)
             data[k] = table.clone(M.Data[k])
         end)
     end
@@ -147,18 +147,11 @@ local function hasPermissionByParentAndKey(senderID, parent, key)
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
         end
     elseif parent == "Freeroam" then
-        if table.includes({ "VehicleSpawning", "VehicleReset", "QuickTravel", "AllowUnicycle" }, key) then
-            return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.ADMIN)
-        elseif table.includes({ "ResetDelay", "TeleportDelay", "PreserveEnergy", "DriftGood",
-                "DriftBig", "Nametags", "EmergencyRefuelDuration", "EmergencyRefuelPercent" }, key) then
-            return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
-        end
+        return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
     elseif parent == "Reputation" then
         return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SET_CONFIG)
     elseif parent == "TempBan" then
-        if table.includes({ "minTime", "maxTime" }, key) then
-            return BJCPerm.hasMinimumGroup(senderID, BJCGroups.GROUPS.ADMIN)
-        end
+        return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.BAN)
     elseif parent == "Whitelist" then
         if key == "PlayerNames" then
             return BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.WHITELIST)

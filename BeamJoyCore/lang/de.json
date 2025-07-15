@@ -1062,8 +1062,7 @@
         "title": "Konsole/Editor/NodeGrabber",
         "tooltip": "CEN sind für Admin+ immer zugänglich",
         "Console": "Konsole",
-        "Editor": "Editor",
-        "NodeGrabber": "Knotengrabber"
+        "Editor": "Editor"
       },
       "icons": {
         "title": "Symbole"
@@ -1089,6 +1088,7 @@
       "teleportDelayTooltip": "Dauer in Sekunden, bevor ein Spieler zu einem anderen teleportieren kann",
       "vehicleSpawning": "Globales Fahrzeug-Laichen",
       "quickTravel": "Schnelle Reise",
+      "nodeGrabber": "Knotengrabber",
       "nametags": "Namensschilder der Spieler",
       "preserveEnergy": "Sparen Sie Kraftstoff zwischen den Resets",
       "emergencyRefuelDuration": "Notbetankungsdauer",
