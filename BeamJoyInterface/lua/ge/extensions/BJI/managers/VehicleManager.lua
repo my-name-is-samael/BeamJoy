@@ -1571,8 +1571,7 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
         if previousMpVeh and previousMpVeh.isLocal then
             if previousMpVeh.jbeam == "unicycle" then
                 M.deleteVehicle(previousMpVeh.gameVehicleID)
-            end
-            if previousMpVeh.isLocal and M.getVehicleObject(previousMpVeh.gameVehicleID) then
+            else
                 -- if own vehicle and not deleted, resets currently pressed inputs (except parkingbrake)
                 previousMpVeh.veh:queueLuaCommand([[
                     local parkingbrake = input.state.parkingbrake.val

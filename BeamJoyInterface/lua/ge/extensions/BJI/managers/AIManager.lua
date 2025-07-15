@@ -224,49 +224,6 @@ local function onVehGroupSpawned()
     extensions.gameplay_traffic.scatterTraffic()
 end
 
-local function onTrafficVehAdded(gameVehID)
-    local vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
-    ---@type BJIMPVehicle?
-    local mpVeh = BJI_Veh.getMPVehicle(gameVehID)
-    if not vehTraffic or not mpVeh then
-        error("Invalid traffic vehicles added")
-    end
-
-    local ctxt = BJI_Tick.getContext()
-
-    local total = (tonumber(settings.getValue('trafficAmount')) or 2) +
-        (tonumber(settings.getValue('trafficParkedAmount')) or 0)
-    if settings.getValue('trafficExtraVehicles') then
-        total = total + (tonumber(settings.getValue('trafficExtraAmount')) or 1)
-    end
-
-    if mpVeh.isLocal and (BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL) or
-            getSelfTrafficVehiclesIDs():length() > total) then -- not allowed
-        BJI_Veh.deleteVehicle(gameVehID)
-    elseif mpVeh.ownerID ~= ctxt.user.playerID then        -- not own veh
-        if vehTraffic.isAi then
-            extensions.gameplay_traffic.removeTraffic(gameVehID)
-            extensions.gameplay_traffic.insertTraffic(gameVehID, true, true)
-            BJI_Collisions.forceUpdateVeh(gameVehID)
-        end
-        vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
-        if mpVeh.isAi then -- other player AI
-            mpVeh.veh.playerUsable = false
-            mpVeh.veh.uiState = 0
-            vehTraffic:setRole("empty")
-        else
-            mpVeh.veh.playerUsable = true
-            mpVeh.veh.uiState = 1
-            vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
-        end
-    elseif vehTraffic.isAi then -- self AI
-        -- AI veh, set role to empty if multiple players to prevent pursuits
-        vehTraffic:setRole(ctxt.players:length() > 1 and "empty" or "standard")
-    else -- self veh
-        vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
-    end
-end
-
 local function onLoad()
     BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
@@ -275,7 +232,6 @@ local function onLoad()
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED, onVehGroupSpawned, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED,
         extensions.gameplay_traffic.activate, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED, onTrafficVehAdded, M._name)
 
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
 

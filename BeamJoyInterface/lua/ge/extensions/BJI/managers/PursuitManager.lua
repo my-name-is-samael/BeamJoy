@@ -586,6 +586,42 @@ local function onPlayerScenariosChanged(ctxt, event)
     end)
 end
 
+local function onTrafficVehAdded(gameVehID)
+    local vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+    ---@type BJIMPVehicle?
+    local mpVeh = BJI_Veh.getMPVehicle(gameVehID)
+    if not vehTraffic or not mpVeh then
+        error("Invalid traffic vehicles added")
+    end
+
+    local ctxt = BJI_Tick.getContext()
+    local serverScenarioOrGhost = BJI_Scenario.isServerScenarioInProgress() or
+        ctxt.players[ctxt.user.playerID].isGhost
+
+    if not mpVeh.isLocal then -- not own veh
+        if vehTraffic.isAi then
+            extensions.gameplay_traffic.removeTraffic(gameVehID)
+            extensions.gameplay_traffic.insertTraffic(gameVehID, true, true)
+            BJI_Collisions.forceUpdateVeh(gameVehID)
+        end
+        vehTraffic = extensions.gameplay_traffic.getTrafficData()[gameVehID]
+        if mpVeh.isAi then -- other player AI
+            mpVeh.veh.playerUsable = false
+            mpVeh.veh.uiState = 0
+            vehTraffic:setRole("empty")
+        else
+            mpVeh.veh.playerUsable = true
+            mpVeh.veh.uiState = 1
+            vehTraffic:setRole(mpVeh.veh.isPatrol and "empty" or "standard")
+        end
+    elseif vehTraffic.isAi or serverScenarioOrGhost then -- self AI or no pursuit
+        -- AI veh have no role
+        vehTraffic:setRole("empty")
+    else -- self veh
+        vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
+    end
+end
+
 local function onNGTrigger(data)
     if data.speedTrapType then
         local gameVehID = data.vehID
@@ -594,6 +630,7 @@ local function onNGTrigger(data)
 end
 
 M.onLoad = function()
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED, onTrafficVehAdded, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_PURSUIT_ACTION, onPursuitActionUpdate, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_BEAMNG_TRIGGER, onNGTrigger, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)

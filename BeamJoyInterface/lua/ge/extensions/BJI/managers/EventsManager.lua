@@ -233,7 +233,8 @@ local function renderTick(ctxt)
         ---@type {event: string, target: string, callback: fun(...), data: table?}
         el = M.queued:remove(1)
         if not M.LOG_BLACKLIST_EVENTS:includes(el.event) then
-            LogDebug(string.var("Event triggered : {1}{2}", {
+            LogDebug(string.var("Event triggered : {1}.{2}{3}", {
+                el.target,
                 el.event,
                 el.event == M.EVENTS.CACHE_LOADED and
                 string.var(" ({1})", { el.data[1].cache }) or ""
