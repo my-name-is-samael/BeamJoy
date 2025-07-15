@@ -139,10 +139,19 @@ local function updateMarkers(cacheType)
 
     -- bus lines
     if not cacheType or cacheType == BJI_Cache.CACHES.BUS_LINES then
+        local previousPositions = Table()
+
         Table(M.Data.BusLines):forEach(function(bl, i)
             local id = getID("busmission", bl.name, i)
+            local pos
+            if not previousPositions:find(function(p)
+                    return p:distance(bl.stops[1].pos) < 20
+                end, function(p) pos = p end) then
+                pos = bl.stops[1].pos
+                previousPositions:insert(pos)
+            end
             status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.BUS_MISSION.icon,
-                bl.stops[1].pos, bl.stops[1].radius * 2, {
+                pos, bl.stops[1].radius * 2, {
                     color = BJI_InteractiveMarker.TYPES.BUS_MISSION.color,
                     visibleFreeCam = true,
                     visibleAnyVeh = true,

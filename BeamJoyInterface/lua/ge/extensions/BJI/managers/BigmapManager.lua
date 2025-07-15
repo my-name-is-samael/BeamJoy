@@ -24,7 +24,7 @@ local M = {
         gasStations = "/art/thumbnails/gasStations.jpg",
     },
 
-    cachedMissions = {},
+    cachedMissionRoutes = {},
     _routeParams = {
         cutOffDrivability = .7,
         dirMult = 1,
@@ -34,6 +34,21 @@ local M = {
         wZ = 1,
     },
 }
+
+---@param poiID string
+---@return table?, string?
+local function getPOIAndType(poiID)
+    local poi, poiType
+    Table(M.POIs):forEach(function(list, elType)
+        if not poi then
+            if list[poiID] then
+                poi = list[poiID]
+                poiType = elType
+            end
+        end
+    end)
+    return poi, poiType
+end
 
 local function generateRawPOIs()
     M.rawPOIs:clear()
@@ -77,7 +92,7 @@ local function onUpdateData()
         list:clear()
     end
     M.selectedPreview = nil
-    table.clear(M.cachedMissions)
+    table.clear(M.cachedMissionRoutes)
 
     BJI_Scenario.Data.Races
         :sort(function(a, b) return a.id < b.id end)
@@ -246,11 +261,18 @@ local function sendCurrentLevelMissionsToBigmap()
         gameMode = "freeroam",
     }
 
-    for _, type in pairs(M.POIs) do
-        type:forEach(function(el, id)
+    for _, list in pairs(M.POIs) do
+        local tab, group
+        list:forEach(function(el, id)
+            tab, group = el.tab, el.group
             res.poiData[id] = el
-            table.insert(res.filterData[el.tab].groups[el.group].elements, id)
+            table.insert(res.filterData[tab].groups[group].elements, id)
         end)
+        if tab and group then
+            table.sort(res.filterData[tab].groups[group].elements, function(a, b)
+                return list[a].name:lower() < list[b].name:lower()
+            end)
+        end
     end
 
     guihooks.trigger("BigmapMissionData", res)
@@ -273,17 +295,9 @@ end
 
 local function getMissionById(id)
     if not id then return {} end
-    if not M.cachedMissions[id] then
-        local poi, missionType
-        Table(M.POIs):forEach(function(list, elType)
-            if not poi then
-                if list[id] then
-                    poi = list[id]
-                    missionType = elType
-                end
-            end
-        end)
-        M.cachedMissions[id] = {
+    if not M.cachedMissionRoutes[id] then
+        local poi, missionType = getPOIAndType(id)
+        M.cachedMissionRoutes[id] = {
             name = poi and poi.name or nil,
             unlocks = {},
         }
@@ -292,22 +306,23 @@ local function getMissionById(id)
                 local raceId = id:gsub("^race", ""):gsub("_$", "")
                 local race = BJI_Scenario.Data.Races:find(function(r) return r.id == tonumber(raceId) end)
                 if race then
-                    M.cachedMissions[id].getWorldPreviewRoute = function()
+                    M.cachedMissionRoutes[id].getWorldPreviewRoute = function()
                         return createNavGraphRoute(race.route)
                     end
                 end
             elseif missionType == "busLines" then
                 local lineId = id:gsub("^busLine", ""):gsub("_$", "")
+                ---@type BJBusLine
                 local busLine = BJI_Scenario.Data.BusLines[tonumber(lineId)]
-                M.cachedMissions[id].getWorldPreviewRoute = function()
+                M.cachedMissionRoutes[id].getWorldPreviewRoute = function()
                     return createNavGraphRoute(table.map(busLine.stops, function(s)
                         return s.pos
-                    end))
+                    end):addAll({ busLine.loopable and busLine.stops[1].pos or nil }))
                 end
             end
         end
     end
-    return M.cachedMissions[id]
+    return M.cachedMissionRoutes[id]
 end
 
 local function updateQuickTravelState()
