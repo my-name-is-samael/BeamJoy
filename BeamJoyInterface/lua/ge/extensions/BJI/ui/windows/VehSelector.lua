@@ -717,14 +717,21 @@ local function drawBody(ctxt)
     if #W.cache.paints > 0 then
         if W.modelsCount > 0 then
             Separator()
-        end
 
-        opened = BeginTree(BJI_Lang.get("vehicleSelector.paints"))
-        SameLine()
-        Icon(BJI.Utils.Icon.ICONS.style)
-        if opened then
+            opened = BeginTree(W.labels.paints)
+            SameLine()
+            Icon(BJI.Utils.Icon.ICONS.style)
+            if opened then
+                drawPaints(W.cache.paints)
+                EndTree()
+            end
+        else
+            Text(W.labels.paints)
+            SameLine()
+            Icon(BJI.Utils.Icon.ICONS.style)
+            Indent()
             drawPaints(W.cache.paints)
-            EndTree()
+            Unindent()
         end
     end
 end
