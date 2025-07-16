@@ -18,7 +18,7 @@ local function menuSoloRace(ctxt)
         local errorMessage = nil
         if #rawRaces == 0 then
             errorMessage = BJI_Lang.get("menu.scenario.soloRace.noRace")
-        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
+        elseif not ctxt.isOwner or not ctxt.veh.isVehicle then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
         elseif ctxt.veh.isAi then
             errorMessage = BJI_Lang.get("error.cannotStartWodeWithAI")
@@ -111,8 +111,7 @@ local function menuVehicleDelivery(ctxt)
         BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) then
         local errorMessage = nil
-        if not BJI_Scenario.Data.Deliveries or
-            #BJI_Scenario.Data.Deliveries < 2 then
+        if #BJI_Scenario.Data.Deliveries.Points < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.vehicleDelivery.noDelivery")
         end
 
@@ -150,10 +149,9 @@ local function menuPackageDelivery(ctxt)
         BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) then
         local errorMessage = nil
-        if not BJI_Scenario.Data.Deliveries or
-            #BJI_Scenario.Data.Deliveries < 2 then
+        if #BJI_Scenario.Data.Deliveries.Points < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.packageDelivery.noDelivery")
-        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
+        elseif not ctxt.isOwner or not ctxt.veh.isVehicle then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
         elseif ctxt.veh.isAi then
             errorMessage = BJI_Lang.get("error.cannotStartWodeWithAI")
@@ -194,10 +192,9 @@ local function menuDeliveryMulti(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI_Scenario.isFreeroam() then
         local errorMessage = nil
-        if not BJI_Scenario.Data.Deliveries or
-            #BJI_Scenario.Data.Deliveries < 2 then
+        if #BJI_Scenario.Data.Deliveries.Points < 2 then
             errorMessage = BJI_Lang.get("menu.scenario.deliveryMulti.noDelivery")
-        elseif not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
+        elseif not ctxt.isOwner or not ctxt.veh.isVehicle then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
         elseif ctxt.veh.isAi then
             errorMessage = BJI_Lang.get("error.cannotStartWodeWithAI")
@@ -238,7 +235,7 @@ local function menuTagDuo(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO) and
         BJI_Scenario.isFreeroam() then
         local errorMessage
-        if not ctxt.isOwner or ctxt.veh.jbeam == "unicycle" then
+        if not ctxt.isOwner or not ctxt.veh.isVehicle then
             errorMessage = BJI_Lang.get("errors.missingOwnVehicle")
         elseif ctxt.veh.isAi then
             errorMessage = BJI_Lang.get("error.cannotStartWodeWithAI")

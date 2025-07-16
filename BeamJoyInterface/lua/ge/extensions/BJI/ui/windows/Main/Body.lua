@@ -97,9 +97,7 @@ local function updateCache(ctxt)
             BJI_Scenario.TYPES.PACKAGE_DELIVERY,
             BJI_Scenario.TYPES.DELIVERY_MULTI,
         }, function(type) return BJI_Scenario.is(type) end) and
-        BJI_Scenario.Data.Deliveries and
-        BJI_Scenario.Data.DeliveryLeaderboard and
-        #BJI_Scenario.Data.DeliveryLeaderboard > 0
+        #BJI_Scenario.Data.Deliveries.Leaderboard > 0
 
     cache.data.scenarioUIFn = BJI_Scenario.getUIRenderFn()
 

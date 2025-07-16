@@ -38,8 +38,13 @@ local M = {
     Races = {},
     EnergyStations = {},
     Garages = {},
-    Deliveries = {},
-    DeliveryLeaderboard = {},
+    Deliveries = {
+        ---@type BJIPositionRotationRadius[]
+        Points = {},
+        ---@type BJIPositionRotationRadius[]
+        Hubs = {},
+        Leaderboard = {},
+    },
     BusLines = {},
     HunterInfected = {},
     Derby = {},
@@ -57,6 +62,24 @@ local function checkRacesUpdate2_0_0()
             LogDebug(string.var("Added hash to race \"{1}\"({2}): {3}", { race.name, race.id, race.hash }))
         end
     end)
+end
+
+--- Update 2.0.0<br/>
+--- Update delivery structure with hubs
+local function checkDeliveriesUpdate2_0_0()
+    if #M.Deliveries > 0 then
+        M.Deliveries.Points = {}
+        M.Deliveries.Hubs = {}
+        for i = #M.Deliveries, 1, -1 do
+            table.insert(M.Deliveries.Points, 1, M.Deliveries[i])
+            table.remove(M.Deliveries, i)
+        end
+        BJCDao.scenario.Delivery.save({
+            Points = M.Deliveries.Points,
+            Hubs = M.Deliveries.Hubs,
+        })
+        LogDebug("Updated delivery data to new format")
+    end
 end
 
 --- Update 2.0.0<br/>
@@ -123,6 +146,7 @@ local function reload()
     M.updateDeliveryLeaderboard()
 
     checkRacesUpdate2_0_0()
+    checkDeliveriesUpdate2_0_0()
     checkHunterUpdate2_0_0()
     checkDerbyUpdate2_0_0()
 end
@@ -185,16 +209,12 @@ local function getCacheRacesHash()
 end
 
 local function getCacheDeliveries(senderID)
-    local cache = {
-        Deliveries = table.deepcopy(M.Deliveries),
-        DeliveryLeaderboard = table.deepcopy(M.DeliveryLeaderboard),
-    }
-
+    local cache = table.deepcopy(M.Deliveries)
     return cache, M.getCacheDeliveriesHash()
 end
 
 local function getCacheDeliveriesHash()
-    return Hash({ M.Deliveries, M.DeliveryLeaderboard })
+    return Hash(M.Deliveries)
 end
 
 local function getCacheStations(senderID)
@@ -573,17 +593,22 @@ local function saveGarages(garages)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.STATIONS)
 end
 
-local function saveDeliveryPositions(positions)
-    positions = positions or {}
-    if not table.isArray(positions) or
-        Table(positions):any(function(position)
-            return not checkValidPosRot(position) or
-                type(position.radius) ~= "number"
+---@param data {Points: BJIPositionRotationRadius[], Hubs: BJIPositionRotationRadius[]}
+local function saveDeliveryPositions(data)
+    data = data or {}
+    if not table.isArray(data.Points) or
+        Table(data.Points):any(function(point)
+            return not checkValidPosRot(point) or
+                type(point.radius) ~= "number"
+        end) or not table.isArray(data.Hubs) or
+        Table(data.Hubs):any(function(hub)
+            return not checkValidPosRot(hub) or
+                type(hub.radius) ~= "number"
         end) then
         error({ key = "rx.errors.invalidData" })
     end
 
-    BJCDao.scenario.Delivery.save(positions)
+    BJCDao.scenario.Delivery.save(data)
     M.Deliveries = BJCDao.scenario.Delivery.findAll()
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DELIVERIES, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO)
 end
@@ -603,7 +628,7 @@ local function updateDeliveryLeaderboard()
         end
     end
 
-    M.DeliveryLeaderboard = {}
+    M.Deliveries.Leaderboard = {}
     if #playersScores > 0 then
         table.sort(playersScores, function(a, b)
             if a.delivery ~= b.delivery then
@@ -615,7 +640,7 @@ local function updateDeliveryLeaderboard()
 
         for i = 1, 3 do
             if playersScores[i] then
-                table.insert(M.DeliveryLeaderboard, playersScores[i])
+                table.insert(M.Deliveries.Leaderboard, playersScores[i])
             end
         end
     end

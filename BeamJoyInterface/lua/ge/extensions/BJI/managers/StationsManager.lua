@@ -39,9 +39,24 @@ local function updateMarkers()
         return string.format("%s_%s_%d", prefix, name:gsub(" ", "_"), i)
     end
     local status
+
+    local labels = {
+        station = {
+            typeFuel = BJI_Lang.get("interactiveMarkers.station.typeFuel"),
+            buttonFuel = BJI_Lang.get("interactiveMarkers.station.buttonFuel"),
+            typeElectric = BJI_Lang.get("interactiveMarkers.station.typeElectric"),
+            buttonElectric = BJI_Lang.get("interactiveMarkers.station.buttonElectric"),
+        },
+        garage = {
+            type = BJI_Lang.get("interactiveMarkers.garage.type"),
+            buttonRepair = BJI_Lang.get("interactiveMarkers.garage.buttonRepair"),
+            refuelNOS = BJI_Lang.get("interactiveMarkers.garage.refuelNOS"),
+        }
+    }
+
     M.markersIDs:forEach(BJI_InteractiveMarker.deleteMarker)
     M.markersIDs:clear()
-    Table(M.Data.Garages):forEach(function(g, i)
+    M.Data.Garages:forEach(function(g, i)
         local id = getID("garage", g.name, i)
         status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.GARAGE.icon,
             g.pos, g.radius, {
@@ -67,9 +82,9 @@ local function updateMarkers()
                             BJI_Scenario.canRepairAtGarage()
                     end,
                     icon = BJI_InteractiveMarker.TYPES.GARAGE.icon,
-                    type = BJI_Lang.get("interactiveMarkers.garage.type"),
+                    type = labels.garage.type,
                     label = g.name,
-                    buttonLabel = BJI_Lang.get("interactiveMarkers.garage.buttonRepair"),
+                    buttonLabel = labels.garage.buttonRepair,
                     callback = function(ctxt)
                         if tonumber(ctxt.veh.veh.damageState) >= 1 then
                             M.tryRepair(ctxt)
@@ -87,9 +102,9 @@ local function updateMarkers()
                             end) or false
                     end,
                     icon = BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
-                    type = BJI_Lang.get("interactiveMarkers.garage.type"),
+                    type = labels.garage.type,
                     label = g.name,
-                    buttonLabel = BJI_Lang.get("interactiveMarkers.garage.refuelNOS"),
+                    buttonLabel = labels.garage.refuelNOS,
                     callback = function(ctxt)
                         local energy, total = 0, 0
                         local countTanks = table.reduce(ctxt.vehData.tanks, function(res, t)
@@ -115,7 +130,7 @@ local function updateMarkers()
         end
     end)
 
-    Table(M.Data.EnergyStations):forEach(function(es, i)
+    M.Data.EnergyStations:forEach(function(es, i)
         local id = getID("energyStation", es.name, i)
         local isElectric = #es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC
         status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
@@ -145,12 +160,10 @@ local function updateMarkers()
                     end,
                     icon = BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
                     type = BJI_Lang.get(isElectric and
-                        "interactiveMarkers.electricStation.type" or
-                        "interactiveMarkers.gasStation.type"),
+                        labels.station.typeElectric or labels.station.typeFuel),
                     label = es.name,
                     buttonLabel = BJI_Lang.get(isElectric and
-                        "interactiveMarkers.electricStation.button" or
-                        "interactiveMarkers.gasStation.button"),
+                        labels.station.buttonElectric or labels.station.buttonFuel),
                     callback = function(ctxt)
                         local tanks = table.reduce(ctxt.vehData.tanks, function(res, t)
                             if t.currentEnergy / t.maxEnergy < .95 then
@@ -163,8 +176,8 @@ local function updateMarkers()
                                 :values(), 100, #tanks * M.refuelBaseTime)
                         else
                             BJI_Toast.info(BJI_Lang.get(isElectric and
-                                "interactiveMarkers.electricStation.alreadyFull" or
-                                "interactiveMarkers.gasStation.alreadyFull"))
+                                "interactiveMarkers.station.alreadyFullElectric" or
+                                "interactiveMarkers.station.alreadyFullFuel"))
                         end
                     end
                 }

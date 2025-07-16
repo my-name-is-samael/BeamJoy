@@ -25,11 +25,10 @@ function ctrl.RaceSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local status, raceID = pcall(BJCScenarioData.saveRace, ctxt.data[1])
-    BJCTx.scenario.RaceSave(ctxt.senderID, status and raceID or false)
-    if not status then
-        local err = raceID
-        error(err)
+    local ok, res = pcall(BJCScenarioData.saveRace, ctxt.data[1])
+    BJCTx.scenario.RaceSave(ctxt.senderID, ok and res or false)
+    if not ok then
+        error(res)
     end
 end
 
@@ -108,9 +107,9 @@ function ctrl.EnergyStationsSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveEnergyStations, ctxt.data[1])
-    BJCTx.scenario.EnergyStationsSave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveEnergyStations, ctxt.data[1])
+    BJCTx.scenario.EnergyStationsSave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end
@@ -121,9 +120,9 @@ function ctrl.GaragesSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveGarages, ctxt.data[1])
-    BJCTx.scenario.GaragesSave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveGarages, ctxt.data[1])
+    BJCTx.scenario.GaragesSave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end
@@ -134,9 +133,9 @@ function ctrl.DeliverySave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveDeliveryPositions, ctxt.data[1])
-    BJCTx.scenario.DeliverySave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveDeliveryPositions, ctxt.data[1])
+    BJCTx.scenario.DeliverySave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end
@@ -238,9 +237,9 @@ function ctrl.BusLinesSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveBusLines, ctxt.data[1])
-    BJCTx.scenario.BusLinesSave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveBusLines, ctxt.data[1])
+    BJCTx.scenario.BusLinesSave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end
@@ -298,9 +297,9 @@ function ctrl.HunterInfectedSave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveHunterInfected, ctxt.data[1])
-    BJCTx.scenario.HunterInfectedSave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveHunterInfected, ctxt.data[1])
+    BJCTx.scenario.HunterInfectedSave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end
@@ -367,9 +366,9 @@ function ctrl.DerbySave(ctxt)
         error({ key = "rx.errors.insufficientPermissions" })
     end
 
-    local _, err = pcall(BJCScenarioData.saveDerbyArenas, ctxt.data[1])
-    BJCTx.scenario.DerbySave(ctxt.senderID, not err)
-    if err then
+    local ok, err = pcall(BJCScenarioData.saveDerbyArenas, ctxt.data[1])
+    BJCTx.scenario.DerbySave(ctxt.senderID, ok)
+    if not ok then
         error(err)
     end
 end

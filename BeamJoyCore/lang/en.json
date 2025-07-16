@@ -1344,11 +1344,18 @@
       "distanceLeft": "{distance} left",
       "edit": {
         "title": "Delivery Editor",
+        "hubs": "Hubs",
+        "hub": "Hub {index}",
+        "positions": "Positions",
         "position": "Position {index}",
         "radius": "Radius",
         "saveErrorToast": "Deliveries save failed, please try again or contact the administrator",
         "buttons": {
           "refreshMarkers": "Refresh markers",
+          "addHub": "Add hub here",
+          "showHub": "Show hub",
+          "setHubHere": "Set hub position here",
+          "deleteHub": "Delete hub",
           "addPosition": "Add position here",
           "showPosition": "Show position",
           "setPosition": "Set position here",
@@ -1748,15 +1755,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Gas Station",
-        "button": "Refuel tank(s)",
-        "alreadyFull": "Already full"
-      },
-      "electricStation": {
-        "type": "Electric Station",
-        "button": "Charge batteries",
-        "alreadyFull": "Already full"
+      "station": {
+        "typeFuel": "Gas Station",
+        "buttonFuel": "Refuel tank(s)",
+        "alreadyFullFuel": "Already full",
+        "typeElectric": "Electric Station",
+        "buttonElectric": "Charge batteries",
+        "alreadyFullElectric": "Already full"
       },
       "garage": {
         "type": "Garage",
@@ -1765,13 +1770,19 @@
         "refuelNOS": "Refuel NOS",
         "alreadyFull": "Already full"
       },
-      "soloRace": {
-        "type": "Solo Time Attack",
+      "race": {
+        "typeSolo": "Solo Time Attack",
+        "typeMulti": "Server Race",
         "button": "Open settings"
       },
-      "multiRace": {
-        "type": "Server Race",
-        "button": "Open settings"
+      "delivery": {
+        "type": "Delivery",
+        "labelVehicle": "Vehicle Delivery",
+        "buttonVehicle": "Start delivery",
+        "labelPackage": "Package Delivery",
+        "buttonPackage": "Start delivery",
+        "labelMulti": "Delivery Together",
+        "buttonMulti": "Join"
       },
       "busMission": {
         "type": "Bus Mission",

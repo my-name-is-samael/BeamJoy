@@ -1343,11 +1343,18 @@
       "distanceLeft": "{distance} rimasta",
       "edit": {
         "title": "Redattore della consegna",
+        "hubs": "Nodi",
+        "hub": "Nodo {index}",
+        "positions": "Posizioni",
         "position": "Posizione {index}",
         "radius": "Raggio",
         "saveErrorToast": "Salvataggio consegne non riuscito, riprova o contatta l'amministratore",
         "buttons": {
           "refreshMarkers": "Aggiorna i marcatori",
+          "addHub": "Aggiungi nodo qui",
+          "showHub": "Mostra nodo",
+          "setHubHere": "Imposta nodo qui",
+          "deleteHub": "Elimina nodo",
           "addPosition": "Aggiungi posizione qui",
           "showPosition": "Mostra la posizione",
           "setPosition": "Imposta la posizione qui",
@@ -1747,15 +1754,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Stazione di servizio",
-        "button": "Rifornisci serbatoio",
-        "alreadyFull": "Già pieno"
-      },
-      "electricStation": {
-        "type": "Stazione di ricarica",
-        "button": "Caricare le batterie",
-        "alreadyFull": "Già pieno"
+      "station": {
+        "typeFuel": "Stazione di servizio",
+        "buttonFuel": "Rifornisci serbatoio",
+        "alreadyFullFuel": "Già pieno",
+        "typeElectric": "Stazione di ricarica",
+        "buttonElectric": "Caricare le batterie",
+        "alreadyFullElectric": "Già pieno"
       },
       "garage": {
         "type": "Garage",
@@ -1764,13 +1769,19 @@
         "refuelNOS": "Rifornisci NOS",
         "alreadyFull": "Già pieno"
       },
-      "soloRace": {
-        "type": "Corsa a tempo in solitaria",
+      "race": {
+        "typeSolo": "Corsa a tempo in solitaria",
+        "typeMulti": "Gara del server",
         "button": "Apri impostazioni"
       },
-      "multiRace": {
-        "type": "Gara del server",
-        "button": "Apri impostazioni"
+      "delivery": {
+        "type": "Consegna",
+        "labelVehicle": "Consegna Veicolo",
+        "buttonVehicle": "Avvia consegna",
+        "labelPackage": "Consegna Pacco",
+        "buttonPackage": "Avvia consegna",
+        "labelMulti": "Consegna di Gruppo",
+        "buttonMulti": "Partecipa"
       },
       "busMission": {
         "type": "Missione autobus",

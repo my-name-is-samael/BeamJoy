@@ -13,6 +13,9 @@
 ---@field pos vec3
 ---@field rot? quat
 
+---@class BJIPositionRotationRadius: BJIPositionRotation
+---@field radius number
+
 ---@class BJIPositionRotationVelocity: BJIPositionRotation
 ---@field vel vec3
 ---@field gearbox {grb_bhv: string, grb_mde: string?, grb_idx: integer?}

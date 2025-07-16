@@ -48,8 +48,28 @@ end
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
-        BJI_Scenario.Data.Deliveries and
-        #BJI_Scenario.Data.Deliveries > 1
+        #BJI_Scenario.Data.Deliveries.Points > 1
+end
+
+local function initPositions()
+    S.startPosition = table.random(BJI_Scenario.Data.Deliveries.Points)
+    S.targetPosition = BJI_Scenario.Data.Deliveries.Points:map(function(point)
+        -- local distance = BJIGPS.getRouteLength({ M.startPosition.pos, position.pos }) -- costs a lot
+        local distance = math.horizontalDistance(S.startPosition.pos, point.pos)
+        if point ~= S.startPosition and distance > .1 then
+            return {
+                pos = point.pos,
+                radius = point.radius,
+                distance = distance,
+            }
+        end
+        return nil
+    end):sort(function(a, b)
+        return a.distance > b.distance
+    end):filter(function(_, i)
+        return i < #BJI_Scenario.Data.Deliveries.Points * .66 + 1 -- 66% furthest
+    end):random()
+    S.targetPosition.distance = nil
 end
 
 local function initVehicle()
@@ -85,34 +105,6 @@ local function initVehicle()
             end
         end
     end
-end
-
-local function initPositions()
-    S.startPosition = table.random(BJI_Scenario.Data.Deliveries)
-
-    local targets = {}
-    for _, position in ipairs(BJI_Scenario.Data.Deliveries) do
-        -- local distance = BJIGPS.getRouteLength({ M.startPosition.pos, position.pos }) -- costs a lot
-        local distance = math.horizontalDistance(S.startPosition.pos, position.pos)
-        if position ~= S.startPosition and distance > 0 then
-            table.insert(targets, {
-                pos = position.pos,
-                radius = position.radius,
-                distance = distance,
-            })
-        end
-    end
-    table.sort(targets, function(a, b)
-        return a.distance > b.distance
-    end)
-    if #targets > 1 then
-        local threhsholdPos = math.ceil(#targets * .66) + 1 -- 66% furthest
-        while targets[threhsholdPos] do
-            table.remove(targets, threhsholdPos)
-        end
-    end
-    S.targetPosition = table.random(targets)
-    S.targetPosition.distance = nil
 end
 
 local function initDelivery()
@@ -182,23 +174,34 @@ local function start()
     BJI_Win_VehSelector.tryClose()
 
     BJI_UI.applyLoading(true, function()
-        initPositions()
-        initVehicle()
-        if S.startPosition and S.targetPosition and S.model then
-            BJI_GPS.reset()
-            BJI_RaceWaypoint.resetAll()
-            initDelivery()
-            BJI_Veh.waitForVehicleSpawn(function(ctxt)
-                S.nextResetExempt = true
-                BJI_Scenario.switchScenario(BJI_Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
-                BJI_UI.applyLoading(false)
-                BJI_Async.delayTask(function()
-                    S.nextResetExempt = false
-                end, 1000, "BJIVehDeliveryStartResetExempt")
-            end)
-        else
-            BJI_UI.applyLoading(false)
+        local ok, err = pcall(function()
+            initPositions()
+            initVehicle()
+            if S.startPosition and S.targetPosition and S.model then
+                BJI_GPS.reset()
+                BJI_RaceWaypoint.resetAll()
+                initDelivery()
+                BJI_Veh.waitForVehicleSpawn(function(ctxt)
+                    S.nextResetExempt = true
+                    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.VEHICLE_DELIVERY, ctxt)
+                    BJI_UI.applyLoading(false)
+                    BJI_Async.delayTask(function()
+                        S.nextResetExempt = false
+                    end, 1000, "BJIVehDeliveryStartResetExempt")
+                end)
+            else
+                error({
+                    startPosition = S.startPosition,
+                    targetPosition = S.targetPosition,
+                    model = S.model,
+                })
+            end
+        end)
+        if not ok then
+            LogError("Vehicle delivery failed to start:")
+            dump(err)
             BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
+            BJI_UI.applyLoading(false)
         end
     end)
 end

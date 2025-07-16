@@ -7,9 +7,13 @@ local M = {
         RacesCurrentMap = nil,
         ---@type tablelib<integer, BJRaceLight> index 1-N
         Races = Table(),
-        ---@type tablelib<integer, {pos: vec3, rot: quat, radius: number}>
-        Deliveries = {},
-        DeliveryLeaderboard = {},
+        Deliveries = {
+            ---@type tablelib<integer, BJIPositionRotationRadius> index 1-N
+            Points = Table(),
+            ---@type tablelib<integer, BJIPositionRotationRadius> index 1-N
+            Hubs = Table(),
+            Leaderboard = {},
+        },
         ---@type tablelib<integer, BJBusLine> index 1-N
         BusLines = Table(),
         HunterInfected = {},
@@ -20,6 +24,7 @@ local M = {
     ---@type table<string, tablelib<integer, string>>
     markersIDs = {
         [BJI_Cache.CACHES.RACES] = Table(),
+        [BJI_Cache.CACHES.DELIVERIES] = Table(),
         [BJI_Cache.CACHES.BUS_LINES] = Table(),
         [BJI_Cache.CACHES.DERBY_DATA] = Table(),
     },
@@ -49,10 +54,17 @@ local function updateMarkers(cacheType)
         M.markersIDs[cacheType]:clear()
     end
 
+    local labels = {}
+
     -- races
     if not cacheType or cacheType == BJI_Cache.CACHES.RACES then
+        labels.race = {
+            typeSolo = BJI_Lang.get("interactiveMarkers.race.typeSolo"),
+            typeMulti = BJI_Lang.get("interactiveMarkers.race.typeMulti"),
+            button = BJI_Lang.get("interactiveMarkers.race.button"),
+        }
         local previousPositions = Table()
-        Table(M.Data.Races):forEach(function(r, i)
+        M.Data.Races:forEach(function(r, i)
             local id = getID("race", r.name, i)
             local pos
             if not previousPositions:find(function(p)
@@ -80,9 +92,9 @@ local function updateMarkers(cacheType)
                                 BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
                         end,
                         icon = BJI_InteractiveMarker.TYPES.RACE_SOLO.icon,
-                        type = BJI_Lang.get("interactiveMarkers.soloRace.type"),
+                        type = labels.race.typeSolo,
                         label = r.name,
-                        buttonLabel = BJI_Lang.get("interactiveMarkers.soloRace.button"),
+                        buttonLabel = labels.race.button,
                         callback = function(ctxt)
                             BJI_Win_RaceSettings.openPromptFlow({
                                 multi = false,
@@ -108,9 +120,9 @@ local function updateMarkers(cacheType)
                                     BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
                         end,
                         icon = BJI_InteractiveMarker.TYPES.RACE_MULTI.icon,
-                        type = BJI_Lang.get("interactiveMarkers.multiRace.type"),
+                        type = labels.race.typeMulti,
                         label = r.name,
-                        buttonLabel = BJI_Lang.get("interactiveMarkers.multiRace.button"),
+                        buttonLabel = labels.race.button,
                         callback = function(ctxt)
                             BJI_Win_RaceSettings.openPromptFlow({
                                 multi = true,
@@ -137,11 +149,87 @@ local function updateMarkers(cacheType)
         end)
     end
 
+    -- delivery hubs
+    if not cacheType or cacheType == BJI_Cache.CACHES.DELIVERIES then
+        labels.delivery = {
+            type = BJI_Lang.get("interactiveMarkers.delivery.type"),
+            labelVehicle = BJI_Lang.get("interactiveMarkers.delivery.labelVehicle"),
+            buttonVehicle = BJI_Lang.get("interactiveMarkers.delivery.buttonVehicle"),
+            labelPackage = BJI_Lang.get("interactiveMarkers.delivery.labelPackage"),
+            buttonPackage = BJI_Lang.get("interactiveMarkers.delivery.buttonPackage"),
+            labelMulti = BJI_Lang.get("interactiveMarkers.delivery.labelMulti"),
+            buttonMulti = BJI_Lang.get("interactiveMarkers.delivery.buttonMulti"),
+        }
+        M.Data.Deliveries.Hubs:forEach(function(a, i)
+            local id = getID("delivery", "hub", i)
+            status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.DELIVERY_HUBS.icon,
+                a.pos, 6, {
+                    color = BJI_InteractiveMarker.TYPES.DELIVERY_HUBS.color,
+                    visibleFreeCam = true,
+                    visibleAnyVeh = true,
+                    visibleWalking = true,
+                    condition = function(ctxt)
+                        return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DELIVERIES) and
+                            BJI_Scenario.isFreeroam() and not BJI_Tournament.state and
+                            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
+                    end,
+                }, {
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started()
+                        end,
+                        icon = BJI.Utils.Icon.ICONS.mission_g2g_triangle,
+                        type = labels.delivery.type,
+                        label = labels.delivery.labelVehicle,
+                        buttonLabel = labels.delivery.buttonVehicle,
+                        callback = function(ctxt)
+                            BJI_Scenario.get(BJI_Scenario.TYPES.VEHICLE_DELIVERY).start()
+                        end
+                    },
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
+                                ctxt.isOwner and ctxt.veh.isVehicle
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.DELIVERY_HUBS.icon,
+                        type = labels.delivery.type,
+                        label = labels.delivery.labelPackage,
+                        buttonLabel = labels.delivery.buttonPackage,
+                        callback = function(ctxt)
+                            BJI_Scenario.switchScenario(BJI_Scenario.TYPES.PACKAGE_DELIVERY, ctxt)
+                        end
+                    },
+                    {
+                        condition = function(ctxt)
+                            return not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
+                                ctxt.isOwner and ctxt.veh.isVehicle
+                        end,
+                        icon = BJI_InteractiveMarker.TYPES.DELIVERY_HUBS.icon,
+                        type = labels.delivery.type,
+                        label = labels.delivery.labelMulti,
+                        buttonLabel = labels.delivery.buttonMulti,
+                        callback = function(ctxt)
+                            BJI_Tx_scenario.DeliveryMultiJoin(ctxt.veh.gameVehicleID, ctxt.veh.position)
+                        end
+                    },
+                })
+            if status then
+                M.markersIDs[BJI_Cache.CACHES.DELIVERIES]:insert(id)
+            else
+                BJI_InteractiveMarker.deleteMarker(id)
+            end
+        end)
+    end
+
     -- bus lines
     if not cacheType or cacheType == BJI_Cache.CACHES.BUS_LINES then
+        labels.busline = {
+            type = BJI_Lang.get("interactiveMarkers.busline.type"),
+            button = BJI_Lang.get("interactiveMarkers.busline.button"),
+        }
         local previousPositions = Table()
 
-        Table(M.Data.BusLines):forEach(function(bl, i)
+        M.Data.BusLines:forEach(function(bl, i)
             local id = getID("busmission", bl.name, i)
             local pos
             if not previousPositions:find(function(p)
@@ -169,9 +257,9 @@ local function updateMarkers(cacheType)
                                 BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_PLAYER_SCENARIO)
                         end,
                         icon = BJI_InteractiveMarker.TYPES.BUS_MISSION.icon,
-                        type = BJI_Lang.get("interactiveMarkers.busMission.type"),
+                        type = labels.busline.type,
                         label = bl.name,
-                        buttonLabel = BJI_Lang.get("interactiveMarkers.busMission.button"),
+                        buttonLabel = labels.busline.button,
                         callback = function(ctxt)
                             BJI_Win_BusMissionPreparation.openPromptFlow(i)
                         end
@@ -187,7 +275,12 @@ local function updateMarkers(cacheType)
 
     -- derby arenas
     if not cacheType or cacheType == BJI_Cache.CACHES.DERBY_DATA then
-        Table(M.Data.Derby):forEach(function(a, i)
+        labels.derby = {
+            type = BJI_Lang.get("interactiveMarkers.derby.type"),
+            places = BJI_Lang.get("derby.settings.places"),
+            button = BJI_Lang.get("interactiveMarkers.derby.button"),
+        }
+        M.Data.Derby:forEach(function(a, i)
             local id = getID("derbyarena", a.name, i)
             status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.DERBY_ARENA.icon,
                 a.centerPosition, 6, {
@@ -208,10 +301,10 @@ local function updateMarkers(cacheType)
                                 not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started()
                         end,
                         icon = BJI_InteractiveMarker.TYPES.DERBY_ARENA.icon,
-                        type = BJI_Lang.get("interactiveMarkers.derby.type"),
+                        type = labels.derby.type,
                         label = string.format("%s (%s)", a.name,
-                            BJI_Lang.get("derby.settings.places"):var({ places = #a.startPositions })),
-                        buttonLabel = BJI_Lang.get("interactiveMarkers.derby.button"),
+                            labels.derby.places:var({ places = #a.startPositions })),
+                        buttonLabel = labels.derby.button,
                         callback = function(ctxt)
                             BJI_Win_DerbySettings.openPromptFlow(i)
                         end
@@ -245,12 +338,18 @@ local function initCacheHandlers()
 
     -- deliveries data
     BJI_Cache.addRxHandler(BJI_Cache.CACHES.DELIVERIES, function(cacheData)
-        M.Data.Deliveries = table.map(cacheData.Deliveries, function(d)
+        M.Data.Deliveries.Points = table.map(cacheData.Points, function(d)
             _, d.pos = pcall(vec3, d.pos.x, d.pos.y, d.pos.z)
             _, d.rot = pcall(quat, d.rot.x, d.rot.y, d.rot.z, d.rot.w)
             return d
         end)
-        M.Data.DeliveryLeaderboard = cacheData.DeliveryLeaderboard
+        M.Data.Deliveries.Hubs = table.map(cacheData.Hubs, function(d)
+            _, d.pos = pcall(vec3, d.pos.x, d.pos.y, d.pos.z)
+            _, d.rot = pcall(quat, d.rot.x, d.rot.y, d.rot.z, d.rot.w)
+            return d
+        end)
+        M.Data.Deliveries.Leaderboard = cacheData.Leaderboard
+        updateMarkers(BJI_Cache.CACHES.DELIVERIES)
     end)
 
     -- bus lines

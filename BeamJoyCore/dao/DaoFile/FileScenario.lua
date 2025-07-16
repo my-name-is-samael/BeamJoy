@@ -200,10 +200,10 @@ function M.Delivery.findAll()
     return defaultDeliveries
 end
 
----@param deliveries table
+---@param deliveries {Points: BJIPositionRotationRadius[], Hubs: BJIPositionRotationRadius[]}
 function M.Delivery.save(deliveries)
     local filePath = _getFilePath(M._TYPES.DELIVERIES)
-    if #deliveries == 0 then
+    if #deliveries.Points == 0 and #deliveries.Hubs == 0 then
         FS.Remove(filePath)
     else
         BJCDao._saveFile(filePath, deliveries)

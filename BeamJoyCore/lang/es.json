@@ -1343,11 +1343,18 @@
       "distanceLeft": "{distance} izquierda",
       "edit": {
         "title": "Editor de entrega",
+        "hubs": "Nodos",
+        "hub": "Nodo {index}",
+        "positions": "Posiciones",
         "position": "Posición {index}",
         "radius": "Radio",
         "saveErrorToast": "Error al guardar las entregas, inténtelo de nuevo o comuníquese con el administrador",
         "buttons": {
           "refreshMarkers": "Actualizar marcadores",
+          "addHub": "Agregar nodo aquí",
+          "showHub": "Mostrar nodo",
+          "setHubHere": "Establecer nodo aquí",
+          "deleteHub": "Eliminar nodo",
           "addPosition": "Agregar posición aquí",
           "showPosition": "Mostrar posición",
           "setPosition": "Establecer posición aquí",
@@ -1747,15 +1754,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Gasolinera",
-        "button": "Rellenar depósito(s)",
-        "alreadyFull": "Ya está lleno"
-      },
-      "electricStation": {
-        "type": "Estación de carga",
-        "button": "Cargar baterías",
-        "alreadyFull": "Ya está lleno"
+      "station": {
+        "typeFuel": "Gasolinera",
+        "buttonFuel": "Rellenar depósito(s)",
+        "alreadyFullFuel": "Ya está lleno",
+        "typeElectric": "Estación de carga",
+        "buttonElectric": "Cargar baterías",
+        "alreadyFullElectric": "Ya está lleno"
       },
       "garage": {
         "type": "Cochera",
@@ -1764,13 +1769,19 @@
         "refuelNOS": "Repostar NOS",
         "alreadyFull": "Ya está lleno"
       },
-      "soloRace": {
-        "type": "Contrarreloj en solitario",
+      "race": {
+        "typeSolo": "Contrarreloj en solitario",
+        "typeMulti": "Carrera en servidor",
         "button": "Abrir configuración"
       },
-      "multiRace": {
-        "type": "Carrera en servidor",
-        "button": "Abrir configuración"
+      "delivery": {
+        "type": "Entrega",
+        "labelVehicle": "Entrega de Vehículo",
+        "buttonVehicle": "Iniciar entrega",
+        "labelPackage": "Entrega de Paquete",
+        "buttonPackage": "Iniciar entrega",
+        "labelMulti": "Entrega Conjunta",
+        "buttonMulti": "Unirse"
       },
       "busMission": {
         "type": "Misión de autobús",

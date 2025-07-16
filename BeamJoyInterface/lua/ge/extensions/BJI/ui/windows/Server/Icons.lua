@@ -37,6 +37,13 @@ local function body(ctxt)
         if i % maxIconsPerRow ~= 1 then SameLine() end
         Icon(icon, { big = true })
         TooltipText(icon)
+        if IsItemHovered() then
+            BeginTooltip()
+            Icon(icon, { big = true })
+            SameLine()
+            Text(icon)
+            EndTooltip()
+        end
     end)
 end
 

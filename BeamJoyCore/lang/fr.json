@@ -1343,11 +1343,18 @@
       "distanceLeft": "{distance} restant",
       "edit": {
         "title": "Éditeur des livraisons",
+        "hubs": "Points centraux",
+        "hub": "Point central {index}",
+        "positions": "Positions",
         "position": "Position {index}",
         "radius": "Rayon",
         "saveErrorToast": "Échec de l'enregistrement des livraisons, veuillez réessayer ou contacter l'administrateur",
         "buttons": {
           "refreshMarkers": "Rafraîchir les marqueurs",
+          "addHub": "Ajouter un point ici",
+          "showHub": "Afficher le point",
+          "setHubHere": "Définir le point ici",
+          "deleteHub": "Supprimer le point",
           "addPosition": "Ajouter une position ici",
           "showPosition": "Afficher la position",
           "setPosition": "Définir la position ici",
@@ -1747,15 +1754,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Station-Service",
-        "button": "Faire le plein",
-        "alreadyFull": "Déjà plein"
-      },
-      "electricStation": {
-        "type": "Station de Recharge",
-        "button": "Charger les batteries",
-        "alreadyFull": "Déjà plein"
+      "station": {
+        "typeFuel": "Station-Service",
+        "buttonFuel": "Faire le plein",
+        "alreadyFullFuel": "Déjà plein",
+        "typeElectric": "Station de Recharge",
+        "buttonElectric": "Charger les batteries",
+        "alreadyFullElectric": "Déjà plein"
       },
       "garage": {
         "type": "Garage",
@@ -1764,13 +1769,19 @@
         "refuelNOS": "Recharger le NOS",
         "alreadyFull": "Déjà plein"
       },
-      "soloRace": {
-        "type": "Course contre la montre solo",
+      "race": {
+        "typeSolo": "Course contre la montre solo",
+        "typeMulti": "Course serveur",
         "button": "Ouvrir les paramètres"
       },
-      "multiRace": {
-        "type": "Course serveur",
-        "button": "Ouvrir les paramètres"
+      "delivery": {
+        "type": "Livraison",
+        "labelVehicle": "Livraison de Véhicule",
+        "buttonVehicle": "Démarrer la livraison",
+        "labelPackage": "Livraison de Colis",
+        "buttonPackage": "Démarrer la livraison",
+        "labelMulti": "Livraison en Groupe",
+        "buttonMulti": "Rejoindre"
       },
       "busMission": {
         "type": "Mission de bus",

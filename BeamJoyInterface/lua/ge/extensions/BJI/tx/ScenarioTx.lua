@@ -61,11 +61,11 @@ return function(TX)
         TX._send(event.EVENT, event.TX.GARAGES_SAVE, { garages })
     end
 
-    ---@param positions table[]
+    ---@param data {Points: {pos: vec3, rot: quat, radius: number}[], Hubs: {pos: vec3, rot: quat, radius: number}[]}
     ---@param callback fun(boolean)
-    function scenario.DeliverySave(positions, callback)
+    function scenario.DeliverySave(data, callback)
         BJI_Rx_SCENARIO.deliverySaveCallback(callback)
-        TX._send(event.EVENT, event.TX.DELIVERY_SAVE, { positions })
+        TX._send(event.EVENT, event.TX.DELIVERY_SAVE, { data })
     end
 
     function scenario.DeliveryVehicleStart()

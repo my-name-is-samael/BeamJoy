@@ -1343,11 +1343,18 @@
       "distanceLeft": "{distance} restante",
       "edit": {
         "title": "Editor de entrega",
+        "hubs": "Pontos centrais",
+        "hub": "Ponto {index}",
+        "positions": "Posições",
         "position": "Posição {index}",
         "radius": "Raio",
         "saveErrorToast": "Falha ao salvar entregas, tente novamente ou entre em contato com o administrador",
         "buttons": {
           "refreshMarkers": "Atualizar marcadores",
+          "addHub": "Adicionar ponto aqui",
+          "showHub": "Mostrar ponto",
+          "setHubHere": "Definir ponto aqui",
+          "deleteHub": "Excluir ponto",
           "addPosition": "Adicionar posição aqui",
           "showPosition": "Mostrar posição",
           "setPosition": "Definir posição aqui",
@@ -1747,15 +1754,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Posto de gasolina",
-        "button": "Reabastecer tanque(s)",
-        "alreadyFull": "Já está cheio"
-      },
-      "electricStation": {
-        "type": "Estação para carregar",
-        "button": "Carregar baterias",
-        "alreadyFull": "Já está cheio"
+      "station": {
+        "typeFuel": "Posto de gasolina",
+        "buttoFueln": "Reabastecer tanque(s)",
+        "alreadyFullFuel": "Já está cheio",
+        "typeElectric": "Estação para carregar",
+        "buttoElectricn": "Carregar baterias",
+        "alreadyFullElectric": "Já está cheio"
       },
       "garage": {
         "type": "Garagem",
@@ -1764,13 +1769,19 @@
         "refuelNOS": "Reabastecer NOS",
         "alreadyFull": "Já está cheio"
       },
-      "soloRace": {
-        "type": "Corrida solo contra o tempo",
+      "race": {
+        "typeSolo": "Corrida solo contra o tempo",
+        "typeMulti": "Corrida no servidor",
         "button": "Abrir configurações"
       },
-      "multiRace": {
-        "type": "Corrida no servidor",
-        "button": "Abrir configurações"
+      "delivery": {
+        "type": "Entrega",
+        "labelVehicle": "Entrega de Veículo",
+        "buttonVehicle": "Iniciar entrega",
+        "labelPackage": "Entrega de Pacote",
+        "buttonPackage": "Iniciar entrega",
+        "labelMulti": "Entrega em Conjunto",
+        "buttonMulti": "Participar"
       },
       "busMission": {
         "type": "Missão de ônibus",

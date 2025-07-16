@@ -34,40 +34,29 @@ end
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
         BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) and
-        BJI_Scenario.Data.Deliveries and
-        #BJI_Scenario.Data.Deliveries > 1 and
-        ctxt.isOwner and
-        not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID)
+        #BJI_Scenario.Data.Deliveries.Points > 1 and
+        ctxt.isOwner and ctxt.veh.isVehicle
 end
 
 ---@param ctxt TickContext
 local function initPositions(ctxt)
-    if not ctxt.isOwner then
-        return
-    end
-
-    local targets = {}
-    for _, position in ipairs(BJI_Scenario.Data.Deliveries) do
+    if not ctxt.isOwner then return end
+    S.targetPosition = BJI_Scenario.Data.Deliveries.Points:map(function(point)
         -- local distance = BJIGPS.getRouteLength({ ctxt.veh.position, position.pos }) -- costs a lot
-        local distance = ctxt.veh.position:distance(position.pos)
-        if distance > 0 then
-            table.insert(targets, {
-                pos = position.pos,
-                radius = position.radius,
+        local distance = ctxt.veh.position:distance(point.pos)
+        if distance > 1 then
+            return {
+                pos = point.pos,
+                radius = point.radius,
                 distance = distance,
-            })
+            }
         end
-    end
-    table.sort(targets, function(a, b)
+        return nil
+    end):sort(function(a, b)
         return a.distance > b.distance
-    end)
-    if #targets > 1 then
-        local threhsholdPos = math.ceil(#targets * .66) + 1 -- 66% furthest
-        while targets[threhsholdPos] do
-            table.remove(targets, threhsholdPos)
-        end
-    end
-    S.targetPosition = table.random(targets)
+    end):filter(function(_, i)
+        return i < #BJI_Scenario.Data.Deliveries.Points * .66 + 1 -- 66% furthest
+    end):random()
     S.targetPosition.distance = nil
 end
 

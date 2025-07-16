@@ -39,6 +39,10 @@ local M = {
             icon = BJI.Utils.Icon.ICONS.mission_airace02_triangle,
             color = BJI.Utils.ShapeDrawer.Color(.3, .5, 1),
         },
+        DELIVERY_HUBS = {
+            icon = BJI.Utils.Icon.ICONS.mission_delivery_triangle,
+            color = BJI.Utils.ShapeDrawer.Color(.4, .4, 1),
+        },
         BUS_MISSION = {
             icon = BJI.Utils.Icon.ICONS.mission_busRoute_triangle,
             color = BJI.Utils.ShapeDrawer.Color(1, 1, 0),

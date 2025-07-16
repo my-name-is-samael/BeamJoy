@@ -233,7 +233,7 @@ end
 
 local function menuEnergyStations(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Stations.Data.EnergyStations then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.STATIONS) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local stationsEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.STATIONS)
@@ -256,7 +256,7 @@ end
 
 local function menuGarages(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Stations.Data.Garages then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.STATIONS) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local garagesEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.GARAGES)
@@ -279,14 +279,14 @@ end
 
 local function menuDeliveries(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Scenario.Data.Deliveries then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DELIVERIES) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local deliveriesEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DELIVERIES)
         table.insert(M.cache.elems, {
             type = "item",
             label = BJI_Lang.get("menu.edit.deliveries")
-                :var({ amount = #BJI_Scenario.Data.Deliveries }),
+                :var({ amount = #BJI_Scenario.Data.Deliveries.Points }),
             active = editorOpen and deliveriesEditorOpen,
             disabled = editorOpen and not deliveriesEditorOpen,
             onClick = function()
@@ -302,7 +302,7 @@ end
 
 local function menuBusLines(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Scenario.Data.BusLines then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.BUS_LINES) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local busEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.BUS_LINES)
@@ -325,7 +325,7 @@ end
 
 local function menuRaces(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Scenario.Data.Races then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.RACES) then
         local rawRaces = Table(BJI_Scenario.Data.Races)
             :filter(function(r) return type(r) == "table" end):values()
         local label = string.var("{1} ({2})", { BJI_Lang.get("menu.edit.races"), #rawRaces })
@@ -473,7 +473,7 @@ end
 
 local function menuHunterInfected(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Scenario.Data.HunterInfected then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.HUNTER_INFECTED_DATA) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local hunterEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.HUNTER_INFECTED)
@@ -514,7 +514,7 @@ end
 
 local function menuDerby(ctxt)
     if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SCENARIO) and
-        BJI_Scenario.Data.Derby then
+        BJI_Cache.isFirstLoaded(BJI_Cache.CACHES.DERBY_DATA) then
         local editorOpen = BJI_Win_ScenarioEditor.getState()
         local derbyEditorOpen = editorOpen and
             BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DERBY)

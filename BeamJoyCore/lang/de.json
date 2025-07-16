@@ -1343,11 +1343,18 @@
       "distanceLeft": "{distance} übrig",
       "edit": {
         "title": "Versandredakteur",
+        "hubs": "Knotenpunkte",
+        "hub": "Knotenpunkt {index}",
+        "positions": "Positionen",
         "position": "Position {index}",
         "radius": "Radius",
         "saveErrorToast": "Das Speichern der Lieferungen ist fehlgeschlagen. Bitte versuchen Sie es erneut oder wenden Sie sich an den Administrator",
         "buttons": {
           "refreshMarkers": "Markierungen aktualisieren",
+          "addHub": "Knotenpunkt hier hinzufügen",
+          "showHub": "Knotenpunkt anzeigen",
+          "setHubHere": "Knotenpunktposition hier setzen",
+          "deleteHub": "Knotenpunkt löschen",
           "addPosition": "Position hier hinzufügen",
           "showPosition": "Position anzeigen",
           "setPosition": "Position hier setzen",
@@ -1747,15 +1754,13 @@
       }
     },
     "interactiveMarkers": {
-      "gasStation": {
-        "type": "Tankstelle",
-        "button": "Tank(en) auffüllen",
-        "alreadyFull": "Bereits voll"
-      },
-      "electricStation": {
-        "type": "Ladestation",
-        "button": "Batterien aufladen",
-        "alreadyFull": "Bereits voll"
+      "station": {
+        "typeFuel": "Tankstelle",
+        "buttonFuel": "Tank(en) auffüllen",
+        "alreadyFullFuel": "Bereits voll",
+        "typElectrice": "Ladestation",
+        "buttonElectric": "Batterien aufladen",
+        "alreadyFullElectric": "Bereits voll"
       },
       "garage": {
         "type": "Garage",
@@ -1764,13 +1769,19 @@
         "refuelNOS": "NOS nachfüllen",
         "alreadyFull": "Bereits voll"
       },
-      "soloRace": {
-        "type": "Solo-Zeitrennen",
+      "race": {
+        "typeSolo": "Solo-Zeitrennen",
+        "typeMulti": "Server-Rennen",
         "button": "Einstellungen öffnen"
       },
-      "multiRace": {
-        "type": "Server-Rennen",
-        "button": "Einstellungen öffnen"
+      "delivery": {
+        "type": "Lieferung",
+        "labelVehicle": "Fahrzeuglieferung",
+        "buttonVehicle": "Lieferung starten",
+        "labelPackage": "Paketlieferung",
+        "buttonPackage": "Lieferung starten",
+        "labelMulti": "Gemeinsame Lieferung",
+        "buttonMulti": "Beitreten"
       },
       "busMission": {
         "type": "Busmission",

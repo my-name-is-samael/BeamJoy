@@ -49,10 +49,8 @@ end
 ---@param ctxt TickContext
 local function canChangeTo(ctxt)
     return BJI_Scenario.isFreeroam() and
-        ctxt.isOwner and
-        not BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID) and
-        BJI_Scenario.Data.Deliveries and
-        #BJI_Scenario.Data.Deliveries > 1
+        ctxt.isOwner and ctxt.veh.isVehicle and
+        #BJI_Scenario.Data.Deliveries.Points > 1
 end
 
 -- load hook
