@@ -1263,6 +1263,7 @@
         "removeAllPBsModal": "Are your sure you want to remove all your PBs on the server ?",
         "race": "Race",
         "pb": "PB",
+        "attempts": "Attempts",
         "record": "Record",
         "removePBModal": "Are your sure you want to remove your PB on {raceName} ?"
       }

@@ -33,6 +33,8 @@ local function initManagerData()
     S.preRaceCam = nil
 
     S.raceName = nil
+        S.raceID = nil
+    S.raceHash = nil
     S.record = nil
 
     S.settings = {
@@ -661,9 +663,9 @@ local function onCheckpointReached(wp, remainingSteps)
                     BJI_RaceWaypoint.setPB(S.raceHash, pb)
                     BJI_Events.trigger(BJI_Events.EVENTS.RACE_NEW_PB, {
                         raceName = S.race.raceData.name,
-                        raceID = S.settings.raceID,
+                        raceID = S.raceID,
                         raceHash = S.raceHash,
-                        time = S.lapData[lastWp.wp].time,
+                        time = pb[lastWp.wp].time,
                     })
                 end
             end
@@ -929,6 +931,7 @@ local function initRace(data)
             BJI_Veh.freeze(false)
             S.race.timers.lap = math.timer()
             S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
+            BJI_RaceUI.incrementRaceAttempts(S.raceID, S.raceHash)
         end
         BJI_Restrictions.update()
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
@@ -983,6 +986,7 @@ local function rxData(data)
     S.ALLOW_NODEGRABBER = data.allowNodegrabber
     if data.state then
         S.raceName = data.raceName
+        S.raceID = data.raceID
         S.raceHash = data.raceHash
         S.raceAuthor = data.raceAuthor
         S.record = data.record

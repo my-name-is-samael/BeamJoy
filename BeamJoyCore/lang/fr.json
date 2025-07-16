@@ -1263,6 +1263,7 @@
         "removeAllPBsButton": "Supprimer tous les PBs",
         "removeAllPBsModal": "Es-tu sûr de vouloir supprimer tous tes PBs sur le serveur ?",
         "pb": "PB",
+        "attempts": "Tentatives",
         "removePBModal": "Es-tu sûr de vouloir supprimer ton PB sur {raceName} ?"
       }
     },

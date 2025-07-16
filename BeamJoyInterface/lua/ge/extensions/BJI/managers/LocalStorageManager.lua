@@ -89,10 +89,23 @@ local M = {
                         { time = 45887, speed = 89.45 },
                         ...
                     },
-                }
+                },
+                automation_test_track = {
+                ...
                 ]]
             },
         },
+        RACES_ATTEMPTS = {
+            key = "races_attempts",
+            default = {
+                --[[
+                italy = {
+                    ["e8f2f5b2-b2c0-4c2f-8a2f-5b2b2c0e8f2f"] = 8, -- attempts count
+                },
+                automation_test_track = {
+                ...
+                ]]},
+        }
     },
 
     data = {
@@ -108,19 +121,18 @@ local function getServerIP()
 end
 
 -- remove all non existing/updated races from PBs
-local function sanitizeMapRacesPBs()
+local function sanitizeMapRaces()
     local mapName = GetMapName()
-    if not mapName or not BJI_Scenario.Data.Races then
-        BJI_Async.removeTask("MapRacesPBSanitizer")
-        BJI_Async.delayTask(sanitizeMapRacesPBs, 500, "MapRacesPBSanitizer")
-        LogDebug("LocalStorage Races PBs sanitizer waiting for map and races : looping...")
-        return
-    elseif mapName ~= BJI_Scenario.Data.RacesCurrentMap then
-        LogError("LocalStorage Races PBs sanitizer : current map not matching races map, skipping...")
+    if not mapName or mapName ~= BJI_Scenario.Data.RacesCurrentMap then
+        BJI_Async.removeTask("MapRacesSanitizer")
+        BJI_Async.delayTask(sanitizeMapRaces, 500, "MapRacesSanitizer")
+        LogDebug("LocalStorage Races sanitizer waiting for map and races ...")
         return
     end
-    local pbRaces = M.data.values[M.VALUES.RACES_PB.key][mapName]
+
     local srvRaces = BJI_Scenario.Data.Races
+    -- PBs
+    local pbRaces = M.data.values[M.VALUES.RACES_PB.key][mapName]
     local changes = false
     if #srvRaces > 0 then
         if not pbRaces then
@@ -143,6 +155,32 @@ local function sanitizeMapRacesPBs()
     end
     if changes then
         M.set(M.VALUES.RACES_PB, M.data.values[M.VALUES.RACES_PB.key])
+    end
+
+    -- Attempts
+    local attemptsRaces = M.data.values[M.VALUES.RACES_ATTEMPTS.key][mapName]
+    changes = false
+    if #srvRaces > 0 then
+        if not attemptsRaces then
+            M.data.values[M.VALUES.RACES_PB.key][mapName] = {}
+            changes = true
+        else
+            table.forEach(attemptsRaces, function(_, pbHash)
+                if not table.any(srvRaces, function(srvRace)
+                        return srvRace.hash == pbHash
+                    end) then
+                    LogInfo(string.var("Removing attempts from obsolete race \"{1}\"", { pbHash }))
+                    attemptsRaces[pbHash] = nil
+                    changes = true
+                end
+            end)
+        end
+    elseif table.length(attemptsRaces) > 0 then
+        M.data.values[M.VALUES.RACES_ATTEMPTS.key][mapName] = {}
+        changes = true
+    end
+    if changes then
+        M.set(M.VALUES.RACES_ATTEMPTS, M.data.values[M.VALUES.RACES_ATTEMPTS.key])
     end
 end
 
@@ -194,10 +232,10 @@ local function onLoad()
 
     BJI_Async.task(function()
         return not not BJI_Scenario.Data.Races
-    end, sanitizeMapRacesPBs)
+    end, sanitizeMapRaces)
     listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.CACHE_LOADED, function(ctxt, data)
         if table.includes({ BJI_Cache.CACHES.RACES }, data.cache) then
-            sanitizeMapRacesPBs()
+            sanitizeMapRaces()
         end
     end, M._name))
     listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name))

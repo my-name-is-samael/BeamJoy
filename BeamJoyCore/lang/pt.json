@@ -1263,6 +1263,7 @@
         "removeAllPBsButton": "Remover todos os melhores tempos",
         "removeAllPBsModal": "Tens a certeza que queres remover todos os teus melhores tempos do servidor?",
         "pb": "MT",
+        "attempts": "Tentativas",
         "removePBModal": "Tens a certeza que queres remover o teu melhor tempo em {raceName}?"
       }
     },

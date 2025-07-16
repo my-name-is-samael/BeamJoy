@@ -1263,6 +1263,7 @@
         "removeAllPBsButton": "Alle Bestergebnisse entfernen",
         "removeAllPBsModal": "Möchtest du wirklich alle Bestergebnisse auf dem Server entfernen?",
         "pb": "BE",
+        "attempts": "Versuche",
         "removePBModal": "Möchtest du wirklich dein Bestergebnis auf {raceName} entfernen?"
       }
     },

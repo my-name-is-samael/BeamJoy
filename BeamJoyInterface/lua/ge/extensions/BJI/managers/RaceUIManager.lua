@@ -202,6 +202,43 @@ local function postLayoutUpdate()
     drawWaypoint()
 end
 
+---@param raceHash string
+---@return integer?
+local function getRaceAttempts(raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("getRaceAttempts invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local raceAttempts = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_ATTEMPTS)
+        [GetMapName() or BJI_Context.UI.mapName]
+    if raceAttempts then
+        return raceAttempts[raceHash]
+    end
+end
+
+---@param raceID integer
+---@param raceHash string
+local function incrementRaceAttempts(raceID, raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("incrementRaceAttempts invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local attempts = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_ATTEMPTS)
+    local mapAttempts = attempts[GetMapName() or BJI_Context.UI.mapName]
+    if not mapAttempts then
+        mapAttempts = {}
+        attempts[GetMapName() or BJI_Context.UI.mapName] = mapAttempts
+    end
+    mapAttempts[raceHash] = (mapAttempts[raceHash] or 0) + 1
+    BJI_LocalStorage.set(BJI_LocalStorage.VALUES.RACES_ATTEMPTS, attempts)
+    local poi = BJI_Bigmap.getPOIAndType(string.format("race%d_",raceID))
+    if poi then
+        poi.rating.attempts = mapAttempts[raceHash]
+    end
+end
+
 M.setLap = setLap
 M.clearLap = clearLap
 
@@ -216,6 +253,9 @@ M.clearRaceTime = clearRaceTime
 M.clear = clear
 
 M.postLayoutUpdate = postLayoutUpdate
+
+M.getRaceAttempts = getRaceAttempts
+M.incrementRaceAttempts = incrementRaceAttempts
 
 -- init hotlapping app
 extensions.load({ 'core_hotlapping' })

@@ -24,7 +24,7 @@ local M = {
         gasStations = "/art/thumbnails/gasStations.jpg",
     },
 
-    cachedMissionRoutes = {},
+    cachedMissionRoutes = Table(),
     _routeParams = {
         cutOffDrivability = .7,
         dirMult = 1,
@@ -87,129 +87,207 @@ local function generateRawPOIs()
     end
 end
 
-local function onUpdateData()
-    for _, list in pairs(M.POIs) do
-        list:clear()
-    end
+---@param cacheType string?
+local function onUpdateData(cacheType)
     M.selectedPreview = nil
     table.clear(M.cachedMissionRoutes)
 
-    BJI_Scenario.Data.Races
-        :sort(function(a, b) return a.id < b.id end)
-    ---@param r BJRaceLight
-        :forEach(function(r)
-            local id = "race" .. tostring(r.id) .. "_"
-            M.POIs.races[id] = {
+    local labels = {}
+
+    if not cacheType or cacheType == BJI_Cache.CACHES.RACES then
+        M.POIs.races:clear()
+        M.cachedMissionRoutes = M.cachedMissionRoutes:filter(function(_, id)
+            return not tostring(id):startswith("race")
+        end)
+        labels.race = {
+            title = BJI_Lang.get("bigmap.activities.race"),
+            descLoop = BJI_Lang.get("bigmap.descriptions.raceLoopable"),
+            descSprint = BJI_Lang.get("bigmap.descriptions.raceSprint"),
+            PB = BJI_Lang.get("races.leaderboard.pb"),
+            record = BJI_Lang.get("races.leaderboard.record"),
+            self = BJI_Lang.get("nametags.self"),
+        }
+
+        BJI_Scenario.Data.Races:sort(function(a, b) return a.id < b.id end)
+        ---@param r BJRaceLight
+            :forEach(function(r)
+                local id = "race" .. tostring(r.id) .. "_"
+                local aggregates = { primary = nil, secondary = nil }
+                if r.record then
+                    local player = r.record.playerName == BJI_Context.User.playerName and
+                        labels.race.self or r.record.playerName
+                    aggregates.primary = {
+                        label = { text = labels.race.record },
+                        value = { text = BJI.Utils.UI.RaceDelay(r.record.time) .. " - " .. player },
+                    }
+                end
+                local _, pb = BJI_RaceWaypoint.getPB(r.hash)
+                if pb and (not r.record or r.record.time ~= pb) then
+                    aggregates.secondary = {
+                        label = { text = labels.race.PB },
+                        value = { text = BJI.Utils.UI.RaceDelay(pb) },
+                    }
+                end
+                M.POIs.races[id] = {
+                    id = id,
+                    label = labels.race.title:var({ places = r.places }),
+                    name = r.name,
+                    description = r.loopable and labels.race.descLoop or
+                        labels.race.descSprint,
+                    rating = {
+                        type = "attempts",
+                        attempts = BJI_RaceUI.getRaceAttempts(r.hash) or 0,
+                    },
+                    aggregatePrimary = aggregates.primary,
+                    aggregateSecondary = aggregates.secondary,
+                    quickTravelAvailable = M.quickTravel,
+                    quickTravelUnlocked = M.quickTravel,
+                    canSetRoute = true,
+                    thumbnailFile = M.baseImgs.races,
+                    previewFiles = { M.baseImgs.races },
+                    pos = r.markerPos,
+                    tab = 1,
+                    group = 1,
+                }
+            end)
+    end
+
+    if not cacheType or cacheType == BJI_Cache.CACHES.BUS_LINES then
+        M.POIs.busLines:clear()
+        M.cachedMissionRoutes = M.cachedMissionRoutes:filter(function(_, id)
+            return not tostring(id):startswith("busLine")
+        end)
+        labels.busMission = {
+            title = BJI_Lang.get("bigmap.activities.busMission"),
+            desc = BJI_Lang.get("bigmap.descriptions.busMission"),
+        }
+
+        ---@param bl BJBusLine
+        BJI_Scenario.Data.BusLines:forEach(function(bl, i)
+            local id = "busLine" .. tostring(i) .. "_"
+            M.POIs.busLines[id] = {
                 id = id,
-                label = BJI_Lang.get("bigmap.activities.race"):var({ places = r.places }),
-                name = r.name,
-                description = BJI_Lang.get(r.loopable and "bigmap.descriptions.raceLoopable" or
-                    "bigmap.descriptions.raceSprint"),
+                label = labels.busMission.title:var({
+                    distance = BJI.Utils.UI.PrettyDistance(bl.distance) }),
+                name = bl.name,
+                description = labels.busMission.desc:var({
+                    stops = table.map(bl.stops, function(s) return s.name end)
+                        :join(" - ")
+                }),
                 rating = {},
-                quickTravelAvailable = M.quickTravel,
-                quickTravelUnlocked = M.quickTravel,
                 canSetRoute = true,
-                thumbnailFile = M.baseImgs.races,
-                previewFiles = { M.baseImgs.races },
-                pos = r.markerPos,
+                thumbnailFile = M.baseImgs.busLines,
+                previewFiles = { M.baseImgs.busLines },
+                pos = bl.stops[1].pos,
                 tab = 1,
+                group = 2,
+            }
+        end)
+    end
+
+    if not cacheType or cacheType == BJI_Cache.CACHES.DERBY_DATA then
+        M.POIs.derbyArenas:clear()
+        M.cachedMissionRoutes = M.cachedMissionRoutes:filter(function(_, id)
+            return not tostring(id):startswith("derbyArena")
+        end)
+        labels.derbyArena = {
+            title = BJI_Lang.get("bigmap.activities.derby"),
+            desc = BJI_Lang.get("bigmap.descriptions.derby"),
+        }
+
+        ---@param a BJArena
+        BJI_Scenario.Data.Derby:forEach(function(a, i)
+            local id = "derbyArena" .. tostring(i) .. "_"
+            M.POIs.derbyArenas[id] = {
+                id = id,
+                label = labels.derbyArena.title:var({
+                    places = #a.startPositions }),
+                name = a.name,
+                description = labels.derbyArena.desc,
+                rating = {},
+                canSetRoute = true,
+                thumbnailFile = M.baseImgs.derbyArenas,
+                previewFiles = { M.baseImgs.derbyArenas },
+                pos = a.centerPosition,
+                tab = 1,
+                group = 3,
+            }
+        end)
+    end
+
+    if not cacheType or cacheType == BJI_Cache.CACHES.STATIONS then
+        M.POIs.garages:clear()
+        M.cachedMissionRoutes = M.cachedMissionRoutes:filter(function(_, id)
+            return not tostring(id):startswith("garage")
+        end)
+        labels.garage = {
+            title = BJI_Lang.get("bigmap.activities.garage"),
+            desc = BJI_Lang.get("bigmap.descriptions.garage"),
+        }
+
+        ---@param g BJIStation
+        BJI_Stations.Data.Garages:forEach(function(g, i)
+            local id = "garage" .. tostring(i) .. "_"
+            M.POIs.garages[id] = {
+                id = id,
+                label = labels.garage.title,
+                name = g.name,
+                description = labels.garage.desc,
+                rating = {},
+                canSetRoute = true,
+                thumbnailFile = M.baseImgs.garages,
+                previewFiles = { M.baseImgs.garages },
+                pos = g.pos,
+                tab = 2,
                 group = 1,
             }
         end)
 
-    ---@param bl BJBusLine
-    BJI_Scenario.Data.BusLines:forEach(function(bl, i)
-        local id = "busLine" .. tostring(i) .. "_"
-        M.POIs.busLines[id] = {
-            id = id,
-            label = BJI_Lang.get("bigmap.activities.busMission")
-                :var({ distance = BJI.Utils.UI.PrettyDistance(bl.distance) }),
-            name = bl.name,
-            description = BJI_Lang.get("bigmap.descriptions.busMission")
-                :var({
-                    stops = table.map(bl.stops, function(s) return s.name end):join(" - ")
-                }),
-            rating = {},
-            canSetRoute = true,
-            thumbnailFile = M.baseImgs.busLines,
-            previewFiles = { M.baseImgs.busLines },
-            pos = bl.stops[1].pos,
-            tab = 1,
-            group = 2,
+        M.POIs.gasStations:clear()
+        M.cachedMissionRoutes = M.cachedMissionRoutes:filter(function(_, id)
+            return not tostring(id):startswith("gasStation")
+        end)
+        labels.gasStation = {
+            titleFuel = BJI_Lang.get("bigmap.activities.gasStation"),
+            titleElectric = BJI_Lang.get("bigmap.activities.electricStation"),
+            descFuel = BJI_Lang.get("bigmap.descriptions.gasStation"),
+            descElectric = BJI_Lang.get("bigmap.descriptions.electricStation"),
         }
-    end)
 
-    ---@param a BJArena
-    BJI_Scenario.Data.Derby:forEach(function(a, i)
-        local id = "derbyArena" .. tostring(i) .. "_"
-        M.POIs.derbyArenas[id] = {
-            id = id,
-            label = BJI_Lang.get("bigmap.activities.derby")
-                :var({ places = #a.startPositions }),
-            name = a.name,
-            description = BJI_Lang.get("bigmap.descriptions.derby"),
-            rating = {},
-            canSetRoute = true,
-            thumbnailFile = M.baseImgs.derbyArenas,
-            previewFiles = { M.baseImgs.derbyArenas },
-            pos = a.centerPosition,
-            tab = 1,
-            group = 3,
-        }
-    end)
-
-    ---@param g BJIStation
-    BJI_Stations.Data.Garages:forEach(function(g, i)
-        local id = "garage" .. tostring(i) .. "_"
-        M.POIs.garages[id] = {
-            id = id,
-            label = BJI_Lang.get("bigmap.activities.garage"),
-            name = g.name,
-            description = BJI_Lang.get("bigmap.descriptions.garage"),
-            rating = {},
-            canSetRoute = true,
-            thumbnailFile = M.baseImgs.garages,
-            previewFiles = { M.baseImgs.garages },
-            pos = g.pos,
-            tab = 2,
-            group = 1,
-        }
-    end)
-
-    local previousPositions = Table()
-    ---@param es BJIStation
-    BJI_Stations.Data.EnergyStations:forEach(function(es, i)
-        if not previousPositions:any(function(prev)
-                return prev.name == es.name and
-                    prev.pos:distance(es.pos) < 20
-            end) then
-            local id = "gasStation" .. tostring(i) .. "_"
-            M.POIs.gasStations[id] = {
-                id = id,
-                label = BJI_Lang.get((#es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC) and
-                        "bigmap.activities.electricStation" or "bigmap.activities.gasStation")
-                    :var({
-                        energyTypes = table.map(es.types, function(t)
-                            return BJI_Lang.get("energy.energyTypes." .. t)
-                        end):join(", ")
-                    }),
-                name = es.name,
-                description = BJI_Lang.get((#es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC) and
-                    "bigmap.descriptions.electricStation" or "bigmap.descriptions.gasStation"),
-                rating = {},
-                canSetRoute = true,
-                thumbnailFile = M.baseImgs.gasStations,
-                previewFiles = { M.baseImgs.gasStations },
-                pos = es.pos,
-                tab = 2,
-                group = 2,
-            }
-            previousPositions:insert({
-                name = es.name,
-                pos = es.pos,
-            })
-        end
-    end)
+        local previousPositions = Table()
+        ---@param es BJIStation
+        BJI_Stations.Data.EnergyStations:forEach(function(es, i)
+            if not previousPositions:any(function(prev)
+                    return prev.name == es.name and
+                        prev.pos:distance(es.pos) < 20
+                end) then
+                local id = "gasStation" .. tostring(i) .. "_"
+                local isElec = (#es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC)
+                M.POIs.gasStations[id] = {
+                    id = id,
+                    label = (isElec and labels.gasStation.titleElectric or labels.gasStation.titleFuel)
+                        :var({
+                            energyTypes = table.map(es.types, function(t)
+                                return BJI_Lang.get("energy.energyTypes." .. t)
+                            end):join(", ")
+                        }),
+                    name = es.name,
+                    description = isElec and labels.gasStation.descElectric or labels.gasStation.descFuel,
+                    rating = {},
+                    canSetRoute = true,
+                    thumbnailFile = M.baseImgs.gasStations,
+                    previewFiles = { M.baseImgs.gasStations },
+                    pos = es.pos,
+                    tab = 2,
+                    group = 2,
+                }
+                previousPositions:insert({
+                    name = es.name,
+                    pos = es.pos,
+                })
+            end
+        end)
+    end
 
     generateRawPOIs()
 end
@@ -385,11 +463,12 @@ local function onLoad()
                 BJI_Cache.CACHES.DERBY_DATA,
                 BJI_Cache.CACHES.BUS_LINES
             }, data.cache) then
-            onUpdateData()
+            onUpdateData(data.cache)
         end
     end, M._name .. "POIsUpdate")
 end
 
 M.onLoad = onLoad
+M.getPOIAndType = getPOIAndType
 
 return M

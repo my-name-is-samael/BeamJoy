@@ -31,12 +31,12 @@ local function initManagerData()
     S.exemptNextReset = false
 
     S.raceName = nil
+    S.raceID = nil
     S.raceHash = nil
     S.record = nil
 
     S.preRaceCam = nil
     S.settings = {
-        raceID = nil,
         laps = nil,
         model = nil,
         respawnStrategy = nil,
@@ -472,7 +472,7 @@ local function onCheckpointReached(wp, remainingSteps)
         local function onLap()
             if not S.testing then
                 -- send to server (time broadcasted or new record)
-                BJI_Tx_scenario.RaceSoloUpdate(S.settings.raceID, lapTime, S.settings.model)
+                BJI_Tx_scenario.RaceSoloUpdate(S.raceID, lapTime, S.settings.model)
 
                 -- detect new pb and save it
                 ---@type MapRacePBWP[]?
@@ -492,7 +492,7 @@ local function onCheckpointReached(wp, remainingSteps)
                     BJI_RaceWaypoint.setPB(S.raceHash, pb)
                     BJI_Events.trigger(BJI_Events.EVENTS.RACE_NEW_PB, {
                         raceName = S.race.raceData.name,
-                        raceID = S.settings.raceID,
+                        raceID = S.raceID,
                         raceHash = S.raceHash,
                         time = S.lapData[lapWaypoint].time,
                     })
@@ -624,8 +624,8 @@ local function initRace(ctxt, settings, raceData, testingCallback)
     S.settings.laps = settings.laps
     S.settings.respawnStrategy = settings.respawnStrategy
 
-    S.settings.raceID = raceData.id
     S.raceName = raceData.name
+    S.raceID = raceData.id
     S.raceHash = raceData.hash
     S.raceAuthor = raceData.author
     S.record = raceData.record
@@ -682,6 +682,7 @@ local function initRace(ctxt, settings, raceData, testingCallback)
         BJI_Veh.freeze(false)
         S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+        BJI_RaceUI.incrementRaceAttempts(S.raceID, S.raceHash)
     end, S.race.startTime, "BJIRaceStartTime")
 end
 
@@ -812,7 +813,7 @@ local function slowTick(ctxt)
 
     -- RECORD UPDATE
     for _, race in ipairs(BJI_Scenario.Data.Races) do
-        if race.id == S.settings.raceID and race.record and
+        if race.id == S.raceID and race.record and
             (not S.record or race.record.time ~= S.record.time) then
             S.record = race.record
         end

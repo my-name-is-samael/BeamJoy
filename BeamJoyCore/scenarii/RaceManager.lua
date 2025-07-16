@@ -728,6 +728,7 @@ local function getCache()
         -- common
         state = M.state,
         raceName = M.baseRace and M.baseRace.name or nil,
+        raceID = M.baseRace and M.baseRace.id or nil,
         raceHash = M.baseRace and M.baseRace.hash or nil,
         raceAuthor = M.baseRace and M.baseRace.author or nil,
         record = M.baseRace and M.baseRace.record or nil,

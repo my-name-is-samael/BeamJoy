@@ -33,6 +33,7 @@ local function updateLabels()
     W.labels.columnRace = BJI_Lang.get("races.leaderboard.race")
     W.labels.columnPB = BJI_Lang.get("races.leaderboard.pb")
     W.labels.columnRecord = BJI_Lang.get("races.leaderboard.record")
+    W.labels.attempts = BJI_Lang.get("races.leaderboard.attempts") .. " : "
     W.labels.buttons.removeAllPBs = BJI_Lang.get("races.leaderboard.removeAllPBsButton")
     W.labels.buttons.remove = BJI_Lang.get("common.buttons.remove")
 end
@@ -53,6 +54,7 @@ local function updateCache(ctxt)
             return type(race) == "table"
         end):map(function(race)
             local _, pb = BJI_RaceWaypoint.getPB(race.hash)
+            local attempts = pb and BJI_RaceUI.getRaceAttempts(race.hash)
             return {
                 id = race.id,
                 name = race.name,
@@ -60,6 +62,7 @@ local function updateCache(ctxt)
                 color = race.record and race.record.playerName == ctxt.user.playerName and
                     BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT,
                 pb = pb and BJI.Utils.UI.RaceDelay(pb) or nil,
+                attempts = attempts,
                 record = race.record and BJI.Utils.UI.RaceDelay(race.record.time) or nil,
                 recordTooltip = race.record and string.var("{1} - {2}", { race.record.playerName,
                     BJI_Veh.getModelLabel(race.record.model) }) or nil,
@@ -163,6 +166,9 @@ local function body()
                     TooltipText(W.labels.buttons.remove)
                     SameLine()
                     Text(el.pb, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+                    if el.attempts then
+                        TooltipText(W.labels.attempts.. tostring(el.attempts))
+                    end
                 end
                 TableNextColumn()
                 if el.record then
