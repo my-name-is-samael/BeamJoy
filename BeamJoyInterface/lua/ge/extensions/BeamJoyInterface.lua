@@ -156,7 +156,6 @@ local function bindNGHooks()
         { M,        "trackAIAllVeh",             BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
         { M,        "onTrafficVehicleAdded",     BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
         { M,        "onUILayoutLoaded",          BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
-        { M,        "onBeamNGTrigger",           BJI_Events.EVENTS.NG_BEAMNG_TRIGGER },
     }):forEach(function(hook)
         hook[1][hook[2]] = function(...)
             BJI_Events.trigger(hook[3], ...)
@@ -188,7 +187,3 @@ return M
 -- core_repository.requestMyMods (on open mods menu > tab my mods)
 -- core_vehicle_partmgmt.savedefault (on save default config)
 -- core_vehicle_partmgmt.getConfigList (on open vehicle configuration menu)
-
---- screen fade
--- ui_fadeScreen.start(fadeDurationSec) -- can be float
--- ui_fadeScreen.stop(fadeDurationSec) -- can be float

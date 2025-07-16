@@ -622,17 +622,9 @@ local function onTrafficVehAdded(gameVehID)
     end
 end
 
-local function onNGTrigger(data)
-    if data.speedTrapType then
-        local gameVehID = data.vehID
-        -- TODO try to add manual pursuit (speeding/racing reason)
-    end
-end
-
 M.onLoad = function()
     BJI_Events.addListener(BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED, onTrafficVehAdded, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_PURSUIT_ACTION, onPursuitActionUpdate, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.NG_BEAMNG_TRIGGER, onNGTrigger, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect, M._name)
