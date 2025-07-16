@@ -228,7 +228,7 @@ local function renderTick(ctxt)
         tip = vec3(wp.pos) + forward
         base = vec3(wp.pos) - forward
         BJI.Utils.ShapeDrawer.SquarePrism(
-            base, ctxt.veh and ctxt.veh.veh:getInitialWidth() or wp.radius * 1.2,
+            base, ctxt.veh and ctxt.veh.veh:getInitialWidth() or (wp.radius or 2) * 1.2,
             tip, 0,
             wp.color
         )
