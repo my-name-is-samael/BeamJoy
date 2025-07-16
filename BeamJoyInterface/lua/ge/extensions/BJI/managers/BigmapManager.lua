@@ -17,11 +17,11 @@ local M = {
     rawPOIsGen = 0,
 
     baseImgs = {
-        races = "/art/thumbnails/races.jpg",
-        busLines = "/art/thumbnails/busLines.jpg",
-        derbyArenas = "/art/thumbnails/derbyArenas.jpg",
-        garages = "/art/thumbnails/garages.jpg",
-        gasStations = "/art/thumbnails/gasStations.jpg",
+        races = "/art/thumbnails/races.webp",
+        busLines = "/art/thumbnails/busLines.webp",
+        derbyArenas = "/art/thumbnails/derbyArenas.webp",
+        garages = "/art/thumbnails/garages.webp",
+        gasStations = "/art/thumbnails/gasStations.webp",
     },
 
     cachedMissionRoutes = Table(),
