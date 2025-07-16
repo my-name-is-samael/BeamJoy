@@ -224,8 +224,8 @@ local function updateMarkers(cacheType)
     -- bus lines
     if not cacheType or cacheType == BJI_Cache.CACHES.BUS_LINES then
         labels.busline = {
-            type = BJI_Lang.get("interactiveMarkers.busline.type"),
-            button = BJI_Lang.get("interactiveMarkers.busline.button"),
+            type = BJI_Lang.get("interactiveMarkers.busMission.type"),
+            button = BJI_Lang.get("interactiveMarkers.busMission.button"),
         }
         local previousPositions = Table()
 
