@@ -1108,7 +1108,23 @@
       "tools": {
         "title": "Ferramentas",
         "rotation": "Rotação",
-        "reverse": "Inverter passos"
+        "reverse": "Inverter passos",
+        "importExport": "Importar/Exportar",
+        "importData": "Importar dados da corrida da área de transferência",
+        "exportData": "Exportar dados da corrida para a área de transferência",
+        "import": {
+          "confirmDialog": "Importar dados da área de transferência apagará todos os dados atuais da corrida. Tem certeza de que deseja continuar?",
+          "success": "Dados da corrida importados da área de transferência",
+          "errorContent": "Conteúdo da área de transferência inválido",
+          "errorData": "Dados da corrida inválidos",
+          "errorPreviewPosition": "Posição de pré-visualização inválida",
+          "errorStartPositions": "Posições de partida inválidas",
+          "errorSteps": "Passos inválidos"
+        },
+        "export": {
+          "success": "Dados da corrida exportados para a área de transferência",
+          "errorFail": "Falha ao exportar os dados da corrida para a área de transferência"
+        }
       },
       "edit": {
         "title": "Editor de corrida",

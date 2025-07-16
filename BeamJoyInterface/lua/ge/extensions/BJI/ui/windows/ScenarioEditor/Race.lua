@@ -38,6 +38,9 @@ local W = {
             title = "",
             rotation = "",
             reverse = "",
+            importExport = "",
+            importDataTooltip = "",
+            exportDataTooltip = "",
         },
         editTitle = "",
         name = "",
@@ -119,7 +122,7 @@ local tryDisabled, tryErrorTooltip, nextValue, vehpos, opened, invalidData
 
 local function onClose()
     BJI_WaypointEdit.reset() -- remove edit markers
-    W.raceData = resetData()          -- reset data
+    W.raceData = resetData() -- reset data
 end
 
 local function updateLabels()
@@ -128,6 +131,9 @@ local function updateLabels()
     W.labels.tools.title = BJI_Lang.get("races.tools.title")
     W.labels.tools.rotation = BJI_Lang.get("races.tools.rotation")
     W.labels.tools.reverse = BJI_Lang.get("races.tools.reverse")
+    W.labels.tools.importExport = BJI_Lang.get("races.tools.importExport")
+    W.labels.tools.importDataTooltip = BJI_Lang.get("races.tools.importData")
+    W.labels.tools.exportDataTooltip = BJI_Lang.get("races.tools.exportData")
 
     W.labels.editTitle = BJI_Lang.get("races.edit.title")
     W.labels.name = BJI_Lang.get("races.edit.name")
@@ -563,6 +569,87 @@ local function reverseRace()
         })
 end
 
+local function exportDataToClipboard()
+    local content = jsonEncode({
+        name = W.raceData.name,
+        loopable = W.raceData.loopable,
+        previewPosition = W.raceData.previewPosition,
+        startPositions = W.raceData.startPositions,
+        steps = W.raceData.steps,
+    })
+    if SetClipboardContent(content) then
+        BJI_Toast.success(BJI_Lang.get("races.tools.export.success"))
+    else
+        BJI_Toast.error(BJI_Lang.get("races.tools.export.errorFail"))
+    end
+end
+
+local function importDataFromClipboard()
+    local raw = GetClipboardContent()
+    local ok, obj = pcall(jsonDecode, raw)
+    if not ok or not obj then
+        local msg = BJI_Lang.get("races.tools.import.errorContent")
+        BJI_Toast.error(msg)
+        LogError(msg .. " : " .. raw)
+        return dump(obj)
+    end
+    if not obj.name or obj.loopable == nil or not obj.previewPosition or
+        not obj.startPositions or not obj.steps then
+        local msg = BJI_Lang.get("races.tools.import.errorData")
+        BJI_Toast.error(msg)
+        LogError(msg .. " :")
+        return dump(obj)
+    elseif type(obj.previewPosition) ~= "table" or
+        not obj.previewPosition.pos or
+        not obj.previewPosition.rot then
+        local msg = BJI_Lang.get("races.tools.import.errorPreviewPosition")
+        BJI_Toast.error(msg)
+        LogError(msg .. " :")
+        return dump(obj.previewPosition)
+    elseif type(obj.startPositions) ~= "table" or
+        #obj.startPositions == 0 or
+        table.any(obj.startPositions, function(sp)
+            return not sp.pos or not sp.rot
+        end) then
+        local msg = BJI_Lang.get("races.tools.import.errorStartPositions")
+        BJI_Toast.error(msg)
+        LogError(msg .. " :")
+        return dump(obj.startPositions)
+    elseif type(obj.steps) ~= "table" or
+        #obj.steps == 0 or
+        table.any(obj.steps, function(wps)
+            return type(wps) ~= "table" or
+                table.any(wps, function(wp)
+                    return type(wp) ~= "table" or
+                        type(wp.name) ~= "string" or #wp.name == 0 or
+                        type(wp.pos) ~= "table" or type(wp.rot) ~= "table" or
+                        type(wp.radius) ~= "number" or
+                        type(wp.parents) ~= "table" or #wp.parents == 0
+                end)
+        end) then
+        local msg = BJI_Lang.get("races.tools.import.errorSteps")
+        BJI_Toast.error(msg)
+        LogError(msg .. " :")
+        return dump(obj.steps)
+    end
+    W.raceData.name = obj.name
+    W.raceData.loopable = obj.loopable
+    W.raceData.previewPosition = math.tryParsePosRot(obj.previewPosition)
+    W.raceData.startPositions = Table(obj.startPositions):map(math.tryParsePosRot)
+    W.raceData.steps = Table(obj.steps):map(function(wps)
+        return Table(wps):map(function(wp)
+            return table.assign(math.tryParsePosRot(wp), {
+                parents = Table(wp.parents),
+            })
+        end)
+    end)
+    W.raceData.changed = true
+    W.raceData.keepRecord = false
+    validateRace()
+    updateMarkers()
+    BJI_Toast.success(BJI_Lang.get("races.tools.import.success"))
+end
+
 ---@param ctxt TickContext
 local function drawTools(ctxt)
     vehpos = ctxt.isOwner and math.roundPositionRotation({
@@ -601,6 +688,7 @@ local function drawTools(ctxt)
         end
         TooltipText(W.labels.buttons.rotate180)
     end
+
     if #W.raceData.steps > 1 then
         Text(W.labels.tools.reverse)
         SameLine()
@@ -610,6 +698,27 @@ local function drawTools(ctxt)
         end
         TooltipText(W.labels.buttons.reverseAllSteps)
     end
+
+    Text(W.labels.tools.importExport)
+    SameLine()
+    if IconButton("importData", BJI.Utils.Icon.ICONS.archive,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.WARNING }) then
+        if W.cache.validSave then
+            BJI_Popup.createModal(BJI_Lang.get("races.tools.import.confirmDialog"), {
+                BJI_Popup.createButton(BJI_Lang.get("common.buttons.cancel")),
+                BJI_Popup.createButton(BJI_Lang.get("common.buttons.confirm"), importDataFromClipboard)
+            })
+        else
+            importDataFromClipboard()
+        end
+    end
+    TooltipText(W.labels.tools.importDataTooltip)
+    SameLine()
+    if IconButton("exportData", BJI.Utils.Icon.ICONS.unarchive,
+            { disabled = not W.cache.validSave }) then
+        exportDataToClipboard()
+    end
+    TooltipText(W.labels.tools.exportDataTooltip)
 end
 
 ---@param ctxt TickContext

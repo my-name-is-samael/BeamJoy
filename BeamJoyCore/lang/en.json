@@ -1109,7 +1109,23 @@
       "tools": {
         "title": "Tools",
         "rotation": "Rotation",
-        "reverse": "Reverse steps"
+        "reverse": "Reverse steps",
+        "importExport": "Import/Export",
+        "importData": "Import race data from clipboard",
+        "exportData": "Export race data to clipboard",
+        "import": {
+          "confirmDialog": "Importing data from cliboard will erase all current race data. Are you sure you want to proceed ?",
+          "success": "Race data imported from clipboard",
+          "errorContent": "Invalid clipboard content",
+          "errorData": "Invalid race data",
+          "errorPreviewPosition": "Invalid preview position",
+          "errorStartPositions": "Invalid start positions",
+          "errorSteps": "Invalid steps"
+        },
+        "export": {
+          "success": "Race data exported to clipboard",
+          "errorFail": "Failed to export race data to clipboard"
+        }
       },
       "edit": {
         "title": "Race Editor",

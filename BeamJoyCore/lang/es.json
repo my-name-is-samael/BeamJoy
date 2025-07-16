@@ -1108,7 +1108,23 @@
       "tools": {
         "title": "Herramientas",
         "rotation": "Rotación",
-        "reverse": "Invertir pasos"
+        "reverse": "Invertir pasos",
+        "importExport": "Importar/Exportar",
+        "importData": "Importar datos de carrera desde el portapapeles",
+        "exportData": "Exportar datos de carrera al portapapeles",
+        "import": {
+          "confirmDialog": "Importar datos desde el portapapeles borrará todos los datos actuales de la carrera. ¿Estás seguro de que deseas continuar?",
+          "success": "Datos de carrera importados desde el portapapeles",
+          "errorContent": "Contenido del portapapeles no válido",
+          "errorData": "Datos de carrera no válidos",
+          "errorPreviewPosition": "Posición de vista previa no válida",
+          "errorStartPositions": "Posiciones de inicio no válidas",
+          "errorSteps": "Pasos no válidos"
+        },
+        "export": {
+          "success": "Datos de carrera exportados al portapapeles",
+          "errorFail": "Error al exportar los datos de carrera al portapapeles"
+        }
       },
       "edit": {
         "title": "Editor de carrera",

@@ -1108,7 +1108,23 @@
       "tools": {
         "title": "Utensili",
         "rotation": "Rotazione",
-        "reverse": "Inverti passaggi"
+        "reverse": "Inverti passaggi",
+        "importExport": "Importa/Esporta",
+        "importData": "Importa dati di gara dagli appunti",
+        "exportData": "Esporta dati di gara negli appunti",
+        "import": {
+          "confirmDialog": "L'importazione dagli appunti cancellerà tutti i dati di gara attuali. Sei sicuro di voler procedere?",
+          "success": "Dati di gara importati dagli appunti",
+          "errorContent": "Contenuto degli appunti non valido",
+          "errorData": "Dati di gara non validi",
+          "errorPreviewPosition": "Posizione di anteprima non valida",
+          "errorStartPositions": "Posizioni di partenza non valide",
+          "errorSteps": "Passaggi non validi"
+        },
+        "export": {
+          "success": "Dati di gara esportati negli appunti",
+          "errorFail": "Esportazione dei dati di gara negli appunti fallita"
+        }
       },
       "edit": {
         "title": "Redattore di gara",

@@ -1108,7 +1108,23 @@
       "tools": {
         "title": "Werkzeuge",
         "rotation": "Drehung",
-        "reverse": "Schritte umkehren"
+        "reverse": "Schritte umkehren",
+        "importExport": "Import/Export",
+        "importData": "Renndaten aus der Zwischenablage importieren",
+        "exportData": "Renndaten in die Zwischenablage exportieren",
+        "import": {
+          "confirmDialog": "Das Importieren von Daten aus der Zwischenablage löscht alle aktuellen Renndaten. Möchten Sie wirklich fortfahren?",
+          "success": "Renndaten aus der Zwischenablage importiert",
+          "errorContent": "Ungültiger Inhalt in der Zwischenablage",
+          "errorData": "Ungültige Renndaten",
+          "errorPreviewPosition": "Ungültige Vorschauposition",
+          "errorStartPositions": "Ungültige Startpositionen",
+          "errorSteps": "Ungültige Schritte"
+        },
+        "export": {
+          "success": "Renndaten in die Zwischenablage exportiert",
+          "errorFail": "Fehler beim Exportieren der Renndaten in die Zwischenablage"
+        }
       },
       "edit": {
         "title": "Rennredakteur",

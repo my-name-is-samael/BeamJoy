@@ -1108,7 +1108,23 @@
       "tools": {
         "title": "Outils",
         "rotation": "Rotation",
-        "reverse": "Inverser les étapes"
+        "reverse": "Inverser les étapes",
+        "importExport": "Importer/Exporter",
+        "importData": "Importer les données de course depuis le presse-papiers",
+        "exportData": "Exporter les données de course vers le presse-papiers",
+        "import": {
+          "confirmDialog": "L'importation depuis le presse-papiers effacera toutes les données de course actuelles. Êtes-vous sûr de vouloir continuer ?",
+          "success": "Données de course importées depuis le presse-papiers",
+          "errorContent": "Contenu du presse-papiers invalide",
+          "errorData": "Données de course invalides",
+          "errorPreviewPosition": "Position de prévisualisation invalide",
+          "errorStartPositions": "Positions de départ invalides",
+          "errorSteps": "Étapes invalides"
+        },
+        "export": {
+          "success": "Données de course exportées vers le presse-papiers",
+          "errorFail": "Échec de l'exportation des données de course vers le presse-papiers"
+        }
       },
       "edit": {
         "title": "Éditeur de course",

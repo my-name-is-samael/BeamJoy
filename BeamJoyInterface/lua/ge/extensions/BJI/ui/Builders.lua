@@ -34,6 +34,23 @@ ArrayCharPtr = ui_imgui.ArrayCharPtrByTbl or function(values) return {} end
 ---@param count integer
 ---@return {[0]: number}
 ArrayFloatPtr = ui_imgui.ArrayFloat or function(count) return {} end
+---@param content string
+---@return boolean success
+SetClipboardContent = function(content)
+    ok, err = pcall(ui_imgui.SetClipboardText, content)
+    if not ok then
+        LogError("Error setting clipboard content : " .. err)
+    end
+    return ok
+end
+---@return string
+GetClipboardContent = function()
+    ok, err = pcall(ui_imgui.GetClipboardText)
+    if not ok then
+        LogError("Error getting clipboard content : " .. err)
+    end
+    return ok and StrPtrValue(err) or ""
+end
 ---@return point
 ImVec2 = ui_imgui.ImVec2 or function(x, y) return {} end
 ---@return vec4
