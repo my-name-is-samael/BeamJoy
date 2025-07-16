@@ -354,7 +354,7 @@ local function initPreparation(data)
     S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
     S.state = data.state
     S.participants = data.participants
-    BJI_Cam.forceFreecamPos()
+    BJI_Cam.forceFreecamPos(BJI_Cam.getPositionRotation().pos + vec3(0, 0, 1000), quat(-1, 0, 0, 1))
     BJI_Scenario.switchScenario(BJI_Scenario.TYPES.HUNTER)
 end
 
@@ -437,7 +437,8 @@ end
 local function onLeaveParticipants()
     if S.state == S.STATES.PREPARATION then
         -- prevents from switching to another participant (spoil)
-        BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+        BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE, false)
+        BJI_Cam.forceFreecamPos(BJI_Cam.getPositionRotation().pos + vec3(0, 0, 1000), quat(-1, 0, 0, 1))
         BJI_Win_VehSelector.tryClose(true)
     end
     BJI_Veh.deleteAllOwnVehicles()
