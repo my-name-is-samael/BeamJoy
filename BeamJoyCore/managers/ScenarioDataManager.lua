@@ -609,7 +609,9 @@ local function saveDeliveryPositions(data)
     end
 
     BJCDao.scenario.Delivery.save(data)
+    local leaderboard = M.Deliveries.Leaderboard
     M.Deliveries = BJCDao.scenario.Delivery.findAll()
+    M.Deliveries.Leaderboard = leaderboard
     BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.DELIVERIES, BJCPerm.PERMISSIONS.START_PLAYER_SCENARIO)
 end
 

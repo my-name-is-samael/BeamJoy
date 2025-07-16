@@ -8,7 +8,7 @@ local M = {
 }
 
 local function initTarget(pos)
-    M.target = Table(BJCScenarioData.Deliveries):map(function(delivery)
+    M.target = Table(BJCScenarioData.Deliveries.Points):map(function(delivery)
         return {
             target = table.deepcopy(delivery),
             distance = math.horizontalDistance(pos, delivery.pos),
@@ -16,12 +16,12 @@ local function initTarget(pos)
     end):sort(function(a, b)
         return a.distance > b.distance
     end):values():filter(function(_, i)
-        return i < math.round(Table(BJCScenarioData.Deliveries):length() * .66) + 1 -- keep only 66% furthest
+        return i < math.round(Table(BJCScenarioData.Deliveries.Points):length() * .66) + 1 -- keep only 66% furthest
     end):random().target
 end
 
 local function join(playerID, gameVehID, pos)
-    if #BJCScenarioData.Deliveries == 0 then
+    if #BJCScenarioData.Deliveries.Points == 0 then
         return
     elseif M.participants[playerID] then
         return
