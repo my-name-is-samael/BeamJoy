@@ -460,8 +460,8 @@ local function openPromptFlow(raceSettings)
     local titlePrefix = string.format("%s (%s) - ",
         BJI_Lang.get("races.settings.title"),
         BJI_Lang.get(raceSettings.multi and
-            "interactiveMarkers.multiRace.type" or
-            "interactiveMarkers.soloRace.type"))
+            "interactiveMarkers.race.typeMulti" or
+            "interactiveMarkers.race.typeSolo"))
     local steps = Table()
 
     -- laps

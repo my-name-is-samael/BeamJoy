@@ -115,7 +115,8 @@ local function updateMarkers(cacheType)
                     {
                         condition = function(ctxt)
                             return not BJI_Win_RaceSettings.getState() and r.places > 1 and
-                                not BJI_Votes.Map.started() and not BJI_Votes.Scenario.started() and
+                                BJI_Votes.Scenario.canStartVote() and BJI_Perm.getCountPlayersCanSpawnVehicle() >=
+                                BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS and
                                 (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
                                     BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
                         end,
@@ -290,7 +291,9 @@ local function updateMarkers(cacheType)
                     visibleWalking = true,
                     condition = function(ctxt)
                         return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.DERBY) and
-                            BJI_Scenario.isFreeroam() and not BJI_Tournament.state and
+                            not BJI_Tournament.state and BJI_Votes.Scenario.canStartVote() and
+                            BJI_Perm.getCountPlayersCanSpawnVehicle() >=
+                            BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI).MINIMUM_PARTICIPANTS and
                             (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
                                 BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
                     end,

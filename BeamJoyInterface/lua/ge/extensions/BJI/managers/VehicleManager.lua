@@ -394,6 +394,9 @@ local function onVehicleSpawned(gameVehID)
         elseif mpVeh.isAi then
             mpVeh.veh.uiState = 0
             mpVeh.veh.playerUsable = false
+            if mpVeh.isLocal then
+                core_vehicleBridge.executeAction(mpVeh.veh,'setAIMode', "traffic") -- force launch traffic
+            end
         end
         BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_INITIALIZED, mpVeh)
         BJI_Restrictions.update()
