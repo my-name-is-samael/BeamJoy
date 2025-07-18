@@ -205,6 +205,7 @@ end
 local function onVehicleSpawned(mpVeh)
     if not mpVeh.isLocal then
         BJI_Minimap.toggleVehicle({ veh = mpVeh.veh, state = false })
+        BJI_Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = false })
     end
 
     local participant = S.participants[BJI_Context.User.playerID]
@@ -213,6 +214,7 @@ local function onVehicleSpawned(mpVeh)
             BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
             BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         if mpVeh.position:distance(startPos.pos) > 1 then
+            BJI_Cam.resetForceCamera()
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
             BJI_Veh.waitForVehicleSpawn(postSpawn)
@@ -291,8 +293,8 @@ end
 local function doShowNametag(vehData)
     if S.state == S.STATES.GAME then
         if not S.participants[BJI_Context.User.playerID] then
-            -- spec
-            return true
+            -- spec, show only hunters
+            return not S.participants[vehData.ownerID].hunted
         elseif not S.participants[BJI_Context.User.playerID].hunted then
             -- hunters only can see other hunters or reaveled hunted
             local target = S.participants[vehData.ownerID]
@@ -463,12 +465,15 @@ local function updatePreparation(data)
     end
 end
 
-local function switchToRandomParticipant()
+local function switchToRandomHunter()
     if S.participants[BJI_Context.User.playerID] then
         return
     end
 
-    local part = table.random(S.participants)
+    local part
+    while not part or part.hunted do
+        part = table.random(S.participants)
+    end
     if part then
         BJI_Veh.focus(S.participants:indexOf(part) or 0)
     end
@@ -585,15 +590,22 @@ local function initGameHunter(participant)
 end
 
 local function initGameSpec()
+    BJI_Cam.resetForceCamera()
     if not BJI_Veh.getCurrentVehicle() then
-        switchToRandomParticipant()
+        switchToRandomHunter()
     end
     BJI_Cam.setCamera(S.previousCamera)
 
+    local huntedID
+    Table(S.participants):find(function(p) return p.hunted end, function(hunted)
+        huntedID = hunted.playerID
+    end)
     ---@param v BJIMPVehicle
     BJI_Veh.getMPVehicles(nil, true):forEach(function(v)
-        BJI_Minimap.toggleVehicle({ veh = v.veh, state = true })
-        BJI_Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
+        if v.ownerID ~= huntedID then
+            BJI_Minimap.toggleVehicle({ veh = v.veh, state = true })
+            BJI_Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
+        end
     end)
 end
 

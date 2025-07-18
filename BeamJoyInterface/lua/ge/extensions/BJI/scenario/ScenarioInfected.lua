@@ -562,7 +562,10 @@ end
 local function fastTick(ctxt)
     if ctxt.veh and S.isInfected() then
         selfDiag = math.sqrt((ctxt.veh.veh:getInitialLength() / 2) ^ 2 + (ctxt.veh.veh:getInitialWidth() / 2) ^ 2)
-        table.forEach(S.closeSurvivors, function(vid)
+        table.filter(S.closeSurvivors, function(vid, i)
+            if not S.survivors[vid] then table.remove(S.closeSurvivors, i) end
+            return S.survivors[vid] ~= nil
+        end):forEach(function(vid)
             if S.survivors[vid].lock then return end
             pos = BJI_Veh.getPositionRotation(S.survivors[vid].veh)
             if pos then

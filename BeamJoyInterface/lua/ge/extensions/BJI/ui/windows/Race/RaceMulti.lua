@@ -96,8 +96,8 @@ local W = {
     scenario = nil,
 }
 --- gc prevention
-local showLapCol, firstPlayerCurrentLap, firstPlayerCurrentWp, player, lapDiff, wpDiff, timeDiff,
-gridTimeoutRemaining, showReadyCooldown, color, remainingStart, remainingDNF
+local showLapCol, firstPlayerCurrentLap, firstPlayerCurrentWp, player, lapDiff, wpDiff, timeLabel,
+timeColor, gridTimeoutRemaining, showReadyCooldown, color, remainingStart, remainingDNF
 
 local function updateLabels()
     W.cache.labels.vSeparator = BJI_Lang.get("common.vSeparator")
@@ -242,9 +242,15 @@ local function updateCache(ctxt)
             if i > 1 and not lapDiff and lb.wp < firstPlayerCurrentWp then
                 wpDiff = string.format("(+%d)", firstPlayerCurrentWp - lb.wp)
             end
-            timeDiff = nil
-            if i > 1 then
-                timeDiff = string.format("(+%s)", BJI.Utils.UI.RaceDelay(math.abs(lb.diff or 0)))
+            timeLabel, timeColor = nil, nil
+            if W.scenario.isEliminated(lb.playerID) then
+                timeLabel = W.cache.labels.eliminated
+                timeColor = BJI.Utils.Style.TEXT_COLORS.ERROR
+            elseif i > 1 then
+                timeLabel = string.format("+%s", BJI.Utils.UI.RaceDelay(math.abs(lb.diff or 0)))
+                timeColor = BJI.Utils.Style.TEXT_COLORS.ERROR
+            else
+                timeLabel = BJI.Utils.UI.RaceDelay(lb.time or 0)
             end
             return {
                 playerID = lb.playerID,
@@ -256,11 +262,8 @@ local function updateCache(ctxt)
                 lapDiff = lapDiff,
                 wpLabel = W.cache.labels.wpCounter:var({ wp = lb.wp }),
                 wpDiff = wpDiff,
-                timeLabel = W.scenario.isEliminated(lb.playerID) and
-                    W.cache.labels.eliminated or BJI.Utils.UI.RaceDelay(lb.time or 0),
-                timeDiff = timeDiff,
-                timeColor = W.scenario.isEliminated(lb.playerID) and
-                    BJI.Utils.Style.TEXT_COLORS.ERROR or nil
+                timeLabel = timeLabel,
+                timeColor = timeColor,
             }
         end)
 
@@ -276,6 +279,7 @@ end
 local listeners = Table()
 local function onLoad()
     W.scenario = BJI_Scenario.get(BJI_Scenario.TYPES.RACE_MULTI)
+    BJI_Win_Race.maxSize = nil
 
     updateLabels()
     listeners:insert(BJI_Events.addListener({
@@ -562,10 +566,6 @@ local function drawRace(ctxt)
             end
             TableNextColumn()
             Text(el.timeLabel, { color = el.timeColor or el.color })
-            if el.timeDiff then
-                SameLine()
-                Text(el.timeDiff, { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
-            end
         end)
         EndTable()
     end

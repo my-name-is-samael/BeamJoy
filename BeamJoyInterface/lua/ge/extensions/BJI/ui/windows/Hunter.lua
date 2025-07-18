@@ -4,7 +4,8 @@ local W = {
     flags = {
         BJI.Utils.Style.WINDOW_FLAGS.NO_COLLAPSE,
     },
-    size = ImVec2(300, 280),
+    minSize = ImVec2(300, 280),
+    maxSize = ImVec2(300, 400),
 
     labels = {
         hunted = "",

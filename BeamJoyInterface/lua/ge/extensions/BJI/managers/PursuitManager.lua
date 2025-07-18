@@ -445,7 +445,7 @@ end
 ---@param ctxt TickContext
 local function initPursuitTraffic(ctxt)
     local serverScenarioOrSelfGhost = BJI_Scenario.isServerScenarioInProgress() or
-        ctxt.players[ctxt.user.playerID].isGhost
+        (ctxt.players[ctxt.user.playerID] and ctxt.players[ctxt.user.playerID].isGhost)
     local trafficVeh, finalRole
     BJI_Veh.getMPVehicles(nil, true)
         :forEach(function(mpVeh)

@@ -146,7 +146,7 @@ local function createPlayerWaypoint(playerName, radius, callback, prepend)
 
     veh = BJI_Veh.getMPVehicle(targetPlayer.currentVehicle)
     if not veh then
-        LogError("Invalid waypoint player vehicle")
+        LogError("Invalid waypoint player vehicle " .. tostring(targetPlayer.currentVehicle))
         return
     end
 
