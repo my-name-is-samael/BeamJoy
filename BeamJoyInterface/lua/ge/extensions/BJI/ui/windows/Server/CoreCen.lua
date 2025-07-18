@@ -171,9 +171,13 @@ local function drawCoreTextPreview(value, key)
     parts = value:split2("^")
     lastColor = reset.color
 
-    for _, p in ipairs(parts) do
+    for i, p in ipairs(parts) do
         char = p:sub(1, 1)
-        text = p:sub(2)
+        if i == 1 and #p > 0 then
+            text = p
+        else
+            text = p:sub(2)
+        end
         if text:startswith(" ") then
             -- if first char after code is space
             text = text:sub(2)

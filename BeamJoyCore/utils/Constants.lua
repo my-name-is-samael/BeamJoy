@@ -184,7 +184,7 @@ BJC_CORE_CONFIG = Table({
     MaxPlayers        = { env = "BEAMMP_MAX_PLAYERS", type = "number", default = 10, min = 1 },
     Map               = { env = "BEAMMP_MAP", type = "string", maxLength = 100, default = "/levels/gridmap_v2/info.json", },
     Name              = { env = "BEAMMP_NAME", type = "string", maxLength = 250, default = "My Awesome BeamJoy Server", },
-    Description       = { env = "BEAMMP_DESCRIPTION", type = "string", maxLength = 1000, default = "This server is not configured yet but can play with me !", },
+    Description       = { env = "BEAMMP_DESCRIPTION", type = "string", maxLength = 1000, default = "This server is not configured yet but can you play with it !", },
     InformationPacket = { env = "BEAMMP_INFORMATION_PACKET", type = "boolean", default = false, },
 })
 BJC_CORE_CONFIG:forEach(function(el, k)
