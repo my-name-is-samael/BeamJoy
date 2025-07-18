@@ -16,7 +16,7 @@ local M = {
             MP.GetPlayerCount() == 1 then
             return 1
         end
-        return 2 -- 3 -- DEBUG
+        return 3
     end,
     STATES = {
         PREPARATION = 1,
