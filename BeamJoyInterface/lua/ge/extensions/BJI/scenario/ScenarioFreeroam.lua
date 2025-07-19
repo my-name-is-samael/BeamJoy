@@ -134,10 +134,12 @@ local function onVehicleResetted(gameVehID)
     if isResetDelay and not bypass then
         S.reset.restricted = true
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+        BJI_Restrictions.update()
         BJI_Async.delayTask(
             function()
                 S.reset.restricted = false
                 BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+                BJI_Restrictions.update()
             end,
             BJI_Context.BJC.Freeroam.ResetDelay * 1000,
             "restrictionsResetTimer"
@@ -162,7 +164,7 @@ end
 
 ---@return boolean
 local function canReset()
-    return not S.reset.restricted
+    return BJI_Perm.isStaff() or not S.reset.restricted
 end
 
 ---@param ctxt BJCContext
