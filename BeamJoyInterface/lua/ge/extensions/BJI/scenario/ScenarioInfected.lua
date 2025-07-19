@@ -348,6 +348,7 @@ local function initSurvivorsVehs()
             res[veh:getID()] = {
                 playerID = pid,
                 veh = veh,
+                diag = math.sqrt((veh:getInitialLength() / 2) ^ 2 + (veh:getInitialWidth() / 2) ^ 2)
             }
         end
         return res
@@ -568,10 +569,7 @@ local function fastTick(ctxt)
         end):forEach(function(vid)
             if S.survivors[vid].lock then return end
             pos = BJI_Veh.getPositionRotation(S.survivors[vid].veh)
-            if pos then
-                diag = math.sqrt((S.survivors[vid].veh:getInitialLength() / 2) ^ 2 +
-                    (S.survivors[vid].veh:getInitialWidth() / 2) ^ 2)
-                if pos:distance(ctxt.veh.position) < selfDiag + diag then
+            if pos and pos:distance(ctxt.veh.position) < selfDiag + S.survivors[vid].diag then
                     -- tagged
                     BJI_Tx_scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
                     S.survivors[vid].lock = true
@@ -581,7 +579,6 @@ local function fastTick(ctxt)
                         end
                     end, 2000)
                 end
-            end
         end)
     end
 end
