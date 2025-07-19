@@ -274,7 +274,13 @@ end
 ---@param hunterInfectedData table
 function M.HunterInfected.save(hunterInfectedData)
     local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
-    BJCDao._saveFile(filePath, hunterInfectedData)
+    if #hunterInfectedData.majorPositions == 0 and
+        #hunterInfectedData.minorPositions == 0 and
+        #hunterInfectedData.waypoints == 0 then
+        FS.Remove(filePath)
+    else
+        BJCDao._saveFile(filePath, hunterInfectedData)
+    end
 end
 
 -- DERBY
