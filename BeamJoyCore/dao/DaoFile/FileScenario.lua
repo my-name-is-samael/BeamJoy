@@ -249,7 +249,8 @@ function M.HunterInfected.findAll()
     local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
 
     local defaultHunterInfectedData = {
-        enabled = false,
+        enabledHunter = false,
+        enabledInfected = false,
         waypoints = {},
         majorPositions = {},
         minorPositions = {},
