@@ -157,7 +157,7 @@ function json.stringify(obj, key, pretty, level)
             s[#s + 1] = "]"
         else
             s[#s + 1] = "{" .. lineBreak
-            s[#s + 1] = Table(obj):keys()
+            s[#s + 1] = table.keys(obj)
                 :sort(function(a, b) return tostring(a) < tostring(b) end)
                 :map(function(k)
                     return json.stringify(obj[k], k, pretty, level + 1)
