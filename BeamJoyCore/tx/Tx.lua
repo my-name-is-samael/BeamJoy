@@ -62,7 +62,7 @@ function BJCTx.sendByPermissions(eventName, endpoint, data, ...)
 end
 
 -- Autoload Tx controllers
-Table(FS.ListFiles(BJCPluginPath.."/Tx/"))
+Table(FS.ListFiles(BJCPluginPath.."/tx/"))
 :filter(function(filename)
     return filename:endswith(".lua") and filename ~= "Tx.lua"
 end):map(function(filename)
