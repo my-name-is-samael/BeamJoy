@@ -51,7 +51,7 @@ local function updateEnvToV2_0()
     M.Data.fogColor = defaults.fogColor
 
     BJCDao.environment.save(M.Data)
-    Log("Environment data updated to v2.0.0", logTag)
+    LogDebug("Environment data updated to v2.0.0", logTag)
 end
 
 local function init()
@@ -64,11 +64,12 @@ local function init()
 
     M.Data = table.assign(BJCDefaults.environment(), M.Data)
 
-    if not M.Data.presets or not Table(BJC_ENV_PRESETS)
+    if not M.Data.presets or Table(BJC_ENV_PRESETS)
         :any(function(pkey) return not M.Data.presets[pkey] end) then
         ---@type table<string, any>
         M.Data.presets = BJCDefaults.envPresets()
         BJCDao.environment.save(M.Data)
+        M.Data = BJCDao.environment.findAll()
     end
 end
 
