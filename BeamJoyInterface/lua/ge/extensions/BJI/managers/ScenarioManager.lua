@@ -728,6 +728,14 @@ local function canUseNodegrabber(ctxt)
 end
 
 ---@return boolean
+local function canBoost()
+    if _curr().canBoost then
+        return _curr().canBoost()
+    end
+    return false
+end
+
+---@return boolean
 local function canShowNametags()
     if _curr().canShowNametags then
         return _curr().canShowNametags()
@@ -987,6 +995,7 @@ M.getModelList = getModelList
 M.getPlayerListActions = getPlayerListActions
 M.canQuickTravel = canQuickTravel
 M.canUseNodegrabber = canUseNodegrabber
+M.canBoost = canBoost
 M.canShowNametags = canShowNametags
 M.doShowNametag = doShowNametag
 M.doShowNametagsSpecs = doShowNametagsSpecs

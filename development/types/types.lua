@@ -65,6 +65,7 @@
 ---@field getPlayerListActions (fun(player: BJIPlayer, ctxt: TickContext?): table<integer, table>)?
 ---@field canQuickTravel (fun(ctxt: TickContext): boolean)? default false
 ---@field canUseNodegrabber (fun(ctxt: TickContext): boolean)? default false
+---@field canBoost (fun(): boolean)? default false
 ---@field canShowNametags (fun(): boolean)? default false
 ---@field doShowNametag (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
 ---@field doShowNametagsSpecs (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?

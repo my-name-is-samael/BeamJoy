@@ -452,6 +452,7 @@ S.canWalk = canWalk
 S.canShowNametags = canShowNametags
 S.canQuickTravel = canQuickTravel
 S.canUseNodegrabber = canUseNodegrabber
+S.canBoost = TrueFn
 S.canSpawnNewVehicle = canSpawnNewVehicle
 
 S.canRefuelAtStation = TrueFn

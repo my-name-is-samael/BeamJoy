@@ -2,6 +2,8 @@
 local M = {
     _name = "Restrictions",
 
+    baseFunctions = {},
+
     STATE = {
         RESTRICTED = true,
         ALLOWED = false,
@@ -122,7 +124,40 @@ local function update()
     end
 end
 
+local function onUnload()
+    RollBackNGFunctionsWrappers(M.baseFunctions)
+end
+
+-- restrict boost bindings
+local function onPostLoad()
+    extensions.core_funstuff.boost = function()
+        LogWarn("boost")
+        if BJI_Scenario.canBoost() then
+        LogWarn("allowed")
+            M.baseFunctions.core_funstuff.boost()
+        end
+    end
+    extensions.core_funstuff.boostBackwards = function()
+        LogWarn("boost backwards")
+        if BJI_Scenario.canBoost() then
+        LogWarn("allowed")
+            M.baseFunctions.core_funstuff.boostBackwards()
+        end
+    end
+end
+
 local function onLoad()
+    extensions.load("core_funstuff")
+    M.baseFunctions = {
+        core_funstuff = {
+            boost = extensions.core_funstuff.boost,
+            boostBackwards = extensions.core_funstuff.boostBackwards,
+        }
+    }
+
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, onPostLoad, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+
     extensions.core_input_actionFilter.setGroup(M._tag, {})
     extensions.core_input_actionFilter.addAction(0, M._tag, false)
 

@@ -7,7 +7,7 @@
 
 ---@class BJIScenarioRaceSolo : BJIScenario
 local S = {
-    _name = "RaceSolor",
+    _name = "RaceSolo",
     _key = "RACE_SOLO",
     _isSolo = true,
 
