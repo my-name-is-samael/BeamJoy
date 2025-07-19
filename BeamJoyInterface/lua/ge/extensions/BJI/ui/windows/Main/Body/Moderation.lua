@@ -12,7 +12,7 @@ local function drawWaitingPlayers(cache)
     for _, player in ipairs(cache.data.players.waiting) do
         Text(player.playerName)
         SameLine()
-        Text(player.groupLabel)
+        Text(player.groupLabel or "")
         if player.demoteGroup then
             SameLine()
             if IconButton("demotewaiting" .. player.playerName, BJI.Utils.Icon.ICONS.person,
