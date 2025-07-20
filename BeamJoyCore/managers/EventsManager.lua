@@ -12,7 +12,7 @@ local M = {
         MP_PLAYER_JOINING = { key = "onPlayerJoining", base = true },
         MP_PLAYER_JOIN = { key = "onPlayerJoin", base = true },
         MP_PLAYER_DISCONNECT = { key = "onPlayerDisconnect", base = true },
-        MP_CHAT_MESSAGE = { key = "onChatMessage", base = true, cancellable = true },     -- cancel with int ~= 0
+        MP_CHAT_MESSAGE = { key = "onBJCChatMessage", base = true, cancellable = true },  -- cancel with int ~= 0
         MP_VEHICLE_SPAWN = { key = "onVehicleSpawn", base = true, cancellable = true },   -- cancel with int ~= 0
         MP_VEHICLE_RESET = { key = "onVehicleReset", base = true },
         MP_VEHICLE_EDITED = { key = "onVehicleEdited", base = true, cancellable = true }, -- cancel with int ~= 0
@@ -99,7 +99,7 @@ local function processMPEvent(event, ...)
         local params = { ... }
         if event.cancellable then
             local condReturn = function(v) return false end
-            if table.includes({ M.EVENTS.MP_CHAT_MESSAGE, M.EVENTS.MP_VEHICLE_SPAWN,
+            if table.includes({ --[[M.EVENTS.MP_CHAT_MESSAGE,]] M.EVENTS.MP_VEHICLE_SPAWN,
                     M.EVENTS.MP_VEHICLE_EDITED }, event) then
                 condReturn = function(v) return type(v) == "number" and v ~= 0 end
             elseif event == M.EVENTS.MP_CONSOLE_INPUT then
@@ -157,7 +157,6 @@ local function trigger(event, ...)
     end
 end
 
-local state = true
 function BJCSlowTick()
     if type(M.trigger) == "function" then
         M.trigger(M.EVENTS.SLOW_TICK, GetCurrentTime())

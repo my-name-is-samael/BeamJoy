@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Contact : https://github.com/my-name-is-samael
 ]]
 
-BJCVERSION = "1.2.0"
+BJCVERSION = "2.0.0"
 
 BJCPluginPath = debug.getinfo(1).source:gsub("\\", "/")
 BJCPluginPath = BJCPluginPath:sub(1, (BJCPluginPath:find("BeamJoyCore.lua")) - 2)
@@ -102,7 +102,7 @@ local function loadBeamJoy()
     Log(BJCLang.getConsoleMessage("common.startMessage"))
 end
 
-function _G.onInit()
+function _G.onInit() ---@diagnostic disable-line
     local ok, err = pcall(loadBeamJoy)
     if not ok then
         LogError(string.var("BeamJoyCore failed to load: {1}", { err }))
