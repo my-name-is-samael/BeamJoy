@@ -275,7 +275,6 @@ end
 
 local function initPreparation(data)
     S.settings.config = data.config
-    S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
     S.state = data.state
     S.participants = data.participants
     BJI_Scenario.switchScenario(BJI_Scenario.TYPES.INFECTED)
@@ -291,6 +290,7 @@ local function onJoinParticipants(participant)
             BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
             BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+        postSpawn(BJI_Tick.getContext())
     else
         local model, config
         if S.settings.config then
@@ -325,13 +325,12 @@ local function updatePreparation(data)
     local wasParticipant = S.participants[BJI_Context.User.playerID]
     local wasInfected = wasParticipant and wasParticipant.originalInfected
     S.participants = data.participants
-    local participant = S.participants[BJI_Context.User.playerID]
+    participant = S.participants[BJI_Context.User.playerID]
     if not wasParticipant and participant then
         onJoinParticipants(participant)
     elseif wasParticipant and not participant then
         onLeaveParticipants()
         BJI_Win_VehSelector.tryClose(true)
-        S.waypoints = {}
     elseif wasParticipant and participant and
         wasInfected ~= participant.originalInfected then
         -- role changed > update position
@@ -404,6 +403,11 @@ local function initGameParticipant(participant)
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
     end
 
+    local veh = BJI_Veh.getCurrentVehicleOwn()
+    if veh and tonumber(veh.damageState) and
+        tonumber(veh.damageState) >= 1 then
+        BJI_Veh.recoverInPlace(postSpawn)
+    end
     local startTime = tonumber(participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) or 0
     if startTime > GetCurrentTimeMillis() then
         BJI_Async.programTask(preStart, startTime - 3000, "BJIInfectedPrestart")
@@ -431,10 +435,9 @@ local function initGame(data)
     S.survivorsStartTime = BJI_Tick.applyTimeOffset(data.survivorsStartTime)
     S.infectedStartTime = BJI_Tick.applyTimeOffset(data.infectedStartTime)
 
-    local participant = S.participants[BJI_Context.User.playerID]
-
+    participant = S.participants[BJI_Context.User.playerID]
+    BJI_Win_VehSelector.tryClose(true)
     if participant then
-        BJI_Win_VehSelector.tryClose(true)
         initGameParticipant(participant)
     else
         -- spec start
@@ -510,6 +513,7 @@ local function rxData(data)
     S.settings.infectedColor = data.infectedColor
 
     if data.state == S.STATES.PREPARATION then
+        S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
         if not S.state then
             initPreparation(data)
         else
@@ -570,15 +574,15 @@ local function fastTick(ctxt)
             if S.survivors[vid].lock then return end
             pos = BJI_Veh.getPositionRotation(S.survivors[vid].veh)
             if pos and pos:distance(ctxt.veh.position) < selfDiag + S.survivors[vid].diag then
-                    -- tagged
-                    BJI_Tx_scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
-                    S.survivors[vid].lock = true
-                    BJI_Async.delayTask(function()
-                        if S.survivors[vid] then
-                            S.survivors[vid].lock = nil
-                        end
-                    end, 2000)
-                end
+                -- tagged
+                BJI_Tx_scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
+                S.survivors[vid].lock = true
+                BJI_Async.delayTask(function()
+                    if S.survivors[vid] then
+                        S.survivors[vid].lock = nil
+                    end
+                end, 2000)
+            end
         end)
     end
 end

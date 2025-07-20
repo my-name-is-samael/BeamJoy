@@ -377,10 +377,10 @@ local function onVehicleSpawned(gameVehID)
         end
         mpVeh.veh:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
         if mpVeh.isLocal then
-            mpVeh.veh:queueLuaCommand(
-                "recovery.saveHome = function() obj:queueGameEngineLua('BJI_Scenario.saveHome('..tostring(obj:getID())..')') end")
-            mpVeh.veh:queueLuaCommand(
-                "recovery.loadHome = function() obj:queueGameEngineLua('BJI_Scenario.loadHome('..tostring(obj:getID())..')') end")
+            mpVeh.veh:queueLuaCommand([[
+                recovery.saveHome = function() obj:queueGameEngineLua('BJI_Scenario.saveHome('..tostring(obj:getID())..')') end
+                recovery.loadHome = function() obj:queueGameEngineLua('BJI_Scenario.loadHome('..tostring(obj:getID())..')') end
+            ]])
         end
 
         -- also works for vehicle replacement
@@ -400,14 +400,12 @@ local function onVehicleSpawned(gameVehID)
             end
         end
         BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_INITIALIZED, mpVeh)
-        BJI_Restrictions.update()
     end)
 end
 
 ---@param gameVehID integer
 local function onVehicleDestroyed(gameVehID)
     M.homes[gameVehID] = nil
-    BJI_Restrictions.update()
 end
 
 ---@param playerID integer
@@ -1623,7 +1621,6 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
             previousMPVeh = previousMpVeh,
             currentMPVeh = currentMpVeh
         })
-        BJI_Restrictions.update()
     end
 end
 

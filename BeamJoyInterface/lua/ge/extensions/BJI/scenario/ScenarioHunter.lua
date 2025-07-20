@@ -353,7 +353,6 @@ local function initPreparation(data)
     S.settings.huntedConfig = data.huntedConfig
     S.settings.hunterConfigs = data.hunterConfigs
     S.settings.lastWaypointGPS = data.lastWaypointGPS
-    S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
     S.state = data.state
     S.participants = data.participants
     BJI_Cam.forceFreecamPos(BJI_Cam.getPositionRotation().pos + vec3(0, 0, 1000), quat(-1, 0, 0, 1))
@@ -620,6 +619,11 @@ local function initGame(data)
 
     if participant then
         BJI_Win_VehSelector.tryClose(true)
+        local veh = BJI_Veh.getCurrentVehicleOwn()
+        if veh and tonumber(veh.damageState) and
+            tonumber(veh.damageState) >= 1 then
+            BJI_Veh.recoverInPlace(postSpawn)
+        end
         if participant.hunted then
             initGameHunted(participant)
         else
@@ -674,6 +678,7 @@ local function rxData(data)
     S.huntedResetDistanceThreshold = data.huntedResetDistanceThreshold
 
     if data.state == S.STATES.PREPARATION then
+        S.preparationTimeout = BJI_Tick.applyTimeOffset(data.preparationTimeout)
         if not S.state then
             initPreparation(data)
         else
@@ -785,12 +790,6 @@ end
 ---@param ctxt TickContext
 local function slowTick(ctxt)
     local participant = S.participants[BJI_Context.User.playerID]
-    local damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
-    if S.state == S.STATES.PREPARATION and participant and
-        damages and damages > BJI_Context.VehiclePristineThreshold then
-        -- vehicle swap repair
-        BJI_Veh.recoverInPlace()
-    end
 
     if ctxt.isOwner and S.state == S.STATES.GAME and participant then
         if participant.hunted and S.huntedStartTime and S.huntedStartTime <= ctxt.now then

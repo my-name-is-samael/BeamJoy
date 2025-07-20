@@ -249,6 +249,11 @@ local function onJoin(senderID)
         -- leave participants
         M.participants[senderID] = nil
         sanitizePreparationHunted()
+
+        if not M.participants:any(function(p) return p.ready end) and
+            not BJCAsync.exists("BJCHunterGridTimeout") then
+            startGridTimeout()
+        end
     elseif M.participants:length() == 0 then
         -- first to join is hunted (or debug)
         local hunted = true
@@ -393,6 +398,11 @@ local function forceFugitive(playerID)
 
     M.joinOrder:remove(pos)
     M.joinOrder:insert(1, playerID)
+
+    if not M.participants:any(function(p) return p.ready end) and
+        not BJCAsync.exists("BJCHunterGridTimeout") then
+        startGridTimeout()
+    end
 
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
 end

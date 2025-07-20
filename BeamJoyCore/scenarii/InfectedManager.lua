@@ -160,7 +160,7 @@ local function updateScores()
 end
 
 local function onGridTimeout()
-    M.participants = M.participants:filter(function(p) return p.ready end)
+    M.participants = M.participants:filter(function(p) return p.ready and p.gameVehID end)
     -- check players amount
     if M.participants:length() < M.MINIMUM_PARTICIPANTS() then
         BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.ERROR, "rx.errors.insufficientPlayers")
@@ -257,7 +257,7 @@ local function sanitizePreparationOriginalInfected()
         return M.participants[playerID] ~= nil
     end)
     if #M.joinOrder > 0 and M.participants[M.joinOrder[1]] then
-        local wasOriginalInfected = M.participants[M.joinOrder[1]].hunted
+        local wasOriginalInfected = M.participants[M.joinOrder[1]].originalInfected
         M.participants[M.joinOrder[1]].originalInfected = true
         M.participants[M.joinOrder[1]].ready = false
         if not wasOriginalInfected then
@@ -271,6 +271,11 @@ local function onJoin(senderID)
         -- leave participants
         M.participants[senderID] = nil
         sanitizePreparationOriginalInfected()
+
+        if not M.participants:any(function(p) return p.ready end) and
+            not BJCAsync.exists("BJCInfectedGridTimeout") then
+            startGridTimeout()
+        end
     elseif M.participants:length() == 0 then
         -- first to join is infected (or debug)
         local originalInfected = true
@@ -428,6 +433,11 @@ local function forceInfected(playerID)
     M.joinOrder:remove(pos)
     M.joinOrder:insert(1, playerID)
 
+    if not M.participants:any(function(p) return p.ready end) and
+        not BJCAsync.exists("BJCInfectedGridTimeout") then
+        startGridTimeout()
+    end
+
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.INFECTED)
 end
 
@@ -469,7 +479,7 @@ local function onVehicleDeleted(playerID, vehID)
             })
             stop()
         end
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.INFECTED)
     end
 end
 
@@ -501,7 +511,7 @@ local function onStop()
             reason = "chat.events.gamemodeStopReasons.moderation",
         })
         stop()
-        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.HUNTER)
+        BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.INFECTED)
     end
 end
 

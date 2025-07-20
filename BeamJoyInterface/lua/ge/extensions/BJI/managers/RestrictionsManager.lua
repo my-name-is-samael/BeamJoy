@@ -131,16 +131,12 @@ end
 -- restrict boost bindings
 local function onPostLoad()
     extensions.core_funstuff.boost = function()
-        LogWarn("boost")
         if BJI_Scenario.canBoost() then
-        LogWarn("allowed")
             M.baseFunctions.core_funstuff.boost()
         end
     end
     extensions.core_funstuff.boostBackwards = function()
-        LogWarn("boost backwards")
         if BJI_Scenario.canBoost() then
-        LogWarn("allowed")
             M.baseFunctions.core_funstuff.boostBackwards()
         end
     end
@@ -162,7 +158,9 @@ local function onLoad()
     extensions.core_input_actionFilter.addAction(0, M._tag, false)
 
     BJI_Events.addListener({
+        BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED,
         BJI_Events.EVENTS.SCENARIO_CHANGED,
+        BJI_Events.EVENTS.SCENARIO_UPDATED,
         BJI_Events.EVENTS.PERMISSION_CHANGED,
         BJI_Events.EVENTS.PURSUIT_UPDATE,
     }, update, M._name)
