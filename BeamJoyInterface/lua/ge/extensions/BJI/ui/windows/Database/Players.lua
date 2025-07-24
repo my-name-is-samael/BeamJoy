@@ -19,9 +19,14 @@ local W = {
         groups = {},
         buttons = {
             refresh = "",
+            filterTooltip = "",
+            ban = "",
+            unban = "",
             mute = "",
         },
     },
+    enableFilter = false,
+    filter = "",
     cache = {
         ---@type tablelib<string, table> index beammp
         players = Table(),
@@ -41,7 +46,7 @@ local W = {
     },
 }
 --- gc prevention
-local nextValue
+local nextValue, isBanned
 
 local function updateLabels()
     W.labels.loading = BJI_Lang.get("common.loading")
@@ -65,6 +70,9 @@ local function updateLabels()
     end)
 
     W.labels.buttons.refresh = BJI_Lang.get("common.buttons.refresh")
+    W.labels.buttons.filterTooltip = BJI_Lang.get("database.players.filterTooltip")
+    W.labels.buttons.ban = BJI_Lang.get("moderationBlock.buttons.ban")
+    W.labels.buttons.unban = BJI_Lang.get("database.players.unban")
     W.labels.buttons.mute = BJI_Lang.get("moderationBlock.buttons.mute")
 end
 
@@ -102,7 +110,36 @@ local function updateGroupsCombo(ctxt)
         end)
 end
 
+---@param ctxt TickContext?
+---@param force boolean?
+local function updatePlayersCombo(ctxt, force)
+    ctxt = ctxt or BJI_Tick.getContext()
+    W.cache.playersCombo = W.cache.players:map(function(p, beammp)
+        return {
+            value = beammp,
+            label = string.var("{1} ({2})", { p.playerName, p.lang }),
+            playerName = p.playerName,
+        }
+    end):values():sort(function(a, b)
+        return a.label:lower() < b.label:lower()
+    end)
+    if W.enableFilter and #W.filter > 0 then
+        W.cache.playersCombo = W.cache.playersCombo:filter(function(p)
+            return p.playerName:lower():find(W.filter:lower())
+        end)
+    end
+    if force and W.cache.selectedPlayer then
+        updatePlayerView(ctxt, (W.cache.playersCombo:find(function(pc)
+            return pc.value == W.cache.currentPlayer.beammp
+        end) or W.cache.playersCombo[1]).value)
+    elseif not W.cache.selectedPlayer or not W.cache.playersCombo
+        :find(function(option) return option.value == W.cache.selectedPlayer end) then
+        updatePlayerView(ctxt, W.cache.playersCombo[1].value)
+    end
+end
+
 ---@param players table[]
+---@param force boolean?
 local function updateCache(players, force)
     local ctxt = BJI_Tick.getContext()
 
@@ -120,22 +157,7 @@ local function updateCache(players, force)
             return res
         end, Table())
 
-    W.cache.playersCombo = W.cache.players:map(function(p, beammp)
-        return {
-            value = beammp,
-            label = string.var("{1} ({2})", { p.playerName, p.lang }),
-        }
-    end):values():sort(function(a, b)
-        return a.label:lower() < b.label:lower()
-    end)
-    if force and W.cache.selectedPlayer then
-        updatePlayerView(ctxt, (W.cache.playersCombo:find(function(pc)
-            return pc.value == W.cache.currentPlayer.beammp
-        end) or W.cache.playersCombo[1]).value)
-    elseif not W.cache.selectedPlayer or not W.cache.playersCombo
-        :find(function(option) return option.value == W.cache.selectedPlayer end) then
-        updatePlayerView(ctxt, W.cache.playersCombo[1].value)
-    end
+    updatePlayersCombo(ctxt, force)
 
     updateGroupsCombo(ctxt)
 end
@@ -177,16 +199,46 @@ local function header(ctxt)
         return
     end
 
-    if IconButton("databasePlayersRefresh", BJI.Utils.Icon.ICONS.refresh,
-            { disabled = W.cache.disableInputs }) then
-        requestPlayersDatabase()
-    end
-    TooltipText(W.labels.buttons.refresh)
-    SameLine()
-    nextValue = Combo("databasePlayers", W.cache.selectedPlayer, W.cache.playersCombo,
-        { width = -1, disabled = W.cache.disableInputs })
-    if nextValue then
-        updatePlayerView(ctxt, nextValue)
+    if BeginTable("BJIDatabasePlayersHeader", {
+            { label = "##databaseplayersheader-filter", flags = { W.enableFilter and TABLE_COLUMNS_FLAGS.WIDTH_STRETCH or nil } },
+            { label = "##databaseplayersheader-combo",  flags = { TABLE_COLUMNS_FLAGS.WIDTH_STRETCH } },
+        }) then
+        TableNewRow()
+        if IconButton("databasePlayersRefresh", BJI.Utils.Icon.ICONS.refresh,
+                { disabled = W.cache.disableInputs }) then
+            requestPlayersDatabase()
+        end
+        TooltipText(W.labels.buttons.refresh)
+        SameLine()
+        if IconButton("databasePlayersFilterToggle", BJI.Utils.Icon.ICONS.ab_filter_default,
+                { disabled = W.cache.disableInputs, btnStyle = W.enableFilter and
+                    BJI.Utils.Style.BTN_PRESETS.ERROR or BJI.Utils.Style.BTN_PRESETS.INFO }) then
+            if W.enableFilter and #W.filter > 0 then
+                W.filter = ""
+            else
+                W.enableFilter = not W.enableFilter
+            end
+            updatePlayersCombo(ctxt)
+        end
+        TooltipText(W.labels.buttons.filterTooltip)
+        if W.enableFilter then
+            SameLine()
+            nextValue = InputText("databasePlayersFilter", W.filter,
+                { disabled = W.cache.disableInputs })
+            TooltipText(W.labels.buttons.filterTooltip)
+            if nextValue then
+                W.filter = nextValue
+                updatePlayersCombo(ctxt)
+            end
+        end
+        TableNextColumn()
+        nextValue = Combo("databasePlayers", W.cache.selectedPlayer, W.cache.playersCombo,
+            { width = -1, disabled = W.cache.disableInputs })
+        if nextValue then
+            updatePlayerView(ctxt, nextValue)
+        end
+
+        EndTable()
     end
 end
 
@@ -224,10 +276,12 @@ local function body(ctxt)
             end
         end
 
-        TableNewRow()
-        Text(W.labels.lastKickReason)
-        TableNextColumn()
-        Text(W.cache.currentPlayer.kickReason or "/")
+        if W.cache.currentPlayer.kickReason and #W.cache.currentPlayer.kickReason > 0 then
+            TableNewRow()
+            Text(W.labels.lastKickReason)
+            TableNextColumn()
+            Text(W.cache.currentPlayer.kickReason)
+        end
 
         TableNewRow()
         Text(W.labels.banned)
@@ -235,17 +289,17 @@ local function body(ctxt)
         if W.cache.currentPlayer.readOnly then
             Text(W.cache.currentPlayer.banned and W.labels.yes or W.labels.no)
         else
-            if IconButton("databasePlayerBanned", BJI.Utils.Icon.ICONS.gavel,
-                    { disabled = W.cache.disableInputs, btnStyle = (W.cache.currentPlayer.banned == true or
-                            W.cache.currentPlayer.tempBanUntil ~= nil) and BJI.Utils.Style.BTN_PRESETS.SUCCESS or
-                        BJI.Utils.Style.BTN_PRESETS.ERROR }) then
+            isBanned = W.cache.currentPlayer.banned == true or W.cache.currentPlayer.tempBanUntil ~= nil
+            if IconButton("databasePlayerBanned", BJI.Utils.Icon.ICONS.gavel, { disabled = W.cache.disableInputs,
+                    btnStyle = isBanned and BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.ERROR }) then
                 W.cache.disableInputs = true
-                if W.cache.currentPlayer.banned or W.cache.currentPlayer.tempBanUntil then
+                if isBanned then
                     BJI_Tx_moderation.unban(W.cache.currentPlayer.playerName)
                 else
                     BJI_Tx_moderation.ban(W.cache.currentPlayer.playerName, W.cache.currentPlayer.inputBanReason)
                 end
             end
+            TooltipText(isBanned and W.labels.buttons.unban or W.labels.buttons.ban)
         end
         if W.cache.currentPlayer.tempBanUntil then
             SameLine()

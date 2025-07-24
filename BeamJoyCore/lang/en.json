@@ -1501,7 +1501,9 @@
         "lastBanReason": "Last ban reason",
         "muted": "Muted",
         "muteReason": "Mute Reason",
-        "lastMuteReason": "Last Mute Reason"
+        "lastMuteReason": "Last Mute Reason",
+        "filterTooltip": "Filter by playername",
+        "unban": "Unban"
       },
       "vehicles": {
         "title": "Vehicles",

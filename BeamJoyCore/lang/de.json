@@ -1500,7 +1500,9 @@
         "lastBanReason": "Letzter Ban-Grund",
         "muted": "Stummgeschaltet",
         "muteReason": "Stumme Vernunft",
-        "lastMuteReason": "Letzter Mute-Grund"
+        "lastMuteReason": "Letzter Mute-Grund",
+        "filterTooltip": "Nach Spielernamen filtern",
+        "unban": "Entbannen"
       },
       "vehicles": {
         "title": "Fahrzeuge",

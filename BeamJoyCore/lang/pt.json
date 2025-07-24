@@ -1500,7 +1500,9 @@
         "lastBanReason": "Último motivo de banimento",
         "muted": "Silenciado",
         "muteReason": "Motivo mudo",
-        "lastMuteReason": "Último motivo de silenciamento"
+        "lastMuteReason": "Último motivo de silenciamento",
+        "filterTooltip": "Filtrar por nome do jogador",
+        "unban": "Desbanir"
       },
       "vehicles": {
         "title": "Veículos",
