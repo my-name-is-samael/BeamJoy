@@ -64,15 +64,15 @@ function M.Kick.endVote()
     if #M.Kick.voters >= getKickThreshold() then
         local ctxt = {}
         BJCInitContext(ctxt)
-        local targetName = BJCPlayers.Players[M.Kick.targetID].playerName
+        local target = BJCPlayers.Players[M.Kick.targetID]
         BJCChat.sendChatEvent("chat.events.voteAccepted", {
             voteEvent = "chat.events.voteEvents.playerKick",
-            suffix = targetName
+            suffix = target.playerName
         })
         BJCPlayers.kick(ctxt, M.Kick.targetID,
-            BJCLang.getServerMessage(M.Kick.targetID, "voteKick.beenVoteKick")
+            BJCLang.getServerMessage(target.lang, "voteKick.beenVoteKick")
             :var({ votersAmount = #M.Kick.voters }))
-        BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.INFO, "voteKick.playerKicked", { playerName = targetName })
+        BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.INFO, "voteKick.playerKicked", { playerName = target.playerName })
     else
         BJCChat.sendChatEvent("chat.events.voteDenied", {
             voteEvent = "chat.events.voteEvents.playerKick",

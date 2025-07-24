@@ -513,9 +513,9 @@ end
 ---@param time integer
 ---@param isRecord boolean?
 local function broadcastRaceTime(raceName, playerName, time, isRecord)
-    for playerID in pairs(BJCPlayers.Players) do
+    for playerID, player in pairs(BJCPlayers.Players) do
         BJCChat.onServerChat(playerID,
-            BJCLang.getServerMessage(playerID, isRecord and
+            BJCLang.getServerMessage(player.lang, isRecord and
                 "broadcast.newRaceRecord" or "broadcast.raceTime")
             :var({
                 playerName = playerName,

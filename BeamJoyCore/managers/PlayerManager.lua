@@ -155,7 +155,7 @@ end
 local function checkJoin(playerID)
     local player = M.Players[playerID]
     if not player then
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, "players.joinError"))
         return
     end
 
@@ -167,10 +167,10 @@ local function checkJoin(playerID)
             M.savePlayer(player)
         elseif player.tempBanUntil > now then
             -- still tempbanned
-            local reason = BJCLang.getServerMessage(playerID, "players.tempBanWillEndIn")
+            local reason = BJCLang.getServerMessage(player.lang, "players.tempBanWillEndIn")
                 :var({ time = PrettyDelay(player.tempBanUntil - GetCurrentTime()) })
             if player.banReason then
-                reason = BJCLang.getServerMessage(playerID, "players.banReason")
+                reason = BJCLang.getServerMessage(player.lang, "players.banReason")
                     :var({ base = reason, reason = player.banReason })
             end
             MP.DropPlayer(playerID, reason)
@@ -181,9 +181,9 @@ local function checkJoin(playerID)
 
     local group = BJCGroups.Data[player.group]
     if player.banned or group.banned then
-        local reason = BJCLang.getServerMessage(playerID, "players.banned")
+        local reason = BJCLang.getServerMessage(player.lang, "players.banned")
         if player.banReason then
-            reason = BJCLang.getServerMessage(playerID, "players.banReason")
+            reason = BJCLang.getServerMessage(player.lang, "players.banReason")
                 :var({ base = reason, reason = player.banReason })
         end
         MP.DropPlayer(playerID, reason)
@@ -196,7 +196,7 @@ local function checkJoin(playerID)
         not table.includes(BJCConfig.Data.Whitelist.PlayerNames, player.playerName) and
         not group.whitelisted and
         not group.staff then
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.notWhitelisted"))
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(player.lang, "players.notWhitelisted"))
         M.Players[playerID] = nil
         return
     end
@@ -218,7 +218,7 @@ local function onPlayerConnecting(playerID)
 
         checkJoin(playerID)
     else
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, "players.joinError"))
         M.AuthPlayers[playerID] = nil
     end
 end
@@ -230,7 +230,7 @@ end
 ---@param playerID integer
 local function onPlayerJoin(playerID)
     if not M.Players[playerID] then
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, "players.joinError"))
         M.Players[playerID] = nil
     end
 end
@@ -244,7 +244,7 @@ local function onPlayerConnect(playerID)
 
         BJCEvents.trigger(BJCEvents.EVENTS.PLAYER_CONNECTED, playerID)
     else
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(playerID, "players.joinError"))
+        MP.DropPlayer(playerID, BJCLang.getServerMessage(M.Players[playerID].lang, "players.joinError"))
         M.Players[playerID] = nil
     end
 
@@ -732,9 +732,9 @@ local function deleteVehicle(ctxt, playerID, gameVehID)
         end
 
         if ctxt.origin ~= "player" or ctxt.senderID ~= playerID then
-            local prefix = BJCLang.getServerMessage(playerID, "rx.vehicleRemoveMain")
+            local prefix = BJCLang.getServerMessage(target.lang, "rx.vehicleRemoveMain")
             if multipleVehicles and not current then
-                prefix = BJCLang.getServerMessage(playerID, "rx.vehicleRemoveOneOf")
+                prefix = BJCLang.getServerMessage(target.lang, "rx.vehicleRemoveOneOf")
             end
             BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "rx.vehicleRemoveSuffix",
                 { typeVehicleRemove = prefix }, 7)
@@ -858,10 +858,10 @@ local function tempBan(ctxt, targetName, reason, duration)
     M.savePlayer(target)
 
     if connected then
-        local finalReason = BJCLang.getServerMessage(target.playerID, "players.tempBanned")
+        local finalReason = BJCLang.getServerMessage(target.lang, "players.tempBanned")
             :var({ time = PrettyDelay(duration) })
         if reason then
-            finalReason = BJCLang.getServerMessage(target.playerID, "players.banReason")
+            finalReason = BJCLang.getServerMessage(target.lang, "players.banReason")
                 :var({ base = finalReason, reason = reason })
         end
 
@@ -904,9 +904,9 @@ local function ban(ctxt, targetName, reason)
     M.savePlayer(target)
 
     if connected then
-        local finalReason = BJCLang.getServerMessage(target.playerID, "players.banned")
+        local finalReason = BJCLang.getServerMessage(target.lang, "players.banned")
         if reason then
-            finalReason = BJCLang.getServerMessage(target.playerID, "players.banReason")
+            finalReason = BJCLang.getServerMessage(target.lang, "players.banReason")
                 :var({ base = finalReason, reason = reason })
         end
 
@@ -1219,7 +1219,7 @@ local function consoleBan(args)
         return BJCLang.getConsoleMessage("command.errors.usage")
             :var({
                 command = string.var(
-                    "{1}kick {2}",
+                    "{1}ban {2}",
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.banArgs") }
                 )
             })
@@ -1269,7 +1269,7 @@ local function consoleTempBan(args)
         return BJCLang.getConsoleMessage("command.errors.usage")
             :var({
                 command = string.var(
-                    "{1}kick {2}",
+                    "{1}tempban {2}",
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.tempbanArgs") }
                 )
             })
@@ -1307,8 +1307,6 @@ local function consoleTempBan(args)
 
     local ctxt = {}
     BJCInitContext(ctxt)
-
-    PrintObj({ matches[1].playerName, reason, duration })
     local status, err = pcall(M.tempBan, ctxt, matches[1].playerName, reason, duration)
     if not status then
         err = type(err) == "table" and err or {}
@@ -1327,7 +1325,7 @@ local function consoleUnban(args)
         return BJCLang.getConsoleMessage("command.errors.usage")
             :var({
                 command = string.var(
-                    "{1}kick {2}",
+                    "{1}unban {2}",
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.unbanArgs") }
                 )
             })
@@ -1358,7 +1356,7 @@ local function consoleMute(args)
         return BJCLang.getConsoleMessage("command.errors.usage")
             :var({
                 command = string.var(
-                    "{1}kick {2}",
+                    "{1}mute {2}",
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.muteArgs") }
                 )
             })
@@ -1411,7 +1409,7 @@ local function consoleUnmute(args)
         return BJCLang.getConsoleMessage("command.errors.usage")
             :var({
                 command = string.var(
-                    "{1}kick {2}",
+                    "{1}unmute {2}",
                     { BJCCommand.commandPrefix, BJCLang.getConsoleMessage("command.help.unmuteArgs") }
                 )
             })

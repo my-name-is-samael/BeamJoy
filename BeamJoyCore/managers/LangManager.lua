@@ -63,6 +63,7 @@ end
 
 -- GETTERS
 
+---@return string[]
 local function getLangsList()
     local langs = {}
     for k in pairs(M.Langs) do
@@ -71,6 +72,10 @@ local function getLangsList()
     return langs
 end
 
+---@param lang table
+---@param key string
+---@param skipError boolean?
+---@return string
 local function _getMessage(lang, key, skipError)
     if key:find(" ") then
         return key
@@ -96,6 +101,8 @@ local function _getMessage(lang, key, skipError)
     end
 end
 
+---@param key string
+---@return string
 local function getConsoleMessage(key)
     M.checkConsoleLang(BJCConfig.Data.Server.Lang)
     local lang = table.deepcopy(M.Langs[M.FallbackLang])
@@ -105,6 +112,8 @@ local function getConsoleMessage(key)
     return message ~= compiledKey and message or key
 end
 
+---@param playerID integer
+---@return table
 local function _getPlayerLang(playerID)
     local lang = table.deepcopy(M.Langs[M.FallbackLang])
     local playerLang = (BJCPlayers.Players[playerID] or {}).lang
@@ -114,6 +123,9 @@ local function _getPlayerLang(playerID)
     return lang
 end
 
+---@param targetLang string
+---@param key string
+---@return string
 local function getServerMessage(targetLang, key)
     local lang = table.deepcopy(M.Langs[M.FallbackLang])
     if table.includes(M.getLangsList(), targetLang) then
@@ -124,6 +136,9 @@ local function getServerMessage(targetLang, key)
     return message ~= compiledKey and message or key
 end
 
+---@param targetLang string
+---@param key string
+---@return string
 local function getClientMessage(targetLang, key)
     local lang = table.deepcopy(M.Langs[M.FallbackLang])
     if table.includes(M.getLangsList(), targetLang) then
@@ -134,6 +149,7 @@ local function getClientMessage(targetLang, key)
     return message ~= compiledKey and message or key
 end
 
+---@param playerID integer
 local function getCache(playerID)
     return {
         langs = M.getLangsList(),

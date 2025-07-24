@@ -71,7 +71,7 @@ local function onChatMessage(senderID, name, chatMessage)
     end
 
     if player.muted or group.muted then
-        BJCChat.onServerChat(senderID, BJCLang.getServerMessage(senderID, "players.cantSendMessage"))
+        BJCChat.onServerChat(senderID, BJCLang.getServerMessage(player.lang, "players.cantSendMessage"))
         return 1
     end
 
