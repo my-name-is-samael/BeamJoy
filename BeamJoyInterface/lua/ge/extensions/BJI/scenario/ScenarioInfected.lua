@@ -354,9 +354,11 @@ local function initSurvivorsVehs()
     end, Table())
 end
 
+---@param participant BJIInfectedParticipant
 local function tryApplyScenarioColor(participant)
     if S.settings.enableColors then
-        local color = participant.originalInfected and S.settings.infectedColor or S.settings.survivorsColor
+        local color = (participant.originalInfected or participant.infectionTime) and
+            S.settings.infectedColor or S.settings.survivorsColor
         local veh = BJI_Veh.getVehicleObject(participant.gameVehID)
         if color and veh then
             ---@type NGPaint
