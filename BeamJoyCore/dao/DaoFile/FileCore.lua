@@ -48,7 +48,8 @@ local function init(dbPath)
                 "Your current server configuration is invalid. It will be reset to default values and you will need to update it manually using the interface or by editing the core.json file.")
         end
         if M.serverConfigAccess and configData then
-            BJCDao._saveFile(M._dbPath, configData.General)
+            BJCDao._saveFile(M._dbPath, table.filter(configData.General,
+                function(_, k) return MP.Settings[k] ~= nil end))
         else
             BJCDao._saveFile(M._dbPath, getDefaultConfig())
         end
@@ -59,8 +60,10 @@ end
 local function findAll()
     local configData = getServerConfigData()
     if M.serverConfigAccess and configData then
-        local res = configData.General
-        if res.MaxCars < 200 then
+        ---@type table
+        local res = table.filter(configData.General,
+            function(_, k) return MP.Settings[k] ~= nil end)
+        if not res.MaxCars or res.MaxCars < 200 then
             -- applies fixed value and lets the mod handle the rest
             res.MaxCars = 200
             M.save(res)
