@@ -8,6 +8,7 @@
 ---@field Description string
 ---@field Tags string
 ---@field LogChat boolean
+---@field InformationPacket boolean?
 
 local resourcesFolderPath = BJCPluginPath:gsub("Server/BeamJoyCore", "")
 
@@ -46,13 +47,8 @@ end
 local function init()
     M.Data = BJCDao.core.findAll()
 
-    -- applies fixed value and lets the mod handle the rest
-    if not tonumber(M.Data.MaxCars) or M.Data.MaxCars < 200 then
-        M.Data.MaxCars = 200
-    end
-
     Table(M.Data):forEach(function(v, k)
-        if MP.Settings[k] then
+        if MP.Settings[k] and (not MP.Get or MP.Get(MP.Settings[k]) ~= v) then
             MP.Set(MP.Settings[k], v)
         end
     end)

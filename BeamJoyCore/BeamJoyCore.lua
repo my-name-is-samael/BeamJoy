@@ -29,6 +29,7 @@ require("utils/String")
 require("utils/Table")
 SHA = require("utils/SHA")
 JSON = require("utils/JSON")
+TOML = require("utils/TOML")
 
 require("utils/Constants")
 require("utils/Common")
