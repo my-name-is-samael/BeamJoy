@@ -2,6 +2,8 @@
 local M = {
     _name = "AI",
 
+    maxTraffic = 20,
+
     state = true,
     baseFunctions = {},
 }
@@ -77,37 +79,39 @@ end
 ---@param gameVehID integer
 ---@return boolean
 local function isSelfAIVehicle(gameVehID)
-    local veh = BJI_Veh.getMPVehicle(gameVehID, true)
+    local veh = BJI_Veh.getMPVehicle(gameVehID, true, true)
     return veh ~= nil and veh.isAi
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isRemoteAIVehicle(gameVehID)
-    local veh = BJI_Veh.getMPVehicle(gameVehID, false)
+    local veh = BJI_Veh.getMPVehicle(gameVehID, false, true)
     return veh ~= nil and veh.isAi
 end
 
 ---@param gameVehID integer
 ---@return boolean
 local function isAIVehicle(gameVehID)
-    local veh = BJI_Veh.getMPVehicle(gameVehID)
+    local veh = BJI_Veh.getMPVehicle(gameVehID, nil, true)
     return veh ~= nil and veh.isAi
 end
 
 local function onTrafficStarted()
     BJI_UI.applyLoading(false)
-    BJI_Veh.getMPVehicles({ isAi = false }, true)
-        :filter(function(v)
-            return not v.isLocal and not extensions.gameplay_traffic.getTrafficData()[v.gameVehicleID]
-        end)
-        :forEach(function(mpVeh)
+    BJI_Veh.getMPVehicles(nil, true):forEach(function(mpVeh)
+        local vehTraffic = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+        if not mpVeh.isLocal and not vehTraffic then
             extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, true, true)
-            mpVeh.veh.playerUsable = true
-            mpVeh.veh.uiState = 1
-            local vehTraffic = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
-            vehTraffic:setRole(mpVeh.veh.isPatrol and "police" or "standard")
-        end)
+        elseif mpVeh.isLocal and mpVeh.isAi then
+            if not vehTraffic then
+                extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID)
+                vehTraffic = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
+            end
+            vehTraffic:setAiMode("traffic")
+            core_vehicleBridge.executeAction(mpVeh.veh, 'setAIMode', "traffic") -- force launch traffic
+        end
+    end)
 end
 
 ---@param ctxt TickContext
@@ -124,20 +128,6 @@ local function getRestrictions(ctxt)
         toggle(canSpawnAI)
     end
 
-    if getState() then
-        local finalRole = BJI_Context.Players:length() > 1 and "empty" or "standard"
-        Table(extensions.gameplay_traffic.getTrafficAiVehIds())
-            :forEach(function(vid)
-                local vehTraffic = extensions.gameplay_traffic.getTrafficData()[vid]
-                if vehTraffic and vehTraffic.roleName ~= finalRole then
-                    if vehTraffic.roleName ~= "suspect" or
-                        BJI_Context.Players:length() > 1 then
-                        vehTraffic:setRole(finalRole)
-                    end
-                end
-            end)
-    end
-
     return M.state and {} or BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL
 end
 
@@ -146,10 +136,10 @@ local function initNGFunctionsWrappers()
         gameplay_traffic = {
             setupTrafficWaitForUi = extensions.gameplay_traffic.setupTrafficWaitForUi,
             activate = extensions.gameplay_traffic.activate,
+            setTrafficVars = extensions.gameplay_traffic.setTrafficVars,
+            trackAIAllVeh = extensions.gameplay_traffic.trackAIAllVeh,
+            setActiveAmount = extensions.gameplay_traffic.setActiveAmount,
             deactivate = extensions.gameplay_traffic.deactivate,
-        },
-        gameplay_traffic_trafficUtils = {
-            createPoliceGroup = extensions.gameplay_traffic_trafficUtils.createPoliceGroup,
         },
         core_multiSpawn = {
             spawnGroup = extensions.core_multiSpawn.spawnGroup,
@@ -161,7 +151,7 @@ local function initNGFunctionsWrappers()
             if withPolice then
                 BJI_Toast.warning(BJI_Lang.get("ai.policeDisabled"))
             end
-            return M.baseFunctions.gameplay_traffic.setupTrafficWaitForUi(false) -- prevent AI police in traffic
+            return M.baseFunctions.gameplay_traffic.setupTrafficWaitForUi(false)
         else
             BJI_Toast.error(BJI_Lang.get("ai.toastCantSpawn"))
         end
@@ -169,7 +159,7 @@ local function initNGFunctionsWrappers()
 
     extensions.gameplay_traffic.activate = function(vehList, ignoreFilter)
         if not vehList then
-            local ownVehs = BJI_Veh.getMPOwnVehicles()
+            local ownVehs = BJI_Veh.getMPOwnVehicles(true)
             vehList = Table(getAllVehiclesByType()):filter(function(veh)
                 return not veh.isParked and ownVehs:any(function(v)
                     return v.gameVehicleID == veh:getID() and v.isAi
@@ -179,33 +169,54 @@ local function initNGFunctionsWrappers()
         M.baseFunctions.gameplay_traffic.activate(vehList, ignoreFilter)
     end
 
-    extensions.gameplay_traffic.deactivate = function() end
+    extensions.gameplay_traffic.setTrafficVars = function(data, reset)
+        if not BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
+            data = data or {}
+            if data.aiMode and data.aiMode ~= "traffic" then
+                BJI_Toast.warning(BJI_Lang.get("ai.onlyTrafficModeEnabled"))
+            end
+            data.aiMode = "traffic"
+            M.baseFunctions.gameplay_traffic.setTrafficVars(data, reset)
+        end
+    end
 
-    -- disable traffic pausing
-    extensions.gameplay_traffic_trafficUtils.createPoliceGroup = function() return {} end -- disable AI police in traffic
+    extensions.gameplay_traffic.trackAIAllVeh = function(mode)
+        if not BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
+            if mode ~= "traffic" then
+                BJI_Toast.warning(BJI_Lang.get("ai.onlyTrafficModeEnabled"))
+            end
+            M.baseFunctions.gameplay_traffic.trackAIAllVeh("traffic")
+        end
+    end
+
+    extensions.gameplay_traffic.setActiveAmount = function(amount)
+        if not BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
+            amount = math.min(amount,
+                M.maxTraffic - table.filter(BJI_Context.Players[BJI_Context.User.playerID].vehicles,
+                    function(v) return not v.isAi end):length())
+            M.baseFunctions.gameplay_traffic.setActiveAmount(amount)
+        end
+    end
+
+    extensions.gameplay_traffic.deactivate = function()
+        BJI_Toast.warning(BJI_Lang.get("ai.onlyTrafficModeEnabled"))
+    end
 
     extensions.core_multiSpawn.spawnGroup = function(group, amount, options)
         if not BJI_Restrictions.getState(BJI_Restrictions._SCENARIO_DRIVEN.AI_CONTROL) then
-            local max = (tonumber(settings.getValue('trafficAmount')) or 2) +
-                (tonumber(settings.getValue('trafficParkedAmount')) or 0)
-            if settings.getValue('trafficExtraVehicles') then
-                max = max + (tonumber(settings.getValue('trafficExtraAmount')) or 1)
+            local currentAIAmount = table.filter(BJI_Context.Players[BJI_Context.User.playerID].vehicles,
+                function(v) return v.isAi end):length()
+            if currentAIAmount >= M.maxTraffic then
+                return BJI_Toast.error(BJI_Lang.get("ai.limitReached")
+                    :var({ amount = M.maxTraffic }))
             end
-
-            amount = math.clamp(amount, 0, max)
-            if amount > 0 then
-                BJI_UI.applyLoading(true, function()
-                    BJI_Veh.getMPVehicles({ ownerID = BJI_Context.User.playerID, isAi = true }, true)
-                        :forEach(function(mpVeh) -- remove previous traffic vehicles
-                            BJI_Veh.deleteVehicle(mpVeh.gameVehicleID)
-                        end)
-                    M.baseFunctions.core_multiSpawn.spawnGroup(group, amount, options)
-                end)
+            if amount then
+                amount = math.min(amount,
+                    M.maxTraffic - currentAIAmount)
             end
-            return
+            M.baseFunctions.core_multiSpawn.spawnGroup(group, amount, options)
         else
             BJI_Toast.error(BJI_Lang.get("ai.toastCantSpawn"))
-            return
         end
     end
 end
@@ -215,13 +226,18 @@ local function onUnload()
 end
 
 -- force traffic play after creation (modded generation)
-local function onVehGroupSpawned()
-    extensions.gameplay_traffic.activate()
-    local poolAmount = tonumber(settings.getValue('trafficExtraAmount')) or 0
-    if poolAmount > 0 then
-        extensions.gameplay_traffic.setActiveAmount(poolAmount)
-    end
-    extensions.gameplay_traffic.scatterTraffic()
+local function onVehGroupSpawned(vehIds)
+    local vehs = {}
+    BJI_Async.task(function()
+        table.filter(vehIds, function(vid)
+            return not vehs[vid]
+        end):forEach(function(vid)
+            vehs[vid] = BJI_Veh.getMPVehicle(vid, true, true)
+        end)
+        return table.length(vehIds) == table.length(vehs)
+    end, function()
+        extensions.gameplay_traffic.activate()
+    end)
 end
 
 local function onLoad()
@@ -234,8 +250,6 @@ local function onLoad()
         extensions.gameplay_traffic.activate, M._name)
 
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
-
-    --BJI_Events.addListener(BJI_Events.EVENTS.NG_TRAFFIC_STOPPED, onTrafficStopped, M._name)
 end
 
 M.getState = getState

@@ -1439,7 +1439,9 @@
     },
     "ai": {
       "toastCantSpawn": "Sie können keine KI-Fahrzeuge spawnen",
-      "policeDisabled": "Polizei-KI ist deaktiviert, standardmäßige Verkehrsfahrzeuge werden gespawnt..."
+      "policeDisabled": "Polizei-KI ist deaktiviert, standardmäßige Verkehrsfahrzeuge werden gespawnt...",
+      "onlyTrafficModeEnabled": "Alle Modi außer Verkehr sind deaktiviert",
+      "limitReached": "Verkehrslimit erreicht ({amount})"
     },
     "speed": {
       "vote": {

@@ -365,13 +365,14 @@ end
 
 ---@param gameVehID integer
 local function onVehicleSpawned(gameVehID)
-    local timeout = GetCurrentTimeMillis() + 1000
-    BJI_Async.task(function(ctxt)
-        return ctxt.now > timeout or
-            Table(MPVehicleGE.getVehicles()):any(function(v) return v.gameVehicleID == gameVehID end)
+    BJI_Async.task(function()
+        return M.getVehicleObject(gameVehID) ~= nil and
+            Table(MPVehicleGE.getVehicles()):any(function(v)
+                return v.gameVehicleID == gameVehID and v.isSpawned
+            end)
     end, function(ctxt)
-        if ctxt.now > timeout then return LogError("On vehicle spawned timeout " .. tostring(gameVehID)) end
         local mpVeh = M.getMPVehicle(gameVehID)
+        if not mpVeh or mpVeh.isDeleted then return LogError("On vehicle spawned invalid veh " .. tostring(gameVehID)) end
         if not mpVeh then
             error("Invalid vehicle spawned " .. tostring(gameVehID))
         end
@@ -395,9 +396,6 @@ local function onVehicleSpawned(gameVehID)
         elseif mpVeh.isAi then
             mpVeh.veh.uiState = 0
             mpVeh.veh.playerUsable = false
-            if mpVeh.isLocal then
-                core_vehicleBridge.executeAction(mpVeh.veh, 'setAIMode', "traffic") -- force launch traffic
-            end
         end
         BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_INITIALIZED, mpVeh)
     end)

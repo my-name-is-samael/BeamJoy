@@ -3,14 +3,18 @@ local M = {
     _name = "UI",
 
     callbackDelay = 500,
+    ---@type fun(ctxt: TickContext)?
+    callback = nil,
 }
 
 ---@param state boolean
----@param callbackFn? fun(ctxt: TickContext)
-local function applyLoading(state, callbackFn)
+---@param callback? fun(ctxt: TickContext)
+local function applyLoading(state, callback)
     guihooks.trigger('app:waiting', state)
-    if type(callbackFn) == "function" then
-        BJI_Async.delayTask(callbackFn, M.callbackDelay, "ApplyUILoading-" .. UUID())
+    if type(callback) == "function" then
+        M.callback = callback
+    else
+        M.callback = nil
     end
 end
 
@@ -27,12 +31,22 @@ local function onLayoutUpdate(layoutName)
     end, 100, "BJIPostLayoutUpdate")
 end
 
+---@param ctxt TickContext
+local function fastTick(ctxt)
+    if type(M.callback) == "function" then
+        M.callback(ctxt)
+        M.callback = nil
+    end
+end
+
 M.applyLoading = applyLoading
 M.hideGameMenu = hideGameMenu
 
 M.onLoad = function()
     BJI_Events.addListener(BJI_Events.EVENTS.SCENARIO_CHANGED, hideGameMenu, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED, onLayoutUpdate, M._name)
+
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 return M

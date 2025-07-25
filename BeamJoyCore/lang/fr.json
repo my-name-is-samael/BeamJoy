@@ -1439,7 +1439,9 @@
     },
     "ai": {
       "toastCantSpawn": "Tu ne peux pas faire apparaître le traffic",
-      "policeDisabled": "IA de police désactivée, apparition de véhicules de trafic standard..."
+      "policeDisabled": "IA de police désactivée, apparition de véhicules de trafic standard...",
+      "onlyTrafficModeEnabled": "Tous les modes sauf le trafic sont désactivés",
+      "limitReached": "Limite de trafic atteinte ({amount})"
     },
     "speed": {
       "vote": {

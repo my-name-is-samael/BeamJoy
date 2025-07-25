@@ -1439,7 +1439,9 @@
     },
     "ai": {
       "toastCantSpawn": "Você não pode gerar veículos de IA",
-      "policeDisabled": "IA da polícia desativada, gerando veículos de tráfego padrão..."
+      "policeDisabled": "IA da polícia desativada, gerando veículos de tráfego padrão...",
+      "onlyTrafficModeEnabled": "Todos os modos, exceto o de tráfego, estão desativados",
+      "limitReached": "Limite de tráfego atingido ({amount})"
     },
     "speed": {
       "vote": {
