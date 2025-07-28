@@ -70,12 +70,12 @@ end
 local function client()
     if BJI_Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then
         ctxt = getContext()
-        Table(BJI.Managers):forEach(function(m)
+        Table(BJI.Managers):forEach(function(m, k)
             if m.renderTick then
                 start = GetCurrentTimeMillis()
-                m.renderTick(ctxt)
+                pcall(m.renderTick, ctxt)
                 if BJI.Bench.STATE == 1 then
-                    BJI.Bench.add(m._name, "renderTick", GetCurrentTimeMillis() - start)
+                    BJI.Bench.add(tostring(k), "renderTick", GetCurrentTimeMillis() - start)
                 end
             end
         end)
