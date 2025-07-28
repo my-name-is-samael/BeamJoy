@@ -119,6 +119,7 @@ local function updateCache(ctxt)
                 local common = require("ge/extensions/BJI/ui/windows/Main/Menu/Common")
                 common.menuRace(ctxt, M.cache.elems)
                 common.menuHunter(ctxt, M.cache.elems)
+                common.menuInfected(ctxt, M.cache.elems)
                 common.menuDerby(ctxt, M.cache.elems)
             end
         end
