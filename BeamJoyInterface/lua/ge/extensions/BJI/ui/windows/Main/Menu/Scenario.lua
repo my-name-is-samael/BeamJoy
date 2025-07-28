@@ -364,7 +364,8 @@ local function updateCache(ctxt)
         elems = {},
     }
 
-    if not BJI_Win_ScenarioEditor.getState() and
+    if BJI_Scenario.isFreeroam() and
+        not BJI_Win_ScenarioEditor.getState() and
         not BJI_Tournament.state and
         not BJI_Pursuit.getState() then
         menuSoloRace(ctxt)
@@ -373,8 +374,7 @@ local function updateCache(ctxt)
         menuPackageDelivery(ctxt)
         menuDeliveryMulti(ctxt)
         menuTagDuo(ctxt)
-        if not BJI_Scenario.isServerScenarioInProgress() and
-            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
+        if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO) and
             not BJI_Votes.Map.started() and
             not BJI_Votes.Scenario.started() then
             table.insert(M.cache.elems, { type = "separator" })
