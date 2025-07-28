@@ -1753,8 +1753,8 @@ local function postResetPreserveEnergy(gameVehID)
 end
 
 --- Vehicle comparison approximation (>= 90% match)
----@param conf1 { model: string, parts: table<string, string>}
----@param conf2 any
+---@param conf1 ClientVehicleConfig
+---@param conf2 ClientVehicleConfig
 local function compareConfigs(conf1, conf2)
     if conf1.model == conf2.model then
         local larger, smaller

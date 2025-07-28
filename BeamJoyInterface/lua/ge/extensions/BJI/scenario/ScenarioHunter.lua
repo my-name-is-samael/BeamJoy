@@ -22,9 +22,9 @@ local S = {
 
     settings = {
         waypoints = 3,
-        ---@type {model: string, config: table}?
+        ---@type ClientVehicleConfig?
         huntedConfig = nil,
-        ---@type {model: string, config: table}[]
+        ---@type ClientVehicleConfig[]
         hunterConfigs = {},
         lastWaypointGPS = false,
     },
@@ -391,46 +391,44 @@ local function onJoinParticipants(participant)
         end
     end
 
-    -- when forced config
     if ownVeh then
-        -- moving actual vehicle
-        local startPos = participant.hunted and
-            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
-        BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-    else
-        local model, config
-        -- generate start position
-        if participant.hunted then
-            if S.settings.huntedConfig then
-                -- forced config
-                model, config = S.settings.huntedConfig.model, S.settings.huntedConfig
-            else
-                BJI_Message.flash("BJIHunterChooseVehicle",
-                    BJI_Lang.get("hunter.play.flashChooseVehicle"),
-                    3, false)
-                BJI_Win_VehSelector.open(false)
-            end
+        -- already spawned (probably team switch)
+        BJI_Cam.forceFreecamPos(BJI_Cam.getPositionRotation().pos + vec3(0, 0, 1000), quat(-1, 0, 0, 1))
+        BJI_Veh.deleteCurrentOwnVehicle()
+        BJI_Async.delayTask(function() onJoinParticipants(participant) end, 250, "BJIHunterSwitchTeam")
+        return
+    end
+
+    local model, config
+    if participant.hunted then
+        if S.settings.huntedConfig then
+            -- forced config
+            model, config = S.settings.huntedConfig.model, S.settings.huntedConfig
         else
-            -- hunter
-            if #S.settings.hunterConfigs == 1 then
-                -- forced config
-                model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1]
-            elseif #S.settings.hunterConfigs == 0 then
-                BJI_Message.flash("BJIHunterChooseVehicle",
-                    BJI_Lang.get("hunter.play.flashChooseVehicle"),
-                    3, false)
-                BJI_Win_VehSelector.open(false)
-            end
+            BJI_Message.flash("BJIHunterChooseVehicle",
+                BJI_Lang.get("hunter.play.flashChooseVehicle"),
+                3, false)
+            BJI_Win_VehSelector.open(false)
         end
-        -- forced config spawn
-        if config then
-            BJI_Async.task(function()
-                return BJI_VehSelectorUI.stateSelector
-            end, function()
-                S.trySpawnNew(model, config)
-            end, "BJIHunterForcedConfigSpawn")
+    else
+        -- hunter
+        if #S.settings.hunterConfigs == 1 then
+            -- forced config
+            model, config = S.settings.hunterConfigs[1].model, S.settings.hunterConfigs[1]
+        elseif #S.settings.hunterConfigs == 0 then
+            BJI_Message.flash("BJIHunterChooseVehicle",
+                BJI_Lang.get("hunter.play.flashChooseVehicle"),
+                3, false)
+            BJI_Win_VehSelector.open(false)
         end
+    end
+    -- forced config spawn
+    if config then
+        BJI_Async.task(function()
+            return BJI_VehSelectorUI.stateSelector
+        end, function()
+            S.trySpawnNew(model, config)
+        end, "BJIHunterForcedConfigSpawn")
     end
     BJI_Restrictions.update()
 end
