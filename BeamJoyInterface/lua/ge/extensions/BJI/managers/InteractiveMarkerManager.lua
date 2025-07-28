@@ -123,7 +123,12 @@ local function upsertMarker(id, icon, pos, radius, data, activityData)
         activityData = activityData
     }
     M.group:addObject((createMarkerObject(id) or {}).obj)
-    M.markers[id]._marker:setup({ id = id, pos = pos, icon = icon, elemData = { true } })
+    M.markers[id]._marker:setup({
+        id = id,
+        pos = vec3(pos.x, pos.y, be:getSurfaceHeightBelow(pos + vec3(0, 0, 1))),
+        icon = icon,
+        elemData = { true }
+    })
     M.markers[id]._marker.radius = radius
     M.markers[id]._marker.groundDecalData[2].scale = vec3(radius * 2, radius * 2, 3)
     if data.color then
