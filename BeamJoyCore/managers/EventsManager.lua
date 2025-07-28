@@ -19,7 +19,7 @@ local M = {
         MP_VEHICLE_PAINT_CHANGED = { key = "onVehiclePaintChanged", base = true },
         MP_VEHICLE_DELETED = { key = "onVehicleDeleted", base = true },
         MP_ON_FILE_CHANGED = { key = "onFileChanged", base = true },
-        MP_CONSOLE_INPUT = { key = "onConsoleInput", base = true, cancellable = true }, -- cancel with string (reason)
+        MP_CONSOLE_INPUT = { key = "onBJCConsoleInput", base = true, cancellable = true }, -- cancel with string (reason)
 
         PLAYER_CONNECTED = { key = "onPlayerConnected" },
         PLAYER_DISCONNECTED = { key = "onPlayerDisconnected" },

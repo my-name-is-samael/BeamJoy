@@ -18,6 +18,7 @@ local function addCommand(cmd, fnName)
     })
 end
 
+---@return string
 local function Help()
     local out = BJCLang.getConsoleMessage("command.help.title")
     local cmdLen = 0
@@ -41,6 +42,8 @@ local function Help()
     return out
 end
 
+---@param message string
+---@return string?
 local function Say(message)
     if #message == 0 then
         return BJCLang.getConsoleMessage("command.errors.usage"):var({
@@ -51,6 +54,7 @@ local function Say(message)
     end
 end
 
+---@return string?
 local function List()
     local function getReputationLevelAmount(level) -- from client ReputationManager.lua:getReputationLevelAmount
         return (20 * (level ^ 2)) - (40 * level) + 20
@@ -100,6 +104,8 @@ local function List()
     end
 end
 
+---@param args string[]
+---@return string?
 local function Settings(args)
     local settings = BJC_CORE_CONFIG:filter(function(k) return not k.prevent end):map(function(_, k)
         return {
@@ -158,6 +164,8 @@ local function Settings(args)
     end
 end
 
+--- @param message string
+---@return string?
 local function overrideDefaultCommands(message)
     local args = message:split(" ")
     local nextArgs = {}
@@ -175,10 +183,12 @@ local function overrideDefaultCommands(message)
     end
 end
 
-local function onConsoleInput(message)
+local function onConsoleInput(message) -- return nothing, (workaround https://github.com/BeamMP/BeamMP-Server/issues/435)
     if message:sub(1, #M.commandPrefix) ~= M.commandPrefix then
         -- not bj command
-        return overrideDefaultCommands(message)
+        local out = overrideDefaultCommands(message)
+        if out then Log(out) end
+        return
     end
     message = message:sub(#M.commandPrefix + 1)
 
@@ -209,16 +219,16 @@ local function onConsoleInput(message)
         end
     end
     if not cmd then
-        return BJCLang.getConsoleMessage("command.errors.invalidCommand"):var({ command = command })
+        return LogError(BJCLang.getConsoleMessage("command.errors.invalidCommand"):var({ command = command }))
     end
 
     -- allow calling subfunctions like "BJCPlayerManager.onConsoleSetGroup(args)"
     local fn = GetSubobject(cmd.fnName)
-    if fn then
-        return fn(args) or BJCLang.getConsoleMessage("command.defaultReturn")
-    else
-        return BJCLang.getConsoleMessage("command.errors.invalidFunctionName"):var({ functionName = cmd.fnName })
+    if not fn then
+        return LogError(BJCLang.getConsoleMessage("command.errors.invalidFunctionName"):var({ functionName = cmd.fnName }))
     end
+
+    return Log(fn(args) or BJCLang.getConsoleMessage("command.defaultReturn"))
 end
 
 local function _init()
