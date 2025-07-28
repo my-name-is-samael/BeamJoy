@@ -285,30 +285,29 @@ local function onJoinParticipants(participant)
     local ownVeh = BJI_Veh.isCurrentVehicleOwn()
     -- when forced config
     if ownVeh then
-        -- moving actual vehicle
-        local startPos = participant.originalInfected and
-            BJI_Scenario.Data.HunterInfected.minorPositions[participant.startPosition] or
-            BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
-        BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-        postSpawn(BJI_Tick.getContext())
+        -- already spawned (probably team switch)
+        BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+        BJI_Veh.deleteCurrentOwnVehicle()
+        BJI_Async.delayTask(function() onJoinParticipants(participant) end, 250, "BJIInfectedSwitchTeam")
+        return
+    end
+
+    local model, config
+    if S.settings.config then
+        -- forced config
+        model, config = S.settings.config.model, S.settings.config
     else
-        local model, config
-        if S.settings.config then
-            -- forced config
-            model, config = S.settings.config.model, S.settings.config
-        else
-            BJI_Message.flash("BJIInfectedChooseVehicle",
-                BJI_Lang.get("infected.play.flashChooseVehicle"),
-                3, false)
-            BJI_Win_VehSelector.open(false)
-        end
-        if config then
-            BJI_Async.task(function()
-                return BJI_VehSelectorUI.stateSelector
-            end, function()
-                S.trySpawnNew(model, config)
-            end, "BJIHunterForcedConfigSpawn")
-        end
+        BJI_Message.flash("BJIInfectedChooseVehicle",
+            BJI_Lang.get("infected.play.flashChooseVehicle"),
+            3, false)
+        BJI_Win_VehSelector.open(false)
+    end
+    if config then
+        BJI_Async.task(function()
+            return BJI_VehSelectorUI.stateSelector
+        end, function()
+            S.trySpawnNew(model, config)
+        end, "BJIInfectedForcedConfigSpawn")
     end
     BJI_Restrictions.update()
 end
