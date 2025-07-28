@@ -260,7 +260,8 @@ end
 local function getCacheDerby(senderID)
     local cache = {}
     if BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.SCENARIO) or
-        BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) then
+        BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.START_SERVER_SCENARIO) or
+        BJCPerm.hasPermission(senderID, BJCPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) then
         for _, arena in ipairs(M.Derby) do
             table.insert(cache, table.deepcopy(arena))
         end
