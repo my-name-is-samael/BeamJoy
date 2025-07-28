@@ -30,7 +30,8 @@ end
 ---@param ctxt TickContext
 ---@return boolean
 local function isVisible(ctxt)
-    damages = ctxt.isOwner and tonumber(ctxt.veh.veh.damageState) or nil
+    damages = (ctxt.isOwner and BJI_Veh.getVehicleObject(ctxt.veh.gameVehicleID)) and
+        tonumber(ctxt.veh.veh.damageState) or nil
     return damages ~= nil and damages > cache.damageThreshold
 end
 

@@ -24,12 +24,15 @@ local M = {
 
 local lastServerData = nil
 
+-- gc prevention
+local veh, vehData, res, ctxt, start
+
 ---@param slow? boolean
 ---@return TickContext
 local function getContext(slow)
-    local veh = BJI_Context.User.currentVehicle and
+    veh = BJI_Context.User.currentVehicle and
         BJI_Veh.getMPVehicle(BJI_Context.User.currentVehicle) or nil
-    local vehData
+    vehData = nil
     if veh and veh.isLocal then
         for _, v in pairs(BJI_Context.User.vehicles) do
             if veh and v.gameVehID == veh.gameVehicleID then
@@ -38,7 +41,7 @@ local function getContext(slow)
             end
         end
     end
-    local ctxt = {
+    res = {
         now = GetCurrentTimeMillis(),
         user = BJI_Context.User,
         group = BJI_Perm.Groups[BJI_Context.User.group],
@@ -49,9 +52,9 @@ local function getContext(slow)
         camera = BJI_Cam.getCamera(),
     }
     if slow and lastServerData then
-        return table.assign(ctxt, lastServerData)
+        return table.assign(res, lastServerData)
     end
-    return ctxt
+    return res
 end
 
 local lastFastTickTime = 0
@@ -63,8 +66,6 @@ local function processFastTick(ctxt)
     end
 end
 
---- gc prevention
-local ctxt, start
 -- ClientTick (each render tick)
 local function client()
     if BJI_Context.WorldReadyState == 2 and MPGameNetwork.launcherConnected() then

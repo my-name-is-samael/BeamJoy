@@ -181,10 +181,15 @@ local function fastTick(ctxt)
     end
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     if cachedData and M.markers:length() > 0 then
-        activeSpeed = not ctxt.veh or not tonumber(ctxt.veh.veh.speed) or
-            tonumber(ctxt.veh.veh.speed) < .5
+        if ctxt.veh and BJI_Veh.getVehicleObject(ctxt.veh.gameVehicleID) then
+            activeSpeed = tonumber(ctxt.veh.veh.speed) and
+                tonumber(ctxt.veh.veh.speed) < .5
+        else
+            activeSpeed = false
+        end
         table.clear(decals)
         activeWindows:clear()
         ---@param el InteractiveMarker

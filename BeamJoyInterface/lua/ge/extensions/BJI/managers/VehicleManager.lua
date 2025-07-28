@@ -94,10 +94,10 @@ local veh, pos, rot, vehicleHeight, specs, vehType
 local function convertVehicle(mpVehRaw, light)
     veh = M.getVehicleObject(mpVehRaw.gameVehicleID)
     pos, rot, vehicleHeight = vec3(), quat(), 0
-    if not light and mpVehRaw.isSpawned and not mpVehRaw.isDeleted then
+    if veh and not light and mpVehRaw.isSpawned and not mpVehRaw.isDeleted then
         -- BeamMP vehicle positions are inconsistent, so compute them properly
-        if veh then pos, rot = M.getPositionRotation(veh) end
-        if veh then vehicleHeight = veh:getInitialHeight() end
+        pos, rot = M.getPositionRotation(veh)
+        vehicleHeight = veh:getInitialHeight()
     end
     specs = not light and BJI_Context.Players:reduce(function(res, p, pid)
         -- specs system remake because a lot of desyncs with default one
