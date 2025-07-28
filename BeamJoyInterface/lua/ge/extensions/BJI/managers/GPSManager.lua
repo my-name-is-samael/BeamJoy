@@ -39,7 +39,7 @@ local M = {
     resetBypass = false,
 }
 --- gc prevention
-local color, pos, typeTarget, targetPlayer, veh, existingIndex, ok, err, target,
+local color, pos, targetPlayer, veh, existingIndex, ok, err, target,
 targetIndex, length, wps, distance
 
 local function isClearable()
@@ -98,6 +98,7 @@ local function clear()
     end
 end
 
+---@param key string
 ---@return BJIGPSWp?
 local function getByKey(key)
     for _, t in ipairs(M.targets) do
@@ -108,11 +109,15 @@ local function getByKey(key)
     return nil
 end
 
+---@param key string
 local function removeByKey(key)
     M.targets = M.targets:filter(function(t) return t.key ~= key end)
     renderTargets()
 end
 
+---@param index integer
+---@param previousIndex integer?
+---@param target BJIGPSWp
 local function _insertWaypoint(index, previousIndex, target)
     if previousIndex then
         M.targets:remove(previousIndex)
@@ -123,139 +128,99 @@ local function _insertWaypoint(index, previousIndex, target)
     BJI_Sound.play(BJI_Sound.SOUNDS.INFO_OPEN)
 end
 
-local function createPlayerWaypoint(playerName, radius, callback, prepend)
-    radius = radius or M.defaultRadius
-
-    if not playerName then
+---@param wp BJIGPSWp
+---@return boolean ok
+local function createPlayerWaypoint(wp)
+    if not wp.playerName then
         LogError("Invalid waypoint player name")
-        return
-    end
-
-    if callback and type(callback) ~= "function" then
-        LogError("Invalid waypoint callback")
-        return
+        return false
     end
 
     targetPlayer = BJI_Context.Players:find(function(p)
-        return p.playerName == playerName
+        return p.playerName == wp.playerName
     end)
     if not targetPlayer or not targetPlayer.currentVehicle then
         LogError("Invalid waypoint player")
-        return
+        return false
     end
 
-    veh = BJI_Veh.getMPVehicle(targetPlayer.currentVehicle)
+    veh = BJI_Veh.getMPVehicles({ ownerID = targetPlayer.playerID }):find(function(v)
+        return (v.isLocal and v.gameVehicleID or v.remoteVehID) == targetPlayer.currentVehicle
+    end)
     if not veh then
         LogError("Invalid waypoint player vehicle " .. tostring(targetPlayer.currentVehicle))
-        return
+        return false
     end
 
-    if #M.targets > 0 then
-        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, veh.position) < M.defaultRadius then
-            LogError("waypoint already exists")
-            return
-        end
-    end
-
-    existingIndex = nil
-    M.targets:find(function(t) return t.key == M.KEYS.PLAYER end, function(_, i)
-        existingIndex = i
-    end)
-
-    return veh.position, radius, existingIndex
+    wp.pos = veh.position
+    return true
 end
 
-local function createVehicleWaypoint(gameVehID, radius, callback, prepend)
-    radius = radius or M.defaultRadius
-
-    if callback and type(callback) ~= "function" then
-        LogError("Invalid waypoint callback")
-        return
+---@param wp BJIGPSWp
+---@return boolean ok
+local function createVehicleWaypoint(wp)
+    if not wp.gameVehID then
+        LogError("Invalid waypoint vehicle (no vid)")
+        return false
     end
 
-    veh = BJI_Veh.getMPVehicle(gameVehID)
+    veh = BJI_Veh.getMPVehicle(wp.gameVehID)
     if not veh then
         LogError("Invalid waypoint vehicle (veh not found)")
-        return
+        return false
     end
 
-    if #M.targets > 0 then
-        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, veh.position) < M.defaultRadius then
-            LogError("waypoint already exists")
-            return
-        end
-    end
-
-    existingIndex = nil
-    M.targets:find(function(t) return t.key == M.KEYS.VEHICLE end, function(_, i)
-        existingIndex = i
-    end)
-
-    return veh.position, radius, existingIndex
+    wp.pos = veh.position
+    return true
 end
 
----@param key string
----@param pos vec3
----@param radius number
----@param callback fun()?
+---@param wp BJIGPSWp
 ---@param prepend boolean?
----@return vec3? pos, number? radius, integer? existingIndex
-local function commonCreateWaypoint(key, pos, radius, callback, prepend)
-    radius = radius or M.defaultRadius
+---@return integer? existingIndex
+local function commonCreateWaypoint(wp, prepend)
+    if wp.clearable == nil then wp.clearable = true end
+    wp.radius = wp.radius or M.defaultRadius
 
-    ok, pos = pcall(vec3, pos)
-    if not ok then
-        LogError("Invalid waypoint position")
-        return
-    end
-
-    if callback and type(callback) ~= "function" then
+    if wp.callback and type(wp.callback) ~= "function" then
         LogError("Invalid waypoint callback")
         return
     end
 
+    if wp.key == M.KEYS.PLAYER then
+        if not createPlayerWaypoint(wp) then return end
+    elseif wp.key == M.KEYS.VEHICLE then
+        if not createVehicleWaypoint(wp) then return end
+    else
+        ok, wp.pos = pcall(vec3, wp.pos)
+        if not ok then
+            LogError("Invalid waypoint position")
+            return
+        end
+    end
+
     if #M.targets > 0 then
-        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, pos) < M.defaultRadius then
+        if math.horizontalDistance(M.targets[prepend and 1 or #M.targets].pos, wp.pos) < M.defaultRadius then
             LogError("waypoint already exists")
             return
         end
     end
 
     existingIndex = nil
-    if key then
-        M.targets:find(function(t) return t.key == key end, function(_, i)
+    if wp.key then
+        M.targets:find(function(t) return t.key == wp.key end, function(_, i)
             existingIndex = i
         end)
     end
 
-    return pos, radius, existingIndex
+    return existingIndex
 end
 
 ---@param wp BJIGPSWp
 local function prependWaypoint(wp)
-    if wp.key == M.KEYS.PLAYER then
-        if not wp.playerName then
-            error("Invalid waypoint player name")
-        end
-    elseif wp.key == M.KEYS.VEHICLE then
-        if not wp.gameVehID then
-            error("Invalid waypoint vehicle (no vid)")
-        end
-    elseif not wp.pos then
-        error("Invalid waypoint")
-    end
-
-    if wp.clearable == nil then wp.clearable = true end
-    if wp.key == M.KEYS.PLAYER then
-        wp.pos, wp.radius, existingIndex = createPlayerWaypoint(wp.playerName, wp.radius, wp.callback, true)
-    elseif wp.key == M.KEYS.VEHICLE then
-        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(wp.gameVehID, wp.radius, wp.callback, true)
-    else
-        wp.pos, wp.radius, existingIndex = commonCreateWaypoint(wp.key, wp.pos, wp.radius, wp.callback, true)
-    end
+    existingIndex = commonCreateWaypoint(wp, true)
 
     if wp.pos then
-        local target = {
+        target = {
             key = wp.key,
             radius = wp.radius,
             callback = wp.callback or function() end,
@@ -271,26 +236,7 @@ end
 
 ---@param wp BJIGPSWp
 local function appendWaypoint(wp)
-    if wp.key == M.KEYS.PLAYER then
-        if not wp.playerName then
-            error("Invalid waypoint player name")
-        end
-    elseif wp.key == M.KEYS.VEHICLE then
-        if not wp.gameVehID then
-            error("Invalid waypoint vehicle (no vid)")
-        end
-    elseif not wp.pos then
-        error("Invalid waypoint")
-    end
-
-    if wp.clearable == nil then wp.clearable = true end
-    if wp.key == M.KEYS.PLAYER then
-        wp.pos, wp.radius, existingIndex = createPlayerWaypoint(wp.playerName, wp.radius, wp.callback)
-    elseif wp.key == M.KEYS.VEHICLE then
-        wp.pos, wp.radius, existingIndex = createVehicleWaypoint(wp.gameVehID, wp.radius, wp.callback)
-    else
-        wp.pos, wp.radius, existingIndex = commonCreateWaypoint(wp.key, wp.pos, wp.radius, wp.callback)
-    end
+    existingIndex = commonCreateWaypoint(wp)
 
     if wp.pos then
         target = {
@@ -398,7 +344,9 @@ local function updateTargets()
                     return deleteAndCheckLast(i)
                 end
 
-                veh = BJI_Veh.getMPVehicle(targetPlayer.currentVehicle)
+                veh = BJI_Veh.getMPVehicles({ ownerID = targetPlayer.playerID }):find(function(v)
+                    return (v.isLocal and v.gameVehicleID or v.remoteVehID) == targetPlayer.currentVehicle
+                end)
                 if veh then
                     t.pos = veh.position
                     renderTargets()
