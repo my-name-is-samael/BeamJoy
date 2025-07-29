@@ -469,7 +469,7 @@ local function updateSurvivorsVehs()
     S.survivors:forEach(function(p, vid)
         if S.participants[p.playerID].infectionTime then
             S.survivors[vid] = nil
-            S.closeSurvivors = table.filter(S.survivors, function(cvid) return cvid ~= vid end)
+            S.closeSurvivors = table.filter(S.closeSurvivors, function(cvid) return cvid ~= vid end)
         end
     end)
 end
