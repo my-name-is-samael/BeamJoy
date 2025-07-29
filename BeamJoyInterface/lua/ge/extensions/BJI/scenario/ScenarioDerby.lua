@@ -525,6 +525,8 @@ local function initGame(data)
         BJI_Cam.setCamera(S.preDerbyCam)
         onStart()
     end
+
+    BJI_Veh.applyQueuedEvents()
 end
 
 local function onElimination()

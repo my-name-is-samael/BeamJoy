@@ -350,6 +350,17 @@ local function waitForVehicleSpawn(callback)
     end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
 end
 
+---@param callback fun(ctxt: TickContext)?
+local function applyQueuedEvents(callback)
+    if type(callback) == "function" then
+        local delay = GetCurrentTimeMillis() + 500
+        BJI_Async.task(function(ctxt)
+            return ctxt.now >= delay and ui_imgui.GetIO().Framerate > 5
+        end, callback)
+    end
+    MPVehicleGE.applyQueuedEvents()
+end
+
 ---@param config string|table
 local function isVehPolice(config)
     local policeMarkers = Table({ "police", "polizei", "polizia", "gendarmerie" })
@@ -1915,6 +1926,7 @@ M.hasVehicle = hasVehicle
 
 M.isVehReady = isVehReady
 M.waitForVehicleSpawn = waitForVehicleSpawn
+M.applyQueuedEvents = applyQueuedEvents
 
 M.focus = focus
 M.focusVehicle = focusVehicle

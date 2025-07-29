@@ -43,6 +43,7 @@ local function onLoad(ctxt)
     BJI_GPS.reset()
     BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.BIG_MAP)
     BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.FREE)
+    BJI_Veh.applyQueuedEvents()
 end
 
 ---@param ctxt TickContext

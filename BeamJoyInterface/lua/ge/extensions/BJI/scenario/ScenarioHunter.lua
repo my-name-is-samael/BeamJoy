@@ -645,6 +645,8 @@ local function initGame(data)
         BJI_Cam.toggleFreeCam()
     end
     BJI_Restrictions.update()
+
+    BJI_Veh.applyQueuedEvents()
 end
 
 local function updateGame(data)

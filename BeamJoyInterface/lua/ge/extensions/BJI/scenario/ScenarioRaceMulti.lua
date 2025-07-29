@@ -876,8 +876,7 @@ local function initRace(data)
     else
         -- spec
         if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.FREE then
-            local veh = BJI_Veh.getCurrentVehicle()
-            if not veh then
+            if not BJI_Veh.getCurrentVehicle() then
                 -- will toggle free cam automatically
                 specRandomRacer()
             end
@@ -936,6 +935,8 @@ local function initRace(data)
         BJI_Restrictions.update()
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
     end, S.race.startTime, "BJIRaceStartTime")
+
+    BJI_Veh.applyQueuedEvents()
 end
 
 local function updateRace(data, wasFinished, wasEliminated)

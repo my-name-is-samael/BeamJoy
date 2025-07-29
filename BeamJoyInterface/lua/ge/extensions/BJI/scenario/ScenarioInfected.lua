@@ -541,6 +541,8 @@ local function rxData(data)
         S.stop()
     end
     BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+
+    BJI_Veh.applyQueuedEvents()
 end
 
 -- player list contextual actions getter
