@@ -36,46 +36,6 @@ local function toggle(state)
     end
 end
 
----@param ctxt TickContext
-local function slowTick(ctxt)
-    -- CHECK CLIENT SETTINGS
-
-    -- live settings
-    local settingsChanged = false
-    if settings.getValue('trafficEnableSwitching') then
-        settings.setValue('trafficEnableSwitching', false)
-        settingsChanged = true
-    end
-    if settings.getValue('trafficMinimap') then
-        settings.setValue('trafficMinimap', false)
-        settingsChanged = true
-    end
-    if settingsChanged then
-        extensions.gameplay_traffic.onSettingsChanged()
-    end
-
-    -- on traffic spawn settings
-    if not settings.getValue('trafficSimpleVehicles') then
-        settings.setValue('trafficSimpleVehicles', true)
-    end
-    if settings.getValue('trafficAllowMods') then
-        settings.setValue('trafficAllowMods', false)
-    end
-    local trafficAmount = tonumber(settings.getValue('trafficAmount')) or 0
-    if math.clamp(trafficAmount, 2, 10) ~= trafficAmount then
-        settings.setValue('trafficAmount', math.clamp(trafficAmount, 2, 10))
-    end
-    local parkedAmount = tonumber(settings.getValue('trafficParkedAmount')) or -1
-    if math.clamp(parkedAmount, 0, 5) ~= parkedAmount then
-        settings.setValue('trafficParkedAmount', math.clamp(parkedAmount, 0, 5))
-    end
-    local usePooling = settings.getValue('trafficExtraVehicles') or false
-    local usePoolingNumber = tonumber(settings.getValue('trafficExtraAmount')) or 0
-    if usePooling and math.clamp(usePoolingNumber, 1, 5) ~= usePoolingNumber then
-        settings.setValue('trafficExtraAmount', math.clamp(usePoolingNumber, 1, 5))
-    end
-end
-
 ---@param gameVehID integer
 ---@return boolean
 local function isSelfAIVehicle(gameVehID)
@@ -248,8 +208,6 @@ local function onLoad()
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED, onVehGroupSpawned, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED,
         extensions.gameplay_traffic.activate, M._name)
-
-    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
 end
 
 M.getState = getState

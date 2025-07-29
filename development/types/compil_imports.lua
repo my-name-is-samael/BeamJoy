@@ -88,6 +88,8 @@ BJI_WorldObject = require("ge/extensions/BJI/managers/WorldObjectManager")
 BJI_InteractiveMarker = require("ge/extensions/BJI/managers/InteractiveMarkerManager")
 ---@type BJIManagerPrompt
 BJI_Prompt = require("ge/extensions/BJI/managers/PromptManager")
+---@type BJIManagerSettings
+BJI_Settings = require("ge/extensions/BJI/managers/SettingsManager")
 
 ---@type BJIWindowMain
 BJI_Win_Main = require("ge/extensions/BJI/ui/windows/Main")
@@ -238,6 +240,8 @@ BJI.Managers.WorldObject = require("ge/extensions/BJI/managers/WorldObjectManage
 BJI.Managers.InteractiveMarker = require("ge/extensions/BJI/managers/InteractiveMarkerManager")
 ---@type BJIManagerPrompt
 BJI.Managers.Prompt = require("ge/extensions/BJI/managers/PromptManager")
+---@type BJIManagerSettings
+BJI.Managers.Settings = require("ge/extensions/BJI/managers/SettingsManager")
 
 ---@type BJIWindowMain
 BJI.Windows.Main = require("ge/extensions/BJI/ui/windows/Main")
