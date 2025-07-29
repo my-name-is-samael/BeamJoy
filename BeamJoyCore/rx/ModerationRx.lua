@@ -39,7 +39,7 @@ function ctrl.engine(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.ENGINE_PLAYERS) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.toggleEngine(targetID, vehID)
+    BJCPlayers.toggleEngine(targetID or -1, vehID)
 end
 
 function ctrl.kick(ctxt)
@@ -47,7 +47,7 @@ function ctrl.kick(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.KICK) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.kick(ctxt, targetID, reason)
+    BJCPlayers.kick(ctxt, targetID or -1, reason)
 end
 
 function ctrl.tempban(ctxt)
@@ -55,7 +55,7 @@ function ctrl.tempban(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.TEMP_BAN) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.tempBan(ctxt, targetName, reason, duration)
+    BJCPlayers.tempBan(ctxt, targetName, reason, duration or 0)
 end
 
 function ctrl.ban(ctxt)
@@ -71,7 +71,7 @@ function ctrl.unban(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.BAN) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.unban(targetName)
+    BJCPlayers.unban(ctxt, targetName)
 end
 
 function ctrl.teleportFrom(ctxt)
@@ -79,7 +79,7 @@ function ctrl.teleportFrom(ctxt)
     if not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.TELEPORT_FROM) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.teleportFrom(ctxt.senderID, targetID)
+    BJCPlayers.teleportFrom(ctxt.senderID, targetID or -1)
 end
 
 function ctrl.setGroup(ctxt)
@@ -97,7 +97,7 @@ function ctrl.deleteVehicle(ctxt)
         not BJCPerm.hasPermission(ctxt.senderID, BJCPerm.PERMISSIONS.DELETE_VEHICLE) then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCPlayers.deleteVehicle(ctxt, targetID, gameVehID)
+    BJCPlayers.deleteVehicle(ctxt, targetID or -1, gameVehID or -1)
 end
 
 function ctrl.whitelist(ctxt)

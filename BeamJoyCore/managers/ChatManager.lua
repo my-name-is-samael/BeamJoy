@@ -26,6 +26,7 @@ local function init()
     end
 end
 
+---@param playerID integer
 local function onWelcome(playerID)
     local player = BJCPlayers.Players[playerID]
     local lang = player and player.lang or BJCLang.FallbackLang
@@ -40,6 +41,7 @@ local function onWelcome(playerID)
     end
 end
 
+---@param playerID integer
 local function onPlayerConnected(playerID)
     local player = Table(BJCPlayers.Players):find(function(_, pid) return pid == playerID end)
     if player then
@@ -50,6 +52,10 @@ local function onPlayerConnected(playerID)
     onWelcome(playerID)
 end
 
+---@param senderID integer
+---@param name string
+---@param chatMessage string
+---@return integer?
 local function onChatMessage(senderID, name, chatMessage)
     local player = BJCPlayers.Players[senderID]
     if not player then
@@ -90,6 +96,9 @@ local function onChatMessage(senderID, name, chatMessage)
     return 1
 end
 
+---@param targetID integer
+---@param message string
+---@param color table?
 local function onServerChat(targetID, message, color)
     local target, targetName = { lang = BJCLang.FallbackLang }, ""
     if targetID == BJCTx.ALL_PLAYERS then
@@ -109,12 +118,19 @@ local function onServerChat(targetID, message, color)
     })
 end
 
-local function sendChatEvent(eventKey, eventData, color)
-    BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.EVENT, {
-        event = eventKey,
-        data = eventData,
-        color = color or { .6, .6, .6, 1 }, -- RGBA (COLORS NOT WORKING YET IN THE CHAT)
-    })
+---@param eventKey string
+---@param eventData table?
+---@param color table? rgba
+---@param targetsIDs integer[]? playerIDs
+local function sendChatEvent(eventKey, eventData, color, targetsIDs)
+    targetsIDs = targetsIDs or { BJCTx.ALL_PLAYERS }
+    table.forEach(targetsIDs, function(pid)
+        BJCTx.player.chat(pid, M.EVENTS.EVENT, {
+            event = eventKey,
+            data = eventData,
+            color = color or { .6, .6, .6, 1 }, -- RGBA (COLORS NOT WORKING YET IN THE CHAT)
+        })
+    end)
 
     -- Discord ChatHook Mod integration (https://github.com/OfficialLambdax/BeamMP-ChatHook)
     if not table.includes(M.DISCORD_CHAT_HOOK_EVENTS_BLACKLIST, eventKey) then
@@ -126,6 +142,8 @@ local function sendChatEvent(eventKey, eventData, color)
     end
 end
 
+---@param playerID integer
+---@param playerName string
 local function onPlayerDisconnect(playerID, playerName)
     M.sendChatEvent("chat.events.playerLeft", {
         playerName = playerName

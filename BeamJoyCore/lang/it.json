@@ -359,7 +359,23 @@
         "gamemodeLeave": "{playerName} ha lasciato {gamemode}",
         "gamemodeFinished": "{playerName} ha finito {gamemode} al #{gamemodePosition} posto",
         "gamemodeTeamWon": "{teamName} ha vinto {gamemode}",
-        "tournamentResult": "{playerName} ha terminato il torneo in posizione #{position} ({score} punti)"
+        "tournamentResult": "{playerName} ha terminato il torneo in posizione #{position} ({score} punti)",
+        "moderation": {
+          "cmdOrigin": "Admin",
+          "kickedVote": "i giocatori hanno votato per espellere {playerName}",
+          "kicked": "{author} ha espulso {playerName}",
+          "kickedReason": "{author} ha espulso {playerName}: {reason}",
+          "tempban": "{author} ha bannato {playerName} per {duration}",
+          "tempbanReason": "{author} ha bannato {playerName} per {duration}: {reason}",
+          "banned": "{author} ha bannato permanentemente {playerName}",
+          "bannedReason": "{author} ha bannato {playerName}: {reason}",
+          "unbanned": "{author} ha sbannato {playerName}",
+          "muted": "{author} ha silenziato {playerName}",
+          "mutedReason": "{author} ha silenziato {playerName}: {reason}",
+          "unmuted": "{author} ha riattivato l’audio per {playerName}",
+          "promoted": "{author} ha promosso {playerName} a {group}",
+          "demoted": "{author} ha retrocesso {playerName} a {group}"
+        }
       }
     },
     "nametags": {

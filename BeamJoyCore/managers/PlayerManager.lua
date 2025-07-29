@@ -532,6 +532,19 @@ local function setGroup(ctxt, targetName, groupName)
     target.group = groupName
     M.savePlayer(target)
 
+    local eventKey = previousGroup.level < groupToAssign.level and
+        "chat.events.moderation.promoted" or "chat.events.moderation.demoted"
+    local eventData = {
+        author = ctxt.origin == "player" and
+            ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+        playerName = target.playerName,
+        group = groupName,
+    }
+    local staffPlayers = table.filter(M.Players, function(_, pid)
+        return BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
+
     if connected then
         -- invalidate all caches that are constructed by group permission
         BJCTx.cache.invalidate(target.playerID, BJCCache.CACHES.USER)
@@ -667,6 +680,22 @@ local function toggleMute(ctxt, targetName, reason)
         target.muteReason = reason
     end
     M.savePlayer(target)
+
+    local eventKey = "chat.events.moderation.unmuted"
+    if target.muted then
+        eventKey = (reason and #reason > 0) and
+            "chat.events.moderation.mutedReason" or "chat.events.moderation.muted"
+    end
+    local eventData = {
+        author = ctxt.origin == "player" and
+            ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+        playerName = target.playerName,
+        reason = reason,
+    }
+    local staffPlayers = table.filter(M.Players, function(_, pid)
+        return BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
 
     if connected then
         if target.muted then
@@ -809,15 +838,43 @@ local function kick(ctxt, playerID, reason)
         end
     end
 
+    local finalReason
     if reason then
         target.kickReason = reason
+        finalReason = reason
         M.savePlayer(target)
     else
         target.kickReason = nil
-        reason = BJCLang.getServerMessage(target.lang, "players.kicked")
+        finalReason = BJCLang.getServerMessage(target.lang, "players.kicked")
     end
 
-    M.drop(playerID, reason)
+    local eventKey, eventData
+    if ctxt.origin == "player" then
+        eventKey = (reason and #reason > 0) and
+            "chat.events.moderation.kickedReason" or "chat.events.moderation.kicked"
+        eventData = {
+            author = ctxt.sender.playerName,
+            playerName = target.playerName,
+            reason = reason,
+        }
+    elseif ctxt.origin == "cmd" then
+        eventKey = (reason and #reason > 0) and
+            "chat.events.moderation.kickedReason" or "chat.events.moderation.kicked"
+        eventData = {
+            author = "chat.events.moderation.cmdOrigin",
+            playerName = target.playerName,
+            reason = reason,
+        }
+    elseif ctxt.origin == "vote" then
+        eventKey = "chat.events.moderation.kickedVote"
+        eventData = { playerName = target.playerName }
+    end
+    local staffPlayers = table.filter(M.Players, function(_, pid)
+        return pid ~= playerID and BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
+
+    M.drop(playerID, finalReason)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
@@ -856,6 +913,20 @@ local function tempBan(ctxt, targetName, reason, duration)
     target.banReason = reason
     target.tempBanUntil = GetCurrentTime() + duration
     M.savePlayer(target)
+
+    local eventKey = (reason and #reason > 0) and
+        "chat.events.moderation.tempbanReason" or "chat.events.moderation.tempban"
+    local eventData = {
+        author = ctxt.origin == "player" and
+            ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+        playerName = targetName,
+        duration = PrettyDelay(duration),
+        reason = reason,
+    }
+    local staffPlayers = table.filter(M.Players, function(p, pid)
+        return p.playerName ~= targetName and BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
 
     if connected then
         local finalReason = BJCLang.getServerMessage(target.lang, "players.tempBanned")
@@ -903,6 +974,19 @@ local function ban(ctxt, targetName, reason)
     target.banned = true
     M.savePlayer(target)
 
+    local eventKey = (reason and #reason > 0) and
+        "chat.events.moderation.bannedReason" or "chat.events.moderation.banned"
+    local eventData = {
+        author = ctxt.origin == "player" and
+            ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+        playerName = targetName,
+        reason = reason,
+    }
+    local staffPlayers = table.filter(M.Players, function(p, pid)
+        return p.playerName ~= targetName and BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
+
     if connected then
         local finalReason = BJCLang.getServerMessage(target.lang, "players.banned")
         if reason then
@@ -916,8 +1000,9 @@ local function ban(ctxt, targetName, reason)
     BJCTx.database.playersUpdated()
 end
 
+---@param ctxt BJCContext
 ---@param targetName string
-local function unban(targetName)
+local function unban(ctxt, targetName)
     local target = BJCDao.players.findByPlayerName(targetName)
 
     if target == nil then
@@ -927,6 +1012,15 @@ local function unban(targetName)
     if not target.banned and target.tempBanUntil == nil then
         error({ key = "rx.errors.invalidData" })
     end
+
+    local staffPlayers = table.filter(M.Players, function(_, pid)
+        return BJCPerm.isStaff(pid)
+    end):keys()
+    BJCChat.sendChatEvent("chat.events.moderation.unbanned", {
+        author = ctxt.origin == "player" and
+            ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+        playerName = targetName,
+    }, nil, staffPlayers)
 
     target.banned = nil
     target.tempBanUntil = nil
@@ -1149,7 +1243,6 @@ local function consoleSetGroup(args)
 
     local ctxt = {}
     BJCInitContext(ctxt)
-
     local status, err = pcall(M.setGroup, ctxt, target.playerName, groupName)
     if not status then
         err = type(err) == "table" and err or {}
@@ -1338,7 +1431,9 @@ local function consoleUnban(args)
         return BJCLang.getConsoleMessage("command.playerNotBanned"):var({ playerName = playerName })
     end
 
-    local status, err = pcall(M.unban, playerName)
+    local ctxt = {}
+    BJCInitContext(ctxt)
+    local status, err = pcall(M.unban, ctxt, playerName)
     if not status then
         err = type(err) == "table" and err or {}
         return BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, err.key or "rx.errors.serverError")

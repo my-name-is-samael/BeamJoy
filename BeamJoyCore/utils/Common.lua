@@ -258,7 +258,7 @@ BJC_TOAST_TYPES = {
 
 ---@class BJCContext
 ---@field time number
----@field origin string
+---@field origin "cmd"|"player"|"vote"
 ---@field senderID? number
 ---@field sender? BJCPlayer
 ---@field data table

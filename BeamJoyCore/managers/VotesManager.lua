@@ -64,6 +64,7 @@ function M.Kick.endVote()
     if #M.Kick.voters >= getKickThreshold() then
         local ctxt = {}
         BJCInitContext(ctxt)
+        ctxt.origin = "vote"
         local target = BJCPlayers.Players[M.Kick.targetID]
         BJCChat.sendChatEvent("chat.events.voteAccepted", {
             voteEvent = "chat.events.voteEvents.playerKick",

@@ -232,7 +232,23 @@
         "gamemodeLeave": "{playerName} покинул {gamemode}",
         "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} победила в {gamemode}",
-        "tournamentResult": "{playerName} завершил турнир на месте #{position} ({score} очков)"
+        "tournamentResult": "{playerName} завершил турнир на месте #{position} ({score} очков)",
+        "moderation": {
+          "cmdOrigin": "Админ",
+          "kickedVote": "игроки проголосовали за кик {playerName}",
+          "kicked": "{author} кикнул {playerName}",
+          "kickedReason": "{author} кикнул {playerName}: {reason}",
+          "tempban": "{author} забанил {playerName} на {duration}",
+          "tempbanReason": "{author} забанил {playerName} на {duration}: {reason}",
+          "banned": "{author} забанил {playerName} навсегда",
+          "bannedReason": "{author} забанил {playerName}: {reason}",
+          "unbanned": "{author} разбанил {playerName}",
+          "muted": "{author} заглушил {playerName}",
+          "mutedReason": "{author} заглушил {playerName}: {reason}",
+          "unmuted": "{author} снял заглушку с {playerName}",
+          "promoted": "{author} повысил {playerName} до {group}",
+          "demoted": "{author} понизил {playerName} до {group}"
+        }
       }
     },
     "nametags": {
