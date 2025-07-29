@@ -265,7 +265,8 @@ local function drawModeration(player, ctxt, cache)
                         function()
                             BJI_Tx_moderation.tempban(player.playerName,
                                 inputs.tempBanDuration,
-                                player.banReason)
+                                inputs.banReason)
+                            inputs.banReason = ""
                         end),
                 })
         end

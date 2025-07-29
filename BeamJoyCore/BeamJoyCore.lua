@@ -24,6 +24,7 @@ BJCPluginPath = debug.getinfo(1).source:gsub("\\", "/")
 BJCPluginPath = BJCPluginPath:sub(1, (BJCPluginPath:find("BeamJoyCore.lua")) - 2)
 
 require("utils/LUA") ---@diagnostic disable-line
+require("utils/Server")
 require("utils/MATH")
 require("utils/String")
 require("utils/Table")

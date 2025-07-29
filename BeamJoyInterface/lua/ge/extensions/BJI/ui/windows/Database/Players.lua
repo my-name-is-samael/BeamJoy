@@ -305,8 +305,8 @@ local function body(ctxt)
             SameLine()
             Text(W.labels.tempBanEndsIn:var({
                 secs = BJI.Utils.UI.PrettyDelay(
-                    BJI_Tick.applyTimeOffset(W.cache.currentPlayer.tempBanUntil) -
-                    math.floor(ctxt.now / 1000)
+                    math.round((BJI_Tick.applyTimeOffset(W.cache.currentPlayer.tempBanUntil) -
+                        ctxt.now) / 1000)
                 )
             }))
         end

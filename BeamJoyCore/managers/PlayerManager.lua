@@ -11,7 +11,7 @@
 ---@class BJCAuthPlayer
 ---@field playerName string
 ---@field ip string
----@field beammp? string
+---@field beammp string?
 ---@field guest boolean
 ---@field ready boolean
 
@@ -21,21 +21,21 @@
 ---@field lang string
 ---@field reputation integer
 ---@field stats {delivery: integer, race: integer, bus: integer}
----@field muted? boolean
----@field muteReason string
----@field banned? boolean
----@field tempBanUntil integer
----@field banReason string
----@field kickReason string
+---@field muted boolean?
+---@field muteReason string?
+---@field banned boolean?
+---@field tempBanUntil integer?
+---@field banReason string?
+---@field kickReason string?
 ---@field hideNametag boolean
----@field currentVehicle? integer
+---@field currentVehicle integer?
 ---@field freeze boolean
 ---@field engine boolean
 ---@field vehicles table<integer, BJCPlayerVehicle> index serverVehID
 ---@field ai integer[]
 ---@field messages {time: integer, message: string}[]
 ---@field scenario string
----@field deliveryPackageStreak? integer
+---@field deliveryPackageStreak integer?
 
 local logTag = "PlayerManager"
 SetLogType(logTag, CONSOLE_COLORS.FOREGROUNDS.MAGENTA)
@@ -88,11 +88,64 @@ local function savePlayer(player)
     end
 end
 
+-- block connection if needed (banned, tempbanned, whitelist, etc.)
+---@param playerName string
+---@return any returnCode 1 = not allowed; 2 = bypass, string = reason
+local function checkJoin(playerName)
+    local data = BJCDao.players.findByPlayerName(playerName)
+
+    local group = BJCGroups.Data.none
+    if data then
+        if data.tempBanUntil then
+            local now = GetCurrentTime()
+            if data.tempBanUntil <= now then
+                -- temp ban ended
+                data.tempBanUntil = nil
+                M.savePlayer(data)
+            elseif data.tempBanUntil > now then
+                -- still tempbanned
+                local reason = BJCLang.getServerMessage(data.lang, "players.tempBanWillEndIn")
+                    :var({ time = PrettyDelay(data.tempBanUntil - GetCurrentTime()) })
+                if data.banReason then
+                    reason = BJCLang.getServerMessage(data.lang, "players.banReason")
+                        :var({ base = reason, reason = data.banReason })
+                end
+                return reason
+            end
+        end
+
+        group = BJCGroups.Data[data.group]
+        if data.banned or group.banned then
+            local reason = BJCLang.getServerMessage(data.lang, "players.banned")
+            if data.banReason then
+                reason = BJCLang.getServerMessage(data.lang, "players.banReason")
+                    :var({ base = reason, reason = data.banReason })
+            end
+            return reason
+        end
+    end
+
+    if CheckServerVersion(3, 6) and group.staff then
+        return 2 -- bypass
+    end
+
+    -- whitelist
+    if BJCConfig.Data.Whitelist.Enabled and
+        not table.includes(BJCConfig.Data.Whitelist.PlayerNames, playerName) and
+        not group.whitelisted then
+        return BJCLang.getServerMessage(data and data.lang or "", "players.notWhitelisted")
+    end
+end
+
 ---@param playerName string
 ---@param guest boolean
 ---@param ip string
 ---@param beammp string
+---@return any returnCode 1 = not allowed; 2 = bypass, string = reason
 local function addAuthPlayer(playerName, guest, ip, beammp)
+    local returnCode = checkJoin(playerName)
+    if returnCode and returnCode ~= 2 then return returnCode end
+
     M.AuthPlayers[playerName] = {
         playerName = playerName,
         guest = guest,
@@ -100,6 +153,16 @@ local function addAuthPlayer(playerName, guest, ip, beammp)
         beammp = beammp, -- nil if guest
         ready = false,
     }
+    return returnCode
+end
+
+---@param name string
+---@param role string
+---@param isGuest boolean
+---@param identifiers {ip: string, beammp: string}
+---@return any returnCode 1 = not allowed; 2 = bypass, string = reason
+local function onPlayerAuth(name, role, isGuest, identifiers)
+    return addAuthPlayer(name, isGuest, identifiers.ip, identifiers.beammp)
 end
 
 ---@param playerID integer
@@ -150,73 +213,18 @@ local function instantiatePlayer(playerID)
     M.savePlayer(player)
 end
 
--- block connection if needed (banned, tempbanned, whitelist, etc.)
----@param playerID integer
-local function checkJoin(playerID)
-    local player = M.Players[playerID]
-    if not player then
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, "players.joinError"))
-        return
-    end
-
-    if player.tempBanUntil then
-        local now = GetCurrentTime()
-        if player.tempBanUntil <= now then
-            -- temp ban ended
-            player.tempBanUntil = nil
-            M.savePlayer(player)
-        elseif player.tempBanUntil > now then
-            -- still tempbanned
-            local reason = BJCLang.getServerMessage(player.lang, "players.tempBanWillEndIn")
-                :var({ time = PrettyDelay(player.tempBanUntil - GetCurrentTime()) })
-            if player.banReason then
-                reason = BJCLang.getServerMessage(player.lang, "players.banReason")
-                    :var({ base = reason, reason = player.banReason })
-            end
-            MP.DropPlayer(playerID, reason)
-            M.Players[playerID] = nil
-            return
-        end
-    end
-
-    local group = BJCGroups.Data[player.group]
-    if player.banned or group.banned then
-        local reason = BJCLang.getServerMessage(player.lang, "players.banned")
-        if player.banReason then
-            reason = BJCLang.getServerMessage(player.lang, "players.banReason")
-                :var({ base = reason, reason = player.banReason })
-        end
-        MP.DropPlayer(playerID, reason)
-        M.Players[playerID] = nil
-        return
-    end
-
-    -- whitelist
-    if BJCConfig.Data.Whitelist.Enabled and
-        not table.includes(BJCConfig.Data.Whitelist.PlayerNames, player.playerName) and
-        not group.whitelisted and
-        not group.staff then
-        MP.DropPlayer(playerID, BJCLang.getServerMessage(player.lang, "players.notWhitelisted"))
-        M.Players[playerID] = nil
-        return
-    end
-end
-
----@param name string
----@param role string
----@param isGuest boolean
----@param identifiers {ip: string, beammp: string}
-local function onPlayerAuth(name, role, isGuest, identifiers)
-    addAuthPlayer(name, isGuest, identifiers.ip, identifiers.beammp)
-end
-
 ---@param playerID integer
 local function onPlayerConnecting(playerID)
     local playerName = MP.GetPlayerName(playerID)
     if bindAuthPlayer(playerID, playerName) then
         instantiatePlayer(playerID)
-
-        checkJoin(playerID)
+        local returnCode = checkJoin(playerName)
+        if type(returnCode) == "string" then
+            M.drop(playerID, returnCode)
+            return
+        elseif returnCode == 1 then
+            MP.DropPlayer(playerID, returnCode)
+        end
     else
         MP.DropPlayer(playerID, BJCLang.getServerMessage(BJCConfig.Data.Server.Lang, "players.joinError"))
         M.AuthPlayers[playerID] = nil
@@ -678,19 +686,22 @@ local function toggleMute(ctxt, targetName, reason)
     target.muted = target.muted ~= true
     if target.muted then
         target.muteReason = reason
+        if reason and #reason == 0 then
+            target.muteReason = nil
+        end
     end
     M.savePlayer(target)
 
     local eventKey = "chat.events.moderation.unmuted"
     if target.muted then
-        eventKey = (reason and #reason > 0) and
+        eventKey = target.muteReason and
             "chat.events.moderation.mutedReason" or "chat.events.moderation.muted"
     end
     local eventData = {
         author = ctxt.origin == "player" and
             ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
         playerName = target.playerName,
-        reason = reason,
+        reason = target.muteReason,
     }
     local staffPlayers = table.filter(M.Players, function(_, pid)
         return BJCPerm.isStaff(pid)
@@ -838,43 +849,32 @@ local function kick(ctxt, playerID, reason)
         end
     end
 
-    local finalReason
-    if reason then
-        target.kickReason = reason
-        finalReason = reason
-        M.savePlayer(target)
-    else
+    target.kickReason = reason
+    if reason and #reason == 0 then
         target.kickReason = nil
-        finalReason = BJCLang.getServerMessage(target.lang, "players.kicked")
     end
+    M.savePlayer(target)
 
     local eventKey, eventData
-    if ctxt.origin == "player" then
-        eventKey = (reason and #reason > 0) and
-            "chat.events.moderation.kickedReason" or "chat.events.moderation.kicked"
-        eventData = {
-            author = ctxt.sender.playerName,
-            playerName = target.playerName,
-            reason = reason,
-        }
-    elseif ctxt.origin == "cmd" then
-        eventKey = (reason and #reason > 0) and
-            "chat.events.moderation.kickedReason" or "chat.events.moderation.kicked"
-        eventData = {
-            author = "chat.events.moderation.cmdOrigin",
-            playerName = target.playerName,
-            reason = reason,
-        }
-    elseif ctxt.origin == "vote" then
+    if ctxt.origin == "vote" then
         eventKey = "chat.events.moderation.kickedVote"
         eventData = { playerName = target.playerName }
+    else
+        eventKey = target.kickReason and
+            "chat.events.moderation.kickedReason" or "chat.events.moderation.kicked"
+        eventData = {
+            author = ctxt.origin == "player" and
+                ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
+            playerName = target.playerName,
+            reason = reason,
+        }
     end
     local staffPlayers = table.filter(M.Players, function(_, pid)
         return pid ~= playerID and BJCPerm.isStaff(pid)
     end):keys()
     BJCChat.sendChatEvent(eventKey, eventData, nil, staffPlayers)
 
-    M.drop(playerID, finalReason)
+    M.drop(playerID, target.kickReason or BJCLang.getServerMessage(target.lang, "players.kicked"))
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
@@ -911,17 +911,20 @@ local function tempBan(ctxt, targetName, reason, duration)
     duration = math.clamp(math.round(duration), config.minTime, config.maxTime)
 
     target.banReason = reason
+    if reason and #reason == 0 then
+        target.banReason = nil
+    end
     target.tempBanUntil = GetCurrentTime() + duration
     M.savePlayer(target)
 
-    local eventKey = (reason and #reason > 0) and
+    local eventKey = target.banReason and
         "chat.events.moderation.tempbanReason" or "chat.events.moderation.tempban"
     local eventData = {
         author = ctxt.origin == "player" and
             ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
         playerName = targetName,
         duration = PrettyDelay(duration),
-        reason = reason,
+        reason = target.banReason,
     }
     local staffPlayers = table.filter(M.Players, function(p, pid)
         return p.playerName ~= targetName and BJCPerm.isStaff(pid)
@@ -931,9 +934,9 @@ local function tempBan(ctxt, targetName, reason, duration)
     if connected then
         local finalReason = BJCLang.getServerMessage(target.lang, "players.tempBanned")
             :var({ time = PrettyDelay(duration) })
-        if reason then
+        if target.banReason then
             finalReason = BJCLang.getServerMessage(target.lang, "players.banReason")
-                :var({ base = finalReason, reason = reason })
+                :var({ base = finalReason, reason = target.banReason })
         end
 
         M.drop(target.playerID, finalReason)
@@ -971,16 +974,19 @@ local function ban(ctxt, targetName, reason)
     end
 
     target.banReason = reason
+    if reason and #reason == 0 then
+        target.banReason = nil
+    end
     target.banned = true
     M.savePlayer(target)
 
-    local eventKey = (reason and #reason > 0) and
+    local eventKey = target.banReason and
         "chat.events.moderation.bannedReason" or "chat.events.moderation.banned"
     local eventData = {
         author = ctxt.origin == "player" and
             ctxt.sender.playerName or "chat.events.moderation.cmdOrigin",
         playerName = targetName,
-        reason = reason,
+        reason = target.banReason,
     }
     local staffPlayers = table.filter(M.Players, function(p, pid)
         return p.playerName ~= targetName and BJCPerm.isStaff(pid)
@@ -989,9 +995,9 @@ local function ban(ctxt, targetName, reason)
 
     if connected then
         local finalReason = BJCLang.getServerMessage(target.lang, "players.banned")
-        if reason then
+        if target.banReason then
             finalReason = BJCLang.getServerMessage(target.lang, "players.banReason")
-                :var({ base = finalReason, reason = reason })
+                :var({ base = finalReason, reason = target.banReason })
         end
 
         M.drop(target.playerID, finalReason)
