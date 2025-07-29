@@ -42,7 +42,9 @@ local S = {
 
     -- client data
     previousCamera = nil,
-    ---@type tablelib<integer, {playerID: integer, veh: NGVehicle}> index gameVehID
+    ---@type number?
+    selfDiag = nil,
+    ---@type tablelib<integer, {playerID: integer, veh: NGVehicle, diag: number}> index gameVehID
     survivors = Table(),
     ---@type integer[] gameVehIDs
     closeSurvivors = {},
@@ -57,6 +59,7 @@ local function stop()
     S.preparationTimeout = nil
     S.survivorsStartTime = nil
     S.infectedStartTime = nil
+    S.selfDiag = nil
     S.survivors = Table()
     S.closeSurvivors = {}
     S.resetLock = true
@@ -375,6 +378,13 @@ local function tryApplyScenarioColor(participant)
     end
 end
 
+---@param veh NGVehicle?
+local function initSelfDiag(veh)
+    if veh then
+        S.selfDiag = math.sqrt((veh:getInitialLength() / 2) ^ 2 + (veh:getInitialWidth() / 2) ^ 2)
+    end
+end
+
 ---@param participant BJIInfectedParticipant
 local function initGameParticipant(participant)
     local function preStart()
@@ -384,6 +394,7 @@ local function initGameParticipant(participant)
         end
 
         initSurvivorsVehs()
+        initSelfDiag(BJI_Veh.getCurrentVehicleOwn())
         if participant.originalInfected and S.survivors:length() == 1 then -- DEBUG should not append (min 3 players)
             S.survivors:find(TrueFn, function(p, vid)
                 BJI_GPS.prependWaypoint({
@@ -488,8 +499,8 @@ local function updateGame(data)
     end
     if previousAmountSurvivors ~= amountSurvivors then
         updateSurvivorsVehs()
-        if isInfected and S.survivors:length() == 1 then
-            S.survivors:find(TrueFn, function(p, vid)
+        if not S.finished and isInfected and S.survivors:length() == 1 then
+            S.survivors:find(TrueFn, function(_, vid)
                 BJI_GPS.prependWaypoint({
                     key = BJI_GPS.KEYS.VEHICLE,
                     gameVehID = vid,
@@ -566,15 +577,15 @@ end
 -- close distance detection tick
 ---@param ctxt TickContext
 local function fastTick(ctxt)
-    if ctxt.veh and S.isInfected() then
-        selfDiag = math.sqrt((ctxt.veh.veh:getInitialLength() / 2) ^ 2 + (ctxt.veh.veh:getInitialWidth() / 2) ^ 2)
+    if S.state == S.STATES.GAME and not S.finished and
+        ctxt.veh and S.isInfected() then
+        if not S.selfDiag then initSelfDiag(ctxt.veh.veh) end
         table.filter(S.closeSurvivors, function(vid, i)
             if not S.survivors[vid] then table.remove(S.closeSurvivors, i) end
-            return S.survivors[vid] ~= nil
+            return S.survivors[vid] ~= nil and not S.survivors[vid].lock
         end):forEach(function(vid)
-            if S.survivors[vid].lock then return end
             pos = BJI_Veh.getPositionRotation(S.survivors[vid].veh)
-            if pos and pos:distance(ctxt.veh.position) < selfDiag + S.survivors[vid].diag then
+            if pos and pos:distance(ctxt.veh.position) < S.selfDiag + S.survivors[vid].diag then
                 -- tagged
                 BJI_Tx_scenario.InfectedUpdate(S.CLIENT_EVENTS.INFECTION, S.survivors[vid].playerID)
                 S.survivors[vid].lock = true

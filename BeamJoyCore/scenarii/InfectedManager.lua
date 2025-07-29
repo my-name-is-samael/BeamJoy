@@ -12,9 +12,8 @@ local M = {
     name = "Infected",
 
     MINIMUM_PARTICIPANTS = function()
-        if BJCCore.Data.Debug and
-            MP.GetPlayerCount() == 1 then
-            return 1
+        if BJCCore.Data.Debug then
+            return MP.GetPlayerCount()
         end
         return 3
     end,
