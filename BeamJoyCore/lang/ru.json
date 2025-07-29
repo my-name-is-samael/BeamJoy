@@ -233,6 +233,7 @@
         "gamemodeFinished": "{playerName} завершил {gamemode} на позиции #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} победила в {gamemode}",
         "tournamentResult": "{playerName} завершил турнир на месте #{position} ({score} очков)",
+        "infectedBy": "{survivor} был заражён игроком {infected}",
         "moderation": {
           "cmdOrigin": "Админ",
           "kickedVote": "игроки проголосовали за кик {playerName}",

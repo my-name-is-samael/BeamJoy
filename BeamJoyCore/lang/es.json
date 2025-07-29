@@ -360,6 +360,7 @@
         "gamemodeFinished": "{playerName} terminó {gamemode} en la posición #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} ganó {gamemode}",
         "tournamentResult": "{playerName} terminó el torneo en la posición #{position} ({score} pts)",
+        "infectedBy": "{survivor} fue infectado por {infected}",
         "moderation": {
           "cmdOrigin": "Admin",
           "kickedVote": "los jugadores votaron para expulsar a {playerName}",

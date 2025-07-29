@@ -361,6 +361,7 @@
         "gamemodeFinished": "{playerName} finished {gamemode} #{gamemodePosition}",
         "gamemodeTeamWon": "{teamName} won {gamemode}",
         "tournamentResult": "{playerName} finished the tournament #{position} ({score} pts)",
+        "infectedBy": "{survivor} was infected by {infected}",
         "moderation": {
           "cmdOrigin": "Admin",
           "kickedVote": "players voted to kick {playerName}",

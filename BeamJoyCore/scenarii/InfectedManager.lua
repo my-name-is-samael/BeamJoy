@@ -364,6 +364,11 @@ local function onInfection(infectedID, survivorID)
     table.insert(infected.infectedSurvivors, survivorID)
     survivor.infectionTime = GetCurrentTime()
 
+    BJCChat.sendChatEvent("chat.events.infectedBy", {
+        survivor = BJCPlayers.Players[survivorID].playerName,
+        infected = BJCPlayers.Players[infectedID].playerName,
+    })
+
     updateScores()
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.INFECTED)
     if BJCTournament.state then
