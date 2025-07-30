@@ -382,11 +382,11 @@ Another huge thank to StanleyDudek for his work on [CobaltEssentialsInterface](h
 
 If you're looking for more from BeamJoy, you'll find additional variants on [Patreon](https://www.patreon.com/c/BeamJoy) — you can even get your own personalized version.
 
-<p style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px; margin-top: -5px;">
-  <a target="_blank" href="https://coff.ee/tontonsamael" alt="Buy me a coffee" style="width: 15em; margin-top: 5px;">
-    <img src="https://cdn.buymeacoffee.com/uploads/project_updates/2023/12/08f1cf468ace518fc8cc9e352a2e613f.png" />
+<p align="center">
+  <a target="_blank" href="https://coff.ee/tontonsamael" alt="Buy me a coffee">
+    <img src="/assets/buymeacoffee.png?raw=" width="250" />
   </a>
-  <a target="_blank" href="https://www.patreon.com/c/BeamJoy" alt="Join us on Patreon" style="width: 15em; background: #F76026; border-radius: .8em; padding: 0 1em;">
-      <img src="https://cdn.prod.website-files.com/64c7a317aea92912392c0420/6733a855305543fc7eca757c_Patreon-Logo.png" style="margin: -30px 0"/>
+  <a target="_blank" href="https://www.patreon.com/c/BeamJoy" alt="Join us on Patreon">
+      <img src="/assets/patreon.png?raw=" width="250"/>
   </a>
 </p>
