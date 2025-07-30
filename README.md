@@ -37,7 +37,6 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
     - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
     - [Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?](#why-some-players-can-spawn-traffic-and-some-dont--how-can-i-spawn-traffic-during-a-scenario-)
-    - [My game crashes during the join process or randomly with the following error](#my-game-crashes-during-the-join-process-or-randomly-with-the-following-error)
     - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
     - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
     - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
@@ -47,6 +46,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
   - [Bucket list](#bucket-list)
   - [Known issues](#known-issues)
   - [Credits](#credits)
+  - [Support](#support)
 
 ## Features
 
@@ -295,12 +295,6 @@ Here the scenarii list players can toggle traffic in:
 - Delivery Together
 - Bus Mission
 
-### My game crashes during the join process or randomly with the following error
-
-![Image](https://github.com/user-attachments/assets/fc667d0e-45e4-4ee4-ac9e-ec9c7d364c84)
-
-Unfortunately, I have done all I can to address and fix all potential causes of this issue. Some users fixed it by removing their BeamNG version folder in LocalAppData (`%localappdata%\BeamNG.drive\->your_version<-`). If you still experience this issue, please see and join [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/100).
-
 ### Can I enable GPS path in races ?
 
 The GPS route system is fully integrated into the base game, but unfortunately, it fails in one-way roads, prohibited directions, and off-road sections. This often makes the route guidance useless in many parts of a race.
@@ -325,7 +319,7 @@ If you want to calibrate this setting correctly on your server, I recommend the 
 - Pretty much all modded vehicles with correctly formed data
 - [Enhanced Interior Camera](https://www.beamng.com/resources/enhanced-interior-camera.24952/)
 - [Agent's Simplified Realistic Traffic Mod (EU + Yakuza)](https://www.beamng.com/threads/agents-simplified-realistic-traffic-mod-eu-yakuza.102034/)
-- [Discord ChatHook](https://github.com/OfficialLambdax/BeamMP-ChatHook) (all BeamJoy events are logged and translated with a configuration)
+- [Discord ChatHook](https://github.com/OfficialLambdax/BeamMP-ChatHook) (all chat events are logged and translated with a configuration)
 
 _Please contact me or open a ticket to request a mod integration_
 
@@ -340,34 +334,34 @@ Feel free to create pull requests, as long as you follow the coding scheme.
 Also, feel free to report bugs or suggest improvements. I'll do my best to respond quickly, but note that I no longer work full-time on this project.
 
 You can also fix translations if they are wrong :
-<ul>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/fr?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/fr/badge.svg" /> </a>
-    </li>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/de?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/de/badge.svg" /> </a>
-    </li>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/it?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/it/badge.svg" /> </a>
-    </li>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/es?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/es/badge.svg" /> </a>
-    </li>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/pt?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/pt/badge.svg" /> </a>
-    </li>
-    <li>
-        <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge"> <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" /> </a>
-    </li>
-</ul>
+<div style="display: flex; gap: 5px; flex-wrap: wrap;">
+  <a href="https://gitlocalize.com/repo/9945/es?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/es/badge.svg" />
+  </a>
+  <a href="https://gitlocalize.com/repo/9945/de?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/de/badge.svg" />
+  </a>
+  <a href="https://gitlocalize.com/repo/9945/fr?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/fr/badge.svg" />
+  </a>
+  <a href="https://gitlocalize.com/repo/9945/it?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/it/badge.svg" />
+  </a>
+  <a href="https://gitlocalize.com/repo/9945/pt?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/pt/badge.svg" />
+  </a>
+  <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" />
+  </a>
+</div>
 
 ## Bucket list
 
 - Race fork (only when the mod will be done and polished)
 - Toggleable automatic random weather presets (maybe with smooth transitions, waiting for BeamNG changes about temperature and weather)
+- Window-less UI (will need a complete rewrite and rework)
 - Implementing BeamMP v3.5+ features when it will come out:
   - Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
-  - Player limit join bypass by staff ([#372](https://github.com/BeamMP/BeamMP-Server/pull/372))
 
 ## Known issues
 
@@ -377,8 +371,22 @@ You can also fix translations if they are wrong :
 ## Credits
 
 Thanks to all BETA testers who helped me test and debug the features:
-dvergar, Trina, Baliverne0, Rodjiii, Lotax, Nath_YT, korrigan_91, and countless others.
+dvergar, Trina, Baliverne0, Rodjiii, Lotax, Nath_YT, korrigan_91, @YannD-Deltagon and all of you giving feedback and reporting bugs.
 
-A huge thanks to prestonelam2003 for his work on [CobaltEssentials](https://github.com/prestonelam2003/CobaltEssentials) which inspired me to create BeamJoy, although I didn't copy any lines of his code.
-
+A huge thanks to prestonelam2003 for his work on [CobaltEssentials](https://github.com/prestonelam2003/CobaltEssentials) which inspired me to create BeamJoy, although I didn't copy any lines of his code.<br/>
 Another huge thank to StanleyDudek for his work on [CobaltEssentialsInterface](https://github.com/StanleyDudek/CobaltEssentialsInterface) which taught me how to create front-end BeamMP mods, communicate with the server, and the basic use of imgui.
+
+## Support
+
+**BeamJoy is and will always be free.** However, if you'd like to support my work, you can [buy me a coffee](https://coff.ee/tontonsamael) or [support BeamJoy on Patreon](https://www.patreon.com/c/BeamJoy).
+
+If you're looking for more from BeamJoy, you'll find additional variants on [Patreon](https://www.patreon.com/c/BeamJoy) — you can even get your own personalized version.
+
+<p style="display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px; margin-top: -5px;">
+  <a target="_blank" href="https://coff.ee/tontonsamael" alt="Buy me a coffee" style="width: 15em; margin-top: 5px;">
+    <img src="https://cdn.buymeacoffee.com/uploads/project_updates/2023/12/08f1cf468ace518fc8cc9e352a2e613f.png" />
+  </a>
+  <a target="_blank" href="https://www.patreon.com/c/BeamJoy" alt="Join us on Patreon" style="width: 15em; background: #F76026; border-radius: .8em; padding: 0 1em;">
+      <img src="https://cdn.prod.website-files.com/64c7a317aea92912392c0420/6733a855305543fc7eca757c_Patreon-Logo.png" style="margin: -30px 0"/>
+  </a>
+</p>
