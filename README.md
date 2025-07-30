@@ -4,7 +4,7 @@ All-in-One mod for BeamMP
 <p align="center">
   <img src="/assets/logo_white.png" style="width: 49%; height: auto;" />
   <a target="_blank" href="https://www.youtube.com/watch?v=l-lbXQDEz-o" alt="Trailer">
-      <img src="/assets/trailer_preview.jpg" style="width: 49%; height: auto;" />
+      <img src="/assets/trailer_preview.jpg" style="width: 49%; height: auto;" alt="Trailer" />
   </a>
 </p>
 
@@ -384,9 +384,9 @@ If you're looking for more from BeamJoy, you'll find additional variants on [Pat
 
 <p align="center">
   <a target="_blank" href="https://coff.ee/tontonsamael" alt="Buy me a coffee">
-    <img src="/assets/buymeacoffee.png?raw=" width="250" />
+    <img src="/assets/buymeacoffee.png?raw=" width="250" alt="Buy me a coffee" />
   </a>
   <a target="_blank" href="https://www.patreon.com/c/BeamJoy" alt="Join us on Patreon">
-      <img src="/assets/patreon.png?raw=" width="250"/>
+      <img src="/assets/patreon.png?raw=" width="250" alt="Join us on Patreon"/>
   </a>
 </p>
