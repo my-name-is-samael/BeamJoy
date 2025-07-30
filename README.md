@@ -2,10 +2,9 @@
 All-in-One mod for BeamMP
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/my-name-is-samael/BeamJoy/refs/heads/main/assets/logo_white.png" style="width: 49%; height: auto;" />
-  <a target="_blank" href="https://www.youtube.com/watch?v=l-lbXQDEz-o" alt="Trailer">
-      <img src="https://raw.githubusercontent.com/my-name-is-samael/BeamJoy/refs/heads/main/assets/trailer_preview.jpg" style="width: 49%; height: auto;" />
-  </a>
+  <img src="/assets/logo_white.png" style="width: 49%; height: auto;" />
+  
+  [<img src="/assets/trailer_preview.jpg" style="width: 49%; height: auto;" />](https://www.youtube.com/watch?v=l-lbXQDEz-o){:target="_blank" rel="noopener"}
 </p>
 
 The purpose of this mod is to provide easy access to moderation tools and activities for the players on your BeamMP server.
