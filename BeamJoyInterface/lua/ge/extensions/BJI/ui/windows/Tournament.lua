@@ -308,7 +308,7 @@ local function updateData()
             if not W.cache.startActivitySecCombo:any(function(el)
                     return el.value == W.cache.selectedStartActivitySec
                 end) then
-                W.cache.selectedStartActivitySec = nil
+                W.cache.selectedStartActivitySec = W.cache.startActivitySecCombo[1].value
             end
 
             if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO then
