@@ -135,6 +135,57 @@ local function getRestrictions(ctxt)
     return res
 end
 
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    local ctxt = BJI_Tick.getContext()
+    participant = S.participants[ctxt.user.playerID]
+    if S.state == S.STATES.GAME and participant and not S.resetLock and
+        (participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) < ctxt.now then
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+            BJI_Input.INPUTS.SAVE_HOME,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+        }, resetType)
+    end
+    return false
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return 5
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+        }, resetType) then
+        baseCallback()
+        return true
+    else
+        BJI_Veh.recoverInPlace()
+        return true
+    end
+end
+
+local function canRecoverVehicle()
+    local ctxt = BJI_Tick.getContext()
+    participant = S.participants[ctxt.user.playerID]
+    return S.state == S.STATES.GAME and participant and not S.resetLock and
+        (participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) < ctxt.now
+end
+
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
     if BJI_Scenario.is(BJI_Scenario.TYPES.INFECTED) then
@@ -175,13 +226,6 @@ local function tryPaint(paintIndex, paint)
         not S.settings.enableColors then
         BJI_Veh.paintVehicle(veh, paintIndex, paint)
     end
-end
-
-local function canRecoverVehicle()
-    local ctxt = BJI_Tick.getContext()
-    participant = S.participants[ctxt.user.playerID]
-    return S.state == S.STATES.GAME and participant and not S.resetLock and
-        (participant.originalInfected and S.infectedStartTime or S.survivorsStartTime) < ctxt.now
 end
 
 ---@return table<string, table>?
@@ -613,6 +657,10 @@ S.onLoad = onLoad
 S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
+
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn

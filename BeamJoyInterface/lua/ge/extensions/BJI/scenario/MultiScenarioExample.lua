@@ -26,6 +26,28 @@ local function getRestrictions(ctxt)
         :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
 end
 
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    return BJI_Veh.isVehicleOwn(gameVehID) or resetType == BJI_Input.INPUTS.RECOVER
+end
+
+---@param gameVehID integer
+---@return number -1 = infinite, 0 = disabled, >0 = seconds
+local function getRewindLimit(gameVehID)
+    return -1
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    baseCallback()
+    return true
+end
+
 -- player vehicle spawn hook
 ---@param mpVeh BJIMPVehicle
 local function onVehicleSpawned(mpVeh)
@@ -133,6 +155,10 @@ S.onLoad = onLoad
 S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
+
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
 S.onVehicleSpawned = onVehicleSpawned
 S.onDropPlayerAtCamera = onDropPlayerAtCamera

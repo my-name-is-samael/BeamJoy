@@ -75,6 +75,44 @@ local function getRestrictions(ctxt)
         :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    return table.includes({
+        BJI_Input.INPUTS.RECOVER,
+        BJI_Input.INPUTS.RECOVER_ALT,
+        BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+        BJI_Input.INPUTS.SAVE_HOME,
+        BJI_Input.INPUTS.LOAD_HOME,
+        BJI_Input.INPUTS.RESET_PHYSICS,
+        BJI_Input.INPUTS.RELOAD,
+    }, resetType)
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return 5
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Veh.RESET
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+        }, resetType) then
+        baseCallback()
+        return true
+    else
+        BJI_Veh.recoverInPlace()
+        return true
+    end
+end
+
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
     if gameVehID ~= S.participants[BJI_Context.User.playerID].gameVehID or
@@ -100,16 +138,6 @@ local function onVehicleDestroyed(gameVehID)
     if BJI_Veh.isVehicleOwn(gameVehID) then
         BJI_Tx_scenario.DeliveryMultiLeave()
     end
-end
-
--- can player refuel at a station
-local function canRefuelAtStation()
-    return true
-end
-
--- can player repair vehicle at a garage
-local function canRepairAtGarage()
-    return true
 end
 
 -- player garage repair hook
@@ -337,10 +365,12 @@ S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
 
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
+
 S.onVehicleResetted = onVehicleResetted
 S.onVehicleDestroyed = onVehicleDestroyed
-S.canRefuelAtStation = canRefuelAtStation
-S.canRepairAtGarage = canRepairAtGarage
 S.onGarageRepair = onGarageRepair
 
 S.canSpawnNewVehicle = FalseFn
@@ -349,7 +379,8 @@ S.canPaintVehicle = FalseFn
 S.canDeleteVehicle = FalseFn
 S.canDeleteOtherVehicles = FalseFn
 
-S.canRecoverVehicle = TrueFn
+S.canRefuelAtStation = TrueFn
+S.canRepairAtGarage = TrueFn
 S.canSpawnAI = TrueFn
 
 S.doShowNametag = doShowNametag

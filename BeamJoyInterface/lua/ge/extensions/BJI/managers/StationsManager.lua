@@ -34,6 +34,10 @@ local M = {
     stationProcess = false,
 }
 
+local function canReset()
+    return not M.stationProcess
+end
+
 local function updateMarkers()
     local function getID(prefix, name, i)
         return string.format("%s_%s_%d", prefix, name:gsub(" ", "_"), i)
@@ -327,6 +331,8 @@ local function tryRepair(ctxt)
         end
     end)
 end
+
+M.canReset = canReset
 
 M.getRestrictions = getRestrictions
 

@@ -35,7 +35,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [How to set or add a language to your server](#how-to-set-or-add-a-language-to-your-server)
   - [FAQ](#faq)
     - [I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?](#i-cannot-spawn-a-vehicle-even-after-setting-myself-the-server-owner-what-did-i-do-wrong-)
-    - [I cannot respawn my vehicle, it this broken ?](#i-cannot-respawn-my-vehicle-it-this-broken-)
+    - [I cannot respawn my vehicle, is this broken?](#i-cannot-respawn-my-vehicle-is-this-broken)
     - [Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?](#why-some-players-can-spawn-traffic-and-some-dont--how-can-i-spawn-traffic-during-a-scenario-)
     - [Can I enable GPS path in races ?](#can-i-enable-gps-path-in-races-)
     - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
@@ -261,28 +261,39 @@ To update labels:
 ### I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?
 You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server root folder), the value cannot be set to `-1` (I recommand you to set it between 50 and 500).
 
-### I cannot respawn my vehicle, it this broken ?
-Scenarios have their own rules, here is the complete respawns guide by scenario :
-  - `Freeroam` : All respawn are allowed. If the server is configured to have a respawn delay and/or teleport delay, you will have a countdown visible in the main window, before you can do it again.
-  - `Races (solo/multi)` : the allowed respawns mode is defined by the player who launched the race. There are multiple mode:
-    - All respawns : __RecoverVehicle__, __RecoverVehicleAlt__, __SaveHome__ and __LoadHome__ are allowed, the 3 firsts will respawn you in-place and the last will bring you back to the last checkpoint. Other respawns are teleporting or reloading game physic (provokes a stutter) and are then disabled.
-    - No respawns : self explanatory
-    - Last checkpoint / Stand : __SaveHome__ and __LoadHome__ respawns wil be enabled and will bring you back to the last checkpoint/stand.
-  - `Delivery (solo, package/vehicle)` : All respawn are disabled to keep the scenario fair (you will need to reach a garage to repair your vehicle).
-  - `DeliveryTogether` : As opposed to other delivery modes, __RecoverVehicle__ and __RecoverVehicleAlt__ respawns are allowed, but it will cancel your next delivery reward, as mentionned in the main window (you should get to a garage or driving more carefully to keep your streak).
-  - `Hunter` : The fugitive cannot respawn if close to any hunter by a customizable distance, 50 meters by default (skills are valued in this mode). Hunters can use __RecoverVehicle__ and __RecoverVehicleAlt__ respawns but will then have a customizable freeze countdown before they can drive again.
-  - `Destruction Derby` : Participants have lives, and until they have, thay can use __SaveHome__ and __LoadHome__ respawns (note that if they still have lives and the takedown countdown reached 0, they will automatically get respawned).
-  - `Speed` : In this mode, participants cannot respawn, since the mode goal is to stay over a speed limit and to remain the last player alive.
+### I cannot respawn my vehicle, is this broken?
+Each scenario has its own rules, and there are many different types of respawns, which we can group into three categories:
+- **On-the-spot respawns:**
+  - `Recover vehicle` (`Insert` / `DPad left` by default)
+  - `Recover vehicle Alt` (`Ctrl+Insert` by default)
+  - `Set Home` (`Ctrl+Home` by default)
+- **Teleported respawns:**
+  - `Recover to last road`
+  - `Reset physics` (`R` / `DPad right` by default)
+  - `Load Home` (`Home` by default)
+  - `Reload vehicle` (`Shift+R` by default)
+- **Others:**
+  - `Reset all physics` (`Ctrl+R` by default)
+  - `Reload all vehicles` (`Ctrl+Shift+R` by default)
+  - `Drop player at camera` (`F7` by default)
+  - `Drop player at camera no reset` (`Ctrl+F7` by default)
 
-For reference, here is the BeamJoy handled respawns list with default bindings:
-- __RecoverVehicle__ (and rewind) : Keyboard `Insert` by default | Controller `Dpad left` by default
-- __RecoverVehicleAlt__ : Keyboard `Ctrl + Insert` by default | not assigned by default on Controller
-- __LoadHome__ : Keyboard `Home` by default | not assigned by default on Controller
+_Let’s not forget about `rewind`, available on `Recover vehicle` and `Recover vehicle Alt`._
 
-If you are mainly `playing with a controller`, it is recommended to assign these bindings:
-- __Recover Vehicle__ : `DPad left`
-- __Save Home__ : `DPad left`
-- __Load Home__ : `DPad Right`
+Here’s how respawns behave depending on the scenario:
+- **Freeroam**: All respawns are allowed. If the server is configured with a respawn and/or teleport delay, you’ll see a countdown in the main window before you can use it again.
+- **Races (solo/multi)**: The available respawns are defined by the player who starts the race:
+  - `All respawns`: All on-the-spot respawns will repair your vehicle in place, and teleported ones will bring you back to the last checkpoint. Rewind is enabled.
+  - `No respawns`: Self-explanatory.
+  - `Last checkpoint`: Both on-the-spot and teleported respawns will bring you back to the last checkpoint you passed. Rewind is disabled.
+  - `Stand`: Both on-the-spot and teleported respawns will bring you back to the closest pit stand behind you, or to your starting position if none yet. Rewind is disabled.
+- **Delivery (solo, package/vehicle)**: All respawns are disabled to keep the scenario fair (you’ll need to reach a garage to repair your vehicle, except for vehicle delivery).
+- **DeliveryTogether**: Unlike the above, both on-the-spot and teleported respawns are available but will only repair you in place and will cancel your streak and reward. Rewind is limited to 5 seconds.
+- **TagDuo**: Participants can use all respawns, but they will be repaired in place. Rewind is limited to 5 seconds.
+- **Hunter**: The fugitive can only respawn if no hunter is nearby (distance is configurable), and hunters can respawn anytime but will be frozen for a few seconds to prevent abuse (also configurable). In both cases, respawns will only repair the vehicle in place. Rewind is limited to 5 seconds.
+- **Infected**: All players can use both on-the-spot and teleported respawns, but they will be repaired in place. Rewind is limited to 5 seconds.
+- **Destruction Derby**: Participants have lives, and as long as they have any left, they can use on-the-spot and teleported respawns, but they will be brought back to their starting point. (Note: if they have at least one life left and the countdown reaches zero, respawn will be triggered automatically.)
+- **Speed**: In this mode, participants cannot respawn, since the goal is to stay above a certain speed limit and be the last player alive.
 
 ### Why some players can spawn traffic and some don't ? How can I spawn traffic during a scenario ?
 

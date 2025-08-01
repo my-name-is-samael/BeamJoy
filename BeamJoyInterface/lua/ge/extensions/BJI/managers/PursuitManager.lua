@@ -13,6 +13,11 @@ local function getState()
     return M.policeTargets:length() > 0 or M.fugitivePursuit ~= nil
 end
 
+---@return boolean
+local function canReset()
+    return not M.fugitivePursuit
+end
+
 ---@return BJIColor, BJIColor
 local function getFugitiveNametagColors()
     return BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1),
@@ -389,16 +394,6 @@ local function rxData(data)
     end
 end
 
----@param ctxt TickContext
----@return string[]
-local function getRestrictions(ctxt)
-    return Table()
-        :addAll(
-            (M.fugitivePursuit or M.policeTargets:length() > 0) and BJI_Restrictions.OTHER.VEHICLE_SWITCH or {},
-            true)
-        :addAll(M.fugitivePursuit and BJI_Restrictions.RESETS.ALL or {}, true)
-end
-
 ---@param gameVehID integer
 local function onVehReset(gameVehID)
     local targetVeh = BJI_Veh.getMPVehicle(gameVehID)
@@ -589,9 +584,10 @@ M.onLoad = function()
     initPursuitTraffic(BJI_Tick.getContext())
 end
 
-M.rxData = rxData
 M.getState = getState
+M.canReset = canReset
+
+M.rxData = rxData
 M.getFugitiveNametagColors = getFugitiveNametagColors
-M.getRestrictions = getRestrictions
 
 return M

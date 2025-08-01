@@ -39,20 +39,17 @@
 ---@field onVehicleDestroyed (fun(gameVehID: integer))?
 ---@field updateVehicles (fun())?
 ---@field onGarageRepair (fun())?
----@field onDropPlayerAtCamera (fun())?
----@field onDropPlayerAtCameraNoReset (fun())?
 ---@field tryTeleportToPlayer (fun(targetID: integer, forced: boolean?))?
 ---@field tryTeleportToPos (fun(pos: vec3, saveHome: boolean?))?
 ---@field tryFocus (fun(targetID: integer))?
 ---@field trySpawnNew (fun(model: string, config: table|string?))?
 ---@field tryReplaceOrSpawn (fun(model: string, config: table|string?))?
 ---@field tryPaint (fun(paintIndex: integer, paint: NGPaint))?
----@field saveHome (fun(ctxt: TickContext): boolean?)?
----@field loadHome (fun(ctxt: TickContext): boolean?)?
+---@field canReset (fun(gameVehID: integer, resetType: string): boolean)? default false
+---@field getRewindLimit (fun(gameVehID: integer): number)? default 0 (disabled)
+---@field tryReset (fun(gameVehID: integer, resetType: string, baseCallback: fun()): boolean)?
 ---@field canRefuelAtStation (fun(): boolean)? default false
 ---@field canRepairAtGarage (fun(): boolean)? default false
----@field canReset (fun(): boolean)?
----@field canRecoverVehicle (fun(): boolean)?
 ---@field canSpawnNewVehicle (fun(): boolean)? default true
 ---@field canReplaceVehicle (fun(): boolean)? default true
 ---@field canPaintVehicle (fun(): boolean)? default true

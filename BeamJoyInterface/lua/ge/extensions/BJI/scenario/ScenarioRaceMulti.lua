@@ -33,7 +33,7 @@ local function initManagerData()
     S.preRaceCam = nil
 
     S.raceName = nil
-        S.raceID = nil
+    S.raceID = nil
     S.raceHash = nil
     S.record = nil
 
@@ -215,6 +215,74 @@ local function canUseNodegrabber(ctxt)
     )
 end
 
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    if S.isParticipant() and not S.isFinished() and
+        not S.isEliminated() and S.isRaceStarted() and
+        S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+            BJI_Input.INPUTS.SAVE_HOME,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+        }, resetType)
+    end
+    return false
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key and
+        -1 or 0
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+        if table.includes({
+                BJI_Input.INPUTS.RECOVER,
+                BJI_Input.INPUTS.RECOVER_ALT,
+            }, resetType) then
+            baseCallback()
+            return true
+        elseif table.includes({
+                BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+                BJI_Input.INPUTS.RELOAD_ALL,
+                BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+                BJI_Input.INPUTS.LOAD_HOME,
+            }, resetType) then
+            BJI_Input.actions.loadHome.downBaseAction()
+            return true
+        else
+            BJI_Veh.recoverInPlace()
+            return true
+        end
+    elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+        local now = GetCurrentTimeMillis()
+        if S.lastLaunchedCheckpoint and now - S.lastLaunchedCheckpointTime > 1000 then
+            BJI_Veh.setPosRotVel(S.lastLaunchedCheckpoint)
+            S.lastLaunchedCheckpointTime = now
+            return true
+        else
+            BJI_Input.actions.loadHome.downBaseAction()
+            return true
+        end
+    elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+        BJI_Input.actions.loadHome.downBaseAction()
+        return true
+    end
+    return false
+end
+
 -- player list contextual actions getter
 ---@param player BJIPlayer
 ---@param ctxt TickContext
@@ -350,50 +418,6 @@ local function getModelList()
     return models
 end
 
----@return boolean
-local function canRecoverVehicle()
-    local ctxt = BJI_Tick.getContext()
-    return S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
-        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) and
-        S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key
-end
-
----@param ctxt TickContext
----@return boolean?
-local function saveHome(ctxt)
-    if not S.resetLock and S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
-        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
-        if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
-            if S.lastLaunchedCheckpoint and ctxt.now - S.lastLaunchedCheckpointTime > 1000 then
-                BJI_Veh.setPosRotVel(S.lastLaunchedCheckpoint)
-                S.lastLaunchedCheckpointTime = ctxt.now
-                return true
-            else
-                BJI_Veh.loadHome()
-                return true
-            end
-        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
-            BJI_Veh.loadHome()
-            return true
-        elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
-            BJI_Veh.recoverInPlace()
-            return true
-        end
-    end
-end
-
----@param ctxt TickContext
----@return boolean?
-local function loadHome(ctxt)
-    if S.isParticipant(ctxt.user.playerID) and not S.isFinished(ctxt.user.playerID) and
-        not S.isEliminated(ctxt.user.playerID) and S.isRaceStarted(ctxt) then
-        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
-            BJI_Veh.loadHome()
-            return true
-        end
-    end
-end
-
 local function onJoinGridParticipants()
     if S.settings.config then
         BJI_Async.task(function()
@@ -460,15 +484,16 @@ local function onStandStop(delayMs, wp, lastWp, callback)
 
     BJI_Async.delayTask(function()
         S.exemptNextReset = true
-        BJI_Veh.loadHome(function(ctxt)
+        BJI_Input.actions.loadHome.downBaseAction()
+        BJI_Veh.waitForVehicleSpawn(function(ctxt2)
             BJI_Veh.freeze(true)
-            if ctxt.camera == BJI_Cam.CAMERAS.EXTERNAL then
+            if ctxt2.camera == BJI_Cam.CAMERAS.EXTERNAL then
                 BJI_Cam.setCamera(previousCam)
-                ctxt.camera = BJI_Cam.getCamera()
+                ctxt2.camera = BJI_Cam.getCamera()
             end
-            if ctxt.camera == BJI_Cam.CAMERAS.EXTERNAL then
+            if ctxt2.camera == BJI_Cam.CAMERAS.EXTERNAL then
                 BJI_Cam.setCamera(BJI_Cam.CAMERAS.ORBIT)
-                ctxt.camera = BJI_Cam.getCamera()
+                ctxt2.camera = BJI_Cam.getCamera()
             end
         end)
     end, delayMs - 3000, "BJIRacePreStart")
@@ -1080,7 +1105,7 @@ local function isSpec(playerID)
     )
 end
 
----@param ctxt TickContext
+---@param ctxt TickContext?
 ---@return boolean
 local function isRaceStarted(ctxt)
     local now = ctxt and ctxt.now or GetCurrentTimeMillis()
@@ -1247,15 +1272,14 @@ S.onUnload = onUnload
 S.getRestrictions = getRestrictions
 S.canUseNodegrabber = canUseNodegrabber
 
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
+
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
 S.getModelList = getModelList
-
-S.canRecoverVehicle = canRecoverVehicle
-S.saveHome = saveHome
-S.loadHome = loadHome
-
 S.getPlayerListActions = getPlayerListActions
 
 S.renderTick = renderTick

@@ -42,8 +42,6 @@ local M = {
 
         -- base game events (sync)
 
-        NG_DROP_PLAYER_AT_CAMERA = "ngDropPlayerAtCamera",
-        NG_DROP_PLAYER_AT_CAMERA_NO_RESET = "ngDropPlayerAtCameraNoReset",
         NG_VEHICLE_SWITCHED = "ngVehicleSwitched",
         NG_VEHICLE_SPAWNED = "ngVehicleSpawned",
         NG_VEHICLE_RESETTED = "ngVehicleResetted",
@@ -77,8 +75,6 @@ local M = {
     fastTickQueued = Table(),
 }
 M.SYNC_EVENTS = Table({
-    M.EVENTS.NG_DROP_PLAYER_AT_CAMERA,
-    M.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
     M.EVENTS.NG_VEHICLE_SWITCHED,
     M.EVENTS.NG_VEHICLE_SPAWNED,
     M.EVENTS.NG_VEHICLE_RESETTED,

@@ -178,3 +178,9 @@ math.vec4ColorToStorage = math.vec4ColorToStorage or function(color)
         math.round(color.w, BJI.Utils.Style.RGBA_PRECISION)
     }
 end
+
+---@param rot quat
+---@return vec3 dirFront, vec3 dirUp
+math.rotationQuatToDirFrontAndUp = math.rotationQuatToDirFrontAndUp or function(rot)
+    return rot * vec3(0, -1, 0), rot * vec3(0, 0, 1)
+end

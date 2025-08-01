@@ -162,27 +162,60 @@ local function onVehicleSwitched(oldGameVehID, newGameVehID)
     BJI_Restrictions.update()
 end
 
+---@param gameVehID integer
+---@param resetType string
 ---@return boolean
-local function canReset()
-    return BJI_Perm.isStaff() or not S.reset.restricted
-end
-
----@param ctxt BJCContext
----@return boolean?
-local function saveHome(ctxt)
-    if not S.reset.restricted then
-        BJI_Veh.saveHome()
-        return true
+local function canReset(gameVehID, resetType)
+    if BJI_Veh.isVehicleOwn(gameVehID) then
+        return BJI_Perm.isStaff() or not S.reset.restricted
+    else
+        return table.includes({
+                BJI_Input.INPUTS.RECOVER,
+                BJI_Input.INPUTS.RECOVER_ALT,
+                BJI_Input.INPUTS.LOAD_HOME,
+                BJI_Input.INPUTS.RESET_PHYSICS,
+                BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+                BJI_Input.INPUTS.RELOAD,
+                BJI_Input.INPUTS.RELOAD_ALL,
+            }, resetType)
     end
 end
 
----@param ctxt BJCContext
----@return boolean?
-local function loadHome(ctxt)
-    if not S.reset.restricted then
-        BJI_Veh.loadHome()
-        return true
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return -1
+end
+
+---@param gameVehID integer
+---@param resetType string
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if canReset(gameVehID, resetType) then
+        if BJI_Veh.isVehicleOwn(gameVehID) then
+            baseCallback()
+            return true
+        else
+            if table.includes({
+                    BJI_Input.INPUTS.RECOVER,
+                    BJI_Input.INPUTS.RECOVER_ALT,
+                    BJI_Input.INPUTS.LOAD_HOME,
+                    BJI_Input.INPUTS.RESET_PHYSICS,
+                    BJI_Input.INPUTS.RELOAD,
+                }, resetType) then
+                BJI_Veh.recoverInPlace()
+                return true
+            elseif table.includes({
+                    BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+                    BJI_Input.INPUTS.RELOAD_ALL,
+                }, resetType) then
+                baseCallback()
+                return true
+            end
+        end
     end
+    return false
 end
 
 local function updateVehicles()
@@ -434,8 +467,8 @@ S.onVehicleResetted = onVehicleResetted
 S.onVehicleSwitched = onVehicleSwitched
 
 S.canReset = canReset
-S.saveHome = saveHome
-S.loadHome = loadHome
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
 S.onDropPlayerAtCamera = onDropPlayerAtCamera
 S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset

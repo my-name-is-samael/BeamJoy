@@ -9,18 +9,6 @@ local M = {
         ALLOWED = false,
     },
 
-    RESETS = {
-        ALL = { "saveHome", "loadHome", "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
-            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
-            "recover_vehicle", "recover_vehicle_alt" },
-        -- allow set&load home
-        SCENARIO = { "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
-            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles",
-            "recover_vehicle", "recover_vehicle_alt" },
-        -- allow set&load home + recover&alt
-        ONLY_RECOVER = { "dropPlayerAtCamera", "dropPlayerAtCameraNoReset", "goto_checkpoint",
-            "recover_to_last_road", "reset_physics", "reset_all_physics", "reload_vehicle", "reload_all_vehicles" },
-    },
     CEN = {
         CONSOLE = { "toggleConsoleNG" },
         EDITOR = { "editorToggle", "editorSafeModeToggle", "objectEditorToggle" },
@@ -57,7 +45,7 @@ local M = {
     },
 
     _tag = "BeamjoyRestrictions",
-    _baseRestrictions = Table({ "pause", "toggleTrackBuilder", "toggleAITraffic", "forceField" }),
+    _baseRestrictions = Table({ "pause", "toggleTrackBuilder", "toggleAITraffic", "forceField", "goto_checkpoint" }),
     _restrictions = Table(),
 }
 --- gc prevention
@@ -91,14 +79,10 @@ local function update()
         res:addAll(M._SCENARIO_DRIVEN.NODEGRABBER, true)
     end
 
-    if not ctxt.isOwner then
-        res:addAll(M.RESETS.ONLY_RECOVER, true)
-    elseif BJI_Scenario.canReset() then
-        -- no restriction to add
-    elseif BJI_Scenario.canRecoverVehicle() then
-        res:addAll(M.RESETS.ONLY_RECOVER, true)
-    else
-        res:addAll(M.RESETS.SCENARIO, true)
+    for _, resetType in pairs(BJI_Input.INPUTS) do
+        if not ctxt.veh or not BJI_Scenario.canReset(ctxt.veh.gameVehicleID, resetType) then
+            res:addAll({ resetType }, true)
+        end
     end
 
     res:sort()

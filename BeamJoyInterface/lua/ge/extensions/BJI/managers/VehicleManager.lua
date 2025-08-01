@@ -47,9 +47,6 @@ local M = {
     tankLowThreshold = .05,             -- threshold for when fuel amount becomes critical + warning sound
     tankMedThreshold = .15,             -- threshold for when fuel amount becomes warning
 
-    ---@type table<integer, BJIPositionRotation> index gameVehID
-    homes = {},
-
     DEBUG_FFB_TIMEOUT = 1500,
 }
 
@@ -388,12 +385,6 @@ local function onVehicleSpawned(gameVehID)
             error("Invalid vehicle spawned " .. tostring(gameVehID))
         end
         mpVeh.veh:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
-        if mpVeh.isLocal then
-            mpVeh.veh:queueLuaCommand([[
-                recovery.saveHome = function() obj:queueGameEngineLua('BJI_Scenario.saveHome('..tostring(obj:getID())..')') end
-                recovery.loadHome = function() obj:queueGameEngineLua('BJI_Scenario.loadHome('..tostring(obj:getID())..')') end
-            ]])
-        end
 
         -- also works for vehicle replacement
         if isVehPolice(mpVeh.veh.partConfig) then
@@ -410,11 +401,6 @@ local function onVehicleSpawned(gameVehID)
         end
         BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_INITIALIZED, mpVeh)
     end)
-end
-
----@param gameVehID integer
-local function onVehicleDestroyed(gameVehID)
-    M.homes[gameVehID] = nil
 end
 
 ---@param playerID integer
@@ -574,35 +560,16 @@ end
 local function saveHome(posRot)
     veh = M.getCurrentVehicleOwn()
     if veh then
-        local finalPoint = {}
         if posRot then
-            finalPoint = {
-                pos = vec3(posRot.pos),
-                rot = quat(posRot.rot),
-            }
+            local dirFront, dirUp = math.rotationQuatToDirFrontAndUp(posRot.rot)
+            veh:queueLuaCommand(string.format(
+                "recovery.reset.saveHome({pos = vec3(%.3f, %.3f, %.3f), dirFront = vec3(%.6f, %.6f, %.6f), dirUp = vec3(%.6f, %.6f, %.6f)})",
+                posRot.pos.x, posRot.pos.y, posRot.pos.z,
+                dirFront.x, dirFront.y, dirFront.z,
+                dirUp.x, dirUp.y, dirUp.z
+            ))
         else
-            finalPoint.pos, finalPoint.rot = M.getPositionRotation(veh)
-        end
-        M.homes[veh:getID()] = finalPoint
-        if BJI_Scenario.isFreeroam() and finalPoint then
-            guihooks.message("vehicle.recovery.saveHome", 5, "recovery")
-        end
-    end
-end
-
----@param callback? fun(ctxt: TickContext)
-local function loadHome(callback)
-    veh = M.getCurrentVehicleOwn()
-    if veh and M.homes[veh:getID()] then
-        local home = M.homes[veh:getID()]
-        veh:requestReset(RESET_PHYSICS)
-        local pos, rot = vec3(home.pos) + vec3(0, 0, veh:getInitialHeight() / 2), quat(home.rot)
-        M.setPositionRotation(pos, rot)
-        if BJI_Scenario.isFreeroam() then
-            guihooks.message("vehicle.recovery.loadHome", 5, "recovery")
-        end
-        if type(callback) == "function" then
-            waitForVehicleSpawn(callback)
+            BJI_Input.actions.saveHome.downBaseAction()
         end
     end
 end
@@ -1840,12 +1807,10 @@ local function updateVehCustomAttribute(attr, gameVehID, value)
 end
 
 local function onUnload()
-    M.baseFunctions:forEach(function(fns, extName)
-        table.assign(extensions[extName], fns)
-    end)
+    RollBackNGFunctionsWrappers(M.baseFunctions)
 end
 
-M.onLoad = function()
+local function overrideNGFunctions()
     M.baseFunctions = Table({
         util_screenshotCreator = {
             startWork = extensions.util_screenshotCreator.startWork,
@@ -1890,10 +1855,13 @@ M.onLoad = function()
         end
         M.baseFunctions.core_vehicle_manager.liveUpdateVehicleColors(vehID, veh, paintIndex, paint)
     end
+end
+
+M.onLoad = function()
+    overrideNGFunctions()
 
     BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SPAWNED, onVehicleSpawned, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
@@ -1941,7 +1909,6 @@ M.deleteVehicle = deleteVehicle
 M.deleteOtherPlayerVehicle = deleteOtherPlayerVehicle
 M.explodeVehicle = explodeVehicle
 M.saveHome = saveHome
-M.loadHome = loadHome
 M.recoverInPlace = recoverInPlace
 
 M.getPositionRotation = getPositionRotation

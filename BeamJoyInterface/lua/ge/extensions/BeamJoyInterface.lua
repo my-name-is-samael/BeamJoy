@@ -139,26 +139,24 @@ end
 
 local function bindNGHooks()
     Table({
-        { commands, "dropPlayerAtCamera",        BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA },
-        { commands, "dropPlayerAtCameraNoReset", BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET },
-        { M,        "onVehicleSpawned",          BJI_Events.EVENTS.NG_VEHICLE_SPAWNED },
-        { M,        "onVehicleSwitched",         BJI_Events.EVENTS.NG_VEHICLE_SWITCHED },
-        { M,        "onVehicleResetted",         BJI_Events.EVENTS.NG_VEHICLE_RESETTED },
-        { M,        "onVehicleReplaced",         BJI_Events.EVENTS.NG_VEHICLE_REPLACED },
-        { M,        "onVehicleDestroyed",        BJI_Events.EVENTS.NG_VEHICLE_DESTROYED },
-        { M,        "onDriftCompletedScored",    BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
-        { M,        "onPursuitAction",           BJI_Events.EVENTS.NG_PURSUIT_ACTION },
-        { M,        "onPursuitModeUpdate",       BJI_Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
-        { M,        "onAiModeChange",            BJI_Events.EVENTS.NG_AI_MODE_CHANGE },
-        { M,        "onTrafficStarted",          BJI_Events.EVENTS.NG_TRAFFIC_STARTED },
-        { M,        "onTrafficStopped",          BJI_Events.EVENTS.NG_TRAFFIC_STOPPED },
-        { M,        "onVehicleGroupSpawned",     BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
-        { M,        "trackAIAllVeh",             BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
-        { M,        "onTrafficVehicleAdded",     BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
-        { M,        "onUILayoutLoaded",          BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
+        { "onVehicleSpawned",       BJI_Events.EVENTS.NG_VEHICLE_SPAWNED },
+        { "onVehicleSwitched",      BJI_Events.EVENTS.NG_VEHICLE_SWITCHED },
+        { "onVehicleResetted",      BJI_Events.EVENTS.NG_VEHICLE_RESETTED },
+        { "onVehicleReplaced",      BJI_Events.EVENTS.NG_VEHICLE_REPLACED },
+        { "onVehicleDestroyed",     BJI_Events.EVENTS.NG_VEHICLE_DESTROYED },
+        { "onDriftCompletedScored", BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
+        { "onPursuitAction",        BJI_Events.EVENTS.NG_PURSUIT_ACTION },
+        { "onPursuitModeUpdate",    BJI_Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
+        { "onAiModeChange",         BJI_Events.EVENTS.NG_AI_MODE_CHANGE },
+        { "onTrafficStarted",       BJI_Events.EVENTS.NG_TRAFFIC_STARTED },
+        { "onTrafficStopped",       BJI_Events.EVENTS.NG_TRAFFIC_STOPPED },
+        { "onVehicleGroupSpawned",  BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
+        { "trackAIAllVeh",          BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
+        { "onTrafficVehicleAdded",  BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
+        { "onUILayoutLoaded",       BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
     }):forEach(function(hook)
-        hook[1][hook[2]] = function(...)
-            BJI_Events.trigger(hook[3], ...)
+        M[hook[1]] = function(...)
+            BJI_Events.trigger(hook[2], ...)
         end
     end)
 end

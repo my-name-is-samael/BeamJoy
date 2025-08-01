@@ -67,6 +67,29 @@ local function getRestrictions(ctxt)
         :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
 end
 
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return 5
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+        }, resetType) then
+        baseCallback()
+        return true
+    else
+        BJI_Veh.recoverInPlace()
+        return true
+    end
+end
+
 ---@return boolean
 local function isLobbyFilled()
     return S.selfLobby ~= nil and not S.waitForPlayers
@@ -344,6 +367,9 @@ S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
 
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
+
 S.isLobbyFilled = isLobbyFilled
 S.isTagger = isTagger
 
@@ -352,7 +378,6 @@ S.onVehicleDestroyed = onVehicleDestroyed
 
 S.canRefuelAtStation = TrueFn
 S.canRepairAtGarage = TrueFn
-S.canRecoverVehicle = TrueFn
 S.canSpawnAI = TrueFn
 
 S.canDeleteVehicle = FalseFn

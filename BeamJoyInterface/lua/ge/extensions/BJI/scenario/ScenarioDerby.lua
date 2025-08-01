@@ -145,6 +145,7 @@ end
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
     if BJI_Scenario.is(BJI_Scenario.TYPES.DERBY) then
+        BJI_Veh.saveHome()
         BJI_Cam.forceCamera(BJI_Cam.CAMERAS.EXTERNAL)
         BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
         if not BJI_Win_VehSelector.show then
@@ -162,11 +163,7 @@ local function tryReplaceOrSpawn(model, config)
         end
         local startPos = S.baseArena.startPositions[participant.startPosition]
         BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
-        BJI_Veh.waitForVehicleSpawn(
-            function(ctxt)
-                BJI_Veh.saveHome(startPos)
-                postSpawn(ctxt)
-            end)
+        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
@@ -178,10 +175,7 @@ local function onVehicleSpawned(mpVeh)
         if startPos and mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI_Veh.waitForVehicleSpawn(function(ctxt)
-                BJI_Veh.saveHome(startPos)
-                postSpawn(ctxt)
-            end)
+            BJI_Veh.waitForVehicleSpawn(postSpawn)
         end
     end
 end
@@ -286,36 +280,50 @@ local function getPlayerListActions(player, ctxt)
     return actions
 end
 
----@param ctxt TickContext
----@return boolean?
-local function tryRespawn(ctxt)
+---@param gameVehID integer
+---@param resetType string
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
     local participant = S.getParticipant()
-    if participant and participant.lives > 0 and not S.resetLock then
-        BJI_Veh.loadHome()
-        S.resetLock = true
-        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
-        BJI_Async.delayTask(function() -- 1 sec reset lock safe
-            S.resetLock = false
+    if S.state == S.STATES.GAME and participant and participant.lives > 0 and not S.resetLock then
+        veh = BJI_Veh.getVehicleObject(gameVehID)
+        if veh and table.includes({
+                BJI_Input.INPUTS.RECOVER,
+                BJI_Input.INPUTS.RECOVER_ALT,
+                BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+                BJI_Input.INPUTS.SAVE_HOME,
+                BJI_Input.INPUTS.LOAD_HOME,
+                BJI_Input.INPUTS.RESET_PHYSICS,
+                BJI_Input.INPUTS.RELOAD,
+            }, resetType) then
+            BJI_Input.actions.loadHome.downBaseAction()
+            S.resetLock = true
             BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
-        end, 1000, "BJIDerbyResetLockSafe")
+            BJI_Async.delayTask(function() -- 1 sec reset lock safe
+                S.resetLock = false
+                BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+            end, 1000, "BJIDerbyResetLockSafe")
 
-        BJI_Message.cancelFlash("BJIDerbyDestroy")
-        BJI_Tx_scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
-        local msg
-        if participant.lives == 1 then
-            msg = BJI_Lang.get("derby.play.flashNoLifeRemaining")
-        elseif participant.lives == 2 then
-            msg = BJI_Lang.get("derby.play.flashLifeRemaining"):var({
-                lives = participant.lives - 1
-            })
-        else
-            msg = BJI_Lang.get("derby.play.flashLivesRemaining"):var({
-                lives = participant.lives - 1
-            })
+            BJI_Message.cancelFlash("BJIDerbyDestroy")
+            BJI_Tx_scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
+            local msg
+            if participant.lives == 1 then
+                msg = BJI_Lang.get("derby.play.flashNoLifeRemaining")
+            elseif participant.lives == 2 then
+                msg = BJI_Lang.get("derby.play.flashLifeRemaining"):var({
+                    lives = participant.lives - 1
+                })
+            else
+                msg = BJI_Lang.get("derby.play.flashLivesRemaining"):var({
+                    lives = participant.lives - 1
+                })
+            end
+            BJI_Message.flash("BJIDerbyRemainingLives", msg, 3, false)
+            return true
         end
-        BJI_Message.flash("BJIDerbyRemainingLives", msg, 3, false)
-        return true
     end
+    return false
 end
 
 local function getZoneRadius(ctxt)
@@ -396,7 +404,7 @@ local function slowTick(ctxt)
                     if participant then
                         BJI_Tx_scenario.DerbyUpdate(S.CLIENT_EVENTS.DESTROYED)
                         if participant.lives > 0 then
-                            BJI_Veh.loadHome()
+                            BJI_Input.actions.loadHome.downBaseAction()
                         end
                         S.destroy.process = false
                         S.destroy.targetTime = nil
@@ -648,8 +656,7 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleSpawned = onVehicleSpawned
-S.saveHome = tryRespawn
-S.loadHome = tryRespawn
+S.tryReset = tryReset
 S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick

@@ -178,6 +178,50 @@ local function getRestrictions(ctxt)
     return res
 end
 
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    local ctxt = BJI_Tick.getContext()
+    local participant = S.participants[ctxt.user.playerID]
+    if S.state == S.STATES.GAME and participant and not S.resetLock and
+        (participant.hunted and S.huntedStartTime or S.hunterStartTime) < ctxt.now then
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+            BJI_Input.INPUTS.SAVE_HOME,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+        }, resetType)
+    end
+    return false
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return 5
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+        }) then
+        baseCallback()
+        return true
+    else
+        BJI_Veh.recoverInPlace()
+        return true
+    end
+end
+
 ---@param ctxt TickContext
 local function postSpawn(ctxt)
     if BJI_Scenario.is(BJI_Scenario.TYPES.HUNTER) then
@@ -238,13 +282,6 @@ local function tryPaint(paintIndex, paint)
         participant and not participant.ready then
         BJI_Veh.paintVehicle(veh, paintIndex, paint)
     end
-end
-
-local function canRecoverVehicle()
-    local ctxt = BJI_Tick.getContext()
-    local participant = S.participants[ctxt.user.playerID]
-    return S.state == S.STATES.GAME and participant and not S.resetLock and
-        (participant.hunted and S.huntedStartTime or S.hunterStartTime) < ctxt.now
 end
 
 ---@return table<string, table>?
@@ -857,10 +894,13 @@ S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
 
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
+
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn
 S.tryPaint = tryPaint
-S.canRecoverVehicle = canRecoverVehicle
 S.getModelList = getModelList
 S.canSpawnNewVehicle = canSpawnNewVehicle
 S.canReplaceVehicle = canVehUpdate

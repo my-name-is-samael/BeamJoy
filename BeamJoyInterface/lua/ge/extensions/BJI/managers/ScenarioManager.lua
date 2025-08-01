@@ -504,20 +504,6 @@ local function onGarageRepair()
     end
 end
 
-local function onDropPlayerAtCamera()
-    BJI_Reputation.vehicleTeleported()
-    if _curr().onDropPlayerAtCamera then
-        _curr().onDropPlayerAtCamera()
-    end
-end
-
-local function onDropPlayerAtCameraNoReset()
-    BJI_Reputation.vehicleTeleported()
-    if _curr().onDropPlayerAtCameraNoReset then
-        _curr().onDropPlayerAtCameraNoReset()
-    end
-end
-
 ---@param targetID integer
 ---@param forced boolean?
 local function tryTeleportToPlayer(targetID, forced)
@@ -568,28 +554,54 @@ local function tryPaint(paintIndex, paint)
 end
 
 ---@param gameVehID integer
-local function saveHome(gameVehID)
-    local ctxt = BJI_Tick.getContext()
-    if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
-        if not _curr().saveHome or not _curr().saveHome(ctxt) then
-            local canReset = _curr().canReset and _curr().canReset()
-            local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
-            if not canReset and not canRecover then
-                BJI_Toast.error(BJI_Lang.get("errors.cannotResetNow"), 3)
-            end
-        end
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    if not BJI_Stations.canReset() and BJI_Pursuit.canReset() then
+        return false
     end
+    if _curr().canReset then
+        return _curr().canReset(gameVehID, resetType)
+    end
+    return false
 end
 
 ---@param gameVehID integer
-local function loadHome(gameVehID)
-    local ctxt = BJI_Tick.getContext()
-    if ctxt.isOwner and ctxt.veh.gameVehicleID == gameVehID then
-        if not _curr().loadHome or not _curr().loadHome(ctxt) then
-            local canReset = _curr().canReset and _curr().canReset()
-            local canRecover = _curr().canRecoverVehicle and _curr().canRecoverVehicle()
-            if not canReset and not canRecover then
-                BJI_Toast.error(BJI_Lang.get("errors.cannotResetNow"), 3)
+---@return integer -1 = infinite, 0 = disabled, >0 = seconds
+local function getRewindLimit(gameVehID)
+    if BJI_Veh.isVehicleOwn(gameVehID) and _curr().getRewindLimit then
+        return _curr().getRewindLimit(gameVehID)
+    end
+    return 0
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param defaultCallback fun()
+local function tryReset(gameVehID, resetType, defaultCallback)
+    if not BJI_Stations.canReset() and BJI_Pursuit.canReset() then return end
+    local resetAllowed = _curr().canReset ~= nil and _curr().canReset(gameVehID, resetType)
+    local errToast, exec = false, false
+    if not _curr().canReset or resetAllowed then
+        errToast = _curr().tryReset ~= nil and
+            not _curr().tryReset(gameVehID, resetType, defaultCallback) and resetAllowed
+        exec = true
+    end
+    if errToast then
+        BJI_Toast.error(BJI_Lang.get("errors.cannotResetNow"), 3)
+    elseif exec and table.includes({ BJI_Input.INPUTS.RECOVER, BJI_Input.INPUTS.RECOVER_ALT }, resetType) then
+        -- rewind checks
+        local veh = BJI_Veh.getVehicleObject(gameVehID)
+        if not veh then return end
+        local limit = getRewindLimit(gameVehID)
+        if limit ~= -1 then
+            if limit <= .01 then
+                BJI_Input.callBaseAction(BJI_Input.INPUTS.RECOVER, false)
+            else
+                BJI_Async.removeTask(string.format("BJIRewindLimit-%d", gameVehID))
+                BJI_Async.delayTask(function()
+                    BJI_Input.callBaseAction(BJI_Input.INPUTS.RECOVER, false)
+                end, limit * 1000, string.format("BJIRewindLimit-%d", gameVehID))
             end
         end
     end
@@ -607,22 +619,6 @@ end
 local function canRepairAtGarage()
     if _curr().canRepairAtGarage then
         return _curr().canRepairAtGarage()
-    end
-    return false
-end
-
----@return boolean
-local function canReset()
-    if _curr().canReset then
-        return _curr().canReset()
-    end
-    return false
-end
-
----@return boolean
-local function canRecoverVehicle()
-    if _curr().canRecoverVehicle then
-        return _curr().canRecoverVehicle()
     end
     return false
 end
@@ -959,9 +955,6 @@ local function onLoad()
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA, onDropPlayerAtCamera, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.NG_DROP_PLAYER_AT_CAMERA_NO_RESET,
-        onDropPlayerAtCameraNoReset, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
@@ -976,13 +969,12 @@ M.tryFocus = tryFocus
 M.trySpawnNew = trySpawnNew
 M.tryReplaceOrSpawn = tryReplaceOrSpawn
 M.tryPaint = tryPaint
-M.saveHome = saveHome
-M.loadHome = loadHome
+
+M.canReset = canReset
+M.tryReset = tryReset
 
 M.canRefuelAtStation = canRefuelAtStation
 M.canRepairAtGarage = canRepairAtGarage
-M.canReset = canReset
-M.canRecoverVehicle = canRecoverVehicle
 M.canSpawnNewVehicle = canSpawnNewVehicle
 M.canReplaceVehicle = canReplaceVehicle
 M.canPaintVehicle = canPaintVehicle
