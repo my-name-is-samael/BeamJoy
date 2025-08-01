@@ -23,12 +23,6 @@ local function onLoad(ctxt)
     S.teleport.restricted = false
 end
 
-local function getCollisionsType(ctxt)
-    return BJI_Context.BJC.Freeroam and
-        BJI_Context.BJC.Freeroam.CollisionsMode or
-        BJI_Collisions.TYPES.FORCED
-end
-
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
@@ -465,8 +459,6 @@ end
 
 S.canChangeTo = TrueFn
 S.onLoad = onLoad
-
-S.getCollisionsType = getCollisionsType
 
 S.getRestrictions = getRestrictions
 

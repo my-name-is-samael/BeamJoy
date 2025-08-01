@@ -764,7 +764,9 @@ local function getCollisionsType(ctxt)
     if _curr().getCollisionsType then
         return _curr().getCollisionsType(ctxt or BJI_Tick.getContext())
     else
-        return BJI_Collisions.TYPES.GHOSTS
+        return BJI_Context.BJC.Freeroam and
+            BJI_Context.BJC.Freeroam.CollisionsMode or
+            BJI_Collisions.TYPES.FORCED
     end
 end
 
