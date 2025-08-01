@@ -180,6 +180,7 @@ return M
 
 -- if stuck in loading screen during disconnect
 -- core_gamestate.requestExitLoadingScreen("serverConnection")
+-- guihooks.trigger("app:waiting", false)
 
 --- Game functions we cannot hook onto (guess we are unlucky) :
 -- core_repository.requestMyMods (on open mods menu > tab my mods)

@@ -3,11 +3,11 @@ local M = {
     _name = "Collisions",
 
     TYPES = {
-        FORCED = 1,
-        DISABLED = 2,
-        GHOSTS = 3,
+        FORCED = "forced",
+        DISABLED = "disabled",
+        GHOSTS = "ghosts",
     },
-    type = 1, -- forced by default (collisions on, no one is transparent)
+    type = "forced", -- forced by default (collisions on, no one is transparent)
 
     ghostsRadius = 5,
     ghostDelay = 5000,
@@ -114,7 +114,7 @@ local function removeGhost(ctxt, gameVehID, veh)
 end
 
 ---@param ctxt TickContext
----@param previousType integer
+---@param previousType string
 local function onTypeChange(ctxt, previousType)
     -- remove ghosts
     M.ghosts:forEach(function(_, gameVehID)

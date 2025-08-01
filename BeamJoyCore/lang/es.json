@@ -1117,7 +1117,13 @@
       "driftGood": "Puntuación mínima de buenos derrapes.",
       "driftBig": "Puntuación mínima de grandes derrapes",
       "allowUnicycle": "permitir caminar",
-      "cancelModal": "Perderás tus cambios no guardados. ¿Estás seguro de que deseas cerrar la ventana?"
+      "cancelModal": "Perderás tus cambios no guardados. ¿Estás seguro de que deseas cerrar la ventana?",
+      "collisionsMode": "Modo de colisiones",
+      "collisionsModes": {
+        "forced": "Forzado",
+        "disabled": "Desactivado",
+        "ghosts": "Protección de reaparición (fantasmas)"
+      }
     },
     "races": {
       "races": "carreras",

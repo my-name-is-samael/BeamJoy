@@ -23,6 +23,12 @@ local function onLoad(ctxt)
     S.teleport.restricted = false
 end
 
+local function getCollisionsType(ctxt)
+    return BJI_Context.BJC.Freeroam and
+        BJI_Context.BJC.Freeroam.CollisionsMode or
+        BJI_Collisions.TYPES.FORCED
+end
+
 ---@param ctxt TickContext
 ---@return string[]
 local function getRestrictions(ctxt)
@@ -170,14 +176,14 @@ local function canReset(gameVehID, resetType)
         return BJI_Perm.isStaff() or not S.reset.restricted
     else
         return table.includes({
-                BJI_Input.INPUTS.RECOVER,
-                BJI_Input.INPUTS.RECOVER_ALT,
-                BJI_Input.INPUTS.LOAD_HOME,
-                BJI_Input.INPUTS.RESET_PHYSICS,
-                BJI_Input.INPUTS.RESET_ALL_PHYSICS,
-                BJI_Input.INPUTS.RELOAD,
-                BJI_Input.INPUTS.RELOAD_ALL,
-            }, resetType)
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+            BJI_Input.INPUTS.RELOAD_ALL,
+        }, resetType)
     end
 end
 
@@ -460,6 +466,8 @@ end
 S.canChangeTo = TrueFn
 S.onLoad = onLoad
 
+S.getCollisionsType = getCollisionsType
+
 S.getRestrictions = getRestrictions
 
 S.onVehicleSpawned = onVehicleSpawned
@@ -502,6 +510,5 @@ S.slowTick = slowTick
 S.exemptNextReset = exemptNextReset
 
 S.getPlayerListActions = getPlayerListActions
-
 
 return S

@@ -350,6 +350,9 @@ local function loadConfig()
         end
         M.BJC.Freeroam = cacheData.Freeroam
         BJI_Restrictions.update()
+        if BJI_Scenario.isFreeroam() then
+            BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_CHANGED)
+        end
 
         M.BJC.Server = cacheData.Server
         BJI_Mods.update(M.BJC.Server.AllowClientMods)

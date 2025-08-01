@@ -1,4 +1,10 @@
 local M = {
+    COLLISIONS_MODES = {
+        FORCED = "forced",
+        DISABLED = "disabled",
+        GHOSTS = "ghosts",
+    },
+
     Data = {},
     ClientMods = nil,
 }
@@ -51,6 +57,7 @@ local function getCache(senderID)
         Nametags = M.Data.Freeroam.Nametags,
         VehicleSpawning = M.Data.Freeroam.VehicleSpawning,
         AllowUnicycle = M.Data.Freeroam.AllowUnicycle,
+        CollisionsMode = M.Data.Freeroam.CollisionsMode,
     }
     if BJCPerm.canSpawnVehicle(senderID) then
         table.assign(data.Freeroam, {
@@ -254,6 +261,8 @@ local function set(ctxt, key, value)
     if type(target) ~= type(value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     elseif parent == "Server" and key:endswith("Lang") and not table.includes(BJCLang.getLangsList(), value) then
+        error({ key = "rx.errors.invalidValue", data = { value = value } })
+    elseif parent == "Freeroam" and key == "CollisionsMode" and not table.includes(M.COLLISIONS_MODES, value) then
         error({ key = "rx.errors.invalidValue", data = { value = value } })
     end
 

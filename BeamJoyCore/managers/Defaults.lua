@@ -91,6 +91,7 @@ local function config()
             PreserveEnergy = false,
             EmergencyRefuelDuration = 20,
             EmergencyRefuelPercent = 30,
+            CollisionsMode = "ghosts",
         },
         Reputation = {
             KmDriveReward = 3,

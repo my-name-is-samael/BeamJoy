@@ -1117,7 +1117,13 @@
       "driftGood": "Mindestpunktzahl für gute Drifts",
       "driftBig": "Mindestpunktzahl für große Drifts",
       "allowUnicycle": "Erlauben Sie das Gehen",
-      "cancelModal": "Du wirst deine ungespeicherten Änderungen verlieren. Bist du sicher, dass du das Fenster schließen möchtest?"
+      "cancelModal": "Du wirst deine ungespeicherten Änderungen verlieren. Bist du sicher, dass du das Fenster schließen möchtest?",
+      "collisionsMode": "Kollisionsmodus",
+      "collisionsModes": {
+        "forced": "Erzwingt",
+        "disabled": "Deaktiviert",
+        "ghosts": "Respawn-Schutz (Geister)"
+      }
     },
     "races": {
       "races": "Rennen",

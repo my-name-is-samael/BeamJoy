@@ -759,7 +759,7 @@ local function doShowNametagsSpecs(vehData)
     end
 end
 
----@return integer
+---@return string
 local function getCollisionsType(ctxt)
     if _curr().getCollisionsType then
         return _curr().getCollisionsType(ctxt or BJI_Tick.getContext())

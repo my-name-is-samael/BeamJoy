@@ -1118,7 +1118,13 @@
       "driftGood": "Good drifts minimum score",
       "driftBig": "Big drifts minimum score",
       "allowUnicycle": "Allow walking",
-      "cancelModal": "You will lose your unsaved changes, are you sure you want to close the window ?"
+      "cancelModal": "You will lose your unsaved changes, are you sure you want to close the window ?",
+      "collisionsMode": "Collisions mode",
+      "collisionsModes": {
+        "forced": "Forced",
+        "disabled": "Disabled",
+        "ghosts": "Respawn protection (ghosts)"
+      }
     },
     "races": {
       "races": "Races",

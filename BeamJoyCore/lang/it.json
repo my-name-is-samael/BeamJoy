@@ -1117,7 +1117,13 @@
       "driftGood": "Punteggio minimo di buone derive",
       "driftBig": "Punteggio minimo per grandi derive",
       "allowUnicycle": "Consentire di camminare",
-      "cancelModal": "Perderai le modifiche non salvate. Sei sicuro di voler chiudere la finestra?"
+      "cancelModal": "Perderai le modifiche non salvate. Sei sicuro di voler chiudere la finestra?",
+      "collisionsMode": "Modalità collisioni",
+      "collisionsModes": {
+        "forced": "Forzata",
+        "disabled": "Disattivata",
+        "ghosts": "Protezione da respawn (fantasmi)"
+      }
     },
     "races": {
       "races": "Razze",

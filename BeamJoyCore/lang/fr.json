@@ -1117,7 +1117,13 @@
       "driftGood": "Score minimum pour de bons dérapages",
       "driftBig": "Score minimum pour des gros dérapages",
       "allowUnicycle": "Autoriser les piétons (monocycle)",
-      "cancelModal": "Vous perdrez vos modifications non enregistrées. Êtes-vous sûr de vouloir fermer la fenêtre ?"
+      "cancelModal": "Vous perdrez vos modifications non enregistrées. Êtes-vous sûr de vouloir fermer la fenêtre ?",
+      "collisionsMode": "Mode de collisions",
+      "collisionsModes": {
+        "forced": "Forcé",
+        "disabled": "Désactivé",
+        "ghosts": "Protection de réapparition (fantômes)"
+      }
     },
     "races": {
       "races": "Courses",

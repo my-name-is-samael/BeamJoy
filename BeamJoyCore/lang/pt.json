@@ -1117,7 +1117,13 @@
       "driftGood": "Boa pontuação mínima de drifts",
       "driftBig": "Pontuação mínima de grandes desvios",
       "allowUnicycle": "Permitir caminhar",
-      "cancelModal": "Você perderá as alterações não salvas. Tem certeza de que deseja fechar a janela?"
+      "cancelModal": "Você perderá as alterações não salvas. Tem certeza de que deseja fechar a janela?",
+      "collisionsMode": "Modo de colisões",
+      "collisionsModes": {
+        "forced": "Forçado",
+        "disabled": "Desativado",
+        "ghosts": "Proteção de renascimento (fantasmas)"
+      }
     },
     "races": {
       "races": "Corridas",
