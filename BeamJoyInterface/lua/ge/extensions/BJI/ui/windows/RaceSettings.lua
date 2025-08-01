@@ -16,7 +16,7 @@ local W = {
     maxSize = ImVec2(700, 260),
 
     VEHICLE_MODES = {
-        ALL = nil,
+        ALL = "all",
         MODEL = "model",
         CONFIG = "config",
     },
