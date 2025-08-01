@@ -213,7 +213,7 @@ local function tryReset(gameVehID, resetType, baseCallback)
     if table.includes({
             BJI_Input.INPUTS.RECOVER,
             BJI_Input.INPUTS.RECOVER_ALT,
-        }) then
+        }, resetType) then
         baseCallback()
         return true
     else
