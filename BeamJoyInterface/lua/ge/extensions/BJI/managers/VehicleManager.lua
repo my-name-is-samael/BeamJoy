@@ -358,10 +358,11 @@ local function applyQueuedEvents(callback)
     MPVehicleGE.applyQueuedEvents()
 end
 
----@param config string|table
-local function isVehPolice(config)
+---@param veh NGVehicle
+local function isVehPolice(veh)
     local policeMarkers = Table({ "police", "polizei", "polizia", "gendarmerie" })
-    local conf = BJI_Veh.getFullConfig(config) or { parts = {} }
+    local conf = BJI_Veh.getFullConfig(veh:getID())
+    if not conf then return false end
     return policeMarkers:any(function(str) return conf.model:lower():find(str) ~= nil end) or
         Table(conf.parts):any(function(v, k)
             return policeMarkers:any(function(str)
@@ -387,7 +388,7 @@ local function onVehicleSpawned(gameVehID)
         mpVeh.veh:queueLuaCommand('extensions.BeamJoyInterface_BJIPhysics.update()')
 
         -- also works for vehicle replacement
-        if isVehPolice(mpVeh.veh.partConfig) then
+        if isVehPolice(mpVeh.veh) then
             mpVeh.veh:setDynDataFieldbyName("isPatrol", 0, "true")
         else
             mpVeh.veh:setDynDataFieldbyName("isPatrol", 0, "")
@@ -970,13 +971,7 @@ local function saveCurrentVehicle()
             veh = gameVehID and M.getVehicleObject(gameVehID) or nil
         end
         if veh then
-            BJI_Context.User.previousVehConfig = M.getFullConfig(veh.partConfig)
-            if BJI_Context.User.previousVehConfig and
-                not BJI_Context.User.previousVehConfig.model then
-                -- a very low amount of configs have no model, don't know why
-                LogWarn("Last vehicle doesn't have model in its config, safe adding it")
-                BJI_Context.User.previousVehConfig.model = veh.jbeam
-            end
+            BJI_Context.User.previousVehConfig = M.getFullConfig(veh:getID())
         end
     end
 end
@@ -1022,16 +1017,15 @@ local function getConfigLabel(model, configKey)
 end
 
 -- config is optionnal
----@param config string?
+---@param gameVehID integer?
 ---@return boolean
-local function isConfigCustom(config)
-    local veh = M.getCurrentVehicle()
-    if not config and not veh then
-        return false
+local function isConfigCustom(gameVehID)
+    if gameVehID then
+        veh = M.getVehicleObject(gameVehID)
+    else
+        veh = M.getCurrentVehicle()
     end
-
-    config = config or (veh and veh.partConfig or "")
-    return not config:endswith(".pc")
+    return veh ~= nil and not veh.partConfig:endswith(".pc")
 end
 
 ---@param model string
@@ -1055,49 +1049,61 @@ local function convertPartsTree(tree)
             end
         end
     end
-    local start = GetCurrentTimeMillis()
     recursParts(tree.children)
-    LogWarn(string.var("Converted manually modified veh config to standard parts in {1}ms",
-        { GetCurrentTimeMillis() - start }))
     return parts
 end
 
 --- return the full config raw data
----@param config? string|table
+---@param gameVehID integer?
 ---@return ClientVehicleConfig?
-local function getFullConfig(config)
-    local veh = M.getCurrentVehicle()
-    if not config and not veh then
-        return nil
-    end
-
-    config = config or (veh and veh.partConfig or "")
-    local res, status
-    if isConfigCustom(tostring(config)) then
-        local fn = load(string.var("return {1}", { tostring(config):gsub("'", "") }))
-        if type(fn) == "function" then
-            status, res = pcall(fn)
-            if not status then
-                return nil
-            end
-            if res.partsTree then -- vehicle has been manually modified = > simplify parts
-                res.parts = convertPartsTree(res.partsTree)
-                res.partsTree = nil
-            end
-            res.label = M.getModelLabel(res.model)
-        end
+local function getFullConfig(gameVehID)
+    if gameVehID then
+        veh = M.getVehicleObject(gameVehID)
     else
-        res = jsonReadFile(config)
-        res.key = tostring(config):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
-        if not res.model then
-            -- some configs are malformed and do not have model value (eg barstow-awful)
-            res.model = tostring(config):gsub("^vehicles/", ""):gsub("/.+%.pc$", "")
-        end
-        res.label = string.var("{1} {2}", { M.getModelLabel(res.model),
-            M.getConfigLabel(res.model, res.key) })
+        veh = M.getCurrentVehicle()
     end
+    if not veh then return nil end
 
+    local rawConfig = extensions.core_vehicle_manager.getVehicleData(veh:getID())
+    if not rawConfig or not rawConfig.config or not rawConfig.config.partsTree then return end
+
+    local model = rawConfig.config.model
+    local isCustom = isConfigCustom(gameVehID)
+    local key = not isCustom and tostring(rawConfig.config.partConfigFilename)
+        :gsub("^vehicles/.*/", ""):gsub("%.pc$", "") or nil
+
+    local modelLabel = M.getModelLabel(model)
+    local label = (not isCustom and key) and
+        string.var("{1} {2}", { modelLabel, M.getConfigLabel(model, key) }) or modelLabel
+    return {
+        model = model,
+        label = label,
+        key = key,
+        parts = convertPartsTree(rawConfig.config.partsTree),
+        vars = rawConfig.config.vars,
+        paints = rawConfig.config.paints,
+    }
+end
+
+---@param filename string
+---@return ClientVehicleConfig?
+local function getFullConfigFromFile(filename)
+    local res = jsonReadFile(filename)
+    res.key = tostring(filename):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
+    if not res.model then
+        -- some configs are malformed and do not have model value (eg barstow-awful)
+        res.model = res.key
+    end
+    res.label = string.var("{1} {2}", { M.getModelLabel(res.model),
+        M.getConfigLabel(res.model, res.key) })
     return res
+end
+
+---@param model string
+---@param configKey string
+---@return string
+local function getConfigFilename(model, configKey)
+    return string.var("vehicles/{1}/{2}.pc", { model, configKey })
 end
 
 ---@param gameVehID integer
@@ -1155,17 +1161,10 @@ local function isUnicycle(gameVehID)
     return veh.partConfig:find("unicycle") ~= nil
 end
 
----@param model string
----@param configKey string
----@return string
-local function getConfigByModelAndKey(model, configKey)
-    return string.var("vehicles/{1}/{2}.pc", { model, configKey })
-end
-
 ---@return string?
 local function getCurrentConfigKey()
     veh = M.getCurrentVehicle()
-    if not veh or isConfigCustom() then
+    if not veh or isConfigCustom(veh:getID()) then
         return nil
     end
 
@@ -1730,35 +1729,10 @@ local function postResetPreserveEnergy(gameVehID)
     end
 end
 
---- Vehicle comparison approximation (>= 30% match)
 ---@param conf1 ClientVehicleConfig
 ---@param conf2 ClientVehicleConfig
 local function compareConfigs(conf1, conf2)
-    if conf1.model == conf2.model then
-        local larger, smaller
-        if table.length(conf1.parts) > table.length(conf2.parts) then
-            larger = conf1.parts
-            smaller = conf2.parts
-        else
-            larger = conf2.parts
-            smaller = conf1.parts
-        end
-
-        local matches = Table(larger):reduce(function(acc, v, k)
-            if smaller[k] then
-                acc = acc + .5
-                if v == smaller[k] then
-                    acc = acc + .5
-                end
-            end
-            return acc
-        end, 0)
-        local ratio = matches / table.length(larger)
-        local logFn = ratio > .3 and LogInfo or LogWarn
-        logFn(string.var("Vehicle configs match up to {1}%%", { math.round(ratio * 100, 1) }))
-        return ratio > .3
-    end
-    return false
+    return conf1.model == conf2.model and table.compare(conf1.parts, conf2.parts)
 end
 
 ---@param ctxt TickContext
@@ -1933,10 +1907,11 @@ M.getConfigLabel = getConfigLabel
 M.isConfigCustom = isConfigCustom
 M.isModelBlacklisted = isModelBlacklisted
 M.getFullConfig = getFullConfig
+M.getFullConfigFromFile = getFullConfigFromFile
+M.getConfigFilename = getConfigFilename
 M.findAttachedVehicles = findAttachedVehicles
 M.getType = getType
 M.isUnicycle = isUnicycle
-M.getConfigByModelAndKey = getConfigByModelAndKey
 M.getCurrentConfigKey = getCurrentConfigKey
 M.getCurrentConfigLabel = getCurrentConfigLabel
 M.getAllVehicleConfigs = getAllVehicleConfigs

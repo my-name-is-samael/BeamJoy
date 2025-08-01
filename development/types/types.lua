@@ -101,10 +101,10 @@
 ---@class ClientVehicleConfig
 ---@field model string
 ---@field label string
----@field key string when saved config
+---@field key string? when saved config
 ---@field parts table<string, string>
 ---@field vars table<string, any>
----@field paints table<string, table>?
+---@field paints table[]?
 
 ---@class ServerVehicleConfig
 ---@field pid integer

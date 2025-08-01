@@ -92,8 +92,8 @@ local function initVehicle()
             config = table.random(model.configs)
         end
         if config then
-            local configFile = BJI_Veh.getConfigByModelAndKey(model.key, config.key)
-            S.config = BJI_Veh.getFullConfig(configFile)
+            local configFile = BJI_Veh.getConfigFilename(model.key, config.key)
+            S.config = BJI_Veh.getFullConfigFromFile(configFile)
             S.configLabel = config.label
         end
 

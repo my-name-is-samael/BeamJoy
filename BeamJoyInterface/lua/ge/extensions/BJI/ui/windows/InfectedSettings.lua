@@ -156,7 +156,7 @@ end
 ---@return ClientVehicleConfig?
 local function getConfig(ctxt)
     if not ctxt.veh then return end
-    return BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
+    return BJI_Veh.getFullConfig(ctxt.veh.gameVehicleID)
 end
 
 ---@param ctxt TickContext

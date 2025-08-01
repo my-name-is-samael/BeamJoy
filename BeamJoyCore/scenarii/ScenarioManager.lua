@@ -179,22 +179,7 @@ local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
     -- remove empty parts
     askedParts = Table(askedParts):filter(function(v) return #v > 0 end)
     spawnedParts = Table(spawnedParts):filter(function(v, k) return askedParts[k] ~= nil and #v > 0 end)
-
-    local res = Table()
-    askedParts:forEach(function(v, k)
-        res[k] = v == spawnedParts[k]
-    end)
-    spawnedParts:filter(function(_, k)
-        return res[k] == nil
-    end):forEach(function(v, k)
-        res[k] = v == askedParts[k]
-    end)
-
-    local matches = res:filter(function(v) return v end):length()
-    local ratio = matches / res:length()
-    local logFn = ratio > .3 and Log or LogError
-    logFn(string.var("Vehicle matches requirements up to {1}%%", { math.round(ratio * 100, 1) }))
-    return ratio > .3
+    return table.compare(askedParts, spawnedParts)
 end
 
 ---@param playerID integer

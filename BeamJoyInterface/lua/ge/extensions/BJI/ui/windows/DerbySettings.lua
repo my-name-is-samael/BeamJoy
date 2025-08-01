@@ -158,8 +158,8 @@ local function addPresetConfigs(preset)
             return acc
         end, { gen = Table(), configs = table.clone(preset.configs) }).gen
         :map(function(gen)
-            return BJI_Veh.getFullConfig(BJI_Veh
-                .getConfigByModelAndKey(gen.model, gen.key))
+            return BJI_Veh.getFullConfigFromFile(BJI_Veh
+                .getConfigFilename(gen.model, gen.key))
         end)
     )
 end
@@ -194,7 +194,7 @@ end
 ---@param ctxt TickContext
 local function addCurrentConfig(ctxt)
     local config = ctxt.veh and ctxt.veh.isVehicle and
-        BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
+        BJI_Veh.getFullConfig(ctxt.veh.gameVehicleID)
     if not config then return BJI_Toast.error(BJI_Lang.get("vehicleSelector.invalidVeh")) end
     ---@param c ClientVehicleConfig
     if W.data.configs:any(function(c)

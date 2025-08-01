@@ -204,7 +204,7 @@ local function updateCache()
         W.data.currentVeh.modelLabel = BJI_Veh.getModelLabel(W.data.currentVeh.model) or
             W.labels.unknown
 
-        W.data.currentVeh.config = BJI_Veh.getFullConfig(ctxt.veh.veh.partConfig)
+        W.data.currentVeh.config = BJI_Veh.getFullConfig(ctxt.veh.gameVehicleID)
         configLabel = BJI_Veh.getCurrentConfigLabel()
         W.data.currentVeh.configLabel = configLabel and string.var("{1} {2}",
             { W.data.currentVeh.modelLabel, configLabel }) or W.labels.unknown
