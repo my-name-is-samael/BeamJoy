@@ -74,31 +74,18 @@ end
 
 ---@param lang table
 ---@param key string
----@param skipError boolean?
 ---@return string
-local function _getMessage(lang, key, skipError)
-    if key:find(" ") then
-        return key
-    end
+local function _getMessage(lang, key)
+    if key:find(" ") then return key end
     local parts = key:split(".")
     local obj = lang or M.Langs[M.FallbackLang]
     for i = 1, #parts do
         obj = obj[parts[i]]
         if obj == nil then
-            if not skipError then
-                LogError(M.getConsoleMessage("messages.missing"):var({ key = key }))
-            end
             return key
         end
     end
-    if type(obj) == "string" then
-        return obj
-    else
-        if not skipError then
-            LogError(M.getConsoleMessage("messages.invalidKey"):var({ key = key }))
-        end
-        return key
-    end
+    return type(obj) == "string" and obj or key
 end
 
 ---@param key string
@@ -145,7 +132,7 @@ local function getClientMessage(targetLang, key)
         table.assign(lang, M.Langs[targetLang])
     end
     local compiledKey = "client." .. tostring(key)
-    local message = _getMessage(lang, compiledKey, true)
+    local message = _getMessage(lang, compiledKey)
     return message ~= compiledKey and message or key
 end
 
