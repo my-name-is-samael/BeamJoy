@@ -191,12 +191,65 @@ local function onDriftEnded(playerID, driftScore)
     end
 end
 
+---@param senderID integer
+---@param gameVehicleID integer
+---@param paintIndex integer 1-3
+---@param paintData table
+local function syncPaint(senderID, gameVehicleID, paintIndex, paintData)
+    local owner = BJCPlayers.Players[senderID]
+    if not owner then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+    end
+
+    local veh = table.find(owner.vehicles, function(v) return v.vid == gameVehicleID end)
+    if not veh then
+        error({ key = "rx.errors.invalidVehicleID", data = { vehicleID = gameVehicleID } })
+    end
+
+    paintIndex = math.clamp(paintIndex, 1, 3) ~= paintIndex and 1 or paintIndex
+
+    if not veh.paints then
+        veh.paints = Table()
+    end
+    veh.paints[paintIndex] = paintData
+
+    Table(BJCPlayers.Players):keys():filter(function(pid) return pid ~= senderID end)
+        :forEach(function(pid) BJCTx.player.syncPaint(pid, gameVehicleID, paintIndex, paintData) end)
+end
+
+---@param senderID integer
+---@param gameVehicleID integer
+local function requestPaint(senderID, ownerID, gameVehicleID)
+    local sender = BJCPlayers.Players[senderID]
+    if not sender then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+    end
+    local owner = BJCPlayers.Players[ownerID]
+    if not owner then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = ownerID } })
+    end
+    local veh = table.find(owner.vehicles, function(v) return v.vid == gameVehicleID end)
+    if not veh then
+        error({ key = "rx.errors.invalidVehicleID", data = { vehicleID = gameVehicleID } })
+    end
+    if veh.paints then
+        Range(1, 3):forEach(function(i)
+            if veh.paints[i] then
+                BJCTx.player.syncPaint(senderID, gameVehicleID, i, veh.paints[i])
+            end
+        end)
+    end
+end
+
 M.setModelBlacklist = setModelBlacklist
 
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
 M.onDriftEnded = onDriftEnded
+
+M.syncPaint = syncPaint
+M.requestPaint = requestPaint
 
 BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_SPAWN, onVehicleSpawn, "VehiclesManager")
 BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_EDITED, onVehicleEdited, "VehiclesManager")

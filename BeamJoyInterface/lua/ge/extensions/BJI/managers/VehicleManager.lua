@@ -401,6 +401,10 @@ local function onVehicleSpawned(gameVehID)
             mpVeh.veh.playerUsable = false
         end
         BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_INITIALIZED, mpVeh)
+
+        if not mpVeh.isLocal then
+            BJI_Tx_player.requestPaint(mpVeh.ownerID, mpVeh.remoteVehID)
+        end
     end)
 end
 

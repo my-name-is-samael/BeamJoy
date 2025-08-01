@@ -47,17 +47,18 @@ function ctrl.syncPaint(ctxt)
     if not vid or not paintIndex or type(paintData) ~= "table" then
         error({ key = "rx.errors.invalidData" })
     end
-    paintIndex = math.clamp(paintIndex, 1, 3) ~= paintIndex and 1 or paintIndex
 
-    Table(BJCPlayers.Players):keys():filter(function(pid) return pid ~= ctxt.senderID end)
-        :forEach(function(pid) BJCTx.player.syncPaint(pid, vid, paintIndex, paintData) end)
+    BJCVehicles.syncPaint(ctxt.senderID, vid, paintIndex, paintData)
+end
 
-    Table(ctxt.sender.vehicles):find(function(v) return v.vid == vid end, function(v)
-        if not v.paints then
-            v.paints = Table()
-        end
-        v.paints[paintIndex] = paintData
-    end)
+---@param ctxt BJCContext
+function ctrl.requestPaint(ctxt)
+    local ownerID, vid = tonumber(ctxt.data[1]), tonumber(ctxt.data[2])
+    if not vid then
+        error({ key = "rx.errors.invalidData" })
+    end
+
+    BJCVehicles.requestPaint(ctxt.senderID, ownerID, vid)
 end
 
 return ctrl

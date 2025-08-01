@@ -45,5 +45,10 @@ return function(TX)
         TX._send(event.EVENT, event.TX.SYNC_PAINT, { gameVehID, paintIndex, paint })
     end
 
+    ---@param remoteVehID integer
+    function player.requestPaint(ownerID, remoteVehID)
+        TX._send(event.EVENT, event.TX.REQUEST_PAINT, { ownerID, remoteVehID })
+    end
+
     return player
 end

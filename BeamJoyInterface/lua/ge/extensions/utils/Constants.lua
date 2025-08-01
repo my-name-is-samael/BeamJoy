@@ -43,6 +43,7 @@ C.EVENTS = {
             EXPLODE_VEHICLE = "explodeVehicle",
             MARK_INVALID_VEHS = "markInvalidVehs",
             SYNC_PAINT = "syncPaint",
+            REQUEST_PAINT = "requestPaint",
         }
     },
     MODERATION = {
