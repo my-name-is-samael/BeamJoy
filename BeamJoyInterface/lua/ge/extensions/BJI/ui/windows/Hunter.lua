@@ -375,8 +375,12 @@ local function drawBodyGame(ctxt)
             BJI.Utils.Style.TEXT_COLORS.DEFAULT
         if i == 1 then
             Text(W.labels.hunted)
-            Text(string.var("{1} - {2}/{3} {4}", { p.playerName, W.cache.waypointsReached,
-                W.cache.waypointsTotal, W.labels.waypoints }), { color = color })
+            if p.hunted then
+                Indent()
+                Text(string.var("{1} - {2}/{3} {4}", { p.playerName, W.cache.waypointsReached,
+                    W.cache.waypointsTotal, W.labels.waypoints }), { color = color })
+                Unindent()
+            end
         else
             if i == 2 then
                 Text(W.labels.hunters)
