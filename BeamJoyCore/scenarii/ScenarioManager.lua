@@ -166,11 +166,10 @@ end
 
 --- check if spawned vehicle is the same than the required one<br>
 --- config export in-game and vehdata given by server hooks
---- are not completely equals, so we need to give an approximation
---- of answer (+30% match minimum)
+--- are not completely equals, so we need to format them first
 --- @param askedParts table<string, string>
 --- @param spawnedParts table<string, string>
---- @return boolean bool if matches enough
+--- @return boolean bool
 local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
     if not askedParts and spawnedParts or not spawnedParts then
         return false
