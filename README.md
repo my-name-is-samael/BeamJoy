@@ -314,7 +314,7 @@ If your race layout isn't intuitive, the best approach is to improve your level 
 
 ### Can I completely disable the "ghost mode" when somebody respawns ?
 
-This is a respawn protection system, and it is a key component of the mod. You can implement it yourself by following the instructions in [this ticket](https://github.com/my-name-is-samael/BeamJoy/issues/58), but please note that I cannot be held responsible if other parts of the mod no longer function as intended.
+This is a respawn protection system enabled by default on your server, but you can configure it under `Edit` > `Freeroam Settings` (`Collisions Mode` field).
 
 ### Shadows are disappearing when I drive fast. What's going on ?
 
