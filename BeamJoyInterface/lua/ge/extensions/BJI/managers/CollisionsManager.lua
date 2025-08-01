@@ -161,6 +161,7 @@ local function onVehReset(gameVehID)
         if M.type == M.TYPES.FORCED then
             vehData.mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
         elseif M.type == M.TYPES.DISABLED or M.permaGhosts[gameVehID] then
+            vehData.mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
             setAlpha(ctxt, vehData.mpVeh.veh, M.ghostAlpha)
         end
     end
