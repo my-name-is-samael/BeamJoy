@@ -167,7 +167,7 @@ end
 --- check if spawned vehicle is the same than the required one<br>
 --- config export in-game and vehdata given by server hooks
 --- are not completely equals, so we need to give an approximation
---- of answer (+90% match minimum)
+--- of answer (+30% match minimum)
 --- @param askedParts table<string, string>
 --- @param spawnedParts table<string, string>
 --- @return boolean bool if matches enough
@@ -192,9 +192,9 @@ local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
 
     local matches = res:filter(function(v) return v end):length()
     local ratio = matches / res:length()
-    local logFn = ratio > .8 and Log or LogError
+    local logFn = ratio > .3 and Log or LogError
     logFn(string.var("Vehicle matches requirements up to {1}%%", { math.round(ratio * 100, 1) }))
-    return ratio > .8
+    return ratio > .3
 end
 
 ---@param playerID integer

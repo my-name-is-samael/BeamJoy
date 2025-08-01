@@ -1730,7 +1730,7 @@ local function postResetPreserveEnergy(gameVehID)
     end
 end
 
---- Vehicle comparison approximation (>= 90% match)
+--- Vehicle comparison approximation (>= 30% match)
 ---@param conf1 ClientVehicleConfig
 ---@param conf2 ClientVehicleConfig
 local function compareConfigs(conf1, conf2)
@@ -1754,9 +1754,9 @@ local function compareConfigs(conf1, conf2)
             return acc
         end, 0)
         local ratio = matches / table.length(larger)
-        local logFn = ratio > .9 and LogInfo or LogWarn
+        local logFn = ratio > .3 and LogInfo or LogWarn
         logFn(string.var("Vehicle configs match up to {1}%%", { math.round(ratio * 100, 1) }))
-        return ratio > .9
+        return ratio > .3
     end
     return false
 end
