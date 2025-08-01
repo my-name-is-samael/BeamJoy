@@ -1477,8 +1477,6 @@
         "participants": "Teilnehmer"
       },
       "title": "Geschwindigkeitsspiel",
-      "startsIn": "Das Spiel beginnt in {time}",
-      "aboutToStart": "Das Spiel beginnt gleich",
       "minimumSpeed": "Mindestgeschwindigkeit: {speed}",
       "counterWarning": "Sie haben noch {seconds} Sekunden Zeit, um die Mindestgeschwindigkeit zu erreichen",
       "leaderboard": "Bestenliste",

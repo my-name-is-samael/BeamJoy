@@ -1478,8 +1478,6 @@
         "participants": "Participants"
       },
       "title": "Speed Game",
-      "startsIn": "The game starts in {time}",
-      "aboutToStart": "The game is about to start",
       "minimumSpeed": "Minimum Speed: {speed}",
       "counterWarning": "You have {seconds} seconds left to reach the min speed",
       "leaderboard": "Leaderboard",

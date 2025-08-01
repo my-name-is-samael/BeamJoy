@@ -1477,8 +1477,6 @@
         "participants": "Participants"
       },
       "title": "Jeu de Vitesse",
-      "startsIn": "La partie commence dans {time}",
-      "aboutToStart": "La partie est sur le point de commencer",
       "minimumSpeed": "Vitesse min.: {speed}",
       "counterWarning": "Tu as {seconds} secondes pour atteindre la vitesse indiquée",
       "leaderboard": "Classement",

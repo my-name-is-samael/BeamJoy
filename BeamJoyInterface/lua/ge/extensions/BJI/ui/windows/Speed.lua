@@ -40,13 +40,13 @@ local function updateCache(ctxt)
 
     W.cache.leaderboard = Range(1, Table(W.scenario.participants):length())
         :reduce(function(acc, i)
-            local lb = W.scenario.leaderboard[i]
+            lb = W.scenario.leaderboard[i]
             if lb then
                 acc[i] = {
                     player = BJI_Context.Players[lb.playerID],
                     self = lb.playerID == ctxt.user.playerID,
                     speed = lb.speed,
-                    time = lb.time
+                    timeLabel = lb.time and BJI.Utils.UI.RaceDelay(lb.time) or nil,
                 }
             end
             return acc
@@ -103,9 +103,13 @@ local function drawBody(ctxt)
             Text("-", { color = color })
             if lb then
                 SameLine()
-                Text(string.var("{1} ({2}{3}, {4})", {
-                    lb.player.playerName, lb.speed, W.labels.speedUnit,
-                    BJI.Utils.UI.RaceDelay(lb.time) }), { color = color })
+                Text(lb.player.playerName, { color = color })
+                if lb.timeLabel then
+                    SameLine()
+                    Text(string.format("(%d%s, %s)",
+                        lb.speed, W.labels.speedUnit, lb.timeLabel
+                    ), { color = color })
+                end
             end
         end)
 

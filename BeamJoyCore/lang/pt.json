@@ -1477,8 +1477,6 @@
         "participants": "Participantes"
       },
       "title": "Jogo de velocidade",
-      "startsIn": "O jogo começa em {time}",
-      "aboutToStart": "O jogo está prestes a começar",
       "minimumSpeed": "Velocidade Mínima: {speed}",
       "counterWarning": "Você tem {seconds} segundos restantes para atingir a velocidade mínima",
       "leaderboard": "Tabela de classificação",

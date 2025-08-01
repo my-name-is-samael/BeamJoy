@@ -310,7 +310,7 @@ local function updateCaches(ctxt)
         W.speed.timeAboutEnd = BJI_Lang.get(BJI_Votes.Scenario.isVote and
             "speed.vote.voteAboutToEnd" or "speed.vote.speedAboutToStart")
         W.speed.timeout = BJI_Lang.get(BJI_Votes.Scenario.isVote and
-            "speed.vote.voteTimeout" or "speed.vote.voteTimeout")
+            "speed.vote.voteTimeout" or "speed.vote.timeout")
         W.speed.showVoteBtn = BJI_Votes.Scenario.isVote
         W.speed.showCancelBtn = BJI_Perm.isStaff() or
             BJI_Votes.Scenario.creatorID == ctxt.user.playerID
