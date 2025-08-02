@@ -48,6 +48,7 @@ local M = {
     tankMedThreshold = .15,             -- threshold for when fuel amount becomes warning
 
     DEBUG_FFB_TIMEOUT = 1500,
+    EXPLODE_HINGES_DELAY = 200
 }
 
 --gameplay_walk.toggleWalkingMode()
@@ -546,18 +547,23 @@ local function deleteOtherPlayerVehicle()
     end
 end
 
-BJI_VEHICLE_EXPLODE_HINGES_DELAY = 200
----@param gameVehID integer
-local function explodeVehicle(gameVehID)
-    local mpVeh = M.getMPVehicle(gameVehID)
-    if mpVeh then
-        if mpVeh.isLocal then -- throw up a bit
-            mpVeh.veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, 0, 0, 3)
+---@param vehID integer
+local function explodeVehicle(vehID)
+    veh = M.getVehicleObject(vehID)
+    if veh then
+        if M.isVehicleOwn(veh:getID()) then
+            -- throw up a bit
+            veh:applyClusterVelocityScaleAdd(veh:getRefNodeId(), 1, 0, 0, 3)
+            -- break hinges
+            BJI_Async.delayTask(function()
+                veh = M.getVehicleObject(vehID)
+                if veh then
+                    veh:queueLuaCommand("beamstate.breakAllBreakgroups()")
+                end
+            end, M.EXPLODE_HINGES_DELAY, string.var("ExplodeVehicle{1}", { veh:getID() }))
         end
-        mpVeh.veh:queueLuaCommand("fire.explodeVehicle()")
-        BJI_Async.delayTask(function()
-            mpVeh.veh:queueLuaCommand("beamstate.breakAllBreakgroups()")
-        end, BJI_VEHICLE_EXPLODE_HINGES_DELAY, string.var("ExplodeVehicle{1}", { mpVeh.gameVehicleID }))
+        -- burn (not synced remotely so apply to everyone)
+        veh:queueLuaCommand("fire.explodeVehicle()")
     end
 end
 
