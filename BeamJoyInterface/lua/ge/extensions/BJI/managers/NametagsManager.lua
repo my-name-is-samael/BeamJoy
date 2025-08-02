@@ -76,7 +76,7 @@ local function getNametagBgColor(alpha, spec, idle)
     end
     color = BJI.Utils.ShapeDrawer.Color():fromRaw(color or { r = 0, g = 0, b = 0 })
 
-    color.a = alpha
+    color.a = alpha / 2
     return color
 end
 
@@ -144,7 +144,7 @@ local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgCo
     end
 
     if showDist then
-        label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+        label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
     end
 
     if BJI_Win_GameDebug.getState() then
@@ -183,7 +183,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 distance > M._minDistanceShow
 
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+                label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             zOffset = veh.vehicleHeight
@@ -210,7 +210,7 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
                 distance > M._minDistanceShow
 
             if showDist then
-                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+                label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             zOffset = veh.vehicleHeight
@@ -250,7 +250,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
             label = M.labels.self
             if settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow then
-                label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+                label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
             zOffset = veh.vehicleHeight
@@ -288,7 +288,7 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             label = string.var("[{1}]{2}", { tag, label })
         end
         if showDist then
-            label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+            label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
         end
 
         zOffset = veh.vehicleHeight
@@ -336,7 +336,7 @@ local function renderFugitive(ctxt, veh, ownPos)
         end
     end
     if showDist then
-        label = string.var("{1}({2})", { label, BJI.Utils.UI.PrettyDistance(distance) })
+        label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
     end
 
     if BJI_Win_GameDebug.getState() then
