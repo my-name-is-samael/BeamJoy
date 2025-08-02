@@ -215,19 +215,17 @@ local function setSpeed(value)
     core_camera.setSpeed(math.clamp(value, 2, 100))
 end
 
-local initKey
 --- Called when self player is connected and every vehicle is ready
 ---@param ctxt TickContext
 local function onConnection(ctxt)
-    local vehs = BJI_Veh.getMPVehicles({ isAi = false }, true)
+    local veh = BJI_Veh.getMPVehicles({ isAi = false }, true)
         :filter(function(v) ---@param v BJIMPVehicle
             local owner = ctxt.players[v.ownerID] ---@type BJIPlayer
             return owner and owner.currentVehicle == v.remoteVehID
-        end)
-    if #vehs > 0 then
-        BJI_Veh.focusVehicle(vehs:random().gameVehicleID)
+        end):random()
+    if veh then
+        BJI_Veh.focusVehicle(veh.gameVehicleID)
     end
-    BJI_Events.removeListener(tostring(initKey))
 end
 
 local function renderTick(ctxt)
@@ -322,7 +320,7 @@ local function onLoad()
         M.setSpeed(BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED))
     end
 
-    initKey = BJI_Events.addListener(BJI_Events.EVENTS.VEHICLES_UPDATED, onConnection)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, onConnection)
 
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
