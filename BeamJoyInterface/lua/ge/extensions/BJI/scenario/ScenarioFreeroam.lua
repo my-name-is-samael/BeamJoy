@@ -5,11 +5,11 @@ local S = {
     _isSolo = true,
 
     reset = {
-        restricted = false,
+        lock = false,
         nextExempt = false,
     },
     teleport = {
-        restricted = false,
+        lock = false,
     },
     engineStates = {},
 }
@@ -18,9 +18,9 @@ local function onLoad(ctxt)
     BJI_Cam.resetForceCamera(true)
     BJI_Cam.resetRestrictedCameras()
 
-    S.reset.restricted = false
+    S.reset.lock = false
     S.reset.nextExempt = false
-    S.teleport.restricted = false
+    S.teleport.lock = false
 end
 
 ---@param ctxt TickContext
@@ -132,17 +132,17 @@ local function onVehicleResetted(gameVehID)
     local isResetDelay = BJI_Context.BJC.Freeroam.ResetDelay > 0
     local bypass = BJI_Perm.isStaff() or S.reset.nextExempt
     if isResetDelay and not bypass then
-        S.reset.restricted = true
+        S.reset.lock = true
         BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
         BJI_Restrictions.update()
         BJI_Async.delayTask(
             function()
-                S.reset.restricted = false
+                S.reset.lock = false
                 BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
                 BJI_Restrictions.update()
             end,
             BJI_Context.BJC.Freeroam.ResetDelay * 1000,
-            "restrictionsResetTimer"
+            "BJIResetLock"
         )
     end
     S.reset.nextExempt = false
@@ -167,7 +167,7 @@ end
 ---@return boolean
 local function canReset(gameVehID, resetType)
     if BJI_Veh.isVehicleOwn(gameVehID) then
-        return BJI_Perm.isStaff() or not S.reset.restricted
+        return BJI_Perm.isStaff() or not S.reset.lock
     else
         return table.includes({
             BJI_Input.INPUTS.RECOVER,
@@ -235,7 +235,13 @@ local function onDropPlayerAtCameraNoReset()
     BJI_Veh.dropPlayerAtCamera()
 end
 
+---@param targetID integer
+---@param forced boolean?
 local function tryTeleportToPlayer(targetID, forced)
+    local bypass = BJI_Perm.isStaff()
+    if not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.TELEPORT_TO) and not bypass then
+        return
+    end
     local target = BJI_Context.Players[targetID]
     if target == nil then
         LogError(string.var("Invalid player {1}", { targetID }))
@@ -247,26 +253,25 @@ local function tryTeleportToPlayer(targetID, forced)
 
     -- TeleportTimer restriction
     local isTeleportDelay = BJI_Context.BJC.Freeroam.TeleportDelay > 0
-    local bypass = BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.MOD)
-    if not isTeleportDelay or forced or not S.teleport.restricted or bypass then
-        S.teleport.restricted = true
+    if not S.teleport.lock or forced or bypass or not isTeleportDelay then
+        if not forced and not bypass and isTeleportDelay then
+            S.teleport.lock = true
+            BJI_Async.delayTask(
+                function() S.teleport.lock = false end,
+                BJI_Context.BJC.Freeroam.TeleportDelay * 1000,
+                "BJITeleportToLock"
+            )
+        end
 
-        -- teleporting triggers reset, so set flag to exempt from reset timer
+        -- teleporting will reset vehicle
         S.reset.nextExempt = true
         BJI_Veh.teleportToPlayer(targetID)
 
-        BJI_Async.delayTask(
-            function()
-                S.teleport.restricted = false
-            end,
-            BJI_Context.BJC.Freeroam.TeleportDelay * 1000,
-            "restrictionsTeleportTimer"
-        )
     end
 end
 
 local function tryTeleportToPos(pos, saveHome)
-    -- setting position triggers reset, so set flag to exempt from reset timer
+    -- setting position will reset vehicle
     S.reset.nextExempt = true
     BJI_Veh.setPositionRotation(pos, nil, { saveHome = true })
 end
@@ -421,7 +426,7 @@ local function getPlayerListActions(player, ctxt)
                     id = string.var("teleportTo{1}", { player.playerID }),
                     icon = BJI.Utils.Icon.ICONS.tb_height_higher,
                     style = BJI.Utils.Style.BTN_PRESETS.WARNING,
-                    disabled = S.teleport.restricted,
+                    disabled = S.teleport.lock,
                     tooltip = BJI_Lang.get("playersBlock.buttons.teleportTo"),
                     onClick = function()
                         S.tryTeleportToPlayer(player.playerID)

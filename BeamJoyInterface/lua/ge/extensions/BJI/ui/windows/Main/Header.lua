@@ -348,7 +348,7 @@ local function draw(ctxt)
         showTeleport = BJI_Context.BJC.Freeroam.TeleportDelay > 0
         if showReset or showTeleport then
             if showReset then
-                resetDelay = BJI_Async.getRemainingDelay("restrictionsResetTimer")
+                resetDelay = BJI_Async.getRemainingDelay("BJIResetLock")
                 if resetDelay then
                     Text(cache.labels.resetCooldownLabel)
                     SameLine()
@@ -366,7 +366,7 @@ local function draw(ctxt)
             end
 
             if showTeleport then
-                teleportDelay = BJI_Async.getRemainingDelay("restrictionsTeleportTimer")
+                teleportDelay = BJI_Async.getRemainingDelay("BJITeleportToLock")
                 if teleportDelay then
                     Text(cache.labels.teleportCooldownLabel)
                     SameLine()
