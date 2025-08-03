@@ -1109,6 +1109,7 @@
       "quickTravel": "viaje rápido",
       "nodeGrabber": "Capturador de nodos",
       "nametags": "Etiquetas de nombres de jugadores",
+      "nametagsTooltip": "Las etiquetas de nombre siempre son visibles para el personal con fines de moderación",
       "preserveEnergy": "Conservar combustible entre reinicios",
       "emergencyRefuelDuration": "Duración de repostaje de emergencia",
       "emergencyRefuelDurationTooltip": "Duración del proceso de repostaje de emergencia en segundos",

@@ -35,6 +35,7 @@ local CONFIG = Table({
     },
     {
         label = "nametags",
+        tooltip = "nametagsTooltip",
         type = "boolean",
         keyData = "Nametags"
     },
@@ -126,6 +127,7 @@ local W = {
         quickTravel = "",
         nodeGrabber = "",
         nametags = "",
+        nametagsTooltip = "",
         allowUnicycle = "",
         resetDelay = "",
         resetDelayTooltip = "",
@@ -174,6 +176,7 @@ local function updateLabels()
     W.labels.quickTravel = BJI_Lang.get("freeroamSettings.quickTravel") .. " :"
     W.labels.nodeGrabber = BJI_Lang.get("freeroamSettings.nodeGrabber") .. " :"
     W.labels.nametags = BJI_Lang.get("freeroamSettings.nametags") .. " :"
+    W.labels.nametagsTooltip = BJI_Lang.get("freeroamSettings.nametagsTooltip")
     W.labels.allowUnicycle = BJI_Lang.get("freeroamSettings.allowUnicycle") .. " :"
     W.labels.resetDelay = BJI_Lang.get("freeroamSettings.resetDelay") .. " :"
     W.labels.resetDelayTooltip = BJI_Lang.get("freeroamSettings.resetDelayTooltip")

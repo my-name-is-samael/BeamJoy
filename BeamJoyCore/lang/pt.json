@@ -1109,6 +1109,7 @@
       "quickTravel": "Viagem rápida",
       "nodeGrabber": "Captador de Nó",
       "nametags": "Crachás dos jogadores",
+      "nametagsTooltip": "As etiquetas de nome estão sempre visíveis para a equipe de moderação",
       "preserveEnergy": "Preservar combustível entre reinicializações",
       "emergencyRefuelDuration": "Duração do reabastecimento de emergência",
       "emergencyRefuelDurationTooltip": "Duração do processo de reabastecimento de emergência em segundos",

@@ -1109,6 +1109,7 @@
       "quickTravel": "Voyage rapide",
       "nodeGrabber": "Node Grabber",
       "nametags": "Nametags des joueurs",
+      "nametagsTooltip": "Les nametags sont toujours visibles pour le staff à des fins de modération",
       "preserveEnergy": "Conserver le carburant après reset",
       "emergencyRefuelDuration": "Durée du ravitaillement d'urgence",
       "emergencyRefuelDurationTooltip": "Durée du processus de ravitaillement d'urgence en secondes",

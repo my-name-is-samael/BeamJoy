@@ -1110,6 +1110,7 @@
       "quickTravel": "Quick travel",
       "nodeGrabber": "Node grabber",
       "nametags": "Players nametags",
+      "nametagsTooltip": "Nametags are always visible to staff members for moderation purposes",
       "preserveEnergy": "Preserve fuel between resets",
       "emergencyRefuelDuration": "Emergency refuel duration",
       "emergencyRefuelDurationTooltip": "Duration of emergency refueling process in seconds",

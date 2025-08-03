@@ -1109,6 +1109,7 @@
       "quickTravel": "Schnelle Reise",
       "nodeGrabber": "Knotengrabber",
       "nametags": "Namensschilder der Spieler",
+      "nametagsTooltip": "Nametags sind für Teammitglieder zur Moderation immer sichtbar",
       "preserveEnergy": "Sparen Sie Kraftstoff zwischen den Resets",
       "emergencyRefuelDuration": "Notbetankungsdauer",
       "emergencyRefuelDurationTooltip": "Dauer des Notbetankungsprozesses in Sekunden",
