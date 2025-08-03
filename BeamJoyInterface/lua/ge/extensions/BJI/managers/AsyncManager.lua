@@ -1,16 +1,24 @@
+---@class NGJob
+---@field yield fun()
+---@field sleep fun(sec: number)
+---@field setExitCallback fun(cb: fun(jobData: table))
+
 ---@class BJIManagerAsync: BJIManager
 local M = {
     _name = "Async",
 
-    tasks = Table(),
-    delayedTasks = Table(),
-    delayedOrder = Table(),
+    tasks = {},
+    tasksToRemove = {},
+    delayedTasks = {},
+    delayedToRemove = {},
 }
+-- gb optimization
+local ctxt = { now = 0 }
 
 ---@param key string|integer
 ---@return boolean
 local function exists(key)
-    return M.tasks[key] ~= nil or M.delayedTasks[key] ~= nil
+    return M.tasks[key] or M.delayedTasks[key]
 end
 
 ---@param key string|integer
@@ -34,28 +42,37 @@ local function task(conditionFn, taskFn, key)
     if key == nil then
         key = UUID()
     end
-    local existingTask = M.tasks[key]
-    if not existingTask then
-        M.tasks[key] = {
-            conditionFn = conditionFn,
-            taskFn = taskFn,
-        }
-    else
-        LogWarn("Task " .. key .. " already exists")
-    end
-end
 
-local function sortDelayedTasks()
-    M.delayedOrder = M.delayedTasks:map(function(el, k)
-        return { key = k, time = el.time }
-    end):sort(function(a, b)
-        if a.time == b.time then
-            return tostring(a.key) < tostring(b.key)
-        end
-        return a.time < b.time
-    end):map(function(el)
-        return el.key
-    end)
+    local function start()
+        ---@param job NGJob
+        extensions.core_jobsystem.create(function(job)
+            job.setExitCallback(function()
+                taskFn(ctxt)
+            end)
+            while not conditionFn(ctxt) and not M.tasksToRemove[key] do
+                job.sleep(.01)
+            end
+            if M.tasksToRemove[key] then
+                job.setExitCallback(function() end)
+                M.tasksToRemove[key] = nil
+            end
+            M.tasks[key] = nil
+        end, .1)
+        M.tasks[key] = true
+    end
+
+    if M.tasks[key] then
+        M.tasksToRemove[key] = true
+        ---@param job NGJob
+        extensions.core_jobsystem.create(function(job)
+            job.setExitCallback(start)
+            while M.tasks[key] do
+                job.sleep(.01)
+            end
+        end, .1)
+    else
+        start()
+    end
 end
 
 ---@param taskFn fun(ctxt: TickContext)
@@ -66,87 +83,56 @@ local function delayTask(taskFn, delayMs, key)
         error("Delayed tasks need taskFn and delay")
     end
     key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
-    local existingTask = M.delayedTasks[key]
-    if existingTask then
-        existingTask.time = GetCurrentTimeMillis() + delayMs
-        existingTask.taskFn = taskFn
-    else
-        M.delayedTasks[key] = {
-            taskFn = taskFn,
-            time = GetCurrentTimeMillis() + delayMs,
-        }
+    local targetTime = ctxt.now + delayMs
+
+    local function start()
+        ---@param job NGJob
+        extensions.core_jobsystem.create(function(job)
+            job.setExitCallback(function()
+                taskFn(ctxt)
+            end)
+            while ctxt.now < targetTime and not M.delayedToRemove[key] do
+                job.sleep(.01)
+            end
+            if M.delayedToRemove[key] then
+                job.setExitCallback(function() end)
+                M.delayedToRemove[key] = nil
+            end
+            M.delayedTasks[key] = nil
+        end, .1)
+        M.delayedTasks[key] = true
     end
-    sortDelayedTasks()
+
+    if M.delayedTasks[key] then
+        M.delayedToRemove[key] = true
+        ---@param job NGJob
+        extensions.core_jobsystem.create(function(job)
+            job.setExitCallback(start)
+            while M.delayedTasks[key] do
+                job.sleep(.01)
+            end
+        end, .1)
+    else
+        start()
+    end
 end
 
 ---@param taskFn fun(ctxt: TickContext)
 ---@param targetMs integer|number
 ---@param key? string|integer
 local function programTask(taskFn, targetMs, key)
-    if taskFn == nil or type(targetMs) ~= "number" or type(taskFn) ~= "function" then
-        error("Programmed tasks need taskFn and target time")
-    end
-    key = key or (tostring(GetCurrentTimeMillis()) + tostring(math.random(100)))
-    local existingTask = M.delayedTasks[key]
-    if existingTask then
-        existingTask.time = targetMs
-        existingTask.taskFn = taskFn
-    else
-        M.delayedTasks[key] = {
-            taskFn = taskFn,
-            time = targetMs,
-        }
-    end
-    sortDelayedTasks()
+    delayTask(taskFn, targetMs - ctxt.now, key)
 end
 
 ---@param key string
 local function removeTask(key)
-    M.tasks[key] = nil
-    M.delayedTasks[key] = nil
-    if M.delayedOrder:includes(key) then
-        M.delayedOrder:remove(M.delayedOrder:indexOf(key))
-    end
-end
-
-local renderTimeout = 4
-local function renderTick(ctxt)
-    if M.delayedOrder[1] then
-        local key = M.delayedOrder[1]
-        if not M.delayedTasks[key] then
-            M.delayedOrder:remove(1)
-        elseif M.delayedTasks[key].time <= ctxt.now then
-            local start = GetCurrentTimeMillis()
-            local ctask = M.delayedTasks[key]
-            local status, err = pcall(ctask.taskFn, ctxt)
-            if not status then
-                LogError(string.var("Error executing delayed task {1} :", { key }))
-                dump(err)
-            end
-            local benchTime = GetCurrentTimeMillis() - start
-            M.delayedTasks[key] = nil
-            M.delayedOrder:remove(1)
-            if benchTime > renderTimeout / 2 then
-                LogWarn(string.var("Delayed task {1} took {2}ms", { key, benchTime }))
-                return
-            end
-        end
+    if M.tasks[key] then
+        M.tasksToRemove[key] = true
     end
 
-    M.tasks:forEach(function(ctask, key)
-        if GetCurrentTimeMillis() - ctxt.now > renderTimeout then
-            LogDebug("Skipping async tasks (timeout)", M._name)
-            return
-        end
-        if ctask.conditionFn(ctxt) then
-            local status, err = pcall(ctask.taskFn, ctxt)
-            if not status then
-                LogError(string.var("Error executing programmed task {1} :", { key }))
-                PrintObj(err)
-            end
-            M.tasks[key] = nil
-        end
-    end)
+    if M.delayedTasks[key] then
+        M.delayedToRemove[key] = true
+    end
 end
 
 M.exists = exists
@@ -157,6 +143,7 @@ M.delayTask = delayTask
 M.programTask = programTask
 M.removeTask = removeTask
 
-M.renderTick = renderTick
+---@param c TickContext
+M.renderTick = function(c) ctxt = c end
 
 return M
