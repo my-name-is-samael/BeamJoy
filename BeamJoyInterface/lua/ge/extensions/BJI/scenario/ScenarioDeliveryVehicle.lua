@@ -51,11 +51,13 @@ local function canChangeTo(ctxt)
         #BJI_Scenario.Data.Deliveries.Points > 1
 end
 
-local function initPositions()
+---@param job NGJob
+local function initPositions(job)
     S.startPosition = table.random(BJI_Scenario.Data.Deliveries.Points)
     S.targetPosition = BJI_Scenario.Data.Deliveries.Points:map(function(point)
-        -- local distance = BJIGPS.getRouteLength({ M.startPosition.pos, position.pos }) -- costs a lot
-        local distance = math.horizontalDistance(S.startPosition.pos, point.pos)
+        local distance = BJI_GPS.getRouteLength({ S.startPosition.pos, point.pos }) -- costs a lot
+        job.sleep(.01)
+        --local distance = math.horizontalDistance(S.startPosition.pos, point.pos)
         if point ~= S.startPosition and distance > .1 then
             return {
                 pos = point.pos,
@@ -67,21 +69,25 @@ local function initPositions()
     end):sort(function(a, b)
         return a.distance > b.distance
     end):filter(function(_, i)
-        return i < #BJI_Scenario.Data.Deliveries.Points * .66 + 1 -- 66% furthest
+        return i < #BJI_Scenario.Data.Deliveries.Points * .66 -- 66% furthest
     end):random()
     S.targetPosition.distance = nil
+    job.sleep(.01)
 end
 
-local function initVehicle()
+---@param job NGJob
+local function initVehicle(job)
     local models = BJI_Veh.getAllVehicleConfigs()
     for _, name in ipairs(BJI_Context.BJC.VehicleDelivery.ModelBlacklist) do
         models[name] = nil
+        job.sleep(.01)
     end
     if table.length(models) == 0 then
         BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
         return
     end
     local model = table.random(models)
+    job.sleep(.01)
     if model then
         S.model = model.key
         S.modelLabel = BJI_Veh.getModelLabel(S.model)
@@ -90,6 +96,7 @@ local function initVehicle()
         local config
         while not config or config.label:lower():find("simplified") do
             config = table.random(model.configs)
+            job.sleep(.01)
         end
         if config then
             local configFile = BJI_Veh.getConfigFilename(model.key, config.key)
@@ -103,6 +110,7 @@ local function initVehicle()
             if paint then
                 S.paints[i] = paint
             end
+            job.sleep(.01)
         end
     end
 end
@@ -170,13 +178,17 @@ local function getRestrictions(ctxt)
 end
 
 local function start()
-    reset()
-    BJI_Win_VehSelector.tryClose()
+    ---@param job NGJob
+    extensions.core_jobsystem.create(function(job)
+        reset()
+        BJI_Win_VehSelector.tryClose()
 
-    BJI_UI.applyLoading(true, function()
+        BJI_UI.applyLoading(true)
+        job.sleep(BJI_UI.callbackDelay / 1000)
+
         local ok, err = pcall(function()
-            initPositions()
-            initVehicle()
+            initPositions(job)
+            initVehicle(job)
             if S.startPosition and S.targetPosition and S.model then
                 BJI_GPS.reset()
                 BJI_RaceWaypoint.resetAll()
@@ -203,7 +215,7 @@ local function start()
             BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
             BJI_UI.applyLoading(false)
         end
-    end)
+    end, .1)
 end
 
 local function onDeliveryFailed()

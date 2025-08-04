@@ -15,6 +15,8 @@ local S = {
 
     ---@type integer?
     checkTargetTime = nil, -- process to check player reached target and stayed in its radius
+
+    init = false,
 }
 --- gc prevention
 local actions, remainingSec
@@ -28,6 +30,8 @@ local function reset()
     S.nextResetGarage = false
     S.tanksSaved = nil
     S.checkTargetTime = nil
+
+    S.init = false
 end
 
 ---@param ctxt TickContext
@@ -39,11 +43,12 @@ local function canChangeTo(ctxt)
 end
 
 ---@param ctxt TickContext
-local function initPositions(ctxt)
-    if not ctxt.isOwner then return end
+---@param job NGJob
+local function initPositions(ctxt, job)
     S.targetPosition = BJI_Scenario.Data.Deliveries.Points:map(function(point)
-        -- local distance = BJIGPS.getRouteLength({ ctxt.veh.position, position.pos }) -- costs a lot
-        local distance = ctxt.veh.position:distance(point.pos)
+        local distance = BJI_GPS.getRouteLength({ ctxt.veh.position, point.pos }) -- costs a lot
+        job.sleep(.01)
+        -- local distance = ctxt.veh.position:distance(point.pos)
         if distance > 1 then
             return {
                 pos = point.pos,
@@ -55,9 +60,10 @@ local function initPositions(ctxt)
     end):sort(function(a, b)
         return a.distance > b.distance
     end):filter(function(_, i)
-        return i < #BJI_Scenario.Data.Deliveries.Points * .66 + 1 -- 66% furthest
+        return i < #BJI_Scenario.Data.Deliveries.Points * .66 -- 66% furthest
     end):random()
     S.targetPosition.distance = nil
+    job.sleep(.01)
 end
 
 local function initDelivery()
@@ -77,12 +83,18 @@ local function initDelivery()
 end
 
 local function onLoad(ctxt)
-    reset()
-    BJI_Win_VehSelector.tryClose()
+    if not ctxt.isOwner then return end
 
-    local init = false
-    if ctxt.isOwner then
-        initPositions(ctxt)
+    ---@param job NGJob
+    extensions.core_jobsystem.create(function(job)
+        reset()
+        BJI_Win_VehSelector.tryClose()
+
+        BJI_UI.applyLoading(true)
+        job.sleep(BJI_UI.callbackDelay / 1000)
+
+        S.init = false
+        initPositions(ctxt, job)
 
         if S.targetPosition then
             BJI_GPS.reset()
@@ -92,12 +104,13 @@ local function onLoad(ctxt)
             BJI_Tx_scenario.DeliveryPackageStart()
             BJI_Message.flash("BJIDeliveryPackageStart", BJI_Lang.get("packageDelivery.flashStart"), 3,
                 false)
-            init = true
+            S.init = true
         end
-    end
-    if not init then
-        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM, ctxt)
-    end
+        if not S.init then
+            BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM, ctxt)
+        end
+        BJI_UI.applyLoading(false)
+    end)
 end
 
 local function onUnload(ctxt)
@@ -192,12 +205,21 @@ local function onTargetReached(ctxt)
         return
     end
 
-    BJI_Tx_scenario.DeliveryPackageSuccess()
-    initPositions(ctxt)
-    if not S.targetPosition then
-        S.onStopDelivery()
-    end
-    initDelivery()
+    ---@param job NGJob
+    extensions.core_jobsystem.create(function(job)
+        BJI_UI.applyLoading(true)
+        job.sleep(BJI_UI.callbackDelay / 1000)
+
+        BJI_Tx_scenario.DeliveryPackageSuccess()
+        initPositions(ctxt, job)
+
+        if S.targetPosition then
+            initDelivery()
+        else
+            S.onStopDelivery()
+        end
+        BJI_UI.applyLoading(false)
+    end)
 end
 
 local function rxStreak(streak)
@@ -206,6 +228,7 @@ end
 
 ---@param ctxt TickContext
 local function slowTick(ctxt)
+    if not S.init then return end
     if not ctxt.isOwner or not S.targetPosition then
         S.onStopDelivery()
         return
