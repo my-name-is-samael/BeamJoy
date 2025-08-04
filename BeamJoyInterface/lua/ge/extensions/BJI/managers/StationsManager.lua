@@ -33,6 +33,7 @@ local M = {
 
     stationProcess = false,
 }
+local ctxt
 
 local function canReset()
     return not M.stationProcess
@@ -331,12 +332,56 @@ local function tryRepair(ctxt)
     end)
 end
 
+---@param energyType string?
+local function setGPS(energyType)
+    if not ctxt.isOwner then return end
+
+    ---@param job NGJob
+    extensions.core_jobsystem.create(function(job)
+        local targets = Table()
+        if energyType and table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
+            for _, station in ipairs(BJI_Stations.Data.EnergyStations) do
+                if table.includes(station.types, energyType) then
+                    targets:insert({
+                        el = station,
+                        distance = BJI_GPS.getRouteLength({ ctxt.veh.position, station.pos })
+                    })
+                    job.sleep(.01)
+                end
+            end
+        else
+            for _, garage in ipairs(BJI_Stations.Data.Garages) do
+                targets:insert({
+                    el = garage,
+                    distance = BJI_GPS.getRouteLength({ ctxt.veh.position, garage.pos })
+                })
+                job.sleep(.01)
+            end
+        end
+
+        if #targets > 0 then
+            targets:sort(function(a, b) return a.distance < b.distance end)
+            job.sleep(.01)
+            BJI_GPS.prependWaypoint({
+                key = BJI_GPS.KEYS.STATION,
+                pos = targets[1].el.pos,
+                radius = targets[1].el.radius
+            })
+        end
+    end, .1)
+end
+
 M.canReset = canReset
 
 M.getRestrictions = getRestrictions
 
 M.tryRefuel = tryRefuel
 M.tryRepair = tryRepair
+
+M.setGPS = setGPS
+
+---@param c TickContext
+M.renderTick = function(c) ctxt = c end
 
 M.onLoad = function()
     initCacheHandlers()

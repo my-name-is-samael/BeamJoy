@@ -48,27 +48,7 @@ local function draw(ctxt)
             if IconButton("setRouteGarage", #BJI_GPS.targets > 0 and
                     BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
                     { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true }) then
-                garages = {}
-                for _, garage in ipairs(BJI_Stations.Data.Garages) do
-                    distance = BJI_GPS.getRouteLength({
-                        ctxt.veh.position,
-                        garage.pos
-                    })
-                    table.insert(garages, {
-                        garage = garage,
-                        distance = distance
-                    })
-                end
-                if #garages > 0 then
-                    table.sort(garages, function(a, b)
-                        return a.distance < b.distance
-                    end)
-                    BJI_GPS.prependWaypoint({
-                        key = BJI_GPS.KEYS.STATION,
-                        pos = garages[1].garage.pos,
-                        radius = garages[1].garage.radius
-                    })
-                end
+                BJI_Stations.setGPS()
             end
             TooltipText(BJI_Lang.get("common.buttons.setGPS"))
         end

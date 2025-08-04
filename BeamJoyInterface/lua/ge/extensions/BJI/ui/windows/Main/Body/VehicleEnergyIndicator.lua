@@ -126,40 +126,7 @@ local function draw(ctxt)
                             BJI.Utils.Icon.ICONS.simobject_bng_waypoint or BJI.Utils.Icon.ICONS.add_location,
                             { btnStyle = BJI.Utils.Style.BTN_PRESETS.SUCCESS, noSound = true,
                                 disabled = BJI_GPS.getByKey("BJIEnergyStation") ~= nil }) then
-                        if table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
-                            -- Gas station energy types
-                            stations = {}
-                            for _, station in ipairs(BJI_Stations.Data.EnergyStations) do
-                                if table.includes(station.types, energyType) then
-                                    distance = BJI_GPS.getRouteLength({ ctxt.veh.position, station
-                                        .pos })
-                                    table.insert(stations, { station = station, distance = distance })
-                                end
-                            end
-                            table.sort(stations, function(a, b)
-                                return a.distance < b.distance
-                            end)
-                            BJI_GPS.prependWaypoint({
-                                key = BJI_GPS.KEYS.STATION,
-                                pos = stations[1].station.pos,
-                                radius = stations[1].station.radius
-                            })
-                        else
-                            -- Garage energy types
-                            garages = {}
-                            for _, garage in ipairs(BJI_Stations.Data.Garages) do
-                                distance = BJI_GPS.getRouteLength({ ctxt.veh.position, garage.pos })
-                                table.insert(garages, { garage = garage, distance = distance })
-                            end
-                            table.sort(garages, function(a, b)
-                                return a.distance < b.distance
-                            end)
-                            BJI_GPS.prependWaypoint({
-                                key = BJI_GPS.KEYS.STATION,
-                                pos = garages[1].garage.pos,
-                                radius = garages[1].garage.radius
-                            })
-                        end
+                        BJI_Stations.setGPS(energyType)
                     end
                     TooltipText(BJI_Lang.get("common.buttons.setGPS"))
                 end
