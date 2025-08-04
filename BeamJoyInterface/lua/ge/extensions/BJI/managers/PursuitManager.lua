@@ -471,26 +471,6 @@ local function initPursuitTraffic(ctxt)
         end)
 end
 
----@param mpVeh BJIMPVehicle
-local function onVehSpawned(mpVeh)
-    LogWarn("Pursuit veh spawned " .. tostring(mpVeh.gameVehicleID))
-    if not mpVeh.isVehicle then return end
-    local ctxt = BJI_Tick.getContext()
-    if BJI_Scenario.isServerScenarioInProgress() or
-        ctxt.players[ctxt.user.playerID].isGhost then
-        return -- do not impact server scenarios and no collisions scenarios
-    end
-    local trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
-    if not trafficVeh then
-        extensions.gameplay_traffic.insertTraffic(mpVeh.gameVehicleID, not mpVeh.isLocal or not mpVeh.isAi)
-        trafficVeh = extensions.gameplay_traffic.getTrafficData()[mpVeh.gameVehicleID]
-    end
-    if not trafficVeh then
-        return LogWarn(string.format("Traffic vehicle not found (%d)", mpVeh.gameVehicleID))
-    end
-    trafficVeh:setRole(getVehRole(ctxt, mpVeh))
-end
-
 ---@param ctxt TickContext
 ---@param event {previousMPVeh: BJIMPVehicle?, currentMPVeh: BJIMPVehicle?}
 local function onVehSwitched(ctxt, event)
@@ -576,7 +556,6 @@ M.onLoad = function()
     BJI_Events.addListener(BJI_Events.EVENTS.PLAYER_DISCONNECT, onPlayerDisconnect, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehDelete, M._name)
 
-    BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawned, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_SPEC_CHANGED, onVehSwitched, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.SCENARIO_CHANGED, onScenarioChanged, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.PLAYER_SCENARIO_CHANGED, onPlayerScenariosChanged, M

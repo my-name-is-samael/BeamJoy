@@ -124,7 +124,7 @@ local function initNGFunctionsWrappers()
                 return not veh.isParked and ownVehs:any(function(v)
                     return v.gameVehicleID == veh:getID() and v.isAi
                 end)
-            end)
+            end):map(function(veh) return veh:getID() end)
         end
         M.baseFunctions.gameplay_traffic.activate(vehList, ignoreFilter)
     end
