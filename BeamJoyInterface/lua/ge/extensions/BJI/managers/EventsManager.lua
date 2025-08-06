@@ -56,6 +56,7 @@ local M = {
         NG_PURSUIT_ACTION = "ngPursuitAction",
         NG_PURSUIT_MODE_UPDATE = "ngPursuitModeUpdate",
         NG_UI_LAYOUT_LOADED = "ngUILayoutLoaded",
+        NG_BEFORE_RADIAL_OPENED = "ngBeforeRadialOpened",
 
         -- tech events (async)
 
@@ -89,6 +90,7 @@ M.SYNC_EVENTS = Table({
     M.EVENTS.NG_PURSUIT_ACTION,
     M.EVENTS.NG_PURSUIT_MODE_UPDATE,
     M.EVENTS.NG_UI_LAYOUT_LOADED,
+    M.EVENTS.NG_BEFORE_RADIAL_OPENED,
 
     M.EVENTS.VEHICLE_INITIALIZED,
 })

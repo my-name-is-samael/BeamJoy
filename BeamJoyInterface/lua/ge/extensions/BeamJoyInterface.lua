@@ -82,7 +82,7 @@ initManagers()
 
 local M = {
     dependencies = { "ui_imgui", "core_camera", "core_vehicles", "core_vehicle_partmgmt", "ui_visibility",
-        "simTimeAuthority", "gameplay_traffic", "gameplay_police", "core_modmanager", "core_repository",
+        "gameplay_traffic", "gameplay_police", "core_modmanager", "core_repository",
         "core_groundMarkers", "core_vehicle_manager", "map", "spawn", "core_vehicleBridge",
         "core_environment", "gameplay_parking", "gameplay_drift_general", "gameplay_drift_drift",
         "gameplay_drift_scoring", "core_multiSpawn", "ui_missionInfo", "freeroam_bigMapMode", "gameplay_walk",
@@ -155,6 +155,7 @@ local function bindNGHooks()
         { "trackAIAllVeh",          BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
         { "onTrafficVehicleAdded",  BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
         { "onUILayoutLoaded",       BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
+        { "onBeforeRadialOpened",   BJI_Events.EVENTS.NG_BEFORE_RADIAL_OPENED },
     }):forEach(function(hook)
         M[hook[1]] = function(...)
             BJI_Events.trigger(hook[2], ...)

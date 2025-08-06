@@ -414,22 +414,14 @@ local function renderTick(ctxt)
     end
 end
 
-local function initNGFunctionsWrappers()
-    M.baseFunctions = {
-        simTimeAuthority = {
-            set = extensions.simTimeAuthority.set
-        },
-    }
-
-    extensions.simTimeAuthority.set = function(val)
-        if not M.Data.controlSimSpeed then
-            M.baseFunctions.simTimeAuthority.set(val)
-        end
+local function onBeforeRadialOpened()
+    -- force timeplay x1 on radial menu opened
+    if M.Data.controlSimSpeed then
+        extensions.core_jobsystem.create(function(job)
+            job.sleep(.01)
+            extensions.simTimeAuthority.set(1)
+        end)
     end
-end
-
-local function onUnload()
-    RollBackNGFunctionsWrappers(M.baseFunctions)
 end
 
 local function onLoad()
@@ -470,8 +462,7 @@ local function onLoad()
         return BJI_Context.WorldReadyState == 2
     end, cacheWorldObjects)
 
-    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
-    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_BEFORE_RADIAL_OPENED, onBeforeRadialOpened, M._name)
 
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
