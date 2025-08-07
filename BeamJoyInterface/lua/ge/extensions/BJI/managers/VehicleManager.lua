@@ -1221,10 +1221,6 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
         return configs
     end
 
-    if not forced then
-        -- first loading
-        BJI_Message.message("Caching all vehicles...")
-    end
     -- data gathering
     local vehicles = {}
     local trailers = {}
@@ -1348,13 +1344,8 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
         LogInfo(string.var("    Complete process done in {1}ms", { bench.all }))
     end, 0, "VehConfigsCacheBench")
 
-    if not forced then
-        -- first loading
-        BJI_Message.message("All vehicles cached !")
-    else
-        -- update potentially already opened veh selector
-        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
-    end
+    -- update potentially already opened veh selector
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
     -- return cached data
     return M.getAllVehicleConfigs(withTrailers, withProps)
 end

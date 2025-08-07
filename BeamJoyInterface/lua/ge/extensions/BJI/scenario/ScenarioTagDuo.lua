@@ -190,7 +190,7 @@ local function drawUI(ctxt)
         Text(other.playerName)
         if S.selfLobby.players[other.playerID].tagger then
             SameLine()
-            Text(taggerMark, BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT)
+            Text(taggerMark, { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
         end
     end
 end

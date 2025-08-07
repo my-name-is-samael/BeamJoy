@@ -9,10 +9,10 @@ forward, base, tip
 ---@field b number 0-1
 ---@field a number 0-1
 ---@field fromRaw fun(self: BJIColor, rawColor: {r: number?, g: number?, b: number?, a: number?}): BJIColor -- self mutable
----@field fromVec4 fun(self: BJIColor, vec4, vec4): BJIColor -- self mutable
+---@field fromVec4 fun(self: BJIColor, vec4: vec4): BJIColor -- self mutable
 ---@field vec4 fun(self: BJIColor): vec4
----@field colorI ColorI
----@field colorF ColorF
+---@field colorI fun(self: BJIColor): ColorI
+---@field colorF fun(self: BJIColor): ColorF
 ---@field compare fun(self: BJIColor, color2: BJIColor): boolean
 
 ---@param r number? 0-1
