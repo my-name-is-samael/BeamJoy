@@ -77,7 +77,6 @@ end
 
 local p
 local function openSelectorUI()
-    LogInfo("Vehicle selector triggered")
     p = LuaProfiler("Vehicle Selector menu (triggered by a binding)")
     if p then p:start() end
     guihooks.trigger('MenuOpenModule', 'vehicleselect')

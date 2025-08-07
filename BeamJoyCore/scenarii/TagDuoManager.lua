@@ -91,7 +91,6 @@ local function onClientReady(senderID, lobby)
     lobby.players[senderID].ready = true
     if #lobby.players:filter(function(p) return p.ready end):values() == 2 then
         -- both players ready > start tag
-        LogWarn(string.var("both players ready", { senderID }))
         local nextTagger = lobby.lastTagger and lobby.players:keys()
             :filter(function(_, pid) return pid ~= lobby.lastTagger end)
             :find(function() return true end) or
@@ -111,8 +110,6 @@ local function onClientTag(senderID, lobby)
     if not lobby.players[senderID].tagger then
         return
     end
-
-    LogWarn(string.var("player {1} tag", { senderID }))
 
     lobby.players:forEach(function(p)
         p.ready = false

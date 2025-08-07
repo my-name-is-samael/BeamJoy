@@ -3,7 +3,8 @@ local U = {}
 --- How to add your own vehicle config:
 --- spawn your vehicle, then execute:
 --- `dump(BJI_Veh.getCurrentModel(), BJI_Veh.getCurrentConfigKey())`
---- to print the model, then the config key
+--- to print the model, then the config key (keep in mind your custom
+--- configurations will not be available to other players)
 local DERBY_PRESETS = Table({
     {
         label = "Derby Vehicles",

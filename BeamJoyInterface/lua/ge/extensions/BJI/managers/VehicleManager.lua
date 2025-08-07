@@ -1225,17 +1225,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     local vehicles = {}
     local trailers = {}
     local props = {}
-    local bench = {
-        all = 0,
-        gather = 0,
-        checkModded = 0,
-        parse = 0,
-        labels = 0,
-    }
-    local start = GetCurrentTimeMillis()
-    bench.all = start
     local vehs = core_vehicles.getVehicleList().vehicles
-    bench.gather = GetCurrentTimeMillis() - start
     for _, veh in ipairs(vehs) do
         if veh.model then
             local isVeh = true -- Truck | Car
@@ -1252,7 +1242,6 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                 goto skipVeh
             end
 
-            start = GetCurrentTimeMillis()
             if veh.model.aggregates.Source.Mod then
                 local jbeamIO = require('jbeam/io')
                 local function tryLoadVeh()
@@ -1268,9 +1257,7 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                     goto skipVeh
                 end
             end
-            bench.checkModded = bench.checkModded + (GetCurrentTimeMillis() - start)
 
-            start = GetCurrentTimeMillis()
             local target
             if isVeh then
                 target = vehicles
@@ -1311,7 +1298,6 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
                     end
                 end
             end
-            bench.parse = bench.parse + (GetCurrentTimeMillis() - start)
         end
         ::skipVeh::
     end
@@ -1320,7 +1306,6 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     M.allPropConfigs = props
 
     -- LABELS
-    start = GetCurrentTimeMillis()
     M.allVehicleLabels = {}
     for model, d in pairs(vehicles) do
         M.allVehicleLabels[model] = d.label or model
@@ -1333,16 +1318,6 @@ local function getAllVehicleConfigs(withTrailers, withProps, forced)
     for model, d in pairs(props) do
         M.allPropLabels[model] = d.label or model
     end
-    bench.labels = GetCurrentTimeMillis() - start
-    bench.all = GetCurrentTimeMillis() - bench.all
-
-    BJI_Async.delayTask(function()
-        LogInfo("BJI Vehicles Configurations Bechmark :")
-        LogInfo(string.var("    Vehicles gathered in {1}ms", { bench.gather }))
-        LogInfo(string.var("    Modded vehicles checked in {1}ms", { bench.checkModded }))
-        LogInfo(string.var("    Data parsed in {1}ms", { bench.parse }))
-        LogInfo(string.var("    Complete process done in {1}ms", { bench.all }))
-    end, 0, "VehConfigsCacheBench")
 
     -- update potentially already opened veh selector
     BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
