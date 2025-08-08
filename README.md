@@ -8,6 +8,15 @@ All-in-One mod for BeamMP
   </a>
 </p>
 
+<p align="center">
+  <a href="https://discord.gg/83kF4utCV5">
+    <img src="https://www.svgrepo.com/show/353655/discord-icon.svg" width="100" alt="Join us on Discord" />
+  </a>
+  <a href="https://www.patreon.com/c/BeamJoy">
+    <img src="https://seeklogo.com/images/P/patreon-logo-C2632A9941-seeklogo.com.png" width="100" alt="Join us on Patreon" />
+  </a>
+</p>
+
 The purpose of this mod is to provide easy access to moderation tools and activities for the players on your BeamMP server.
 In addition, it includes a built-in framework to make it modular, allowing developers to easily add new features.
 
