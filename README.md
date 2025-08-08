@@ -27,6 +27,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
       - [Speed Game](#speed-game)
       - [Destruction Derby](#destruction-derby)
       - [Tag Duo](#tag-duo)
+      - [Infected](#infected)
+    - [Tournament](#tournament)
     - [Tech (for developers)](#tech-for-developers)
   - [How To](#how-to)
     - [How to install](#how-to-install)
@@ -41,14 +43,13 @@ In addition, it includes a built-in framework to make it modular, allowing devel
     - [Can I completely disable the "ghost mode" when somebody respawns ?](#can-i-completely-disable-the-ghost-mode-when-somebody-respawns-)
     - [Shadows are disappearing when I drive fast. What's going on ?](#shadows-are-disappearing-when-i-drive-fast-whats-going-on-)
   - [Compatible Mods](#compatible-mods)
-  - [Video tutorials](#video-tutorials)
   - [Participating](#participating)
-  - [Bucket list](#bucket-list)
   - [Known issues](#known-issues)
   - [Credits](#credits)
   - [Support](#support)
 
 ## Features
+<img src="/assets/banner-features.png" style="width: 100%; height: auto;" alt="Features" />
 
 <details>
   <summary>Show</summary>
@@ -73,12 +74,12 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 ### QoL
 
-- Reworked and toggleable player nametags, showing who is spectating, who is playing, and idle vehicles. Props do not display nametags, and trailers do not if their owner is towing them.
-- Reworked in-game chat with Rank or Reputation level indicators.
+- Reworked and toggleable player nametags, showing who is spectating, who is playing, and idle vehicles. Props do not display nametags, and trailers do not if their owner is towing them. Colors are also configurable by everyone (for themselves).
+- Reworked in-game chat with Rank or Reputation level indicators, as well as activities events.
 - Toggleable automatic headlights based on the day-night cycle.
 - Toggleable smooth free camera.
-- Precise free camera FoV selector.
-- Ghost mode to prevent speeding players from crashing into newly spawned players.
+- Precise free camera FoV and speed selectors.
+- Toggleable respawn protection (ghost mode) to prevent speeding players from crashing into newly spawned players.
 - Toggleable broadcast for big drifts.
 - Reputation rewards based on drift length.
 - Almost all base game UI-Apps work for each scenario.
@@ -92,15 +93,18 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Built-in presets for game time (dusk, noon, dawn, midnight) and weather (clear, cloudy, light rain, rainy, light snow, and snowy).
 - Toggleable preservation of fuel/energy when a vehicle is reset, making gas stations and charging stations essential.
 - Highly customizable emergency refuel system when players vehicles are running out of gas.
-- Vehicles no longer keep pressed inputs when players switch to another
+- Vehicles no longer keep pressed inputs when players switch to another.
+- Working GPS to find gas stations, garages, and players (and more within scenarios).
+- Working world interactive markers for gas stations, garages, races, derby arenas and bus missions.
+- Working `Map` menu with points of interest and GPS features.
+- Controller support to start activities and votes with interactive markers.
+- Night-specific environment settings are now available to make nights clearer and finally playable.
 
 ### Facilities
 
 - Gas Stations and Charging Stations, with independent fuel types.
-- Complete station editor for staff.
 - Garages to repair vehicles and refill NOS.
-- Complete garage editor for staff.
-- Working GPS to find gas stations, garages, and players (and more within scenarios).
+- Complete editors for staff and selected players.
 
 ### Moderation
 
@@ -125,11 +129,11 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 #### Races
 
 - Multiplayer races with leaderboards and time delta.
-- Solo races with leaderboards and time delta.
+- Solo races (time attack) with leaderboards and time delta.
 - Race editor for admins and selected players.
 - Multiplayer races can be forced by staff or voted for by players.
-- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint and respawn in the pit stand.
 - Working pit stands.
+- Multiple respawn strategies: All respawn types, no respawn (with a DNF counter), respawn at the last checkpoint and respawn in the last pit stand.
 - Players can use any vehicle, a specific model, or a specified configuration set at race launch.
 - Dynamic branching race mapping allows shortcuts or reroutes.
 - Persistent race records.
@@ -144,6 +148,8 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 - Working hunter system where the fugitive and hunters cannot see each other's nametags.
 - The fugitive must pass the specified checkpoints without being taken down by hunters or crashing.
 - Hunters can reset their vehicles but with a time penalty before resuming the chase.
+- Waypoints and start positions editor for admins and selected players.
+- The mode can be forced by staff or voted for by players.
 - Vehicle configurations can be forced at launch.
 - Complete editor for starting positions (Hunters and Fugitive) and checkpoints for admins and selected players.
 - Reputation rewards for participation and winning, highly customizable.
@@ -174,6 +180,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 #### Destruction Derby
 
 - Battle Royale-like game where the last moving vehicle wins.
+- The mode can be forced by staff or voted for by players.
 - Can be launched with a lives amount setting.
 - Specific vehicle models can be set at launch for thematic games.
 - Multiple arenas per map.
@@ -182,8 +189,34 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 #### Tag Duo
 
-- Duo gamemode with public visible lobbies
+- Duo mode where one player must tag another, then roles reverse, indefinitely.
+- Server-wide visible lobbies in-real-time.
 - Reputation rewards for tagging your opponent, highly customizable.
+
+#### Infected
+
+- Battle Royale-like game where the last survivor wins.
+- Start positions editor for admins and selected players.
+- The mode can be forced by staff or voted for by players.
+- Can be launched with forced vehicle colors for both teams.
+- Can be launched with a setting imposing the last survivor to be infected for the game to ends
+- A vehicle configuration can be forced at launch.
+
+### Tournament
+
+- Almost all previous activities can be played in a tournament mode where points are automatically attributed.
+- Since number of participants can vary from an activity to another, the best player gets 1 point, and the last gets the number of participants as points, then the participant with least points wins when the tournament is over.
+- When the tournament is active, no player can start an activity or a vote on their own.
+- Staff members can launch tournament activities and can edit data after the activity ends.
+- When all staff members leaves, the mode disbaled itself automatically, allowing players to start activities again.
+- Participants data are saved upon a disconnection or a crash (and if you change map during a tournament)
+- Tournament activities are:
+  - Time attack (solo race)
+  - Race
+  - Hunter
+  - Destruction Derby
+  - Infected
+  - Speed Game
 
 ### Tech (for developers)
 
@@ -200,6 +233,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 </details>
 
 ## How To
+<img src="/assets/banner-howto.png" style="width: 100%; height: auto;" alt="How To" />
 
 ### How to install
 
@@ -257,6 +291,7 @@ To update labels:
 - As mentioned earlier, do not change keys or variables between braces (**{** and **}**) in values.
 
 ## FAQ
+<img src="/assets/banner-faq.png" style="width: 100%; height: auto;" alt="FAQ" />
 
 ### I cannot spawn a vehicle even after setting myself the server owner. What did I do wrong ?
 You should check your `MaxVehicles` inside `ServerConfig.toml` (beammp server root folder), the value cannot be set to `-1` (I recommand you to set it between 50 and 500).
@@ -327,6 +362,8 @@ If you want to calibrate this setting correctly on your server, I recommend the 
 - Check whether the shadow distance value works well under these conditions.
 
 ## Compatible Mods
+<img src="/assets/banner-compatiblemods.png" style="width: 100%; height: auto;" alt="Compatible Mods" />
+
 - Pretty much all modded vehicles with correctly formed data
 - [Enhanced Interior Camera](https://www.beamng.com/resources/enhanced-interior-camera.24952/)
 - [Agent's Simplified Realistic Traffic Mod (EU + Yakuza)](https://www.beamng.com/threads/agents-simplified-realistic-traffic-mod-eu-yakuza.102034/)
@@ -334,18 +371,15 @@ If you want to calibrate this setting correctly on your server, I recommend the 
 
 _Please contact me or open a ticket to request a mod integration_
 
-## Video tutorials
-
-Coming soon (maybe) ...
-
 ## Participating
+<img src="/assets/banner-participating.png" style="width: 100%; height: auto;" alt="Participating" />
 
-Feel free to create pull requests, as long as you follow the coding scheme.
+Feel free to create pull requests, as long as you follow the coding scheme. We do not accept any more features (since specific variants are now present on [Patreon](https://www.patreon.com/c/BeamJoy)) but bugs and security fixed are appreciated.
 
-Also, feel free to report bugs or suggest improvements. I'll do my best to respond quickly, but note that I no longer work full-time on this project.
+Also if you are not a developer yourself, feel free to report bugs or suggest improvements. I'll do my best to respond quickly, but note that I no longer work full-time on this project.
 
 You can also fix translations if they are wrong :
-<div style="display: flex; gap: 5px; flex-wrap: wrap;">
+<p>
   <a href="https://gitlocalize.com/repo/9945/es?utm_source=badge">
     <img src="https://gitlocalize.com/repo/9945/es/badge.svg" />
   </a>
@@ -364,22 +398,16 @@ You can also fix translations if they are wrong :
   <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge">
     <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" />
   </a>
-</div>
-
-## Bucket list
-
-- Race fork (only when the mod will be done and polished)
-- Toggleable automatic random weather presets (maybe with smooth transitions, waiting for BeamNG changes about temperature and weather)
-- Window-less UI (will need a complete rewrite and rework)
-- Implementing BeamMP v3.5+ features when it will come out:
-  - Add Core configs for AllowGuests ([#335](https://github.com/BeamMP/BeamMP-Server/pull/335))
+</p>
 
 ## Known issues
+<img src="/assets/banner-knownissues.png" style="width: 100%; height: auto;" alt="Known Issues" />
 
-- Windows system costs performances, this is a fact. Unfortunately, this is the only way BeamJoy have to not be intrusive (we do not want to force players by adding UI-Apps, but still give them mandatory scenario and server informations).
-- Having vehicle config with modded parts (which belong to a mod that is not present on the server) is causing impossibility to spawn a vehicle in a scenario with imposed config. We do not have a way to detect this particular case for now.
+- Windows system costs performances, this is a fact and it is unfortunate. But this is the only way BeamJoy have to not be intrusive (we do not want to force players by manually adding UI-Apps, but still give them mandatory scenario and server informations).
+- When leaving a server with BeamJoy on, then going to freeroam or a non-BeamJoy server, the game will softlock during the loading screen. This is a module dependency issue and we don't have a solution for now, except than a complete remake of the mod ([Patreon](https://www.patreon.com/c/BeamJoy) versions are remakes and will fix this).
 
 ## Credits
+<img src="/assets/banner-credits.png" style="width: 100%; height: auto;" alt="Credits" />
 
 Thanks to all BETA testers who helped me test and debug the features:
 dvergar, Trina, Baliverne0, Rodjiii, Lotax, Nath_YT, korrigan_91, @YannD-Deltagon and all of you giving feedback and reporting bugs.
@@ -388,6 +416,7 @@ A huge thanks to prestonelam2003 for his work on [CobaltEssentials](https://gith
 Another huge thank to StanleyDudek for his work on [CobaltEssentialsInterface](https://github.com/StanleyDudek/CobaltEssentialsInterface) which taught me how to create front-end BeamMP mods, communicate with the server, and the basic use of imgui.
 
 ## Support
+<img src="/assets/banner-support.png" style="width: 100%; height: auto;" alt="Support" />
 
 **BeamJoy is and will always be free.** However, if you'd like to support my work, you can [buy me a coffee](https://coff.ee/tontonsamael) or [support BeamJoy on Patreon](https://www.patreon.com/c/BeamJoy).
 
