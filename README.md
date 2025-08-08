@@ -10,10 +10,10 @@ All-in-One mod for BeamMP
 
 <p align="center">
   <a href="https://discord.gg/83kF4utCV5">
-    <img src="https://www.svgrepo.com/show/353655/discord-icon.svg" width="100" alt="Join us on Discord" />
+    <img src="/assets/discord_icon.png" width="100" alt="Join us on Discord" />
   </a>
   <a href="https://www.patreon.com/c/BeamJoy">
-    <img src="https://seeklogo.com/images/P/patreon-logo-C2632A9941-seeklogo.com.png" width="100" alt="Join us on Patreon" />
+    <img src="/assets/patreon_icon.png" width="100" alt="Join us on Patreon" />
   </a>
 </p>
 
