@@ -1,0 +1,164 @@
+---@class ColorI
+---@field r integer 0-255
+---@field g integer 0-255
+---@field b integer 0-255
+---@field a integer 0-255
+---@field red integer 0-255
+---@field green integer 0-255
+---@field blue integer 0-255
+---@field alpha integer 0-255
+
+---@class ColorF
+---@field r number 0-1
+---@field g number 0-1
+---@field b number 0-1
+---@field a number 0-1
+---@field red number 0-1
+---@field green number 0-1
+---@field blue number 0-1
+---@field alpha number 0-1
+---@field asLinear4F fun(self: ColorF): number[]
+
+---@class BJIManager
+---@field _name string
+---@field onLoad? fun()
+---@field renderTick (fun(ctxt: TickContext))?
+---@field getRestrictions (fun(ctxt: TickContext): string[])?
+
+---@class BJIScenario
+---@field _name string
+---@field _key string
+---@field _isSolo boolean
+---@field _skip boolean?
+---@field canChangeTo (fun(ctxt: TickContext): boolean)
+---@field onLoad (fun(ctxt: TickContext))?
+---@field onUnload (fun(ctxt: TickContext))?
+---@field onVehicleSpawned (fun(mpVeh: BJIMPVehicle))?
+---@field onVehicleResetted (fun(gameVehID: integer))?
+---@field onVehicleSwitched (fun(oldGameVehID: integer, newGameVehID: integer))?
+---@field onVehicleDestroyed (fun(gameVehID: integer))?
+---@field updateVehicles (fun())?
+---@field onGarageRepair (fun())?
+---@field tryTeleportToPlayer (fun(targetID: integer, forced: boolean?))?
+---@field tryTeleportToPos (fun(pos: vec3, saveHome: boolean?))?
+---@field tryFocus (fun(targetID: integer))?
+---@field trySpawnNew (fun(model: string, config: table|string?))?
+---@field tryReplaceOrSpawn (fun(model: string, config: table|string?))?
+---@field tryPaint (fun(paintIndex: integer, paint: NGPaint))?
+---@field canReset (fun(gameVehID: integer, resetType: string): boolean)? default false
+---@field getRewindLimit (fun(gameVehID: integer): number)? default 0 (disabled)
+---@field tryReset (fun(gameVehID: integer, resetType: string, baseCallback: fun()): boolean)?
+---@field canRefuelAtStation (fun(): boolean)? default false
+---@field canRepairAtGarage (fun(): boolean)? default false
+---@field canSpawnNewVehicle (fun(): boolean)? default true
+---@field canReplaceVehicle (fun(): boolean)? default true
+---@field canPaintVehicle (fun(): boolean)? default true
+---@field canDeleteVehicle (fun(): boolean)? default true
+---@field canDeleteOtherVehicles (fun(): boolean)? default true
+---@field canDeleteOtherPlayersVehicle (fun(): boolean)? default false
+---@field canSpawnAI (fun(): boolean)? default false
+---@field canWalk (fun(): boolean)? default false
+---@field getModelList (fun(): table<string, table>)?
+---@field getPlayerListActions (fun(player: BJIPlayer, ctxt: TickContext?): table<integer, table>)?
+---@field canQuickTravel (fun(ctxt: TickContext): boolean)? default false
+---@field canUseNodegrabber (fun(ctxt: TickContext): boolean)? default false
+---@field canBoost (fun(): boolean)? default false
+---@field canShowNametags (fun(): boolean)? default false
+---@field doShowNametag (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
+---@field doShowNametagsSpecs (fun(vehData: {gameVehicleID: integer, ownerID: integer}): boolean, BJIColor?, BJIColor?)?
+---@field getCollisionsType (fun(ctxt: TickContext): string)? BJI_Collisions.TYPES
+---@field getRestrictions (fun(ctxt: TickContext): string[])?
+---@field drawUI (fun(ctxt: TickContext))?
+---@field renderTick (fun(ctxt: TickContext))?
+---@field fastTick (fun(ctxt: TickContext))?
+---@field slowTick (fun(ctxt: TickContext))?
+
+---@class BJIWindow
+---@field name string
+---@field getState fun(ctxt): boolean
+---@field onLoad fun()?
+---@field onUnload fun()?
+---@field menu fun(ctxt: TickContext)?
+---@field header fun(ctxt: TickContext)?
+---@field body fun(ctxt: TickContext)
+---@field footer fun(ctxt: TickContext)?
+---@field footerLines fun(ctxt: TickContext): integer?
+---@field flags number[]?
+---@field onClose fun()?
+---@field size point?
+---@field minSize point?
+---@field maxSize point?
+---@field position point?
+
+---@class BJArena
+---@field name string
+---@field enabled boolean
+---@field previewPosition BJIPositionRotation
+---@field startPositions tablelib<integer, BJIPositionRotation>
+---@field centerPosition vec3
+---@field radius number
+
+---@class ClientVehicleConfig
+---@field model string
+---@field label string
+---@field key string? when saved config
+---@field parts table<string, string>
+---@field vars table<string, any>
+---@field paints table[]?
+
+---@class ServerVehicleConfig
+---@field pid integer
+---@field vid integer client gameVehID
+---@field jbm string?
+---@field vcf {model: string?, mainPartName: string, parts: table<string, string>, vars: table<string, any>, paints: table<string, table>}
+---@field pro "0"|"1" vehicle's protection against cloning
+---@field pos number[] 3 indices
+---@field rot number[] 4 indices
+---@field ign number
+
+---@class NGVehicle
+---@field jbeam string
+---@field JBeam string
+---@field partConfig string
+---@field getID fun(self: NGVehicle): integer
+---@field getId fun(self: NGVehicle): integer
+---@field queueLuaCommand fun(self: NGVehicle, command: string)
+---@field getInitialLength fun(self: NGVehicle): number
+---@field getInitialHeight fun(self: NGVehicle): number
+---@field getInitialWidth fun(self: NGVehicle): number
+---@field getDirectionVector fun(self: NGVehicle): vec3
+---@field getDirectionVectorUp fun(self: NGVehicle): vec3
+---@field isTraffic "true"?
+---@field isParked "true"?
+---@field delete fun(self: NGVehicle)
+---@field requestReset fun(self: NGVehicle, type: integer)
+---@field getRefNodeId fun(self: NGVehicle): integer
+---@field getClusterRotationSlow fun(self: NGVehicle, nodeId: integer): quat
+---@field setClusterPosRelRot fun(self: NGVehicle, nodeId: integer, posX: number, posY: number, posZ: number, rotX: number, rotY: number, rotZ: number, rotW: number)
+---@field getVelocity fun(self: NGVehicle): vec3
+---@field applyClusterVelocityScaleAdd fun(self: NGVehicle, nodeId: integer, scale: integer, velX: number, velY: number, velZ: number)
+---@field setPosRot fun(self: NGVehicle, posX: number, posY: number, posZ: number, rotX: number, rotY: number, rotZ: number, rotW: number)
+---@field initialNodePosBB {getCenter: fun(self: any): vec3}
+---@field getInitialNodePosition fun(self: NGVehicle, nodeId: integer): vec3
+---@field resetBrokenFlexMesh fun(self: NGVehicle)
+---@field getMeshAlpha fun(self: NGVehicle, meshID: integer): number
+---@field setDynDataFieldbyName fun(self: NGVehicle, fieldName: string, playerID: integer, value: string)
+---@field uiState (0|1)? 0 to hide on minimap
+---@field playerUsable boolean? false to prevent vehicle switch
+---@field speed string? BeamJoy injected value, number
+---@field damageState string? BeamJoy injected value, number
+---@field isPatrol "true"? BeamJoy injected value
+
+---@class NGPaint
+---@field baseColor number[] 4 indices
+---@field metallic number 0-1
+---@field roughness number 0-1
+---@field clearCoat number 0-1
+---@field clearCoatRoughness number 0-1
+
+---@class BJPursuitPayload
+---@field event "start"|"arrest"|"evade"|"reset"
+---@field originPlayerID integer
+---@field gameVehID integer
+---@field ticket boolean?
+---@field offenses string[]?

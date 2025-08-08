@@ -15,13 +15,12 @@ local M = {
 
         reputation = "number",
 
-        settings = "table",
         stats = "table",
     }
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/players", { dbPath })
+    M._dbPath = string.var("{1}/players", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         FS.CreateDirectory(M._dbPath)
@@ -44,12 +43,17 @@ end
 
 local function findByPlayerName(playerName)
     local player
-    local file, error = io.open(svar("{1}/{2}.json", { M._dbPath, playerName }), "r")
-    if file and not error then
+    local file, err = io.open(string.var("{1}/{2}.json", { M._dbPath, playerName }), "r")
+    if file and not err then
         player = {}
         local data = file:read("*a")
         file:close()
         data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file {1}: Invalid content data", string.var("{1}/{2}.json", { M._dbPath, playerName }))
+            data = nil
+            player = nil
+        end
         if data then
             for k, v in pairs(data) do
                 if type(v) == M._fields[k] then
@@ -75,7 +79,7 @@ end
 local function save(player)
     if player then
         local playerName = player.playerName
-        local filePath = svar("{1}/{2}.json", { M._dbPath, playerName })
+        local filePath = string.var("{1}/{2}.json", { M._dbPath, playerName })
         local data = {}
         for k, v in pairs(player) do
             if type(v) == M._fields[k] then

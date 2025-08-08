@@ -1,6 +1,8 @@
+local C = {}
+
 -- SHARED CONSTANTS BETWEEN SERVER & CLIENT
 
-BJI_GROUP_NAMES = {
+C.GROUP_NAMES = {
     NONE = "none",
     PLAYER = "player",
     MOD = "mod",
@@ -8,13 +10,12 @@ BJI_GROUP_NAMES = {
     OWNER = "owner",
 }
 
-BJI_EVENTS = {
+C.EVENTS = {
     SERVER_EVENT = "BJCEvent",
     SERVER_EVENT_PARTS = "BJCEventData",
     CACHE = {
         EVENT = "BJCCache",
         RX = {
-            INVALIDATE = "invalidate",
             SEND = "send",
         },
         TX = {
@@ -31,16 +32,18 @@ BJI_EVENTS = {
             TELEPORT_TO_PLAYER = "teleportToPlayer",
             TELEPORT_TO_POS = "teleportToPos",
             EXPLODE_VEHICLE = "explodeVehicle",
+            SYNC_PAINT = "syncPaint",
         },
         TX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",
             KM_REWARD = "KmReward",
             EXPLODE_VEHICLE = "explodeVehicle",
-            UPDATE_AI = "UpdateAI",
+            MARK_INVALID_VEHS = "markInvalidVehs",
+            SYNC_PAINT = "syncPaint",
+            REQUEST_PAINT = "requestPaint",
         }
     },
     MODERATION = {
@@ -66,6 +69,7 @@ BJI_EVENTS = {
         TX = {
             BJC = "bjc",
             ENV = "env",
+            ENV_PRESET = "envPreset",
             CORE = "core",
             MAP_SWITCH = "switchMap",
             PERMISSIONS = "permissions",
@@ -77,36 +81,28 @@ BJI_EVENTS = {
     },
     DATABASE = {
         EVENT = "BJCDatabase",
-        RX = {},
+        RX = {
+            PLAYERS_GET = "playersGet",
+            PLAYERS_UPDATED = "playersUpdated",
+        },
         TX = {
-            VEHICLE = "Vehicle",
+            PLAYERS_GET = "playersGet",
+            VEHICLE = "vehicle",
         },
     },
-    VOTEKICK = {
-        EVENT = "BJCVoteKick",
+    VOTE = {
+        EVENT = "BJCVote",
         RX = {},
         TX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
-        },
-    },
-    VOTEMAP = {
-        EVENT = "BJCVoteMap",
-        RX = {},
-        TX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
-        },
-    },
-    VOTERACE = {
-        EVENT = "BJCVoteRace",
-        RX = {},
-        TX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
+            KICK_START = "KickStart",
+            KICK_VOTE = "KickVote",
+            KICK_STOP = "KickStop",
+            MAP_START = "MapStart",
+            MAP_VOTE = "MapVote",
+            MAP_STOP = "MapStop",
+            SCENARIO_START = "ScenarioStart",
+            SCENARIO_VOTE = "ScenarioVote",
+            SCENARIO_STOP = "ScenarioStop",
         },
     },
     SCENARIO = {
@@ -120,9 +116,9 @@ BJI_EVENTS = {
             DELIVERY_STOP = "DeliveryStop",
             DELIVERY_PACKAGE_SUCCESS = "DeliveryPackageSuccess",
             BUS_LINES_SAVE = "BusLinesSave",
-            SPEED_STOP = "SpeedStop",
-            HUNTER_SAVE = "HunterSave",
+            HUNTER_INFECTED_SAVE = "HunterInfectedSave",
             DERBY_SAVE = "DerbySave",
+            PURSUIT_DATA = "PursuitData",
         },
         TX = {
             RACE_DETAILS = "RaceDetails",
@@ -151,16 +147,16 @@ BJI_EVENTS = {
             BUS_MISSION_START = "BusMissionStart",
             BUS_MISSION_REWARD = "BusMissionReward",
             BUS_MISSION_STOP = "BusMissionStop",
-            SPEED_START = "SpeedStart",
-            SPEED_JOIN = "SpeedJoin",
             SPEED_FAIL = "SpeedFail",
             SPEED_STOP = "SpeedStop",
-            HUNTER_SAVE = "HunterSave",
-            HUNTER_START = "HunterStart",
+            HUNTER_INFECTED_SAVE = "HunterInfectedSave",
             HUNTER_UPDATE = "HunterUpdate",
+            HUNTER_FORCE_FUGITIVE = "HunterForceFugitive",
             HUNTER_STOP = "HunterStop",
+            INFECTED_UPDATE = "InfectedUpdate",
+            INFECTED_FORCE_INFECTED = "InfectedForceInfected",
+            INFECTED_STOP = "InfectedStop",
             DERBY_SAVE = "DerbySave",
-            DERBY_START = "DerbyStart",
             DERBY_UPDATE = "DerbyUpdate",
             DERBY_STOP = "DerbyStop",
             TAG_DUO_JOIN = "TagDuoJoin",
@@ -169,11 +165,31 @@ BJI_EVENTS = {
             TAG_SERVER_START = "TagServerStart",
             TAG_SERVER_UPDATE = "TagServerUpdate",
             TAG_SERVER_STOP = "TagServerStop",
+            PURSUIT_DATA = "PursuitData",
+            PURSUIT_REWARD = "PursuitReward",
         }
-    }
+    },
+    TOURNAMENT = {
+        EVENT = "BJCTournament",
+        RX = {},
+        TX = {
+            CLEAR = "clear",
+            TOGGLE = "toggle",
+            END_TOURNAMENT = "endTournament",
+            TOGGLE_WHITELIST = "toggleWhitelist",
+            TOGGLE_PLAYER = "togglePlayer",
+            REMOVE_ACTIVITY = "removeActivity",
+            EDIT_SCORE = "editScore",
+            REMOVE_PLAYER = "removePlayer",
+            ADD_SOLO_RACE = "addSoloRace",
+            END_SOLO_ACTIVITY = "endSoloActivity",
+        },
+    },
 }
 
-BJI_ENV_TYPES = {
+-- BJI Constants
+
+C.ENV_TYPES = {
     SUN = "sun",
     WEATHER = "weather",
     GRAVITY = "gravity",
@@ -181,9 +197,18 @@ BJI_ENV_TYPES = {
     SPEED = "speed"
 }
 
-BJI_ENERGY_STATION_TYPES = {
+C.ENERGY_STATION_TYPES = {
     GASOLINE = "gasoline",
     DIESEL = "diesel",
     KEROSINE = "kerosine",
     ELECTRIC = "electricEnergy",
 }
+
+C.RACES_RESPAWN_STRATEGIES = {
+    ALL_RESPAWNS = { key = "all", order = 1 },
+    NO_RESPAWN = { key = "norespawn", order = 2 },
+    LAST_CHECKPOINT = { key = "lastcheckpoint", order = 3 },
+    STAND = { key = "stand", order = 4 },
+}
+
+return C

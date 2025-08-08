@@ -1,5 +1,7 @@
+---@class BJIManagerRaceUI : BJIManager
 local M = {
-    _name = "BJIRaceUI",
+    _name = "RaceUI",
+
     lap = {
         current = nil,
         count = nil,
@@ -27,11 +29,17 @@ local function drawWaypoint()
     end
 end
 
+---@param current integer
+---@param count integer
 local function setLap(current, count)
-    M.lap = {
-        current = current,
-        count = count
-    }
+    if count and count > 1 then
+        M.lap = {
+            current = current,
+            count = count
+        }
+    else
+        M.lap = {}
+    end
     drawLap()
 end
 
@@ -43,11 +51,17 @@ local function clearLap()
     drawLap()
 end
 
+---@param current integer
+---@param count integer
 local function setWaypoint(current, count)
-    M.waypoint = {
-        current = current,
-        count = count
-    }
+    if count and count > 1 then
+        M.waypoint = {
+            current = current,
+            count = count
+        }
+    else
+        M.waypoint = {}
+    end
     drawWaypoint()
 end
 
@@ -57,61 +71,6 @@ local function clearWaypoint()
         count = nil,
     }
     drawWaypoint()
-end
-
-local function drawHotlap()
-    local bestTime
-    for _, lap in pairs(M.hotlap) do
-        if not bestTime or lap.duration < bestTime then
-            bestTime = lap.duration
-        end
-    end
-
-    local rows = {}
-    for _, row in ipairs(M.hotlap) do
-        local diffLabel = "-"
-        local symbol = "-"
-        local diff = row.duration - bestTime
-        if diff > 0 then
-            symbol = "+"
-        end
-        if diff ~= 0 then
-            diffLabel = svar("{1}{2}", { symbol, RaceDelay(math.abs(diff)) })
-        end
-        table.insert(rows, {
-            lap = row.lap,
-            duration = RaceDelay(row.duration),
-            diff = diffLabel,
-            total = RaceDelay(row.total),
-        })
-    end
-
-    if #rows > 0 then
-        guihooks.trigger("HotlappingTimer", {
-            normal = rows,
-            detail = rows,
-            delta = 0,
-            closed = false,
-            running = false,
-            justStarted = false,
-            justLapped = false,
-        })
-    else
-        M.clearHotlap()
-    end
-end
-
-local function addHotlapRow(lap, time)
-    local total = time
-    for _, row in pairs(M.hotlap) do
-        total = total + row.duration
-    end
-    table.insert(M.hotlap, {
-        lap = lap,
-        duration = time,
-        total = total
-    })
-    drawHotlap()
 end
 
 local function clearHotlap()
@@ -131,24 +90,98 @@ local function clearHotlap()
     })
 end
 
-local function setRaceTime(diffMs, recordDiffMs, timeoutMS)
-    if type(diffMs) ~= "number" then
-        diffMs = nil
-    end
-    if type(recordDiffMs) ~= "number" then
-        recordDiffMs = nil
-    end
-
-    if diffMs then
-        guihooks.trigger("RaceCheckpointComparison", { timeOut = timeoutMS, time = diffMs / 1000 })
-    end
-    if recordDiffMs then
-        guihooks.trigger("RaceTimeComparison", { timeOut = timeoutMS, time = recordDiffMs / 1000 })
+local function drawHotlap()
+    local bestTime
+    for _, lap in pairs(M.hotlap) do
+        if not bestTime or lap.duration < bestTime then
+            bestTime = lap.duration
+        end
     end
 
-    if (diffMs or recordDiffMs) and type(timeoutMS) == "number" and timeoutMS > 0 then
-        BJIAsync.delayTask(M.clearRaceTime, timeoutMS,
-            svar("BJIRaceUIRaceTimeClear{1}{2}", { GetCurrentTimeMillis(), math.random(100) }))
+    local rows = {}
+    for i, row in ipairs(M.hotlap) do
+        local diffLabel = "-"
+        local symbol = "-"
+        local diff = row.duration - bestTime
+        if diff > 0 then
+            symbol = "+"
+        end
+        if diff ~= 0 then
+            diffLabel = string.var("{1}{2}", { symbol, BJI.Utils.UI.RaceDelay(math.abs(diff)) })
+        end
+        table.insert(rows, {
+            lap = i,
+            duration = BJI.Utils.UI.RaceDelay(row.duration),
+            diff = diffLabel,
+            total = BJI.Utils.UI.RaceDelay(row.total),
+        })
+    end
+
+    if #rows > 0 then
+        guihooks.trigger("HotlappingTimer", {
+            normal = rows,
+            detail = rows,
+            delta = 0,
+            closed = false,
+            running = false,
+            justStarted = false,
+            justLapped = false,
+        })
+    else
+        clearHotlap()
+    end
+end
+
+local lastRaceHotlap
+---@param raceName string
+---@param time integer
+local function addHotlapRow(raceName, time)
+    if type(raceName) ~= "string" or type(time) ~= "number" then
+        LogError("Invalid hotlap data")
+        return
+    end
+    if lastRaceHotlap ~= raceName then
+        clearHotlap()
+        lastRaceHotlap = raceName
+    end
+
+    local total = time
+    for _, row in pairs(M.hotlap) do
+        total = total + row.duration
+    end
+    table.insert(M.hotlap, {
+        duration = time,
+        total = total
+    })
+    drawHotlap()
+end
+
+---@param diffCheckpoint? integer
+---@param diffRace? integer
+---@param timeoutMS integer
+local function setRaceTime(diffCheckpoint, diffRace, timeoutMS)
+    if type(timeoutMS) ~= "number" then
+        LogError("setRaceTime invalid timeoutMS")
+        return
+    end
+    if type(diffCheckpoint) ~= "number" then
+        diffCheckpoint = nil
+    end
+    if type(diffRace) ~= "number" then
+        diffRace = nil
+    end
+
+    BJI_Async.removeTask("BJIRaceUIRaceTimeClear")
+
+    if diffCheckpoint then
+        guihooks.trigger("RaceCheckpointComparison", { timeOut = timeoutMS, time = diffCheckpoint / 1000 })
+    end
+    if diffRace then
+        guihooks.trigger("RaceTimeComparison", { timeOut = timeoutMS, time = diffRace / 1000 })
+    end
+
+    if (diffCheckpoint or diffRace) and type(timeoutMS) == "number" and timeoutMS > 0 then
+        BJI_Async.delayTask(M.clearRaceTime, timeoutMS, "BJIRaceUIRaceTimeClear")
     end
 end
 
@@ -159,10 +192,51 @@ local function clearRaceTime()
 end
 
 local function clear()
+    guihooks.trigger("ScenarioNotRunning")
     M.clearLap()
     M.clearWaypoint()
-    M.clearHotlap()
-    M.clearRaceTime()
+end
+
+local function postLayoutUpdate()
+    drawLap()
+    drawWaypoint()
+end
+
+---@param raceHash string
+---@return integer?
+local function getRaceAttempts(raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("getRaceAttempts invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local raceAttempts = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_ATTEMPTS)
+        [GetMapName() or BJI_Context.UI.mapName]
+    if raceAttempts then
+        return raceAttempts[raceHash]
+    end
+end
+
+---@param raceID integer
+---@param raceHash string
+local function incrementRaceAttempts(raceID, raceHash)
+    if type(raceHash) ~= "string" then
+        LogError("incrementRaceAttempts invalid raceHash")
+        dump(raceHash)
+        return
+    end
+    local attempts = BJI_LocalStorage.get(BJI_LocalStorage.VALUES.RACES_ATTEMPTS)
+    local mapAttempts = attempts[GetMapName() or BJI_Context.UI.mapName]
+    if not mapAttempts then
+        mapAttempts = {}
+        attempts[GetMapName() or BJI_Context.UI.mapName] = mapAttempts
+    end
+    mapAttempts[raceHash] = (mapAttempts[raceHash] or 0) + 1
+    BJI_LocalStorage.set(BJI_LocalStorage.VALUES.RACES_ATTEMPTS, attempts)
+    local poi = BJI_Bigmap.getPOIAndType(string.format("race%d_",raceID))
+    if poi then
+        poi.rating.attempts = mapAttempts[raceHash]
+    end
 end
 
 M.setLap = setLap
@@ -172,12 +246,16 @@ M.setWaypoint = setWaypoint
 M.clearWaypoint = clearWaypoint
 
 M.addHotlapRow = addHotlapRow
-M.clearHotlap = clearHotlap
 
 M.setRaceTime = setRaceTime
 M.clearRaceTime = clearRaceTime
 
 M.clear = clear
+
+M.postLayoutUpdate = postLayoutUpdate
+
+M.getRaceAttempts = getRaceAttempts
+M.incrementRaceAttempts = incrementRaceAttempts
 
 -- init hotlapping app
 extensions.load({ 'core_hotlapping' })

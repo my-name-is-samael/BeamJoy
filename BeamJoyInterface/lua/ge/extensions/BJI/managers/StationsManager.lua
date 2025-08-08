@@ -1,245 +1,392 @@
+---@class BJIStation
+---@field name string
+---@field pos vec3
+---@field radius number
+---@field types string[]?
+---@field isEnergy boolean
+
+---@class BJIManagerStations : BJIManager
 local M = {
-    _name = "BJIStations",
-    renderStationDistance = 50,
-    COLORS = {
-        GARAGE = ShapeDrawer.Color(1, .4, 0, .05),
-        ENERGY = ShapeDrawer.Color(.2, 1, .2, .05),
-        TEXT = ShapeDrawer.Color(1, 1, 1, .5),
-        BG = ShapeDrawer.Color(0, 0, 0, .3),
+    _name = "Stations",
+
+    Data = {
+        ---@type tablelib<integer, {name: string, pos: vec3, radius: number, types: string[]}> index 1-N
+        EnergyStations = Table(),
+        ---@type tablelib<integer, {name: string, pos: vec3, radius: number}> index 1-N
+        Garages = Table(),
     },
 
+    markersIDs = Table(),
+
+    renderStationDistance = 50,
+    COLORS = {
+        GARAGE = BJI.Utils.ShapeDrawer.Color(1, .4, 0, .05),
+        ENERGY = BJI.Utils.ShapeDrawer.Color(.2, 1, .2, .05),
+        TEXT = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .5),
+        BG = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .3),
+    },
+
+    ---@type BJIStation?
     station = nil,
 
-    -- detection thread data
-    detectionStations = {},
-    detectionProcess = nil,
-    detectionLimit = 20, -- amount of detection by frame
+    refuelBaseTime = 5,
+
+    stationProcess = false,
 }
+local ctxt
 
-local function getVehEnergyTypes(ctxt)
-    if not ctxt.vehData or not ctxt.vehData.tanks then
-        return {}
-    end
-
-    local energyTypes = {}
-    for _, tank in pairs(ctxt.vehData.tanks) do
-        if not tincludes(energyTypes, tank.energyType, true) then
-            table.insert(energyTypes, tank.energyType)
-        end
-    end
-    return energyTypes
+local function canReset()
+    return not M.stationProcess
 end
 
-local function detectChunk(ctxt)
-    if not ctxt.vehPosRot then
-        return
+local function updateMarkers()
+    local function getID(prefix, name, i)
+        return string.format("%s_%s_%d", prefix, name:gsub(" ", "_"), i)
     end
+    local status
 
-    local energyTypes = getVehEnergyTypes(ctxt)
-    if #energyTypes == 0 then
-        return
-    end
+    local labels = {
+        station = {
+            typeFuel = BJI_Lang.get("interactiveMarkers.station.typeFuel"),
+            buttonFuel = BJI_Lang.get("interactiveMarkers.station.buttonFuel"),
+            typeElectric = BJI_Lang.get("interactiveMarkers.station.typeElectric"),
+            buttonElectric = BJI_Lang.get("interactiveMarkers.station.buttonElectric"),
+        },
+        garage = {
+            type = BJI_Lang.get("interactiveMarkers.garage.type"),
+            buttonRepair = BJI_Lang.get("interactiveMarkers.garage.buttonRepair"),
+            refuelNOS = BJI_Lang.get("interactiveMarkers.garage.refuelNOS"),
+        }
+    }
 
-    if not M.detectionProcess or M.detectionProcess > #M.detectionStations then
-        M.detectionProcess = 0
-    end
-
-    local target = math.min(M.detectionProcess + M.detectionLimit, #M.detectionStations)
-
-    for i = M.detectionProcess, target do
-        local s = M.detectionStations[i]
-        if s and
-            ctxt.vehPosRot.pos:distance(s.pos) <= s.radius then
-            if not s.types then
-                M.station = s
-                M.detectionProcess = nil
-                return
-            end
-            for _, type in ipairs(s.types) do
-                if tincludes(energyTypes, type, true) then
-                    M.station = s
-                    M.detectionProcess = nil
-                    return
-                end
-            end
-        end
-    end
-
-    M.detectionProcess = target
-    if M.detectionProcess == #BJIContext.Scenario.Data.Garages + #BJIContext.Scenario.Data.EnergyStations then
-        M.detectionProcess = nil
-    end
-end
-
-local function renderStations(ctxt)
-    if ctxt.camera == BJICam.CAMERAS.BIG_MAP then
-        return
-    end
-    local ownPos = (ctxt.camera == BJICam.CAMERAS.FREE or not ctxt.veh) and
-        BJICam.getPositionRotation().pos or
-        ctxt.vehPosRot.pos
-
-
-    if BJIScenario.canRepairAtGarage() and
-        BJIContext.Scenario.Data.Garages and
-        not BJIContext.Scenario.GaragesEdit then
-        for _, g in pairs(BJIContext.Scenario.Data.Garages) do
-            if ownPos:distance(g.pos) <= M.renderStationDistance then
-                ShapeDrawer.Sphere(g.pos, g.radius, M.COLORS.GARAGE)
-                local textPos = vec3(g.pos)
-                local zOffset = g.radius
-                if ctxt.veh then
-                    zOffset = ctxt.veh:getInitialHeight() * 1.5
-                end
-                textPos.z = textPos.z + zOffset
-                ShapeDrawer.Text(g.name, textPos, M.COLORS.TEXT, M.COLORS.BG)
-            end
-        end
-    end
-
-    if BJIScenario.canRefuelAtStation() and
-        BJIContext.Scenario.Data.EnergyStations and
-        not BJIContext.Scenario.EnergyStationsEdit then
-        local energyTypes = getVehEnergyTypes(ctxt)
-        if #energyTypes > 0 then
-            for _, s in pairs(BJIContext.Scenario.Data.EnergyStations) do
-                if ownPos:distance(s.pos) <= M.renderStationDistance then
-                    local compatible = false
-                    for _, type in ipairs(s.types) do
-                        if tincludes(energyTypes, type, true) then
-                            compatible = true
-                            break
+    M.markersIDs:forEach(BJI_InteractiveMarker.deleteMarker)
+    M.markersIDs:clear()
+    M.Data.Garages:forEach(function(g, i)
+        local id = getID("garage", g.name, i)
+        status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.GARAGE.icon,
+            g.pos, g.radius, {
+                color = BJI_InteractiveMarker.TYPES.GARAGE.color,
+                visibleFreeCam = true,
+                visibleAnyVeh = true,
+                condition = function(ctxt)
+                    return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.GARAGES) and
+                        BJI_Scenario.canRepairAtGarage() or BJI_Scenario.canRefuelAtStation()
+                end,
+                onEnter = function(ctxt)
+                    if ctxt.isOwner then
+                        M.station = table.assign({ isEnergy = false }, g)
+                    end
+                end,
+                onLeave = function(ctxt)
+                    M.station = nil
+                end,
+            }, {
+                {
+                    condition = function(ctxt)
+                        return ctxt.isOwner and not M.stationProcess and
+                            BJI_Scenario.canRepairAtGarage()
+                    end,
+                    icon = BJI_InteractiveMarker.TYPES.GARAGE.icon,
+                    type = labels.garage.type,
+                    label = g.name,
+                    buttonLabel = labels.garage.buttonRepair,
+                    callback = function(ctxt)
+                        if tonumber(ctxt.veh.veh.damageState) >= 1 then
+                            M.tryRepair(ctxt)
+                        else
+                            BJI_Toast.info(BJI_Lang.get("interactiveMarkers.garage.alreadyRepaired"))
                         end
                     end
-                    if compatible then
-                        ShapeDrawer.Sphere(s.pos, s.radius, M.COLORS.ENERGY)
-                        local textPos = vec3(s.pos)
-                        textPos.z = textPos.z + ctxt.veh:getInitialHeight() * 1.5
-                        ShapeDrawer.Text(s.name, textPos, M.COLORS.TEXT, M.COLORS.BG)
+                },
+                {
+                    condition = function(ctxt)
+                        return ctxt.vehData and not M.stationProcess and
+                            BJI_Scenario.canRefuelAtStation() and
+                            table.any(ctxt.vehData.tanks, function(t)
+                                return t.energyType == BJI_Veh.FUEL_TYPES.N2O
+                            end) or false
+                    end,
+                    icon = BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
+                    type = labels.garage.type,
+                    label = g.name,
+                    buttonLabel = labels.garage.refuelNOS,
+                    callback = function(ctxt)
+                        local energy, total = 0, 0
+                        local countTanks = table.reduce(ctxt.vehData.tanks, function(res, t)
+                            if t.energyType == BJI_Veh.FUEL_TYPES.N2O then
+                                energy = energy + t.currentEnergy
+                                total = total + t.maxEnergy
+                                res = res + 1
+                            end
+                            return res
+                        end, 0)
+                        if countTanks > 0 and energy / total < .95 then
+                            M.tryRefuel(ctxt, { BJI_Veh.FUEL_TYPES.N2O }, 100, countTanks * M.refuelBaseTime)
+                        else
+                            BJI_Toast.info(BJI_Lang.get("interactiveMarkers.garage.alreadyFull"))
+                        end
                     end
-                end
-            end
+                },
+            })
+        if status then
+            M.markersIDs:insert(id)
+        else
+            BJI_InteractiveMarker.deleteMarker(id)
         end
-    end
+    end)
+
+    M.Data.EnergyStations:forEach(function(es, i)
+        local id = getID("energyStation", es.name, i)
+        local isElectric = #es.types == 1 and es.types[1] == BJI_Veh.FUEL_TYPES.ELECTRIC
+        status = pcall(BJI_InteractiveMarker.upsertMarker, id, BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
+            es.pos, es.radius, {
+                color = BJI_InteractiveMarker.TYPES.ENERGY_STATION.color,
+                visibleFreeCam = true,
+                visibleAnyVeh = true,
+                condition = function(ctxt)
+                    return not BJI_Win_ScenarioEditor.is(BJI_Win_ScenarioEditor.TYPES.STATIONS) and
+                        BJI_Scenario.canRefuelAtStation()
+                end,
+                onEnter = function(ctxt)
+                    if ctxt.isOwner then
+                        M.station = table.assign({ isEnergy = true }, es)
+                    end
+                end,
+                onLeave = function()
+                    M.station = nil
+                end,
+            }, {
+                {
+                    condition = function(ctxt)
+                        return ctxt.vehData and not M.stationProcess and
+                            table.any(ctxt.vehData.tanks, function(t)
+                                return table.includes(es.types, t.energyType)
+                            end) or false
+                    end,
+                    icon = BJI_InteractiveMarker.TYPES.ENERGY_STATION.icon,
+                    type = BJI_Lang.get(isElectric and
+                        labels.station.typeElectric or labels.station.typeFuel),
+                    label = es.name,
+                    buttonLabel = BJI_Lang.get(isElectric and
+                        labels.station.buttonElectric or labels.station.buttonFuel),
+                    callback = function(ctxt)
+                        local tanks = table.reduce(ctxt.vehData.tanks, function(res, t)
+                            if t.currentEnergy / t.maxEnergy < .95 then
+                                table.insert(res, t)
+                            end
+                            return res
+                        end, {})
+                        if #tanks > 0 then
+                            M.tryRefuel(ctxt, table.map(tanks, function(t) return t.energyType end)
+                                :values(), 100, #tanks * M.refuelBaseTime)
+                        else
+                            BJI_Toast.info(BJI_Lang.get(isElectric and
+                                "interactiveMarkers.station.alreadyFullElectric" or
+                                "interactiveMarkers.station.alreadyFullFuel"))
+                        end
+                    end
+                }
+            })
+        if status then
+            M.markersIDs:insert(id)
+        else
+            BJI_InteractiveMarker.deleteMarker(id)
+        end
+    end)
 end
 
-local function renderTick(ctxt)
-    renderStations(ctxt)
+local function initCacheHandlers()
+    local _
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.STATIONS, function(cacheData)
+        M.Data.EnergyStations = table.map(cacheData.EnergyStations, function(es)
+            _, es.pos = pcall(vec3, es.pos.x, es.pos.y, es.pos.z)
+            return _ and es or nil
+        end)
+        M.Data.Garages = table.map(cacheData.Garages, function(g)
+            _, g.pos = pcall(vec3, g.pos.x, g.pos.y, g.pos.z)
+            return _ and g or nil
+        end)
 
-    local veh = ctxt.isOwner and ctxt.veh or nil
-    if M.station then
-        if not BJIPerm.canSpawnVehicle() or
-            (not BJIScenario.canRefuelAtStation() and not BJIScenario.canRepairAtGarage()) or
-            not veh or
-            BJIVeh.isUnicycle(veh:getID()) then
-            M.station = nil
-        elseif ctxt.vehPosRot.pos:distance(M.station.pos) > M.station.radius then
-            M.station = nil
-        end
-        return
-    end
-
-    local garagesCount = BJIContext.Scenario.Data.Garages and
-        #BJIContext.Scenario.Data.Garages or 0
-    local energyStationsCount = BJIContext.Scenario.Data.EnergyStations and
-        #BJIContext.Scenario.Data.EnergyStations or 0
-    if not BJIPerm.canSpawnVehicle() or
-        (not BJIScenario.canRefuelAtStation() and not BJIScenario.canRepairAtGarage()) or
-        not veh or BJIVeh.isUnicycle(veh:getID()) or
-        (garagesCount == 0 and energyStationsCount == 0) then
-        M.detectionProcess = nil
-        return
-    end
-
-    if veh then
-        if #M.detectionStations ~= garagesCount + energyStationsCount then
-            table.clear(M.detectionStations)
-            for _, g in ipairs(BJIContext.Scenario.Data.Garages) do
-                table.insert(M.detectionStations, {
-                    name = g.name,
-                    pos = vec3(g.pos),
-                    radius = tonumber(g.radius),
-                    types = nil,
-                    isEnergy = false,
-                })
-            end
-            for _, s in ipairs(BJIContext.Scenario.Data.EnergyStations) do
-                table.insert(M.detectionStations, {
-                    name = s.name,
-                    pos = vec3(s.pos),
-                    radius = tonumber(s.radius),
-                    types = tdeepcopy(s.types),
-                    isEnergy = true,
-                })
-            end
-            M.detectionProcess = nil
-        end
-        detectChunk(ctxt)
-    end
+        updateMarkers()
+    end)
 end
 
-local function tryRefillVehicle(ctxt, energyTypes, fillPercent, fillDuration)
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    if M.stationProcess then
+        return Table():addAll(BJI_Restrictions._SCENARIO_DRIVEN.NODEGRABBER, true)
+            :addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI_Restrictions.OTHER.CAMERA_CHANGE, true)
+            :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
+            :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+    end
+    return {}
+end
+
+---@param ctxt TickContext
+---@param id string
+---@param durationSec integer
+---@param beginCallback fun()?
+---@param endCallback fun(ctxt: TickContext)?
+local function commonStationProcess(ctxt, id, durationSec, beginCallback, endCallback)
+    if not ctxt.veh or not ctxt.veh.isLocal then return end
+    beginCallback = beginCallback or function() end
+    endCallback = endCallback or function() end
+
+    BJI_Veh.stopVehicle(ctxt.veh)
+    M.stationProcess = true
+    BJI_Restrictions.update()
+    BJI_Events.trigger(BJI_Events.EVENTS.RESTRICTIONS_UPDATE)
+    local previousCam = {
+        name = ctxt.camera,
+        posrot = ctxt.camera == BJI_Cam.CAMERAS.FREE and BJI_Cam.getPositionRotation() or nil
+    }
+    BJI_Cam.setCamera(BJI_Cam.CAMERAS.EXTERNAL)
+    ctxt.vehData.freezeStation = true
+    BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
+    ctxt.vehData.engineStation = false
+    BJI_Veh.engine(false, ctxt.veh.gameVehicleID)
+    beginCallback()
+
+    local timeout = GetCurrentTimeMillis() + durationSec * 1000 + 10 -- 10 ms to allow first flash to print
+    BJI_Message.flashCountdown(id, timeout, false, nil, durationSec)
+    BJI_Async.task(function(ctxt2)
+        return not ctxt2.veh or ctxt2.now >= timeout
+    end, function(ctxt2)
+        if ctxt2.veh then
+            ctxt.vehData.freezeStation = false
+            if not ctxt.vehData.freeze then
+                BJI_Veh.freeze(false, ctxt.vehData.gameVehID)
+            end
+            ctxt.vehData.engineStation = true
+            if ctxt.vehData.engine then
+                BJI_Veh.engine(true, ctxt.vehData.gameVehID)
+            end
+        else
+            BJI_Message.cancelFlash(id)
+        end
+        if previousCam.name == BJI_Cam.CAMERAS.FREE then
+            BJI_Cam.setCamera(previousCam.name)
+            BJI_Cam.setPositionRotation(previousCam.posrot.pos, previousCam.posrot.rot)
+        elseif ctxt2.veh then
+            BJI_Cam.setCamera(previousCam.name)
+        end
+        endCallback(ctxt2)
+        M.stationProcess = false
+        BJI_Restrictions.update()
+    end, id .. "-ended")
+end
+
+---@param ctxt TickContext
+local function tryRefuel(ctxt, energyTypes, fillPercent, fillDuration)
     if not ctxt.isOwner or not ctxt.vehData or not ctxt.vehData.tanks then return end
     if not energyTypes or #energyTypes == 0 then return end
 
     -- no values = emergency refill
-    fillDuration = fillDuration or BJIContext.BJC.Freeroam.EmergencyRefuelDuration
-    fillPercent = fillPercent or Round(BJIContext.BJC.Freeroam.EmergencyRefuelPercent / 100, 2)
+    fillDuration = fillDuration or BJI_Context.BJC.Freeroam.EmergencyRefuelDuration
+    fillPercent = fillPercent or math.round(BJI_Context.BJC.Freeroam.EmergencyRefuelPercent / 100, 2)
 
 
     local tanksToRefuel = {}
     for tankName, tank in pairs(ctxt.vehData.tanks) do
-        if tincludes(energyTypes, tank.energyType, true) then
+        if table.includes(energyTypes, tank.energyType) then
             tanksToRefuel[tankName] = tank
         end
     end
-    if tlength(tanksToRefuel) == 0 then return end
+    if table.length(tanksToRefuel) == 0 then return end
 
-    -- start process
-    BJIVeh.stopCurrentVehicle()
-    BJIContext.User.stationProcess = true
-    local wasResetRestricted = BJIRestrictions.getState(BJIRestrictions.TYPES.Reset)
-    if not wasResetRestricted then
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-    end
-    BJICam.forceCamera(BJICam.CAMERAS.EXTERNAL)
-    ctxt.vehData.freezeStation = true
-    BJIVeh.freeze(true, ctxt.vehData.vehGameID)
-    ctxt.vehData.engineStation = false
-    BJIVeh.engine(false, ctxt.vehData.vehGameID)
+    commonStationProcess(ctxt, "BJIRefill", fillDuration, nil, function(ctxt2)
+        if ctxt2.veh then
+            for tankName, t in pairs(tanksToRefuel) do
+                local targetEnergy = math.round(t.maxEnergy * fillPercent)
+                BJI_Veh.setFuel(tankName, targetEnergy)
+            end
 
-    local completedKey = tlength(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
-        "energyStations.flashTankFilled"
-    if #energyTypes == 1 and energyTypes[1] == BJI_ENERGY_STATION_TYPES.ELECTRIC then
-        completedKey = "energyStations.flashBatteryFilled"
-    end
-    BJIMessage.flashCountdown("BJIRefill", GetCurrentTimeMillis() + fillDuration * 1000 + 10, false,
-        BJILang.get(completedKey), fillDuration)
-    BJIAsync.delayTask(function()
-        for tankName, t in pairs(tanksToRefuel) do
-            local targetEnergy = Round(t.maxEnergy * fillPercent)
-            BJIVeh.setFuel(tankName, targetEnergy)
+            local completedKey = table.length(tanksToRefuel) > 1 and "energyStations.flashTanksFilled" or
+                "energyStations.flashTankFilled"
+            if #energyTypes == 1 and energyTypes[1] == BJI.CONSTANTS.ENERGY_STATION_TYPES.ELECTRIC then
+                completedKey = "energyStations.flashBatteryFilled"
+            end
+            BJI_Message.flash("BJIRefillDone", BJI_Lang.get(completedKey), 3, false)
         end
-    end, fillDuration * 1000 - 1000, "BJIStationRefillFuel")
-    BJIAsync.delayTask(function()
-        ctxt.vehData.freezeStation = false
-        if not ctxt.vehData.freeze then
-            BJIVeh.freeze(false, ctxt.vehData.vehGameID)
-        end
-        ctxt.vehData.engineStation = true
-        if ctxt.vehData.engine then
-            BJIVeh.engine(true, ctxt.vehData.vehGameID)
-        end
-        BJICam.resetForceCamera()
-        if not wasResetRestricted then
-            BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-        end
-        BJIContext.User.stationProcess = false
-    end, fillDuration * 1000, "BJIStationRefillEnd")
+    end)
 end
 
-M.renderTick = renderTick
-M.tryRefillVehicle = tryRefillVehicle
+---@param ctxt TickContext
+local function tryRepair(ctxt)
+    commonStationProcess(ctxt, "BJIStationRepair", 5, function()
+        BJI_Reputation.onGarageRepair()
+        BJI_Scenario.onGarageRepair()
+    end, function(ctxt2)
+        if ctxt2.veh then
+            BJI_Veh.setPositionRotation(ctxt2.veh.position, nil, {
+                safe = false
+            })
+            BJI_Veh.postResetPreserveEnergy(ctxt2.veh.gameVehicleID)
+            BJI_Sound.play(BJI_Sound.SOUNDS.REPAIR)
 
-RegisterBJIManager(M)
+            BJI_Message.flash("BJIStationRepairDone", BJI_Lang.get("garages.flashVehicleRepaired"), 3, false)
+        end
+    end)
+end
+
+---@param energyType string?
+local function setGPS(energyType)
+    if not ctxt.isOwner then return end
+
+    ---@param job NGJob
+    extensions.core_jobsystem.create(function(job)
+        local targets = Table()
+        if energyType and table.includes(BJI.CONSTANTS.ENERGY_STATION_TYPES, energyType) then
+            for _, station in ipairs(BJI_Stations.Data.EnergyStations) do
+                if table.includes(station.types, energyType) then
+                    targets:insert({
+                        el = station,
+                        distance = BJI_GPS.getRouteLength({ ctxt.veh.position, station.pos })
+                    })
+                    job.sleep(.01)
+                end
+            end
+        else
+            for _, garage in ipairs(BJI_Stations.Data.Garages) do
+                targets:insert({
+                    el = garage,
+                    distance = BJI_GPS.getRouteLength({ ctxt.veh.position, garage.pos })
+                })
+                job.sleep(.01)
+            end
+        end
+
+        if #targets > 0 then
+            targets:sort(function(a, b) return a.distance < b.distance end)
+            job.sleep(.01)
+            BJI_GPS.prependWaypoint({
+                key = BJI_GPS.KEYS.STATION,
+                pos = targets[1].el.pos,
+                radius = targets[1].el.radius
+            })
+        end
+    end, .1)
+end
+
+M.canReset = canReset
+
+M.getRestrictions = getRestrictions
+
+M.tryRefuel = tryRefuel
+M.tryRepair = tryRepair
+
+M.setGPS = setGPS
+
+---@param c TickContext
+M.renderTick = function(c) ctxt = c end
+
+M.onLoad = function()
+    initCacheHandlers()
+
+    BJI_Events.addListener(BJI_Events.EVENTS.LANG_CHANGED, updateMarkers, M._name)
+end
+
 return M

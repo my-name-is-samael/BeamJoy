@@ -1,8 +1,16 @@
+---@class BJIManagerVotes : BJIManager
 local M = {
-    _name = "BJIVotes",
+    _name = "Votes",
+    
+    SCENARIO_TYPES = {
+        RACE = "race",
+        SPEED = "speed",
+        HUNTER = "hunter",
+        INFECTED = "infected",
+        DERBY = "derby",
+    }
 }
 
--- KICK
 M.Kick = {
     threshold = 0,
     creatorID = nil,
@@ -12,37 +20,45 @@ M.Kick = {
     selfVoted = false,
 }
 
+function M.Kick.onLoad()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.VOTE, function(cacheData)
+        if cacheData.Kick then
+            M.Kick.threshold = cacheData.Kick.threshold
+            M.Kick.creatorID = cacheData.Kick.creatorID
+            M.Kick.targetID = cacheData.Kick.targetID
+            M.Kick.endsAt = BJI_Tick.applyTimeOffset(cacheData.Kick.endsAt)
+            M.Kick.amountVotes = table.length(cacheData.Kick.voters)
+            M.Kick.selfVoted = table.includes(cacheData.Kick.voters, BJI_Context.User.playerID)
+            BJI_Events.trigger(BJI_Events.EVENTS.VOTE_UPDATED)
+        end
+    end)
+end
+
 function M.Kick.started()
     return M.Kick.targetID ~= nil
 end
 
 function M.Kick.getTotalPlayers()
-    local totalPlayers = 0
-    for playerID in pairs(BJIContext.Players) do
-        if not BJIPerm.isStaff(playerID) then
-            -- not counting staff in the total
-            totalPlayers = totalPlayers + 1
-        end
-    end
-    return totalPlayers
+    return BJI_Context.Players
+        :filter(function(_, pid) return not BJI_Perm.isStaff(pid) end)
+        :length()
 end
 
 function M.Kick.canStartVote(targetID)
     return not M.Kick.started() and
-        not BJIPerm.isStaff() and
-        not BJIContext.isSelf(targetID) and
-        not BJIPerm.isStaff(targetID) and
+        not BJI_Perm.isStaff() and
+        not BJI_Context.isSelf(targetID) and
+        not BJI_Perm.isStaff(targetID) and
         M.Kick.getTotalPlayers() > 2 and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK)
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_KICK)
 end
 
 function M.Kick.start(targetID)
     if M.Kick.canStartVote(targetID) then
-        BJITx.votekick.start(targetID)
+        BJI_Tx_vote.KickStart(targetID)
     end
 end
 
--- MAP
 M.Map = {
     threshold = 0,
     creatorID = nil,
@@ -53,114 +69,120 @@ M.Map = {
     selfVoted = false,
 }
 
+function M.Map.onLoad()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.VOTE, function(cacheData)
+        if cacheData.Map then
+            M.Map.threshold = cacheData.Map.threshold
+            M.Map.creatorID = cacheData.Map.creatorID
+            M.Map.mapLabel = cacheData.Map.mapLabel
+            M.Map.mapCustom = cacheData.Map.mapCustom == true
+            M.Map.endsAt = BJI_Tick.applyTimeOffset(cacheData.Map.endsAt)
+            M.Map.amountVotes = table.length(cacheData.Map.voters)
+            M.Map.selfVoted = table.includes(cacheData.Map.voters, BJI_Context.User.playerID)
+            BJI_Events.trigger(BJI_Events.EVENTS.VOTE_UPDATED)
+        end
+    end)
+end
+
 function M.Map.started()
     return M.Map.mapLabel ~= nil
 end
 
 function M.Map.getTotalPlayers()
-    local count = 0
-    for playerID in pairs(BJIContext.Players) do
-        if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_MAP, playerID) then
-            count = count + 1
-        end
-    end
-    return count
+    return BJI_Context.Players:filter(function(_, pid)
+        return BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_MAP, pid)
+    end):length()
 end
 
 function M.Map.canStartVote()
-    -- Rule in https://github.com/my-name-is-samael/BeamJoy/issues/14
     return not M.Map.started() and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_MAP) and
-        (
-            M.Map.getTotalPlayers() > 1 or
-            not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SWITCH_MAP)
-        )
+        BJI_Context.Maps and
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_MAP) and
+        BJI_Scenario.isFreeroam() and
+        not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SWITCH_MAP)
 end
 
 function M.Map.start(mapName)
     if not M.Map.started() then
-        BJITx.votemap.start(mapName)
+        BJI_Tx_vote.MapStart(mapName)
     end
 end
 
--- RACE (VOTE OR PREPARATION)
-M.Race = {
-    threshold = 0,
+M.Scenario = {
+    type = nil,
     creatorID = nil,
-    endsAt = nil,
     isVote = false,
-    raceName = nil,
-    places = 0,
-    record = nil,
-    timeLabel = nil,
-    weatherLabel = nil,
-    laps = nil,
-    model = nil,
-    specificConfig = false,
-    respawnStrategy = nil,
+    threshold = 0,
+    endsAt = nil,
+    scenarioData = {},
+    voters = {},
     amountVotes = 0,
     selfVoted = false,
 }
 
-function M.Race.started()
-    return M.Race.creatorID ~= nil
+function M.Scenario.onLoad()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.VOTE, function(cacheData)
+        if cacheData.Scenario then
+            M.Scenario.type = cacheData.Scenario.type
+            M.Scenario.creatorID = cacheData.Scenario.creatorID
+            M.Scenario.isVote = cacheData.Scenario.isVote
+            M.Scenario.threshold = cacheData.Scenario.threshold
+            M.Scenario.endsAt = BJI_Tick.applyTimeOffset(cacheData.Scenario.endsAt)
+            M.Scenario.scenarioData = cacheData.Scenario.scenarioData
+            M.Scenario.voters = cacheData.Scenario.voters
+            M.Scenario.amountVotes = table.length(cacheData.Scenario.voters or {})
+            M.Scenario.selfVoted = cacheData.Scenario.voters and
+                cacheData.Scenario.voters[BJI_Context.User.playerID] or false
+            BJI_Events.trigger(BJI_Events.EVENTS.VOTE_UPDATED)
+        end
+    end)
 end
 
-function M.Race.canStartVote()
-    return not BJIScenario.isServerScenarioInProgress() and
-        not M.Race.started() and
-        (
-            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
-            BJIPerm.hasPermission(BJIPerm.PERMISSIONS.START_SERVER_SCENARIO)
-        )
+function M.Scenario.started()
+    return M.Scenario.creatorID ~= nil
 end
 
-function M.Race.start(raceID, isVote, settings)
-    if not M.Race.started() then
-        BJITx.voterace.start(raceID, isVote, settings)
-    end
+function M.Scenario.canStartVote()
+    return not M.Scenario.started() and not M.Map.started() and
+        BJI_Scenario.isFreeroam() and
+        (BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.VOTE_SERVER_SCENARIO) or
+            BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.START_SERVER_SCENARIO))
 end
 
--- SPEED
-M.Speed = {
-    creatorID = nil,
-    isEvent = false,
-    endsAt = nil,
-    participants = {},
-}
-
-function M.Speed.started()
-    return M.Speed.endsAt ~= nil
-end
-
-function M.Speed.canStartVote()
-    return not M.Speed.started() and
-        not BJIScenario.isServerScenarioInProgress() and
-        BJIScenario.isFreeroam() and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_SERVER_SCENARIO)
-end
-
+---@param ctxt TickContext
 local function slowTick(ctxt)
-    if M.Speed.started() then
-        if M.Speed.isEvent and
-            not M.Speed.participants[BJIContext.User.playerID] and
+    if M.Scenario.started() and M.Scenario.type == M.SCENARIO_TYPES.SPEED then
+        -- autojoin on event
+        if not M.Scenario.isVote and
+            not M.Scenario.voters[BJI_Context.User.playerID] and
             ctxt.isOwner then
-            -- autojoin on event
-            BJITx.scenario.SpeedJoin(ctxt.veh:getID())
+            if BJI_Tournament.state and BJI_Tournament.whitelist and
+                not BJI_Tournament.whitelistPlayers:includes(BJI_Context.User.playerName) then
+                BJI_Veh.deleteAllOwnVehicles()
+            else
+                BJI_Tx_vote.ScenarioVote(ctxt.veh.gameVehicleID)
+            end
         end
 
         -- auto leave or update vehicle
-        if M.Speed.participants[BJIContext.User.playerID] then
+        if M.Scenario.voters[BJI_Context.User.playerID] then
             if not ctxt.isOwner then
-                BJITx.scenario.SpeedJoin()
-            elseif ctxt.veh:getID() ~= M.Speed.participants[BJIContext.User.playerID] then
-                BJITx.scenario.SpeedJoin(ctxt.veh:getID())
+                BJI_Tx_vote.ScenarioVote()
+            elseif ctxt.veh.gameVehicleID ~= M.Scenario.voters[BJI_Context.User.playerID] then
+                BJI_Tx_vote.ScenarioVote(ctxt.veh.gameVehicleID)
             end
         end
     end
 end
 
-M.slowTick = slowTick
+M.onLoad = function()
+    table.forEach({ M.Kick, M.Map, M.Scenario }, function(el)
+        if el.onLoad then
+            el.onLoad()
+        end
+    end)
 
-RegisterBJIManager(M)
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
+end
+
 return M

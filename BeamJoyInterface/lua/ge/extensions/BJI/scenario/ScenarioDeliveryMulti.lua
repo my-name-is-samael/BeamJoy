@@ -1,292 +1,394 @@
-local M = {
+---@class BJIScenarioDeliveryMulti : BJIScenario
+local S = {
+    _name = "DeliveryTogether",
+    _key = "DELIVERY_MULTI",
+    _isSolo = false,
+
     -- server data
     participants = {},
+    ---@type {pos: vec3, rot: vec3, radius: number}?
     target = nil,
 
     baseDistance = nil,
+    ---@type number?
     distance = nil,
     nextResetGarage = false,    -- exempt reset when repairing at a garage
     tanksSaved = nil,
     checkTargetProcess = false, -- process to check player reached target and stayed in its radius
+    ---@type integer?
+    checkTargetTime = nil,
 
-    ui = {
-        participants = {},
-        playerLabelWidth = 0,
-    }
+    disableBtns = false,
 }
-
-local function updateUI()
-    M.ui.playerLabelWidth = 0
-    for playerID in pairs(M.participants) do
-        local player = BJIContext.Players[playerID]
-        M.ui.participants[playerID] = player.playerName
-
-        local w = GetColumnTextWidth(M.ui.participants[playerID])
-        if w > M.ui.playerLabelWidth then
-            M.ui.playerLabelWidth = w
-        end
-    end
-end
+--- gc prevention
+local actions, participant, remainingSec, remainingPlayers
 
 local function stop()
     -- server data
-    M.participants = {}
-    M.target = nil
+    S.participants = {}
+    S.target = nil
 
-    M.baseDistance = nil
-    M.distance = nil
-    M.tanksSaved = nil
-    M.nextResetGarage = false
+    S.baseDistance = nil
+    S.distance = nil
+    S.nextResetGarage = false
+    S.tanksSaved = nil
+    S.checkTargetProcess = false
+    S.checkTargetTime = nil
 
-    BJIMessage.flash("BJIDeliveryMultiStop", BJILang.get("packageDelivery.flashEnd"), 3, false)
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    S.disableBtns = false
+
+    BJI_Message.flash("BJIDeliveryMultiStop", BJI_Lang.get("packageDelivery.flashEnd"), 3, false)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 local function getRadiusMultiplier()
-    return Clamp(tlength(M.participants), 1, 4)
+    return math.clamp(table.length(S.participants), 1, 4)
 end
 
 -- can switch to scenario hook
+---@param ctxt TickContext
 local function canChangeTo(ctxt)
-    return BJIScenario.isFreeroam() and
-        ctxt.isOwner and
-        not BJIVeh.isUnicycle(ctxt.veh:getID()) and
-        BJIContext.Scenario.Data.Deliveries and
-        #BJIContext.Scenario.Data.Deliveries > 1
+    return BJI_Scenario.isFreeroam() and
+        ctxt.isOwner and ctxt.veh.isVehicle and
+        #BJI_Scenario.Data.Deliveries.Points > 1
 end
 
 -- load hook
+---@param ctxt TickContext
 local function onLoad(ctxt)
-    BJIVehSelector.tryClose()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, true)
-    BJIQuickTravel.toggle(false)
-    BJIAI.toggle(false)
-    BJIGPS.reset()
-    BJIRaceWaypoint.resetAll()
+    BJI_Win_VehSelector.tryClose()
+    BJI_GPS.reset()
+    BJI_RaceWaypoint.resetAll()
 end
 
--- player vehicle spawn hook
-local function onVehicleSpawned(gameVehID)
-    if BJIVeh.isVehicleOwn(gameVehID) then
-        BJITx.scenario.DeliveryMultiLeave()
+---@param ctxt TickContext
+local function onUnload(ctxt)
+    BJI_GPS.removeByKey(BJI_GPS.KEYS.DELIVERY_TARGET)
+    BJI_Message.stopRealtimeDisplay()
+    BJI_RaceWaypoint.resetAll()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    return table.includes({
+        BJI_Input.INPUTS.RECOVER,
+        BJI_Input.INPUTS.RECOVER_ALT,
+        BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+        BJI_Input.INPUTS.SAVE_HOME,
+        BJI_Input.INPUTS.LOAD_HOME,
+        BJI_Input.INPUTS.RESET_PHYSICS,
+        BJI_Input.INPUTS.RELOAD,
+    }, resetType)
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return 5
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Veh.RESET
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+        }, resetType) then
+        baseCallback()
+        return true
+    else
+        BJI_Veh.recoverInPlace()
+        return true
     end
 end
 
 -- player vehicle reset hook
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJIContext.User.currentVehicle then
-        return
-    elseif M.nextResetGarage then
-        if M.tanksSaved then
-            for tankName, tank in pairs(M.tanksSaved) do
+    if gameVehID ~= S.participants[BJI_Context.User.playerID].gameVehID or
+        not BJI_Veh.isVehicleOwn(gameVehID) then
+        return -- is not player delivery vehicle
+    elseif S.nextResetGarage then
+        if S.tanksSaved then
+            for tankName, tank in pairs(S.tanksSaved) do
                 local fuel = tank.currentEnergy
-                BJIVeh.setFuel(tankName, fuel)
+                BJI_Veh.setFuel(tankName, fuel)
             end
-            M.tanksSaved = nil
+            S.tanksSaved = nil
         end
-        M.nextResetGarage = false
+        S.nextResetGarage = false
         return
     end
 
-    BJITx.scenario.DeliveryMultiResetted()
-end
-
--- player vehicle switch hook
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.participants[BJIContext.User.playerID] then
-        if newGameVehID ~= M.participants[BJIContext.User.playerID].gameVehID then
-            BJIVeh.focusVehicle(M.participants[BJIContext.User.playerID].gameVehID)
-        end
-    end
+    BJI_Tx_scenario.DeliveryMultiResetted()
 end
 
 -- player vehicle destroy hook
 local function onVehicleDestroyed(gameVehID)
-    if BJIVeh.isVehicleOwn(gameVehID) then
-        BJITx.scenario.DeliveryMultiLeave()
+    if BJI_Veh.isVehicleOwn(gameVehID) then
+        BJI_Tx_scenario.DeliveryMultiLeave()
     end
-end
-
--- can player refuel at a station
-local function canRefuelAtStation()
-    return true
-end
-
--- can player repair vehicle at a garage
-local function canRepairAtGarage()
-    return true
 end
 
 -- player garage repair hook
 local function onGarageRepair()
-    M.nextResetGarage = true
-    local veh
-    for _, v in pairs(BJIContext.User.vehicles) do
-        if v.gameVehID == BJIContext.User.currentVehicle then
-            veh = v
-            break
-        end
-    end
-    if veh then
-        M.tanksSaved = tdeepcopy(veh.tanks)
-    end
-end
-
-local function canVehUpdate()
-    return false
+    S.nextResetGarage = true
+    Table(BJI_Context.User.vehicles)
+        :find(function(v)
+            return v.gameVehID == BJI_Context.User.currentVehicle
+        end, function(v)
+            S.tanksSaved = table.clone(v.tanks)
+        end)
 end
 
 local function onTargetReached(ctxt)
     if not ctxt.isOwner then
-        BJITx.scenario.DeliveryMultiLeave()
+        BJI_Tx_scenario.DeliveryMultiLeave()
         return
     end
 
-    M.baseDistance = nil
-    M.distance = nil
-    BJIRaceWaypoint.resetAll()
-    BJITx.scenario.DeliveryMultiReached()
+    S.baseDistance = nil
+    S.distance = nil
+    BJI_RaceWaypoint.resetAll()
+    BJI_Tx_scenario.DeliveryMultiReached()
 end
 
 -- each second tick hook
+---@param ctxt TickContext
 local function slowTick(ctxt)
-    if not ctxt.isOwner or not M.participants[BJIContext.User.playerID] then
-        BJITx.scenario.DeliveryMultiLeave()
+    if not ctxt.isOwner or not S.participants[BJI_Context.User.playerID] then
+        BJI_Tx_scenario.DeliveryMultiLeave()
         return
     end
 
-    if M.participants[BJIContext.User.playerID].reached then
-        BJIMessage.realtimeDisplay("deliverymulti", BJILang.get("deliveryTogether.waitingForOtherPlayers"))
-    elseif not M.target then
-        BJIMessage.realtimeDisplay("deliverymulti", BJILang.get("deliveryTogether.waitingForTarget"))
+    if S.participants[BJI_Context.User.playerID].reached then
+        BJI_Message.realtimeDisplay("deliverymulti",
+            BJI_Lang.get("deliveryTogether.waitingForOtherPlayers"):var({
+                amount = Table(S.participants):filter(function(p) return not p.reached end):length()
+            }))
+    elseif not S.target then
+        BJI_Message.realtimeDisplay("deliverymulti", BJI_Lang.get("deliveryTogether.waitingForTarget"))
     else
-        BJIMessage.stopRealtimeDisplay()
-        M.distance = BJIGPS.getCurrentRouteLength() or 0
-        if not M.baseDistance or M.distance > M.baseDistance then
-            M.baseDistance = M.distance
+        BJI_Message.stopRealtimeDisplay()
+        S.distance = BJI_GPS.getCurrentRouteLength() or 0
+        if not S.baseDistance or S.distance > S.baseDistance then
+            S.baseDistance = S.distance
         end
 
-        if #BJIRaceWaypoint._targets == 0 then
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+        if #BJI_RaceWaypoint._targets == 0 then
+            BJI_RaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                color = BJI_RaceWaypoint.COLORS.BLUE
+            })
         end
 
-        local distance = ctxt.vehPosRot.pos:distance(M.target.pos)
-        if distance < M.target.radius * getRadiusMultiplier() then
-            if not M.checkTargetProcess then
-                BJIMessage.flashCountdown("BJIDeliveryMultiTarget", ctxt.now + 3100, false,
-                    BJILang.get("deliveryTogether.flashPackage"), nil,
+        local distance = ctxt.veh.position:distance(S.target.pos)
+        if distance < S.target.radius * getRadiusMultiplier() then
+            if not S.checkTargetProcess then
+                S.checkTargetTime = ctxt.now + 3100
+                BJI_Message.flashCountdown("BJIDeliveryMultiTarget", S.checkTargetTime, false,
+                    BJI_Lang.get("deliveryTogether.flashPackage"), nil,
                     onTargetReached)
-                M.checkTargetProcess = true
+                S.checkTargetProcess = true
             end
         else
-            if M.checkTargetProcess then
-                BJIMessage.cancelFlash("BJIDeliveryMultiTarget")
-                M.checkTargetProcess = false
+            if S.checkTargetProcess then
+                BJI_Message.cancelFlash("BJIDeliveryMultiTarget")
+                S.checkTargetProcess = false
+                S.checkTargetTime = nil
             end
-            if #BJIGPS.targets == 0 then
-                BJIGPS.prependWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-                    M.target.radius * getRadiusMultiplier(), nil, nil, false)
+            if #BJI_GPS.targets == 0 then
+                BJI_GPS.prependWaypoint({
+                    key = BJI_GPS.KEYS.DELIVERY_TARGET,
+                    pos = S.target.pos,
+                    radius = S.target.radius * getRadiusMultiplier(),
+                    clearable = false
+                })
             end
         end
     end
 end
 
--- player list contextual actions getter
-local function getPlayerListActions(player, ctxt)
-    local actions = {}
+---@param vehData BJIMPVehicle
+---@return boolean, BJIColor?, BJIColor?
+local function doShowNametag(vehData)
+    if vehData.ownerID ~= BJI_Context.User.playerID and S.participants[vehData.ownerID] then
+        return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(.66, 1, .66, .5)
+    end
+    return true
+end
 
-    if BJIVote.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
-            label = BJILang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJIVote.Kick.start(player.playerID)
-            end
-        })
+---@param player BJIPlayer
+---@param ctxt TickContext
+local function getPlayerListActions(player, ctxt)
+    actions = {}
+
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Delivery, false)
-    BJIQuickTravel.toggle(true)
-    BJIAI.toggle(true)
-    BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
-    BJIMessage.stopRealtimeDisplay()
-    BJIRaceWaypoint.resetAll()
+---@param ctxt TickContext
+local function drawUI(ctxt)
+    participant = S.participants[ctxt.user.playerID]
+    if not participant then
+        return
+    end
+
+    if IconButton("deliveryMultiLeave", BJI.Utils.Icon.ICONS.exit_to_app,
+            { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = S.disableBtns }) then
+        S.disableBtns = true
+        BJI_Tx_scenario.DeliveryMultiLeave()
+    end
+    TooltipText(BJI_Lang.get("common.buttons.leave"))
+    SameLine()
+    Text(BJI_Lang.get("deliveryTogether.title"))
+    if S.checkTargetTime then
+        remainingSec = math.ceil((S.checkTargetTime - ctxt.now) / 1000)
+        if remainingSec > 0 then
+            SameLine()
+            Text(string.var("({1})", { BJI_Lang.get("deliveryTogether.depositIn"):var({
+                delay = remainingSec
+            }) }), { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+        end
+    end
+
+
+    if participant.reached then
+        remainingPlayers = Table(S.participants):filter(function(p) return not p.reached end):length()
+        if remainingPlayers == 0 then
+            Text(BJI_Lang.get("deliveryTogether.waitingForTarget"))
+        else
+            Text(string.var(BJI_Lang.get("deliveryTogether.waitingForOtherPlayers"),
+                { amount = remainingPlayers }))
+        end
+    else
+        Text(BJI_Lang.get("deliveryTogether.reachDestination"),
+            { color = BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT })
+    end
+    SameLine()
+    if participant.nextTargetReward then
+        Text(string.var("({1}: {2})", { BJI_Lang.get("deliveryTogether.streak"),
+            participant.streak }))
+    else
+        Text(string.var("({1})", { BJI_Lang.get("deliveryTogether.resetted") }),
+            { color = BJI.Utils.Style.TEXT_COLORS.ERROR })
+    end
+
+    if not participant.reached and S.distance then
+        ProgressBar(1 - math.max(S.distance / S.baseDistance, 0),
+            { color = BJI.Utils.Style.BTN_PRESETS.INFO[1] })
+        TooltipText(string.var("{1}: {2}", {
+            BJI_Lang.get("deliveryTogether.distance"),
+            BJI.Utils.UI.PrettyDistance(S.distance)
+        }))
+    end
 end
 
 local function onTargetChange()
-    BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-        M.target.radius * getRadiusMultiplier(), nil, nil, false)
-    BJIMessage.flash("BJIDeliveryMultiNextTarget", BJILang.get("packageDelivery.flashStart"), 3, false)
-    BJIRaceWaypoint.resetAll()
-    BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-        BJIRaceWaypoint.COLORS.BLUE)
+    BJI_GPS.appendWaypoint({
+        key = BJI_GPS.KEYS.DELIVERY_TARGET,
+        pos = S.target.pos,
+        radius = S.target.radius * getRadiusMultiplier(),
+        clearable = false
+    })
+    BJI_Message.flash("BJIDeliveryMultiNextTarget", BJI_Lang.get("packageDelivery.flashStart"), 3,
+        false)
+    BJI_RaceWaypoint.resetAll()
+    BJI_RaceWaypoint.addWaypoint({
+        name = "BJIDeliveryMultiTarget",
+        pos = S.target.pos,
+        radius = S.target.radius * getRadiusMultiplier(),
+        color = BJI_RaceWaypoint.COLORS.BLUE
+    })
 end
 
 local function rxData(data)
-    local wasParticipant = not not M.participants[BJIContext.User.playerID]
+    local wasParticipant = not not S.participants[BJI_Context.User.playerID]
     local previousRadius = getRadiusMultiplier()
-    M.participants = data.participants
-    local previousTarget = M.target and TryParsePosRot(tdeepcopy(M.target)) or nil
-    M.target = TryParsePosRot(data.target)
+    S.participants = data.participants
+    local previousTarget = S.target and math.tryParsePosRot(S.target) or nil
+    S.target = math.tryParsePosRot(data.target)
 
-    updateUI()
-
-    if not wasParticipant and M.participants[BJIContext.User.playerID] and M.target then
-        BJIScenario.switchScenario(BJIScenario.TYPES.DELIVERY_MULTI)
-    elseif wasParticipant and (not M.participants[BJIContext.User.playerID] or not M.target) then
+    if not wasParticipant and S.participants[BJI_Context.User.playerID] and S.target then
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.DELIVERY_MULTI)
+    elseif wasParticipant and (not S.participants[BJI_Context.User.playerID] or not S.target) then
         stop()
     end
 
-    if M.participants[BJIContext.User.playerID] and M.target then
-        if not previousTarget or previousTarget.pos:distance(M.target.pos) > 0 then
+    if S.participants[BJI_Context.User.playerID] and S.target then
+        if not previousTarget or previousTarget.pos:distance(S.target.pos) > 0 then
             onTargetChange()
         end
     end
 
     if previousRadius ~= getRadiusMultiplier() then
-        if BJIGPS.getByKey(BJIGPS.KEYS.DELIVERY_TARGET) then
-            BJIGPS.removeByKey(BJIGPS.KEYS.DELIVERY_TARGET)
-            BJIGPS.appendWaypoint(BJIGPS.KEYS.DELIVERY_TARGET, M.target.pos,
-                M.target.radius * getRadiusMultiplier(), nil, nil, false)
+        if BJI_GPS.getByKey(BJI_GPS.KEYS.DELIVERY_TARGET) then
+            BJI_GPS.removeByKey(BJI_GPS.KEYS.DELIVERY_TARGET)
+            BJI_GPS.appendWaypoint({
+                key = BJI_GPS.KEYS.DELIVERY_TARGET,
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                clearable = false
+            })
         end
-        if #BJIRaceWaypoint._targets > 0 then
-            BJIRaceWaypoint.resetAll()
-            BJIRaceWaypoint.addWaypoint("BJIDeliveryMultiTarget", M.target.pos, M.target.radius * getRadiusMultiplier(),
-                BJIRaceWaypoint.COLORS.BLUE)
+        if #BJI_RaceWaypoint._targets > 0 then
+            BJI_RaceWaypoint.resetAll()
+            BJI_RaceWaypoint.addWaypoint({
+                name = "BJIDeliveryMultiTarget",
+                pos = S.target.pos,
+                radius = S.target.radius * getRadiusMultiplier(),
+                color = BJI_RaceWaypoint.COLORS.BLUE
+            })
         end
     end
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
+S.onUnload = onUnload
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
-M.onVehicleDestroyed = onVehicleDestroyed
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.onGarageRepair = onGarageRepair
+S.getRestrictions = getRestrictions
 
-M.canSelectVehicle = canVehUpdate
-M.canSpawnNewVehicle = canVehUpdate
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = canVehUpdate
-M.canEditVehicle = canVehUpdate
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
-M.getPlayerListActions = getPlayerListActions
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleDestroyed = onVehicleDestroyed
+S.onGarageRepair = onGarageRepair
 
-M.slowTick = slowTick
+S.canSpawnNewVehicle = FalseFn
+S.canReplaceVehicle = FalseFn
+S.canPaintVehicle = FalseFn
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
 
-M.onUnload = onUnload
+S.canRefuelAtStation = TrueFn
+S.canRepairAtGarage = TrueFn
+S.canSpawnAI = TrueFn
 
-M.rxData = rxData
+S.doShowNametag = doShowNametag
+S.getPlayerListActions = getPlayerListActions
+S.drawUI = drawUI
 
-return M
+S.slowTick = slowTick
+
+S.rxData = rxData
+
+return S

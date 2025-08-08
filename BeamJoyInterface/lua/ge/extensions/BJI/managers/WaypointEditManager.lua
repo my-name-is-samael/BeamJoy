@@ -1,10 +1,12 @@
+---@class BJIManagerWaypointEdit : BJIManager
 local M = {
-    _name = "BJIWaypointEdit",
-    _startColor = ShapeDrawer.Color(1, 1, 0, .5),
-    _wpColor = ShapeDrawer.Color(.66, .66, 1, .5),
-    _segmentColor = ShapeDrawer.Color(1, 1, 1, .5),
-    _textColor = ShapeDrawer.Color(1, 1, 1, .8),
-    _textBgColor = ShapeDrawer.Color(0, 0, 0, .5),
+    _name = "WaypointEdit",
+
+    _startColor = BJI.Utils.ShapeDrawer.Color(1, 1, 0, .5),
+    _wpColor = BJI.Utils.ShapeDrawer.Color(.66, .66, 1, .5),
+    _segmentColor = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .5),
+    _textColor = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .8),
+    _textBgColor = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5),
 
     TYPES = {
         SPHERE = "start",
@@ -22,6 +24,11 @@ local function reset()
     M.segments = {}
 end
 
+-- gc prevention
+local zOffset, angle, len, forward, up, left, right, textPos, flatWps, wpIndices,
+finishIndices, fromPos, toPos, parent, bottomPos, topPos, a, b, c, d,
+e, f, arrowPos, radius, color, tip, base
+
 local function _insertWaypoint(wp)
     if wp.type == M.TYPES.SPHERE then
         table.insert(M.spheres, {
@@ -33,9 +40,13 @@ local function _insertWaypoint(wp)
             textBg = wp.textBg,
         })
     elseif wp.type == M.TYPES.CYLINDER then
+        wp.bottom = wp.bottom or 0
+        wp.top = wp.top or wp.radius * 2
         table.insert(M.cylinders, {
             name = wp.name,
             pos = wp.pos,
+            top = wp.top,
+            bottom = wp.bottom,
             rot = wp.rot,
             radius = wp.radius,
             color = wp.color or M._wpColor,
@@ -43,14 +54,15 @@ local function _insertWaypoint(wp)
             textBg = wp.textBg,
         })
     elseif wp.type == M.TYPES.RACE_GATE then
-        local zOffset = wp.zOffset or 1
-        local angle = AngleFromQuatRotation(wp.rot)
-        local len = Rotate2DVec(vec3(0, wp.radius, 0), angle)
-        local left = vec3(wp.pos) + Rotate2DVec(len, math.pi / 2)
+        zOffset = wp.zOffset or 1
+        forward = math.quatToForwardVector(wp.rot)
+        up = vec3(0, 0, 1)
+        right = forward:cross(up):normalized()
+        left = wp.pos - right * wp.radius
         left = quat(left.x, left.y, left.z - zOffset, left.z + wp.radius * 2)
-        local right = vec3(wp.pos) + Rotate2DVec(len, -math.pi / 2)
+        right = wp.pos + right * wp.radius
         right = quat(right.x, right.y, right.z - zOffset, right.z + wp.radius * 2)
-        local textPos = vec3(wp.pos)
+        textPos = vec3(wp.pos)
         textPos.z = ((wp.pos.z - zOffset) + (wp.pos.z + wp.radius * 2)) / 2
         table.insert(M.raceGates, {
             name = wp.name,
@@ -86,20 +98,22 @@ local function setWaypoints(points)
 end
 
 local function setWaypointsWithSegments(waypoints, loopable)
-    local flatWps = {}
-    local wpIndices = {}
+    flatWps = {}
+    wpIndices = {}
 
     M.reset()
     for _, wp in ipairs(waypoints) do
-        table.insert(flatWps, {
-            name = wp.name,
-            pos = wp.pos,
-            radius = wp.radius,
-            parents = wp.parents,
-            finish = wp.finish,
-            type = wp.type,
-        })
-        wpIndices[wp.name] = #flatWps
+        if wp.name then
+            table.insert(flatWps, {
+                name = wp.name,
+                pos = wp.pos,
+                radius = wp.radius,
+                parents = wp.parents,
+                finish = wp.finish,
+                type = wp.type,
+            })
+            wpIndices[wp.name] = #flatWps
+        end
         _insertWaypoint(wp)
     end
 
@@ -109,7 +123,7 @@ local function setWaypointsWithSegments(waypoints, loopable)
                 for _, parentName in ipairs(wp.parents) do
                     if parentName == "start" then
                         if loopable then
-                            local finishIndices = {}
+                            finishIndices = {}
                             for i, s2 in ipairs(flatWps) do
                                 if s2.finish then
                                     table.insert(finishIndices, i)
@@ -117,12 +131,12 @@ local function setWaypointsWithSegments(waypoints, loopable)
                             end
                             for _, iFin in ipairs(finishIndices) do
                                 -- place segments on top of gate
-                                local fromPos = vec3(flatWps[iFin].pos)
+                                fromPos = vec3(flatWps[iFin].pos)
                                 fromPos.z = fromPos.z + (flatWps[iFin].radius *
-                                    (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, flatWps[iFin].type) and 2 or 1))
-                                local toPos = vec3(wp.pos)
+                                    (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, flatWps[iFin].type) and 2 or 1))
+                                toPos = vec3(wp.pos)
                                 toPos.z = toPos.z + (wp.radius *
-                                    (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
+                                    (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
                                 table.insert(M.segments, {
                                     from = fromPos,
                                     to = toPos,
@@ -133,14 +147,14 @@ local function setWaypointsWithSegments(waypoints, loopable)
                             end
                         end
                     else
-                        local parent = flatWps[wpIndices[parentName]]
+                        parent = flatWps[wpIndices[parentName]]
                         if parent then
-                            local fromPos = vec3(parent.pos)
+                            fromPos = vec3(parent.pos)
                             fromPos.z = fromPos.z + (parent.radius *
-                                (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, parent.type) and 2 or 1))
-                            local toPos = vec3(wp.pos)
+                                (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, parent.type) and 2 or 1))
+                            toPos = vec3(wp.pos)
                             toPos.z = toPos.z + (wp.radius *
-                                (tincludes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
+                                (table.includes({ M.TYPES.CYLINDER, M.TYPES.RACE_GATE }, wp.type) and 2 or 1))
                             table.insert(M.segments, {
                                 from = fromPos,
                                 to = toPos,
@@ -156,9 +170,10 @@ local function setWaypointsWithSegments(waypoints, loopable)
     end
 end
 
+---@param ctxt TickContext
 local function renderTick(ctxt)
     for _, segment in ipairs(M.segments) do
-        ShapeDrawer.SquarePrism(
+        BJI.Utils.ShapeDrawer.SquarePrism(
             segment.from, segment.fromWidth,
             segment.to, segment.toWidth,
             segment.color
@@ -166,54 +181,61 @@ local function renderTick(ctxt)
     end
 
     for _, wp in ipairs(M.spheres) do
-        ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        BJI.Utils.ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
+        if wp.name and #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
     end
 
     for _, wp in ipairs(M.cylinders) do
-        local bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z)
-        local topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + (wp.radius * 2))
-        ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        bottomPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + wp.bottom)
+        topPos = vec3(wp.pos.x, wp.pos.y, wp.pos.z + wp.top)
+        BJI.Utils.ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
+        if wp.name and #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
         if wp.rot then
-            local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
-            ShapeDrawer.Arrow(wp.pos, wp.rot, radius,
-                ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, 1))
+            radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
+            BJI.Utils.ShapeDrawer.Arrow(wp.pos, wp.rot, radius,
+                BJI.Utils.ShapeDrawer.ColorContrasted(wp.color.r, wp.color.g, wp.color.b, 1))
         end
     end
 
     for _, wp in ipairs(M.raceGates) do
-        local a = vec3(wp.left.x, wp.left.y, wp.left.z)
-        local b = vec3(wp.left.x, wp.left.y, wp.left.w)
-        local c = vec3(wp.right.x, wp.right.y, wp.right.z)
-        ShapeDrawer.Triangle(a, b, c, wp.color)
-        local d = vec3(wp.right.x, wp.right.y, wp.right.z)
-        local e = vec3(wp.right.x, wp.right.y, wp.right.w)
-        local f = vec3(wp.left.x, wp.left.y, wp.left.w)
-        ShapeDrawer.Triangle(d, e, f, wp.color)
-        if wp.name and #wp.name > 0 then
-            ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
+        a = vec3(wp.left.x, wp.left.y, wp.left.z)
+        b = vec3(wp.left.x, wp.left.y, wp.left.w)
+        c = vec3(wp.right.x, wp.right.y, wp.right.z)
+        BJI.Utils.ShapeDrawer.Triangle(a, b, c, wp.color)
+        d = vec3(wp.right.x, wp.right.y, wp.right.z)
+        e = vec3(wp.right.x, wp.right.y, wp.right.w)
+        f = vec3(wp.left.x, wp.left.y, wp.left.w)
+        BJI.Utils.ShapeDrawer.Triangle(d, e, f, wp.color)
+        if wp.name and #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
                 wp.textBg or M._textBgColor, true)
         end
-        local arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh:getInitialHeight() or wp.radius / 2)
-        local radius = ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius
-        ShapeDrawer.Arrow(arrowPos, wp.rot, radius, ShapeDrawer.Color(wp.color.r, wp.color.g, wp.color.b, 1))
+        arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh.veh:getInitialHeight() or wp.radius / 2)
+        radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
+        color = BJI.Utils.ShapeDrawer.Color():fromRaw(wp.color)
+        color.a = 1
+        BJI.Utils.ShapeDrawer.Arrow(arrowPos, wp.rot, radius, color)
     end
 
     for _, wp in ipairs(M.arrows) do
-        local angle = AngleFromQuatRotation(wp.rot)
-        local len = Rotate2DVec(vec3(0, ctxt.veh and ctxt.veh:getInitialLength() / 2 or wp.radius, 0), angle)
-        local tip = vec3(wp.pos) + len
-        local base = vec3(wp.pos) + Rotate2DVec(len, math.pi)
-        ShapeDrawer.SquarePrism(
-            base, ctxt.veh and ctxt.veh:getInitialWidth() or wp.radius * 1.2,
+        forward = math.quatToForwardVector(wp.rot) * (ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius or 1)
+        tip = vec3(wp.pos) + forward
+        base = vec3(wp.pos) - forward
+        BJI.Utils.ShapeDrawer.SquarePrism(
+            base, ctxt.veh and ctxt.veh.veh:getInitialWidth() or (wp.radius or 2) * 1.2,
             tip, 0,
             wp.color
         )
-        ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-            wp.textBg or M._textBgColor, true)
+        if wp.name and #wp.name:trim() > 0 then
+            BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
+                wp.textBg or M._textBgColor, true)
+        end
     end
 end
 
@@ -225,10 +247,10 @@ M.reset = reset
 M.setWaypoints = setWaypoints
 M.setWaypointsWithSegments = setWaypointsWithSegments
 
+M.onLoad = function()
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+end
 M.renderTick = renderTick
 
-M.onUnload = onUnload
-
 reset()
-RegisterBJIManager(M)
 return M

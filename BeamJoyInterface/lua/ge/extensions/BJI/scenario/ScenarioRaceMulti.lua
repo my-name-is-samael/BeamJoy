@@ -1,14 +1,15 @@
-local M = {
+---@class BJIScenarioRaceMulti : BJIScenario
+local S = {
+    _name = "RaceMulti",
+    _key = "RACE_MULTI",
+    _isSolo = false,
+
     MINIMUM_PARTICIPANTS = 2,
+    ALLOW_NODEGRABBER = false,
     STATES = {
         GRID = 1,     -- time when all players choose a vehicle
         RACE = 2,     -- time from countdown to last player finish
         FINISHED = 3, -- end of the race, flashing who won
-    },
-    RESPAWN_STRATEGIES = {
-        NO_RESPAWN = "norespawn",
-        LAST_CHECKPOINT = "lastcheckpoint",
-        STAND = "stand",
     },
     CLIENT_EVENTS = {
         JOIN = "Join",                            -- grid
@@ -18,87 +19,33 @@ local M = {
         FINISH_REACHED = "FinishReached",         -- race
     },
 
-    testing = false,
-    testingCallback = nil,
-
-    state = nil,
-
-    exemptNextReset = false,
-    preRaceCam = nil,
-
-    raceName = nil,
-    record = nil,
-
-    settings = {
-        laps = nil,
-        model = nil,
-        config = nil,
-        respawnStrategy = nil,
-    },
-
-    grid = {
-        timeout = nil,
-        readyTime = nil,
-        previewPosition = nil,
-        startPositions = {},
-        participants = {},
-        ready = {},
-    },
-
-    race = {
-        startTime = nil,
-        raceData = {
-            -- loopable
-            -- wpPerLap
-            -- steps
-        },
-        leaderboard = {},
-        lap = 1,
-        waypoint = 0,
-        stands = {},
-        lastWaypoint = nil,
-        timers = {
-            race = nil,
-            raceOffset = 0,
-            lap = nil,
-        },
-        finished = {},
-        eliminated = {},
-    },
-
     dnf = {
         minDistance = .5,
-        timeout = 10,    -- +1 during first check
-        process = false, -- true if countdown is launched
-        targetTime = nil,
-
-        standExempt = false,
-        lastPos = nil,
+        timeout = 10,
     },
 }
+--- gc prevention
+local actions, veh
 
-local function stopRace()
-    M.testing = false
-    if type(M.testingCallback) == "function" then
-        M.testingCallback()
-        M.testingCallback = nil
-    end
+local function initManagerData()
+    S.state = nil
+    S.exemptNextReset = false
+    S.preRaceCam = nil
 
-    M.state = nil
-    M.exemptNextReset = false
-    M.preRaceCam = nil
+    S.raceName = nil
+    S.raceID = nil
+    S.raceHash = nil
+    S.record = nil
 
-    M.raceName = nil
-    M.record = nil
-
-    M.settings = {
+    S.settings = {
         laps = nil,
         model = nil,
         config = nil,
         respawnStrategy = nil,
+        collisions = true,
     }
 
-    M.grid = {
+    S.grid = {
         timeout = nil,
         readyTime = nil,
         previewPosition = nil,
@@ -107,42 +54,54 @@ local function stopRace()
         ready = {},
     }
 
-    M.race = {
+    S.race = {
         startTime = nil,
         raceData = {},
         leaderboard = {},
         lap = 1,
         waypoint = 0,
+        ---@type RaceStand[]
         stands = {},
         lastWaypoint = nil,
+        ---@type RaceStand
+        lastStand = nil,
         timers = {
+            ---@type Timer?
             race = nil,
             raceOffset = 0,
+            ---@type Timer?
             lap = nil,
         },
         finished = {},
         eliminated = {},
     }
 
-    M.dnf = {
-        minDistance = .5,
-        timeout = 10,
-        process = false,
-        targetTime = nil,
+    ---@type MapRacePBWP[]
+    S.lapData = {}
+    S.lastLaunchedCheckpoint = nil
+    S.lastLaunchedCheckpointTime = 0
 
-        lastPos = nil,
-    }
+    S.resetLock = true
 
-    BJIVehSelector.tryClose(true)
-    BJIScenario.switchScenario(BJIScenario.TYPES.FREEROAM)
+    S.dnf.process = false -- true if countdown is launched
+    S.dnf.lastPos = nil
+    S.dnf.targetTime = nil
+end
+initManagerData()
+
+local function stopRace()
+    initManagerData()
+    BJI_Cam.resetForceCamera()
+    BJI_Win_VehSelector.tryClose(true)
+    BJI_Scenario.switchScenario(BJI_Scenario.TYPES.FREEROAM)
 end
 
 local function isStateGridOrRace()
-    return M.state and M.state <= M.STATES.RACE
+    return S.state and S.state <= S.STATES.RACE
 end
 
 local function isStateRaceOrFinished()
-    return M.state and M.state >= M.STATES.RACE
+    return S.state and S.state >= S.STATES.RACE
 end
 
 -- can switch to scenario hook
@@ -150,207 +109,680 @@ local function canChangeTo(ctxt)
     return true
 end
 
--- load hook
-local function onLoad(ctxt)
-    BJIVehSelector.tryClose(true)
-    BJIVeh.saveCurrentVehicle()
-    BJIVeh.deleteAllOwnVehicles()
-    BJIAI.removeVehicles()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetRace, true)
-    BJIQuickTravel.toggle(false)
-    BJIRaceWaypoint.resetAll()
-    BJIGPS.reset()
-    BJICam.addRestrictedCamera(BJICam.CAMERAS.BIG_MAP)
-    BJIRaceUI.clear()
+---@param mpVeh BJIMPVehicle
+local function hideVehicle(mpVeh)
+    core_vehicle_partmgmt.setHighlightedPartsVisiblity(0, mpVeh.gameVehicleID)
+    mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(true)")
+    BJI_Minimap.toggleVehicle({ veh = mpVeh.veh, state = false })
+    BJI_Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = false })
+    BJI_Veh.stopVehicle(mpVeh)
+    if mpVeh.isLocal then
+        BJI_Veh.freeze(true, mpVeh.gameVehicleID)
+    end
 end
 
--- player vehicle switch hook
-local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if M.isParticipant() and not M.isSpec() then
-        -- racer
-        for _, v in pairs(BJIVeh.getMPOwnVehicles()) do
-            BJIVeh.focusVehicle(v.gameVehicleID)
-            return
+local function revealVehicles()
+    BJI_Veh.getMPVehicles(nil, true):forEach(function(mpVeh)
+        core_vehicle_partmgmt.setHighlightedPartsVisiblity(1, mpVeh.gameVehicleID)
+        mpVeh.veh:queueLuaCommand("obj:setGhostEnabled(false)")
+        BJI_Minimap.toggleVehicle({ veh = mpVeh.veh, state = not mpVeh.isAi })
+        BJI_Veh.toggleVehicleFocusable({ veh = mpVeh.veh, state = not mpVeh.isAi })
+        if mpVeh.isLocal then
+            BJI_Veh.freeze(false, mpVeh.gameVehicleID)
         end
+    end)
+end
 
-        -- no own veh found => eliminated
-        BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.LEAVE)
-        return
+-- load hook
+---@param ctxt TickContext
+local function onLoad(ctxt)
+    BJI_Win_VehSelector.tryClose(true)
+    if ctxt.veh then
+        BJI_Veh.saveCurrentVehicle()
     end
+    if table.length(ctxt.user.vehicles) > 0 then
+        BJI_Veh.deleteAllOwnVehicles()
+    end
+    BJI_RaceWaypoint.resetAll()
+    BJI_WaypointEdit.reset()
+    BJI_GPS.reset()
+    BJI_Cam.addRestrictedCamera(BJI_Cam.CAMERAS.BIG_MAP)
+    BJI_RaceUI.clearRaceTime()
+end
 
-    if M.isRaceStarted() and not M.isRaceFinished() then
-        -- finished or eliminated player spec switch
-        local ownerID = BJIVeh.getVehOwnerID(newGameVehID)
+-- unload hook (before switch to another scenario)
+local function onUnload(ctxt)
+    BJI_Message.cancelFlash("BJIRaceStart")
+    BJI_Message.cancelFlash("BJIRaceStand")
+    BJI_Message.cancelFlash("BJIRaceDNF")
+    BJI_Async.removeTask("BJIRaceStart")
+    BJI_Async.removeTask("BJIRacePreStart")
+    BJI_Async.removeTask("BJIRacePostStart")
+    BJI_Async.removeTask("BJIRaceStartShortCountdown")
+    BJI_Async.removeTask("BJIRaceStartWaypoints")
+    BJI_Async.removeTask("BJIRaceStartTime")
+    BJI_Async.removeTask("BJIRaceMultiWaitForServerWp")
+    BJI_Async.removeTask("BJIRacePostFinish")
 
-        if tincludes(M.race.finished, ownerID, true) or
-            tincludes(M.race.eliminated, ownerID, true) then
-            BJIVeh.focusNextVehicle()
+    BJI_Veh.getMPVehicles({ isAi = false }, true):forEach(function(v)
+        BJI_Minimap.toggleVehicle({ veh = v.veh, state = true })
+        BJI_Veh.toggleVehicleFocusable({ veh = v.veh, state = true })
+    end)
+    revealVehicles()
+
+    BJI_RaceWaypoint.resetAll()
+    for _, veh in pairs(BJI_Context.User.vehicles) do
+        BJI_Veh.focusVehicle(veh.gameVehID)
+        BJI_Veh.freeze(false, veh.gameVehID)
+        if S.preRaceCam then
+            BJI_Cam.setCamera(S.preRaceCam)
+        elseif ctxt.camera == BJI_Cam.CAMERAS.EXTERNAL then
+            BJI_Cam.setCamera(BJI_Cam.CAMERAS.ORBIT)
+        end
+        break
+    end
+    BJI_Cam.resetRestrictedCameras()
+    BJI_Win_VehSelector.tryClose(true)
+    BJI_RaceUI.clear()
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local res = Table():addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
+    if S.state == S.STATES.GRID then
+        res:addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+            :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+            :addAll(BJI_Restrictions.OTHER.CAMERA_CHANGE, true)
+            :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+            :addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
+    elseif S.state == S.STATES.RACE then
+        res:addAll(BJI_Restrictions.OTHER.BIG_MAP, true)
+        if not S.isSpec() then
+            res:addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+                :addAll(BJI_Restrictions.OTHER.FREE_CAM, true)
+                :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
         end
     end
+    return res
+end
+
+---@param ctxt TickContext
+local function canUseNodegrabber(ctxt)
+    return S.ALLOW_NODEGRABBER and (
+        (ctxt.isOwner and S.isRaceStarted(ctxt)) or
+        S.isRaceFinished()
+    )
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    if S.isParticipant() and not S.isFinished() and
+        not S.isEliminated() and S.isRaceStarted() and
+        S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+            BJI_Input.INPUTS.SAVE_HOME,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+        }, resetType)
+    end
+    return false
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key and
+        -1 or 0
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+        if table.includes({
+                BJI_Input.INPUTS.RECOVER,
+                BJI_Input.INPUTS.RECOVER_ALT,
+            }, resetType) then
+            baseCallback()
+            return true
+        elseif table.includes({
+                BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+                BJI_Input.INPUTS.RELOAD_ALL,
+                BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+                BJI_Input.INPUTS.LOAD_HOME,
+            }, resetType) then
+            BJI_Input.actions.loadHome.downBaseAction()
+            return true
+        else
+            BJI_Veh.recoverInPlace()
+            return true
+        end
+    elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key then
+        local now = GetCurrentTimeMillis()
+        if S.lastLaunchedCheckpoint and now - S.lastLaunchedCheckpointTime > 1000 then
+            BJI_Veh.setPosRotVel(S.lastLaunchedCheckpoint)
+            S.lastLaunchedCheckpointTime = now
+            return true
+        else
+            BJI_Input.actions.loadHome.downBaseAction()
+            return true
+        end
+    elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+        BJI_Input.actions.loadHome.downBaseAction()
+        return true
+    end
+    return false
 end
 
 -- player list contextual actions getter
+---@param player BJIPlayer
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
-    local actions = {}
+    actions = {}
 
-    if BJIVote.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
-            label = BJILang.get("playersBlock.buttons.voteKick"),
-            onClick = function()
-                BJIVote.Kick.start(player.playerID)
-            end
-        })
+    if S.state > S.STATES.GRID and S.isSpec() and not S.isSpec(player.playerID) then
+        ---@type BJIMPVehicle?
+        veh = BJI_Veh.getMPVehicles({ ownerID = player.playerID }, true):find(TrueFn)
+        if veh then
+            table.insert(actions, {
+                id = string.var("focus{1}", { player.playerID }),
+                icon = BJI.Utils.Icon.ICONS.visibility,
+                style = BJI.Utils.Style.BTN_PRESETS.INFO,
+                disabled = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID,
+                tooltip = BJI_Lang.get("common.buttons.show"),
+                onClick = function()
+                    BJI_Veh.focusVehicle(veh.gameVehicleID)
+                end
+            })
+        end
+    end
+
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-    BJIRaceWaypoint.resetAll()
-    for _, veh in pairs(BJIContext.User.vehicles) do
-        BJIVeh.focusVehicle(veh.gameVehID)
-        BJIVeh.freeze(false, veh.gameVehID)
-        if M.preRaceCam then
-            BJICam.setCamera(M.preRaceCam)
-        elseif ctxt.veh and ctxt.camera == BJICam.CAMERAS.EXTERNAL then
-            ctxt.camera = BJICam.CAMERAS.ORBIT
-            BJICam.setCamera(ctxt.camera)
-        end
-        break
-    end
-    BJIRestrictions.apply(BJIRestrictions.TYPES.ResetRace, false)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-    BJIVehSelector.tryClose(true)
-    guihooks.trigger('ScenarioResetTimer')
-end
-
 local function initGrid(data)
     -- init grid data
-    M.grid.timeout = BJITick.applyTimeOffset(data.timeout)
-    M.grid.readyTime = BJITick.applyTimeOffset(data.readyTime)
-    local parsed = TryParsePosRot(data.previewPosition)
-    M.grid.previewPosition = {
+    S.grid.timeout = BJI_Tick.applyTimeOffset(data.timeout)
+    S.grid.readyTime = BJI_Tick.applyTimeOffset(data.readyTime)
+    local parsed = math.tryParsePosRot(data.previewPosition)
+    S.grid.previewPosition = {
         pos = parsed.pos,
         rot = parsed.rot
     }
-    M.grid.startPositions = data.startPositions
-    for i, sp in ipairs(M.grid.startPositions) do
-        M.grid.startPositions[i] = TryParsePosRot(sp)
+    S.grid.startPositions = data.startPositions
+    for i, sp in ipairs(S.grid.startPositions) do
+        S.grid.startPositions[i] = math.tryParsePosRot(sp)
     end
 
-    local veh = BJIVeh.getCurrentVehicleOwn()
+    local veh = BJI_Veh.getCurrentVehicleOwn()
 
-    M.preRaceCam = BJICam.CAMERAS.ORBIT
+    S.preRaceCam = BJI_Cam.CAMERAS.ORBIT
     if veh then
-        M.preRaceCam = BJICam.getCamera()
-        if tincludes({
-                BJICam.CAMERAS.FREE,
-                BJICam.CAMERAS.BIG_MAP,
-                BJICam.CAMERAS.EXTERNAL,
-                BJICam.CAMERAS.PASSENGER
-            }, M.preRaceCam) then
+        S.preRaceCam = BJI_Cam.getCamera()
+        if table.includes({
+                BJI_Cam.CAMERAS.FREE,
+                BJI_Cam.CAMERAS.BIG_MAP,
+                BJI_Cam.CAMERAS.EXTERNAL,
+                BJI_Cam.CAMERAS.PASSENGER
+            }, S.preRaceCam) then
             -- will preserve camera for race start (if valid camera)
-            M.preRaceCam = BJICam.CAMERAS.ORBIT
+            S.preRaceCam = BJI_Cam.CAMERAS.ORBIT
         end
     end
 
-    BJIScenario.switchScenario(BJIScenario.TYPES.RACE_MULTI)
-    BJICam.setCamera(BJICam.CAMERAS.FREE)
-    BJICam.setPositionRotation(M.grid.previewPosition.pos, M.grid.previewPosition.rot)
+    if BJI_Win_Race.getState() then
+        -- hard switch from solo race
+        BJI_Win_Race.onUnload()
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.RACE_MULTI)
+        BJI_Win_Race.onLoad()
+    else
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.RACE_MULTI)
+    end
+    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+    BJI_Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
+end
+
+---@param ctxt TickContext
+local function postSpawn(ctxt)
+    if BJI_Scenario.is(BJI_Scenario.TYPES.RACE_MULTI) and ctxt.isOwner then
+        BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
+        BJI_Cam.setCamera(BJI_Cam.CAMERAS.EXTERNAL)
+    end
 end
 
 local function tryReplaceOrSpawn(model, config)
-    if M.state == M.STATES.GRID and M.isParticipant() and not M.isReady() then
-        if tlength(BJIContext.User.vehicles) > 0 and not BJIVeh.isCurrentVehicleOwn() then
+    if S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+        if table.length(BJI_Context.User.vehicles) > 0 and not BJI_Veh.isCurrentVehicleOwn() then
             -- trying to spawn a second veh
             return
         end
-        local pos = tpos(M.grid.participants, BJIContext.User.playerID)
-        local posrot = M.grid.startPositions[pos]
-        BJIVeh.replaceOrSpawnVehicle(model, config, posrot)
-        BJIAsync.task(function(ctxt)
-            return ctxt.isOwner and BJIVeh.isVehReady(ctxt.veh:getID())
-        end, function()
-            BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-            BJIVeh.freeze(true)
-        end, "BJIRacePostSpawn")
+        local pos = table.indexOf(S.grid.participants, BJI_Context.User.playerID)
+        local posrot = S.grid.startPositions[pos]
+        BJI_Veh.replaceOrSpawnVehicle(model, config, posrot)
+        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
-local function tryPaint(paint, paintNumber)
-    if BJIVeh.isCurrentVehicleOwn() and
-        M.state == M.STATES.GRID and M.isParticipant() and not M.isReady() then
-        BJIVeh.paintVehicle(paint, paintNumber)
-        BJIVeh.freeze(true)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
+    if mpVeh.isLocal and S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+        local startPos = S.grid.startPositions
+            [table.indexOf(S.grid.participants, BJI_Context.User.playerID)]
+        if startPos and mpVeh.position:distance(startPos.pos) > 1 then
+            -- spawned via basegame vehicle selector
+            BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+            BJI_Veh.waitForVehicleSpawn(postSpawn)
+        end
+    end
+end
+
+local function tryPaint(paintIndex, paint)
+    local veh = BJI_Veh.getCurrentVehicleOwn()
+    if veh and S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() then
+        BJI_Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 
 local function getModelList()
-    if M.state ~= M.STATES.GRID or
-        not M.isParticipant() or M.isReady() or M.settings.config then
-        return {}
+    if S.state ~= S.STATES.GRID or
+        not S.isParticipant() or S.isReady() then
+        return    -- veh selector should not be opened
+    elseif S.settings.config then
+        return {} -- only paints
     end
 
-    local models = BJIVeh.getAllVehicleConfigs()
+    local models = BJI_Veh.getAllVehicleConfigs()
 
-    if #BJIContext.Database.Vehicles.ModelBlacklist > 0 then
-        for _, model in ipairs(BJIContext.Database.Vehicles.ModelBlacklist) do
+    if #BJI_Context.Database.Vehicles.ModelBlacklist > 0 then
+        for _, model in ipairs(BJI_Context.Database.Vehicles.ModelBlacklist) do
             models[model] = nil
         end
     end
 
-    if M.settings.model then
-        return { [M.settings.model] = models[M.settings.model] }
+    if S.settings.model then
+        return { [S.settings.model] = models[S.settings.model] }
     end
     return models
 end
 
 local function onJoinGridParticipants()
-    -- join participants
-    if not M.testing then
-        -- prepare vehicle selector
-        local models = BJIVeh.getAllVehicleConfigs()
-        if M.settings.model then
-            models = { [M.settings.model] = models[M.settings.model] }
-            if not models[M.settings.model] then
-                LogError("No model available after race filter")
-            else
-                if M.settings.config then
-                    models = {}
-                end
-            end
-        end
-        BJIVehSelector.open(models, false)
-    end
-    if M.settings.config then
-        -- if forced config, then no callback from vehicle selector
-        tryReplaceOrSpawn(M.settings.model, M.settings.config)
+    if S.settings.config then
+        BJI_Async.task(function()
+            return BJI_VehSelectorUI.stateSelector
+        end, function()
+            -- if forced config, then no callback from vehicle selector
+            S.trySpawnNew(S.settings.model, S.settings.config)
+            BJI_Win_VehSelector.open(false)
+        end)
     else
-        BJIMessage.flash("BJIRaceGridChooseVehicle", BJILang.get("races.play.joinFlash"))
+        BJI_Message.flash("BJIRaceGridChooseVehicle", BJI_Lang.get("races.play.joinFlash"))
+        local models = BJI_Veh.getAllVehicleConfigs()
+        if S.settings.model then
+            models = { [S.settings.model] = models[S.settings.model] }
+        end
+        BJI_Win_VehSelector.open(false)
     end
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
 end
 
 local function onLeaveGridParticipants()
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-    BJICam.setCamera(BJICam.CAMERAS.FREE)
-    BJICam.setPositionRotation(M.grid.previewPosition.pos, M.grid.previewPosition.rot)
-    BJIVeh.deleteAllOwnVehicles()
-    BJIVehSelector.tryClose(true)
+    BJI_UI.hideGameMenu()
+    BJI_Cam.setCamera(BJI_Cam.CAMERAS.FREE)
+    BJI_Cam.setPositionRotation(S.grid.previewPosition.pos, S.grid.previewPosition.rot)
+    BJI_Veh.deleteAllOwnVehicles()
+    BJI_Win_VehSelector.tryClose(true)
 end
 
 local function onJoinGridReady()
-    BJIVehSelector.tryClose(true)
+    BJI_Win_VehSelector.tryClose(true)
+end
+
+local function specRandomRacer()
+    local players = {}
+    for _, playerID in ipairs(S.grid.participants) do
+        if playerID ~= BJI_Context.User.playerID and
+            not table.includes(S.race.eliminated, playerID) and
+            not table.includes(S.race.finished, playerID) then
+            table.insert(players, playerID)
+        end
+    end
+    if #players > 0 then
+        BJI_Veh.focus(table.random(players))
+    end
+end
+
+local function onStandStop(delayMs, wp, lastWp, callback)
+    local ctxt = BJI_Tick.getContext()
+    S.resetLock = true
+    S.dnf.standExempt = true
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+
+    delayMs = delayMs and math.max(delayMs, 3000) or 5000
+    BJI_Message.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
+        BJI_Lang.get("races.play.flashCountdownZero"))
+
+    local previousCam = BJI_Cam.getCamera()
+    BJI_Cam.setCamera(BJI_Cam.CAMERAS.EXTERNAL)
+    BJI_Veh.stopVehicle(ctxt.veh)
+    BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
+    BJI_Veh.getPositionRotation(nil, function(pos)
+        S.race.lastStand = { step = lastWp.wp, pos = pos, rot = wp.rot }
+        BJI_Veh.saveHome(S.race.lastStand)
+    end)
+
+    BJI_Async.delayTask(function()
+        S.exemptNextReset = true
+        BJI_Input.actions.loadHome.downBaseAction()
+        BJI_Veh.waitForVehicleSpawn(function(ctxt2)
+            BJI_Veh.freeze(true)
+            if ctxt2.camera == BJI_Cam.CAMERAS.EXTERNAL then
+                BJI_Cam.setCamera(previousCam)
+                ctxt2.camera = BJI_Cam.getCamera()
+            end
+            if ctxt2.camera == BJI_Cam.CAMERAS.EXTERNAL then
+                BJI_Cam.setCamera(BJI_Cam.CAMERAS.ORBIT)
+                ctxt2.camera = BJI_Cam.getCamera()
+            end
+        end)
+    end, delayMs - 3000, "BJIRacePreStart")
+
+    BJI_Async.delayTask(function()
+        BJI_Veh.freeze(false)
+        if S.settings.respawnStrategy ~= BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key then
+            BJI_Async.delayTask(function()
+                -- delays reset restriction remove
+                S.resetLock = false
+                S.dnf.standExempt = false
+                BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+            end, 1000, "BJIRacePostStart")
+        end
+        if type(callback) == "function" then
+            callback()
+        end
+    end, delayMs, "BJIRaceStart")
+end
+
+local function onCheckpointReached(wp, remainingSteps)
+    local currentWaypoint = #S.race.raceData.steps - remainingSteps
+
+    local lastWp = {
+        lap = S.race.lap,
+        wp = currentWaypoint % S.race.raceData.wpPerLap > 0 and currentWaypoint % S.race.raceData.wpPerLap or
+            S.race.raceData.wpPerLap,
+    }
+
+    local function waitForServerWp(lap, waypoint, callback)
+        BJI_Async.removeTask("BJIRaceMultiWaitForServerWp")
+        local target
+        BJI_Async.task(function()
+            target = table.find(S.race.leaderboard, function(lb)
+                return BJI_Context.isSelf(lb.playerID) and not lb.desync and lb.lap == lap and lb.wp == waypoint
+            end)
+            return not not target
+        end, function() callback(target) end, "BJIRaceMultiWaitForServerWp")
+    end
+
+    local function wpTrigger()
+        local previousRecordTime = S.record and S.record.time
+        BJI_Tx_scenario.RaceMultiUpdate(S.CLIENT_EVENTS.CHECKPOINT_REACHED, currentWaypoint)
+        S.race.waypoint = currentWaypoint
+
+        local raceTime = S.race.timers.race:get()
+        local lapTime = S.race.timers.lap:get()
+
+        S.race.lap = lastWp.wp == S.race.raceData.wpPerLap and lastWp.lap + 1 or lastWp.lap
+        S.race.waypoint = lastWp.wp % S.race.raceData.wpPerLap
+        if S.race.lap > (S.settings.laps or 1) then
+            -- finish case
+            S.race.lap = S.settings.laps or 1
+            S.race.waypoint = S.race.raceData.wpPerLap
+        end
+
+        local veh = BJI_Veh.getVehicleObject()
+        S.lapData[lastWp.wp] = {
+            time = lapTime,
+            speed = math.round((veh and tonumber(veh.speed) or 0) * 3.6, 2),
+        }
+
+        if S.settings.laps and S.settings.laps > 1 then
+            BJI_RaceUI.setLap(S.race.lap, S.settings.laps)
+        end
+        local drawnCheckpoint = remainingSteps == 0 and S.race.raceData.wpPerLap or
+            S.race.waypoint % S.race.raceData.wpPerLap
+        BJI_RaceUI.setWaypoint(drawnCheckpoint, S.race.raceData.wpPerLap)
+        BJI_Sound.play(BJI_Sound.SOUNDS.RACE_WAYPOINT)
+
+        if remainingSteps == 0 then
+            S.race.timers.lap = nil
+        else
+            if not wp.stand and not table.includes({
+                    BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key,
+                    BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
+                }, S.settings.respawnStrategy) then
+                if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key or
+                    S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+                    BJI_Veh.saveHome({ pos = wp.pos, rot = wp.rot })
+                    --[[BJI_Veh.getPosRotVel(nil, function(data)
+                        S.lastLaunchedCheckpoint = data
+                    end)]]
+                elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+                    -- check if current or previous stand is different than last
+                    ---@param stand RaceStand
+                    local latestStand = table.filter(S.race.stands, function(stand)
+                            return stand.step <= lastWp.wp
+                        end)
+                        ---@param acc? RaceStand
+                        ---@param stand RaceStand
+                        :reduce(function(acc, stand)
+                            return (not acc or stand.step > acc.step) and stand or acc
+                        end)
+                    if not latestStand and lastWp.lap > 1 then
+                        ---@param acc? RaceStand
+                        ---@param stand RaceStand
+                        latestStand = table.reduce(S.race.stands, function(acc, stand)
+                            return (not acc or stand.step > acc.step) and stand or acc
+                        end)
+                    end
+                    if latestStand and latestStand.step ~= S.race.lastStand.step then
+                        S.race.lastStand = latestStand
+                        BJI_Veh.saveHome(latestStand)
+                    end
+                end
+            end
+
+            if wp.lap then
+                S.race.timers.lap:reset()
+
+                local lapMessage
+                if S.race.lap == S.settings.laps then
+                    lapMessage = BJI_Lang.get("races.play.finalLapFlash")
+                else
+                    lapMessage = BJI_Lang.get("races.play.Lap"):var({ lap = S.race.lap })
+                end
+                BJI_Message.flash("BJIRaceLap", lapMessage, 5, false)
+            else
+                BJI_Message.flash("BJIRaceCheckpoint", BJI.Utils.UI.RaceDelay(lapTime), 2, false)
+            end
+        end
+
+
+        -- temp leaderboard assign
+        table.find(S.race.leaderboard, function(lb)
+            return BJI_Context.isSelf(lb.playerID)
+        end, function(lb)
+            lb.desync = true
+            lb.lap = S.race.lap
+            lb.wp = S.race.waypoint
+            lb.time = raceTime
+            lb.lapTime = wp.lap and raceTime or nil
+        end)
+        -- temp leaderboard sort
+        table.sort(S.race.leaderboard, function(a, b)
+            if S.isEliminated(a.playerID) ~= S.isEliminated(b.playerID) then
+                return S.isEliminated(a.playerID)
+            elseif a.lap ~= b.lap then
+                return a.lap > b.lap
+            elseif a.wp ~= b.wp then
+                return a.wp > b.wp
+            else
+                return a.time < b.time
+            end
+        end)
+        -- temp print race wp times
+        table.find(S.race.leaderboard, function(lb)
+            return BJI_Context.isSelf(lb.playerID)
+        end, function(lb, pos)
+            lb.diff = pos == 1 and 0 or lb.diff
+            ---@type MapRacePBWP[]?
+            local pb = BJI_RaceWaypoint.getPB(S.raceHash)
+            -- UI update before server data
+            local diff, recordDiff
+            if lb.diff ~= 0 then
+                -- not first position => compare to first racer
+                diff = lb.diff
+            elseif pb and pb[lastWp.wp] then
+                -- if first pos and pb exists => compare to pb
+                diff = S.lapData[lastWp.wp].time - pb[lastWp.wp].time
+            end
+            if wp.lap or remainingSteps == 0 then
+                if previousRecordTime then
+                    -- lap / finish record diff
+                    recordDiff = S.lapData[lastWp.wp].time - previousRecordTime
+                end
+            end
+            BJI_RaceUI.setRaceTime(diff, recordDiff, 3000)
+        end)
+
+        waitForServerWp(S.race.lap, S.race.waypoint, function(lb)
+            S.lapData[lastWp.wp].time = lb.time - lb.lapStartTime
+
+            -- detect new pb
+            local pb = BJI_RaceWaypoint.getPB(S.raceHash)
+
+            if wp.lap or remainingSteps == 0 then
+                -- pb process
+                local newPb = false
+                if not pb then
+                    pb = S.lapData
+                    newPb = true
+                else
+                    local pbTime = pb[lastWp.wp] and pb[lastWp.wp].time or nil
+                    if pbTime and S.lapData[lastWp.wp].time < pbTime then
+                        pb = S.lapData
+                        newPb = true
+                    end
+                end
+                if newPb then
+                    BJI_RaceWaypoint.setPB(S.raceHash, pb)
+                    BJI_Events.trigger(BJI_Events.EVENTS.RACE_NEW_PB, {
+                        raceName = S.race.raceData.name,
+                        raceID = S.raceID,
+                        raceHash = S.raceHash,
+                        time = pb[lastWp.wp].time,
+                    })
+                end
+            end
+
+            -- UI update with server times
+            local diff, recordDiff = nil, nil
+            if lb.diff ~= 0 then
+                -- not first position => compare to first racer
+                diff = lb.diff
+            elseif pb and pb[lastWp.wp] then
+                -- if first pos and pb exists => compare to pb
+                diff = S.lapData[lastWp.wp].time - pb[lastWp.wp].time
+            end
+            if wp.lap or remainingSteps == 0 then
+                if previousRecordTime then
+                    -- lap / finish record diff
+                    recordDiff = S.lapData[lastWp.wp].time - previousRecordTime
+                end
+
+                BJI_RaceUI.addHotlapRow(S.raceName, S.lapData[lastWp.wp].time)
+            end
+            BJI_RaceUI.setRaceTime(diff, recordDiff, 3000)
+
+            if wp.lap then
+                S.lapData = {}
+            end
+            BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED) -- server wp reached
+        end)
+        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)     -- local wp reached
+    end
+
+    if wp.stand then
+        onStandStop(5000, wp, lastWp, wpTrigger)
+    else
+        wpTrigger()
+    end
+end
+
+local function onFinishReached()
+    BJI_Tx_scenario.RaceMultiUpdate(S.CLIENT_EVENTS.FINISH_REACHED)
+    local postFinishTimeout = GetCurrentTimeMillis() + BJI_Context.BJC.Race.FinishTimeout * 1000
+    BJI_Async.task(function()
+        return S.isFinished() -- wait for server validating finish before showing anything
+    end, function()
+        local racePosition
+        for i, lb in ipairs(S.race.leaderboard) do
+            if BJI_Context.isSelf(lb.playerID) then
+                racePosition = i
+                break
+            end
+        end
+        local isLast = racePosition == #S.race.leaderboard
+
+        if not isLast then
+            -- multiplayer and not last
+            BJI_Veh.freeze(true)
+
+            local isLappedRacer = false
+            if S.settings.laps and S.settings.laps > 1 then
+                for i = racePosition + 1, #S.race.leaderboard do
+                    local lb = S.race.leaderboard[i]
+                    if not BJI_Context.isSelf(lb.playerID) and
+                        not table.includes(S.race.eliminated, lb.playerID) and
+                        not table.includes(S.race.finished, lb.playerID) then
+                        if lb.lap < S.settings.laps then
+                            isLappedRacer = true
+                            break
+                        end
+                    end
+                end
+            end
+
+            BJI_Message.flash("BJIRaceEndSelf", BJI_Lang.get("races.play.finishFlashMulti")
+                :var({ place = racePosition }), 3, false)
+
+            BJI_Async.programTask(function()
+                for _, v in ipairs(BJI_Veh.getMPOwnVehicles()) do
+                    hideVehicle(v)
+                    BJI_Veh.freeze(false, v.gameVehicleID)
+                end
+                specRandomRacer()
+            end, postFinishTimeout, "BJIRacePostFinish")
+        end
+    end)
 end
 
 -- prepare complete race steps list
-local function initSteps(steps)
+local function initSteps(steps, withLaps)
     -- parse vectors data
     for _, step in ipairs(steps or {}) do
         for _, wp in ipairs(step) do
-            local parsed = TryParsePosRot(wp)
+            local parsed = math.tryParsePosRot(wp)
             wp.pos = parsed.pos
             wp.rot = parsed.rot
         end
@@ -359,7 +791,7 @@ local function initSteps(steps)
     local nSteps = {}
 
     -- parse for each lap
-    for iLap = 1, M.settings.laps or 1 do
+    for iLap = 1, withLaps and S.settings.laps or 1 do
         for iStep, step in ipairs(steps) do
             local nStep = {}
             for _, wp in ipairs(step) do
@@ -371,14 +803,14 @@ local function initSteps(steps)
                         else
                             -- point from last lap finishes
                             for _, lastWP in ipairs(steps[#steps]) do
-                                table.insert(parents, svar("{1}-{2}", { lastWP.name, iLap - 1 }))
+                                table.insert(parents, string.var("{1}-{2}", { lastWP.name, iLap - 1 }))
                             end
                         end
                     else
-                        table.insert(parents, svar("{1}-{2}", { parent, iLap }))
+                        table.insert(parents, string.var("{1}-{2}", { parent, iLap }))
                     end
                 end
-                local name = svar("{1}-{2}", { wp.name, iLap })
+                local name = string.var("{1}-{2}", { wp.name, iLap })
                 table.insert(nStep, {
                     name = name,
                     pos = wp.pos,
@@ -393,366 +825,182 @@ local function initSteps(steps)
             table.insert(nSteps, nStep)
         end
     end
-    M.race.raceData.steps = nSteps
+    S.race.raceData.steps = nSteps
 end
 
 local function parseRaceData(steps)
-    M.race.raceData.wpPerLap = #steps
-    initSteps(steps)
+    S.race.raceData.wpPerLap = #steps
+    initSteps(steps, not S.isSpec())
     for iStep, step in ipairs(steps or {}) do
         for _, wp in ipairs(step) do
             if wp.stand then
-                table.insert(M.race.stands, { step = iStep, pos = wp.pos, rot = wp.rot })
+                table.insert(S.race.stands, { step = iStep, pos = wp.pos, rot = wp.rot })
             end
         end
-    end
-end
-
-local function specRandomRacer()
-    local players = {}
-    for _, playerID in ipairs(M.grid.participants) do
-        if playerID ~= BJIContext.User.playerID and
-            not tincludes(M.race.eliminated, playerID, true) and
-            not tincludes(M.race.finished, playerID, true) then
-            table.insert(players, playerID)
-        end
-    end
-    if #players > 0 then
-        BJIVeh.focus(trandom(players))
-    end
-end
-
-local function updateTestingLeaderBoard(remainingSteps, raceTime, lapTime)
-    local reachedWp
-    if not M.settings.laps or M.settings.laps == 1 then
-        -- sprint
-        reachedWp = #M.race.raceData.steps - remainingSteps
-
-        M.race.leaderboard[1].wp = reachedWp
-        M.race.leaderboard[1].waypoints[reachedWp] = raceTime
-    else
-        -- loopable
-        local remainingLaps = M.settings.laps - M.race.lap
-        local remainingWp = remainingSteps - (remainingLaps * M.race.raceData.wpPerLap)
-        reachedWp = M.race.raceData.wpPerLap - remainingWp
-
-        if not M.race.leaderboard[1].laps[M.race.lap] then
-            M.race.leaderboard[1].laps[M.race.lap] = {
-                wp = reachedWp,
-                time = nil,
-                diff = nil,
-            }
-        else
-            M.race.leaderboard[1].laps[M.race.lap].wp = reachedWp
-        end
-        if reachedWp == M.race.raceData.wpPerLap then
-            M.race.leaderboard[1].laps[M.race.lap].time = lapTime
-        end
-
-        local finishedLaps = #M.race.leaderboard[1].laps
-        while finishedLaps > 1 and not M.race.leaderboard[1].laps[finishedLaps].time do
-            finishedLaps = finishedLaps - 1
-        end
-        if finishedLaps > 1 then
-            local bestLap, bestLapTime = 1, M.race.leaderboard[1].laps[1].time
-            for iLap, lap in ipairs(M.race.leaderboard[1].laps) do
-                if lap.time then
-                    if lap.time < bestLapTime then
-                        bestLap = iLap
-                        bestLapTime = lap.time
-                    end
-                    lap.diff = nil
-                end
-            end
-
-            for iLap, lap in ipairs(M.race.leaderboard[1].laps) do
-                if iLap ~= bestLap then
-                    lap.diff = lap.time - bestLapTime
-                end
-            end
-        end
-    end
-end
-
-local function onStandStop(delayMs, wp, callback)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-    M.dnf.standExempt = true
-
-    delayMs = delayMs and math.max(delayMs, 3000) or 5000
-    BJIMessage.flashCountdown("BJIRaceStand", GetCurrentTimeMillis() + delayMs, true,
-        BJILang.get("races.play.flashCountdownZero"))
-
-    local previousCam = BJICam.getCamera()
-    BJICam.setCamera(BJICam.CAMERAS.EXTERNAL)
-    BJIVeh.stopCurrentVehicle()
-    BJIVeh.freeze(true)
-
-    BJIAsync.delayTask(function()
-        local rot = wp and wp.rot or nil
-        M.exemptNextReset = true
-        BJIVeh.setPositionRotation(BJIVeh.getPositionRotation().pos, rot)
-        if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
-            BJICam.setCamera(previousCam)
-        end
-        BJIAsync.delayTask(function()
-            BJIVeh.freeze(true)
-        end, 100, "BJIRaceStandFreeze")
-    end, delayMs - 3000, "BJIRacePreStart")
-
-    BJIAsync.delayTask(function()
-        BJIVeh.freeze(false)
-        if not M.settings.respawnStrategy ~= M.RESPAWN_STRATEGIES.NO_RESPAWN then
-            BJIAsync.delayTask(function()
-                -- delays reset restriction remove
-                BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-                M.dnf.standExempt = false
-            end, 1000, "BJIRacePostStart")
-        end
-        if type(callback) == "function" then
-            callback()
-        end
-    end, delayMs, "BJIRaceStart")
-end
-
-local function drawTimeDiff(lap, wp)
-    BJIAsync.task(function()
-        for _, lb in ipairs(M.race.leaderboard) do
-            if BJIContext.isSelf(lb.playerID) then
-                return lb.lap == lap and lb.wp == wp
-            end
-        end
-        return false
-    end, function()
-        for _, lb in ipairs(M.race.leaderboard) do
-            if BJIContext.isSelf(lb.playerID) then
-                local recordDiff
-                if lb.lapTime and M.record then
-                    -- lap / finish
-                    recordDiff = lb.lapTime - M.record.time
-                    BJIRaceUI.addHotlapRow(lb.lap, lb.lapTime)
-                end
-                BJIRaceUI.setRaceTime(lb.diff ~= 0 and lb.diff or nil, recordDiff, 2000)
-                break
-            end
-        end
-    end, "BJIRaceUIWpDiff")
-end
-
-local function onCheckpointReached(wp, remainingSteps)
-    local currentWaypoint = #M.race.raceData.steps - remainingSteps
-    if not M.testing then BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.CHECKPOINT_REACHED, currentWaypoint) end
-    M.race.waypoint = currentWaypoint
-
-    local function wpTrigger()
-        local raceTime = M.race.timers.race:get()
-        local lapTime = M.race.timers.lap:get()
-
-        BJIRaceUI.setWaypoint(M.race.waypoint % M.race.raceData.wpPerLap, M.race.raceData.wpPerLap)
-
-        if M.testing then
-            updateTestingLeaderBoard(remainingSteps, raceTime, lapTime)
-        end
-
-        BJISound.play(BJISound.SOUNDS.RACE_WAYPOINT)
-        if remainingSteps == 0 then
-            -- finish
-            M.race.timers.lap = nil
-            if M.testing then
-                M.race.timers.race = nil
-            end
-            if M.settings.laps and M.settings.laps > 1 then
-                drawTimeDiff(M.race.lap, M.race.waypoint % M.race.raceData.wpPerLap)
-            end
-        else
-            if M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.LAST_CHECKPOINT then
-                M.race.lastWaypoint = { pos = wp.pos, rot = wp.rot }
-            end
-
-            drawTimeDiff(M.race.lap, M.race.waypoint % M.race.raceData.wpPerLap)
-            if wp.lap then
-                -- lap
-                M.race.lap = M.race.lap + 1
-                M.race.timers.lap:reset()
-
-                local lapMessage
-                if M.race.lap == M.settings.laps then
-                    lapMessage = BJILang.get("races.play.finalLapFlash")
-                else
-                    lapMessage = svar(BJILang.get("races.play.Lap"), { lap = M.race.lap })
-                end
-                BJIMessage.flash("BJIRaceLap", lapMessage, 5, false)
-            else
-                -- regular checkpoint
-                BJIMessage.flash("BJIRaceCheckpoint", RaceDelay(lapTime), 2, false)
-            end
-        end
-    end
-
-    if wp.stand then
-        onStandStop(5000, wp, wpTrigger)
-    else
-        wpTrigger()
-    end
-end
-
-local function onFinishReached()
-    if not M.testing then BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.FINISH_REACHED) end
-
-    local racePosition
-    for i, lb in ipairs(M.race.leaderboard) do
-        if BJIContext.isSelf(lb.playerID) then
-            racePosition = i
-            break
-        end
-    end
-    local isLast = racePosition == #M.race.leaderboard
-
-    local postFinishTimeout = BJIContext.BJC.Race.FinishTimeout * 1000
-    if M.testing then
-        -- solo testing
-        table.insert(M.race.finished, BJIContext.User.playerID)
-        BJIMessage.flash("BJIRaceEndSelf", BJILang.get("races.play.finishFlashSolo"), 3, false)
-        BJIAsync.delayTask(M.stopRace, postFinishTimeout, "BJIRacePostFinish")
-    elseif not isLast then
-        -- multiplayer and not last
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-        BJIVeh.freeze(true)
-
-        local isLappedRacer = false
-        if M.settings.laps and M.settings.laps > 1 then
-            for i = racePosition + 1, #M.race.leaderboard do
-                local lb = M.race.leaderboard[i]
-                if not BJIContext.isSelf(lb.playerID) and
-                    not tincludes(M.race.eliminated, lb.playerID, true) and
-                    not tincludes(M.race.finished, lb.playerID, true) then
-                    if lb.lap < M.settings.laps then
-                        isLappedRacer = true
-                        break
-                    end
-                end
-            end
-        end
-        BJIMessage.flash("BJIRaceEndSelf", svar(BJILang.get("races.play.finishFlashMulti"),
-            { place = racePosition }), 3, false)
-        BJIAsync.delayTask(function()
-            if isLappedRacer then
-                BJIVeh.deleteAllOwnVehicles()
-            else
-                for _, v in ipairs(BJIVeh.getMPOwnVehicles()) do
-                    BJIVeh.freeze(false, v.gameVehicleID)
-                end
-                specRandomRacer()
-            end
-        end, postFinishTimeout, "BJIRacePostFinish")
     end
 end
 
 local function initWaypoints()
-    BJIRaceWaypoint.resetAll()
-    for _, step in ipairs(M.race.raceData.steps) do
-        BJIRaceWaypoint.addRaceStep(step)
+    BJI_RaceWaypoint.resetAll()
+    for _, step in ipairs(S.race.raceData.steps) do
+        BJI_RaceWaypoint.addRaceStep(step)
     end
 
-    BJIRaceWaypoint.setRaceWaypointHandler(onCheckpointReached)
-    BJIRaceWaypoint.setRaceFinishHandler(onFinishReached)
+    BJI_RaceWaypoint.setRaceWaypointHandler(onCheckpointReached)
+    BJI_RaceWaypoint.setRaceFinishHandler(onFinishReached)
+end
+
+local function showSpecWaypoints()
+    BJI_RaceWaypoint.resetAll()
+    Table(S.race.raceData.steps):forEach(function(step)
+        Table(step):forEach(function(wp)
+            local color = BJI_RaceWaypoint.COLORS.RED
+            local rot = wp.rot
+            if wp.stand then
+                color = BJI_RaceWaypoint.COLORS.ORANGE
+                rot = nil
+            elseif wp.lap then
+                color = BJI_RaceWaypoint.COLORS.BLUE
+            end
+            BJI_RaceWaypoint.addWaypoint({
+                name = wp.name,
+                pos = wp.pos,
+                radius = wp.radius,
+                rot = rot,
+                color = color,
+            })
+        end)
+    end)
 end
 
 local function initRace(data)
-    BJIVehSelector.tryClose(true)
-    if not M.isSpec() then
-        parseRaceData(data.steps)
-    end
-    M.race.lap = 1
-    M.race.waypoint = 0
+    local ctxt = BJI_Tick.getContext()
 
-    if M.settings.laps and M.settings.laps > 1 then
-        BJIRaceUI.setLap(M.race.lap, M.settings.laps)
-    end
-    BJIRaceUI.setWaypoint(M.race.waypoint, M.race.raceData.wpPerLap)
+    parseRaceData(data.steps)
 
-    if M.race.startTime > GetCurrentTimeMillis() then
-        BJIMessage.flashCountdown("BJIRaceStart", M.race.startTime, true,
-            BJILang.get("races.play.flashCountdownZero"), 5, nil, true)
+    -- freshly joined players (auto spec)
+    if not S.state and S.race.startTime < ctxt.now then
+        BJI_Scenario.switchScenario(BJI_Scenario.TYPES.RACE_MULTI)
+        showSpecWaypoints()
+        S.race.timers.race = math.timer()
+        S.race.timers.raceOffset = math.round(ctxt.now - S.race.startTime)
+        return
+    end
+
+    BJI_Win_VehSelector.tryClose(true)
+    if S.isParticipant() then
+        S.race.lap = 1
+        S.race.waypoint = 0
+        S.lapData = {}
+
+        BJI_Cam.resetForceCamera()
+        if S.settings.laps and S.settings.laps > 1 then
+            BJI_RaceUI.setLap(S.race.lap, S.settings.laps)
+        end
+        BJI_RaceUI.setWaypoint(S.race.waypoint, S.race.raceData.wpPerLap)
+    else
+        -- spec
+        if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.FREE then
+            if not BJI_Veh.getCurrentVehicle() then
+                -- will toggle free cam automatically
+                specRandomRacer()
+            end
+        end
+    end
+
+    if S.race.startTime > ctxt.now then
+        BJI_Message.flashCountdown("BJIRaceStart", S.race.startTime, true,
+            BJI_Lang.get("races.play.flashCountdownZero"), 5, nil, true)
     end
 
     -- 3secs before start
-    BJIAsync.programTask(function()
-        if M.state then
-            if M.isSpec() then
-                -- spec
-                if not BJIVeh.getCurrentVehicle() then
-                    specRandomRacer()
-                end
-                if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-                    BJICam.setCamera(BJICam.CAMERAS.ORBIT)
-                end
-            else
-                -- participant
-                if M.preRaceCam then
-                    if BJICam.getCamera() == BJICam.CAMERAS.EXTERNAL then
-                        BJICam.setCamera(M.preRaceCam)
-                    end
+    if S.isParticipant() then
+        BJI_Async.programTask(function()
+            if S.preRaceCam then
+                if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.EXTERNAL then
+                    BJI_Cam.setCamera(S.preRaceCam)
                 end
             end
-        end
-    end, M.race.startTime - 3000, "BJIRaceStartShortCountdown")
 
-    if M.isParticipant() and M.state then
-        -- players
-        initWaypoints()
-        -- enable waypoints before start to avoid stutter
-        BJIAsync.programTask(function()
-            if M.isParticipant() and M.state then
-                -- players
-                BJIRaceWaypoint.startRace()
+            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+                local pos = table.indexOf(S.grid.participants, BJI_Context.User.playerID)
+                local posrot = S.grid.startPositions[pos]
+                S.race.lastStand = { step = 0, pos = posrot.pos, rot = posrot.rot }
             end
-        end, M.race.startTime - 500, "BJIRaceStartWaypoints")
+
+            BJI_Veh.saveHome()
+            initWaypoints()
+        end, S.race.startTime - 3000, "BJIRaceStartShortCountdown")
     end
+
+    -- enable waypoints before start to avoid stutter
+    BJI_Async.programTask(function()
+        if S.isParticipant() then
+            -- players
+            BJI_RaceWaypoint.startRace()
+        else
+            -- specs
+            showSpecWaypoints()
+        end
+    end, S.race.startTime - 500, "BJIRaceStartWaypoints")
 
     -- on start
-    BJIAsync.programTask(function(ctxt)
-        if M.state then
-            M.race.timers.race = TimerCreate()
-            M.race.timers.raceOffset = Round(ctxt.now - M.race.startTime)
-            if math.abs(M.race.timers.raceOffset) < 100 then
-                M.race.timers.raceOffset = 0
-            end
-            if not M.isSpec() then
-                BJIVeh.freeze(false)
-                M.race.timers.lap = TimerCreate()
-                if M.settings.respawnStrategy ~= M.RESPAWN_STRATEGIES.NO_RESPAWN then
-                    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
-                end
-            end
+    BJI_Async.programTask(function(ctxt2)
+        S.race.timers.race = math.timer()
+        S.race.timers.raceOffset = math.round(ctxt2.now - S.race.startTime)
+        if math.abs(S.race.timers.raceOffset) < 100 then
+            S.race.timers.raceOffset = 0
         end
-    end, M.race.startTime, "BJIRaceStartTime")
+        if S.isParticipant() then
+            BJI_Veh.freeze(false)
+            S.race.timers.lap = math.timer()
+            S.resetLock = S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key
+            BJI_RaceUI.incrementRaceAttempts(S.raceID, S.raceHash)
+        end
+        BJI_Restrictions.update()
+        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+    end, S.race.startTime, "BJIRaceStartTime")
+
+    BJI_Veh.applyQueuedEvents()
 end
 
-local function updateRace()
-    if not M.isRaceFinished() and
-        (M.isFinished() or M.isEliminated()) and
-        BJIVeh.isCurrentVehicleOwn() then
-        if M.isEliminated() then
-            BJIVeh.deleteAllOwnVehicles()
+local function updateRace(data, wasFinished, wasEliminated)
+    if not S.isRaceFinished() and BJI_Veh.isCurrentVehicleOwn() then
+        if not wasFinished and not wasEliminated and
+            (S.isFinished() or S.isEliminated()) then
+            S.resetLock = true
+            if BJI_RaceWaypoint.isRacing() then
+                BJI_RaceWaypoint.resetAll()
+            end
+            specRandomRacer()
+
+            -- parse steps again on spectating switch
+            parseRaceData(data.steps)
+            showSpecWaypoints()
         end
-        if BJIRaceWaypoint.isRacing() then
-            BJIRaceWaypoint.resetAll()
-        end
-        specRandomRacer()
     end
+
+    ---@param v BJIMPVehicle
+    BJI_Veh.getMPVehicles(nil, true):forEach(function(v)
+        if S.isFinished(v.ownerID) or S.isEliminated(v.ownerID) then
+            hideVehicle(v)
+        end
+    end)
 end
 
 local function initRaceFinish()
-    M.state = M.STATES.FINISHED
-    M.race.timers = {}
+    S.resetLock = true
+    S.state = S.STATES.FINISHED
+    S.race.timers = {}
+    BJI_RaceWaypoint.resetAll()
 
-    if M.race.leaderboard[1] then
-        local winner = M.race.leaderboard[1].playerID
-        local target = winner and BJIContext.Players[winner]
+    if S.race.leaderboard[1] then
+        local winner = S.race.leaderboard[1].playerID
+        local target = winner and BJI_Context.Players[winner]
 
         if target then
-            BJIMessage.flash("BJIRaceFinish",
-                svar(BJILang.get("races.play.flashWinner"), { playerName = target.playerName }),
+            BJI_Message.flash("BJIRaceFinish",
+                BJI_Lang.get("races.play.flashWinner"):var({ playerName = target.playerName }),
                 5, false)
         end
     end
@@ -760,36 +1008,41 @@ end
 
 -- receive race data from backend
 local function rxData(data)
-    M.MINIMUM_PARTICIPANTS = data.minimumParticipants
+    S.MINIMUM_PARTICIPANTS = data.minimumParticipants
+    S.ALLOW_NODEGRABBER = data.allowNodegrabber
     if data.state then
-        M.raceName = data.raceName
-        M.raceAuthor = data.raceAuthor
-        M.record = data.record
+        S.raceName = data.raceName
+        S.raceID = data.raceID
+        S.raceHash = data.raceHash
+        S.raceAuthor = data.raceAuthor
+        S.record = data.record
         -- settings
-        M.settings.laps = data.laps
-        M.settings.model = data.model
-        M.settings.config = data.config
-        M.settings.respawnStrategy = data.respawnStrategy
+        S.settings.laps = data.laps
+        S.settings.model = data.model
+        S.settings.config = data.config
+        S.settings.respawnStrategy = data.respawnStrategy
+        S.settings.collisions = data.collisions
         -- grid
-        local wasParticipant = tincludes(M.grid.participants, BJIContext.User.playerID, true)
-        local wasReady = tincludes(M.grid.ready, BJIContext.User.playerID, true)
-        M.grid.participants = data.participants
-        M.grid.ready = data.ready
+        local wasParticipant = table.includes(S.grid.participants, BJI_Context.User.playerID)
+        local wasReady = table.includes(S.grid.ready, BJI_Context.User.playerID)
+        S.grid.participants = data.participants
+        S.grid.ready = data.ready
         -- race
-        if not M.race.startTime then
-            M.race.startTime = BJITick.applyTimeOffset(data.startTime)
+        if not S.race.startTime then
+            S.race.startTime = BJI_Tick.applyTimeOffset(data.startTime)
         end
-        M.race.leaderboard = data.leaderboard
-        M.race.finished = data.finished
-        M.race.eliminated = data.eliminated
+        S.race.leaderboard = data.leaderboard
+        local wasFinished = table.includes(S.race.finished, BJI_Context.User.playerID)
+        S.race.finished = data.finished
+        local wasEliminated = table.includes(S.race.eliminated, BJI_Context.User.playerID)
+        S.race.eliminated = data.eliminated
 
-        if data.state == M.STATES.GRID then
-            if not M.state then
+        if data.state == S.STATES.GRID then
+            if not S.state then
                 initGrid(data)
-            elseif M.state == data.state then
-                local isParticipant = tincludes(data.participants, BJIContext.User.playerID, true)
-                local isReady = tincludes(data.ready, BJIContext.User.playerID, true)
-
+            elseif S.state == S.STATES.GRID then
+                local isParticipant = table.includes(data.participants, BJI_Context.User.playerID)
+                local isReady = table.includes(data.ready, BJI_Context.User.playerID)
                 if not wasParticipant and isParticipant then
                     onJoinGridParticipants()
                 elseif wasParticipant and not isParticipant then
@@ -798,247 +1051,263 @@ local function rxData(data)
                     onJoinGridReady()
                 end
             end
-        elseif data.state == M.STATES.RACE then
-            if not M.state or M.state == M.STATES.GRID then
+        elseif data.state == S.STATES.RACE then
+            if S.state ~= S.STATES.RACE then
                 initRace(data)
-            elseif M.state >= data.state then
-                updateRace()
+            elseif S.state == S.STATES.RACE then
+                updateRace(data, wasFinished, wasEliminated)
             end
-        elseif data.state == M.STATES.FINISHED then
-            if M.state == M.STATES.RACE then
-                initRaceFinish()
-            end
+        elseif data.state == S.STATES.FINISHED then
+            initRaceFinish()
         end
-
-        M.state = data.state
-    elseif M.state then
-        M.stopRace()
+        S.state = data.state
+        BJI_Restrictions.update()
+    elseif S.state then
+        S.stopRace()
     end
+    BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
 end
 
-local function isParticipant()
-    return tincludes(M.grid.participants, BJIContext.User.playerID, true)
+---@param playerID integer?
+---@return boolean
+local function isParticipant(playerID)
+    playerID = playerID or BJI_Context.User.playerID
+    return table.includes(S.grid.participants, playerID)
 end
 
-local function isFinished()
-    return tincludes(M.race.finished, BJIContext.User.playerID, true)
+---@param playerID integer?
+---@return boolean
+local function isFinished(playerID)
+    playerID = playerID or BJI_Context.User.playerID
+    return table.includes(S.race.finished, playerID)
 end
 
-local function isEliminated()
-    return tincludes(M.race.eliminated, BJIContext.User.playerID, true)
+---@param playerID integer?
+---@return boolean
+local function isEliminated(playerID)
+    playerID = playerID or BJI_Context.User.playerID
+    return table.includes(S.race.eliminated, playerID)
 end
 
-local function isReady()
-    return M.isParticipant() and tincludes(M.grid.ready, BJIContext.User.playerID, true)
+---@param playerID integer?
+---@return boolean
+local function isReady(playerID)
+    playerID = playerID or BJI_Context.User.playerID
+    return S.isParticipant(playerID) and table.includes(S.grid.ready, playerID)
 end
 
-local function isSpec()
+---@param playerID integer?
+---@return boolean
+local function isSpec(playerID)
+    playerID = playerID or BJI_Context.User.playerID
     return isStateRaceOrFinished() and (
-        not M.isParticipant() or M.isFinished() or M.isEliminated()
+        not S.isParticipant(playerID) or S.isFinished(playerID) or S.isEliminated(playerID)
     )
 end
 
+---@param ctxt TickContext?
+---@return boolean
 local function isRaceStarted(ctxt)
     local now = ctxt and ctxt.now or GetCurrentTimeMillis()
-    return isStateRaceOrFinished() and M.race.startTime and now >= M.race.startTime
+    return isStateRaceOrFinished() and S.race.startTime ~= nil and
+        now >= S.race.startTime
 end
 
+---@return boolean
 local function isRaceOrCountdownStarted()
     return isStateRaceOrFinished()
 end
 
+---@return boolean
 local function isRaceFinished()
-    return M.state and (M.state == M.STATES.FINISHED or
-        #M.grid.participants == #M.race.finished + #M.race.eliminated)
-end
-
--- player vehicle reset hook
-local function onVehicleResetted(gameVehID)
-    if M.exemptNextReset then
-        M.exemptNextReset = false
-        return
-    end
-
-    if M.isRaceStarted() and M.isParticipant() and M.settings.respawnStrategy then
-        local rs = M.settings.respawnStrategy
-        if rs == M.RESPAWN_STRATEGIES.LAST_CHECKPOINT then
-            M.exemptNextReset = true
-            local wp = M.race.lastWaypoint
-            if not wp then
-                wp = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
-            end
-            BJIVeh.setPositionRotation(wp.pos, wp.rot)
-        elseif rs == M.RESPAWN_STRATEGIES.STAND then
-            local pastStand
-            for _, stand in ipairs(M.race.stands) do
-                if stand.step <= M.race.waypoint and
-                    (not pastStand or stand.step > pastStand.step) then
-                    pastStand = stand
-                end
-                if stand.step > M.race.waypoint then
-                    break
-                end
-            end
-            if not pastStand then
-                -- no past stand then start pos
-                local sp = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
-                pastStand = {
-                    pos = sp.pos,
-                    rot = sp.rot,
-                }
-            end
-            M.exemptNextReset = true
-            BJIVeh.setPositionRotation(pastStand.pos, pastStand.rot)
-        end
-    end
+    return S.state and (S.state == S.STATES.FINISHED or
+        #S.grid.participants == #S.race.finished + #S.race.eliminated)
 end
 
 -- each frame tick hook
 local function renderTick(ctxt)
     -- lap realtimeDisplay
-    if M.isRaceOrCountdownStarted() then
-        if M.isSpec() and not M.isRaceFinished() then
-            local time = M.race.timers.race and M.race.timers.race:get() or 0
-            if M.race.timers.raceOffset then
-                time = time + M.race.timers.raceOffset
+    if S.isRaceOrCountdownStarted() then
+        if S.isSpec() and not S.isRaceFinished() then
+            local time = S.race.timers.race and S.race.timers.race:get() or 0
+            if S.race.timers.raceOffset then
+                time = time + S.race.timers.raceOffset
             end
-            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
-        elseif M.isParticipant() and not M.isFinished() and not M.isEliminated() then
-            local time = M.race.timers.lap and M.race.timers.lap:get() or 0
-            guihooks.trigger('raceTime', { time = Round(time / 1000, 3), reverseTime = true })
-        elseif BJIMessage.realtimeData.context == "race" then
+            guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
+        elseif S.isParticipant() and not S.isFinished() and not S.isEliminated() then
+            local time = S.race.timers.lap and S.race.timers.lap:get() or 0
+            guihooks.trigger('raceTime', { time = math.round(time / 1000, 3), reverseTime = true })
+        elseif BJI_Message.realtimeData.context == "race" then
             guihooks.trigger('ScenarioResetTimer')
         end
     end
 
-    if ctxt.isOwner and isStateGridOrRace() and not M.isRaceStarted(ctxt) and M.isParticipant() then
+    if ctxt.isOwner and isStateGridOrRace() and not S.isRaceStarted(ctxt) and S.isParticipant() then
+        -- prevent jato usage before start
+        if not S.race.startTime or ctxt.now < S.race.startTime then
+            ctxt.veh.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
+        end
+    end
+end
+
+---@param ctxt TickContext
+local function fastTick(ctxt)
+    if ctxt.isOwner and isStateGridOrRace() and not S.isRaceStarted(ctxt) and S.isParticipant() then
         -- fix vehicle position / damages on grid
-        if not M.race.startTime or ctxt.now < M.race.startTime - 1000 then
-            local startPos = M.grid.startPositions[tpos(M.grid.participants, BJIContext.User.playerID)]
-            local moved = GetHorizontalDistance(
+        if not S.race.startTime or ctxt.now < S.race.startTime - 1000 then
+            local startPos = S.grid.startPositions
+                [table.indexOf(S.grid.participants, BJI_Context.User.playerID)]
+            local moved = math.horizontalDistance(
                 startPos.pos,
-                ctxt.vehPosRot.pos
-            ) > .5
+                ctxt.veh.position
+            ) > 1
             local damaged = false
-            for _, v in pairs(BJIContext.User.vehicles) do
-                if v.gameVehID == BJIContext.User.currentVehicle and
-                    v.damageState and
-                    v.damageState > BJIContext.physics.VehiclePristineThreshold then
+            for _, v in pairs(BJI_Context.User.vehicles) do
+                local veh = BJI_Veh.getVehicleObject(v.gameVehID)
+                if veh and v.gameVehID == BJI_Context.User.currentVehicle and
+                    tonumber(veh.damageState) and
+                    tonumber(veh.damageState) > BJI_Context.VehiclePristineThreshold then
                     damaged = true
                     break
                 end
             end
             if moved or damaged then
-                BJIVeh.setPositionRotation(startPos.pos, startPos.rot)
-                BJIVeh.freeze(true, ctxt.veh:getID())
-            end
-        end
-
-        -- prevent jato usage before start
-        if not M.race.startTime or ctxt.now < M.race.startTime then
-            ctxt.veh:queueLuaCommand("thrusters.applyVelocity(vec3(0,0,0))")
-        end
-    end
-
-    -- auto switch to racer
-    if M.isSpec() and M.isRaceStarted(ctxt) and not M.isRaceFinished() then
-        if ctxt.veh then
-            local ownerID = BJIVeh.getVehOwnerID(ctxt.veh:getID())
-            if tincludes(M.race.finished, ownerID, true) or
-                tincludes(M.race.eliminated, ownerID, true) then
-                BJIVeh.focusNextVehicle()
+                BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
+                BJI_Veh.freeze(true, ctxt.veh.gameVehicleID)
             end
         end
     end
 end
 
 -- each second tick hook
+---@param ctxt TickContext
 local function slowTick(ctxt)
     -- DNF PROCESS
-    if ctxt.isOwner and M.isRaceStarted(ctxt) and not M.isRaceFinished() and M.isParticipant() and
-        M.settings.respawnStrategy == M.RESPAWN_STRATEGIES.NO_RESPAWN and
-        not M.dnf.standExempt then
-        if not M.dnf.lastPos then
+    if ctxt.isOwner and S.isRaceStarted(ctxt) and not S.isRaceFinished() and S.isParticipant() and
+        S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.NO_RESPAWN.key and
+        not S.dnf.standExempt then
+        if not S.dnf.lastPos then
             -- first check
-            M.dnf.lastPos = ctxt.vehPosRot.pos
+            S.dnf.lastPos = ctxt.veh.position
         else
-            if GetHorizontalDistance(ctxt.vehPosRot.pos, M.dnf.lastPos) < M.dnf.minDistance then
-                -- distance isn't enough
-                if not M.dnf.process then
-                    M.dnf.targetTime = ctxt.now + (M.dnf.timeout * 1000)
-                    -- start countdown process
-                    BJIMessage.flashCountdown("BJIRaceDNF", M.dnf.targetTime, true,
-                        BJILang.get("races.play.flashDnfOut"), nil,
-                        function()
-                            BJITx.scenario.RaceMultiUpdate(M.CLIENT_EVENTS.LEAVE)
-                            BJIVeh.deleteCurrentOwnVehicle()
-                            BJIRaceWaypoint.resetAll()
-                            specRandomRacer()
-                        end)
-                    M.dnf.process = true
-                end
+            if S.isEliminated() or S.isFinished() then
+                S.dnf.targetTime = nil
+                S.dnf.process = false
             else
-                -- good distance, remove countdown if there is one
-                if M.dnf.process then
-                    BJIMessage.cancelFlash("BJIRaceDNF")
-                    M.dnf.process = false
-                    M.dnf.targetTime = nil
+                if math.horizontalDistance(ctxt.veh.position, S.dnf.lastPos) < S.dnf.minDistance then
+                    -- distance isn't enough
+                    if not S.dnf.process then
+                        S.dnf.targetTime = ctxt.now + (S.dnf.timeout * 1000)
+                        -- start countdown process
+                        BJI_Message.flashCountdown("BJIRaceDNF", S.dnf.targetTime, true,
+                            nil, nil, function()
+                                BJI_Message.flash("BJIRaceDNFReached",
+                                    BJI_Lang.get("races.play.flashDnfOut"), 3)
+                                BJI_Tx_scenario.RaceMultiUpdate(S.CLIENT_EVENTS.LEAVE)
+                                hideVehicle(ctxt.veh)
+                                BJI_RaceWaypoint.resetAll()
+                                specRandomRacer()
+                            end)
+                        S.dnf.process = true
+                    end
+                else
+                    -- good distance, remove countdown if there is one
+                    if S.dnf.process then
+                        BJI_Message.cancelFlash("BJIRaceDNF")
+                        S.dnf.process = false
+                        S.dnf.targetTime = nil
+                    end
+                    S.dnf.lastPos = ctxt.veh.position
                 end
-                M.dnf.lastPos = ctxt.vehPosRot.pos
             end
         end
     end
 end
 
-local function canVehUpdate()
-    return M.state == M.STATES.GRID and M.isParticipant() and not M.isReady()
+---@return boolean
+local function canSpawnNewVehicle()
+    return S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() and
+        table.length(BJI_Context.User.vehicles) == 0
 end
 
-local function canSpawnNewVehicle()
-    return canVehUpdate() and tlength(BJIContext.User.vehicles) == 0
+---@return boolean
+local function canVehUpdate()
+    return S.state == S.STATES.GRID and S.isParticipant() and not S.isReady() and
+        BJI_Veh.isCurrentVehicleOwn() and not S.settings.config
+end
+
+---@return boolean
+local function canPaintVehicle()
+    if S.state ~= S.STATES.GRID or not S.isParticipant() or S.isReady() or
+        not BJI_Veh.isCurrentVehicleOwn() then
+        return false
+    end
+
+    return true
 end
 
 local function getCollisionsType(ctxt)
-    return M.isRaceStarted(ctxt) and BJICollisions.TYPES.GHOSTS or BJICollisions.TYPES.FORCED
+    if S.settings.collisions then
+        return S.isRaceStarted(ctxt) and BJI_Collisions.TYPES.GHOSTS or BJI_Collisions.TYPES.FORCED
+    end
+    return BJI_Collisions.TYPES.DISABLED
 end
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+---@param vehData { gameVehicleID: integer, ownerID: integer }
+---@return boolean, BJIColor?, BJIColor?
+local function doShowNametag(vehData)
+    if not S.isParticipant(vehData.ownerID) or
+        S.isEliminated(vehData.ownerID) or
+        S.isFinished(vehData.ownerID) then
+        return false
+    end
 
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
+    return true, BJI.Utils.ShapeDrawer.Color(0, 0, 0, 1), BJI.Utils.ShapeDrawer.Color(1, 1, 1, .33)
+end
 
-M.trySpawnNew = tryReplaceOrSpawn
-M.tryReplaceOrSpawn = tryReplaceOrSpawn
-M.tryPaint = tryPaint
-M.getModelList = getModelList
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
+S.onUnload = onUnload
 
-M.getPlayerListActions = getPlayerListActions
+S.getRestrictions = getRestrictions
+S.canUseNodegrabber = canUseNodegrabber
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
-M.onUnload = onUnload
+S.trySpawnNew = tryReplaceOrSpawn
+S.tryReplaceOrSpawn = tryReplaceOrSpawn
+S.tryPaint = tryPaint
+S.getModelList = getModelList
+S.getPlayerListActions = getPlayerListActions
 
-M.rxData = rxData
+S.renderTick = renderTick
+S.fastTick = fastTick
+S.slowTick = slowTick
 
-M.isParticipant = isParticipant
-M.isFinished = isFinished
-M.isEliminated = isEliminated
-M.isReady = isReady
-M.isSpec = isSpec
-M.isRaceStarted = isRaceStarted
-M.isRaceOrCountdownStarted = isRaceOrCountdownStarted
-M.isRaceFinished = isRaceFinished
+S.rxData = rxData
 
-M.stopRace = stopRace
+S.isParticipant = isParticipant
+S.isFinished = isFinished
+S.isEliminated = isEliminated
+S.isReady = isReady
+S.isSpec = isSpec
+S.isRaceStarted = isRaceStarted
+S.isRaceOrCountdownStarted = isRaceOrCountdownStarted
+S.isRaceFinished = isRaceFinished
 
-M.canSelectVehicle = canVehUpdate
-M.canSpawnNewVehicle = canSpawnNewVehicle
-M.canReplaceVehicle = canVehUpdate
-M.canDeleteVehicle = canVehUpdate
-M.canDeleteOtherVehicles = function() return false end
-M.canEditVehicle = function() return false end
-M.getCollisionsType = getCollisionsType
+S.stopRace = stopRace
 
-return M
+S.canSpawnNewVehicle = canSpawnNewVehicle
+S.canReplaceVehicle = canVehUpdate
+S.canPaintVehicle = canPaintVehicle
+S.getCollisionsType = getCollisionsType
+
+S.canDeleteVehicle = FalseFn
+S.canDeleteOtherVehicles = FalseFn
+
+S.doShowNametag = doShowNametag
+S.onVehicleSpawned = onVehicleSpawned
+
+return S

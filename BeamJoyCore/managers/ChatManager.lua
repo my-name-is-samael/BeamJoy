@@ -2,10 +2,9 @@ SetLogType("BJCChat", CONSOLE_COLORS.FOREGROUNDS.LIGHT_GREEN, nil, CONSOLE_COLOR
 
 local M = {
     EVENTS = {
-        JOIN = "join",
-        LEAVE = "leave",
         PLAYER_CHAT = "playerchat",
         SERVER_CHAT = "serverchat",
+        EVENT = "event",
         DIRECT_MESSAGE = "directmessage",
         DIRECT_MESSAGE_SENT = "directmessagesent",
     },
@@ -14,6 +13,11 @@ local M = {
         count = 0,
         langsIndices = {},
     },
+
+    DISCORD_CHAT_HOOK_EVENTS_BLACKLIST = {
+        "chat.events.playerJoined",
+        "chat.events.playerLeft",
+    }
 }
 
 local function init()
@@ -22,6 +26,7 @@ local function init()
     end
 end
 
+---@param playerID integer
 local function onWelcome(playerID)
     local player = BJCPlayers.Players[playerID]
     local lang = player and player.lang or BJCLang.FallbackLang
@@ -36,34 +41,74 @@ local function onWelcome(playerID)
     end
 end
 
-local function onPlayerConnected(playerID, playerName)
-    for pid in pairs(BJCPlayers.Players) do
-        if playerID ~= pid then
-            BJCTx.player.chat(pid, M.EVENTS.JOIN, {
-                playerName = playerName,
-            })
-        end
+---@param playerID integer
+local function onPlayerConnected(playerID)
+    local player = Table(BJCPlayers.Players):find(function(_, pid) return pid == playerID end)
+    if player then
+        M.sendChatEvent("chat.events.playerJoined", {
+            playerName = player.playerName
+        })
     end
     onWelcome(playerID)
 end
 
-local function onPlayerChat(playerName, message)
-    BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.PLAYER_CHAT, {
-        playerName = playerName,
-        message = message,
+---@param senderID integer
+---@param name string
+---@param chatMessage string
+---@return integer?
+local function onChatMessage(senderID, name, chatMessage)
+    local player = BJCPlayers.Players[senderID]
+    if not player then
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = senderID }))
+        return 1
+    end
+
+    local group = BJCGroups.Data[player.group]
+    if not group then
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
+        return 1
+    end
+
+    chatMessage = BJCChatCommand.sanitizeMessage(chatMessage)
+
+    if BJCChatCommand.isCommand(chatMessage) then
+        pcall(BJCChatCommand.handle, player, chatMessage:sub(2))
+        return 1
+    end
+
+    if player.muted or group.muted then
+        BJCChat.onServerChat(senderID, BJCLang.getServerMessage(player.lang, "players.cantSendMessage"))
+        return 1
+    end
+
+    table.insert(player.messages, {
+        time = GetCurrentTime(),
+        message = chatMessage
     })
+    Log(string.var("OnChatMessage - {1} : {2}", { player.playerName, chatMessage }), "BJCChat")
+    -- send to mods+ players cache invalidation
+    BJCTx.cache.invalidateByPermissions(BJCCache.CACHES.PLAYERS, BJCPerm.PERMISSIONS.KICK)
+
+    BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.PLAYER_CHAT, {
+        playerName = player.playerName,
+        message = chatMessage,
+    })
+    return 1
 end
 
+---@param targetID integer
+---@param message string
+---@param color table?
 local function onServerChat(targetID, message, color)
-    local targetName = ""
+    local target, targetName = { lang = BJCLang.FallbackLang }, ""
     if targetID == BJCTx.ALL_PLAYERS then
         targetName = BJCLang.getConsoleMessage("common.allPlayers")
     else
-        local target = BJCPlayers.Players[targetID]
-        targetName = target and target.playerName or svar("? (id = {1})", { targetID })
+        target = BJCPlayers.Players[targetID]
+        targetName = target and target.playerName or string.var("? (id = {1})", { targetID })
     end
-    Log(svar(BJCLang.getConsoleMessage("messages.serverBroadcast"), {
-        targetName = targetName,
+    Log(BJCLang.getConsoleMessage("messages.serverBroadcast"):var({
+        targetName = string.var("{1} ({2})", { targetName, target.lang }),
         message = message,
     }), "BJCChat")
 
@@ -73,12 +118,36 @@ local function onServerChat(targetID, message, color)
     })
 end
 
-local function onPlayerDisconnect(playerID, playerName)
-    BJCAsync.delayTask(function()
-        BJCTx.player.chat(BJCTx.ALL_PLAYERS, M.EVENTS.LEAVE, {
-            playerName = playerName,
+---@param eventKey string
+---@param eventData table?
+---@param color table? rgba
+---@param targetsIDs integer[]? playerIDs
+local function sendChatEvent(eventKey, eventData, color, targetsIDs)
+    targetsIDs = targetsIDs or { BJCTx.ALL_PLAYERS }
+    table.forEach(targetsIDs, function(pid)
+        BJCTx.player.chat(pid, M.EVENTS.EVENT, {
+            event = eventKey,
+            data = eventData,
+            color = color or { .6, .6, .6, 1 }, -- RGBA (COLORS NOT WORKING YET IN THE CHAT)
         })
-    end, 1)
+    end)
+
+    -- Discord ChatHook Mod integration (https://github.com/OfficialLambdax/BeamMP-ChatHook)
+    if not table.includes(M.DISCORD_CHAT_HOOK_EVENTS_BLACKLIST, eventKey) then
+        local discordMessage = BJCLang.getClientMessage(BJCConfig.Data.Server.DiscordChatHookLang, eventKey)
+            :var(table.map(eventData or {}, function(subKey)
+                return BJCLang.getClientMessage(BJCConfig.Data.Server.DiscordChatHookLang, subKey)
+            end))
+        MP.TriggerGlobalEvent("onScriptMessage", discordMessage, "BeamJoy")
+    end
+end
+
+---@param playerID integer
+---@param playerName string
+local function onPlayerDisconnect(playerID, playerName)
+    M.sendChatEvent("chat.events.playerLeft", {
+        playerName = playerName
+    })
 end
 
 local function broadcastTick()
@@ -105,14 +174,14 @@ local function broadcastTick()
     end
 end
 
-M.onPlayerConnected = onPlayerConnected
-M.onPlayerChat = onPlayerChat
+BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_CONNECTED, onPlayerConnected, "ChatManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_CHAT_MESSAGE, onChatMessage, "ChatManager")
 M.onServerChat = onServerChat
+M.sendChatEvent = sendChatEvent
 M.onPlayerDisconnect = onPlayerDisconnect
 
-M.broadcastTick = broadcastTick
+BJCEvents.addListener(BJCEvents.EVENTS.SLOW_TICK, broadcastTick, "ChatManager")
+
 
 init()
-
-RegisterBJCManager(M)
 return M

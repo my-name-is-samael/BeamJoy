@@ -1,31 +1,27 @@
+---@class BJCScenarioDeliveryMulti: BJCScenarioHybrid
 local M = {
-    participants = {},
+    name = "DeliveryMulti",
+
+    participants = Table(),
+    ---@type BJIPositionRotation?
     target = nil,
 }
 
 local function initTarget(pos)
-    local targets = {}
-    for _, delivery in pairs(BJCScenario.Deliveries) do
-        table.insert(targets, {
-            target = tdeepcopy(delivery),
-            distance = GetHorizontalDistance(pos, delivery.pos),
-        })
-    end
-
-    table.sort(targets, function(a, b)
+    M.target = Table(BJCScenarioData.Deliveries.Points):map(function(delivery)
+        return {
+            target = table.deepcopy(delivery),
+            distance = math.horizontalDistance(pos, delivery.pos),
+        }
+    end):sort(function(a, b)
         return a.distance > b.distance
-    end)
-    if #targets > 1 then
-        local threhsholdPos = math.ceil(#targets * .66) + 1 -- 66% furthest
-        while targets[threhsholdPos] do
-            table.remove(targets, threhsholdPos)
-        end
-    end
-    M.target = trandom(targets).target
+    end):values():filter(function(_, i)
+        return i < math.round(Table(BJCScenarioData.Deliveries.Points):length() * .66) + 1 -- keep only 66% furthest
+    end):random().target
 end
 
 local function join(playerID, gameVehID, pos)
-    if #BJCScenario.Deliveries == 0 then
+    if #BJCScenarioData.Deliveries.Points == 0 then
         return
     elseif M.participants[playerID] then
         return
@@ -34,7 +30,7 @@ local function join(playerID, gameVehID, pos)
     end
 
     local isStarting = false
-    if tlength(M.participants) == 0 then
+    if M.participants:length() == 0 then
         initTarget(pos)
         isStarting = true
     end
@@ -45,6 +41,10 @@ local function join(playerID, gameVehID, pos)
         nextTargetReward = isStarting,
         reached = false,
     }
+    BJCChat.sendChatEvent("chat.events.gamemodeJoin", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
@@ -60,28 +60,21 @@ local function resetted(playerID)
 end
 
 local function checkNextTarget()
-    if tlength(M.participants) == 0 then
-        return
-    end
-    for _, playerData in pairs(M.participants) do
-        if not playerData.reached then
-            return
-        end
-    end
-
-    -- all participants reached target
-    initTarget(M.target.pos)
-    for playerID, playerData in pairs(M.participants) do
-        playerData.reached = false
-        if playerData.nextTargetReward then
-            local reward = BJCConfig.Data.Reputation.DeliveryPackageReward +
-                playerData.streak * BJCConfig.Data.Reputation.DeliveryPackageStreakReward
-            local player = BJCPlayers.Players[playerID]
-            player.stats.delivery = player.stats.delivery + 1
-            BJCPlayers.reward(playerID, reward)
-            playerData.streak = playerData.streak + 1
-        end
-        playerData.nextTargetReward = true
+    if M.participants:length() > 0 and M.participants:every(function(p) return p.reached end) then
+        -- all participants reached target
+        initTarget(M.target.pos)
+        M.participants:forEach(function(playerData, playerID)
+            playerData.reached = false
+            if playerData.nextTargetReward then
+                local reward = BJCConfig.Data.Reputation.DeliveryPackageReward +
+                    playerData.streak * BJCConfig.Data.Reputation.DeliveryPackageStreakReward
+                local player = BJCPlayers.Players[playerID]
+                player.stats.delivery = player.stats.delivery + 1
+                BJCPlayers.reward(playerID, reward)
+                playerData.streak = playerData.streak + 1
+            end
+            playerData.nextTargetReward = true
+        end)
     end
 end
 
@@ -96,7 +89,7 @@ local function reached(playerID)
 end
 
 local function checkEnd()
-    if tlength(M.participants) == 0 then
+    if M.participants:length() == 0 then
         M.target = nil
     end
 end
@@ -107,15 +100,29 @@ local function leave(playerID)
     end
 
     M.participants[playerID] = nil
+    BJCChat.sendChatEvent("chat.events.gamemodeLeave", {
+        playerName = BJCPlayers.Players[playerID].playerName,
+        gamemode = "chat.events.gamemodes.delivery",
+    })
     checkEnd()
+    if M.participants:length() > 0 then
+        checkNextTarget()
+    end
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
 end
 
-local function onPlayerDisconnect(playerID)
-    if M.participants[playerID] then
-        M.participants[playerID] = nil
+---@param player BJCPlayer
+---@return boolean
+local function isParticipant(player)
+    return M.participants[player.playerID] ~= nil
+end
+
+---@param player BJCPlayer
+local function onPlayerDisconnect(player)
+    if M.participants[player.playerID] then
+        M.participants[player.playerID] = nil
         checkEnd()
-        if tlength(M.participants) > 0 then
+        if M.participants:length() > 0 then
             checkNextTarget()
         end
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
@@ -123,8 +130,8 @@ local function onPlayerDisconnect(playerID)
 end
 
 local function stop()
-    if tlength(M.participants) > 0 then
-        M.participants = {}
+    if M.participants:length() > 0 then
+        M.participants = Table()
         M.target = nil
         BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DELIVERY_MULTI)
     end
@@ -149,6 +156,7 @@ M.resetted = resetted
 M.reached = reached
 M.leave = leave
 
+M.isParticipant = isParticipant
 M.onPlayerDisconnect = onPlayerDisconnect
 
 M.stop = stop
@@ -156,5 +164,4 @@ M.stop = stop
 M.getCache = getCache
 M.getCacheHash = getCacheHash
 
-RegisterBJCManager(M)
 return M

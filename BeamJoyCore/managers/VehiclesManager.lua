@@ -1,30 +1,31 @@
 local M = {
-    Data = {},
+    Data = BJCDao.vehicles.findAll(),
 }
 
-local function init()
-    M.Data = BJCDao.vehicles.findAll()
-end
-
-function _BJCOnVehicleSpawn(playerID, vehID, vehData)
-    local s, e = vehData:find('%{')
-    vehData = vehData:sub(s)
-    vehData = JSON.parse(vehData)
+---@param playerID integer
+---@param vehID integer
+---@param vehDataStr string
+local function onVehicleSpawn(playerID, vehID, vehDataStr)
+    local s, e = vehDataStr:find('%{')
+    vehDataStr = s and vehDataStr:sub(s) or ""
+    local data = JSON.parse(vehDataStr)
+    ---@type ServerVehicleConfig?
+    local vehData = type(data) == "table" and data or nil
 
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return 1
     end
 
     local group = BJCGroups.Data[player.group]
     if not group then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidGroup"), { group = player.group }))
+        LogError(BJCLang.getConsoleMessage("players.invalidGroup"):var({ group = player.group }))
         return 1
     end
 
     if not vehData then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidVehicleData"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidVehicleData"):var({ playerID = playerID }))
         return 1
     end
 
@@ -44,15 +45,31 @@ function _BJCOnVehicleSpawn(playerID, vehID, vehData)
             return 1
         end
     else
+        local model = tostring(vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName)
+        local isAi = model:lower():find("traffic") ~= nil
         -- spawning vehicle
-        if group.vehicleCap > -1 and group.vehicleCap <= tlength(player.vehicles) then
-            BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
-            return 1
+        if vehData.vcf.model and isAi then
+            -- traffic
+            if MP.GetPlayerCount() == 1 then
+                -- alone on server with permission to spawn a veh, allow traffic
+                if not BJCPerm.canSpawnVehicle(playerID) then
+                    BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
+                    return 1
+                end
+            elseif group.vehicleCap ~= -1 then
+                BJCTx.player.toast(playerID, BJC_TOAST_TYPES.ERROR, "players.cannotSpawnVehicle")
+                return 1
+            end
+        else
+            -- non-traffic vehicle
+            if group.vehicleCap > -1 and group.vehicleCap <= table.filter(player.vehicles, function(v)
+                    return not v.isAi
+                end):length() then
+                return 1
+            end
         end
 
-        local model = vehData.jbm or vehData.vcf.model
-
-        if tincludes(BJCVehicles.Data.ModelBlacklist, model, true) then
+        if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
             if BJCPerm.isStaff(playerID) then
                 BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "players.blacklistedVehicle")
             else
@@ -66,23 +83,27 @@ function _BJCOnVehicleSpawn(playerID, vehID, vehData)
             vid = vehData.vid,
             pid = vehData.pid,
             name = model,
+            isAi = isAi,
             freeze = false,
             engine = true,
         }
     end
 
-
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
 end
 
-function _BJCOnVehicleEdited(playerID, vehID, vehData)
-    local s, e = vehData:find('%{')
-    vehData = vehData:sub(s)
-    vehData = JSON.parse(vehData)
+---@param playerID integer
+---@param vehID integer
+---@param vehDataStr string
+local function onVehicleEdited(playerID, vehID, vehDataStr)
+    local s, e = vehDataStr:find('%{')
+    vehDataStr = s and vehDataStr:sub(s) or ""
+    local vehData = JSON.parse(vehDataStr)
 
     if not vehData then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidVehicleData"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidVehicleData"):var({ playerID = playerID }))
+        return 1
     end
 
     if not BJCScenario.canEditVehicle(playerID, vehID, vehData) then
@@ -91,7 +112,7 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
 
     local model = vehData.jbm or vehData.vcf.model
 
-    if tincludes(BJCVehicles.Data.ModelBlacklist, model, true) then
+    if table.includes(BJCVehicles.Data.ModelBlacklist, model) then
         if BJCPerm.isStaff(playerID) then
             BJCTx.player.toast(playerID, BJC_TOAST_TYPES.WARNING, "players.blacklistedVehicle")
         else
@@ -107,7 +128,6 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
             -- NO vid ON THIS EVENT
             if vehicle.name ~= vehData.jbm then
                 vehicle.name = model
-                player.currentVehicle = vehicle.vid
 
                 BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
                 BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
@@ -116,51 +136,38 @@ function _BJCOnVehicleEdited(playerID, vehID, vehData)
     end
 end
 
-function _BJCOnVehicleReset(playerID, vehID, posRot)
+local function onVehicleReset(playerID, vehID, posRot)
     -- NO USE FOR NOW
     posRot = JSON.parse(posRot)
 end
 
-function _BJCOnVehicleDeleted(playerID, vehID)
+local function onVehicleDeleted(playerID, vehID)
     local player = BJCPlayers.Players[playerID]
     if not player then
-        LogError(svar(BJCLang.getConsoleMessage("players.invalidPlayer"), { playerID = playerID }))
+        LogError(BJCLang.getConsoleMessage("players.invalidPlayer"):var({ playerID = playerID }))
         return
     end
 
-    local isCurrent = player.vehicles[vehID] and
-        player.vehicles[vehID].vid == player.currentVehicle
     player.vehicles[vehID] = nil
-    if isCurrent then
-        player.currentVehicle = nil
-    end
     BJCTx.cache.invalidate(playerID, BJCCache.CACHES.USER)
     BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.PLAYERS)
-
-    BJCScenario.onVehicleDeleted(playerID, vehID)
-end
-
-local function initHooks()
-    MP.RegisterEvent("onVehicleSpawn", "_BJCOnVehicleSpawn")
-    MP.RegisterEvent("onVehicleEdited", "_BJCOnVehicleEdited")
-    MP.RegisterEvent("onVehicleDeleted", "_BJCOnVehicleDeleted")
-    MP.RegisterEvent("onVehicleReset", "_BJCOnVehicleReset")
 end
 
 local function setModelBlacklist(model, state)
-    if state and not tincludes(M.Data.ModelBlacklist, model, true) then
+    if state and not table.includes(M.Data.ModelBlacklist, model) then
         table.insert(M.Data.ModelBlacklist, model)
     elseif not state then
-        local pos = tpos(M.Data.ModelBlacklist, model)
+        local pos = table.indexOf(M.Data.ModelBlacklist, model)
         if pos then
             table.remove(M.Data.ModelBlacklist, pos)
         end
     end
     BJCDao.vehicles.save(M.Data)
+    BJCTx.cache.invalidate(BJCTx.ALL_PLAYERS, BJCCache.CACHES.DATABASE_VEHICLES)
 end
 
 local function getCache()
-    return tdeepcopy(M.Data), M.getCacheHash()
+    return table.deepcopy(M.Data), M.getCacheHash()
 end
 
 local function getCacheHash()
@@ -177,10 +184,60 @@ local function onDriftEnded(playerID, driftScore)
         if BJCConfig.Data.Server.DriftBigBroadcast and isBig then
             local player = BJCPlayers.Players[playerID]
             for targetID, target in pairs(BJCPlayers.Players) do
-                BJCChat.onServerChat(targetID, svar(BJCLang.getServerMessage(target.lang, "broadcast.bigDrift"),
-                    { playerName = player.playerName, score = driftScore }))
+                BJCChat.onServerChat(targetID, BJCLang.getServerMessage(target.lang, "broadcast.bigDrift")
+                    :var({ playerName = player.playerName, score = driftScore }))
             end
         end
+    end
+end
+
+---@param senderID integer
+---@param gameVehicleID integer
+---@param paintIndex integer 1-3
+---@param paintData table
+local function syncPaint(senderID, gameVehicleID, paintIndex, paintData)
+    local owner = BJCPlayers.Players[senderID]
+    if not owner then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+    end
+
+    local veh = table.find(owner.vehicles, function(v) return v.vid == gameVehicleID end)
+    if not veh then
+        error({ key = "rx.errors.invalidVehicleID", data = { vehicleID = gameVehicleID } })
+    end
+
+    paintIndex = math.clamp(paintIndex, 1, 3) ~= paintIndex and 1 or paintIndex
+
+    if not veh.paints then
+        veh.paints = Table()
+    end
+    veh.paints[paintIndex] = paintData
+
+    Table(BJCPlayers.Players):keys():filter(function(pid) return pid ~= senderID end)
+        :forEach(function(pid) BJCTx.player.syncPaint(pid, gameVehicleID, paintIndex, paintData) end)
+end
+
+---@param senderID integer
+---@param gameVehicleID integer
+local function requestPaint(senderID, ownerID, gameVehicleID)
+    local sender = BJCPlayers.Players[senderID]
+    if not sender then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = senderID } })
+    end
+    local owner = BJCPlayers.Players[ownerID]
+    if not owner then
+        error({ key = "rx.errors.invalidPlayerID", data = { playerID = ownerID } })
+    end
+    local veh = table.find(owner.vehicles, function(v) return v.vid == gameVehicleID end)
+    if not veh then
+        error({ key = "rx.errors.invalidVehicleID", data = { vehicleID = gameVehicleID } })
+    end
+    if veh.paints then
+        Range(1, 3):forEach(function(i)
+            if veh.paints[i] then
+                BJCTx.player.syncPaint(senderID, gameVehicleID, i, veh.paints[i])
+            end
+        end)
     end
 end
 
@@ -191,7 +248,12 @@ M.getCacheHash = getCacheHash
 
 M.onDriftEnded = onDriftEnded
 
-init()
-initHooks()
+M.syncPaint = syncPaint
+M.requestPaint = requestPaint
+
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_SPAWN, onVehicleSpawn, "VehiclesManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_EDITED, onVehicleEdited, "VehiclesManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_RESET, onVehicleReset, "VehiclesManager")
+BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_DELETED, onVehicleDeleted, "VehiclesManager")
 
 return M

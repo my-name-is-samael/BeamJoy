@@ -3,7 +3,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/environment.json", { dbPath })
+    M._dbPath = string.var("{1}/environment.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.environment())
@@ -11,18 +11,21 @@ local function init(dbPath)
 end
 
 local function findAll()
-    local file, error = io.open(M._dbPath, "r")
-    if file and not error then
+    local file, err = io.open(M._dbPath, "r")
+    if file and not err then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file environment.json: Invalid content data")
+            data = BJCDefaults.environment()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.environment()
 end
 
-local function save(key, value)
-    local data = findAll()
-    data[key] = value
+local function save(data)
     BJCDao._saveFile(M._dbPath, data)
 end
 

@@ -1,11 +1,12 @@
 local M = {
     _dbPath = nil,
+    _tournamentPath = nil,
     _TYPES = {
         RACES = "_races",
         STATIONS = "_stations",
         DELIVERIES = "_deliveries",
         BUS_LINES = "_buslines",
-        HUNTER = "_hunter",
+        HUNTER_INFECTED = "_hunter",
         DERBY = "_derby",
     },
     Races = {},
@@ -13,12 +14,14 @@ local M = {
     Garages = {},
     Delivery = {},
     BusLines = {},
-    Hunter = {},
+    HunterInfected = {},
     Derby = {},
+    Tournament = {},
 }
 
 function M.init(dbPath)
-    M._dbPath = svar("{1}/scenarii", { dbPath })
+    M._dbPath = string.var("{1}/scenarii", { dbPath })
+    M._tournamentPath = string.var("{1}/tournaments.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         FS.CreateDirectory(M._dbPath)
@@ -27,11 +30,12 @@ end
 
 local function _getFilePath(type)
     local mapName = BJCCore.getMap()
-    return svar("{1}/{2}{3}.json", { M._dbPath, mapName, type })
+    return string.var("{1}/{2}{3}.json", { M._dbPath, mapName, type })
 end
 
 -- RACES
-local function _loadMapRaces()
+---@return table
+function M.Races.findAll()
     local filePath = _getFilePath(M._TYPES.RACES)
 
     local defaultRaces = {}
@@ -40,16 +44,18 @@ local function _loadMapRaces()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultRaces
+            end
+            return data
         end
     end
     return defaultRaces
 end
 
-function M.Races.findAll()
-    return _loadMapRaces()
-end
-
+---@param race table
 function M.Races.save(race)
     local races = M.Races.findAll()
 
@@ -94,6 +100,7 @@ function M.Races.save(race)
     return race.id
 end
 
+---@param id integer
 function M.Races.delete(id)
     local races = M.Races.findAll()
     for i, race in ipairs(races) do
@@ -111,6 +118,7 @@ function M.Races.delete(id)
 end
 
 -- ENERGY STATIONS / GARAGES
+---@return table
 local function _loadMapStations()
     local filePath = _getFilePath(M._TYPES.STATIONS)
 
@@ -124,16 +132,23 @@ local function _loadMapStations()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultStations
+            end
+            return data
         end
     end
     return defaultStations
 end
 
+---@return table
 function M.EnergyStations.findAll()
     return _loadMapStations().EnergyStations
 end
 
+---@param energyStations table
 function M.EnergyStations.save(energyStations)
     local data = _loadMapStations()
     data.EnergyStations = energyStations
@@ -145,10 +160,12 @@ function M.EnergyStations.save(energyStations)
     end
 end
 
+---@return table
 function M.Garages.findAll()
     return _loadMapStations().Garages
 end
 
+---@param garages table
 function M.Garages.save(garages)
     local data = _loadMapStations()
     data.Garages = garages
@@ -161,7 +178,8 @@ function M.Garages.save(garages)
 end
 
 -- DELIVERIES
-local function _loadMapDeliveries()
+---@return table
+function M.Delivery.findAll()
     local filePath = _getFilePath(M._TYPES.DELIVERIES)
 
     local defaultDeliveries = {}
@@ -171,19 +189,21 @@ local function _loadMapDeliveries()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultDeliveries
+            end
+            return data
         end
     end
     return defaultDeliveries
 end
 
-function M.Delivery.findAll()
-    return _loadMapDeliveries()
-end
-
+---@param deliveries {Points: BJIPositionRotationRadius[], Hubs: BJIPositionRotationRadius[]}
 function M.Delivery.save(deliveries)
     local filePath = _getFilePath(M._TYPES.DELIVERIES)
-    if #deliveries == 0 then
+    if #deliveries.Points == 0 and #deliveries.Hubs == 0 then
         FS.Remove(filePath)
     else
         BJCDao._saveFile(filePath, deliveries)
@@ -191,7 +211,8 @@ function M.Delivery.save(deliveries)
 end
 
 -- BUS LINES
-local function _loadMapBusLines()
+---@return table
+function M.BusLines.findAll()
     local filePath = _getFilePath(M._TYPES.BUS_LINES)
 
     local defaultBusLines = {}
@@ -201,16 +222,18 @@ local function _loadMapBusLines()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultBusLines
+            end
+            return data
         end
     end
     return defaultBusLines
 end
 
-function M.BusLines.findAll()
-    return _loadMapBusLines()
-end
-
+---@param busLines table
 function M.BusLines.save(busLines)
     local filePath = _getFilePath(M._TYPES.BUS_LINES)
     if #busLines == 0 then
@@ -221,14 +244,16 @@ function M.BusLines.save(busLines)
 end
 
 -- HUNTER
-local function _loadMapHunter()
-    local filePath = _getFilePath(M._TYPES.HUNTER)
+---@return table
+function M.HunterInfected.findAll()
+    local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
 
-    local defaultHunterData = {
-        enabled = false,
-        targets = {},
-        hunterPositions = {},
-        huntedPositions = {},
+    local defaultHunterInfectedData = {
+        enabledHunter = false,
+        enabledInfected = false,
+        waypoints = {},
+        majorPositions = {},
+        minorPositions = {},
     }
 
     if FS.Exists(filePath) then
@@ -236,23 +261,32 @@ local function _loadMapHunter()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultHunterInfectedData
+            end
+            return data
         end
     end
-    return defaultHunterData
+    return defaultHunterInfectedData
 end
 
-function M.Hunter.findAll()
-    return _loadMapHunter()
-end
-
-function M.Hunter.save(hunterData)
-    local filePath = _getFilePath(M._TYPES.HUNTER)
-    BJCDao._saveFile(filePath, hunterData)
+---@param hunterInfectedData table
+function M.HunterInfected.save(hunterInfectedData)
+    local filePath = _getFilePath(M._TYPES.HUNTER_INFECTED)
+    if #hunterInfectedData.majorPositions == 0 and
+        #hunterInfectedData.minorPositions == 0 and
+        #hunterInfectedData.waypoints == 0 then
+        FS.Remove(filePath)
+    else
+        BJCDao._saveFile(filePath, hunterInfectedData)
+    end
 end
 
 -- DERBY
-local function _loadMapDerby()
+---@return table
+function M.Derby.findAll()
     local filePath = _getFilePath(M._TYPES.DERBY)
 
     local defaultDerbyData = {}
@@ -262,22 +296,72 @@ local function _loadMapDerby()
         if file and not err then
             local data = file:read("*a")
             file:close()
-            return JSON.parse(data)
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { filePath }))
+                data = defaultDerbyData
+            end
+            return data
         end
     end
     return defaultDerbyData
 end
 
-function M.Derby.findAll()
-    return _loadMapDerby()
-end
-
+---@param derbyData table
 function M.Derby.save(derbyData)
     local filePath = _getFilePath(M._TYPES.DERBY)
     if #derbyData == 0 then
         FS.Remove(filePath)
     else
         BJCDao._saveFile(filePath, derbyData)
+    end
+end
+
+-- TOURNAMENT
+---@return table
+function M.Tournament.get()
+    local defaultTournamentData = {
+        activities = {},
+        players = {},
+        whitelist = false,
+        whitelistPlayers = {},
+    }
+
+    if FS.Exists(M._tournamentPath) then
+        local file, err = io.open(M._tournamentPath, "r")
+        if file and not err then
+            local data = file:read("*a")
+            file:close()
+            data = JSON.parse(data)
+            if type(data) ~= "table" then
+                LogError(string.var("Cannot read file {1}: Invalid content data", { M._tournamentPath }))
+                data = defaultTournamentData
+            end
+            return data
+        end
+    end
+    return defaultTournamentData
+end
+
+---@param activities BJTournamentActivity[]
+---@param players BJTournamentPlayer[]
+---@param whitelist boolean
+---@param whitelistPlayers string[]
+function M.Tournament.save(activities, players, whitelist, whitelistPlayers)
+    if whitelist and #whitelistPlayers == 0 then
+        whitelist = false
+    end
+    if #whitelistPlayers == 0 and #players == 0 and #activities == 0 then
+        if FS.Exists(M._tournamentPath) then
+            FS.Remove(M._tournamentPath)
+        end
+    else
+        BJCDao._saveFile(M._tournamentPath, {
+            activities = activities,
+            players = players,
+            whitelist = whitelist,
+            whitelistPlayers = whitelistPlayers,
+        })
     end
 end
 

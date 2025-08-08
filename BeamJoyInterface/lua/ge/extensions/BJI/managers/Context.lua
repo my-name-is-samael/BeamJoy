@@ -1,0 +1,477 @@
+---@class BJIUser
+---@field playerID integer
+---@field playerName string
+---@field group string?
+---@field lang string?
+---@field freeze boolean
+---@field engine boolean
+---@field vehicles table<integer, BJIVehicleData>
+---@field currentVehicle integer? gameVehID
+---@field previousVehConfig table?
+
+---@class BJIPlayerVehicle
+---@field vehID integer
+---@field gameVehID integer
+---@field finalGameVehID? integer (auto injected)
+---@field model string
+---@field isAi boolean (auto injected)
+---@field freeze? boolean (only when self is staff)
+---@field engine? boolean (only when self is staff)
+---@field muted? boolean (only when self is staff)
+---@field muteReason? string (only when self is staff)
+---@field kickReason? string (only when self is staff)
+---@field banReason? string (only when self is staff)
+
+---@class BJIPlayer
+---@field playerID integer
+---@field playerName string
+---@field tagName? string (auto injected)
+---@field group? string
+---@field guest boolean
+---@field reputation integer
+---@field staff boolean
+---@field currentVehicle? integer
+---@field ai tablelib<integer, integer>
+---@field isGhost boolean
+---@field vehicles tablelib<integer, BJIPlayerVehicle> index vehServerID
+
+---@class BJIManagerContext : BJIManager
+local M = {
+    _name = "Context",
+
+    GUI = {
+        setupEditorGuiTheme = nop,
+    },
+
+    WorldReadyState = 0,
+    VehiclePristineThreshold = 100,
+
+    UI = {
+        mapName = "",
+        mapLabel = "",
+        ---@type {value: number, key: string, default: boolean}
+        gravity = nil, -- save current gravity preset if there is one
+        ---@type {value: number, key: string, default: boolean}
+        speed = nil,   -- save current speed preset if not default
+    },
+
+    ---@type BJIUser
+    User = {
+        playerID = 0,
+        playerName = "",
+        group = nil,
+        lang = nil,
+        freeze = false,
+        engine = true,
+        currentVehicle = nil,
+        delivery = 0,
+        vehicles = {},
+        previousVehConfig = nil,
+    },
+
+    ---@type table<string, integer>
+    UserStats = {},
+    ---@type tablelib<integer, BJIPlayer> index playerID
+    Players = Table(),
+
+    -- CONFIG DATA
+    BJC = {
+        CEN = {
+            Console = true,
+            Editor = true,
+            NodeGrabber = true,
+        },
+        Freeroam = {
+            Nametags = true,
+            VehicleSpawning = true,
+            AllowUnicycle = true,
+        },
+        Server = {
+            AllowClientMods = true,
+            ClientMods = {},
+            Theme = {},
+        },
+    },
+    ---@type table<string, {}> techName index
+    Maps = {},
+    Scenario = {
+        Data = {}, -- Scenarii data
+    },
+    Database = {},
+}
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local restrictions = Table()
+    if not BJI_Context.BJC.CEN then
+        restrictions:addAll(BJI_Restrictions.CEN.CONSOLE)
+        restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
+    else
+        if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI_Context.BJC.CEN.Console then
+            restrictions:addAll(BJI_Restrictions.CEN.CONSOLE)
+        end
+        if not BJI_Perm.hasMinimumGroup(BJI.CONSTANTS.GROUP_NAMES.ADMIN) and
+            not BJI_Context.BJC.CEN.Editor then
+            restrictions:addAll(BJI_Restrictions.CEN.EDITOR)
+        end
+    end
+    return restrictions
+end
+
+local function loadUser()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.USER, function(cacheData)
+        local previous = table.clone(M.User) or {}
+
+        M.User.playerID = cacheData.playerID
+        M.User.playerName = cacheData.playerName
+        M.User.group = cacheData.group
+        M.User.lang = cacheData.lang
+        M.User.freeze = cacheData.freeze == true
+        M.User.engine = cacheData.engine == true
+
+        -- vehicles
+        for vehID, vehicle in pairs(cacheData.vehicles) do
+            if not M.User.vehicles[vehID] then
+                M.User.vehicles[vehID] = table.assign(vehicle, {
+                    freezeStation = false,
+                    engineStation = true,
+                })
+            else
+                table.assign(M.User.vehicles[vehID], vehicle)
+            end
+        end
+        -- remove obsolete vehicles
+        for vehID in pairs(M.User.vehicles) do
+            if not cacheData.vehicles[vehID] then
+                M.User.vehicles[vehID] = nil
+            end
+        end
+        BJI_Scenario.updateVehicles()
+
+        BJI_Reputation.updateReputationSmooth(cacheData.reputation)
+
+        M.UserStats = cacheData.stats
+
+        -- events detection
+        local previousVehCount = table.length(previous.vehicles)
+        local currentVehCount = table.length(M.User.vehicles)
+        if previousVehCount ~= currentVehCount then
+            if previousVehCount < currentVehCount then
+                -- new veh
+                table.find(M.User.vehicles, function(_, vehID)
+                    return not previous.vehicles[vehID]
+                end, function(veh)
+                    BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_SPAWNED, {
+                        self = true,
+                        playerID = M.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            else
+                -- removed veh
+                table.find(previous.vehicles, function(_, vehID)
+                    return not M.User.vehicles[vehID]
+                end, function(veh)
+                    BJI_Events.trigger(BJI_Events.EVENTS.VEHICLE_REMOVED, {
+                        self = true,
+                        playerID = M.User.playerID,
+                        vehID = veh.vehID,
+                        gameVehID = veh.gameVehID,
+                        vehData = veh,
+                    })
+                end)
+            end
+        end
+
+        if previous.group ~= M.User.group then
+            BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
+        end
+    end)
+end
+
+local previousPlayersScenarios = Table()
+local function loadPlayers()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.PLAYERS, function(cacheData)
+        ---@type tablelib<integer, BJIPlayer> playerID index
+        local previousPlayers = M.Players:clone()
+        Table(cacheData):forEach(function(p)
+            if not M.Players[p.playerID] then
+                M.Players[p.playerID] = table.assign({
+                    muteReason = "",
+                    kickReason = "",
+                    banReason = "",
+                    tempBanDuration = M.BJC.TempBan and M.BJC.TempBan.minTime or 0, -- input for mods+
+                    hideNametag = false,                                            -- future use ?
+                    tagName = BJI_Nametags.getPlayerTagName(p.playerName),
+                }, p)
+            else
+                table.assign(M.Players[p.playerID], p)
+
+                -- remove obsolete vehicles
+                for vid in pairs(M.Players[p.playerID].vehicles) do
+                    if not cacheData[p.playerID].vehicles[vid] then
+                        M.Players[p.playerID].vehicles[vid] = nil
+                    end
+                end
+            end
+        end)
+
+        -- remove obsolete players
+        M.Players:forEach(function(p, pid)
+            if not cacheData[pid] or cacheData[pid].playerName ~= p.playerName then
+                M.Players[pid] = nil
+            end
+        end)
+
+        -- events detection
+        local previousPlayersCount = previousPlayers:length()
+        local currentPlayersCount = M.Players:length()
+        if previousPlayersCount ~= currentPlayersCount then
+            if previousPlayersCount < currentPlayersCount then
+                -- player connected
+                M.Players:find(function(_, playerID)
+                    return not previousPlayers[playerID]
+                end, function(player)
+                    BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_CONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            else
+                -- player disconnected
+                previousPlayers:find(function(_, playerID)
+                    return not M.Players[playerID]
+                end, function(player)
+                    BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_DISCONNECT, {
+                        playerID = player.playerID,
+                        playerName = player.playerName,
+                    })
+                end)
+            end
+            BJI_Restrictions.update()
+        end
+        M.Players:forEach(function(p, pid)
+            if p.isGhost ~= previousPlayersScenarios[pid] then
+                previousPlayersScenarios[pid] = p.isGhost
+                BJI_Events.trigger(BJI_Events.EVENTS.PLAYER_SCENARIO_CHANGED, { playerID = pid })
+            end
+        end)
+    end)
+end
+
+local previousUI = {}
+local function loadUI()
+    -- env data for UI
+    previousUI.gravityRate = BJI_Env.Data.gravityRate
+    previousUI.simSpeed = BJI_Env.Data.simSpeed
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.ENVIRONMENT, function(cacheData)
+        local presetsUtils = require("ge/extensions/utils/EnvironmentUtils")
+
+        M.UI.gravity = {
+            value = cacheData.gravityRate,
+        }
+        if cacheData.gravityRate ~= nil then
+            for _, p in ipairs(presetsUtils.gravityPresets()) do
+                if math.round(p.value, 3) == math.round(cacheData.gravityRate, 3) then
+                    M.UI.gravity.key = p.key
+                    M.UI.gravity.default = p.default
+                end
+            end
+            if previousUI.gravityRate ~= cacheData.gravityRate and M.UI.gravity.key then
+                local label = BJI_Lang.get(string.var("presets.gravity.{1}", { M.UI.gravity.key }))
+                BJI_Toast.info(string.var(BJI_Lang.get("presets.gravity.toastChanged"),
+                    { gravity = label }))
+            end
+        end
+
+        M.UI.speed = {
+            value = cacheData.simSpeed,
+        }
+        for _, p in ipairs(presetsUtils.speedPresets()) do
+            if math.round(p.value, 3) == math.round(cacheData.simSpeed, 3) then
+                M.UI.speed.key = p.key
+                M.UI.speed.default = p.default
+            end
+        end
+        if previousUI.simSpeed ~= cacheData.simSpeed and M.UI.speed.key then
+            local label = BJI_Lang.get(string.var("presets.speed.{1}", { M.UI.speed.key }))
+            BJI_Toast.info(string.var(BJI_Lang.get("presets.speed.toastChanged"),
+                { speed = label }))
+        end
+
+        previousUI.gravityRate = cacheData.gravityRate
+        previousUI.simSpeed = cacheData.simSpeed
+    end)
+
+    -- map data for UI
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.MAP, function(cacheData)
+        M.UI.mapName = cacheData.name
+        M.UI.mapLabel = cacheData.label
+    end)
+end
+
+local function loadConfig()
+    -- core data
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.CORE, function(cacheData)
+        local previous = table.clone(M.Core) or {}
+        M.Core = cacheData
+
+        -- events detection
+        local keyChanged = {}
+        for k, v in pairs(M.Core) do
+            if v ~= previous[k] then
+                keyChanged[k] = {
+                    previousValue = previous[k],
+                    currentValue = v,
+                }
+            end
+        end
+        if table.length(keyChanged) > 0 then
+            BJI_Events.trigger(BJI_Events.EVENTS.CORE_CHANGED, keyChanged)
+        end
+    end)
+
+    -- bjc data
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.BJC, function(cacheData)
+        local permissionChanged = false
+
+        M.BJC.CEN = cacheData.CEN
+
+        if BJI_Scenario.isFreeroam() and (
+                not M.BJC.Freeroam or
+                M.BJC.Freeroam.VehicleSpawning ~= cacheData.Freeroam.VehicleSpawning or
+                M.BJC.Freeroam.AllowUnicycle ~= cacheData.Freeroam.AllowUnicycle
+            ) then
+            permissionChanged = true
+        end
+        M.BJC.Freeroam = cacheData.Freeroam
+        BJI_Restrictions.update()
+        if BJI_Scenario.isFreeroam() then
+            BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_CHANGED)
+        end
+
+        M.BJC.Server = cacheData.Server
+        BJI_Mods.update(M.BJC.Server.AllowClientMods)
+        BJI.Utils.Style.LoadTheme(M.BJC.Server.Theme)
+        if M.BJC.Server.Broadcasts then
+            for _, lang in ipairs(BJI_Lang.Langs) do
+                if not M.BJC.Server.Broadcasts[lang] then
+                    M.BJC.Server.Broadcasts[lang] = {}
+                end
+                if not M.BJC.Server.WelcomeMessage[lang] then
+                    M.BJC.Server.WelcomeMessage[lang] = ""
+                end
+            end
+        end
+
+        if cacheData.TempBan then
+            M.BJC.TempBan = cacheData.TempBan
+        end
+
+        if cacheData.Whitelist then
+            if not M.BJC.Whitelist then
+                M.BJC.Whitelist = {}
+            end
+            for k, v in pairs(cacheData.Whitelist) do
+                M.BJC.Whitelist[k] = v
+            end
+        end
+
+        if cacheData.VoteKick then
+            M.BJC.VoteKick = cacheData.VoteKick
+        end
+
+        if cacheData.VoteMap then
+            M.BJC.VoteMap = cacheData.VoteMap
+        end
+
+        if cacheData.Race then
+            M.BJC.Race = cacheData.Race
+        end
+
+        if cacheData.Speed then
+            M.BJC.Speed = cacheData.Speed
+        end
+
+        if cacheData.Hunter then
+            M.BJC.Hunter = cacheData.Hunter
+        end
+
+        if cacheData.Infected then
+            M.BJC.Infected = cacheData.Infected
+        end
+
+        if cacheData.Derby then
+            M.BJC.Derby = cacheData.Derby
+        end
+
+        if cacheData.VehicleDelivery then
+            M.BJC.VehicleDelivery = cacheData.VehicleDelivery
+        end
+
+        if cacheData.Reputation then
+            M.BJC.Reputation = cacheData.Reputation
+        end
+
+        if permissionChanged then
+            BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
+        end
+    end)
+end
+
+local function loadDatabase()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.DATABASE_VEHICLES, function(cacheData)
+        if not M.Database then
+            M.Database = {}
+        end
+
+        M.Database.Vehicles = cacheData
+    end)
+end
+
+local function loadMaps()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.MAPS, function(cacheData)
+        M.Maps = cacheData
+    end)
+end
+
+---@param mpVeh BJIMPVehicle
+local function onVehSpawn(mpVeh)
+    BJI_Async.task(function()
+        return M.Players[mpVeh.ownerID] and M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
+    end, function()
+        local v = M.Players[mpVeh.ownerID].vehicles[mpVeh.serverVehicleID]
+        v.finalGameVehID = mpVeh.gameVehicleID
+        v.isAi = mpVeh.isAi
+        BJI_Events.trigger(BJI_Events.EVENTS.VEHICLES_UPDATED)
+    end)
+end
+
+local listeners = Table()
+local function onUnload()
+    listeners:forEach(BJI_Events.removeListener)
+end
+M.onLoad = function()
+    loadUser()
+    loadPlayers()
+    loadUI()
+    loadConfig()
+    loadDatabase()
+    loadMaps()
+
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name))
+    listeners:insert(BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawn, M._name))
+end
+
+local function isSelf(playerID)
+    return M.User.playerID == playerID
+end
+
+M.isSelf = isSelf
+M.getRestrictions = getRestrictions
+
+return M

@@ -1,14 +1,16 @@
+---@class BJIPopupButton
+---@field label string
+---@field onClick? fun()
+
+---@class BJIManagerPopup : BJIManager
 local M = {
-    _name = "BJIPopup",
+    _name = "Popup",
+
     callbacks = {},
 }
 
 local function createCallback(fn)
-    local callbackName = svar("_{1}{2}{3}", {
-        GetCurrentTimeMillis(),
-        math.random(100),
-        math.random(100),
-    })
+    local callbackName = "popup_" .. UUID()
     M.callbacks[callbackName] = function()
         if type(fn) == "function" then
             pcall(fn)
@@ -19,18 +21,8 @@ local function createCallback(fn)
     return callbackName
 end
 
---[[
-<ul>
-    <li>text: string</li>
-    <li>buttons: array (length >= 1)</li>
-    <li>
-        <ul>
-            <li>label: string</li>
-            <li>onClick: function</li>
-        </ul>
-    </li>
-</ul>
-]]
+---@param text string
+---@param buttons BJIPopupButton[]
 local function createModal(text, buttons)
     if type(text) ~= "string" or
         type(buttons) ~= "table" or
@@ -43,7 +35,7 @@ local function createModal(text, buttons)
         if type(btn.label) ~= "string" or
             #btn.label == 0 or
             (btn.onClick and type(btn.onClick) ~= "function") then
-            LogError(svar("Invalid modal button {1} data", { i }))
+            LogError(string.var("Invalid modal button {1} data", { i }))
             return
         end
     end
@@ -51,7 +43,7 @@ local function createModal(text, buttons)
     local btns = {}
     for i, btn in ipairs(buttons) do
         local callbackName = createCallback(btn.onClick)
-        local cmd = svar("BJIPopup.callbacks.{1}()", { callbackName })
+        local cmd = string.var("BJI_Popup.callbacks[\"{1}\"]()", { callbackName })
         table.insert(btns, {
             action = tostring(i), -- mandatory
             text = btn.label,
@@ -67,12 +59,22 @@ local function createModal(text, buttons)
     })
 end
 
+---@param label string
+---@param callback? fun()
+---@return BJIPopupButton
+local function createButton(label, callback)
+    return {
+        label = label,
+        onClick = callback,
+    }
+end
+
 local function closeModal()
     ui_missionInfo.closeDialogue()
 end
 
 M.createModal = createModal
+M.createButton = createButton
 M.closeModal = closeModal
 
-RegisterBJIManager(M)
 return M

@@ -6,6 +6,10 @@ BJCTx = {
     PAYLOAD_LIMIT_SIZE = 20000,
 }
 
+---@param controller string
+---@param endpoint string
+---@param targetID integer
+---@param data? any
 function BJCTx.sendToPlayer(controller, endpoint, targetID, data)
     if type(data) ~= "table" then
         data = { data }
@@ -14,7 +18,7 @@ function BJCTx.sendToPlayer(controller, endpoint, targetID, data)
         (BJCPlayers.Players[targetID] and BJCPlayers.Players[targetID].ready) then
         local id = UUID()
         local parts = {}
-        local payload = JSON.stringifyRaw(data)
+        local payload = JSON.stringifyRaw(data) or ""
         while #payload > 0 do
             table.insert(parts, payload:sub(1, BJCTx.PAYLOAD_LIMIT_SIZE))
             payload = payload:sub(BJCTx.PAYLOAD_LIMIT_SIZE + 1)
@@ -57,6 +61,15 @@ function BJCTx.sendByPermissions(eventName, endpoint, data, ...)
     end
 end
 
-require("tx/CacheTx")
-require("tx/PlayerTx")
-require("tx/ScenarioTx")
+-- Autoload Tx controllers
+Table(FS.ListFiles(BJCPluginPath.."/tx/"))
+:filter(function(filename)
+    return filename:endswith(".lua") and filename ~= "Tx.lua"
+end):map(function(filename)
+    return filename:gsub(".lua$", "")
+end):forEach(function(txName)
+    local ok, err = pcall(require, string.var("tx/{1}", { txName }))
+    if not ok then
+        LogError(string.var("Error loading TX \"{1}.lua\" : {2}", { txName, err }))
+    end
+end)

@@ -1,33 +1,41 @@
-local M = {
+---@class BJIScenarioFreeroam : BJIScenario
+local S = {
+    _name = "Freeroam",
+    _key = "FREEROAM",
+    _isSolo = true,
+
     reset = {
-        restricted = false,
+        lock = false,
         nextExempt = false,
     },
     teleport = {
-        restricted = false,
+        lock = false,
     },
     engineStates = {},
 }
 
-local function canChangeTo()
-    return true
+local function onLoad(ctxt)
+    BJI_Cam.resetForceCamera(true)
+    BJI_Cam.resetRestrictedCameras()
+
+    S.reset.lock = false
+    S.reset.nextExempt = false
+    S.teleport.lock = false
 end
 
-local function onLoad(ctxt)
-    BJICam.resetForceCamera()
-    BJICam.resetRestrictedCameras()
-
-    M.reset.restricted = false
-    M.reset.nextExempt = false
-    M.teleport.restricted = false
-
-    BJIQuickTravel.toggle(BJIContext.BJC.Freeroam.QuickTravel)
-    BJINametags.tryUpdate()
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    local res = Table()
+    if not ctxt.isOwner then
+        res:addAll(BJI_Restrictions.OTHER.FUN_STUFF, true)
+    end
+    return res
 end
 
 local function tryApplyFreeze(gameVehID)
     local veh
-    for _, v in pairs(BJIContext.User.vehicles) do
+    for _, v in pairs(BJI_Context.User.vehicles) do
         if v.gameVehID == gameVehID then
             veh = v
             break
@@ -37,13 +45,13 @@ local function tryApplyFreeze(gameVehID)
         return
     end
 
-    local state = BJIContext.User.freeze or veh.freeze or veh.freezeStation
-    BJIVeh.freeze(state, gameVehID)
+    local state = BJI_Context.User.freeze or veh.freeze or veh.freezeStation
+    BJI_Veh.freeze(state, gameVehID)
 end
 
 local function tryApplyEngineState(gameVehID)
     local veh
-    for _, v in pairs(BJIContext.User.vehicles) do
+    for _, v in pairs(BJI_Context.User.vehicles) do
         if v.gameVehID == gameVehID then
             veh = v
             break
@@ -53,33 +61,33 @@ local function tryApplyEngineState(gameVehID)
         return
     end
 
-    if M.engineStates[gameVehID] == nil then
-        M.engineStates[gameVehID] = true
+    if S.engineStates[gameVehID] == nil then
+        S.engineStates[gameVehID] = true
     end
 
-    local state = BJIContext.User.engine and veh.engine and veh.engineStation
-    if state and M.engineStates[gameVehID] then
+    local state = BJI_Context.User.engine and veh.engine and veh.engineStation
+    if state and S.engineStates[gameVehID] then
         return
     else
-        M.engineStates[gameVehID] = state
+        S.engineStates[gameVehID] = state
     end
-    BJIVeh.engine(state, gameVehID)
+    BJI_Veh.engine(state, gameVehID)
     if not state then
-        BJIVeh.lights(false, gameVehID)
+        BJI_Veh.lights(false, gameVehID)
     end
 end
 
-local function renderTick(ctxt)
-    if not BJIContext.User.engine then
-        for _, veh in pairs(BJIContext.User.vehicles) do
-            BJIVeh.engine(false, veh.gameVehID)
-            BJIVeh.lights(false, veh.gameVehID)
+local function fastTick(ctxt)
+    if not BJI_Context.User.engine then
+        for _, veh in pairs(BJI_Context.User.vehicles) do
+            BJI_Veh.engine(false, veh.gameVehID)
+            BJI_Veh.lights(false, veh.gameVehID)
         end
     else
-        for _, veh in pairs(BJIContext.User.vehicles) do
+        for _, veh in pairs(BJI_Context.User.vehicles) do
             if not veh.engine or not veh.engineStation then
-                BJIVeh.engine(false, veh.gameVehID)
-                BJIVeh.lights(false, veh.gameVehID)
+                BJI_Veh.engine(false, veh.gameVehID)
+                BJI_Veh.lights(false, veh.gameVehID)
             end
         end
     end
@@ -87,71 +95,132 @@ end
 
 local function slowTick(ctxt)
     -- engine states cleanup
-    for gameVehID in pairs(M.engineStates) do
-        if not BJIVeh.getVehicleObject(gameVehID) or
-            not BJIVeh.isVehicleOwn(gameVehID) then
-            M.engineStates[gameVehID] = nil
+    for gameVehID in pairs(S.engineStates) do
+        if not BJI_Veh.getVehicleObject(gameVehID) or
+            not BJI_Veh.isVehicleOwn(gameVehID) then
+            S.engineStates[gameVehID] = nil
         end
     end
 end
 
-local function onVehicleSpawned(gameVehID)
-    BJIVeh.onVehicleSpawned(gameVehID)
-
-    if BJIContext.BJC.Freeroam.PreserveEnergy then
-        M.exemptPreserveEnergy = true
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
+    if BJI_Context.BJC.Freeroam and
+        BJI_Context.BJC.Freeroam.PreserveEnergy then
+        S.exemptPreserveEnergy = true
     end
 
-    if not BJIContext.Scenario.isEditorOpen() then
-        tryApplyFreeze(gameVehID)
-        tryApplyEngineState(gameVehID)
+    if not BJI_Win_ScenarioEditor.getState() then
+        tryApplyFreeze(mpVeh.gameVehicleID)
+        tryApplyEngineState(mpVeh.gameVehicleID)
     end
 end
 
 local function onVehicleResetted(gameVehID)
-    if gameVehID ~= BJIContext.User.currentVehicle then
+    if gameVehID ~= BJI_Context.User.currentVehicle or
+        not BJI_Veh.isVehicleOwn(gameVehID) then
         return
     end
 
-    if M.exemptPreserveEnergy then
-        M.exemptPreserveEnergy = nil
-    elseif BJIContext.BJC.Freeroam.PreserveEnergy then
-        BJIVeh.postResetPreserveEnergy(gameVehID)
+    if S.exemptPreserveEnergy then
+        S.exemptPreserveEnergy = nil
+    elseif BJI_Context.BJC.Freeroam.PreserveEnergy then
+        BJI_Veh.postResetPreserveEnergy(gameVehID)
     end
 
     -- ResetTimer restriction
-    local isResetDelay = BJIContext.BJC.Freeroam.ResetDelay > 0
-    local bypass = BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.MOD) or M.reset.nextExempt
+    local isResetDelay = BJI_Context.BJC.Freeroam.ResetDelay > 0
+    local bypass = BJI_Perm.isStaff() or S.reset.nextExempt
     if isResetDelay and not bypass then
-        M.reset.restricted = true
-        BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, true)
-        BJIAsync.delayTask(
+        S.reset.lock = true
+        BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+        BJI_Restrictions.update()
+        BJI_Async.delayTask(
             function()
-                M.reset.restricted = false
-                BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+                S.reset.lock = false
+                BJI_Events.trigger(BJI_Events.EVENTS.SCENARIO_UPDATED)
+                BJI_Restrictions.update()
             end,
-            BJIContext.BJC.Freeroam.ResetDelay * 1000,
-            BJIAsync.KEYS.RESTRICTIONS_RESET_TIMER
+            BJI_Context.BJC.Freeroam.ResetDelay * 1000,
+            "BJIResetLock"
         )
     end
-    M.reset.nextExempt = false
+    S.reset.nextExempt = false
 
-    if not BJIContext.Scenario.isEditorOpen() then
+    if not BJI_Win_ScenarioEditor.getState() then
         tryApplyFreeze(gameVehID)
         tryApplyEngineState(gameVehID)
     end
 end
 
 local function onVehicleSwitched(oldGameVehID, newGameVehID)
-    if BJIVeh.isVehicleOwn(newGameVehID) and not BJIContext.Scenario.isEditorOpen() then
+    if BJI_Veh.isVehicleOwn(newGameVehID) and
+        not BJI_Win_ScenarioEditor.getState() then
         tryApplyFreeze(newGameVehID)
         tryApplyEngineState(newGameVehID)
     end
+    BJI_Restrictions.update()
+end
+
+---@param gameVehID integer
+---@param resetType string
+---@return boolean
+local function canReset(gameVehID, resetType)
+    if BJI_Veh.isVehicleOwn(gameVehID) then
+        return BJI_Perm.isStaff() or not S.reset.lock
+    else
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+            BJI_Input.INPUTS.RELOAD_ALL,
+        }, resetType)
+    end
+end
+
+---@param gameVehID integer
+---@return number
+local function getRewindLimit(gameVehID)
+    return -1
+end
+
+---@param gameVehID integer
+---@param resetType string
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    if canReset(gameVehID, resetType) then
+        if BJI_Veh.isVehicleOwn(gameVehID) then
+            baseCallback()
+            return true
+        else
+            if table.includes({
+                    BJI_Input.INPUTS.RECOVER,
+                    BJI_Input.INPUTS.RECOVER_ALT,
+                    BJI_Input.INPUTS.LOAD_HOME,
+                    BJI_Input.INPUTS.RESET_PHYSICS,
+                    BJI_Input.INPUTS.RELOAD,
+                }, resetType) then
+                BJI_Veh.recoverInPlace()
+                return true
+            elseif table.includes({
+                    BJI_Input.INPUTS.RESET_ALL_PHYSICS,
+                    BJI_Input.INPUTS.RELOAD_ALL,
+                }, resetType) then
+                baseCallback()
+                return true
+            end
+        end
+    end
+    return false
 end
 
 local function updateVehicles()
-    if not BJIContext.Scenario.isEditorOpen() then
-        for _, veh in pairs(BJIContext.User.vehicles) do
+    if not BJI_Win_ScenarioEditor.getState() then
+        for _, veh in pairs(BJI_Context.User.vehicles) do
             tryApplyFreeze(veh.gameVehID)
             tryApplyEngineState(veh.gameVehID)
         end
@@ -159,110 +228,119 @@ local function updateVehicles()
 end
 
 local function onDropPlayerAtCamera()
-    BJIVeh.dropPlayerAtCamera(true)
+    BJI_Veh.dropPlayerAtCamera(true)
 end
 
 local function onDropPlayerAtCameraNoReset()
-    BJIVeh.dropPlayerAtCamera()
+    BJI_Veh.dropPlayerAtCamera()
 end
 
+---@param targetID integer
+---@param forced boolean?
 local function tryTeleportToPlayer(targetID, forced)
-    local target = BJIContext.Players[targetID]
-    if target == nil then
-        LogError(svar("Invalid player {1}", { targetID }))
+    local bypass = BJI_Perm.isStaff()
+    if not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.TELEPORT_TO) and not bypass then
         return
-    elseif tlength(target.vehicles) == 0 or not target.currentVehicle then
-        LogError(svar("Player {1} has no vehicle", { targetID }))
+    end
+    local target = BJI_Context.Players[targetID]
+    if target == nil then
+        LogError(string.var("Invalid player {1}", { targetID }))
+        return
+    elseif not target.currentVehicle or target.vehicles:length() == 0 then
+        LogError(string.var("Player {1} has no vehicle", { targetID }))
         return
     end
 
     -- TeleportTimer restriction
-    local isTeleportDelay = BJIContext.BJC.Freeroam.TeleportDelay > 0
-    local bypass = BJIPerm.hasMinimumGroup(BJI_GROUP_NAMES.MOD)
-    if not isTeleportDelay or forced or not M.teleport.restricted or bypass then
-        M.teleport.restricted = true
+    local isTeleportDelay = BJI_Context.BJC.Freeroam.TeleportDelay > 0
+    if not S.teleport.lock or forced or bypass or not isTeleportDelay then
+        if not forced and not bypass and isTeleportDelay then
+            S.teleport.lock = true
+            BJI_Async.delayTask(
+                function() S.teleport.lock = false end,
+                BJI_Context.BJC.Freeroam.TeleportDelay * 1000,
+                "BJITeleportToLock"
+            )
+        end
 
-        -- teleporting triggers reset, so set flag to exempt from reset timer
-        M.reset.nextExempt = true
-        BJIVeh.teleportToPlayer(targetID)
+        -- teleporting will reset vehicle
+        S.reset.nextExempt = true
+        BJI_Veh.teleportToPlayer(targetID)
 
-        BJIAsync.delayTask(
-            function()
-                M.teleport.restricted = false
-            end,
-            BJIContext.BJC.Freeroam.TeleportDelay * 1000,
-            BJIAsync.KEYS.RESTRICTIONS_TELEPORT_TIMER
-        )
     end
 end
 
 local function tryTeleportToPos(pos, saveHome)
-    -- setting position triggers reset, so set flag to exempt from reset timer
-    M.reset.nextExempt = true
-    BJIVeh.setPositionRotation(pos, nil, { saveHome = true })
+    -- setting position will reset vehicle
+    S.reset.nextExempt = true
+    BJI_Veh.setPositionRotation(pos, nil, { saveHome = true })
 end
 
 local function tryFocus(targetID)
-    BJIVeh.focus(targetID)
+    BJI_Veh.focus(targetID)
 end
 
 local function trySpawnNew(model, config)
-    local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
-    if BJIPerm.canSpawnVehicle() and not limitReached then
-        M.exemptNextReset()
-        BJIVeh.spawnNewVehicle(model, config)
+    local group = BJI_Perm.Groups[BJI_Context.User.group]
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= BJI_Veh.getSelfVehiclesCount()
+    if BJI_Perm.canSpawnVehicle() and not limitReached then
+        S.exemptNextReset()
+        BJI_Veh.spawnNewVehicle(model, config)
     end
 end
 
 local function tryReplaceOrSpawn(model, config)
-    local replacing = BJIVeh.isCurrentVehicleOwn()
-    local group = BJIPerm.Groups[BJIContext.User.group]
-    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= tlength(BJIContext.User.vehicles)
-    if BJIPerm.canSpawnVehicle() and (replacing or not limitReached) then
-        M.exemptNextReset()
-        BJIVeh.replaceOrSpawnVehicle(model, config)
+    local replacing = BJI_Veh.isCurrentVehicleOwn()
+    local group = BJI_Perm.Groups[BJI_Context.User.group]
+    local limitReached = group.vehicleCap > -1 and group.vehicleCap <= BJI_Veh.getSelfVehiclesCount()
+    if BJI_Perm.canSpawnVehicle() and (replacing or not limitReached) then
+        S.exemptNextReset()
+        BJI_Veh.replaceOrSpawnVehicle(model, config)
     end
 end
 
-local function tryPaint(paint, paintNumber)
-    PrintObj("tryPaint FREEROAM")
-    if BJIVeh.isCurrentVehicleOwn() then
-        PrintObj("tryPaint FREEROAM own")
-        M.exemptNextReset()
-        BJIVeh.paintVehicle(paint, paintNumber)
+local function tryPaint(paintIndex, paint)
+    local veh = BJI_Veh.getCurrentVehicleOwn()
+    if veh then
+        S.exemptNextReset()
+        BJI_Veh.paintVehicle(veh, paintIndex, paint)
     end
 end
 
-local function canRefuelAtStation()
-    return true
+local function canWalk()
+    return BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.AllowUnicycle
 end
 
-local function canRepairAtGarage()
-    return true
+local function canShowNametags()
+    return BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.Nametags == true
 end
 
-local function canSpawnAI()
-    return true
+---@param ctxt TickContext
+local function canQuickTravel(ctxt)
+    return BJI_Perm.isStaff() or
+        (BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.QuickTravel)
 end
 
-local function canDeleteOtherPlayersVehicle()
-    return true
+---@param ctxt TickContext
+local function canUseNodegrabber(ctxt)
+    return BJI_Perm.isStaff() or
+        (BJI_Context.BJC.Freeroam and BJI_Context.BJC.Freeroam.Nodegrabber)
 end
 
-local function doShowNametagsSpecs(vehData)
-    return true
+local function canSpawnNewVehicle()
+    return (BJI_Perm.canSpawnVehicle() and BJI_Context.BJC.Freeroam.VehicleSpawning) or
+        BJI_Perm.isStaff()
 end
 
 local function getModelList()
-    local models = BJIVeh.getAllVehicleConfigs(
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SPAWN_TRAILERS),
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.SPAWN_PROPS)
+    local models = BJI_Veh.getAllVehicleConfigs(
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SPAWN_TRAILERS),
+        BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.SPAWN_PROPS)
     )
 
-    if not BJIPerm.hasPermission(BJIPerm.PERMISSIONS.BYPASS_MODEL_BLACKLIST) and
-        #BJIContext.Database.Vehicles.ModelBlacklist > 0 then
-        for _, model in ipairs(BJIContext.Database.Vehicles.ModelBlacklist) do
+    if not BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.BYPASS_MODEL_BLACKLIST) and
+        #BJI_Context.Database.Vehicles.ModelBlacklist > 0 then
+        for _, model in ipairs(BJI_Context.Database.Vehicles.ModelBlacklist) do
             models[model] = nil
         end
     end
@@ -271,38 +349,35 @@ local function getModelList()
 end
 
 local function exemptNextReset()
-    M.reset.nextExempt = true
+    S.reset.nextExempt = true
 end
 
+---@param player table
+---@param ctxt TickContext
 local function getPlayerListActions(player, ctxt)
     local actions = {}
 
-    local isSelf = BJIContext.isSelf(player.playerID)
-
-    if tlength(player.vehicles) > 0 then
+    if player.vehiclesCount > 0 then
         local disabled = false
-        if isSelf then
-            disabled = ctxt.isOwner and tlength(ctxt.user.vehicles) == 1
+        if player.self then
+            disabled = ctxt.isOwner and table.length(ctxt.user.vehicles) == 1
         else
-            local finalGameVehID = BJIVeh.getVehicleObject(player.currentVehicle)
-            finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
-            disabled = finalGameVehID and ctxt.veh and ctxt.veh:getID() == finalGameVehID or false
+            local veh = BJI_Veh.getVehicleObject(player.currentVehicle)
+            local finalGameVehID = veh and veh:getID() or nil
+            disabled = finalGameVehID and ctxt.veh and ctxt.veh.gameVehicleID == finalGameVehID or false
         end
         table.insert(actions, {
-            id = svar("focus{1}", { player.playerID }),
-            icon = ICONS.visibility,
-            style = BTN_PRESETS.INFO,
+            id = string.var("focus{1}", { player.playerID }),
+            icon = BJI.Utils.Icon.ICONS.visibility,
+            style = BJI.Utils.Style.BTN_PRESETS.INFO,
             disabled = disabled,
+            tooltip = BJI_Lang.get("common.buttons.show"),
             onClick = function()
-                if isSelf then
-                    local selfVehs = {}
-                    local currentOwnIndex
-                    for _, v in pairs(BJIContext.User.vehicles) do
-                        table.insert(selfVehs, v.gameVehID)
-                        if v.gameVehID == BJIContext.User.currentVehicle then
-                            currentOwnIndex = #selfVehs
-                        end
-                    end
+                if player.self then
+                    local selfVehs = Table(ctxt.user.vehicles)
+                        :filter(function(v) return not v.isAi end)
+                        :map(function(v) return v.gameVehID end):values()
+                    local currentOwnIndex = selfVehs:indexOf(BJI_Context.User.currentVehicle)
                     local nextIndex
                     if currentOwnIndex then
                         -- if current veh is own, cycle to next index
@@ -311,59 +386,68 @@ local function getPlayerListActions(player, ctxt)
                         -- else focus first own veh
                         nextIndex = 1
                     end
-                    BJIVeh.focusVehicle(selfVehs[nextIndex])
+                    BJI_Veh.focusVehicle(selfVehs[nextIndex])
                 else
                     -- another player current veh (or spec)
-                    BJIVeh.focus(player.playerID)
+                    BJI_Veh.focus(player.playerID)
                 end
             end
         })
     end
 
     if ctxt.isOwner then
-        if isSelf and BJIVeh.isUnicycle(ctxt.veh:getID()) then
+        if player.self and BJI_Veh.isUnicycle(ctxt.veh.gameVehicleID) then
             table.insert(actions, {
                 id = "stopWalking",
-                icon = ICONS.directions_run,
-                style = BTN_PRESETS.ERROR,
-                onClick = BJIVeh.deleteCurrentOwnVehicle,
+                icon = BJI.Utils.Icon.ICONS.directions_run,
+                style = BJI.Utils.Style.BTN_PRESETS.ERROR,
+                tooltip = BJI_Lang.get("playersBlock.buttons.stopWalking"),
+                onClick = BJI_Veh.deleteCurrentOwnVehicle,
             })
         end
 
-        if not isSelf and tlength(player.vehicles) > 0 then
+        if not player.self and player.vehiclesCount > 0 then
             table.insert(actions, {
-                id = svar("gpsPlayer{1}", { player.playerID }),
-                icon = ICONS.add_location,
-                style = BTN_PRESETS.SUCCESS,
+                id = string.var("gpsPlayer{1}", { player.playerID }),
+                icon = BJI.Utils.Icon.ICONS.add_location,
+                style = BJI.Utils.Style.BTN_PRESETS.SUCCESS,
+                tooltip = BJI_Lang.get("common.buttons.setGPS"),
                 onClick = function()
-                    BJIGPS.prependWaypoint(BJIGPS.KEYS.PLAYER, nil, 20, nil, player.playerName)
+                    BJI_GPS.prependWaypoint({
+                        key = BJI_GPS.KEYS.PLAYER,
+                        radius = 20,
+                        playerName = player.playerName,
+                    })
                 end
             })
 
-            if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.TELEPORT_TO) then
+            if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.TELEPORT_TO) then
                 table.insert(actions, {
-                    id = svar("teleportTo{1}", { player.playerID }),
-                    icon = ICONS.tb_height_higher,
-                    style = BTN_PRESETS.WARNING,
+                    id = string.var("teleportTo{1}", { player.playerID }),
+                    icon = BJI.Utils.Icon.ICONS.tb_height_higher,
+                    style = BJI.Utils.Style.BTN_PRESETS.WARNING,
+                    disabled = S.teleport.lock,
+                    tooltip = BJI_Lang.get("playersBlock.buttons.teleportTo"),
                     onClick = function()
-                        M.tryTeleportToPlayer(player.playerID)
+                        S.tryTeleportToPlayer(player.playerID)
                     end
                 })
             end
 
-            if BJIPerm.hasPermission(BJIPerm.PERMISSIONS.TELEPORT_FROM) then
-                local finalGameVehID = BJIVeh.getVehicleObject(player.currentVehicle)
-                finalGameVehID = finalGameVehID and finalGameVehID:getID() or nil
-                if finalGameVehID and BJIVeh.getVehOwnerID(finalGameVehID) == player.playerID then
+            if BJI_Perm.hasPermission(BJI_Perm.PERMISSIONS.TELEPORT_FROM) then
+                local veh = BJI_Veh.getVehicleObject(player.currentVehicle)
+                local finalGameVehID = veh and veh:getID() or nil
+                if finalGameVehID and BJI_Veh.getVehOwnerID(finalGameVehID) == player.playerID then
                     table.insert(actions, {
-                        id = svar("teleportFrom{1}", { player.playerID }),
-                        icon = ICONS.tb_height_lower,
-                        style = BTN_PRESETS.WARNING,
+                        id = string.var("teleportFrom{1}", { player.playerID }),
+                        icon = BJI.Utils.Icon.ICONS.tb_height_lower,
+                        style = BJI.Utils.Style.BTN_PRESETS.WARNING,
                         disabled = not finalGameVehID or
                             not ctxt.isOwner or
-                            finalGameVehID == ctxt.veh:getID(),
+                            finalGameVehID == ctxt.veh.gameVehicleID,
+                        tooltip = BJI_Lang.get("playersBlock.buttons.teleportFrom"),
                         onClick = function()
-                            BJITx.moderation.teleportFrom(player.playerID)
+                            BJI_Tx_moderation.teleportFrom(player.playerID)
                         end
                     })
                 end
@@ -371,64 +455,57 @@ local function getPlayerListActions(player, ctxt)
         end
     end
 
-    if not BJIPerm.isStaff() and not isSelf and
-        BJIPerm.hasPermission(BJIPerm.PERMISSIONS.VOTE_KICK) and
-        BJIVote.Kick.canStartVote(player.playerID) then
-        table.insert(actions, {
-            id = svar("voteKick{1}", { player.playerID }),
-            icon = ICONS.event_busy,
-            style = BTN_PRESETS.ERROR,
-            onClick = function()
-                BJIVote.Kick.start(player.playerID)
-            end
-        })
+    if BJI_Votes.Kick.canStartVote(player.playerID) then
+        BJI.Utils.UI.AddPlayerActionVoteKick(actions, player.playerID)
     end
 
     return actions
 end
 
-local function onUnload(ctxt)
-    BJIRestrictions.apply(BJIRestrictions.TYPES.Reset, false)
+S.canChangeTo = TrueFn
+S.onLoad = onLoad
 
-    BJIQuickTravel.toggle(true)
-    BJINametags.toggle(true)
-end
+S.getRestrictions = getRestrictions
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.onVehicleSpawned = onVehicleSpawned
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleSwitched = onVehicleSwitched
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
-M.onDropPlayerAtCamera = onDropPlayerAtCamera
-M.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
+S.onDropPlayerAtCamera = onDropPlayerAtCamera
+S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
 
-M.updateVehicles = updateVehicles
+S.updateVehicles = updateVehicles
 
-M.tryTeleportToPlayer = tryTeleportToPlayer
-M.tryTeleportToPos = tryTeleportToPos
-M.tryFocus = tryFocus
-M.trySpawnNew = trySpawnNew
-M.tryReplaceOrSpawn = tryReplaceOrSpawn
-M.tryPaint = tryPaint
+S.tryTeleportToPlayer = tryTeleportToPlayer
+S.tryTeleportToPos = tryTeleportToPos
+S.tryFocus = tryFocus
+S.trySpawnNew = trySpawnNew
+S.tryReplaceOrSpawn = tryReplaceOrSpawn
+S.tryPaint = tryPaint
+S.canWalk = canWalk
+S.canShowNametags = canShowNametags
+S.canQuickTravel = canQuickTravel
+S.canUseNodegrabber = canUseNodegrabber
+S.canBoost = TrueFn
+S.canSpawnNewVehicle = canSpawnNewVehicle
 
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.canSpawnAI = canSpawnAI
-M.canDeleteOtherPlayersVehicle = canDeleteOtherPlayersVehicle
+S.canRefuelAtStation = TrueFn
+S.canRepairAtGarage = TrueFn
+S.canDeleteOtherPlayersVehicle = TrueFn
+S.canSpawnAI = TrueFn
+S.doShowNametagsSpecs = TrueFn
 
-M.doShowNametagsSpecs = doShowNametagsSpecs
+S.getModelList = getModelList
 
-M.getModelList = getModelList
+S.fastTick = fastTick
+S.slowTick = slowTick
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.exemptNextReset = exemptNextReset
 
-M.exemptNextReset = exemptNextReset
+S.getPlayerListActions = getPlayerListActions
 
-M.getPlayerListActions = getPlayerListActions
-
-M.onUnload = onUnload
-
-return M
+return S

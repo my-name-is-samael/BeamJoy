@@ -3,7 +3,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/vehicles.json", { dbPath })
+    M._dbPath = string.var("{1}/vehicles.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.vehicles())
@@ -15,9 +15,14 @@ local function findAll()
     if file and not error then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file vehicles.json: Invalid content data")
+            data = BJCDefaults.vehicles()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.vehicles()
 end
 
 local function save(data)

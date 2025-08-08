@@ -558,7 +558,7 @@ TOML.parse = function(toml, options)
 end
 
 TOML.encode = function(tbl)
-    tbl = tdeepcopy(tbl)
+    tbl = table.clone(tbl)
     local toml = ""
 
     local cache = {}

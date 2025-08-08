@@ -1,66 +1,131 @@
-BJIBENCH = false
-local bench = {}
+local M = {
+    STATE = 0,
 
-function BenchAdd(manager, event, time)
-    if not bench[manager] then
-        bench[manager] = {}
+    data = Table(),
+    gcdata = Table(),
+    _threshold = 100,
+}
+
+---@param wrapperName string
+---@param eventName string
+---@param time integer
+function M.add(wrapperName, eventName, time)
+    if not M.data[wrapperName] then
+        M.data[wrapperName] = Table()
     end
-    if not bench[manager][event] then
-        bench[manager][event] = {}
+    if not M.data[wrapperName][eventName] then
+        M.data[wrapperName][eventName] = Table()
     end
-    table.insert(bench[manager][event], time)
-    if #bench[manager][event] > 1000 then
-        table.remove(bench[manager][event], 1)
+    table.insert(M.data[wrapperName][eventName], time)
+    if #M.data[wrapperName][eventName] > M._threshold then
+        table.remove(M.data[wrapperName][eventName], 1)
     end
 end
 
-function BenchGet()
-    local lines = {}
-    for manager, events in pairs(bench) do
-        for event, times in pairs(events) do
-            if #times > 0 then
-                local sum, min, max = 0, times[1], times[1]
-                for _, t in ipairs(times) do
-                    sum = sum + t
-                    if t < min then
-                        min = t
+local sum, min, max
+---@param amount? integer
+---@param recurrent? boolean
+---@return string
+function M.get(amount, recurrent)
+    return M.data:reduce(function(res, events, wrapperName)
+            events:forEach(function(times, event)
+                if #times > 0 then
+                    sum, min, max = 0, times[1], times[1]
+                    for _, t in ipairs(times) do
+                        sum = sum + t
+                        if t < min then
+                            min = t
+                        end
+                        if t > max then
+                            max = t
+                        end
                     end
-                    if t > max then
-                        max = t
-                    end
+                    res:insert({
+                        manager = wrapperName,
+                        event = event,
+                        min = min,
+                        max = max,
+                        avg = math.round(sum / #times, 1),
+                        amount = #times,
+                    })
                 end
-                table.insert(lines, {
-                    manager = manager,
-                    event = event,
-                    min = min,
-                    max = max,
-                    avg = Round(sum / #times, 1),
-                    amount = #times,
-                })
-            end
+            end)
+            return res
+        end, Table())
+        :filter(function(line)
+            return not recurrent or line.amount == M._threshold
+        end)
+        :sort(function(a, b)
+            return a.avg > b.avg
+        end)
+        :filter(function(_, i)
+            return not amount or i <= amount
+        end)
+        :reduce(function(out, line)
+            return string.var("{1}{2}.{3} - min {4}ms ; max {5}ms ; avg {6}ms [{7}]\n",
+                { out, line.manager, line.event, line.min, line.max, line.avg, line.amount })
+        end, "")
+end
+
+---@param amount? integer
+---@param recurrent? boolean
+function M.startWindow(amount, recurrent)
+    M.STATE = 1
+    M.reset()
+    BJI.DEBUG = function() return M.get(amount or 10, recurrent ~= false) end
+end
+
+local init = false
+function M.startGC()
+    gcprobe(false, true)
+    timeprobe(true)
+    init = true
+end
+
+---@param name string
+function M.saveGC(name)
+    if init then
+        M.gcdata[name] = { t = tonumber(timeprobe(true)), gc = tonumber(gcprobe(false, true)) }
+    end
+    init = false
+end
+
+local data
+function M.showGC(sorted)
+    M.STATE = 2
+    M.reset()
+    BJI.DEBUG = function()
+        data = M.gcdata:map(function(v, k)
+            return {
+                name = k,
+                t = v.t,
+                gc = v.gc,
+            }
+        end)
+        if sorted ~= false then
+            data:sort(function(a, b)
+                if a.gc ~= b.gc then
+                    return a.gc > b.gc
+                end
+                return a.t > b.t
+            end)
         end
+        return data:reduce(function(res, v)
+            res = res .. v.name .. " = " .. tostring(v.gc) .. " - " .. tostring(math.round(v.t, 6)) .. "\n"
+            return res
+        end, "\n")
     end
-    table.sort(lines, function(a, b) return a.avg > b.avg end)
-    local out = "\n"
-    for _, l in ipairs(lines) do
-        out = svar("{1}{2}.{3} - min {4}ms ; max {5}ms ; avg {6}ms [{7}]\n",
-            { out, l.manager, l.event, l.min, l.max, l.avg, l.amount })
-    end
-    return out
 end
 
-function BenchReset()
-    bench = {}
+function M.reset()
+    if M.data then M.data:clear() end
+    if M.gcdata then M.gcdata:clear() end
 end
 
---[[
--- USAGE
-local start
-if BJIBENCH then
-    start = GetCurrentTimeMillis()
+function M.stop()
+    M.STATE = 0
+    M.reset()
+    BJI.DEBUG = nil
 end
--- BENCHMARKED CODE EXEC HERE
-if BJIBENCH then
-    BenchAdd(manager._name, eventName, GetCurrentTimeMillis() - start)
-end
-]]
+
+return M

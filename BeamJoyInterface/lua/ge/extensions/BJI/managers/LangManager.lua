@@ -1,35 +1,48 @@
+---@class BJIManagerLang : BJIManager
 local M = {
-    _name = "BJILang",
+    _name = "Lang",
+
     Langs = {},
     Messages = {},
 }
 
-local function initClient()
+local function onLoad()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.LANG, function(cacheData)
+        BJI_Lang.Langs = cacheData.langs
+        table.sort(BJI_Lang.Langs, function(a, b) return a:lower() < b:lower() end)
+        BJI_Lang.Messages = cacheData.messages
+
+        BJI_Events.trigger(BJI_Events.EVENTS.LANG_CHANGED)
+    end)
+
     local lang = Lua:getSelectedLanguage()
     if lang and type(lang) == "string" and lang:find("_") then
-        lang = ssplit(lang, "_")[1]:lower()
-        BJIAsync.task(
+        lang = lang:split2("_")[1]:lower()
+        BJI_Async.task(
             function()
-                return BJICache.areBaseCachesFirstLoaded()
+                return BJI_Cache.areBaseCachesFirstLoaded()
             end,
             function()
-                BJITx.player.lang(lang)
+                BJI_Tx_player.lang(lang)
             end,
             "BJILangInit"
         )
     end
 end
 
+---@param key string
+---@param defaultValue? string
+---@return string|"invalid"
 local function get(key, defaultValue)
     if not defaultValue then
         defaultValue = key
     end
     if not key or type(key) ~= "string" then
-        LogError(svar("Invalid key {1}", { key }))
+        LogError(string.var("Invalid key {1}", { key }))
         return "invalid"
     end
 
-    local parts = ssplit(key, ".")
+    local parts = key:split2(".")
     local val = M.Messages
     for i = 1, #parts do
         if val[parts[i]] == nil then
@@ -43,38 +56,33 @@ local function get(key, defaultValue)
     return tostring(val)
 end
 
+---@param data {id: string, label: string, tooltip: string?, selected: string, onChange: fun(newLang: string)}
 local function drawSelector(data)
     if not data then
-        LogError(M.get("errors.invalidData"), M._name)
-        return
+        return LogError(M.get("errors.invalidData"), M._name)
     end
 
-    local line = LineBuilder(true)
     if data.label then
-        line:text(data.label)
+        Text(data.label)
     else
-        line:icon({
-            icon = ICONS.translate,
-        })
+        Icon(BJI.Utils.Icon.ICONS.translate)
     end
+    if data.tooltip then TooltipText(data.tooltip) end
     for _, l in ipairs(M.Langs) do
-        line:btn({
-            id = l,
-            label = l:upper(),
-            style = data.selected == l and BTN_PRESETS.SUCCESS or BTN_PRESETS.INFO,
-            onClick = function()
-                if data.selected ~= l and data.onChange then
-                    data.onChange(l)
-                end
+        SameLine()
+        if Button(data.id .. "-" .. l, l:upper(), { btnStyle = data.selected == l and
+                BJI.Utils.Style.BTN_PRESETS.SUCCESS or BJI.Utils.Style.BTN_PRESETS.INFO }) then
+            if data.selected ~= l and data.onChange then
+                data.onChange(l)
             end
-        })
+        end
+        if data.tooltip then TooltipText(data.tooltip) end
     end
-    line:build()
 end
 
-M.initClient = initClient
 M.get = get
 M.drawSelector = drawSelector
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+
 return M

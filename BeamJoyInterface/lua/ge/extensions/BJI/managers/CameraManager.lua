@@ -1,6 +1,9 @@
+---@class BJIManagerCam : BJIManager
 local M = {
-    _name = "BJICam",
+    _name = "Cam",
+
     DEFAULT_FREECAM_FOV = 65,
+    DEFAULT_FREECAM_SPEED = 30,
     CAMERAS = {
         ORBIT = "orbit",
         BIG_MAP = "bigMap",
@@ -23,22 +26,25 @@ local M = {
     lastCamera = nil,
 }
 
+---@return string
 local function getCamera()
     return core_camera.getActiveCamName()
 end
 
+---@param cameraName string
+---@param withTransition? boolean default true
 local function setCamera(cameraName, withTransition)
     if withTransition == nil then
         withTransition = true
     end
 
     if cameraName == M.CAMERAS.PASSENGER then
-        if BJIVeh.isCurrentVehicleOwn() then
+        if BJI_Veh.isCurrentVehicleOwn() then
             -- You can't be passenger in your own vehicle
             cameraName = M.CAMERAS.DRIVER
         end
     elseif cameraName == M.CAMERAS.DRIVER then
-        if not BJIVeh.isCurrentVehicleOwn() then
+        if not BJI_Veh.isCurrentVehicleOwn() then
             -- You can't be driver in another vehicle
             cameraName = M.CAMERAS.PASSENGER
         end
@@ -55,7 +61,7 @@ local function getPositionRotation(keepOrientation)
     if not keepOrientation then
         camDir.z = 0
     end
-    return RoundPositionRotation({
+    return math.roundPositionRotation({
         pos = core_camera.getPosition(),
         rot = quatFromDir(camDir, vec3(0, 0, 1))
     })
@@ -71,7 +77,7 @@ local function setPositionRotation(pos, rot)
     rot = rot or M.getPositionRotation().rot
 
     core_camera.setPosRot(
-        BJIContext.User.playerID,
+        BJI_Context.User.playerID,
         pos.x, pos.y, pos.z,
         rot.x, rot.y, rot.z, rot.w
     )
@@ -79,7 +85,7 @@ end
 
 local function toggleFreeCam()
     if M.getCamera() == M.CAMERAS.FREE then
-        if BJIVeh.getCurrentVehicle() then
+        if BJI_Veh.getCurrentVehicle() then
             commands.toggleCamera()
         end
     else
@@ -106,14 +112,15 @@ local function forceCamera(cam)
     M.forced.cam = cam
 end
 
-local function resetForceCamera()
+---@param rollback? boolean
+local function resetForceCamera(rollback)
     if not M.isForcedCamera() then
         return
     end
 
     M.forced.cam = nil
     M.forced.posrot = nil
-    if M.forced.previouscam then
+    if rollback and M.forced.previouscam then
         M.setCamera(M.forced.previouscam)
 
         if M.forced.previouscam == M.CAMERAS.FREE then
@@ -126,14 +133,21 @@ local function resetForceCamera()
     M.forced.previousposrot = nil
 end
 
+---@param pos? vec3
+---@param rot? quat
 local function forceFreecamPos(pos, rot)
     M.forced.previouscam = M.getCamera()
     M.forced.cam = M.CAMERAS.FREE
+    if not pos or not rot then
+        local base = M.getPositionRotation(true)
+        pos = pos or base.pos
+        rot = rot or base.rot
+    end
     M.forced.posrot = { pos = pos, rot = rot }
 end
 
 local function isRestrictedCamera(cam)
-    return tincludes(M.restricted, cam)
+    return table.includes(M.restricted, cam)
 end
 
 local function addRestrictedCamera(cam)
@@ -144,7 +158,7 @@ end
 
 local function removeRestrictedCamera(cam)
     if M.isRestrictedCamera(cam) then
-        local pos = tpos(M.restricted, cam)
+        local pos = table.indexOf(M.restricted, cam)
         if pos then
             table.remove(M.restricted, pos)
         end
@@ -169,83 +183,147 @@ local function setFreeCamSmooth(state)
     core_camera.setSmoothedCam(0, state)
 end
 
+---@return number
 local function getFOV()
     return core_camera.getFovDeg()
 end
 
--- default: float DEFAULT 65, 10-120 range
+---@param deg number? 10-120
 local function setFOV(deg)
-    if deg == nil then
-        deg = 65
+    if not deg then
+        deg = M.DEFAULT_FREECAM_FOV
     elseif type(deg) ~= "number" then
         return
     end
 
-    core_camera.setFOV(0, deg)
+    core_camera.setFOV(0, math.clamp(deg, 10, 120))
+end
+
+---@return number
+local function getSpeed()
+    return core_camera.getSpeed()
+end
+
+---@param value number? 2-100
+local function setSpeed(value)
+    if not value then
+        value = M.DEFAULT_FREECAM_SPEED
+    elseif type(value) ~= "number" then
+        return
+    end
+
+    core_camera.setSpeed(math.clamp(value, 2, 100))
+end
+
+--- Called when self player is connected and every vehicle is ready
+---@param ctxt TickContext
+local function onConnection(ctxt)
+    local veh = BJI_Veh.getMPVehicles({ isAi = false }, true)
+        :filter(function(v) ---@param v BJIMPVehicle
+            local owner = ctxt.players[v.ownerID] ---@type BJIPlayer
+            return owner and owner.currentVehicle == v.remoteVehID
+        end):random()
+    if veh then
+        BJI_Veh.focusVehicle(veh.gameVehicleID)
+    end
 end
 
 local function renderTick(ctxt)
     if ctxt.camera ~= M.lastCamera then
         M.onCameraChange(ctxt.camera)
+        ctxt.camera = M.getCamera()
+        M.lastCamera = ctxt.camera
     end
+end
 
-    if M.lastCamera == M.CAMERAS.FREE and
-        ctxt.camera == M.CAMERAS.FREE and
-        M.getFOV() ~= BJIContext.UserSettings.freecamFov then
-        -- update FOV
-        BJIContext.UserSettings.freecamFov = M.getFOV()
-        BJITx.player.settings("freecamFov", BJIContext.UserSettings.freecamFov)
-    end
-    ctxt.camera = M.getCamera()
-
+---@param ctxt TickContext
+local function fastTick(ctxt)
     -- Update forced camera
     if M.isForcedCamera() then
+        if M.forced.cam ~= M.CAMERAS.FREE and not ctxt.veh then
+            resetForceCamera() -- veh deletion safe
+        end
         if ctxt.camera ~= M.forced.cam then
             M.setCamera(M.forced.cam, false)
             ctxt.camera = M.getCamera()
         end
 
-        if M.forced.cam == M.CAMERAS.FREE then
-            if M.forced.posrot then
-                M.setPositionRotation(M.forced.posrot.pos, M.forced.posrot.rot)
-            end
+        if M.forced.cam == M.CAMERAS.FREE and M.forced.posrot then
+            M.setPositionRotation(M.forced.posrot.pos, M.forced.posrot.rot)
         end
     end
 
     if ctxt.camera == M.CAMERAS.FREE then
         local isSmoothed = M.isFreeCamSmooth()
-        if BJIContext.UserSettings.freecamSmooth and not isSmoothed then
+        local state = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
+        if state and not isSmoothed then
             M.setFreeCamSmooth(true)
-        elseif BJIContext.UserSettings.freecamSmooth == false and isSmoothed then
+        elseif not state and isSmoothed then
             M.setFreeCamSmooth(false)
         end
     end
-    M.lastCamera = ctxt.camera
+end
+
+local function slowTick(ctxt)
+    if ctxt.camera == M.CAMERAS.FREE then
+        local currentFov = M.getFOV()
+        if currentFov ~= BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
+            -- update FoV
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV, currentFov)
+        end
+
+        local currentSpeed = M.getSpeed()
+        if currentSpeed ~= BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED) then
+            -- update speed
+            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED, currentSpeed)
+        end
+    end
 end
 
 local function switchToNextCam()
     core_camera.setVehicleCameraByIndexOffset(0, 1)
 end
 
+---@param camera string
+---@return boolean
+local function isDriverCamera(camera)
+    -- modded driver cameras
+    return table.includes({ M.CAMERAS.DRIVER, "enhanceddriver" }, camera)
+end
+
+---@param newCamera string
 local function onCameraChange(newCamera)
     if #M.restricted > 0 then
-        if tincludes(M.restricted, newCamera) then
+        if table.includes(M.restricted, newCamera) then
             switchToNextCam()
             return
         end
     end
 
-    if newCamera == M.CAMERAS.DRIVER and not BJIVeh.isCurrentVehicleOwn() then
+    if isDriverCamera(newCamera) and not BJI_Veh.isCurrentVehicleOwn() then
         switchToNextCam()
         return
-    elseif newCamera == M.CAMERAS.PASSENGER and BJIVeh.isCurrentVehicleOwn() then
+    elseif newCamera == M.CAMERAS.PASSENGER and BJI_Veh.isCurrentVehicleOwn() then
         switchToNextCam()
         return
     end
 
-    if newCamera == M.CAMERAS.FREE and BJIContext.UserSettings.freecamFov then
-        M.setFOV(BJIContext.UserSettings.freecamFov)
+    if newCamera == M.CAMERAS.FREE then
+        M.setFOV(BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setSpeed(BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED))
     end
+end
+
+local function onLoad()
+    if M.getCamera() == M.CAMERAS.FREE then
+        M.setFOV(BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV))
+        M.setSpeed(BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED))
+    end
+
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, onConnection)
+
+    BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end
 
 M.getCamera = getCamera
@@ -270,8 +348,12 @@ M.setFreeCamSmooth = setFreeCamSmooth
 M.getFOV = getFOV
 M.setFOV = setFOV
 
-M.renderTick = renderTick
+M.getSpeed = getSpeed
+M.setSpeed = setSpeed
+
 M.onCameraChange = onCameraChange
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+M.renderTick = renderTick
+
 return M

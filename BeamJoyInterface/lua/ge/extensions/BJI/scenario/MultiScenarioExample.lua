@@ -1,4 +1,10 @@
-local M = {}
+---@class BJIScenarioMultiExample : BJIScenario
+local S = {
+    _name = "MultiExample",
+    _key = "MULTI_EXAMPLE",
+    _isSolo = false,
+    _skip = true,
+}
 
 -- can switch to scenario hook
 local function canChangeTo(ctxt)
@@ -9,8 +15,42 @@ end
 local function onLoad(ctxt)
 end
 
+-- unload hook (before switch to another scenario)
+local function onUnload(ctxt)
+end
+
+---@param ctxt TickContext
+---@return string[]
+local function getRestrictions(ctxt)
+    return Table():addAll(BJI_Restrictions.OTHER.VEHICLE_SWITCH, true)
+        :addAll(BJI_Restrictions.OTHER.PHOTO_MODE, true)
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    return BJI_Veh.isVehicleOwn(gameVehID) or resetType == BJI_Input.INPUTS.RECOVER
+end
+
+---@param gameVehID integer
+---@return number -1 = infinite, 0 = disabled, >0 = seconds
+local function getRewindLimit(gameVehID)
+    return -1
+end
+
+---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@param baseCallback fun()
+---@return boolean
+local function tryReset(gameVehID, resetType, baseCallback)
+    baseCallback()
+    return true
+end
+
 -- player vehicle spawn hook
-local function onVehicleSpawned(gameVehID)
+---@param mpVeh BJIMPVehicle
+local function onVehicleSpawned(mpVeh)
 end
 
 -- player vehicle drop at camera hook
@@ -65,10 +105,6 @@ end
 local function canSpawnAI()
 end
 
--- can player select vehicle
-local function canSelectVehicle()
-end
-
 -- can player spawn new vehicle
 local function canSpawnNewVehicle()
 end
@@ -85,10 +121,6 @@ end
 local function canDeleteOtherVehicles()
 end
 
--- can player edit vehicle
-local function canEditVehicle()
-end
-
 -- vehicle model list getter
 local function getModelList()
 end
@@ -98,57 +130,62 @@ local function doShowNametag(vehData)
 end
 
 local function getCollisionsType(ctxt)
-    return BJICollisions.TYPES.GHOSTS
+    return BJI_Collisions.TYPES.GHOSTS
 end
 
 -- player list contextual actions getter
 local function getPlayerListActions(player)
+    return {}
 end
 
 -- each frame tick hook
 local function renderTick(ctxt)
 end
 
+-- max 4x/sec tick
+local function fastTick(ctxt)
+end
+
 -- each second tick hook
 local function slowTick(ctxt)
 end
 
--- unload hook (before switch to another scenario)
-local function onUnload(ctxt)
-end
+S.canChangeTo = canChangeTo
+S.onLoad = onLoad
+S.onUnload = onUnload
 
-M.canChangeTo = canChangeTo
-M.onLoad = onLoad
+S.getRestrictions = getRestrictions
 
-M.onVehicleSpawned = onVehicleSpawned
-M.onDropPlayerAtCamera = onDropPlayerAtCamera
-M.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
-M.onVehicleResetted = onVehicleResetted
-M.onVehicleSwitched = onVehicleSwitched
-M.onVehicleDestroyed = onVehicleDestroyed
-M.updateVehicles = updateVehicles
-M.canRefuelAtStation = canRefuelAtStation
-M.canRepairAtGarage = canRepairAtGarage
-M.onGarageRepair = onGarageRepair
-M.tryTeleportToPlayer = tryTeleportToPlayer
-M.tryTeleportToPos = tryTeleportToPos
-M.tryFocus = tryFocus
-M.canSpawnAI = canSpawnAI
-M.canSelectVehicle = canSelectVehicle
-M.canSpawnNewVehicle = canSpawnNewVehicle
-M.canReplaceVehicle = canReplaceVehicle
-M.canDeleteVehicle = canDeleteVehicle
-M.canDeleteOtherVehicles = canDeleteOtherVehicles
-M.canEditVehicle = canEditVehicle
-M.getModelList = getModelList
-M.doShowNametag = doShowNametag
-M.getCollisionsType = getCollisionsType
+S.canReset = canReset
+S.getRewindLimit = getRewindLimit
+S.tryReset = tryReset
 
-M.getPlayerListActions = getPlayerListActions
+S.onVehicleSpawned = onVehicleSpawned
+S.onDropPlayerAtCamera = onDropPlayerAtCamera
+S.onDropPlayerAtCameraNoReset = onDropPlayerAtCameraNoReset
+S.onVehicleResetted = onVehicleResetted
+S.onVehicleSwitched = onVehicleSwitched
+S.onVehicleDestroyed = onVehicleDestroyed
+S.updateVehicles = updateVehicles
+S.canRefuelAtStation = canRefuelAtStation
+S.canRepairAtGarage = canRepairAtGarage
+S.onGarageRepair = onGarageRepair
+S.tryTeleportToPlayer = tryTeleportToPlayer
+S.tryTeleportToPos = tryTeleportToPos
+S.tryFocus = tryFocus
+S.canSpawnAI = canSpawnAI
+S.canSpawnNewVehicle = canSpawnNewVehicle
+S.canReplaceVehicle = canReplaceVehicle
+S.canDeleteVehicle = canDeleteVehicle
+S.canDeleteOtherVehicles = canDeleteOtherVehicles
+S.getModelList = getModelList
+S.doShowNametag = doShowNametag
+S.getCollisionsType = getCollisionsType
 
-M.renderTick = renderTick
-M.slowTick = slowTick
+S.getPlayerListActions = getPlayerListActions
 
-M.onUnload = onUnload
+S.renderTick = renderTick
+S.fastTick = fastTick
+S.slowTick = slowTick
 
-return M
+return S

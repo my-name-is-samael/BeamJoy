@@ -1,5 +1,18 @@
+---@class BJIGroup
+---@field level integer
+---@field permissions string[]
+---@field staff boolean
+---@field vehicleCap integer
+---@field whitelisted boolean
+---@field muted boolean
+---@field banned boolean
+---@field canSpawn boolean
+---@field canSpawnAI boolean
+
+---@class BJIManagerPerm : BJIManager
 local M = {
-    _name = "BJIPerm",
+    _name = "Perm",
+
     PERMISSIONS = {
         SEND_PRIVATE_MESSAGE = "SendPrivateMessage",
 
@@ -39,12 +52,48 @@ local M = {
         SET_CEN = "SetCEN",
     },
 
+    ---@type table<string, BJIGroup>
     Groups = {},
     Permissions = {},
 }
 
+local function onLoad()
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.PERMISSIONS, function(cacheData)
+        for k, v in pairs(cacheData) do
+            M.Permissions[k] = v
+        end
+
+        BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
+    end)
+
+    BJI_Cache.addRxHandler(BJI_Cache.CACHES.GROUPS, function(cacheData)
+        for groupName, group in pairs(cacheData) do
+            M.Groups[groupName] = M.Groups[groupName] or {}
+            -- bind values
+            for k, v in pairs(group) do
+                M.Groups[groupName][k] = v
+            end
+            -- remove obsolete keys
+            for k in pairs(M.Groups[groupName]) do
+                if not group[k] then
+                    M.Groups[groupName][k] = nil
+                end
+            end
+        end
+        -- remove obsolete groups
+        for k in pairs(M.Groups) do
+            if cacheData[k] == nil then
+                M.Groups[k] = nil
+            end
+        end
+
+        BJI_Events.trigger(BJI_Events.EVENTS.PERMISSION_CHANGED)
+    end)
+end
+
 local function hasMinimumGroup(targetGroupName, playerID)
-    if not BJICache.areBaseCachesFirstLoaded() then
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
 
@@ -56,7 +105,7 @@ local function hasMinimumGroup(targetGroupName, playerID)
     local level
     if not playerID then
         -- self
-        local selfGroup = M.Groups[BJIContext.User.group]
+        local selfGroup = M.Groups[BJI_Context.User.group]
         if not selfGroup then
             return false
         end
@@ -64,7 +113,7 @@ local function hasMinimumGroup(targetGroupName, playerID)
         level = selfGroup.level
     else
         -- playerlist
-        local player = BJIContext.Players[playerID]
+        local player = BJI_Context.Players[playerID]
         if not player then
             return false
         end
@@ -81,7 +130,8 @@ local function hasMinimumGroup(targetGroupName, playerID)
 end
 
 local function hasPermission(permissionName, playerID)
-    if not BJICache.areBaseCachesFirstLoaded() then
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
     local permissionLevel = M.Permissions[permissionName]
@@ -91,20 +141,20 @@ local function hasPermission(permissionName, playerID)
 
     local group
     if playerID then
-        local player = BJIContext.Players[playerID]
+        local player = BJI_Context.Players[playerID]
         if not player then
             return false
         end
 
         group = M.Groups[player.group]
     else
-        group = M.Groups[BJIContext.User.group]
+        group = M.Groups[BJI_Context.User.group]
     end
     if not group then
         return false
     end
 
-    if tincludes(group.permissions, permissionName, true) then
+    if table.includes(group.permissions, permissionName) then
         -- has specific permission
         return true
     end
@@ -114,12 +164,13 @@ local function hasPermission(permissionName, playerID)
 end
 
 local function hasMinimumGroupOrPermission(targetGroupName, permissionName, playerID)
-    if not BJICache.areBaseCachesFirstLoaded() then
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
 
     -- has minimum group
-    if M.hasMinimumGroup(targetGroupName, playerID or BJIContext.User.playerID) then
+    if M.hasMinimumGroup(targetGroupName, playerID) then
         return true
     end
 
@@ -127,102 +178,118 @@ local function hasMinimumGroupOrPermission(targetGroupName, permissionName, play
 end
 
 local function canSpawnVehicle(playerID)
-    if not BJICache.areBaseCachesFirstLoaded() then
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
 
-    local groupName = playerID and BJIContext.Players[playerID].group or BJIContext.User.group
+    local groupName = playerID and BJI_Context.Players[playerID].group or BJI_Context.User.group
 
     local group = M.Groups[groupName]
-    if not group then
-        return false
-    end
+    if not group then return false end
 
     return group.canSpawn == true
 end
 
-local function isStaff(playerID)
-    if not BJICache.areBaseCachesFirstLoaded() then
+local function canSpawnNewVehicle(playerID)
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
 
-    local groupName = playerID and BJIContext.Players[playerID].group or BJIContext.User.group
+    local groupName = playerID and BJI_Context.Players[playerID].group or BJI_Context.User.group
 
     local group = M.Groups[groupName]
-    if not group then
+    if not group then return false end
+
+    return group.vehicleCap == -1 or
+        group.vehicleCap > BJI_Veh.getMPVehicles({ isAi = false, ownerID = playerID }, true)
+        :filter(function(mpVeh)
+            return mpVeh.isVehicle
+        end):length()
+end
+
+local function canSpawnAI(playerID)
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
         return false
     end
+
+    if BJI_Context.Players:length() == 1 then
+        return M.canSpawnVehicle(playerID)
+    end
+
+    local groupName = playerID and BJI_Context.Players[playerID].group or BJI_Context.User.group
+
+    local group = M.Groups[groupName]
+    if not group then return false end
+
+    return group.canSpawnAI == true
+end
+
+local function isStaff(playerID)
+    if not BJI_Cache.areBaseCachesFirstLoaded() or
+        (playerID and not BJI_Context.Players[playerID]) then
+        return false
+    end
+
+    local groupName = playerID and BJI_Context.Players[playerID].group or BJI_Context.User.group
+
+    local group = M.Groups[groupName]
+    if not group then return false end
 
     return group.staff == true
 end
 
+---@param groupName string
+---@return string?
 local function getNextGroup(groupName)
-    local currentGroup = M.Groups[groupName]
-    if not currentGroup then
-        return nil
-    end
+    local group = M.Groups[groupName]
+    if not group then return nil end
 
-    local list = {}
-    for name, group in pairs(M.Groups) do
-        if type(group) == "table" and group.level > currentGroup.level then
-            table.insert(list, {
-                name = name,
-                level = group.level
-            })
-        end
-    end
-    table.sort(list, function(a, b)
-        return a.level < b.level
-    end)
-    if list[1] then
-        return list[1].name
-    end
-    return nil
+    local next = Table(M.Groups)
+        ---@param k string
+        :reduce(function(acc, g, k)
+            return (g.level > group.level and
+                    (not acc or acc.level > g.level)) and
+                { name = k, level = g.level } or acc
+        end)
+    return next and next.name or nil
 end
 
+---@param groupName string
+---@return string?
 local function getPreviousGroup(groupName)
-    local currentGroup = M.Groups[groupName]
-    if not currentGroup then
-        return nil
-    end
+    local group = M.Groups[groupName]
+    if not group then return nil end
 
-    local list = {}
-    for name, group in pairs(M.Groups) do
-        if type(group) == "table" and group.level < currentGroup.level then
-            table.insert(list, {
-                name = name,
-                level = group.level
-            })
-        end
-    end
-    table.sort(list, function(a, b)
-        return b.level > a.level
-    end)
-
-    if list[1] then
-        return list[1].name
-    end
-    return nil
+    local previous = Table(M.Groups)
+        ---@param k string
+        :reduce(function(acc, g, k)
+            return (g.level < group.level and
+                    (not acc or acc.level < g.level)) and
+                { name = k, level = g.level } or acc
+        end)
+    return previous and previous.name or nil
 end
 
 local function getCountPlayersCanSpawnVehicle()
-    local count = 0
-    for _, player in pairs(BJIContext.Players) do
-        if M.canSpawnVehicle(player.playerID) then
-            count = count + 1
-        end
-    end
-    return count
+    return BJI_Context.Players
+        :filter(function(p) return M.canSpawnVehicle(p.playerID) end)
+        :length()
 end
 
 M.hasMinimumGroup = hasMinimumGroup
 M.hasPermission = hasPermission
 M.hasMinimumGroupOrPermission = hasMinimumGroupOrPermission
 M.canSpawnVehicle = canSpawnVehicle
+M.canSpawnNewVehicle = canSpawnNewVehicle
+M.canSpawnAI = canSpawnAI
 M.isStaff = isStaff
 M.getNextGroup = getNextGroup
 M.getPreviousGroup = getPreviousGroup
 M.getCountPlayersCanSpawnVehicle = getCountPlayersCanSpawnVehicle
 
-RegisterBJIManager(M)
+M.onLoad = onLoad
+
 return M

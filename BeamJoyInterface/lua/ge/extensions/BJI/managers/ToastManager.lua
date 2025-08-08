@@ -1,5 +1,7 @@
+---@class BJIManagerToast : BJIManager
 local M = {
-    _name = "BJIToast",
+    _name = "Toast",
+
     TOAST_TYPES = {
         SUCCESS = "success",
         INFO = "info",
@@ -15,8 +17,8 @@ M.TOAST_TITLES = {
 }
 
 local function toast(type, msg, timeoutSec)
-    if not tincludes(M.TOAST_TYPES, type) then
-        error(svar("Invalid toast type: {1}", { type }))
+    if not table.includes(M.TOAST_TYPES, type) then
+        error(string.var("Invalid toast type: {1}", { type }))
         return
     end
     if not timeoutSec then
@@ -49,5 +51,4 @@ M.error = function(msg, timeoutSec)
     M.toast(M.TOAST_TYPES.ERROR, msg, timeoutSec)
 end
 
-RegisterBJIManager(M)
 return M

@@ -1,147 +1,117 @@
+---@class BJIManagerMods : BJIManager
 local M = {
-    _name = "BJIMods",
+    _name = "Mods",
+
     baseFunctions = {},
     state = true,
 }
 
-local function onLoad()
-    BJIAsync.task(function()
-        return not not extensions.core_modmanager and not not extensions.core_repository
-    end, function()
-        -- MODMANAGER
-        M.baseFunctions.activateAll = core_modmanager.activateAllMods
-        M.baseFunctions.deactivateAllMods = core_modmanager.deactivateAllMods
-        M.baseFunctions.deleteAllMods = core_modmanager.deleteAllMods
-        -- M.baseFunctions.deleteMod = core_modmanager.deleteMod
-        -- M.baseFunctions.deactivateMod = core_modmanager.deactivateMod
-        -- M.baseFunctions.deactivateModId = core_modmanager.deactivateModId
-        -- M.baseFunctions.activateMod = core_modmanager.activateMod
-        -- M.baseFunctions.activateModId = core_modmanager.activateModId
-        -- REPOSITORY
-        M.baseFunctions.modSubscribe = core_repository.modSubscribe
-        M.baseFunctions.modUnsubscribe = core_repository.modUnsubscribe
-    end, "BJIModsInit")
+local function updateVehicles()
+    BJI_Veh.getAllVehicleConfigs(false, false, true)
+end
+
+local function initNGFunctionsWrappers()
+    -- cannot be wrapped:
+    -- extensions.core_repository.requestMyMods
+    M.baseFunctions = {
+        core_modmanager = {
+            activateModId = extensions.core_modmanager.activateModId,
+            deactivateModId = extensions.core_modmanager.deactivateModId,
+            activateAllMods = extensions.core_modmanager.activateAllMods,
+            deactivateAllMods = extensions.core_modmanager.deactivateAllMods,
+            deleteAllMods = extensions.core_modmanager.deleteAllMods,
+        },
+        core_repository = {
+            modSubscribe = extensions.core_repository.modSubscribe,
+            modUnsubscribe = extensions.core_repository.modUnsubscribe,
+            requestMods = extensions.core_repository.requestMods,
+        },
+    }
+
+    local function stopProcess()
+        BJI_Toast.error(BJI_Lang.get("errors.modManagementDisabled"))
+        guihooks.trigger("app:waiting", false)
+        BJI_UI.hideGameMenu()
+    end
+
+    Table({
+        { parent = "core_modmanager", fnName = "activateModId",     updateVeh = true },
+        { parent = "core_modmanager", fnName = "deactivateModId",   updateVeh = true },
+        { parent = "core_modmanager", fnName = "activateAllMods",   updateVeh = true },
+        { parent = "core_modmanager", fnName = "deactivateAllMods", updateVeh = true },
+        { parent = "core_modmanager", fnName = "deleteAllMods",     updateVeh = true },
+        { parent = "core_repository", fnName = "modSubscribe",      updateVeh = true },
+        { parent = "core_repository", fnName = "modUnsubscribe",    updateVeh = true },
+        { parent = "core_repository", fnName = "requestMods" },
+    }):forEach(function(el)
+        M.baseFunctions[el.parent][el.fnName] = extensions[el.parent][el.fnName]
+        extensions[el.parent][el.fnName] = function(...)
+            if M.state then
+                local res = M.baseFunctions[el.parent][el.fnName](...)
+                if el.updateVeh then updateVehicles() end
+                return res
+            else
+                stopProcess()
+            end
+        end
+    end)
 end
 
 local function onUnload()
-    if tlength(M.baseFunctions) > 0 then
-        core_modmanager.activateAllMods = M.baseFunctions.activateAll
-        core_modmanager.deactivateAllMods = M.baseFunctions.deactivateAllMods
-        core_modmanager.deleteAllMods = M.baseFunctions.deleteAllMods
-        -- core_modmanager.deleteMod = M.baseFunctions.deleteMod
-        -- core_modmanager.deactivateMod = M.baseFunctions.deactivateMod
-        -- core_modmanager.deactivateModId = M.baseFunctions.deactivateModId
-        -- core_modmanager.activateMod = M.baseFunctions.activateMod
-        -- core_modmanager.activateModId = M.baseFunctions.activateModId
-        core_repository.modSubscribe = M.baseFunctions.modSubscribe
-        core_repository.modUnsubscribe = M.baseFunctions.modUnsubscribe
-    end
+    RollBackNGFunctionsWrappers(M.baseFunctions)
 end
 
+local function onLoad()
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_POST_LOAD, initNGFunctionsWrappers, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, onUnload, M._name)
+end
 
 local function update(state)
-    local function updateVehicles()
-        BJIVeh.getAllVehicleConfigs(false, false, true)
-    end
-
-    if tlength(M.baseFunctions) == 0 then
-        BJIAsync.removeTask("BJIModsUpdate")
-        BJIAsync.task(function()
-            return tlength(M.baseFunctions) > 0
+    if table.length(M.baseFunctions) == 0 then
+        BJI_Async.task(function()
+            return table.length(M.baseFunctions) > 0
         end, function()
             update(state)
-        end, "BJIModsUpdate")
+        end)
         return
     end
 
-    if state and not M.state then
-        -- enabling
-        core_modmanager.activateAllMods = function(...)
-            M.baseFunctions.activateAll(...)
-            updateVehicles()
-        end
-        core_modmanager.deactivateAllMods = function(...)
-            M.baseFunctions.deactivateAllMods(...)
-            updateVehicles()
-        end
-        core_modmanager.deleteAllMods = function(...)
-            M.baseFunctions.deleteAllMods(...)
-            updateVehicles()
-        end
-        -- core_modmanager.deleteMod = function(...)
-        --     M.baseFunctions.deleteMod(...)
-        --     updateVehicles()
-        -- end
-        -- core_modmanager.deactivateMod = function(...)
-        --     M.baseFunctions.deactivateMod(...)
-        --     updateVehicles()
-        -- end
-        -- core_modmanager.deactivateModId = function(...)
-        --     M.baseFunctions.deactivateModId(...)
-        --     updateVehicles()
-        -- end
-        -- core_modmanager.activateMod = function(...)
-        --     M.baseFunctions.activateMod(...)
-        --     updateVehicles()
-        -- end
-        -- core_modmanager.activateModId = function(...)
-        --     M.baseFunctions.activateModId(...)
-        --     updateVehicles()
-        -- end
-
-        core_repository.modSubscribe = function(...)
-            M.baseFunctions.modSubscribe(...)
-        end
-        core_repository.modUnsubscribe = function(...)
-            M.baseFunctions.modUnsubscribe(...)
-        end
-    elseif not state and M.state then
+    if not state and M.state then
         -- disabling
-        local previousCam
-        if BJICam.getCamera() == BJICam.CAMERAS.FREE then
-            previousCam = BJICam.getPositionRotation(true)
-        end
-        local function stopProcess()
-            BJIToast.error(BJILang.get("errors.modManagementDisabled"))
-            guihooks.trigger("app:waiting", false)
-        end
-        core_modmanager.activateAllMods = stopProcess
-        core_modmanager.deactivateAllMods = stopProcess
-        core_modmanager.deleteAllMods = stopProcess
-        -- core_modmanager.deleteMod = stopProcess
-        -- core_modmanager.deactivateMod = stopProcess
-        -- core_modmanager.deactivateModId = stopProcess
-        -- core_modmanager.activateMod = stopProcess
-        -- core_modmanager.activateModId = stopProcess
-        core_repository.modSubscribe = stopProcess
-        core_repository.modUnsubscribe = stopProcess
-        local mods = core_modmanager.getMods()
-        for name, mod in pairs(mods) do
-            local fileName = ssplit(mod.fullpath, "/")
-            fileName = fileName[#fileName]
-            if not tincludes(BJIContext.BJC.Server.ClientMods, mod.fileName, true) and
-                not name:find("^multiplayer") then
-                LogError(svar("Disabling user mod {1}", { name }))
-                core_modmanager.deactivateMod(name, true)
+        BJI_UI.applyLoading(true, function()
+            local previousCam, previousFov
+            if BJI_Cam.getCamera() == BJI_Cam.CAMERAS.FREE then
+                previousCam = BJI_Cam.getPositionRotation(true)
+                previousFov = BJI_Cam.getFOV()
             end
-        end
-        if tlength(mods) > 0 then
-            updateVehicles()
-        end
-        if previousCam then
-            BJIAsync.delayTask(function()
-                BJICam.setPositionRotation(previousCam.pos, previousCam.rot)
-            end, 200, "BJIModsDisablingCameraRestore")
-        end
+
+            local mods = extensions.core_modmanager.getMods()
+            for name, mod in pairs(mods) do
+                local fileName = mod.fullpath:split2("/")
+                fileName = fileName[#fileName]
+                if not table.includes(BJI_Context.BJC.Server.ClientMods, mod.fileName) and
+                    not name:find("^multiplayer") then
+                    LogError(string.var("Disabling user mod {1}", { name }))
+                    extensions.core_modmanager.deactivateMod(name, true)
+                end
+            end
+            if table.length(mods) > 0 then
+                updateVehicles()
+            end
+            if previousCam then
+                BJI_Async.delayTask(function()
+                    BJI_Cam.setPositionRotation(previousCam.pos, previousCam.rot)
+                    BJI_Cam.setFOV(previousFov)
+                end, 200, "BJIModsDisablingCameraRestore")
+            end
+            BJI_UI.applyLoading(false)
+        end)
     end
 
     M.state = state
 end
 
 M.onLoad = onLoad
-M.onUnload = onUnload
-
 M.update = update
 
-RegisterBJIManager(M)
 return M

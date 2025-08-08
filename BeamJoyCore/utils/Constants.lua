@@ -6,7 +6,6 @@ BJC_EVENTS = {
     CACHE = {
         EVENT = "BJCCache",
         TX = {
-            INVALIDATE = "invalidate",
             SEND = "send",
         },
         RX = {
@@ -23,16 +22,18 @@ BJC_EVENTS = {
             TELEPORT_TO_PLAYER = "teleportToPlayer",
             TELEPORT_TO_POS = "teleportToPos",
             EXPLODE_VEHICLE = "explodeVehicle",
+            SYNC_PAINT = "syncPaint",
         },
         RX = {
             CONNECTED = "connected",
-            SETTINGS = "settings",
             SWITCH_VEHICLE = "switchVehicle",
             LANG = "lang",
             DRIFT = "drift",
             KM_REWARD = "KmReward",
             EXPLODE_VEHICLE = "explodeVehicle",
-            UPDATE_AI = "UpdateAI",
+            MARK_INVALID_VEHS = "markInvalidVehs",
+            SYNC_PAINT = "syncPaint",
+            REQUEST_PAINT = "requestPaint",
         }
     },
     MODERATION = {
@@ -58,6 +59,7 @@ BJC_EVENTS = {
         RX = {
             BJC = "bjc",
             ENV = "env",
+            ENV_PRESET = "envPreset",
             CORE = "core",
             MAP_SWITCH = "switchMap",
             PERMISSIONS = "permissions",
@@ -69,36 +71,28 @@ BJC_EVENTS = {
     },
     DATABASE = {
         EVENT = "BJCDatabase",
-        TX = {},
+        TX = {
+            PLAYERS_GET = "playersGet",
+            PLAYERS_UPDATED = "playersUpdated",
+        },
         RX = {
-            VEHICLE = "Vehicle",
+            PLAYERS_GET = "playersGet",
+            VEHICLE = "vehicle",
         },
     },
-    VOTEKICK = {
-        EVENT = "BJCVoteKick",
+    VOTE = {
+        EVENT = "BJCVote",
         TX = {},
         RX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
-        },
-    },
-    VOTEMAP = {
-        EVENT = "BJCVoteMap",
-        TX = {},
-        RX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
-        },
-    },
-    VOTERACE = {
-        EVENT = "BJCVoteRace",
-        TX = {},
-        RX = {
-            VOTE = "vote",
-            START = "start",
-            STOP = "stop",
+            KICK_START = "KickStart",
+            KICK_VOTE = "KickVote",
+            KICK_STOP = "KickStop",
+            MAP_START = "MapStart",
+            MAP_VOTE = "MapVote",
+            MAP_STOP = "MapStop",
+            SCENARIO_START = "ScenarioStart",
+            SCENARIO_VOTE = "ScenarioVote",
+            SCENARIO_STOP = "ScenarioStop",
         },
     },
     SCENARIO = {
@@ -113,9 +107,9 @@ BJC_EVENTS = {
             DELIVERY_STOP = "DeliveryStop",
             DELIVERY_PACKAGE_SUCCESS = "DeliveryPackageSuccess",
             BUS_LINES_SAVE = "BusLinesSave",
-            SPEED_STOP = "SpeedStop",
-            HUNTER_SAVE = "HunterSave",
+            HUNTER_INFECTED_SAVE = "HunterInfectedSave",
             DERBY_SAVE = "DerbySave",
+            PURSUIT_DATA = "PursuitData",
         },
         RX = {
             RACE_DETAILS = "RaceDetails",
@@ -143,16 +137,16 @@ BJC_EVENTS = {
             BUS_MISSION_START = "BusMissionStart",
             BUS_MISSION_REWARD = "BusMissionReward",
             BUS_MISSION_STOP = "BusMissionStop",
-            SPEED_START = "SpeedStart",
-            SPEED_JOIN = "SpeedJoin",
             SPEED_FAIL = "SpeedFail",
             SPEED_STOP = "SpeedStop",
-            HUNTER_SAVE = "HunterSave",
-            HUNTER_START = "HunterStart",
+            HUNTER_INFECTED_SAVE = "HunterInfectedSave",
             HUNTER_UPDATE = "HunterUpdate",
+            HUNTER_FORCE_FUGITIVE = "HunterForceFugitive",
             HUNTER_STOP = "HunterStop",
+            INFECTED_UPDATE = "InfectedUpdate",
+            INFECTED_FORCE_INFECTED = "InfectedForceInfected",
+            INFECTED_STOP = "InfectedStop",
             DERBY_SAVE = "DerbySave",
-            DERBY_START = "DerbyStart",
             DERBY_UPDATE = "DerbyUpdate",
             DERBY_STOP = "DerbyStop",
             TAG_DUO_JOIN = "TagDuoJoin",
@@ -161,6 +155,48 @@ BJC_EVENTS = {
             TAG_SERVER_START = "TagServerStart",
             TAG_SERVER_UPDATE = "TagServerUpdate",
             TAG_SERVER_STOP = "TagServerStop",
+            PURSUIT_DATA = "PursuitData",
+            PURSUIT_REWARD = "PursuitReward",
         }
-    }
+    },
+    TOURNAMENT = {
+        EVENT = "BJCTournament",
+        TX = {},
+        RX = {
+            CLEAR = "clear",
+            TOGGLE = "toggle",
+            END_TOURNAMENT = "endTournament",
+            TOGGLE_WHITELIST = "toggleWhitelist",
+            TOGGLE_PLAYER = "togglePlayer",
+            REMOVE_ACTIVITY = "removeActivity",
+            EDIT_SCORE = "editScore",
+            REMOVE_PLAYER = "removePlayer",
+            ADD_SOLO_RACE = "addSoloRace",
+            END_SOLO_ACTIVITY = "endSoloActivity",
+        },
+    },
+}
+
+---@type tablelib<string, {env: string, type: string, default: any, maxLength: integer?, prevent: boolean?, min: number?, max: number?}>
+BJC_CORE_CONFIG = Table({
+    Debug             = { env = "BEAMMP_DEBUG", type = "boolean", default = false, },
+    Private           = { env = "BEAMMP_PRIVATE", type = "boolean", default = true, },
+    MaxCars           = { env = "BEAMMP_MAX_CARS", type = "number", default = 200, prevent = true, },
+    MaxPlayers        = { env = "BEAMMP_MAX_PLAYERS", type = "number", default = 10, min = 1 },
+    Map               = { env = "BEAMMP_MAP", type = "string", maxLength = 100, default = "/levels/gridmap_v2/info.json", },
+    Name              = { env = "BEAMMP_NAME", type = "string", maxLength = 250, default = "My Awesome BeamJoy Server", },
+    Description       = { env = "BEAMMP_DESCRIPTION", type = "string", maxLength = 1000, default = "This server is not configured yet but can you play with it !", },
+    InformationPacket = { env = "BEAMMP_INFORMATION_PACKET", type = "boolean", default = false, },
+})
+BJC_CORE_CONFIG:forEach(function(el, k)
+    if not el.prevent and not MP.Settings[k] then el.prevent = true end
+end)
+
+BJC_ENV_PRESETS = {
+    CLEAR = "clear",
+    CLOUD = "cloud",
+    LIGHT_RAIN = "lightrain",
+    RAIN = "rain",
+    LIGHT_SNOW = "lightsnow",
+    SNOW = "snow",
 }

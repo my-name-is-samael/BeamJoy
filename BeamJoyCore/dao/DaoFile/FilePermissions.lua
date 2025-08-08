@@ -3,7 +3,7 @@ local M = {
 }
 
 local function init(dbPath)
-    M._dbPath = svar("{1}/permissions.json", { dbPath })
+    M._dbPath = string.var("{1}/permissions.json", { dbPath })
 
     if not FS.Exists(M._dbPath) then
         BJCDao._saveFile(M._dbPath, BJCDefaults.permissions())
@@ -11,13 +11,18 @@ local function init(dbPath)
 end
 
 local function findAll()
-    local file, error = io.open(M._dbPath, "r")
-    if file and not error then
+    local file, err = io.open(M._dbPath, "r")
+    if file and not err then
         local data = file:read("*a")
         file:close()
-        return JSON.parse(data)
+        data = JSON.parse(data)
+        if type(data) ~= "table" then
+            LogError("Cannot read file permissions.json: Invalid content data")
+            data = BJCDefaults.permissions()
+        end
+        return data
     end
-    return {}
+    return BJCDefaults.permissions()
 end
 
 local function save(data)
