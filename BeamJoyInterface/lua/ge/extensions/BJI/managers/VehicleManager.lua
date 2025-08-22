@@ -1497,7 +1497,7 @@ local function jouleToReadableUnit(value, energyType)
     if not energyType then
         error("jouleToReadableUnit requires energyType")
     elseif not factorMJToReadable[energyType] then
-        error("jouleToReadableUnit unknown energyType " .. energyType)
+        return value
     end
     return value / 1000000 / factorMJToReadable[energyType]
 end

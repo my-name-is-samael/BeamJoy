@@ -42,9 +42,9 @@ local function updateCache(ctxt)
             if not cache.tanksMaxes[tank.energyType] then
                 -- labels by energy type
                 cache.labels.tanks[tank.energyType] = BJI_Lang.get(string.var("energy.tankNames.{1}",
-                    { tank.energyType }))
+                    { tank.energyType }), tank.energyType)
                 cache.labels.energyTypes[tank.energyType] = BJI_Lang.get(string.var("energy.energyUnits.{1}",
-                    { tank.energyType }))
+                    { tank.energyType }), tank.energyType)
 
                 -- gps button by energy type
                 if stationBtnEnabled then
