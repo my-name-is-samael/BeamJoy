@@ -236,6 +236,7 @@ local function renderTick(ctxt)
     end
 end
 
+local nextFovToSave
 ---@param ctxt TickContext
 local function fastTick(ctxt)
     -- Update forced camera
@@ -254,6 +255,7 @@ local function fastTick(ctxt)
     end
 
     if ctxt.camera == M.CAMERAS.FREE then
+        --  smoothed camera switch
         local isSmoothed = M.isFreeCamSmooth()
         local state = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
         if state and not isSmoothed then
@@ -261,17 +263,27 @@ local function fastTick(ctxt)
         elseif not state and isSmoothed then
             M.setFreeCamSmooth(false)
         end
+
+        -- manual FoV change
+        local currentFov = M.getFOV()
+        if currentFov ~= BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
+            if nextFovToSave and nextFovToSave ~= currentFov then
+                BJI_Async.removeTask("BJICamFovChange")
+                nextFovToSave = nil
+            end
+            if not nextFovToSave then
+                nextFovToSave = currentFov
+                BJI_Async.delayTask(function()
+                    BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV, nextFovToSave)
+                    nextFovToSave = nil
+                end, 500, "BJICamFovChange")
+            end
+        end
     end
 end
 
 local function slowTick(ctxt)
     if ctxt.camera == M.CAMERAS.FREE then
-        local currentFov = M.getFOV()
-        if currentFov ~= BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV) then
-            -- update FoV
-            BJI_LocalStorage.set(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_FOV, currentFov)
-        end
-
         local currentSpeed = M.getSpeed()
         if currentSpeed ~= BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SPEED) then
             -- update speed
