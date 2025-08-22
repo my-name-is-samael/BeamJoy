@@ -7,9 +7,13 @@
 local M = {
     _name = "Async",
 
+    ---@type table<string, true> index key
     tasks = {},
+    ---@type table<string, true> index key
     tasksToRemove = {},
+    ---@type table<string, integer> index key, value targetTime
     delayedTasks = {},
+    ---@type table<string, true> index key
     delayedToRemove = {},
 }
 -- gb optimization
@@ -24,9 +28,9 @@ end
 ---@param key string|integer
 ---@return integer|nil
 local function getRemainingDelay(key)
-    local task = M.delayedTasks[key]
-    if task then
-        return task.time - GetCurrentTimeMillis()
+    local taskTargetTime = M.delayedTasks[key]
+    if taskTargetTime then
+        return taskTargetTime - GetCurrentTimeMillis()
     end
     return nil
 end
@@ -100,7 +104,7 @@ local function delayTask(taskFn, delayMs, key)
             end
             M.delayedTasks[key] = nil
         end, .1)
-        M.delayedTasks[key] = true
+        M.delayedTasks[key] = targetTime
     end
 
     if M.delayedTasks[key] then
