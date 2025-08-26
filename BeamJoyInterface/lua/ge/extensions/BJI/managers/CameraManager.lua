@@ -256,12 +256,9 @@ local function fastTick(ctxt)
 
     if ctxt.camera == M.CAMERAS.FREE then
         --  smoothed camera switch
-        local isSmoothed = M.isFreeCamSmooth()
         local state = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.FREECAM_SMOOTH)
-        if state and not isSmoothed then
-            M.setFreeCamSmooth(true)
-        elseif not state and isSmoothed then
-            M.setFreeCamSmooth(false)
+        if state ~= M.isFreeCamSmooth() then
+            M.setFreeCamSmooth(state)
         end
 
         -- manual FoV change
