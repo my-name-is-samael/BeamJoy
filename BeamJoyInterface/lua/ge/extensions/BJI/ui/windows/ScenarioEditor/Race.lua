@@ -962,6 +962,12 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
         if iWp == 1 and #step == 1 then
             -- remove step
             W.raceData.steps:remove(iStep)
+            if iStep == 1 and W.raceData.steps[1] then
+                -- assign new first step waypoints parents to "start"
+                for _, c in ipairs(W.raceData.steps[1]) do
+                    c.parents = { "start" }
+                end
+            end
         else
             step:remove(iWp)
         end
@@ -1154,13 +1160,13 @@ local function drawStep(ctxt, iStep, step)
     SameLine()
     if IconButton("deleteStep" .. tostring(iStep), BJI.Utils.Icon.ICONS.delete_forever,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
-        if iStep == 1 and W.raceData.steps[iStep + 1] then
-            -- set new firsts parent to start
-            W.raceData.steps[iStep + 1]:forEach(function(wp)
+        W.raceData.steps:remove(iStep)
+        if iStep == 1 and W.raceData.steps[1] then
+            -- assign new first step waypoints parents to "start"
+            W.raceData.steps[1]:forEach(function(wp)
                 wp.parents = Table({ "start" })
             end)
         end
-        W.raceData.steps:remove(iStep)
         W.raceData.changed = true
         W.raceData.keepRecord = false
         updateMarkers()
