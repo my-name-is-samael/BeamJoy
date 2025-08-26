@@ -289,14 +289,14 @@ local function updateData()
             W.cache.startActivitySecCombo = Table(BJI_Scenario.Data.Races):filter(function(r)
                 return W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE_SOLO or
                     r.places > 1
-            end):map(function(r, i)
+            end):map(function(r)
                 local label = r.name
                 if W.cache.selectedStartActivity == W.manager.ACTIVITIES_TYPES.RACE then
                     label = label .. string.var(" ({1})",
                         { BJI_Lang.get("races.preparation.places"):var({ places = r.places }) })
                 end
                 return {
-                    value = i,
+                    value = r.id,
                     label = label,
                 }
             end):values():sort(function(a, b)
