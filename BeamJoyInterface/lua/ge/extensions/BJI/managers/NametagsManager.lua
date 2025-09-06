@@ -123,7 +123,8 @@ local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgCo
     distance = ownPos:distance(vec3(unicycle.position))
     alpha = getAlphaByDistance(distance)
 
-    showTag = not settings.getValue("shortenNametags", false)
+    showTag = not settings.getValue("shortenNametags", false) and
+        BJI_Scenario.isFreeroam()
     showDist = settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow
 
     if unicycle.ownerID == ctxt.user.playerID then
@@ -271,7 +272,8 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
         distance = ownPos:distance(vec3(veh.position))
         alpha = getAlphaByDistance(distance)
 
-        showTag = not settings.getValue("shortenNametags", false) and ownerIsSpectating
+        showTag = not settings.getValue("shortenNametags", false) and
+            ownerIsSpectating and BJI_Scenario.isFreeroam()
         showDist = settings.getValue("nameTagShowDistance", true) and
             (not isMyCurrent or isFreecaming) and
             distance > M._minDistanceShow
@@ -316,7 +318,8 @@ end
 local function renderFugitive(ctxt, veh, ownPos)
     distance = ownPos:distance(vec3(veh.position))
 
-    showTag = not settings.getValue("shortenNametags", false)
+    showTag = not settings.getValue("shortenNametags", false) and
+        BJI_Scenario.isFreeroam()
     showDist = settings.getValue("nameTagShowDistance", true) and
         distance > M._minDistanceShow
 
