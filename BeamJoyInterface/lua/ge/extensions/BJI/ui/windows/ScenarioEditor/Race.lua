@@ -959,13 +959,12 @@ local function drawWaypoint(ctxt, iStep, step, iWp, wp)
     SameLine()
     if IconButton(string.format("deleteWP-%d-%d", iStep, iWp), BJI.Utils.Icon.ICONS.delete_forever,
             { btnStyle = BJI.Utils.Style.BTN_PRESETS.ERROR, disabled = W.cache.disableInputs }) then
-        if iWp == 1 and #step == 1 then
+        if #step == 1 then
             -- remove step
             W.raceData.steps:remove(iStep)
             if iStep == 1 and W.raceData.steps[1] then
-                -- assign new first step waypoints parents to "start"
-                for _, c in ipairs(W.raceData.steps[1]) do
-                    c.parents = { "start" }
+                for _, newFirstWp in ipairs(W.raceData.steps[1]) do
+                    newFirstWp.parents = Table({ "start" })
                 end
             end
         else
