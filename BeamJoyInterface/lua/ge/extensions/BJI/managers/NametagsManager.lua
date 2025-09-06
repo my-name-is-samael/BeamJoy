@@ -377,9 +377,10 @@ end
 
 ---@param ctxt TickContext
 local function renderTick(ctxt)
-    detectVisibilityEvent()
     MPVehicleGE.hideNicknames(true)
     if not M.getState() then return end
+    if extensions.core_replay.getState() == "playback" then return end
+    detectVisibilityEvent()
 
     -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
     if ctxt.camera == BJI_Cam.CAMERAS.FREE or not ctxt.veh then
