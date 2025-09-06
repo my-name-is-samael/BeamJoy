@@ -66,9 +66,9 @@ local S = {
 
     nametagSettings = {
         fugitiveColor = BJI.Utils.ShapeDrawer.Color(1, .6, 0, 1),
-        fugitiveBg = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .8),
+        fugitiveBg = BJI.Utils.ShapeDrawer.Color(1, 1, 1, .5),
         hunterColor = BJI.Utils.ShapeDrawer.Color(1, 1, 1, 1),
-        hunterBg = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .8),
+        hunterBg = BJI.Utils.ShapeDrawer.Color(0, 0, 0, .5),
     },
 }
 --- gc prevention
