@@ -706,7 +706,10 @@ local function updateGame(data)
             end
         end)
     end
-    if (not participant or not participant.hunted) and
+    if S.finished then
+        S.proximityProcess.huntedVeh = nil
+        S.proximityProcess.huntersVehs:clear()
+    elseif (not participant or not participant.hunted) and
         amountParticipants ~= table.length(S.participants) then
         updateProximityVehs()
     end
@@ -806,53 +809,50 @@ local function fastTick(ctxt)
             end
         end
 
-        if (not participant or not participant.hunted) then -- fugitive reveal/hide
-            -- spec or hunter
-            if not S.finished then
-                if S.hunterStartTime and S.hunterStartTime <= ctxt.now then
-                    -- proximity reveal update
-                    if S.huntedRevealProximityDistance > 0 and
-                        S.proximityProcess.huntedVeh and
-                        #S.proximityProcess.huntersVehs > 0 then
-                        Table(S.participants):find(function(p) return p.hunted end,
-                            function(hunted)
-                                if not S.settings.lastWaypointGPS or hunted.waypoint < S.settings.waypoints - 1 then
-                                    local huntedPos = BJI_Veh.getPositionRotation(S.proximityProcess.huntedVeh)
-                                    local hunterPos
-                                    local minDistance = S.proximityProcess.huntersVehs:map(function(hunter)
-                                        hunterPos = BJI_Veh.getPositionRotation(hunter)
-                                        return (hunterPos and huntedPos) and hunterPos:distance(huntedPos) or nil
-                                    end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
-                                    if S.revealHuntedProximity and minDistance > S.huntedRevealProximityDistance then
-                                        S.revealHuntedProximity = false
-                                    elseif not S.revealHuntedProximity and minDistance <= S.huntedRevealProximityDistance then
-                                        S.revealHuntedProximity = true
-                                    end
-                                end
-                            end)
-                    end
+        -- fugitive reveal/hide
+        if (not participant or not participant.hunted) and not S.finished and -- spec or hunter
+            S.hunterStartTime and S.hunterStartTime <= ctxt.now then          -- during game
+            -- proximity reveal update
+            if S.huntedRevealProximityDistance > 0 and
+                S.proximityProcess.huntedVeh and
+                #S.proximityProcess.huntersVehs > 0 then
+                Table(S.participants):find(function(p) return p.hunted end,
+                    function(hunted)
+                        if not S.settings.lastWaypointGPS or hunted.waypoint < S.settings.waypoints - 1 then
+                            local huntedPos = BJI_Veh.getPositionRotation(S.proximityProcess.huntedVeh)
+                            local hunterPos
+                            local minDistance = S.proximityProcess.huntersVehs:map(function(hunter)
+                                hunterPos = BJI_Veh.getPositionRotation(hunter)
+                                return (hunterPos and huntedPos) and hunterPos:distance(huntedPos) or nil
+                            end):reduce(function(acc, d) return (not acc or d < acc) and d or acc end)
+                            if S.revealHuntedProximity and minDistance > S.huntedRevealProximityDistance then
+                                S.revealHuntedProximity = false
+                            elseif not S.revealHuntedProximity and minDistance <= S.huntedRevealProximityDistance then
+                                S.revealHuntedProximity = true
+                            end
+                        end
+                    end)
+            end
 
-                    -- update reveal state
-                    local reveal = S.revealHuntedProximity or S.revealHuntedLastWaypoint or S.revealHuntedReset
-                    if reveal and not BJI_GPS.getByKey(BJI_GPS.KEYS.PLAYER) then
-                        Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
-                            BJI_GPS.appendWaypoint({
-                                key = BJI_GPS.KEYS.PLAYER,
-                                radius = .1,
-                                playerName = ctxt.players[huntedID].playerName,
-                                clearable = false
-                            })
-                            local veh = BJI_Veh.getVehicleObject(ctxt.players[huntedID].currentVehicle)
-                            if veh then veh.uiState = 1 end
-                        end)
-                    elseif not reveal and BJI_GPS.getByKey(BJI_GPS.KEYS.PLAYER) then
-                        BJI_GPS.removeByKey(BJI_GPS.KEYS.PLAYER)
-                        Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
-                            local veh = BJI_Veh.getVehicleObject(ctxt.players[huntedID].currentVehicle)
-                            if veh then veh.uiState = 0 end
-                        end)
-                    end
-                end
+            -- update reveal state
+            local reveal = S.revealHuntedProximity or S.revealHuntedLastWaypoint or S.revealHuntedReset
+            if reveal and not BJI_GPS.getByKey(BJI_GPS.KEYS.PLAYER) then
+                Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
+                    BJI_GPS.appendWaypoint({
+                        key = BJI_GPS.KEYS.PLAYER,
+                        radius = .1,
+                        playerName = ctxt.players[huntedID].playerName,
+                        clearable = false
+                    })
+                    local veh = BJI_Veh.getVehicleObject(ctxt.players[huntedID].currentVehicle)
+                    if veh then veh.uiState = 1 end
+                end)
+            elseif not reveal and BJI_GPS.getByKey(BJI_GPS.KEYS.PLAYER) then
+                BJI_GPS.removeByKey(BJI_GPS.KEYS.PLAYER)
+                Table(S.participants):find(function(p) return p.hunted end, function(_, huntedID)
+                    local veh = BJI_Veh.getVehicleObject(ctxt.players[huntedID].currentVehicle)
+                    if veh then veh.uiState = 0 end
+                end)
             end
         end
     end

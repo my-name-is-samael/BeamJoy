@@ -279,7 +279,7 @@ local function onLoad()
             M.type = nextType
             onTypeChange(ctxt, previousType)
         end
-    end, M._name)
+    end, M._name .. "TypeChange")
 
     BJI_Events.addListener(BJI_Events.EVENTS.VEHICLE_INITIALIZED, onVehSpawned, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehReset, M._name)
