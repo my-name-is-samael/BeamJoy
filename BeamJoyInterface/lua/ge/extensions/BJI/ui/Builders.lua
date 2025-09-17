@@ -80,7 +80,7 @@ PushStyleColor = function(column, color)
     if type(column) ~= "number" then
         LogError("style type is invalid")
         return
-    elseif type(color) ~= "cdata" or not color.x then
+    elseif type(color) ~= "userdata" or not color.x then ---@diagnostic disable-line
         LogError("color must be a vec4")
         return
     end
