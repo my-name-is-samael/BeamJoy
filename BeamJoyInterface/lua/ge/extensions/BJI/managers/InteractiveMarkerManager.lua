@@ -59,6 +59,8 @@ local M = {
     markers = Table(),
     ---@type tablelib<integer, ActivityWindow>
     currentActivityWindows = Table(),
+
+    baseFunctions = {},
 }
 
 local function initGroup()
@@ -264,8 +266,24 @@ local function renderTick(ctxt)
     end
 end
 
+local function isStateFreeroam()
+    -- prevent the console flooding with with marker clearing logs
+    return extensions.core_gamestate.state and
+        table.includes({ "freeroam", "multiplayer" }, extensions.core_gamestate.state.state)
+end
+
 M.onLoad = function()
     BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
+
+    M.baseFunctions = {
+        gameplay_markerInteraction = {
+            isStateFreeroam = extensions.gameplay_markerInteraction.isStateFreeroam
+        }
+    }
+    extensions.gameplay_markerInteraction.isStateFreeroam = isStateFreeroam
+    BJI_Events.addListener(BJI_Events.EVENTS.ON_UNLOAD, function()
+        RollBackNGFunctionsWrappers(M.baseFunctions)
+    end, M._name)
 end
 M.renderTick = renderTick
 
