@@ -345,7 +345,10 @@ local function waitForVehicleSpawn(callback)
             return isVehReady(ctxt.veh.gameVehicleID)
         end
         return false
-    end, callback, string.var("BJIVehSpawnCallback-{1}", { delay }))
+    end, function(ctxt)
+        if ctxt.now >= timeout then return end
+        callback(ctxt)
+    end, string.var("BJIVehSpawnCallback-{1}", { delay }))
 end
 
 ---@param callback fun(ctxt: TickContext)?
@@ -1099,11 +1102,11 @@ end
 ---@return ClientVehicleConfig?
 local function getFullConfigFromFile(filename)
     local res = jsonReadFile(filename)
-    res.key = tostring(filename):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
+    -- some configs are malformed and do not have model value (eg bluebuck-horrible)
     if not res.model then
-        -- some configs are malformed and do not have model value (eg barstow-awful)
-        res.model = res.key
+        res.model = tostring(filename):gsub("^vehicles/", ""):gsub("/.*%.pc$", "")
     end
+    res.key = tostring(filename):gsub("^vehicles/.*/", ""):gsub("%.pc$", "")
     res.label = string.var("{1} {2}", { M.getModelLabel(res.model),
         M.getConfigLabel(res.model, res.key) })
     return res

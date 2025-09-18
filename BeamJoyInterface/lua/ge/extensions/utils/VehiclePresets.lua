@@ -26,6 +26,18 @@ local DERBY_PRESETS = Table({
                 key = "terrible",
             },
             {
+                model = "nine",
+                key = "nine_junkrod",
+            },
+            {
+                model = "burnside",
+                key = "stunned",
+            },
+            {
+                model = "bolide",
+                key = "gambler",
+            },
+            {
                 model = "etki",
                 key = "offroad",
             },
@@ -58,6 +70,10 @@ local DERBY_PRESETS = Table({
                 key = "derby",
             },
             {
+                model = "sunburst2",
+                key = "offroad",
+            },
+            {
                 model = "bx",
                 key = "derby_M",
             },
@@ -76,6 +92,10 @@ local DERBY_PRESETS = Table({
             {
                 model = "covet",
                 key = "skidplate",
+            },
+            {
+                model = "miramar",
+                key = "derby",
             },
             {
                 model = "midsize",
