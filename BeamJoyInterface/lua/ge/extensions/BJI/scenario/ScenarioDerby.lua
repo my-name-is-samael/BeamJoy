@@ -163,7 +163,6 @@ local function tryReplaceOrSpawn(model, config)
         end
         local startPos = S.baseArena.startPositions[participant.startPosition]
         BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
-        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
@@ -175,8 +174,8 @@ local function onVehicleSpawned(mpVeh)
         if startPos and mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI_Veh.waitForVehicleSpawn(postSpawn)
         end
+        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 

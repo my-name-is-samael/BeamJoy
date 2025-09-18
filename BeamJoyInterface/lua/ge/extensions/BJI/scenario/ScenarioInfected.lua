@@ -212,7 +212,6 @@ local function tryReplaceOrSpawn(model, config)
             BJI_Scenario.Data.HunterInfected.majorPositions[participant.startPosition]
         BJI_Cam.resetForceCamera()
         BJI_Veh.replaceOrSpawnVehicle(model, config, startPos)
-        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
@@ -299,8 +298,8 @@ local function onVehicleSpawned(mpVeh)
         if mpVeh.position:distance(startPos.pos) > 1 then
             -- spawned via basegame vehicle selector
             BJI_Veh.setPositionRotation(startPos.pos, startPos.rot, { safe = false })
-            BJI_Veh.waitForVehicleSpawn(postSpawn)
         end
+        BJI_Veh.waitForVehicleSpawn(postSpawn)
     end
 end
 
