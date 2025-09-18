@@ -37,6 +37,7 @@
 ---@field onVehicleResetted (fun(gameVehID: integer))?
 ---@field onVehicleSwitched (fun(oldGameVehID: integer, newGameVehID: integer))?
 ---@field onVehicleDestroyed (fun(gameVehID: integer))?
+---@field onRadialItemSelected (fun(item: table))?
 ---@field updateVehicles (fun())?
 ---@field onGarageRepair (fun())?
 ---@field tryTeleportToPlayer (fun(targetID: integer, forced: boolean?))?

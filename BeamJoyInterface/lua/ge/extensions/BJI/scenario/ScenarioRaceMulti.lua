@@ -283,6 +283,22 @@ local function tryReset(gameVehID, resetType, baseCallback)
     return false
 end
 
+---@param item table
+local function onRadialItemSelected(item)
+    if item.uniqueID == "repairVehicle" then
+        -- invasive on-place reset
+        item.onSelect = function()
+            if S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.ALL_RESPAWNS.key then
+                BJI_Veh.recoverInPlace()
+            elseif S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.LAST_CHECKPOINT.key or
+                S.settings.respawnStrategy == BJI.CONSTANTS.RACES_RESPAWN_STRATEGIES.STAND.key then
+                BJI_Input.actions.loadHome.downBaseAction()
+            end
+            return { "hide" }
+        end
+    end
+end
+
 -- player list contextual actions getter
 ---@param player BJIPlayer
 ---@param ctxt TickContext
@@ -1274,6 +1290,7 @@ S.canUseNodegrabber = canUseNodegrabber
 S.canReset = canReset
 S.getRewindLimit = getRewindLimit
 S.tryReset = tryReset
+S.onRadialItemSelected = onRadialItemSelected
 
 S.trySpawnNew = tryReplaceOrSpawn
 S.tryReplaceOrSpawn = tryReplaceOrSpawn

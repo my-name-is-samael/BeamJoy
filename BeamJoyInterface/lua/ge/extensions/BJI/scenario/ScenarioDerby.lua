@@ -325,6 +325,17 @@ local function tryReset(gameVehID, resetType, baseCallback)
     return false
 end
 
+---@param item table
+local function onRadialItemSelected(item)
+    if item.uniqueID == "repairVehicle" then
+        -- invasive on-place reset
+        item.onSelect = function()
+            BJI_Input.actions.loadHome.downBaseAction()
+            return { "hide" }
+        end
+    end
+end
+
 local function getZoneRadius(ctxt)
     if not S.startTime or not S.zoneReductionTime then
         return S.baseArena.radius
@@ -656,6 +667,8 @@ S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleSpawned = onVehicleSpawned
 S.tryReset = tryReset
+S.onRadialItemSelected = onRadialItemSelected
+
 S.renderTick = renderTick
 S.fastTick = fastTick
 S.slowTick = slowTick

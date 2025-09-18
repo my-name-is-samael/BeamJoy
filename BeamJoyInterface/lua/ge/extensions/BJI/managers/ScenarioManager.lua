@@ -492,6 +492,12 @@ local function onVehicleDestroyed(gameVehID)
     end
 end
 
+local function onRadialItemSelected(item)
+    if _curr().onRadialItemSelected then
+        _curr().onRadialItemSelected(item)
+    end
+end
+
 local function updateVehicles()
     if _curr().updateVehicles then
         _curr().updateVehicles()
@@ -957,6 +963,7 @@ local function onLoad()
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_RESETTED, onVehicleResetted, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_SWITCHED, onVehicleSwitched, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.NG_VEHICLE_DESTROYED, onVehicleDestroyed, M._name)
+    BJI_Events.addListener(BJI_Events.EVENTS.NG_RADIAL_ITEM_SELECTED, onRadialItemSelected, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.SLOW_TICK, slowTick, M._name)
     BJI_Events.addListener(BJI_Events.EVENTS.FAST_TICK, fastTick, M._name)
 end

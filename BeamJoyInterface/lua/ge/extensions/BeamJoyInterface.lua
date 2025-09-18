@@ -112,6 +112,7 @@ end
 
 M.onInit = function()
     setExtensionUnloadMode(M, "manual")
+    setExtensionUnloadMode(extensions.simTimeAuthority, "manual")
 end
 
 M.onWorldReadyState = function(state)
@@ -140,22 +141,23 @@ end
 
 local function bindNGHooks()
     Table({
-        { "onVehicleSpawned",       BJI_Events.EVENTS.NG_VEHICLE_SPAWNED },
-        { "onVehicleSwitched",      BJI_Events.EVENTS.NG_VEHICLE_SWITCHED },
-        { "onVehicleResetted",      BJI_Events.EVENTS.NG_VEHICLE_RESETTED },
-        { "onVehicleReplaced",      BJI_Events.EVENTS.NG_VEHICLE_REPLACED },
-        { "onVehicleDestroyed",     BJI_Events.EVENTS.NG_VEHICLE_DESTROYED },
-        { "onDriftCompletedScored", BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
-        { "onPursuitAction",        BJI_Events.EVENTS.NG_PURSUIT_ACTION },
-        { "onPursuitModeUpdate",    BJI_Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
-        { "onAiModeChange",         BJI_Events.EVENTS.NG_AI_MODE_CHANGE },
-        { "onTrafficStarted",       BJI_Events.EVENTS.NG_TRAFFIC_STARTED },
-        { "onTrafficStopped",       BJI_Events.EVENTS.NG_TRAFFIC_STOPPED },
-        { "onVehicleGroupSpawned",  BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
-        { "trackAIAllVeh",          BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
-        { "onTrafficVehicleAdded",  BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
-        { "onUILayoutLoaded",       BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
-        { "onBeforeRadialOpened",   BJI_Events.EVENTS.NG_BEFORE_RADIAL_OPENED },
+        { "onVehicleSpawned",          BJI_Events.EVENTS.NG_VEHICLE_SPAWNED },
+        { "onVehicleSwitched",         BJI_Events.EVENTS.NG_VEHICLE_SWITCHED },
+        { "onVehicleResetted",         BJI_Events.EVENTS.NG_VEHICLE_RESETTED },
+        { "onVehicleReplaced",         BJI_Events.EVENTS.NG_VEHICLE_REPLACED },
+        { "onVehicleDestroyed",        BJI_Events.EVENTS.NG_VEHICLE_DESTROYED },
+        { "onDriftCompletedScored",    BJI_Events.EVENTS.NG_DRIFT_COMPLETED_SCORED },
+        { "onPursuitAction",           BJI_Events.EVENTS.NG_PURSUIT_ACTION },
+        { "onPursuitModeUpdate",       BJI_Events.EVENTS.NG_PURSUIT_MODE_UPDATE },
+        { "onAiModeChange",            BJI_Events.EVENTS.NG_AI_MODE_CHANGE },
+        { "onTrafficStarted",          BJI_Events.EVENTS.NG_TRAFFIC_STARTED },
+        { "onTrafficStopped",          BJI_Events.EVENTS.NG_TRAFFIC_STOPPED },
+        { "onVehicleGroupSpawned",     BJI_Events.EVENTS.NG_VEHICLE_GROUP_SPAWNED },
+        { "trackAIAllVeh",             BJI_Events.EVENTS.NG_ALL_AI_MODE_CHANGED },
+        { "onTrafficVehicleAdded",     BJI_Events.EVENTS.NG_TRAFFIC_VEHICLE_ADDED },
+        { "onUILayoutLoaded",          BJI_Events.EVENTS.NG_UI_LAYOUT_LOADED },
+        { "onBeforeRadialOpened",      BJI_Events.EVENTS.NG_BEFORE_RADIAL_OPENED },
+        { "onQuickAccessItemSelected", BJI_Events.EVENTS.NG_RADIAL_ITEM_SELECTED },
     }):forEach(function(hook)
         M[hook[1]] = function(...)
             BJI_Events.trigger(hook[2], ...)
