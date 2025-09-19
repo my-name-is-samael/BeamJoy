@@ -105,6 +105,7 @@ Engine = Engine or {}
 spawn = spawn or {}
 core_vehicles = core_vehicles or {}
 core_vehicleBridge = core_vehicleBridge or {}
+ui_vehicleSelector_tiles = ui_vehicleSelector_tiles or {}
 
 -- BEAMMP
 

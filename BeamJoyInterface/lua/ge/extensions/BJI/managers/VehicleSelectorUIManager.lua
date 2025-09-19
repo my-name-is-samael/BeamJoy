@@ -312,6 +312,32 @@ local function removeAllExceptCurrent(...)
     -- return M.baseFunctions.removeAllExceptCurrent(...)
 end
 
+local function getTiles(...)
+    local validModels = BJI_Scenario.getModelList()
+    if not M.stateSelector or table.length(validModels) == 0 then
+        -- cannot spawn veh
+        BJI_Toast.error(BJI_Lang.get("errors.cannotSpawnVeh"))
+        BJI_UI.hideGameMenu()
+        return {}
+    end
+
+    local model, config
+    local tiles = table.reduce(M.baseFunctions.getTiles(...), function(res, category)
+        category.tiles = table.filter(category.tiles, function(tile)
+            model = tile.doubleClickDetails.model
+            config = tile.doubleClickDetails.config
+            return validModels[model] ~= nil or
+                (tile.isConfig and validModels[model].configs[config] ~= nil)
+        end)
+        if #category.tiles > 0 then
+            res:insert(category)
+        end
+        return res
+    end, Table())
+    BJI.DEBUG = tiles
+    return tiles
+end
+
 -- VEHICLE CONFIGURATION
 local function getAvailableParts(ioCtx)
     if not M.stateEditor then
@@ -351,42 +377,48 @@ local function getRestrictions(ctxt)
 end
 
 local function onUnload()
-    -- vehicle selector
-    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
-    core_vehicles.requestList = M.baseFunctions.requestList
-    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
+    -- vehicle selector buttons
     core_vehicles.cloneCurrent = M.baseFunctions.cloneCurrent
     core_vehicles.spawnDefault = M.baseFunctions.spawnDefault
     core_vehicles.spawnNewVehicle = M.baseFunctions.spawnNewVehicle
     core_vehicles.replaceVehicle = M.baseFunctions.replaceVehicle
     core_vehicles.removeCurrent = M.baseFunctions.removeCurrent
     core_vehicles.removeAllExceptCurrent = M.baseFunctions.removeAllExceptCurrent
+    -- vehicle selector legacy
+    core_vehicles.openSelectorUI = M.baseFunctions.openSelectorUI
+    core_vehicles.requestList = M.baseFunctions.requestList
+    core_vehicles.requestListEnd = M.baseFunctions.requestListEnd
+    -- vehicle selector new
+    ui_vehicleSelector_tiles.getTiles = M.baseFunctions.getTiles
     -- vehicle configuration
     local jbeamIO = require('jbeam/io')
     jbeamIO.getAvailableParts = M.baseFunctions.getAvailableParts
 end
 
 local function onLoad()
-    -- vehicle selector
-    M.baseFunctions.openSelectorUI = core_vehicles.openSelectorUI
-    M.baseFunctions.requestList = core_vehicles.requestList
-    M.baseFunctions.requestListEnd = core_vehicles.requestListEnd
+    -- vehicle selector buttons
     M.baseFunctions.cloneCurrent = core_vehicles.cloneCurrent
     M.baseFunctions.spawnDefault = core_vehicles.spawnDefault
     M.baseFunctions.spawnNewVehicle = core_vehicles.spawnNewVehicle
     M.baseFunctions.replaceVehicle = core_vehicles.replaceVehicle
     M.baseFunctions.removeCurrent = core_vehicles.removeCurrent
     M.baseFunctions.removeAllExceptCurrent = core_vehicles.removeAllExceptCurrent
-    core_vehicles.openSelectorUI = openSelectorUI
-    core_vehicles.requestList = notifyUI
-    core_vehicles.requestListEnd = notifyUIEnd
     core_vehicles.cloneCurrent = cloneCurrent
     core_vehicles.spawnDefault = spawnDefault
     core_vehicles.spawnNewVehicle = spawnNewVehicle
     core_vehicles.replaceVehicle = replaceVehicle
     core_vehicles.removeCurrent = removeCurrent
     core_vehicles.removeAllExceptCurrent = removeAllExceptCurrent
-
+    -- vehicle selector legacy
+    M.baseFunctions.openSelectorUI = core_vehicles.openSelectorUI
+    M.baseFunctions.requestList = core_vehicles.requestList
+    M.baseFunctions.requestListEnd = core_vehicles.requestListEnd
+    core_vehicles.openSelectorUI = openSelectorUI
+    core_vehicles.requestList = notifyUI
+    core_vehicles.requestListEnd = notifyUIEnd
+    -- vehicle selector new
+    M.baseFunctions.getTiles = ui_vehicleSelector_tiles.getTiles
+    ui_vehicleSelector_tiles.getTiles = getTiles
     -- vehicle configuration
     local jbeamIO = require('jbeam/io')
     M.baseFunctions.getAvailableParts = jbeamIO.getAvailableParts
