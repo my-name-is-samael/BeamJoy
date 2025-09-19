@@ -402,7 +402,7 @@ local function scenarioStartTimeout()
             if M.Scenario.voters:length() >= M.Scenario.getThreshold() then
                 BJCChat.sendChatEvent("chat.events.voteAccepted", {
                     voteEvent = "chat.events.voteEvents.derbyStart",
-                    suffix = BJCScenarioData.Derby[M.Scenario.scenarioData.arenaIndex].name
+                    suffix = " " .. BJCScenarioData.Derby[M.Scenario.scenarioData.arenaIndex].name
                 })
                 BJCScenario.DerbyManager.start(M.Scenario.scenarioData.arenaIndex,
                     M.Scenario.scenarioData.lives, M.Scenario.scenarioData.configs)
