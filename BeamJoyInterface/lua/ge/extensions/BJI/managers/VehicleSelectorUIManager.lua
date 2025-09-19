@@ -334,7 +334,6 @@ local function getTiles(...)
         end
         return res
     end, Table())
-    BJI.DEBUG = tiles
     return tiles
 end
 
