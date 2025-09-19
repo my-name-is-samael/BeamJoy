@@ -73,7 +73,8 @@ function M.Kick.endVote()
         BJCPlayers.kick(ctxt, M.Kick.targetID,
             BJCLang.getServerMessage(target.lang, "voteKick.beenVoteKick")
             :var({ votersAmount = #M.Kick.voters }))
-        BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.INFO, "voteKick.playerKicked", { playerName = target.playerName })
+        BJCTx.player.toast(BJCTx.ALL_PLAYERS, BJC_TOAST_TYPES.INFO, "voteKick.playerKicked",
+            { playerName = target.playerName })
     else
         BJCChat.sendChatEvent("chat.events.voteDenied", {
             voteEvent = "chat.events.voteEvents.playerKick",
@@ -560,12 +561,15 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
         if BJCPerm.getCountPlayersCanSpawnVehicle() < BJCScenario.DerbyManager.MINIMUM_PARTICIPANTS() then
             error({ key = "rx.errors.insufficientPlayers" })
         end
+        ---@type BJArena
+        local arena = BJCScenarioData.Derby[scenarioData.arenaIndex]
+        if not arena or not arena.enabled then error({ key = "rx.errors.invalidData" }) end
         if isVote then
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Derby.VoteTimeout
             BJCChat.sendChatEvent("chat.events.vote", {
                 playerName = BJCPlayers.Players[creatorID].playerName,
                 voteEvent = "chat.events.voteEvents.derbyStart",
-                suffix = M.Scenario.scenarioData.arenaName
+                suffix = " " .. arena.name
             })
         else
             M.Scenario.endsAt = GetCurrentTime() + BJCConfig.Data.Derby.PreparationTimeout
@@ -573,9 +577,6 @@ M.Scenario.start = function(scenarioType, creatorID, isVote, scenarioData)
                 gamemode = "chat.events.gamemodes.derby",
             })
         end
-        ---@type BJArena
-        local arena = BJCScenarioData.Derby[scenarioData.arenaIndex]
-        if not arena or not arena.enabled then error({ key = "rx.errors.invalidData" }) end
         scenarioData.arenaIndex = scenarioData.arenaIndex or 1
         scenarioData.lives = scenarioData.lives or 0
         M.Scenario.scenarioData = {
