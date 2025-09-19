@@ -494,9 +494,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
     local participant = M.participants[playerID]
     if M.state == M.STATES.PREPARATION and participant and not participant.ready then
         if M.config then
-            local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
-            return model == M.config.model and
-                BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.config.parts)
+            vehData.vcf.model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+            return BJCVehicles.compareConfigs(vehData.vcf, M.config) > .7
         end
         -- no config restriction
         return true

@@ -241,6 +241,30 @@ local function requestPaint(senderID, ownerID, gameVehicleID)
     end
 end
 
+--- check if spawned vehicle is the same than the required one.<br>
+--- Config export in-game and vehdata given by server hooks
+--- are not completely equals, so we need to format them first.<br>
+--- Old vanilla configs format doesn't match neither, so we need a fitness score
+---@param conf1 ClientVehicleConfig
+---@param conf2 ClientVehicleConfig
+---@return number 0-1 fitness score
+local function compareConfigs(conf1, conf2)
+    if conf1.model ~= conf2.model then
+        return 0
+    end
+    local parts1 = table.filter(conf1.parts, function(v) return type(v) == "string" and #v > 0 end)
+    local parts2 = table.filter(conf2.parts, function(v) return type(v) == "string" and #v > 0 end)
+    local matches, total = 0, math.max(table.length(parts1), table.length(parts2))
+    for k, v in pairs(parts1) do
+        if parts2[k] == v then
+            matches = matches + 1
+        end
+    end
+
+    LogDebug(string.format("Configs match score: %.2f", matches / total))
+    return matches / total
+end
+
 M.setModelBlacklist = setModelBlacklist
 
 M.getCache = getCache
@@ -250,6 +274,8 @@ M.onDriftEnded = onDriftEnded
 
 M.syncPaint = syncPaint
 M.requestPaint = requestPaint
+
+M.compareConfigs = compareConfigs
 
 BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_SPAWN, onVehicleSpawn, "VehiclesManager")
 BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_EDITED, onVehicleEdited, "VehiclesManager")

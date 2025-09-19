@@ -606,9 +606,8 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
             if type(M.settings.config) == "table" then
                 -- forced config
                 M.settings.config = M.settings.config or {}
-                local model = vehData.vcf.model or vehData.vcf.mainPartName
-                local sameConfig = model == M.settings.config.model and
-                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.settings.config.parts)
+                vehData.vcf.model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+                local sameConfig = BJCVehicles.compareConfigs(vehData.vcf, M.settings.config) > .7
                 if not sameConfig then
                     onWrongVehicleAtGrid()
                     M.countInvalidVehicles[playerID] = true

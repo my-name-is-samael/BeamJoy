@@ -457,19 +457,17 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
         if participant.hunted then
             -- fugitive
             if M.huntedConfig then
-                local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
-                return model == M.huntedConfig.model and
-                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, M.huntedConfig.parts)
+                vehData.vcf.model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+                return BJCVehicles.compareConfigs(vehData.vcf, M.huntedConfig) > .7
             end
             -- no config restriction
             return true
         else
             -- hunter
             if #M.hunterConfigs > 0 then
-                local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+                vehData.vcf.model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
                 return Table(M.hunterConfigs):any(function(config)
-                    return model == config.model and
-                        BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
+                    return BJCVehicles.compareConfigs(vehData.vcf, config) > .7
                 end)
             end
             -- no config restriction

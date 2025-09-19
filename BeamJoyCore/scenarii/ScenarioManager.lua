@@ -1,15 +1,15 @@
 ---@class BJCScenario Exclusive scenarii forcing all players into
 ---@field name string
----@field isForcedScenarioInProgress? fun(): boolean
+---@field isForcedScenarioInProgress (fun(): boolean)?
 ---@field start fun(...)
 ---@field clientUpdate fun(...)
 ---@field stop fun(...)
 ---@field forceStop fun(...)
----@field canSpawnVehicle? fun(playerID, vehID, vehData): boolean
----@field canEditVehicle? fun(playerID, vehID, vehData): boolean
----@field canWalk? fun(playerID): boolean
----@field onPlayerDisconnect? fun(player: BJCPlayer): boolean
----@field onVehicleDeleted? fun(playerID, vehID): boolean
+---@field canSpawnVehicle (fun(playerID, vehID, vehData): boolean)?
+---@field canEditVehicle (fun(playerID, vehID, vehData): boolean)?
+---@field canWalk (fun(playerID): boolean)?
+---@field onPlayerDisconnect (fun(player: BJCPlayer): boolean)?
+---@field onVehicleDeleted (fun(playerID, vehID): boolean)?
 ---@field getCache fun(playerID: integer?): table
 ---@field getCacheHash fun(): string
 
@@ -117,7 +117,7 @@ local function canEditVehicle(playerID, vehID, vehData)
     end
 
     if M.CurrentScenario then
-        if M.canEditVehicle then
+        if M.CurrentScenario.canEditVehicle then
             return M.CurrentScenario.canEditVehicle(playerID, vehID, vehData)
         end
         return true
@@ -162,23 +162,6 @@ local function canWalk(playerID)
 
     -- FREEROAM
     return true
-end
-
---- check if spawned vehicle is the same than the required one<br>
---- config export in-game and vehdata given by server hooks
---- are not completely equals, so we need to format them first
---- @param askedParts table<string, string>
---- @param spawnedParts table<string, string>
---- @return boolean bool
-local function isVehicleSpawnedMatchesRequired(spawnedParts, askedParts)
-    if not askedParts and spawnedParts or not spawnedParts then
-        return false
-    end
-
-    -- remove empty parts
-    askedParts = Table(askedParts):filter(function(v) return #v > 0 end)
-    spawnedParts = Table(spawnedParts):filter(function(v, k) return askedParts[k] ~= nil and #v > 0 end)
-    return table.compare(askedParts, spawnedParts)
 end
 
 ---@param playerID integer
@@ -234,8 +217,6 @@ M.stopServerScenarii = stopServerScenarii
 M.canSpawnVehicle = canSpawnVehicle
 M.canEditVehicle = canEditVehicle
 M.canWalk = canWalk
-
-M.isVehicleSpawnedMatchesRequired = isVehicleSpawnedMatchesRequired
 
 BJCEvents.addListener(BJCEvents.EVENTS.MP_VEHICLE_DELETED, onVehicleDeleted, "ScenarioManager")
 BJCEvents.addListener(BJCEvents.EVENTS.PLAYER_DISCONNECTED, onPlayerDisconnect, "ScenarioManager")

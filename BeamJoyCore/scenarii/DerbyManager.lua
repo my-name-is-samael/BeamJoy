@@ -413,10 +413,9 @@ local function canSpawnOrEditVehicle(playerID, vehID, vehData)
 
         if #M.settings.configs > 0 then
             -- forced config
-            local model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
+            vehData.vcf.model = vehData.jbm or vehData.vcf.model or vehData.vcf.mainPartName
             local found = M.settings.configs:any(function(config)
-                return model == config.model and
-                    BJCScenario.isVehicleSpawnedMatchesRequired(vehData.vcf.parts, config.parts)
+                return BJCVehicles.compareConfigs(vehData.vcf, config) > .7
             end)
             if not found then
                 M.countInvalidVehicles[playerID] = true

@@ -1710,8 +1710,21 @@ end
 
 ---@param conf1 ClientVehicleConfig
 ---@param conf2 ClientVehicleConfig
+---@return number 0-1 fitness score
 local function compareConfigs(conf1, conf2)
-    return conf1.model == conf2.model and table.compare(conf1.parts, conf2.parts)
+    if conf1.model ~= conf2.model then
+        return 0
+    end
+    local parts1 = table.filter(conf1.parts, function(v) return #v > 0 end)
+    local parts2 = table.filter(conf2.parts, function(v) return #v > 0 end)
+    local matches, total = 0, math.max(table.length(parts1), table.length(parts2))
+    for k, v in pairs(parts1) do
+        if parts2[k] == v then
+            matches = matches + 1
+        end
+    end
+    LogDebug(string.format("Configs match score: %.2f", matches / total))
+    return matches / total
 end
 
 ---@param ctxt TickContext
