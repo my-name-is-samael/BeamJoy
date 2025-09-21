@@ -280,6 +280,25 @@ local function getPlayerListActions(player, ctxt)
 end
 
 ---@param gameVehID integer
+---@param resetType string BJI_Input.INPUTS
+---@return boolean
+local function canReset(gameVehID, resetType)
+    local participant = S.getParticipant()
+    if S.state == S.STATES.GAME and participant and participant.lives > 0 then
+        return table.includes({
+            BJI_Input.INPUTS.RECOVER,
+            BJI_Input.INPUTS.RECOVER_ALT,
+            BJI_Input.INPUTS.RECOVER_LAST_ROAD,
+            BJI_Input.INPUTS.SAVE_HOME,
+            BJI_Input.INPUTS.LOAD_HOME,
+            BJI_Input.INPUTS.RESET_PHYSICS,
+            BJI_Input.INPUTS.RELOAD,
+        }, resetType)
+    end
+    return false
+end
+
+---@param gameVehID integer
 ---@param resetType string
 ---@param baseCallback fun()
 ---@return boolean
@@ -666,6 +685,7 @@ S.doShowNametag = doShowNametag
 S.getPlayerListActions = getPlayerListActions
 
 S.onVehicleSpawned = onVehicleSpawned
+S.canReset = canReset
 S.tryReset = tryReset
 S.onRadialItemSelected = onRadialItemSelected
 

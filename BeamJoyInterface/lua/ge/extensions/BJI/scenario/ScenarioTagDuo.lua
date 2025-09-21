@@ -367,6 +367,7 @@ S.onUnload = onUnload
 
 S.getRestrictions = getRestrictions
 
+S.canReset = TrueFn
 S.getRewindLimit = getRewindLimit
 S.tryReset = tryReset
 
