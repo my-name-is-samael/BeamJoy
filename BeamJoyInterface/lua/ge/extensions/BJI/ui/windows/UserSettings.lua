@@ -16,6 +16,7 @@ local W = {
             preview = "",
             hide = "",
             showDistance = "",
+            hideBehindObjects = "",
             fade = "",
             fadeIn = "",
             fadeOut = "",
@@ -59,6 +60,7 @@ local function updateLabels()
     W.labels.nametags.preview = BJI_Lang.get("userSettings.nametags.preview") .. ":"
     W.labels.nametags.hide = MPTranslate("ui.options.multiplayer.nameTags") .. ":"
     W.labels.nametags.showDistance = MPTranslate("ui.options.multiplayer.nameTagShowDistance") .. ":"
+    W.labels.nametags.hideBehindObjects = MPTranslate("ui.options.multiplayer.nameTagsHideBehindObjects") .. ":"
     W.labels.nametags.fade = MPTranslate("ui.options.multiplayer.nametagFade") .. ":"
     W.labels.nametags.fadeIn = MPTranslate("ui.options.multiplayer.nametagFadeIn")
     W.labels.nametags.fadeOut = MPTranslate("ui.options.multiplayer.nametagFadeOut")
@@ -140,6 +142,14 @@ local nametagsFields = {
     {
         setting = "nameTagShowDistance",
         label = "showDistance",
+        condition = function()
+            return not settings.getValue("hideNameTags", false)
+        end,
+        type = "boolean",
+    },
+    {
+        setting = "nameTagsHideBehindObjects",
+        label = "hideBehindObjects",
         condition = function()
             return not settings.getValue("hideNameTags", false)
         end,

@@ -184,7 +184,7 @@ local function renderTick(ctxt)
         BJI.Utils.ShapeDrawer.Sphere(wp.pos, wp.radius, wp.color)
         if wp.name and #wp.name:trim() > 0 then
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-                wp.textBg or M._textBgColor, true)
+                wp.textBg or M._textBgColor)
         end
     end
 
@@ -194,7 +194,7 @@ local function renderTick(ctxt)
         BJI.Utils.ShapeDrawer.Cylinder(bottomPos, topPos, wp.radius, wp.color)
         if wp.name and #wp.name:trim() > 0 then
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-                wp.textBg or M._textBgColor, true)
+                wp.textBg or M._textBgColor)
         end
         if wp.rot then
             radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
@@ -214,7 +214,7 @@ local function renderTick(ctxt)
         BJI.Utils.ShapeDrawer.Triangle(d, e, f, wp.color)
         if wp.name and #wp.name:trim() > 0 then
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.textPos, wp.textColor or M._textColor,
-                wp.textBg or M._textBgColor, true)
+                wp.textBg or M._textBgColor)
         end
         arrowPos = wp.pos + vec3(0, 0, ctxt.veh and ctxt.veh.veh:getInitialHeight() or wp.radius / 2)
         radius = ctxt.veh and ctxt.veh.veh:getInitialLength() / 2 or wp.radius
@@ -234,7 +234,7 @@ local function renderTick(ctxt)
         )
         if wp.name and #wp.name:trim() > 0 then
             BJI.Utils.ShapeDrawer.Text(wp.name, wp.pos, wp.textColor or M._textColor,
-                wp.textBg or M._textBgColor, true)
+                wp.textBg or M._textBgColor)
         end
     end
 end

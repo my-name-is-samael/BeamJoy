@@ -84,7 +84,8 @@ end
 ---@param textColor BJIColor?
 ---@param bgColor BJIColor?
 ---@param shadow? boolean
-local function Text(text, pos, textColor, bgColor, shadow)
+---@param hideBehindObj? boolean
+local function Text(text, pos, textColor, bgColor, shadow, hideBehindObj)
     _, pos, err = pcall(vec3, pos)
     if err then
         -- invalid position
@@ -97,7 +98,7 @@ local function Text(text, pos, textColor, bgColor, shadow)
         ColorF(textColor.r, textColor.g, textColor.b, textColor.a),
         true, false,
         ColorI(bgColor.r * 255, bgColor.g * 255, bgColor.b * 255, bgColor.a * 255),
-        shadow == true, true)
+        shadow == true, hideBehindObj == true)
 end
 
 ---@param fromPos vec3

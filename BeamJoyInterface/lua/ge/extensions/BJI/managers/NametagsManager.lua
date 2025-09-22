@@ -25,18 +25,21 @@ local ownPos, scenarioShow, forcedTextColor, forcedBgColor, value,
 isFreecaming, distance, alpha, showTag, showDist, label, owner, tag, isMyOwn, isMyCurrent,
 zOffset, ownerIsSpectating, ownerVeh, ownerIsTracting, showSpecs, tagPos, color, fadeoutDistance
 
-local function getAlphaByDistance(distance)
+---@param distance number
+---@param nametagsSettings table
+---@return number
+local function getAlphaByDistance(distance, nametagsSettings)
     alpha = 1
-    if settings.getValue("nameTagFadeEnabled") then
-        fadeoutDistance = settings.getValue("nameTagFadeDistance", 40)
+    if nametagsSettings.nameTagFadeEnabled then
+        fadeoutDistance = nametagsSettings.nameTagFadeDistance
         alpha = math.scale(distance, fadeoutDistance, 0, 0, 1, true)
 
         if BJI_Cam.getCamera() ~= BJI_Cam.CAMERAS.FREE and
-            settings.getValue("nameTagFadeInvert") then
+            nametagsSettings.nameTagFadeInvert then
             alpha = 1 - alpha
         end
 
-        if settings.getValue("nameTagDontFullyHide") then
+        if nametagsSettings.nameTagDontFullyHide then
             alpha = math.clamp(alpha, .3)
         end
     end
@@ -83,13 +86,14 @@ end
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
+---@param nametagsSettings table
 ---@param showMyself? boolean
-local function renderSpecs(ctxt, veh, ownPos, showMyself)
-    if not settings.getValue("showSpectators", true) then return end
+local function renderSpecs(ctxt, veh, ownPos, nametagsSettings, showMyself)
+    if not nametagsSettings.showSpectators then return end
     scenarioShow, forcedTextColor, forcedBgColor = BJI_Scenario.doShowNametagsSpecs(veh)
     if not scenarioShow then return end
 
-    alpha = getAlphaByDistance(ownPos:distance(vec3(veh.position)))
+    alpha = getAlphaByDistance(ownPos:distance(vec3(veh.position)) or 0, nametagsSettings)
 
     zOffset = veh.vehicleHeight
     if ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID then
@@ -105,27 +109,27 @@ local function renderSpecs(ctxt, veh, ownPos, showMyself)
             BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset - .5),
                 forcedTextColor or getNametagColor(alpha, true),
                 forcedBgColor or getNametagBgColor(alpha, true),
-                false)
+                false, nametagsSettings.nameTagsHideBehindObjects)
         end)
 end
 
 ---@param ctxt TickContext
 ---@param unicycle BJIMPVehicle
 ---@param ownPos vec3
+---@param nametagsSettings table
 ---@param forcedTextColor? BJIColor
 ---@param forcedBgColor? BJIColor
-local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgColor)
+local function renderWalking(ctxt, unicycle, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
     isFreecaming = ctxt.camera == BJI_Cam.CAMERAS.FREE
     if unicycle.ownerID == ctxt.user.playerID and not isFreecaming then
         return -- do not render myself
     end
 
-    distance = ownPos:distance(vec3(unicycle.position))
-    alpha = getAlphaByDistance(distance)
+    distance = ownPos:distance(vec3(unicycle.position)) or 0
+    alpha = getAlphaByDistance(distance, nametagsSettings)
 
-    showTag = not settings.getValue("shortenNametags", false) and
-        BJI_Scenario.isFreeroam()
-    showDist = settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow
+    showTag = not nametagsSettings.shortenNametags and BJI_Scenario.isFreeroam()
+    showDist = nametagsSettings.nameTagShowDistance and distance > M._minDistanceShow
 
     if unicycle.ownerID == ctxt.user.playerID then
         label = M.labels.self
@@ -153,15 +157,17 @@ local function renderWalking(ctxt, unicycle, ownPos, forcedTextColor, forcedBgCo
     end
     BJI.Utils.ShapeDrawer.Text(label, vec3(unicycle.position) + vec3(0, 0, unicycle.vehicleHeight),
         forcedTextColor or getNametagColor(alpha),
-        forcedBgColor or getNametagBgColor(alpha))
+        forcedBgColor or getNametagBgColor(alpha),
+        false, nametagsSettings.nameTagsHideBehindObjects)
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
+---@param nametagsSettings table
 ---@param forcedTextColor? BJIColor
 ---@param forcedBgColor? BJIColor
-local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+local function renderTrailer(ctxt, veh, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
     isMyOwn = veh.ownerID == ctxt.user.playerID
     isMyCurrent = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID
     isFreecaming = ctxt.camera == BJI_Cam.CAMERAS.FREE
@@ -175,11 +181,11 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
     if isMyOwn then
         if not ownerIsTracting then
-            distance = ownPos:distance(vec3(veh.position))
-            alpha = getAlphaByDistance(distance)
+            distance = ownPos:distance(vec3(veh.position)) or 0
+            alpha = getAlphaByDistance(distance, nametagsSettings)
 
             label = M.labels.selfTrailer
-            showDist = settings.getValue("nameTagShowDistance", true) and
+            showDist = nametagsSettings.nameTagShowDistance and
                 (not isMyCurrent or isFreecaming) and
                 distance > M._minDistanceShow
 
@@ -198,15 +204,15 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrent),
                 forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrent),
-                false)
+                false, nametagsSettings.nameTagsHideBehindObjects)
         end
     elseif ctxt.players[veh.ownerID] then
         if not ownerIsTracting or ownerIsSpectating then
-            distance = ownPos:distance(vec3(veh.position))
-            alpha = getAlphaByDistance(distance)
+            distance = ownPos:distance(vec3(veh.position)) or 0
+            alpha = getAlphaByDistance(distance, nametagsSettings)
 
             label = M.labels.trailer:var({ playerName = ctxt.players[veh.ownerID].tagName })
-            showDist = settings.getValue("nameTagShowDistance", true) and
+            showDist = nametagsSettings.nameTagShowDistance and
                 (not isMyCurrent or isFreecaming) and
                 distance > M._minDistanceShow
 
@@ -225,19 +231,20 @@ local function renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, ownerIsSpectating, not ownerIsSpectating),
                 forcedBgColor or getNametagBgColor(alpha, ownerIsSpectating, not ownerIsSpectating),
-                false)
+                false, nametagsSettings.nameTagsHideBehindObjects)
         end
     end
 
-    renderSpecs(ctxt, veh, ownPos, not isMyOwn and isMyCurrent and isFreecaming)
+    renderSpecs(ctxt, veh, ownPos, nametagsSettings, not isMyOwn and isMyCurrent and isFreecaming)
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
+---@param nametagsSettings table
 ---@param forcedTextColor? BJIColor
 ---@param forcedBgColor? BJIColor
-local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+local function renderVehicle(ctxt, veh, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
     isMyOwn = veh.ownerID == ctxt.user.playerID
     isMyCurrent = ctxt.veh and ctxt.veh.gameVehicleID == veh.gameVehicleID
     isFreecaming = ctxt.camera == BJI_Cam.CAMERAS.FREE
@@ -246,11 +253,11 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
 
     if isMyOwn then
         if not isMyCurrent or isFreecaming then
-            distance = ownPos:distance(vec3(veh.position))
-            alpha = getAlphaByDistance(distance)
+            distance = ownPos:distance(vec3(veh.position)) or 0
+            alpha = getAlphaByDistance(distance, nametagsSettings)
 
             label = M.labels.self
-            if settings.getValue("nameTagShowDistance", true) and distance > M._minDistanceShow then
+            if nametagsSettings.nameTagShowDistance and distance > M._minDistanceShow then
                 label = string.var("{1} {2}", { label, BJI.Utils.UI.PrettyDistance(distance) })
             end
 
@@ -265,16 +272,16 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
             BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
                 forcedTextColor or getNametagColor(alpha, false, not isMyCurrent),
                 forcedBgColor or getNametagBgColor(alpha, false, not isMyCurrent),
-                false)
+                false, nametagsSettings.nameTagsHideBehindObjects)
             showSpecs = true
         end
     elseif ctxt.players[veh.ownerID] then
-        distance = ownPos:distance(vec3(veh.position))
-        alpha = getAlphaByDistance(distance)
+        distance = ownPos:distance(vec3(veh.position)) or 0
+        alpha = getAlphaByDistance(distance, nametagsSettings)
 
-        showTag = not settings.getValue("shortenNametags", false) and
+        showTag = not nametagsSettings.shortenNametags and
             ownerIsSpectating and BJI_Scenario.isFreeroam()
-        showDist = settings.getValue("nameTagShowDistance", true) and
+        showDist = nametagsSettings.nameTagShowDistance and
             (not isMyCurrent or isFreecaming) and
             distance > M._minDistanceShow
 
@@ -304,24 +311,23 @@ local function renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
         BJI.Utils.ShapeDrawer.Text(label, vec3(veh.position) + vec3(0, 0, zOffset),
             forcedTextColor or getNametagColor(alpha, false, not ownerIsSpectating),
             forcedBgColor or getNametagBgColor(alpha, false, not ownerIsSpectating),
-            false)
+            false, nametagsSettings.nameTagsHideBehindObjects)
         showSpecs = true
     end
     if showSpecs then
-        renderSpecs(ctxt, veh, ownPos, not isMyOwn and isMyCurrent and isFreecaming)
+        renderSpecs(ctxt, veh, ownPos, nametagsSettings, not isMyOwn and isMyCurrent and isFreecaming)
     end
 end
 
 ---@param ctxt TickContext
 ---@param veh BJIMPVehicle
 ---@param ownPos vec3
-local function renderFugitive(ctxt, veh, ownPos)
+---@param nametagsSettings table
+local function renderFugitive(ctxt, veh, ownPos, nametagsSettings)
     distance = ownPos:distance(vec3(veh.position))
 
-    showTag = not settings.getValue("shortenNametags", false) and
-        BJI_Scenario.isFreeroam()
-    showDist = settings.getValue("nameTagShowDistance", true) and
-        distance > M._minDistanceShow
+    showTag = not nametagsSettings.shortenNametags and BJI_Scenario.isFreeroam()
+    showDist = nametagsSettings.nameTagShowDistance and distance > M._minDistanceShow
 
     if veh.isAi then
         label = M.labels.fugitive
@@ -347,9 +353,11 @@ local function renderFugitive(ctxt, veh, ownPos)
     end
     tagPos = vec3(veh.position) + vec3(0, 0, veh.vehicleHeight)
     forcedTextColor, forcedBgColor = BJI_Pursuit.getFugitiveNametagColors()
-    BJI.Utils.ShapeDrawer.Text(label, tagPos, forcedTextColor, forcedBgColor, false)
+    BJI.Utils.ShapeDrawer.Text(label, tagPos, forcedTextColor, forcedBgColor, false,
+        nametagsSettings.nameTagsHideBehindObjects)
     if not veh.isAi then
-        BJI.Utils.ShapeDrawer.Text(M.labels.fugitive, tagPos + vec3(0, 0, .2), forcedTextColor, forcedBgColor, false)
+        BJI.Utils.ShapeDrawer.Text(M.labels.fugitive, tagPos + vec3(0, 0, .2), forcedTextColor,
+            forcedBgColor, false, nametagsSettings.nameTagsHideBehindObjects)
     end
 end
 
@@ -385,6 +393,17 @@ local function renderTick(ctxt)
     if extensions.core_replay.getState() == "playback" then return end
     detectVisibilityEvent()
 
+    local nametagsSettings = {
+        shortenNametags = settings.getValue("shortenNametags", false),
+        nameTagShowDistance = settings.getValue("nameTagShowDistance", true),
+        nameTagFadeEnabled = settings.getValue("nameTagFadeEnabled", true),
+        nameTagFadeDistance = settings.getValue("nameTagFadeDistance", 40),
+        nameTagFadeInvert = settings.getValue("nameTagFadeInvert", false),
+        nameTagDontFullyHide = settings.getValue("nameTagDontFullyHide", false),
+        showSpectators = settings.getValue("showSpectators", true),
+        nameTagsHideBehindObjects = settings.getValue("nameTagsHideBehindObjects", false),
+    }
+
     -- render rules : https://docs.google.com/spreadsheets/d/17YAlu5TkZD6BLCf3xmJ-1N0GbiUr641Xk7eFFnb-jF8?usp=sharing
     if ctxt.camera == BJI_Cam.CAMERAS.FREE or not ctxt.veh then
         ownPos = BJI_Cam.getPositionRotation().pos
@@ -411,13 +430,13 @@ local function renderTick(ctxt)
             scenarioShow, forcedTextColor, forcedBgColor = BJI_Scenario.doShowNametag(veh)
             if scenarioShow then
                 if veh.jbeam == "unicycle" then
-                    renderWalking(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+                    renderWalking(ctxt, veh, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
                 elseif M.cache.vehTypes[veh.jbeam] == BJI_Veh.TYPES.TRAILER then
-                    renderTrailer(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+                    renderTrailer(ctxt, veh, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
                 elseif BJI_Pursuit.policeTargets[veh.gameVehicleID] then
-                    renderFugitive(ctxt, veh, ownPos)
+                    renderFugitive(ctxt, veh, ownPos, nametagsSettings)
                 elseif not veh.isAi then
-                    renderVehicle(ctxt, veh, ownPos, forcedTextColor, forcedBgColor)
+                    renderVehicle(ctxt, veh, ownPos, nametagsSettings, forcedTextColor, forcedBgColor)
                 end
             end
         end)
