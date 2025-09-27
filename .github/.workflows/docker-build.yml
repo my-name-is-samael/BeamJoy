@@ -6,7 +6,7 @@ on:
       beamjoy_version:
         description: 'BeamJoy version to build (e.g., 2.0.6)'
         required: true
-        default: '2.0.6'
+        default: '2.0.6-full'
         type: string
       beamjoy_file_name:
         description: 'BeamJoy file name (e.g., beamjoy-2.0.6.zip)'
@@ -16,7 +16,7 @@ on:
       datapack_version:
         description: 'Datapack version to build (e.g., 2025-07-18)'
         required: true
-        default: '2025-07-18'
+        default: 'datapack-2025-07-18'
         type: string
       datapack_file_name:
         description: 'Datapack file name (e.g., BeamJoy_BaseGame_Data_2.0.0_2025-07-18_no-race-records.zip)'
