@@ -1,0 +1,79 @@
+name: Build and Push Multi-Arch Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      beamjoy_version:
+        description: 'BeamJoy version to build (e.g., 2.0.6)'
+        required: true
+        default: '2.0.6'
+        type: string
+      beamjoy_file_name:
+        description: 'BeamJoy file name (e.g., beamjoy-2.0.6.zip)'
+        required: true
+        default: 'beamjoy-2.0.6.zip'
+        type: string
+      datapack_version:
+        description: 'Datapack version to build (e.g., 2025-07-18)'
+        required: true
+        default: '2025-07-18'
+        type: string
+      datapack_file_name:
+        description: 'Datapack file name (e.g., BeamJoy_BaseGame_Data_2.0.0_2025-07-18_no-race-records.zip)'
+        required: true
+        default: 'BeamJoy_BaseGame_Data_2.0.0_2025-07-18_no-race-records.zip'
+        type: string
+      image_tag:
+        description: 'Custom image tag (optional, defaults to beamjoy version)'
+        required: false
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=raw,value=${{ inputs.image_tag || inputs.beamjoy_version }}
+          type=raw,value=latest,enable=${{ inputs.image_tag == '' }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          BEAMJOY_VERSION=${{ inputs.beamjoy_version }}
+          BEAMJOY_FILE_NAME=${{ inputs.beamjoy_file_name }}
+          DATAPACK_VERSION=${{ inputs.datapack_version }}
+          DATAPACK_FILE_NAME=${{ inputs.datapack_file_name }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
