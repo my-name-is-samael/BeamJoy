@@ -407,7 +407,11 @@ You can also fix translations if they are wrong :
   <a href="https://gitlocalize.com/repo/9945/ru?utm_source=badge">
     <img src="https://gitlocalize.com/repo/9945/ru/badge.svg" />
   </a>
+  <a href="https://gitlocalize.com/repo/9945/tr?utm_source=badge">
+    <img src="https://gitlocalize.com/repo/9945/tr/badge.svg" />
+  </a>
 </p>
+Thanks to @MRsuffixx for the turkish translation
 
 ## Known issues
 <img src="/assets/banner-knownissues.png" style="width: 100%; height: auto;" alt="Known Issues" />

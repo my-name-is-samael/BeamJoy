@@ -27,7 +27,7 @@ require("ge/extensions/utils/String")
 require("ge/extensions/utils/Table")
 
 BJI = {
-    VERSION = "2.0.6",
+    VERSION = "2.0.7",
     tag = "BJI",
     CLIENT_READY = false,
     CONSTANTS = require("ge/extensions/utils/Constants"),

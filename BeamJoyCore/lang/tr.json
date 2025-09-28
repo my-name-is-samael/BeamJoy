@@ -1,0 +1,1847 @@
+{
+  "console": {
+    "common": {
+      "time": {
+        "month": "ay",
+        "months": "ay",
+        "day": "gün",
+        "days": "gün",
+        "hour": "saat",
+        "hours": "saat",
+        "minute": "dakika",
+        "minutes": "dakika",
+        "second": "saniye",
+        "seconds": "saniye",
+        "and": "ve"
+      },
+      "enabled": "Etkin",
+      "disabled": "Devre Dışı",
+      "allPlayers": "SUNUCU",
+      "empty": "Boş",
+      "startMessage": "Komut listesi için \"help\" yazın"
+    },
+    "messages": {
+      "missing": "Mesaj bulunamadı {key}",
+      "invalidMessage": "Mesaj {key} bir dize değil",
+      "serverBroadcast": "SUNUCU MESAJI {targetName}: {message}"
+    },
+    "command": {
+      "errors": {
+        "usage": "Kullanım : {command}",
+        "invalidFunctionName": "HATA Geçersiz fonksiyon adı \"{functionName}\"",
+        "invalidCommandData": "HATA Geçersiz komut verisi",
+        "invalidCommand": "HATA Geçersiz komut \"{command}\"",
+        "invalidEnvKey": "HATA Geçersiz env_key \"{key}\"",
+        "invalidValue": "HATA Geçersiz değer \"{value}\"",
+        "invalidPlayer": "HATA Geçersiz oyuncu \"{playerName}\"",
+        "invalidPlayerWithList": "HATA Geçersiz oyuncu \"{playerName}\", bağlı oyuncular : {playerList}",
+        "invalidGroupWithList": "HATA Geçersiz grup \"{groupName}\", gruplar : {groupList}",
+        "errorUpdatePlayer": "HATA Oyuncu güncellenemedi \"{playerName}\"",
+        "playerAmbiguity": "HATA \"{playerName}\" oyuncusuyla ilgili belirsizlik: {playerList}",
+        "invalidMap": "HATA Geçersiz harita \"{mapName}\"",
+        "mapAmbiguity": "HATA \"{mapName}\" haritasıyla ilgili belirsizlik: {mapList}"
+      },
+      "help": {
+        "title": "BeamJoy komutları:",
+        "langArgs": "[dil_kodu]",
+        "langDescription": "Geçerli dili göster veya konsol dilini değiştir",
+        "mapArgs": "[harita_adı]",
+        "mapDescription": "Geçerli haritayı göster veya haritaya geç",
+        "envArgs": "[env_key] [env_value]",
+        "envDescription": "Bir ortam değişkenini göster veya değiştir",
+        "whitelistArgs": "<set|add|remove> [arg]",
+        "whitelistSetArgs": "<true|false>",
+        "whitelistAddRemoveArgs": "<oyuncu_adı>",
+        "whitelistDescription": "Beyaz listeyi göster veya ayarla, oyuncuyu beyaz listeye ekle veya listeden kaldır",
+        "setgroupArgs": "<oyuncu_adı> [grup_adı]",
+        "setgroupDescription": "Bir oyuncuyu bir gruba ekle",
+        "kickArgs": "<oyuncu_adı> [sebep]",
+        "kickDescription": "Bir oyuncuyu at",
+        "banArgs": "<oyuncu_adı> [sebep]",
+        "banDescription": "Bir oyuncuyu yasakla",
+        "tempbanArgs": "<oyuncu_adı> <saniye_cinsinden_süre> [sebep]",
+        "tempbanDescription": "Bir oyuncuyu geçici olarak yasakla",
+        "unbanArgs": "<oyuncu_adı>",
+        "unbanDescription": "Bir oyuncunun yasağını kaldır",
+        "muteArgs": "<oyuncu_adı> [sebep]",
+        "muteDescription": "Bir oyuncuyu sustur",
+        "unmuteArgs": "<oyuncu_adı>",
+        "unmuteDescription": "Bir oyuncunun susturmasını kaldır",
+        "stopArgs": "",
+        "stopDescription": "Sunucuyu düzgün şekilde durdur (oyuncuları uyarmadan sonra onları atar ve çıkışı yapar)"
+      },
+      "defaultReturn": "Komut başarıyla çalıştırıldı",
+      "currentLang": "Geçerli konsol dili: {langName}",
+      "validLangs": "Geçerli dil kodları: {langNames}",
+      "langChanged": "Konsol dili \"{langName}\" olarak değiştirildi",
+      "currentMap": "Geçerli harita: {mapName}",
+      "validMaps": "Geçerli harita isimleri: {maps}",
+      "mapSwitched": "Harita değiştirildi",
+      "envValues": "Ortam değerleri: {values}",
+      "envValueWithDefault": "Geçerli {key} değeri: \"{value}\" (varsayılan: \"{defaultValue}\")",
+      "envValueSetTo": "Ortam değeri \"{key}\" şu değere ayarlandı: \"{value}\"",
+      "showWhitelistState": "Beyaz liste şu anda {state}",
+      "showWhitelistedPlayers": "Beyaz listedeki oyuncular: {playerList}",
+      "showWhitelistedGroups": "Beyaz listedeki gruplar: {groupList}",
+      "newWhitelistState": "Beyaz liste artık {state}",
+      "whitelistAddedPlayer": "Oyuncu {playerName} beyaz listeye eklendi",
+      "alreadyWhitelistedPlayer": "Oyuncu {playerName} zaten beyaz listede",
+      "whitelistRemovedPlayer": "Oyuncu {playerName} beyaz listeden kaldırıldı",
+      "notWhitelistedPlayer": "Oyuncu {playerName} beyaz listede değil",
+      "groupAssigned": "Oyuncu {playerName} {group} grubuna atandı",
+      "playerKicked": "Oyuncu {playerName} atıldı",
+      "playerBanned": "Oyuncu {playerName} yasaklandı",
+      "playerUnbanned": "Oyuncu {playerName} yasağı kaldırıldı",
+      "playerNotBanned": "Oyuncu {playerName} yasaklanmamış",
+      "playerMuted": "Oyuncu {playerName} susturuldu",
+      "playerAlreadyMuted": "Oyuncu {playerName} zaten susturulmuş",
+      "playerUnmuted": "Oyuncu {playerName} susturması kaldırıldı",
+      "playerNotMuted": "Oyuncu {playerName} susturulmamış",
+      "stopIn": "Sunucu {seconds} saniye içinde durdurulacak",
+      "stop": "Sunucu durduruluyor..."
+    },
+    "db": {
+      "dbFileChanged": "\"{dbName}\" dosyası değişti",
+      "dbLoadingError": "\"{dbName}\" veritabanı yüklenirken hata oluştu",
+      "dbSaveError": "\"{dbName}\" veritabanı kaydedilirken hata oluştu",
+      "dbFileLoadingError": "{file} dosyası yüklenirken hata oluştu",
+      "dbSaved": "\"{dbName}\" veritabanı kaydedildi"
+    },
+    "players": {
+      "dbSaveError": "Oyuncu veritabanı \"{playerName}\" kaydedilirken hata oluştu",
+      "dbSaved": "Oyuncu veritabanı \"{playerName}\" kaydedildi",
+      "dbFileChanged": "\"{playerName}\" dosyası değişti",
+      "dbLoadingError": "Oyuncu veritabanı \"{playerName}\" yüklenirken hata oluştu",
+      "authPlayerNotFound": "Kimliği doğrulanmış oyuncu \"{playerName}\" bulunamadı",
+      "invalidPlayer": "Geçersiz oyuncu {playerID}",
+      "invalidGroup": "Geçersiz grup {group}",
+      "invalidPermission": "Oyuncu {playerID} için geçersiz izin",
+      "invalidVehicleData": "Oyuncu {playerID} için geçersiz araç verisi"
+    },
+    "rx": {
+      "eventReceived": "{playerName} tarafından {eventName}.{endpoint} olayı alındı"
+    },
+    "tx": {
+      "invalidEventDataType": "Geçersiz olay veri türü ({dataType})",
+      "invalidPlayerIDType": "Geçersiz oyuncu ID türü ({playerIDType})"
+    }
+  },
+  "server": {
+    "common": {
+      "loading": "Yükleniyor ..."
+    },
+    "players": {
+      "joinError": "İstemcinizden geçersiz veri",
+      "kicked": "Sunucudan atıldınız",
+      "tempBanWillEndIn": "Yasağınızın bitmesine {time}",
+      "tempBanned": "{time} boyunca yasaklandınız",
+      "banned": "Yasaklandınız",
+      "banReason": "{base}, sebep: {reason}",
+      "notWhitelisted": "Beyaz listeniz yok",
+      "muted": "Susturuldunuz",
+      "mutedReason": "Sebep: {reason}",
+      "cantSendMessage": "Susturulmuşsunuz",
+      "unmuted": "Susturmanız kaldırıldı",
+      "vehicleSpawningDisabled": "Araç üretimi devre dışı",
+      "cannotSpawnVehicle": "Araç üretme izniniz yok",
+      "blacklistedVehicle": "Bu araça izin verilmiyor",
+      "walkNotAllowed": "Yürüme şu anda izin verilmiyor"
+    },
+    "rx": {
+      "invalidTime": "Geçersiz zaman \"{time}\"",
+      "errors": {
+        "serverError": "Sunucu hatası",
+        "invalidData": "Geçersiz veri",
+        "invalidEvent": "Geçersiz olay \"{eventName}\"",
+        "invalidEndpoint": "Geçersiz uç nokta \"{endpoint}\"",
+        "insufficientPermissions": "Yetersiz izinler",
+        "senderIDInvalid": "ID'niz ({senderID}) bulunamadı",
+        "invalidCache": "Geçersiz önbellek \"{cache}\"",
+        "invalidKey": "Geçersiz anahtar \"{key}\"",
+        "invalidValue": "Geçersiz değer \"{value}\"",
+        "invalidDefaultValue": "\"{key}\" için geçersiz varsayılan değer",
+        "invalidGroup": "Geçersiz grup \"{group}\"",
+        "invalidPlayer": "Geçersiz oyuncu ({playerName})",
+        "invalidPlayerID": "Geçersiz oyuncu ({playerID})",
+        "invalidVehicle": "Geçersiz araç",
+        "invalidVehicleID": "Geçersiz araç ({vehicleID})",
+        "invalidLang": "Geçersiz dil \"{lang}\"",
+        "insufficientPlayers": "Yeterli oyuncu yok",
+        "guestCannotBeWhitelisted": "Misafirler beyaz listeye alınamaz",
+        "playerAmbiguity": "Oyuncularla ilgili belirsizlik: {playerList}",
+        "forbidden": "Yasak"
+      },
+      "vehicleRemoveOneOf": "Araçlarınızdan biri",
+      "vehicleRemoveMain": "Aracınız",
+      "vehicleRemoveSuffix": "{typeVehicleRemove} bir yetkili tarafından kaldırıldı!",
+      "vehicleRemoveAll": "Tüm araçlarınız bir yetkili tarafından kaldırıldı!"
+    },
+    "voteKick": {
+      "beenVoteKick": "{votersAmount} oyuncu tarafından oylandı ve atıldınız",
+      "playerKicked": "{playerName} atıldı"
+    },
+    "mapSwitch": {
+      "missingArchive": "Arşiv eksik",
+      "kickIn": "Harita değişiyor, {delay} içinde atılacaksınız",
+      "kick": "Harita değişti, lütfen yeniden bağlanın"
+    },
+    "broadcast": {
+      "serverStopsIn": "Sunucu {delay} içinde yeniden başlatılacak",
+      "serverStopped": "Sunucu yeniden başlatıldı!",
+      "bigDrift": "{playerName} {score} puanlık bir drift yaptı!",
+      "newRaceRecord": "{playerName}, {raceName} isimli yarışta yeni bir rekor kırdı: {time}",
+      "raceTime": "{playerName}, {raceName} isimli yarışı {time} sürede tamamladı"
+    },
+    "hunter": {
+      "invalidHunted": "Kaçak yok",
+      "huntedWinner": "Kaçak kazandı!",
+      "huntersWinners": "Avcılar kazandı!",
+      "draw": "Berabere"
+    },
+    "infected": {
+      "invalidInfected": "Enfekte edici yok",
+      "gameOver": "Oyun Bitti"
+    },
+    "derby": {
+      "winner": "{playerName} oyunu kazandı!",
+      "draw": "Berabere"
+    },
+    "commands": {
+      "title": "Komutlar",
+      "aliases": "Takma Adlar",
+      "invalidCommand": "Geçersiz komut",
+      "usage": "Kullanım",
+      "helpArgs": "[komut]",
+      "helpDesc": "Bu mesajı yazdırır veya belirtilen komut için yardımı gösterir",
+      "pmArgs": "<oyuncu_adı> <mesaj>",
+      "pmDesc": "Birine özel mesaj gönderin (oyuncu_adı büyük/küçük harfe duyarsızdır ve bir alt kısım olabilir)"
+    }
+  },
+  "client": {
+    "common": {
+      "loading": "Yükleniyor ...",
+      "vSeparator": "|",
+      "time": {
+        "month": "ay",
+        "months": "ay",
+        "day": "gün",
+        "days": "gün",
+        "hour": "saat",
+        "hours": "saat",
+        "minute": "dakika",
+        "minutes": "dakika",
+        "second": "saniye",
+        "seconds": "saniye",
+        "and": "ve"
+      },
+      "buttons": {
+        "reset": "Sıfırla",
+        "resetAll": "Tümünü Sıfırla",
+        "delete": "Sil",
+        "play": "Oyna",
+        "stop": "Dur",
+        "allowed": "İzin Verildi",
+        "blocked": "Engellendi",
+        "add": "Ekle",
+        "remove": "Kaldır",
+        "save": "Kaydet",
+        "cancel": "İptal",
+        "close": "Kapat",
+        "vote": "Oy Ver",
+        "unvote": "Oyu Geri Çek",
+        "startVote": "Oylama Başlat",
+        "stopVote": "Oylamayı Durdur",
+        "set": "Ayarla",
+        "create": "Oluştur",
+        "edit": "Düzenle",
+        "duplicate": "Çoğalt",
+        "confirm": "Onayla",
+        "start": "Başlat",
+        "explode": "Patlat",
+        "leave": "Ayrıl",
+        "toggle": "Değiştir",
+        "show": "Göster",
+        "spawn": "Çıkart",
+        "replace": "Değiştir",
+        "loop": "Döngü",
+        "join": "Katıl",
+        "spectate": "İzle",
+        "markReady": "Hazır Olarak İşaretle",
+        "forfeit": "Pes Et",
+        "refresh": "Yenile",
+        "restart": "Yeniden Başlat",
+        "moveUp": "Yukarı Taşı",
+        "moveDown": "Aşağı Taşı",
+        "setGPS": "GPS Ayarla",
+        "manualReset": "Sıfırla"
+      },
+      "durationModifiers": {
+        "minute": "dk",
+        "hour": "s",
+        "day": "g",
+        "month": "a"
+      },
+      "enabled": "Etkin",
+      "disabled": "Devre Dışı",
+      "yes": "Evet",
+      "no": "Hayır",
+      "state": "Durum",
+      "unknown": "Bilinmiyor",
+      "defaultPlayerName": "Bir oyuncu",
+      "and": "&",
+      "random": "Rastgele",
+      "precisionInputTooltip": "Modu değiştirmek için sağ tıklayın"
+    },
+    "errors": {
+      "invalid": "Geçersiz",
+      "invalidData": "Geçersiz veri",
+      "missing": "Eksik",
+      "modManagementDisabled": "Bu sunucuda mod yönetimi devre dışı!",
+      "cannotSpawnVeh": "Araç üretme izniniz yok",
+      "cannotSpawnAnyMoreVeh": "Daha fazla araç üretme izniniz yok",
+      "cannotResetNow": "Şu anda sıfırlayamazsınız",
+      "unavailableDuringScenario": "Senaryo sırasında kullanılamaz",
+      "scenarioUnavailable": "Senaryo kullanılamıyor",
+      "toastModelBlacklisted": "Bu araç kara listeye alınmış",
+      "missingOwnVehicle": "Kendi aracınız eksik",
+      "cannotStartWodeWithAI": "Bu modu yapay zeka aracınızla başlatamazsınız",
+      "missingPlayers": "{amount} oyuncu daha eksik",
+      "mustBeFreecaming": "Serbest kamerada olmalısınız",
+      "mustHaveVehicle": "Bir aracınız olmalı",
+      "someDataAreInvalid": "Bazı veriler geçersiz"
+    },
+    "chat": {
+      "staffTag": "YETKİLİ",
+      "reputationTag": "RP",
+      "directMessage": "{playerName} kişisinden",
+      "directMessageSent": "{playerName} kişisine",
+      "events": {
+        "playerJoined": "{playerName} katıldı",
+        "playerLeft": "{playerName} ayrıldı",
+        "voteEvents": {
+          "mapSwitch": "haritaya geçmek ",
+          "playerKick": "atmak ",
+          "raceStart": "yarış başlatmak ",
+          "speedStart": "hız oyunu başlatmak",
+          "hunterStart": "avcı oyunu başlatmak",
+          "infectedStart": "enfekte oyunu başlatmak",
+          "derbyStart": "yıkım yarışı başlatmak"
+        },
+        "vote": "{playerName}, {voteEvent}{suffix} için oylama başlattı",
+        "voteAccepted": "{voteEvent}{suffix} oylaması kabul edildi",
+        "voteDenied": "{voteEvent}{suffix} oylaması reddedildi: yeterli oy yok",
+        "voteCancelledByCreator": "{voteEvent}{suffix} oylaması başlatan kişi tarafından iptal edildi",
+        "voteCancelled": "{voteEvent}{suffix} oylaması moderasyon tarafından iptal edildi",
+        "gamemodes": {
+          "race": "Yarış",
+          "speed": "Hız Oyunu",
+          "hunter": "Avcı Modu",
+          "infected": "Enfekte Modu",
+          "derby": "Yıkım Yarışı",
+          "delivery": "Birlikte Teslimat",
+          "tagduo": "Etiketli İkili"
+        },
+        "gamemodeStopReasons": {
+          "moderation": "moderasyon tarafından",
+          "creator": "oluşturan kişi tarafından",
+          "notEnoughParticipants": "yeterli katılımcı yok",
+          "timedout": "zaman aşımına uğradı",
+          "invalidVehConfig": "Bir araç yapılandırması geçersiz"
+        },
+        "gamemodeTeams": {
+          "hunters": "Avcılar",
+          "hunted": "Kaçak"
+        },
+        "gamemodeStarted": "{gamemode} başladı",
+        "gamemodeEnded": "{gamemode} bitti",
+        "gamemodeStopped": "{gamemode} durduruldu: {reason}",
+        "gamemodeJoin": "{playerName}, {gamemode} oyununa katıldı",
+        "gamemodeCreatedLobby": "{playerName}, {gamemode} lobisi oluşturdu",
+        "gamemodeLeave": "{playerName}, {gamemode} oyunundan ayrıldı",
+        "gamemodeFinished": "{playerName}, {gamemode} oyununu #{gamemodePosition} olarak bitirdi",
+        "gamemodeTeamWon": "{teamName}, {gamemode} oyununu kazandı",
+        "tournamentResult": "{playerName}, turnuvayı #{position} olarak bitirdi ({score} puan)",
+        "infectedBy": "{survivor}, {infected} tarafından enfekte edildi",
+        "moderation": {
+          "cmdOrigin": "Yönetici",
+          "kickedVote": "oyuncular, {playerName} atılması için oy kullandı",
+          "kicked": "{author}, {playerName} atıldı",
+          "kickedReason": "{author}, {playerName}: {reason}",
+          "tempban": "{author}, {playerName} {duration} boyunca yasaklandı",
+          "tempbanReason": "{author}, {playerName} {duration} boyunca yasaklandı: {reason}",
+          "banned": "{author}, {playerName} yasaklandı",
+          "bannedReason": "{author}, {playerName}: {reason}",
+          "unbanned": "{author}, {playerName} yasağı kaldırıldı",
+          "muted": "{author}, {playerName} susturuldu",
+          "mutedReason": "{author}, {playerName}: {reason}",
+          "unmuted": "{author}, {playerName} susturması kaldırıldı",
+          "promoted": "{author}, {playerName} {group} grubuna yükseltildi",
+          "demoted": "{author}, {playerName} {group} grubuna indirildi"
+        }
+      }
+    },
+    "nametags": {
+      "staffTag": "YETKİLİ",
+      "reputationTag": "RP",
+      "self": "Siz",
+      "trailer": "{playerName} kişisinin römorku",
+      "selfTrailer": "Römorkunuz",
+      "fugitive": "Şüpheli"
+    },
+    "windows": {
+      "Main": "BeamJoyArayüzü",
+      "UserSettings": "Ayarlarım",
+      "Events": "Etkinlikler",
+      "RacesLeaderboard": "Yarışlar Lider Tablosu",
+      "RaceSettings": "Yarış Ayarları",
+      "Race": "Yarış",
+      "DeliveryMulti": "Birlikte Teslimat",
+      "VehSelector": "Araç Seçici",
+      "Station": "İstasyon",
+      "BusMissionPreparation": "Otobüs Görevi Hazırlığı",
+      "ScenarioEditor": "Senaryo Editörü",
+      "FreeroamSettings": "Serbest Dolaşım Ayarları",
+      "Environment": "Ortam Editörü",
+      "Server": "Sunucu Ayarları",
+      "Speed": "Hız Oyunu",
+      "Database": "Veritabanı",
+      "HunterSettings": "Avcı Oyunu Ayarları",
+      "Hunter": "Avcı Oyunu",
+      "InfectedSettings": "Enfekte Oyunu Ayarları",
+      "Infected": "Enfekte Oyunu",
+      "Theme": "Tema Editörü",
+      "Derby": "Yıkım Yarışı",
+      "VehSelectorPreview": "Araç Önizlemesi",
+      "Selection": "Seçim"
+    },
+    "menu": {
+      "me": {
+        "title": "Ben",
+        "settings": "Ayarlar",
+        "vehicleSelector": "Araç Seçici",
+        "clearGPS": "GPS Temizle"
+      },
+      "vote": {
+        "title": "Oylama",
+        "map": {
+          "title": "Harita",
+          "custom": "özel"
+        },
+        "speed": {
+          "title": "Hız Oyunu"
+        }
+      },
+      "scenario": {
+        "title": "Senaryo",
+        "soloRace": {
+          "start": "Yalnız Yarışı Başlat",
+          "stop": "Yarışı Durdur",
+          "noRace": "Yarış mevcut değil"
+        },
+        "vehicleDelivery": {
+          "start": "Araç Teslimatını Başlat",
+          "stop": "Teslimatı Durdur",
+          "noDelivery": "Teslimat mevcut değil"
+        },
+        "packageDelivery": {
+          "start": "Paket Teslimatını Başlat",
+          "stop": "Teslimatı Durdur",
+          "noDelivery": "Teslimat mevcut değil"
+        },
+        "deliveryMulti": {
+          "join": "Birlikte Teslimata Katıl",
+          "leave": "Birlikte Teslimattan Ayrıl",
+          "noDelivery": "Teslimat mevcut değil"
+        },
+        "busMission": {
+          "start": "Otobüs Görevini Başlat",
+          "stop": "Otobüs Görevini Durdur",
+          "noBusMission": "Otobüs görevi mevcut değil"
+        },
+        "speed": {
+          "start": "Hız Oyununu Başlat",
+          "stop": "Hız Oyununu Durdur"
+        },
+        "race": {
+          "start": "Yarışı Başlat",
+          "noRace": "Yarış mevcut değil",
+          "stop": "Yarışı Durdur"
+        },
+        "hunter": {
+          "start": "Avcı Başlat",
+          "stop": "Avcı Durdur",
+          "modeDisabled": "devre dışı"
+        },
+        "infected": {
+          "start": "Enfekte Başlat",
+          "stop": "Enfekte Durdur",
+          "modeDisabled": "devre dışı"
+        },
+        "derby": {
+          "start": "Yıkım Yarışını Başlat",
+          "stop": "Yıkım Yarışını Durdur",
+          "noArena": "Arena mevcut değil"
+        },
+        "tagduo": {
+          "join": "Etiketli İkiliye Katıl",
+          "leave": "Etiketli İkili Ayrıl",
+          "createLobby": "Lobi Oluştur",
+          "joinLobby": "{playerName} kişisinin lobisine katıl"
+        },
+        "tournament": "Turnuva"
+      },
+      "edit": {
+        "title": "Düzenle",
+        "freeroamSettings": "Serbest Dolaşım Ayarları",
+        "time": "Gün Zamanı",
+        "weather": "Hava Durumu",
+        "gravity": "Yerçekimi",
+        "speed": "Sim. hız",
+        "map": "Haritaya Geç",
+        "mapCustom": "özel",
+        "energyStations": "Enerji istasyonları ({amount})",
+        "garages": "Garajlar ({amount})",
+        "deliveries": "Teslimatlar ({amount})",
+        "buslines": "Otobüs hatları ({amount})",
+        "races": "Yarışlar",
+        "raceCreate": "Yarış Oluştur",
+        "raceDeleteModal": "\"{raceName}\" yarışını silmek istediğinizden emin misiniz?",
+        "hunter": "Avcı ({state})",
+        "infected": "Enfekte ({state})",
+        "derby": "Yıkım Arenaları ({amount})"
+      },
+      "config": {
+        "title": "Yapılandırma",
+        "server": "Sunucu",
+        "environment": "Ortam",
+        "theme": "Pencere Teması",
+        "database": "Veritabanı",
+        "stop": "Sunucuyu Yeniden Başlat",
+        "stopModal": "Sunucuyu yeniden başlatmak istediğinizden emin misiniz?"
+      },
+      "about": {
+        "title": "Hakkında",
+        "createdBy": "{author} tarafından oluşturuldu - TR'ye çeviri: MRsuffixx",
+        "computerTime": "Bilgisayar Saati"
+      }
+    },
+    "groups": {
+      "none": "Hiçbiri",
+      "player": "Oyuncu",
+      "mod": "Moderatör",
+      "admin": "Yönetici",
+      "owner": "Sahip"
+    },
+    "presets": {
+      "gravity": {
+        "toastChanged": "Yerçekimi {gravity} olarak değişti",
+        "zero": "Sıfır",
+        "pluto": "Plüton",
+        "moon": "Ay",
+        "mars": "Mars",
+        "mercury": "Merkür",
+        "uranus": "Uranüs",
+        "earth": "Dünya",
+        "saturn": "Satürn",
+        "neptune": "Neptün",
+        "jupiter": "Jüpiter",
+        "sun": "Güneş"
+      },
+      "speed": {
+        "toastChanged": "Simülasyon hızı {speed} olarak değişti",
+        "slowextreme": "Gezegen büyümesi",
+        "slowest": "Sinematik",
+        "slower": "Daha Yavaş",
+        "slow": "Biraz Daha Yavaş",
+        "normal": "Gerçek Zamanlı",
+        "fast": "Biraz Daha Hızlı",
+        "faster": "Daha Hızlı",
+        "fastest": "Hızlı",
+        "fastextreme": "Işık Hızında"
+      },
+      "time": {
+        "currentTime": "Mevcut Zaman",
+        "dawn": "Şafak",
+        "midday": "Öğle",
+        "dusk": "Akşam",
+        "midnight": "Gece Yarısı"
+      },
+      "precipType": {
+        "rain_medium": "Hafif Yağmur",
+        "rain_drop": "Yağmur",
+        "Snow_menu": "Kar"
+      },
+      "weather": {
+        "currentWeather": "Mevcut Hava Durumu",
+        "clear": "Açık",
+        "cloud": "Bulutlu",
+        "lightrain": "Hafif Yağmur",
+        "rain": "Yağmurlu",
+        "lightsnow": "Hafif Kar",
+        "snow": "Karlı"
+      }
+    },
+    "environment": {
+      "sun": "Güneş",
+      "controlSun": "Güneş/Zamanı Senkronize Et",
+      "timePlay": "Zamanı Oynat",
+      "ToD": "Gün Zamanı",
+      "realtime": "Gerçek Zamanlı",
+      "dayLength": "Gün Uzunluğu",
+      "day": "Gün",
+      "night": "Gece",
+      "dayScale": "Gün Ölçeği",
+      "nightScale": "Gece Ölçeği",
+      "sunAzimuthOverride": "Güneş Azimutu",
+      "sunSize": "Güneş Boyutu",
+      "skyBrightness": "Gökyüzü Parlaklığı",
+      "brightness": "Parlaklık",
+      "rayleighScattering": "Rayleigh Saçılması",
+      "flareScale": "Flar Ölçeği",
+      "occlusionScale": "Oklüzyon Ölçeği",
+      "exposure": "Pozlama",
+      "shadowDistance": "Gölge Mesafesi",
+      "shadowSoftness": "Gölge Yumuşaklığı",
+      "shadowSplits": "Gölge Bölünmeleri",
+      "shadowTexSize": "Gölge Doku Boyutu",
+      "shadowLogWeight": "Gölge Log Ağırlığı",
+      "visibleDistance": "Görüş Mesafesi",
+      "moonAzimuth": "Ay Azimutu",
+      "moonElevation": "Ay Yükseltisi",
+      "moonScale": "Ay Ölçeği",
+      "weather": "Hava Durumu",
+      "controlWeather": "Hava Durumunu Senkronize Et",
+      "fogDensity": "Sis Yoğunluğu",
+      "fogColor": "Sis Rengi",
+      "fogDensityOffset": "Sis Mesafesi",
+      "fogAtmosphereHeight": "Sis Yüksekliği",
+      "cloudHeight": "Bulut 1 Yüksekliği",
+      "cloudHeightOne": "Bulut 2 Yüksekliği",
+      "cloudCover": "Bulut 1 Kaplaması",
+      "cloudCoverOne": "Bulut 2 Kaplaması",
+      "cloudSpeed": "Bulut 1 Hızı",
+      "cloudSpeedOne": "Bulut 2 Hızı",
+      "cloudExposure": "Bulut 1 Pozlaması",
+      "cloudExposureOne": "Bulut 2 Pozlaması",
+      "rainDrops": "Yağmur Damlaları",
+      "dropSize": "Damla Boyutu",
+      "dropMinSpeed": "Damla Min Hızı",
+      "dropMaxSpeed": "Damla Maks Hızı",
+      "precipType": "Yağış Türü",
+      "gravity": "Yerçekimi",
+      "controlGravity": "Yerçekimini Senkronize Et",
+      "gravityRate": "Yerçekimi Oranı",
+      "temperature": "Sıcaklık",
+      "controlTemperature": "Sıcaklığı Senkronize Et",
+      "tempCurveNoon": "Öğle",
+      "tempCurveDusk": "Akşam",
+      "tempCurveMidnight": "Gece Yarısı",
+      "tempCurveDawn": "Şafak",
+      "speed": "Simülasyon Hızı",
+      "controlSpeed": "Hızı Senkronize Et",
+      "simSpeed": "Simülasyon Hızı"
+    },
+    "themeEditor": {
+      "cancelModal": "Değişiklikler kaydedilmeyecek. İptal etmek istediğinizden emin misiniz?",
+      "resetAllTooltip": "Fabrika ayarlarına sıfırla",
+      "resetAllModal": "Sunucu temasını fabrika ayarlarına döndürmek üzeresiniz. Devam etmek istediğinizden emin misiniz?",
+      "Fields": {
+        "title": "Ögeler",
+        "WINDOW_BG": "Pencere Arka Planı",
+        "CHILD_BG": "Alt Ögelerin Arka Planı",
+        "POPUP_BG": "Açılır Pencere Arka Planı",
+        "MENUBAR_BG": "Menü Arka Planı",
+        "BORDER_COLOR": "Kenarlık Rengi",
+        "RESIZE_GRIP": "Köşe Renkli Yeniden Boyutlandırma",
+        "RESIZE_GRIP_HOVERED": "Köşe Üzerinde Duran Renkli Yeniden Boyutlandırma",
+        "RESIZE_GRIP_ACTIVE": "Köşe Aktif Renkli Yeniden Boyutlandırma",
+        "SCROLLBAR": "Kaydırma Çubuğu Rengi",
+        "SCROLLBAR_HOVERED": "Kaydırma Çubuğu Üzerinde Duran Rengi",
+        "SCROLLBAR_ACTIVE": "Kaydırma Çubuğu Aktif Rengi",
+        "TITLE_BG": "Pencere Başlığı Arka Planı",
+        "TITLE_BG_ACTIVE": "Pencere Başlığı Aktif Arka Planı",
+        "TITLE_BG_COLLAPSED": "Pencere Başlığı Daraltılmış Arka Planı",
+        "TAB": "Sekme Rengi",
+        "TAB_HOVERED": "Sekme Üzerinde Duran Rengi",
+        "TAB_ACTIVE": "Sekme Aktif Rengi",
+        "TAB_UNFOCUSED": "Sekme Odaklanmamış Rengi",
+        "TAB_UNFOCUSED_ACTIVE": "Sekme Odaklanmamış Aktif Rengi",
+        "HELPMARKER": "Yardım İşareti Rengi",
+        "FRAME_BG": "Çerçeve Arka Planı",
+        "FRAME_BG_HOVERED": "Çerçeve Arka Planı Üzerinde Duran",
+        "FRAME_BG_ACTIVE": "Çerçeve Arka Planı Aktif",
+        "HEADER": "Başlık Rengi",
+        "HEADER_HOVERED": "Başlık Üzerinde Duran Rengi",
+        "HEADER_ACTIVE": "Başlık Aktif Rengi",
+        "SEPARATOR": "Ayırıcı Rengi",
+        "SEPARATOR_HOVERED": "Ayırıcı Üzerinde Duran Rengi",
+        "SEPARATOR_ACTIVE": "Ayırıcı Aktif Rengi",
+        "TABLE_HEADER_BG": "Tablo Başlığı Arka Planı",
+        "TABLE_ROW_BG": "Tablo Satırı Arka Planı",
+        "TABLE_ROW_BG_ALT": "Tablo Satırı Arka Planı (alt.)",
+        "TABLE_BORDER_STRONG": "Tablo Kenarlığı (kuvvetli)",
+        "TABLE_BORDER_LIGHT": "Tablo Kenarlığı (hafif)",
+        "DOCKING_PREVIEW": "Yerleştirme Önizleme Arka Planı",
+        "PROGRESSBAR": "İlerleme Çubuğu Rengi"
+      },
+      "Text": {
+        "title": "Metinler Hazır Ayarları",
+        "DEFAULT": "Varsayılan Metin Rengi",
+        "HIGHLIGHT": "Vurgulu Metin Rengi",
+        "ERROR": "Hata Metin Rengi",
+        "SUCCESS": "Başarı Metin Rengi",
+        "DISABLED": "Devre Dışı Metin Rengi"
+      },
+      "Button": {
+        "title": "Düğmeler Hazır Ayarları",
+        "preview": "Önizleme",
+        "baseColor": "Temel Renk",
+        "hoveredColor": "Üzerinde Duran Renk",
+        "activeColor": "Aktif Renk",
+        "overrideTextColor": "Metin Rengini Geçersiz Kıl",
+        "INFO": "Bilgi Düğmesi",
+        "SUCCESS": "Başarı Düğmesi",
+        "ERROR": "Hata Düğmesi",
+        "WARNING": "Uyarı Düğmesi",
+        "DISABLED": "Devre Dışı Düğme",
+        "TRANSPARENT": "Saydam Düğme"
+      },
+      "Input": {
+        "title": "Girişler Hazır Ayarları",
+        "previewString": "Önizleme Dizesi",
+        "previewNumeric": "Önizleme Sayısal",
+        "baseColor": "Temel Renk",
+        "overrideTextColor": "Metin Rengini Geçersiz Kıl",
+        "hoveredColor": "Üzerinde Duran Renk",
+        "activeColor": "Aktif Renk",
+        "sliderGrabColor": "Kaydırıcı Yakalama Rengi",
+        "sliderGrabActiveColor": "Kaydırıcı Yakalama Aktif Rengi",
+        "DEFAULT": "Varsayılan Giriş",
+        "ERROR": "Hata Girişi",
+        "DISABLED": "Devre Dışı Giriş",
+        "TRANSPARENT": "Saydam Giriş"
+      }
+    },
+    "header": {
+      "gamemode": "Oyun Modu",
+      "gravity": "Yerçekimi",
+      "speed": "Hız",
+      "resetDisabled": "Sıfırlama devre dışı",
+      "nextReset": "Bir sonraki sıfırlama",
+      "resetAvailable": "Sıfırlama mevcut",
+      "nextTeleport": "Bir sonraki ışınlanma",
+      "teleportAvailable": "Işınlanma mevcut",
+      "collisions": "Çarpışmalar",
+      "reputation": "İtibar Seviyesi",
+      "buttons": {
+        "toggleNametagsVisibility": "İsim etiketlerinin görünürlüğünü değiştir",
+        "zoomOut": "Uzaklaştır",
+        "zoomIn": "Yakınlaştır",
+        "debug": "Pencereleri yenile / Sonsuz yüklenmeyi kaldır",
+        "serverVisibility": "Sunucu görünürlüğünü değiştir"
+      }
+    },
+    "userSettings": {
+      "uiScale": "Arayüz ölçeği",
+      "vehicles": {
+        "automaticLights": "Otomatik ışıklar",
+        "automaticLightsTooltip": "Gün zamanına göre farları otomatik olarak açar (ve kovalamaca sırasında polis ışık çubuğunu açar)"
+      },
+      "nametags": {
+        "preview": "Önizleme",
+        "colors": {
+          "player": {
+            "text": "Oyuncu adları renkleri",
+            "bg": "Oyuncu adları arka plan rengi"
+          },
+          "idle": {
+            "text": "Boşta olan oyuncuların renkleri",
+            "bg": "Boşta olan oyuncuların arka plan rengi"
+          },
+          "spec": {
+            "text": "İzleyicilerin renkleri",
+            "bg": "İzleyicilerin arka plan rengi"
+          }
+        }
+      },
+      "freecam": {
+        "smoothed": "Yumuşatılmış Kamera",
+        "fov": "Görüş Alanı",
+        "speed": "Kamera Hızı"
+      },
+      "stats": {
+        "delivery": "Yapılan teslimatlar",
+        "race": "Katıldığınız yarışlar",
+        "bus": "Yapılan otobüs görevleri"
+      }
+    },
+    "playersBlock": {
+      "waitingPlayers": "Bekleyen oyuncular",
+      "players": "Oyuncular",
+      "buttons": {
+        "voteKick": "Oylama At",
+        "stopWalking": "Yürüyüşü durdur",
+        "teleportTo": "Oyuncuya ışınlan",
+        "teleportFrom": "Oyuncudan ışınlan"
+      }
+    },
+    "moderationBlock": {
+      "waitingPlayers": "Bekleyen oyuncular",
+      "players": "Oyuncular",
+      "tempBanDuration": "Geçici Yasak Süresi",
+      "vehicles": "Araçlar",
+      "buttons": {
+        "kick": "At",
+        "tempBan": "Geçici Yasak",
+        "ban": "Yasakla",
+        "freeze": "Donma durumu değiştir",
+        "engine": "Motor durumu değiştir",
+        "mute": "Susturma durumu değiştir",
+        "deleteAllVehicles": "Tüm araçları sil",
+        "promoteTo": "{group} grubuna yükselt",
+        "demoteTo": "{group} grubuna indir"
+      },
+      "muteReason": "Susturma nedeni",
+      "kickReason": "Atma nedeni",
+      "banReason": "Yasaklama nedeni",
+      "savedReason": "Kayıtlı neden",
+      "kickModal": "\"{playerName}\" atmak istediğinizden emin misiniz?",
+      "tempBanModal": "\"{playerName}\" geçici olarak yasaklamak istediğinizden emin misiniz?",
+      "banModal": "\"{playerName}\" yasaklamak istediğinizden emin misiniz?"
+    },
+    "serverConfig": {
+      "bjc": {
+        "title": "BeamJoy",
+        "whitelist": {
+          "title": "Beyaz Liste",
+          "players": "Oyuncular",
+          "addAllConnectedPlayers": "Tüm bağlı oyuncuları ekle",
+          "offlinePlayers": "Çevrimdışı oyuncular",
+          "addOfflinePlayer": "Çevrimdışı oyuncu ekle",
+          "addOfflinePlayerPlaceholder": "Tam oyuncu adı"
+        },
+        "voteKick": {
+          "title": "Oylama At Ayarları",
+          "timeout": "Oylama Zaman Aşımı",
+          "thresholdRatio": "Gerekli oy oranı"
+        },
+        "mapVote": {
+          "title": "Harita Oylaması Ayarları",
+          "timeout": "Oylama Zaman Aşımı",
+          "thresholdRatio": "Gerekli oy oranı"
+        },
+        "tempban": {
+          "title": "Geçici Yasak Ayarları",
+          "minTime": "Minimum yasak süresi",
+          "maxTime": "Maksimum yasak süresi",
+          "zeroTooltip": "Devre dışı bırakmak için \"0\" olarak ayarlayın"
+        },
+        "race": {
+          "title": "Yarış Ayarları",
+          "PreparationTimeout": "Hazırlık Süresi",
+          "PreparationTimeoutTooltip": "Yarış başlamadan önceki saniye cinsinden süre",
+          "VoteTimeout": "Oylama Süresi",
+          "VoteTimeoutTooltip": "Saniye cinsinden oylama süresi",
+          "VoteThresholdRatio": "Yarış Oylama Eşiği",
+          "VoteThresholdRatioTooltip": "Yarışın başlaması için tüm sunucu oyuncuları arasında gerekli oy oranı",
+          "GridReadyTimeout": "Hazır Gecikmesi",
+          "GridReadyTimeoutTooltip": "Oyuncuların yarışa başlamadan önce hazır olabilecekleri saniye cinsinden süre (rakipler katılmadan yarışı başlatmalarını önlemek için, \"Izgara Aşaması Süresi\"nden daha düşük olmalıdır)",
+          "GridTimeout": "Izgara Aşaması Süresi",
+          "GridTimeoutTooltip": "Oyuncuların katılabilmesi, araç seçebilmesi ve hazır olarak işaretleyebilmesi için saniye cinsinden süre. Zaman aşımına uğradığında yarış başlar veya iptal edilir.",
+          "RaceCountdown": "Yarış Başlangıcı Geri Sayımı",
+          "RaceCountdownTooltip": "Tüm yarış katılımcılarının hazır olarak işaretlenmesi ile gerçek yarışın başlaması arasındaki gecikme",
+          "FinishTimeout": "Oyuncu Bitirme Süresi",
+          "FinishTimeoutTooltip": "Bir oyuncu bitirdikten sonra izleyiciye dönüşmesi için saniye cinsinden süre",
+          "RaceEndTimeout": "Yarış Bitiş Süresi",
+          "RaceEndTimeoutTooltip": "Son yarış oyuncusu bitirdikten sonra yarışın bitmesi için saniye cinsinden süre",
+          "RaceSoloTimeBroadcast": "Yalnız zamanı yayınla",
+          "AllowNodeGrabberMulti": "Düğüm Yakalayıcıya İzin Ver",
+          "AllowNodeGrabberMultiTooltip": "Oyuncuların çok oyunculu yarışlarda Düğüm Yakalayıcıyı kullanmalarına izin ver"
+        },
+        "server": {
+          "title": "Genel Ayarlar",
+          "lang": "Sunucu Konsolu Dili",
+          "discordChatHookLang": "Discord ChatHook Dili",
+          "discordChatHookLangTooltip": "BeamMP-ChatHook modu için",
+          "allowMods": "Oyuncu Modlarına İzin Ver",
+          "driftBigBroadcast": "Büyük driftleri yayınla",
+          "broadcasts": {
+            "title": "Yayınlar",
+            "tooltip": "İlgili dile sahip tüm oyunculara düzenli olarak yayınlanan mesajlar.",
+            "delay": "Mesajlar arasındaki gecikme",
+            "lang": "Dil",
+            "broadcast": "Yayın"
+          },
+          "welcomeMessage": {
+            "title": "Hoş Geldin Mesajı",
+            "tooltip": "Katılan oyunculara gösterilen mesaj. Boş bırakılırsa, yedek dil kullanılır.",
+            "message": "{lang} mesajı"
+          }
+        },
+        "speed": {
+          "title": "Hız Oyun Modu Ayarları",
+          "PreparationTimeout": "Hazırlık Süresi",
+          "PreparationTimeoutTooltip": "Mod başlamadan önce oyuncuların aracına geçebilmesi için saniye cinsinden süre",
+          "VoteTimeout": "Oylama Süresi",
+          "VoteTimeoutTooltip": "Mod başlamadan önce oyuncuların katılabilmesi ve ayrılabilmesi için saniye cinsinden süre",
+          "BaseSpeed": "Başlangıç hızı",
+          "BaseSpeedTooltip": "km/s cinsinden başlangıç hızı",
+          "StepSpeed": "Adım hızı",
+          "StepSpeedTooltip": "km/s cinsinden her adımda hız artışı",
+          "StepDelay": "Adım gecikmesi",
+          "StepDelayTooltip": "Adımlar arasındaki saniye cinsinden süre",
+          "EndTimeout": "Bitiş Süresi",
+          "EndTimeoutTooltip": "Son oyuncular bitirdikten sonra modun bitmesi için saniye cinsinden süre"
+        },
+        "hunter": {
+          "title": "Avcı Oyun Modu Ayarları",
+          "PreparationTimeout": "Hazırlık Süresi",
+          "PreparationTimeoutTooltip": "Oyun başlamadan önceki saniye cinsinden süre",
+          "VoteTimeout": "Oylama Süresi",
+          "VoteTimeoutTooltip": "Saniye cinsinden oylama süresi",
+          "VoteThresholdRatio": "Oylama Eşiği",
+          "VoteThresholdRatioTooltip": "Oyunun başlaması için tüm sunucu oyuncuları arasında gerekli oy oranı",
+          "GridTimeout": "Izgara Aşaması Zaman Aşımı",
+          "GridTimeoutTooltip": "Herhangi bir oyuncunun katılabilmesi, araç seçebilmesi ve hazır olarak işaretleyebilmesi için saniye cinsinden zaman aşımı. Oyuncu hazır olarak işaretlendiğinde zaman aşımı kaldırılır.",
+          "HuntedStartDelay": "Kaçak Başlangıç Gecikmesi",
+          "HuntedStartDelayTooltip": "Kaçaklar için saniye cinsinden geri sayım",
+          "HuntersStartDelay": "Avcılar Başlangıç Gecikmesi",
+          "HuntersStartDelayTooltip": "Avcılar için saniye cinsinden geri sayım",
+          "HuntedStuckTimeout": "Kaçak Takılı Kalma Zaman Aşımı",
+          "HuntedStuckTimeoutTooltip": "Avcıların kazanması için kaçakların takılı kalması gereken saniye cinsinden süre",
+          "HuntersRespawnDelay": "Avcılar Yeniden Doğma Gecikmesi",
+          "HuntersRespawnDelayTooltip": "Avcıların yeniden doğduklarında takılı kaldıkları saniye cinsinden süre",
+          "HuntedResetRevealDuration": "Kaçak Sıfırlama Açığa Çıkarma Süresi",
+          "HuntedResetRevealDurationTooltip": "Araç sıfırlamasından sonra kaçakların tüm avcılara gösterilme süresi (0 olarak ayarlanırsa devre dışı bırakılır)",
+          "HuntedRevealProximityDistance": "Kaçak Açığa Çıkarma Mesafesi",
+          "HuntedRevealProximityDistanceTooltip": "Kaçak konumunun diğerlerine gösterilmesi için herhangi bir avcının kaçaktan olması gereken maksimum metre cinsinden mesafe (0 olarak ayarlanırsa devre dışı bırakılır)",
+          "HuntedResetDistanceThreshold": "Kaçak Sıfırlama Mesafesi",
+          "HuntedResetDistanceThresholdTooltip": "Sıfırlama için kaçakların herhangi bir avcıdan olması gereken minimum metre cinsinden mesafe (0 olarak ayarlanırsa sıfırlama devre dışı bırakılır)",
+          "EndTimeout": "Bitiş Süresi",
+          "EndTimeoutTooltip": "Son oyuncular bitirdikten sonra modun bitmesi için saniye cinsinden süre"
+        },
+        "infected": {
+          "title": "Enfekte Oyun Modu Ayarları",
+          "PreparationTimeout": "Hazırlık Süresi",
+          "PreparationTimeoutTooltip": "Oyun başlamadan önceki saniye cinsinden süre",
+          "VoteTimeout": "Oylama Süresi",
+          "VoteTimeoutTooltip": "Saniye cinsinden oylama süresi",
+          "VoteThresholdRatio": "Oylama Eşiği",
+          "VoteThresholdRatioTooltip": "Oyunun başlaması için tüm sunucu oyuncuları arasında gerekli oy oranı",
+          "GridTimeout": "Izgara Aşaması Zaman Aşımı",
+          "GridTimeoutTooltip": "Herhangi bir oyuncunun katılabilmesi, araç seçebilmesi ve hazır olarak işaretleyebilmesi için saniye cinsinden zaman aşımı. Oyuncu hazır olarak işaretlendiğinde zaman aşımı kaldırılır.",
+          "InfectedStartDelay": "Enfekte Başlangıç Gecikmesi",
+          "InfectedStartDelayTooltip": "Enfekte oyuncu için saniye cinsinden geri sayım",
+          "SurvivorsStartDelay": "Hayatta Kalanlar Başlangıç Gecikmesi",
+          "SurvivorsStartDelayTooltip": "Hayatta kalanlar için saniye cinsinden geri sayım",
+          "EndTimeout": "Bitiş Süresi",
+          "EndTimeoutTooltip": "Bitiş tetikleyicisinden sonra modun bitmesi için saniye cinsinden süre"
+        },
+        "derby": {
+          "title": "Yıkım Yarışı Ayarları",
+          "PreparationTimeout": "Hazırlık Süresi",
+          "PreparationTimeoutTooltip": "Yıkım yarışı başlamadan önceki saniye cinsinden süre",
+          "VoteTimeout": "Oylama Süresi",
+          "VoteTimeoutTooltip": "Saniye cinsinden oylama süresi",
+          "VoteThresholdRatio": "Oylama Eşiği",
+          "VoteThresholdRatioTooltip": "Oyunun başlaması için tüm sunucu oyuncuları arasında gerekli oy oranı",
+          "GridTimeout": "Izgara Aşaması Zaman Aşımı",
+          "GridTimeoutTooltip": "Herhangi bir oyuncunun katılabilmesi, araç seçebilmesi ve hazır olarak işaretleyebilmesi için saniye cinsinden zaman aşımı. Oyuncu hazır olarak işaretlendiğinde zaman aşımı kaldırılır.",
+          "StartCountdown": "Başlangıç Geri Sayımı",
+          "StartCountdownTooltip": "Yıkım yarışının başlamasına saniye cinsinden süre",
+          "DestroyedTimeout": "Elendi Geri Sayımı",
+          "DestroyedTimeoutTooltip": "Takılı kalan/parçalanmış oyuncunun elenmesine saniye cinsinden süre",
+          "EndTimeout": "Bitiş Süresi",
+          "EndTimeoutTooltip": "Son oyuncular bitirdikten sonra modun bitmesi için saniye cinsinden süre"
+        },
+        "vehicleDelivery": {
+          "title": "Araç Teslimat Ayarları",
+          "modelBlacklist": "Araçlar Kara Listesi"
+        }
+      },
+      "reputation": {
+        "title": "İtibar",
+        "categories": {
+          "freeroam": "Serbest Dolaşım",
+          "delivery": "Teslimat",
+          "bus": "Otobüs Görevi",
+          "race": "Yarış",
+          "speed": "Hız",
+          "hunter": "Avcı",
+          "infected": "Enfekte",
+          "derby": "Yıkım",
+          "tag": "Etiketli İkili"
+        },
+        "KmDriveReward": "Sürüş Ödülü /km",
+        "ArrestReward": "Tutuklama Ödülü",
+        "ArrestRewardTooltip": "Kovalamaca sırasında bir oyuncuyu tutuklarken uygulanır",
+        "EvadeReward": "Kaçınma Ödülü",
+        "EvadeRewardTooltip": "Polisten başarıyla kaçınırken uygulanır",
+        "DeliveryVehicleReward": "Araç Teslimat Ödülü",
+        "DeliveryVehiclePristineReward": "Hasarsız araç bonusu",
+        "DeliveryVehiclePristineRewardTooltip": "Sadece araç teslimatında uygulanır",
+        "DeliveryPackageReward": "Paket Teslimat Ödülü",
+        "DeliveryPackageStreakReward": "Paket Teslimat Serisi Ödülü",
+        "DeliveryPackageStreakRewardTooltip": "Mevcut seriyle çarpılır ve temel ödüle eklenir",
+        "RaceParticipationReward": "Katılım Ödülü",
+        "RaceWinnerReward": "Kazanan Ödülü",
+        "RaceWinnerRewardTooltip": "Sadece çok oyunculu yarışlarda uygulanır, yarıştaki oyuncu konumuna göre bölünür",
+        "DriftGoodReward": "İyi Drift Ödülü",
+        "DriftBigReward": "Büyük Drift Ödülü",
+        "BusMissionReward": "Km Başına Ödül",
+        "BusMissionRewardTooltip": "Her turdan sonra kazanılır",
+        "RaceSoloReward": "Yalnız Yarış Ödülü",
+        "RaceRecordReward": "Yeni Rekor Ödülü",
+        "RaceRecordRewardTooltip": "Sadece önceden rekor kırılmışsa uygulanır",
+        "SpeedReward": "Ödül",
+        "SpeedRewardTooltip": "Lider tablosundaki oyuncu konumuna göre bölünür",
+        "HunterParticipationReward": "Katılım Ödülü",
+        "HunterWinnerReward": "Kazanan Ödülü",
+        "HunterWinnerRewardTooltip": "Kazanan takımdaki tüm oyunculara uygulanır (avcılar veya kaçak)",
+        "InfectedParticipationReward": "Katılım Ödülü",
+        "InfectedWinnerReward": "Kazanan Ödülü",
+        "InfectedWinnerRewardTooltip": "Oyun modunun sonunda nihai skora göre orantılanır",
+        "DerbyParticipationReward": "Katılım Ödülü",
+        "DerbyWinnerReward": "Kazanan Ödülü",
+        "DerbyWinnerRewardTooltip": "Lider tablosundaki oyuncu konumuna göre bölünür",
+        "TagDuoReward": "Etiket Ödülü",
+        "TagDuoRewardTooltip": "İkili lobide rakibinizi etiketlediğinizde uygulanır"
+      },
+      "permissions": {
+        "title": "Gruplar ve İzinler",
+        "groups": "Gruplar",
+        "deleteModal": "\"{groupName}\" grubunu silmek istediğinizden emin misiniz?",
+        "permissions": "İzinler",
+        "groupKeys": {
+          "level": "Seviye",
+          "vehicleCap": "Araç Sınırı",
+          "staff": "Yetkili",
+          "banned": "Yasaklanmış",
+          "muted": "Susturulmuş",
+          "whitelisted": "Beyaz Listeye Alınmış",
+          "permissions": "İzinler"
+        },
+        "newGroup": {
+          "title": "Yeni Grup",
+          "label": "Ad",
+          "level": "Seviye"
+        },
+        "newPermission": "İzin Ekle"
+      },
+      "core": {
+        "title": "Çekirdek",
+        "Name": "Ad",
+        "NameTooltip": "Oyuncuların sunucunuzu tarayıcıda nasıl görecekleri",
+        "Description": "Açıklama",
+        "DescriptionTooltip": "Oyuncuların sunucunuzu tarayıcıda tıkladıklarında görecekleri",
+        "MaxPlayers": "Maksimum Oyuncu",
+        "MaxPlayersTooltip": "Sunucuya izin verilen maksimum oyuncu sayısı",
+        "Private": "Özel",
+        "PrivateTooltip": "Etkinleştirildiğinde, sunucunuz tarayıcıda görünmez",
+        "Debug": "Hata Ayıklama",
+        "DebugTooltip": "Hata ayıklama modunu etkinleştirecek ve birçok şeyi görmeye ve yapmaya izin verecektir",
+        "previewTooltip": "Önizleme sadece renkleri görüntüler",
+        "InformationPacket": "Bilgi Paketi",
+        "InformationPacketTooltip": "Bağlanmamış istemcilerin sunucuya katılmadan genel sunucu bilgilerini almasına izin ver",
+        "formattingHints": {
+          "title": "Biçimlendirme İpuçları (sadece Ad ve Açıklamada uygulanır)",
+          "reset": "Sıfırla",
+          "underline": "Altı Çizili",
+          "bold": "Kalın",
+          "strike": "Üstü Çizili",
+          "italic": "İtalik",
+          "black": "Siyah",
+          "darkblue": "Koyu Mavi",
+          "green": "Yeşil",
+          "darkaqua": "Koyu Deniz Mavisi",
+          "red": "Kırmızı",
+          "purple": "Mor",
+          "orange": "Turuncu",
+          "grey": "Gri",
+          "darkgrey": "Koyu Gri",
+          "blue": "Mavi",
+          "lightgreen": "Açık Yeşil",
+          "aqua": "Deniz Mavisi",
+          "lightred": "Açık Kırmızı",
+          "pink": "Pembe",
+          "yellow": "Sarı",
+          "white": "Beyaz"
+        }
+      },
+      "maps": {
+        "title": "Harita Etiketleri",
+        "label": "Harita Etiketi",
+        "archive": "Arşiv Tam Adı",
+        "new": {
+          "title": "Yeni Harita",
+          "name": "Teknik Ad",
+          "nameTooltip": "Harita klasör adıyla eşleşir, arşivin içinde"
+        }
+      },
+      "cen": {
+        "title": "Konsol/Düzenleyici",
+        "tooltip": "CEN, her zaman Yönetici+ için erişilebilir",
+        "Console": "Konsol",
+        "Editor": "Düzenleyici"
+      },
+      "icons": {
+        "title": "Simgeler"
+      }
+    },
+    "votekick": {
+      "hasStarted": "atmak için oylama başlattı",
+      "voteTimeout": "Oylama {delay} içinde bitecek",
+      "voteAboutToEnd": "Oylama bitmek üzere"
+    },
+    "votemap": {
+      "startVote": "Oylama Başlat",
+      "switch": "Geç",
+      "hasStarted": "haritaya geçmek için oylama başlattı",
+      "targetMapCustom": "özel",
+      "voteTimeout": "Oylama {delay} içinde bitecek",
+      "voteAboutToEnd": "Oylama bitmek üzere"
+    },
+    "freeroamSettings": {
+      "resetDelay": "Sıfırlama bekleme süresi",
+      "resetDelayTooltip": "Bir oyuncunun sıfırlaması için saniye cinsinden süre",
+      "teleportDelay": "Işınlanma bekleme süresi",
+      "teleportDelayTooltip": "Bir oyuncunun başka birine ışınlanması için saniye cinsinden süre",
+      "vehicleSpawning": "Genel araç üretimi",
+      "quickTravel": "Hızlı seyahat",
+      "nodeGrabber": "Düğüm yakalayıcı",
+      "nametags": "Oyuncu isim etiketleri",
+      "nametagsTooltip": "Moderasyon amaçlı olarak isim etiketleri her zaman yetkililer için görünebilir",
+      "preserveEnergy": "Sıfırlar arasında yakıtı koru",
+      "emergencyRefuelDuration": "Acil yakıt doldurma süresi",
+      "emergencyRefuelDurationTooltip": "Saniye cinsinden acil yakıt doldurma işlemi süresi",
+      "emergencyRefuelPercent": "Acil yakıt doldurma yüzdesi",
+      "emergencyRefuelPercentTooltip": "İşlem sonrası tankın yüzdesi",
+      "driftGood": "İyi driftler minimum skor",
+      "driftBig": "Büyük driftler minimum skor",
+      "allowUnicycle": "Yürüyüşe izin ver",
+      "cancelModal": "Kaydedilmemiş değişikliklerinizi kaybedeceksiniz, pencereyi kapatmak istediğinizden emin misiniz?",
+      "collisionsMode": "Çarpışma modu",
+      "collisionsModes": {
+        "forced": "Zorunlu",
+        "disabled": "Devre Dışı",
+        "ghosts": "Yeniden doğma koruması (hayaletler)"
+      }
+    },
+    "races": {
+      "races": "Yarışlar",
+      "names": {},
+      "tools": {
+        "title": "Araçlar",
+        "rotation": "Döndürme",
+        "reverse": "Adımları tersine çevir",
+        "importExport": "İçe Aktar/Dışa Aktar",
+        "importData": "Panodan yarış verilerini içe aktar",
+        "exportData": "Yarış verilerini panoya dışa aktar",
+        "import": {
+          "confirmDialog": "Panodan veri almak tüm mevcut yarış verilerini silecektir. Devam etmek istediğinizden emin misiniz?",
+          "success": "Yarış verileri panodan içe aktarıldı",
+          "errorContent": "Geçersiz pano içeriği",
+          "errorData": "Geçersiz yarış verileri",
+          "errorPreviewPosition": "Geçersiz önizleme konumu",
+          "errorStartPositions": "Geçersiz başlangıç konumları",
+          "errorSteps": "Geçersiz adımlar"
+        },
+        "export": {
+          "success": "Yarış verileri panoya dışa aktarıldı",
+          "errorFail": "Yarış verileri panoya dışa aktarılamadı"
+        }
+      },
+      "edit": {
+        "title": "Yarış Editörü",
+        "invalidRace": "Geçersiz Yarış",
+        "name": "Ad",
+        "author": "Yazar",
+        "enabled": "Yarışı oylamalarda göster",
+        "nameTooltip": "Bir görünen ad belirleyin veya bir anahtar belirleyin ve \"client.races.names\" dilinde oluşturun",
+        "previewPosition": "Önizleme Konumu",
+        "previewPositionTooltip": "Yarış başladığında görünen serbest kamera konumu",
+        "loopable": "Döngü Olabilir",
+        "laps": "Tur",
+        "lapsTooltip": "Test amacıyla, kaydedilmeyecek",
+        "startPositions": "Başlangıç Konumları",
+        "startPositionsNameTooltip": "Görünüm amacıyla, kaydedilmeyecek",
+        "startPositionLabel": "Başlangıç {index}",
+        "stepsFinishWarning": "BİTİŞ / TUR SON ADIMDIR",
+        "steps": "Yarış Adımları",
+        "step": "Adım",
+        "branch": "Dal",
+        "waypoint": "Yol Noktası",
+        "wpName": "Ad",
+        "radius": "Yarıçap",
+        "size": "Boyut",
+        "bottomHeight": "Alt Yükseklik",
+        "parent": "Ebeveyn(ler)",
+        "parentStartTooltip": "Bir sonraki adımlarda başlangıçtan dallanmak için \"start\" kullanabilirsiniz",
+        "addParent": "Ebeveyn Ekle",
+        "addBranch": "Buraya Dal Ekle",
+        "addStep": "Buraya Adım Ekle",
+        "errors": {
+          "noChild": "Alt öge yok"
+        },
+        "hasRecordConfirm": "Bu yarışta bir rekor kırılmış ve kaydetmek rekoru silecektir. Emin misiniz?",
+        "saveErrorToast": "Yarış kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "reverseConfirm": "Tersine çevirmek yarış zekasını kaldıracak ve her yol noktasını tekrar kontrol etmeniz gerekecektir. Devam etmek istediğinizden emin misiniz?",
+        "buttons": {
+          "refreshMarkers": "İşaretleri yenile",
+          "rotateLeft": "Sola döndür",
+          "rotateRight": "Sağa döndür",
+          "rotate180": "180° döndür",
+          "reverseAllSteps": "Tüm adımları tersine çevir",
+          "toggleRaceVisibility": "Yarış görünürlüğünü değiştir",
+          "showPreviewPosition": "Önizleme konumunu göster",
+          "setPreviewPositionHere": "Önizleme konumunu buraya ayarla",
+          "toggleLoopable": "Devre ve nokta-nokta yarış arasında geçiş yap",
+          "addStartPositionHere": "Buraya bir başlangıç konumu ekle",
+          "deleteStartPosition": "Başlangıç konumunu sil",
+          "addRaceStepHere": "Buraya bir yarış adımı ekle",
+          "deleteStep": "Adımı sil",
+          "addBranchHere": "Buraya bir dal ekle",
+          "showWaypoint": "Yol noktasını göster",
+          "setWaypointHere": "Yol noktasını buraya ayarla",
+          "toggleStandWaypoint": "Garaj durak yol noktasını değiştir",
+          "deleteWaypoint": "Yol noktasını sil",
+          "removeParent": "Ebeveyni kaldır",
+          "addParent": "Bir ebeveyn ekle",
+          "tryRace": "Yarışı dene"
+        }
+      },
+      "settings": {
+        "title": "Yarış Ayarları",
+        "lap": "{lap} tur",
+        "laps": "{laps} tur",
+        "manyLapsWarning": "Büyük miktarda tur performans sorunlarına neden olabilir",
+        "respawnStrategies": {
+          "title": "Yeniden Doğma Stratejisi",
+          "respawns": "Yeniden Doğmalar",
+          "all": "Tümüne izin verildi",
+          "norespawn": "Yeniden Doğma Yok",
+          "lastcheckpoint": "Son Kontrol Noktası",
+          "lastroad": "Son Yol",
+          "stand": "Son Durak",
+          "standpenalty": "Son Durak Cezalı",
+          "delay": "Gecikme"
+        },
+        "collisions": "Çarpışmalar",
+        "vehicles": {
+          "playerVehicle": "Oyuncu Aracı",
+          "all": "Tüm araçlara izin verildi",
+          "currentModel": "Mevcut model",
+          "currentConfig": "Mevcut yapılandırma",
+          "specific": "Belirli {model}"
+        }
+      },
+      "preparation": {
+        "singleplayer": "Yalnız Yarış",
+        "multiplayer": "Çok Oyunculu Yarış",
+        "hasStarted": "{creatorName}, \"{raceName}\" yarışını başlattı ({places} yer)",
+        "startTimeout": "Yarış {delay} içinde başlayacak",
+        "raceAboutToStart": "Yarış başlamak üzere",
+        "hasStartedVote": "{creatorName}, \"{raceName}\" yarışı için oylama başlattı ({places} yer)",
+        "currentVotes": "Mevcut oylar",
+        "voteTimeout": "Oylama {delay} içinde bitecek",
+        "voteAboutToEnd": "Oylama bitmek üzere",
+        "startVote": "Oylama Başlat",
+        "places": "{places} yer",
+        "notEnoughPlayers": "Çok oyunculu yarış başlatmak için yeterli oyuncu yok"
+      },
+      "play": {
+        "race": "Yarış",
+        "by": "{author} tarafından",
+        "record": "Rekor",
+        "timeout": "Yarış {delay} içinde zaman aşımına uğrayacak",
+        "aboutToTimeout": "Yarış zaman aşımına uğramak üzere",
+        "join": "Yarışa Katıl",
+        "joinFlash": "Aracınızı seçin",
+        "placesRemaining": "{places} yer kaldı",
+        "canMarkReadyIn": "{delay} içinde kullanılabilir",
+        "gameStartsIn": "Yarış {delay} içinde başlayacak",
+        "playerReady": "HAZIR",
+        "playerNotReady": "HAZIR DEĞİL",
+        "players": "Oyuncular",
+        "waitingForOtherPlayers": "Diğer oyuncular bekleniyor...",
+        "flashCountdownZero": "GİT !!!",
+        "eliminatedIn": "{delay} içinde eleneceksiniz",
+        "showAllData": "Tümünü göster",
+        "WP": "KN {wp}",
+        "Lap": "Tur {lap}",
+        "wpDifference": "+{wpDifference}KN",
+        "finalLapFlash": "Son Tur",
+        "finishFlashSolo": "Bitirdiniz!",
+        "finishFlashMulti": "#{place} olarak bitirdiniz!",
+        "eliminatedTime": "ELENDİNİZ",
+        "flashWinner": "{playerName} yarışı kazandı!",
+        "flashDnfOut": "ELENDİNİZ",
+        "launchedRespawn": "Yeniden doğma başlatıldı"
+      },
+      "leaderboard": {
+        "title": "Yarışlar Lider Tablosu",
+        "amountPBs": "Toplam PB'ler",
+        "removeAllPBsButton": "Tüm PB'leri kaldır",
+        "removeAllPBsModal": "Sunucudaki tüm PB'lerinizi kaldırmak istediğinizden emin misiniz?",
+        "race": "Yarış",
+        "pb": "PB",
+        "attempts": "Denemeler",
+        "record": "Rekor",
+        "removePBModal": "{raceName} yarışındaki PB'nizi kaldırmak istediğinizden emin misiniz?"
+      }
+    },
+    "energy": {
+      "energyTypes": {
+        "gasoline": "Benzin",
+        "diesel": "Mazot",
+        "kerosine": "Gazyağı",
+        "n2o": "NOS",
+        "electricEnergy": "Elektrik"
+      },
+      "tankNames": {
+        "gasoline": "Benzin deposu",
+        "diesel": "Mazot deposu",
+        "kerosine": "Gazyağı deposu",
+        "n2o": "NOS şişesi",
+        "electricEnergy": "Elektrik pilleri"
+      },
+      "energyUnits": {
+        "gasoline": "L",
+        "diesel": "L",
+        "kerosine": "L",
+        "n2o": "kg",
+        "electricEnergy": "kWh"
+      },
+      "stationNames": {
+        "gasoline": "Benzin istasyonu",
+        "diesel": "Benzin istasyonu",
+        "kerosine": "Havaalanı istasyonu",
+        "n2o": "Garaj",
+        "electricEnergy": "Şarj istasyonu"
+      }
+    },
+    "energyStations": {
+      "flashBatteryFilled": "Piller şarj edildi",
+      "flashTankFilled": "Depo dolduruldu",
+      "flashTanksFilled": "Depolar dolduruldu",
+      "emergencyRefuel": "Acil yakıt doldurma",
+      "edit": {
+        "title": "Enerji İstasyonları Editörü",
+        "name": "İstasyon adı",
+        "types": "Tür(ler)",
+        "radius": "Yarıçap",
+        "saveErrorToast": "Enerji istasyonları kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "buttons": {
+          "refreshMarkers": "İşaretleri yenile",
+          "addStationHere": "Buraya bir istasyon ekle",
+          "showStation": "İstasyonu göster",
+          "setStationHere": "İstasyonu buraya ayarla",
+          "deleteStation": "İstasyonu sil"
+        }
+      }
+    },
+    "garages": {
+      "damagedWarning": "Aracınız hasarlı",
+      "flashVehicleRepaired": "Araç onarıldı",
+      "edit": {
+        "title": "Garajlar Editörü",
+        "name": "Garaj adı",
+        "radius": "Yarıçap",
+        "saveErrorToast": "Garajlar kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "buttons": {
+          "refreshMarkers": "İşaretleri yenile",
+          "addGarageHere": "Buraya bir garaj ekle",
+          "showGarage": "Garajı göster",
+          "setGarageHere": "Garajı buraya ayarla",
+          "deleteGarage": "Garajı sil"
+        }
+      }
+    },
+    "delivery": {
+      "leaderboard": {
+        "title": "Teslimat Lider Tablosu",
+        "delivered": "araçlar ve paketler teslim edildi"
+      },
+      "currentDelivery": "Mevcut teslimat",
+      "distanceLeft": "{distance} kaldı",
+      "edit": {
+        "title": "Teslimat Editörü",
+        "hubs": "Merkezler",
+        "hub": "Merkez {index}",
+        "positions": "Konumlar",
+        "position": "Konum {index}",
+        "radius": "Yarıçap",
+        "saveErrorToast": "Teslimatlar kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "buttons": {
+          "refreshMarkers": "İşaretleri yenile",
+          "addHub": "Buraya merkez ekle",
+          "showHub": "Merkezi göster",
+          "setHubHere": "Merkez konumunu buraya ayarla",
+          "deleteHub": "Merkezi sil",
+          "addPosition": "Buraya konum ekle",
+          "showPosition": "Konumu göster",
+          "setPositionHere": "Konumu buraya ayarla",
+          "deletePosition": "Konumu sil"
+        }
+      }
+    },
+    "vehicleDelivery": {
+      "title": "Araç teslimatı",
+      "vehicle": "Araç",
+      "damagedWarning": "Araç hasarlı, ödülünüz azaltılacaktır.",
+      "flashStart": "Araç teslimatı",
+      "flashFail": "Teslimat başarısız",
+      "flashSuccess": "Aferin!",
+      "deliveredIn": "{delay} içinde teslim edildi"
+    },
+    "packageDelivery": {
+      "title": "Paket teslimatı",
+      "currentStreak": "Teslim edilen paket(ler): {streak}",
+      "streakTooltip": "Paketleri art arda teslim etmeye devam edin, daha fazla ödül kazanacaksınız",
+      "flashStart": "Paket teslimatı",
+      "flashFirstPackage": "Paket teslim edildi!",
+      "flashPackageStreak": "{streak} paket teslim edildi!",
+      "flashEnd": "Teslimat sona erdi",
+      "depositIn": "{delay} içinde teslimat"
+    },
+    "deliveryTogether": {
+      "title": "Birlikte teslimat",
+      "reachDestination": "Hedefe ulaşın",
+      "streak": "Seri",
+      "resetted": "Sıfırlandı",
+      "distance": "Mesafe",
+      "flashPackage": "Paket teslim edildi!",
+      "waitingForOtherPlayers": "{amount} oyuncu daha bekleniyor...",
+      "waitingForTarget": "Bir sonraki hedef bekleniyor...",
+      "depositIn": "{delay} içinde teslimat"
+    },
+    "buslines": {
+      "edit": {
+        "title": "Otobüs Hatları Editörü",
+        "line": "Hat {index}",
+        "lineName": "Ad",
+        "loopable": "Döngü Olabilir",
+        "stops": "Hat durakları",
+        "stop": "Durak {index}",
+        "stopsMinimumError": "En az 2 durak gerekli",
+        "stopName": "Ad",
+        "stopRadius": "Yarıçap",
+        "goTo": "Git",
+        "moveHere": "Buraya Taşı",
+        "addStopHere": "Buraya Durak Ekle",
+        "createLineHere": "Burada Hat Oluştur",
+        "saveErrorToast": "Otobüs hatları kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "buttons": {
+          "showLine": "Otobüs hattı işaretlerini göster",
+          "deleteLine": "Otobüs hattını sil",
+          "spawnBus": "Burada bir otobüs oluştur",
+          "addBusLine": "Buraya bir otobüs hattı ekle",
+          "showStop": "Otobüs durağını göster",
+          "setStopHere": "Otobüs durağını buraya ayarla",
+          "deleteStop": "Otobüs durağını sil",
+          "toggleLoopable": "Devre ve nokta-nokta otobüs hattı arasında geçiş yap",
+          "addStopHere": "Buraya bir otobüs durağı ekle",
+          "errorNeedABus": "Bir otobüs aracına ihtiyacınız var"
+        }
+      },
+      "preparation": {
+        "title": "Otobüs Görevi Hazırlığı",
+        "line": "Otobüs Hattı",
+        "config": "Araç",
+        "customConfig": "özel"
+      },
+      "play": {
+        "title": "Otobüs Görevi",
+        "line": "Otobüs Hattı {name}",
+        "stopCount": "Durak {current}/{total}",
+        "flashStopped": "Otobüs görevi durduruldu!",
+        "flashDriveNext": "Bir sonraki otobüs durağına sürün",
+        "flashFinish": "Aferin!",
+        "stopValidatedIn": "Durak {delay} içinde onaylandı"
+      }
+    },
+    "ai": {
+      "toastCantSpawn": "Yapay zeka araçları oluşturamazsınız",
+      "policeDisabled": "Polis yapay zekası devre dışı, standart trafik araçları oluşturuluyor...",
+      "onlyTrafficModeEnabled": "Trafik dışındaki tüm modlar devre dışı",
+      "limitReached": "Trafik sınırına ulaşıldı ({amount})"
+    },
+    "speed": {
+      "vote": {
+        "hasStarted": "{creatorName} bir hız oyunu başlattı",
+        "timeout": "Oyun {delay} içinde başlayacak",
+        "speedAboutToStart": "Oyun başlamak üzere",
+        "voteTimeout": "Oylama {delay} içinde bitecek",
+        "voteAboutToEnd": "Oylama bitmek üzere",
+        "hasStartedVote": "{creatorName} bir hız oyunu başlatmak için oylama başlattı",
+        "participants": "Katılımcılar"
+      },
+      "title": "Hız Oyunu",
+      "minimumSpeed": "Minimum Hız: {speed}",
+      "counterWarning": "Minimum hıza ulaşmak için {seconds} saniyeniz kaldı",
+      "leaderboard": "Lider Tablosu",
+      "speedUnit": "km/s",
+      "flashStartCancelled": "Yeterli oyuncu yok!",
+      "flashStart": "Hız sınırının üzerinde kalın!",
+      "realtimeMinSpeed": "Minimum hız: {speed}",
+      "flashFailed": "Başarısız!",
+      "flashWinner": "{playerName} hız oyununu kazandı!"
+    },
+    "vehicleSelector": {
+      "deleteCurrent": "Mevcutu kaldır",
+      "deleteOtherPlayerVehicleModal": "Bu sizin aracınız değil ve oyuncu onu kaldırıp tekrar oluşturana kadar aktif olmayacak. Kaldırmak istediğinizden emin misiniz?",
+      "deleteOthers": "Diğerlerini kaldır",
+      "previousVeh": "Öncekini yükle",
+      "setAsDefault": "Varsayılan olarak ayarla",
+      "defaultVeh": "Varsayılanı yükle",
+      "cloneCurrent": "Mevcutu kopyala",
+      "resetAll": "Tümünü sıfırla",
+      "noVeh": "Araç bulunamadı",
+      "notAllowed": "Şu anda izin verilmiyor",
+      "protectedVehicle": "Araç korunuyor",
+      "selfProtected": "Yapılandırma klonlama koruması etkin. Belirli aracınızı kullanmak istiyorsanız kapatmayı unutmayın.",
+      "invalidVeh": "Geçersiz araç",
+      "openVehSelector": "Araç seçiciyi aç",
+      "paints": "Boya",
+      "applyPaint": "Böy {position}",
+      "cars": "Arabalar",
+      "trucks": "Kamyonlar",
+      "trailers": "Römorklar",
+      "props": "Prop",
+      "filterTooltip": "Model veya hazır ayar etiketine göre filtrele",
+      "noMatch": "Eşleşme yok ..."
+    },
+    "database": {
+      "players": {
+        "title": "Oyuncular",
+        "playerName": "Oyuncu",
+        "group": "Grup",
+        "lastKickReason": "Son atılma nedeni",
+        "banned": "Yasaklandı",
+        "tempBanEndsIn": "{secs} içinde biter",
+        "banReason": "Yasaklama Nedeni",
+        "lastBanReason": "Son yasaklama nedeni",
+        "muted": "Susturuldu",
+        "muteReason": "Susturma Nedeni",
+        "lastMuteReason": "Son susturma nedeni",
+        "filterTooltip": "Oyuncu adına göre filtrele",
+        "unban": "Yasağı kaldır"
+      },
+      "vehicles": {
+        "title": "Araçlar",
+        "blacklistDescription": "Kara listeye alınan araçlar hâlâ yetkililer tarafından görülebilir ve üretilebilir.",
+        "blacklistedModels": "Kara Listeye Alınan Modeller"
+      }
+    },
+    "hunter": {
+      "settings": {
+        "title": "Avcı Ayarları",
+        "huntedWaypoints": "Kaçak Yol Noktaları",
+        "huntedWaypointsTooltip": "Kaçakların kazanmak için toplaması gereken yol noktası sayısı",
+        "huntedConfig": "Kaçak Yapılandırması",
+        "huntedConfigTooltip": "Kaçakların seçebileceği araç yapılandırması (hiçbiri yoksa, herhangi bir oyun yapılandırması seçilebilir)",
+        "hunterConfigs": "Avcı Yapılandırmaları",
+        "hunterConfigsTooltip": "Avcıların seçebileceği araç yapılandırmaları (hiçbiri yoksa, herhangi bir oyun yapılandırması seçilebilir)",
+        "toastConfigAlreadySaved": "Yapılandırma zaten kayıtlı",
+        "specificConfig": "Belirli {model}",
+        "lastWaypointGPS": "Son Yol Noktası Açığa Çıkarma",
+        "lastWaypointGPSTooltip": "Sadece bir yol noktası kaldığında avcılar kaçak nerede (İsim etiketi & GPS) görebilir",
+        "notEnoughPlayers": "Avcı modunu başlatmak için yeterli oyuncu yok"
+      },
+      "vote": {
+        "hasStarted": "{creatorName}, avcı oyunu başlattı ({places} yer)",
+        "hasStartedVote": "{creatorName}, avcı oyunu başlatmak için oylama başlattı ({places} yer)",
+        "timeout": "Oyun {delay} içinde başlayacak",
+        "aboutToStart": "Oyun başlamak üzere",
+        "voteTimeout": "Oylama {delay} içinde bitecek",
+        "voteAboutToEnd": "Oylama bitmek üzere",
+        "currentVotes": "Mevcut oylar"
+      },
+      "play": {
+        "flashChooseVehicle": "Aracınızı seçin",
+        "flashHunterResume": "Kaçağı durdurun!",
+        "flashHuntedStart": "Hayatta kalın ve tüm yol noktalarına ulaşın",
+        "preparationTimeoutIn": "Hazırlık zaman aşımı {delay} içinde",
+        "preparationTimeoutAboutToEnd": "Hazırlık zaman aşımı bitmek üzere",
+        "startIn": "{delay} içinde başlayacaksınız",
+        "huntedLooseIn": "{delay} içinde kaybedeceksiniz",
+        "huntedAboutToLoose": "Kaybetmek üzere",
+        "hunterResumeIn": "{delay} içinde devam edeceksiniz",
+        "configChoose": "Aracınızı seçin",
+        "readyMark": "HAZIR",
+        "notReadyMark": "HAZIR DEĞİL",
+        "hunted": "Kaçak",
+        "hunters": "Avcılar",
+        "waypoints": "yol noktaları",
+        "setAsFugitive": "Kaçak olarak ayarla"
+      }
+    },
+    "derby": {
+      "edit": {
+        "title": "Yıkım Editörü",
+        "arena": "Arena {index}",
+        "name": "Ad",
+        "enabled": "Etkin",
+        "enabledTooltip": "Bu arena başlatılabilir mi?",
+        "previewPosition": "Önizleme Konumu",
+        "previewPositionTooltip": "Yıkım başladığında serbest kamera konumu",
+        "centerPosition": "Merkez Konumu",
+        "radius": "Başlangıç Yarıçapı",
+        "startPositions": "Başlangıç Konumları",
+        "startPositionName": "Başlangıç {index}",
+        "amountStartPositionsNeeded": "{amount} eksik nokta",
+        "saveErrorToast": "Yıkım verileri kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin",
+        "buttons": {
+          "addArena": "Arena ekle",
+          "showArena": "Arena işaretlerini göster",
+          "deleteArena": "Arena sil",
+          "toggleArenaVisibility": "Arena görünürlüğünü değiştir",
+          "setPreviewPositionHere": "Arena önizleme konumunu buraya ayarla",
+          "showPreviewPosition": "Arena önizleme konumunu göster",
+          "setCenterPositionHere": "Arena merkez konumunu buraya ayarla",
+          "showCenterPosition": "Arena merkez konumunu göster",
+          "addStartPositionHere": "Buraya bir başlangıç konumu ekle",
+          "showStartPosition": "Başlangıç konumunu göster",
+          "setStartPositionHere": "Başlangıç konumunu buraya ayarla",
+          "deleteStartPosition": "Başlangıç konumunu sil"
+        }
+      },
+      "settings": {
+        "title": "Yıkım Yarışı Ayarları",
+        "places": "{places} yer",
+        "presets": "Hazır Ayarlar",
+        "lives": "Can",
+        "configs": "Araç yapılandırmaları",
+        "configsTooltip": "Oyuncuların seçebileceği araç yapılandırmaları (hiçbiri yoksa, herhangi bir oyun yapılandırması seçilebilir)",
+        "toastConfigAlreadySaved": "Yapılandırma zaten kayıtlı",
+        "specificConfig": "Belirli {model}",
+        "notEnoughPlayers": "Yıkım yarışını başlatmak için yeterli oyuncu yok"
+      },
+      "vote": {
+        "hasStarted": "{creatorName}, \"{arenaName}\" arenasında yıkım maçı başlattı ({places} yer)",
+        "hasStartedVote": "{creatorName}, \"{arenaName}\" arenasında yıkım maçı başlatmak için oylama başlattı ({places} yer)",
+        "timeout": "Maç {delay} içinde başlayacak",
+        "aboutToStart": "Maç başlamak üzere",
+        "voteTimeout": "Oylama {delay} içinde bitecek",
+        "voteAboutToEnd": "Oylama bitmek üzere",
+        "currentVotes": "Mevcut oylar"
+      },
+      "play": {
+        "flashNoLifeRemaining": "Son can",
+        "flashLifeRemaining": "{lives} can kaldı",
+        "flashLivesRemaining": "{lives} can kaldı",
+        "flashStart": "GİT !!!",
+        "flashElimination": "ELENDİNİZ",
+        "preparationTimeoutIn": "Hazırlık {delay} içinde biter",
+        "preparationTimeoutAboutToEnd": "Hazırlık bitmek üzere",
+        "gameStartsIn": "Oyun {delay} içinde başlar",
+        "resetIn": "{delay} içinde sıfırlanacaksınız",
+        "eliminatedIn": "{delay} içinde eleneceksiniz",
+        "arenaName": "Arena {name}",
+        "readyMark": "HAZIR",
+        "notReadyMark": "HAZIR DEĞİL",
+        "amountLife": "{amount} can",
+        "amountLives": "{amount} can"
+      }
+    },
+    "tournament": {
+      "title": "Turnuva",
+      "state": "Etkin",
+      "whitelist": "Beyaz Liste",
+      "activityTimeoutIn": "Etkinlik zaman aşımı {delay} içinde",
+      "activityAboutToTimeout": "Etkinlik zaman aşımı bitmek üzere",
+      "total": "Toplam",
+      "startActivity": "Etkinliği Başlat",
+      "track": "Parkur",
+      "arena": "Arena",
+      "duration": "Süre",
+      "noParticipant": "Henüz katılımcı yok",
+      "zeroScoreTooltip": "Skoru kaldırmak için 0 olarak ayarlayın",
+      "buttons": {
+        "endSoloActivity": "Yalnız Etkinliği Bitir",
+        "endTournament": "Turnuvayı Bitir",
+        "endTournamentTooltip": "Katılımcıların konumlarını sohbette yayınlayacak",
+        "errorMustHaveVehicle": "Bir aracınız olmalı"
+      },
+      "activities": {
+        "raceSolo": "Zaman Saldırısı",
+        "race": "Yarış",
+        "speed": "Hız",
+        "hunter": "Avcı",
+        "infected": "Enfekte",
+        "derby": "Yıkım",
+        "tag": "Enfekte"
+      }
+    },
+    "tagduo": {
+      "flashWaitingForPlayer": "Bir oyuncu bekleniyor...",
+      "flashWaitForSpread": "Devam etmek için dağılın",
+      "flashChase": "Kovala!",
+      "flashFlee": "Kaç!",
+      "flashTag": "Etiket!",
+      "title": "Etiket - {playerName} kişisinin lobisi",
+      "taggerMark": "Etiketleyen"
+    },
+    "hunterInfectedEditor": {
+      "title": "Avcı/Enfekte Editörü",
+      "enabled": "Oylanabilir mod",
+      "buttons": {
+        "refreshMarkers": "İşaretleri Yenile",
+        "toggleModeVisibility": "Mod görünürlüğünü değiştir"
+      },
+      "errors": {
+        "missingPoints": "{amount} eksik nokta",
+        "saveErrorToast": "Veri kaydedilemedi, lütfen tekrar deneyin veya yöneticiyle iletişime geçin"
+      },
+      "hunter": {
+        "title": "Avcı",
+        "fields": {
+          "hunters": "Avcılar",
+          "hunted": "Kaçak",
+          "waypoints": "Yol Noktaları",
+          "radius": "Yarıçap"
+        },
+        "buttons": {
+          "showHunterStartPosition": "Avcı başlangıç konumunu göster",
+          "setHunterStartPositionHere": "Avcı başlangıç konumunu buraya ayarla",
+          "deleteHunterStartPosition": "Avcı başlangıç konumunu sil",
+          "addHunterStartPositionHere": "Buraya bir avcı başlangıç konumu ekle",
+          "showHuntedStartPosition": "Kaçak başlangıç konumunu göster",
+          "setHuntedStartPositionHere": "Kaçak başlangıç konumunu buraya ayarla",
+          "deleteHuntedStartPosition": "Kaçak başlangıç konumunu sil",
+          "addHuntedStartPositionHere": "Buraya bir kaçak başlangıç konumu ekle",
+          "addWaypointHere": "Buraya bir yol noktası ekle",
+          "showWaypoint": "Yol noktasını göster",
+          "setWaypointHere": "Yol noktasını buraya ayarla",
+          "deleteWaypoint": "Yol noktasını sil"
+        },
+        "tags": {
+          "waypointName": "Yol Noktası {index}",
+          "hunterName": "Avcı {index}",
+          "huntedName": "Kaçak {index}"
+        }
+      },
+      "infected": {
+        "title": "Enfekte",
+        "fields": {
+          "survivors": "Hayatta Kalanlar",
+          "infected": "Enfekte"
+        },
+        "buttons": {
+          "showSurvivorStartPosition": "Hayatta kalan başlangıç konumunu göster",
+          "setSurvivorStartPositionHere": "Hayatta kalan başlangıç konumunu buraya ayarla",
+          "deleteSurvivorStartPosition": "Hayatta kalan başlangıç konumunu sil",
+          "addSurvivorStartPositionHere": "Buraya bir hayatta kalan başlangıç konumu ekle",
+          "showInfectedStartPosition": "Enfekte başlangıç konumunu göster",
+          "setInfectedStartPositionHere": "Enfekte başlangıç konumunu buraya ayarla",
+          "deleteInfectedStartPosition": "Enfekte başlangıç konumunu sil",
+          "addInfectedStartPositionHere": "Buraya bir enfekte başlangıç konumu ekle"
+        },
+        "tags": {
+          "survivorName": "Hayatta Kalan {index}",
+          "infectedName": "Enfekte {index}"
+        }
+      }
+    },
+    "infected": {
+      "settings": {
+        "endAfterLastSurvivorInfected": "Son hayatta kalan enfekte",
+        "endAfterLastSurvivorInfectedTooltip": "Etkinleştirilirse, son hayatta kalan enfekte edildikten sonra oyun sona erecek, aksi takdirde sadece 1 hayatta kalan kaldığında oyun sona erecek",
+        "config": "Araç",
+        "enableColors": "Araç renkleri",
+        "survivorsColor": "Hayatta kalanlar rengi",
+        "infectedColor": "Enfekte rengi"
+      },
+      "vote": {
+        "hasStarted": "{creatorName}, enfekte oyunu başlattı ({places} yer)",
+        "hasStartedVote": "{creatorName}, enfekte oyunu başlatmak için oylama başlattı ({places} yer)",
+        "timeout": "Oyun {delay} içinde başlayacak",
+        "aboutToStart": "Oyun başlamak üzere",
+        "voteTimeout": "Oylama {delay} içinde bitecek",
+        "voteAboutToEnd": "Oylama bitmek üzere",
+        "currentVotes": "Mevcut oylar"
+      },
+      "play": {
+        "flashChooseVehicle": "Aracınızı seçin",
+        "flashInfectedStart": "Hayatta kalanları enfekte edin",
+        "flashSurvivorStart": "Enfeksiyondan kaçının",
+        "preparationTimeoutIn": "Hazırlık zaman aşımı {delay} içinde",
+        "preparationTimeoutAboutToEnd": "Hazırlık zaman aşımı bitmek üzere",
+        "startIn": "{delay} içinde başlayacaksınız",
+        "configChoose": "Aracınızı seçin",
+        "readyMark": "HAZIR",
+        "notReadyMark": "HAZIR DEĞİL",
+        "infected": "Enfekte",
+        "survivors": "Hayatta Kalanlar",
+        "setAsInfected": "Enfekte olarak ayarla",
+        "infectedAmount": "{amount} enfekte",
+        "remainingSurvivors": "{amount} hayatta kalan kaldı"
+      }
+    },
+    "interactiveMarkers": {
+      "station": {
+        "typeFuel": "Benzin İstasyonu",
+        "buttonFuel": "Depo(lar)ı doldur",
+        "alreadyFullFuel": "Zaten dolu",
+        "typeElectric": "Elektrik İstasyonu",
+        "buttonElectric": "Pilleri şarj et",
+        "alreadyFullElectric": "Zaten dolu"
+      },
+      "garage": {
+        "type": "Garaj",
+        "buttonRepair": "Araç onar",
+        "alreadyRepaired": "Zaten iyi durumda",
+        "refuelNOS": "NOS doldur",
+        "alreadyFull": "Zaten dolu"
+      },
+      "race": {
+        "typeSolo": "Yalnız Zaman Saldırısı",
+        "typeMulti": "Sunucu Yarışı",
+        "button": "Ayarları aç"
+      },
+      "delivery": {
+        "type": "Teslimat",
+        "labelVehicle": "Araç Teslimatı",
+        "buttonVehicle": "Teslimat başlat",
+        "labelPackage": "Paket Teslimatı",
+        "buttonPackage": "Teslimat başlat",
+        "labelMulti": "Birlikte Teslimat",
+        "buttonMulti": "Katıl"
+      },
+      "busMission": {
+        "type": "Otobüs Görevi",
+        "button": "Hazırlık aç"
+      },
+      "derby": {
+        "type": "Sunucu Yıkımı",
+        "button": "Ayarları aç"
+      }
+    },
+    "bigmap": {
+      "groups": {
+        "races": "Yarışlar",
+        "busMissions": "Otobüs Görevleri",
+        "derbyArenas": "Yıkım Arenaları",
+        "garages": "Garajlar",
+        "gasStations": "Benzin İstasyonları"
+      },
+      "activities": {
+        "race": "Yarış ({places} yer)",
+        "busMission": "Otobüs Görevi ({distance})",
+        "derby": "Yıkım ({places} yer)",
+        "garage": "Garaj",
+        "gasStation": "Benzin İstasyonu ({energyTypes})",
+        "electricStation": "Elektrik İstasyonu"
+      },
+      "descriptions": {
+        "raceLoopable": "Hassasiyet ve tempo için inşa edilmiş kapalı bir devre. Tutarlı turlar ve iyi tanımlanmış akış ile rekabetçi yarışlar için idealdir.",
+        "raceSprint": "Bir konumdan diğerine doğrusal bir yarış. Turlar yok—sadece adaptasyon, zamanlama ve temiz uygulamayı ödüllendiren dinamik bir rota.",
+        "busMission": "Yolcuları al ve onları güvenli bir şekilde şehirler arası taşı. Programa bağlı kal, trafikte gezin ve ödüller için rotanı tamamla. Duraklar: {stops}",
+        "derby": "Hayatta kalmak hedeflenen kaotik bir arena. Bu tam temaslı motor mayhem'de ez, ram ve rakiplerini alt et.",
+        "garage": "Araç sağlığını geri yüklemek veya NOS rezervlerini doldurmak için tam hizmetli bir garaj.",
+        "gasStation": "Yakıt motorlu araçlar için standart yakıt istasyonu. Yolda kalmak için hızlı dolumlar.",
+        "electricStation": "Elektrikli araçlar için şarj merkezi. Elektrikli aracınızı en iyi performansta tutmak için verimli, sessiz güç."
+      }
+    }
+  }
+}
