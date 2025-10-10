@@ -20,7 +20,7 @@ function ctrl.MapStop(ctxt)
         ctxt.senderID ~= BJCVote.Map.creatorID then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCVote.Map.stop()
+    BJCVote.Map.stop(ctxt.senderID)
 end
 
 ---@param ctxt BJCContext
@@ -49,7 +49,7 @@ function ctrl.KickStop(ctxt)
         ctxt.senderID ~= BJCVote.Kick.creatorID then
         error({ key = "rx.errors.insufficientPermissions" })
     end
-    BJCVote.Kick.stop()
+    BJCVote.Kick.stop(ctxt.senderID)
 end
 
 ---@param ctxt BJCContext

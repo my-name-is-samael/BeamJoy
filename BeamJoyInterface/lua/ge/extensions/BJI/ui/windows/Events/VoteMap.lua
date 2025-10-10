@@ -5,9 +5,10 @@ return function(ctxt, cache)
     if not vm then
         vm = BJI_Votes.Map
     end
-    Text(cache.creator,
-        BJI_Context.User.playerID == vm.creatorID and
-        BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT)
+    Text(cache.creator, {
+        color = BJI_Context.User.playerID == vm.creatorID and
+            BJI.Utils.Style.TEXT_COLORS.HIGHLIGHT or BJI.Utils.Style.TEXT_COLORS.DEFAULT
+    })
     SameLine()
     Text(cache.hasStarted)
     SameLine()

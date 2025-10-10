@@ -109,9 +109,10 @@ function M.Kick.vote(senderID)
     end
 end
 
-function M.Kick.stop()
+function M.Kick.stop(senderID)
     if kickStarted() then
-        BJCChat.sendChatEvent("chat.events.voteCancelled", {
+        BJCChat.sendChatEvent(senderID == M.Kick.creatorID and
+            "chat.events.voteCancelledByCreator" or "chat.events.voteCancelled", {
             voteEvent = "chat.events.voteEvents.playerKick",
             suffix = BJCPlayers.Players[M.Kick.targetID].playerName
         })
@@ -243,12 +244,13 @@ function M.Map.vote(senderID)
     end
 end
 
-function M.Map.stop()
+function M.Map.stop(senderID)
     if mapStarted() then
-        BJCChat.sendChatEvent("chat.events.voteCancelled", {
-            voteEvent = "chat.events.voteEvents.mapSwitch",
-            suffix = BJCMaps.Data[M.Map.targetMap].label
-        })
+        BJCChat.sendChatEvent(senderID == M.Map.creatorID and
+            "chat.events.voteCancelledByCreator" or "chat.events.voteCancelled", {
+                voteEvent = "chat.events.voteEvents.mapSwitch",
+                suffix = BJCMaps.Data[M.Map.targetMap].label
+            })
         mapReset()
     end
 end
