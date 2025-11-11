@@ -148,7 +148,7 @@ local function consoleSetMap(args)
     local maps = {}
     for mapName, map in pairs(BJCMaps.Data) do
         if map.enabled then
-            table.insert(maps, mapName)
+            table.insert(maps, tostring(mapName))
         end
     end
     table.sort(maps, function(a, b) return a:lower() < b:lower() end)
