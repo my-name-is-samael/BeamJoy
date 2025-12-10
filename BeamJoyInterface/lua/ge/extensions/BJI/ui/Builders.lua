@@ -582,11 +582,6 @@ TableNextColumn = ui_imgui.TableNextColumn or function() end
 EndTable = function()
     ui_imgui.EndTable()
 end
-
----@param name string
-SetupWindow = function(name)
-    BJI_Context.GUI.setupWindow(name)
-end
 ---@param title string
 ---@param openPtr {[0]: boolean}? window not closeable if nil
 ---@param flags integer?
@@ -605,7 +600,6 @@ RenderWindow = function(ctxt, title, data)
     scale = BJI_LocalStorage.get(BJI_LocalStorage.GLOBAL_VALUES.UI_SCALE)
     data.flags = data.flags or {}
 
-    SetupWindow(data.name)
     if not table.includes(data.flags, BJI.Utils.Style.WINDOW_FLAGS.ALWAYS_AUTO_RESIZE) then
         if data.size then
             SetNextWindowSize(ImVec2(data.size.x * scale, data.size.y * scale))

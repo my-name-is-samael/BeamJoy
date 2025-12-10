@@ -103,7 +103,7 @@ M.actions = {
             end
         end,
         downBaseAction = function()
-            M.baseFunctions.extensions.commands.dropPlayerAtCamera()
+            M.baseFunctions.extensions.commands.dropPlayerAtCamera(0)
         end,
     },
     dropPlayerAtCameraNoReset = {
@@ -115,7 +115,7 @@ M.actions = {
             end
         end,
         downBaseAction = function()
-            M.baseFunctions.extensions.commands.dropPlayerAtCameraNoReset()
+            M.baseFunctions.extensions.commands.dropPlayerAtCameraNoReset(0)
         end,
     },
     reset_physics = {
