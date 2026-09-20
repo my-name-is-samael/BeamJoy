@@ -20,7 +20,7 @@ In addition, it includes a built-in framework to make it modular, allowing devel
 
 # ${\color{red}DISCONTINUED}$
 
-This project is no longer actively maintained and has been discontinued. The project has been taken over by CaptainNugget with his own implementation of BeamJoy Sandbox, available on [this repo](https://github.com/foodcache3/BeamJoy-sandbox).<br/>
+This project is no longer actively maintained and has been discontinued. The project has been taken over by CaptainNugget with his own implementation of BeamJoy Sandbox, available on [this repo](https://github.com/foodcache3/BeamJoy-Revived).<br/>
 The [discord server](https://github.com/foodcache3/BeamJoy-sandbox) remains with CaptainNugget's new implementation !
 
 ## Credits
